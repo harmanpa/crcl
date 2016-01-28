@@ -23,6 +23,8 @@ include_directories(
   include
 )
 
+add_definitions(-DSTRINGOUT -DNO_ECHO)
+
 add_library(xml_parser_generator 
   src/patternLex.cc
   src/patternYACC.cc

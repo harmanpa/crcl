@@ -8,7 +8,8 @@ int main(int argc, char * argv[])
   CRCLCommandInstanceType * CRCLCommandInstanceIn;
   EndCanonType * EndCanonCommand;
   CRCLCommandInstanceFile * CRCLCommandInstanceFileIn;
-  FILE * outFile;
+  int k;
+  char outStr[1024];
 
   versionIn = new XmlVersion(true);
   headerIn = new XmlHeaderForCRCLCommandInstance;
@@ -23,8 +24,9 @@ int main(int argc, char * argv[])
   EndCanonCommand->CommandID = new XmlPositiveInteger("3");
   CRCLCommandInstanceIn->Name = 0;
   CRCLCommandInstanceIn->CRCLCommand = EndCanonCommand;
-  outFile = fopen("EndCRCLCommandFile", "w");
-  CRCLCommandInstanceFileIn->printSelf(outFile);
-  fclose(outFile);
+  k = 0;
+  CRCLCommandInstanceFileIn->printSelf(outStr, &k);
+  printf("%s\n", outStr);
+  printf("%d\n", k);
   return 0;
 }

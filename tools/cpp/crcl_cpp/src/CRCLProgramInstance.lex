@@ -27,9 +27,27 @@ This ignores white space outside of meaningful strings of characters.
 #define ECHO_IT 0
 #endif
 #define ECH if (ECHO_IT) ECHO
+#undef YY_INPUT
+#define YY_INPUT(b, r, ms) (r = set_yyinput(b, ms))
 
 extern int yyReadData;
 extern int yyReadDataList;
+char * yyStringInputPointer;
+char * yyStringInputEnd;
+
+int set_yyinput(char * buffer, int maxSize)
+{
+  int n;
+
+  n = (maxSize < (yyStringInputEnd - yyStringInputPointer) ?
+       maxSize : (yyStringInputEnd - yyStringInputPointer));
+  if (n > 0)
+    {
+      memcpy(buffer, yyStringInputPointer, n);
+      yyStringInputPointer += n;
+    }
+  return n;
+}
 
 %}
 
