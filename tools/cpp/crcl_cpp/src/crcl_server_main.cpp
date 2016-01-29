@@ -95,18 +95,14 @@ int main(int argc, char * argv[])
 {
   MyCRCLServer me;
   CRCLCommandType *cmd;
-  CRCLStatus stat;
   int retval;
 
-  stat.print();
-  stat.setPose(1, -2, 3, 1, -1, 0.4);
-  stat.print();
+  me.setJointNumber(2);
 
+  me.printStatus();
   return 0;
 
-  me.debug(true);
-
-  me.init(1234);
+  me.getServer(1234);
 
   while (true) {
     printf("waiting for connection...\n");
