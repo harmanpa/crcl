@@ -100,6 +100,9 @@ int main(int argc, char * argv[])
   me.setJointNumber(2);
 
   me.printStatus();
+
+  sleep(3);
+
   return 0;
 
   me.getServer(1234);

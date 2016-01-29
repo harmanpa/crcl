@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pthread.h>
+#include <time.h>
 
 #include <vector>
 
@@ -319,6 +321,63 @@ static int socket_get_connection_id(int socket_fd)
   }
   
   return client_fd;
+}
+
+static int task_start(pthread_t *task,
+		      void *(taskcode)(void *),
+		      void *taskarg,
+		      int prio)
+{
+  pthread_attr_t attr;
+  struct sched_param sched_param;
+
+  pthread_attr_init(&attr);
+  sched_param.sched_priority = prio;
+  pthread_attr_setschedparam(&attr, &sched_param);
+  pthread_create(task, &attr, taskcode, taskarg);
+
+  return 0;
+}
+
+void task_sleep(double secs)
+{
+  int isecs, insecs;
+  struct timespec ts;
+
+  isecs = (int) secs;
+  insecs = (int) ((secs - isecs) * 1.0e9);
+
+  ts.tv_sec = isecs;
+  ts.tv_nsec = insecs;
+
+  (void) nanosleep(&ts, NULL);
+}
+
+static void *beep(void *args)
+{
+  while (true) {
+    printf("beep\n");
+    task_sleep(1);
+  }
+}
+
+// -----------------
+
+CRCLServer::CRCLServer(void)
+{
+  pthread_t pt;
+
+  port = -1;
+  server_fd = -1;
+  client_fd = -1;
+
+  task_start(&pt, beep, NULL, 1);
+}
+
+CRCLServer::~CRCLServer(void)
+{
+  if (-1 != client_fd) close(client_fd);
+  if (-1 != server_fd) close(server_fd);
 }
 
 int CRCLServer::setJointNumber(int jointNumber)

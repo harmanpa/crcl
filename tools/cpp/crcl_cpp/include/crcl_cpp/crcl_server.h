@@ -83,8 +83,8 @@ private:
 class CRCLServer
 {
 public:
-  CRCLServer(void) { port = -1; server_fd = -1; client_fd = -1; };
-  ~CRCLServer(void) { if (-1 != client_fd) close(client_fd) ; if (-1 != server_fd) close(server_fd) ; };
+  CRCLServer(void);
+  ~CRCLServer(void);
 
   int setJointNumber(int);
   int getServer(int);

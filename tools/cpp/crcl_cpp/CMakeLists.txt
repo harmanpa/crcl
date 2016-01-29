@@ -58,6 +58,7 @@ add_executable(crcl_server_main
 target_link_libraries(crcl_server_main
   crcl_cpp
   xml_instance
+  pthread
 )
 
 # 
