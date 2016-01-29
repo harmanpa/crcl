@@ -15,8 +15,8 @@ int main(int argc, char * argv[])
   ParallelGripperStatusType * GripperStatusIn;
 #ifdef STRINGOUT
   char statusMessage[10000];
-  int * K;
-  int k;
+  size_t start;
+  size_t remain;
 #else
   FILE * outFile;
 #endif
@@ -63,10 +63,11 @@ int main(int argc, char * argv[])
 				new XmlDecimal("0"), new XmlDecimal("-1"));
 
 #ifdef STRINGOUT
-  k = 0;
-  K = &k;
-  CRCLStatusFileIn->printSelf(statusMessage, K);
-  printf("%s", statusMessage);
+  start = 0;
+  remain = 10000;
+  CRCLStatusFileIn->printSelf(statusMessage, &remain, &start);
+  if (remain > 0)
+    printf("%s", statusMessage);
 #else
   outFile = fopen("CRCLStatusFile", "w");
   CRCLStatusFileIn->printSelf(outFile);

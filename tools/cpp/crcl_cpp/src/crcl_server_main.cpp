@@ -152,8 +152,8 @@ int main(int argc, char * argv[])
       // else unknown type
       enum {BUFFERLEN = 1024};
       char outbuf[BUFFERLEN];
-      int k = 0;
-      cmd->printSelf(outbuf, &k);
+      size_t left, size = sizeof(outbuf);
+      cmd->printSelf(outbuf, &left, &size);
       printf("what's this?\n");
       printf("%s\n", outbuf);
     } // while (true)

@@ -9,12 +9,15 @@
 #include <string>
 
 #ifdef STRINGOUT
-#define PRINTSELFDECL printSelf(char * outStr, int * N)
-#define PRINTSELF printSelf(outStr, N)
+//#define PRINTSELFDECL printSelf(char * outStr, int * N)
+#define PRINTSELFDECL printSelf(char * outStr, size_t * remain, size_t * N)
+//#define PRINTSELF printSelf(outStr, N)
+#define PRINTSELF printSelf(outStr, remain, N)
 #define SPACESZERO  
 #define SPACESPLUS 
 #define SPACESMINUS 
-#define XFPRINTF xprintf(outStr, N,
+//#define XFPRINTF xprintf(outStr, N,
+#define XFPRINTF xprintf(outStr, remain, N,
 
 #else
 #define PRINTSELFDECL printSelf(FILE * outFile)
@@ -27,7 +30,9 @@
 
 #define NAMESIZE 200
 
-void xprintf(char * outString, int * N, const char * format, ...);
+//void xprintf(char * outString, int * N, const char * format, ...);
+void xprintf(char * outString, size_t * remain, size_t * N, 
+	     const char * format, ...);
 
 /*********************************************************************/
 

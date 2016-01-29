@@ -62,6 +62,7 @@ program, "bad" should first be set to false and then be set to xxxIsBad().
 
 /*********************************************************************/
 
+/*
 void xprintf(char * outString, int * N, const char * format, ...)
 {
   va_list args;
@@ -69,6 +70,28 @@ void xprintf(char * outString, int * N, const char * format, ...)
   va_start (args, format);
   *N += vsprintf(outString + *N, format, args);
   va_end(args);
+}
+*/
+
+void xprintf(char * outString, size_t * remain, size_t * N,
+	     const char * format, ...)
+{
+  va_list args;
+  int k;
+
+  if (*remain > 0)
+    {
+      va_start (args, format);
+      k = vsnprintf((outString + *N), *remain, format, args);
+      if (k > -1)
+	{
+	  *N += k;
+	  *remain = (((size_t)k > *remain) ? 0 : (*remain - (size_t)k));
+	}
+      else
+	*remain = 0;
+      va_end(args);
+    }
 }
 
 /*********************************************************************/

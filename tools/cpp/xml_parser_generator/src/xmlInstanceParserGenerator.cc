@@ -6008,7 +6008,6 @@ generator::generator() /* NO ARGUMENTS */
   lexFile = 0;
   mockCount = 0;
   moreIncludes = new std::list<char *>;
-  stringInput = false;
   // subordinates is a local list
   top = 0;
   target = 0;
@@ -6207,12 +6206,12 @@ Returned Value: int 0
 Called By: user
 
 This:
-1. checks the arguments. Three argument pairs and one singleton
-   argument are allowed, as follows.
+1. checks the arguments. Five argument pairs are allowed, as follows.
+     -a <application include directory>
      -p <prefix>
      -h <old header file name>
+     -i <include directory>
      -x <XML schema name>
-     -s
    <prefix> is the prefix to use in place of yy in the Lex and YACC files
        that are generated. If this is used, gen.yyprefix is set to it.
        Otherwise, gen.yyprefix is set to "yy".
@@ -6222,8 +6221,6 @@ This:
    <old header file name> is the name of an existing header file for
        an earlier version of the schema that may include hand-written
        changes; if this is used, the file is read.
-   -s means that input should be taken from a string. If this is used,
-      gen.stringInput (which has a default value of false) is set to true.
    If there is any error in the arguments, this calls usageMessage,
    (which explains how to call the generator) then exits.
 2. calls readOldHeader to read the old header if there is one.
@@ -6292,16 +6289,6 @@ int main(       /* ARGUMENTS                                      */
 	    {
 	      schemaIndex = n+1;
 	      n += 2;
-	    }
-	}
-      else if (strcmp(argv[n], "-s") == 0)
-	{
-	  if (gen.stringInput == true)
-	    gen.usageMessage(argv[0]);
-	  else
-	    {
-	      gen.stringInput = true;
-	      n++;
 	    }
 	}
       else if (strcmp(argv[n], "-i") == 0)
@@ -11375,43 +11362,39 @@ void generator::printLexStart() /* NO ARGUMENTS  */
   fprintf(lexFile, "#define ECHO_IT 0\n");
   fprintf(lexFile, "#endif\n");
   fprintf(lexFile, "#define ECH if (ECHO_IT) ECHO\n");
-  if (stringInput)
-    {
-      fprintf(lexFile, "#undef YY_INPUT\n");
-      fprintf(lexFile, "#define YY_INPUT(b, r, ms) (r = set_%sinput(b, ms))\n",
-	      yyprefix);
-      fprintf(lexFile, "\n");
-      fprintf(lexFile, "extern int %sReadData;\n", yyprefix);
-      fprintf(lexFile, "extern int %sReadDataList;\n", yyprefix);
-      fprintf(lexFile, "char * %sStringInputPointer;\n", yyprefix);
-      fprintf(lexFile, "char * %sStringInputEnd;\n", yyprefix);
-      fprintf(lexFile, "\n");
-      fprintf(lexFile, "int set_%sinput(char * buffer, int maxSize)\n",
-	      yyprefix);
-      fprintf(lexFile, "{\n");
-      fprintf(lexFile, "  int n;\n");
-      fprintf(lexFile, "\n");
-      fprintf(lexFile,
-	      "  n = (maxSize < (%sStringInputEnd - %sStringInputPointer) ?\n",
-	      yyprefix, yyprefix);
-      fprintf(lexFile,
-	      "       maxSize : (%sStringInputEnd - %sStringInputPointer));\n",
-	      yyprefix, yyprefix);
-      fprintf(lexFile, "  if (n > 0)\n");
-      fprintf(lexFile, "    {\n");
-      fprintf(lexFile, "      memcpy(buffer, %sStringInputPointer, n);\n",
-	      yyprefix);
-      fprintf(lexFile, "      %sStringInputPointer += n;\n", yyprefix);
-      fprintf(lexFile, "    }\n");
-      fprintf(lexFile, "  return n;\n");
-      fprintf(lexFile, "}\n");
-    }
-  else
-    {
-      fprintf(lexFile, "\n");
-      fprintf(lexFile, "extern int %sReadData;\n", yyprefix);
-      fprintf(lexFile, "extern int %sReadDataList;\n", yyprefix);
-    }
+  fprintf(lexFile, "\n");
+  fprintf(lexFile, "#ifdef STRINGIN\n");
+  fprintf(lexFile, "#undef YY_INPUT\n");
+  fprintf(lexFile, "#define YY_INPUT(b, r, ms) (r = set_%sinput(b, ms))\n",
+	  yyprefix);
+  fprintf(lexFile, "\n");
+  fprintf(lexFile, "extern int %sReadData;\n", yyprefix);
+  fprintf(lexFile, "extern int %sReadDataList;\n", yyprefix);
+  fprintf(lexFile, "char * %sStringInputPointer;\n", yyprefix);
+  fprintf(lexFile, "char * %sStringInputEnd;\n", yyprefix);
+  fprintf(lexFile, "\n");
+  fprintf(lexFile, "int set_%sinput(char * buffer, int maxSize)\n", yyprefix);
+  fprintf(lexFile, "{\n");
+  fprintf(lexFile, "  int n;\n");
+  fprintf(lexFile, "\n");
+  fprintf(lexFile,
+	  "  n = (maxSize < (%sStringInputEnd - %sStringInputPointer) ?\n",
+	  yyprefix, yyprefix);
+  fprintf(lexFile,
+	  "       maxSize : (%sStringInputEnd - %sStringInputPointer));\n",
+	  yyprefix, yyprefix);
+  fprintf(lexFile, "  if (n > 0)\n");
+  fprintf(lexFile, "    {\n");
+  fprintf(lexFile, "      memcpy(buffer, %sStringInputPointer, n);\n",
+	  yyprefix);
+  fprintf(lexFile, "      %sStringInputPointer += n;\n", yyprefix);
+  fprintf(lexFile, "    }\n");
+  fprintf(lexFile, "  return n;\n");
+  fprintf(lexFile, "}\n");
+  fprintf(lexFile, "#else\n");
+  fprintf(lexFile, "extern int %sReadData;\n", yyprefix);
+  fprintf(lexFile, "extern int %sReadDataList;\n", yyprefix);
+  fprintf(lexFile, "#endif\n");
   fprintf(lexFile, "\n");
   fprintf(lexFile, "%%}\n");
   fprintf(lexFile, "\n");
@@ -11524,19 +11507,19 @@ void generator::printParser() /* NO ARGUMENTS */
   fprintf(parserFile, "#include <stdlib.h>  // exit\n");
   fprintf(parserFile, "#include \"%s%sClasses.hh\"\n",
 	  appIncludePrefix, baseNameNoPath);
-  if (stringInput)
-    fprintf(parserFile, "#define MAX_SIZE 10000000\n");
+  fprintf(parserFile, "#ifdef STRINGIN\n");
+  fprintf(parserFile, "#define MAX_SIZE 10000000\n");
+  fprintf(parserFile, "#endif\n");
   fprintf(parserFile, "\n");
   fprintf(parserFile, "extern %sFile * %sTree;\n",
 	  classBaseName, top->newName);
   fprintf(parserFile, "extern FILE * %sin;\n", yyprefix);
   fprintf(parserFile, "extern int %sparse();\n", yyprefix);
   fprintf(parserFile, "extern void %slex_destroy();\n", yyprefix);
-  if (stringInput)
-    {
-      fprintf(parserFile, "extern char * %sStringInputPointer;\n", yyprefix);
-      fprintf(parserFile, "extern char * %sStringInputEnd;\n", yyprefix);
-    }
+  fprintf(parserFile, "#ifdef STRINGIN\n");
+  fprintf(parserFile, "extern char * %sStringInputPointer;\n", yyprefix);
+  fprintf(parserFile, "extern char * %sStringInputEnd;\n", yyprefix);
+  fprintf(parserFile, "#endif\n");
   fprintf(parserFile,
 "\n"
 "int main(       /* ARGUMENTS                                      */\n"
@@ -11545,23 +11528,19 @@ void generator::printParser() /* NO ARGUMENTS */
 "{\n"
 "  std::string outFileName;\n"
 "  FILE * inFile;\n"
-"  FILE * outFile;\n");
-  if (stringInput)
-    {
-      fprintf(parserFile, "  char * inputString;\n");
-      fprintf(parserFile, "  int n;\n");
-      fprintf(parserFile, "  int stringSize;\n");
-    }
-  fprintf(parserFile,
+"  FILE * outFile;\n"
+"#ifdef STRINGIN\n"
+"  char * inputString;\n"
+"  int n;\n"
+"  int stringSize;\n"
+"#endif\n"
 "\n"
 "  if (argc != 2)\n"
 "    {\n"
 "      fprintf(stderr, \"Usage: %%s <data file name>\\n\", argv[0]);\n"
 "      exit(1);\n"
-"    }\n");
-  if (stringInput)
-    {
-      fprintf(parserFile,
+"    }\n"
+"#ifdef STRINGIN\n"
 "  for (stringSize = 10000; stringSize <= MAX_SIZE; stringSize *= 10)\n"
 "    {\n"
 "      inputString = new char[stringSize + 1];\n"
@@ -11589,29 +11568,29 @@ void generator::printParser() /* NO ARGUMENTS */
 "  inputString[n] = 0;\n"
 "  %sStringInputPointer = inputString;\n"
 "  %sStringInputEnd = (inputString + n);\n", yyprefix, yyprefix);
-    }
-  else
-    {
-      fprintf(parserFile,
+  fprintf(parserFile,
+"#else\n"
 "  inFile = fopen(argv[1], \"r\");\n"
 "  if (inFile == 0)\n"
 "    {\n"
 "      fprintf(stderr, \"unable to open file %%s for reading\\n\", argv[1]);\n"
 "      exit(1);\n"
 "    }\n");
-      fprintf(parserFile, "  %sin = inFile;\n", yyprefix);
-    }
+  fprintf(parserFile, "  %sin = inFile;\n", yyprefix);
+  fprintf(parserFile, "#endif\n");
   fprintf(parserFile, "  %sparse();\n", yyprefix);
-  if (!stringInput)
-    fprintf(parserFile, "  fclose(inFile);\n");
+  fprintf(parserFile, "#ifndef STRINGIN\n");
+  fprintf(parserFile, "  fclose(inFile);\n");
+  fprintf(parserFile, "#endif\n");
   fprintf(parserFile, "  outFileName = argv[1];\n");
   fprintf(parserFile, "  outFileName.append(\"echo\");\n");
   fprintf(parserFile, "  outFile = fopen(outFileName.c_str(), \"w\");\n");
   fprintf(parserFile, "  %sTree->PRINTSELF;\n", top->newName);
   fprintf(parserFile, "  fclose(outFile);\n");
   fprintf(parserFile, "  delete %sTree;\n", top->newName);
-  if (stringInput)
-    fprintf(parserFile, "  delete [] inputString;\n");
+  fprintf(parserFile, "#ifdef STRINGIN\n");
+  fprintf(parserFile, "  delete [] inputString;\n");
+  fprintf(parserFile, "#endif\n");
   fprintf(parserFile, "  %slex_destroy();\n", yyprefix);
   fprintf(parserFile, "  return 0;\n");
   fprintf(parserFile, "}\n");
@@ -13190,19 +13169,18 @@ This prints a message about how to use the GenXMiller.
 void generator::usageMessage( /* ARGUMENTS                            */
  char * command)              /* the name of the generator executable */
 {
-  fprintf(stderr, "usage: %s [-s] [-h <header>] [-p <prefix>] [-i <include prefix>] [-a <app include prefix>] -x <schema>\n",
+  fprintf(stderr, "usage: %s [-h <header>] [-p <prefix>] [-i <include prefix>] [-a <app include prefix>] -x <schema>\n",
 	  command);
-  fprintf(stderr, "-s means write code that takes input from a string\n");
   fprintf(stderr, "header is the existing header file\n");
   fprintf(stderr, "prefix is the prefix to use in YACC and Lex files\n");
   fprintf(stderr, "include prefix is the prefix for these header files\n");
-  fprintf(stderr, "app include prefix is the prefix for application header files\n");
+  fprintf(stderr,
+	  "app include prefix is the prefix for application header files\n");
   fprintf(stderr, "schema is the XML schema file to read\n");
   fprintf(stderr, "Example 1: %s -x plan.xsd\n", command);
-  fprintf(stderr, "Example 2: %s -s -x plan.xsd\n", command);
-  fprintf(stderr, "Example 3: %s -p yypl -x plan.xsd\n", command);
-  fprintf(stderr, "Example 4: %s -x plan.xsd -h planClasses.hh\n", command);
-  fprintf(stderr, "Example 5: %s -i xml_parser_generator/ -a crcl/ -x plan.xsd\n", command);
+  fprintf(stderr, "Example 2: %s -p yypl -x plan.xsd\n", command);
+  fprintf(stderr, "Example 3: %s -x plan.xsd -h planClasses.hh\n", command);
+  fprintf(stderr, "Example 4: %s -i xml_parser_generator/ -a crcl/ -x plan.xsd\n", command);
   exit(1);
 }
 

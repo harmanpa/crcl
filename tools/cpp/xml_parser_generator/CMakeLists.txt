@@ -23,7 +23,7 @@ include_directories(
   include
 )
 
-add_definitions(-DSTRINGOUT -DNO_ECHO)
+add_definitions(-DSTRINGIN -DSTRINGOUT -DNO_ECHO)
 
 add_library(xml_parser_generator 
   src/patternLex.cc

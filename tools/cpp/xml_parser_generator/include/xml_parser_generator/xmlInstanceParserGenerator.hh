@@ -460,7 +460,6 @@ includedSchemas is a list of the names of included schemas
 lexFile is the file pointer for the Lex file to write
 mockCount is a pointer to a system-wide mock counter
 moreIncludes is the list of added includes from the existing header file
-stringInput - true means take input from a string, false means take from file
 subordinates is a list of subordinate generators (for some or all includes)
 top is an XmlElementLocal surrogate for the top element
 target is the name of the target namespace
@@ -518,7 +517,6 @@ in only that header are written into the new header file.
   FILE *                           lexFile;
   int *                            mockCount;
   std::list<char *> *              moreIncludes;
-  bool                             stringInput;
   std::list<generator *>           subordinates;
   XmlElementLocal *                top;
   char *                           target;

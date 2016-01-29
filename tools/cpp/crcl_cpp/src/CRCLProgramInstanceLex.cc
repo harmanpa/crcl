@@ -1,5 +1,5 @@
 
-#line 3 "/home/isd/proctor/test_ws/src/crcl/tools/cpp/crcl_cpp/src/CRCLProgramInstanceLex.cc"
+#line 3 "<stdout>"
 
 #define  YY_INT_ALIGNED short int
 

@@ -19,7 +19,7 @@ include_directories(
   ${xml_parser_generator_INCLUDE_DIRS}
   )
 
-add_definitions(-DSTRINGOUT -DNO_ECHO)
+add_definitions(-DSTRINGIN -DSTRINGOUT -DNO_ECHO)
 
 add_library(crcl_cpp
   src/CRCLCommandsClasses.cc
@@ -72,7 +72,7 @@ target_link_libraries(crcl_server_main
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstanceClasses.cc ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstanceParser.cc ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstance.lex ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstance.y ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLCommandInstanceClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLCommandInstance.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
-  COMMAND xmlInstanceParserGenerator -s -i xml_parser_generator/ -a crcl_cpp/ -x CRCLCommandInstance.xsd
+  COMMAND xmlInstanceParserGenerator -i xml_parser_generator/ -a crcl_cpp/ -x CRCLCommandInstance.xsd
   COMMAND mv -f *.y *.lex *.cc ${PROJECT_SOURCE_DIR}/src || true
   COMMAND mv -f *.hh ${PROJECT_SOURCE_DIR}/include/crcl_cpp || true
   )
@@ -80,7 +80,7 @@ add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstanceClasses.c
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLProgramInstanceClasses.cc ${PROJECT_SOURCE_DIR}/src/CRCLProgramInstanceParser.cc ${PROJECT_SOURCE_DIR}/src/CRCLProgramInstance.lex ${PROJECT_SOURCE_DIR}/src/CRCLProgramInstance.y ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLProgramInstanceClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLProgramInstance.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
-  COMMAND xmlInstanceParserGenerator -s -i xml_parser_generator/ -a crcl_cpp/ -x CRCLProgramInstance.xsd
+  COMMAND xmlInstanceParserGenerator -i xml_parser_generator/ -a crcl_cpp/ -x CRCLProgramInstance.xsd
   COMMAND mv -f *.y *.lex *.cc ${PROJECT_SOURCE_DIR}/src || true
   COMMAND mv -f *.hh ${PROJECT_SOURCE_DIR}/include/crcl_cpp || true
   )
@@ -88,7 +88,7 @@ add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLProgramInstanceClasses.c
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLStatusClasses.cc ${PROJECT_SOURCE_DIR}/src/CRCLStatusParser.cc ${PROJECT_SOURCE_DIR}/src/CRCLStatus.lex ${PROJECT_SOURCE_DIR}/src/CRCLStatus.y ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLStatusClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLStatus.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
-  COMMAND xmlInstanceParserGenerator -s -i xml_parser_generator/ -a crcl_cpp/ -x CRCLStatus.xsd
+  COMMAND xmlInstanceParserGenerator -i xml_parser_generator/ -a crcl_cpp/ -x CRCLStatus.xsd
   COMMAND mv -f *.y *.lex *.cc ${PROJECT_SOURCE_DIR}/src || true
   COMMAND mv -f *.hh ${PROJECT_SOURCE_DIR}/include/crcl_cpp || true
   )
@@ -96,7 +96,7 @@ add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLStatusClasses.cc ${PROJE
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLCommandsClasses.cc ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLCommandsClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLCommands.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
-  COMMAND xmlInstanceParserGenerator -s -i xml_parser_generator/ -a crcl_cpp/ -x CRCLCommands.xsd
+  COMMAND xmlInstanceParserGenerator -i xml_parser_generator/ -a crcl_cpp/ -x CRCLCommands.xsd
   COMMAND mv -f *.y *.lex *.cc ${PROJECT_SOURCE_DIR}/src || true
   COMMAND mv -f *.hh ${PROJECT_SOURCE_DIR}/include/crcl_cpp || true
   )
@@ -104,7 +104,7 @@ add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLCommandsClasses.cc ${PRO
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLDataPrimitivesClasses.cc ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLDataPrimitivesClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLDataPrimitives.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
-  COMMAND xmlInstanceParserGenerator -s -i xml_parser_generator/ -a crcl_cpp/ -x DataPrimitives.xsd
+  COMMAND xmlInstanceParserGenerator -i xml_parser_generator/ -a crcl_cpp/ -x DataPrimitives.xsd
   COMMAND mv -f *.y *.lex *.cc ${PROJECT_SOURCE_DIR}/src || true
   COMMAND mv -f *.hh ${PROJECT_SOURCE_DIR}/include/crcl_cpp || true
   )

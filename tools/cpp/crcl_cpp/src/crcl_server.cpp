@@ -300,8 +300,11 @@ void CRCLStatus::print(void)
 {
   enum {BIG_ENOUGH = 10000};
   char statusMessage[BIG_ENOUGH];
-  int k = 0;
+  size_t left, start;
 
-  CRCLStatusFileIn->printSelf(statusMessage, &k);
+  left = sizeof(statusMessage);
+  start = 0;
+
+  CRCLStatusFileIn->printSelf(statusMessage, &left, &start);
   printf("%s", statusMessage);
 }
