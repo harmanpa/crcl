@@ -1,6 +1,9 @@
 #ifndef CRCL_SERVER_H
 #define CRCL_SERVER_H
 
+#include "xml_parser_generator/xmlSchemaInstance.hh"
+#include "crcl_cpp/CRCLStatusClasses.hh"
+
 class CRCLServer
 {
 public:
@@ -9,7 +12,8 @@ public:
 
   int init(int);
   int getConnection(void);
-  CRCLCommandType *getCommand(void);
+  int readCommand(void);
+  CRCLCommandType *parseCommand(void);
   void quit(void);
   void debug(bool);
 
@@ -46,6 +50,30 @@ private:
   int server_fd;		/* the served socket file descriptor */
   int client_fd;		/* the connected client file descriptor */
   bool do_debug;
+};
+
+#define CRCLStatusDefaultJointNum 6
+
+class CRCLStatus
+{
+public:
+  CRCLStatus(int jointNum = CRCLStatusDefaultJointNum);
+  ~CRCLStatus(void);
+  int setPose(double x, double y, double z, double r, double p, double w);
+  void print(void);
+
+private:
+  int jointNum;
+
+  XmlVersion * versionIn;
+  XmlHeaderForCRCLStatus * headerIn;
+  CRCLStatusType * CRCLStatusIn;
+  CRCLStatusFile * CRCLStatusFileIn;
+  CommandStatusType * CommandStatusIn;
+  JointStatusesType * JointStatusesIn;
+  JointStatusType * JointStatus;
+  PoseStatusType * PoseIn;
+  ParallelGripperStatusType * GripperStatusIn;
 };
 
 #endif	/* CRCL_SERVER_H */

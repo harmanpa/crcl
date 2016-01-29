@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <tf/transform_datatypes.h>
+
 #include <crcl_cpp/CRCLCommandInstanceClasses.hh>
 #include <crcl_cpp/CRCLCommandsClasses.hh>
 #include <crcl_cpp/crcl_server.h>
@@ -153,23 +155,35 @@ int CRCLServer::getConnection(void)
   return 0;
 }
 
-CRCLCommandType *CRCLServer::getCommand(void)
+int CRCLServer::readCommand(void)
 {
   enum {BUFFERLEN = 1024};
   char inbuf[BUFFERLEN];
   int nchars;
-  pid_t pid;
-  int status;
-  
-  nchars = recv(client_fd, inbuf, sizeof(inbuf) - 1, 0);
-  if (nchars <= 0 || nchars >= sizeof(inbuf)) return NULL;
-  inbuf[nchars] = 0;
 
+  nchars = recv(client_fd, inbuf, sizeof(inbuf) - 1, 0);
+  if (nchars <= 0) {
+    close(client_fd);
+    client_fd = -1;
+    return -1;
+  }
+  if (nchars >= sizeof(inbuf)) {
+    return -1;
+  }
+
+  inbuf[nchars] = 0;
   yyStringInputPointer = inbuf;
   yyStringInputEnd = inbuf + nchars;
 
-  // yyparse() calls exit() directly upon error, so we'll test it first
+  return 0;
+}
 
+CRCLCommandType *CRCLServer::parseCommand(void)
+{
+  pid_t pid;
+  int status;
+
+  // yyparse() calls exit() directly upon error, so we'll test it first
   pid = fork();
   if (0 == pid) {
     // try it in this child process first
@@ -209,3 +223,85 @@ void CRCLServer::debug(bool b)
   do_debug = b;
 }
 
+// ----------------------
+
+// number of digits occupied by integer type 'x'
+#define DIGITS_IN(x) (sizeof(x) * 3 + 1)
+
+// results are volatile, so copy them right away
+char *intToStr(int i)
+{
+  static char str[DIGITS_IN(int)];
+  sprintf(str, "%i", i);
+  return str;
+}
+
+CRCLStatus::CRCLStatus(int _jointNum)
+{
+  jointNum = _jointNum;
+
+  versionIn = new XmlVersion(true);
+  headerIn = new XmlHeaderForCRCLStatus;
+  CommandStatusIn = new CommandStatusType;
+  JointStatusesIn = new JointStatusesType(NULL, new std::list<JointStatusType *>);
+  PoseIn = new PoseStatusType;
+  GripperStatusIn = new ParallelGripperStatusType(NULL, new XmlNMTOKEN("ParallelGripper"), new XmlDecimal(0.0));
+  GripperStatusIn->printTypp = true;
+  CRCLStatusIn = new CRCLStatusType(NULL, CommandStatusIn, JointStatusesIn, PoseIn, GripperStatusIn);
+  CRCLStatusFileIn = new CRCLStatusFile(versionIn, headerIn, CRCLStatusIn);
+  headerIn->location = new SchemaLocation("xsi", "CRCLStatus.xsd", false);
+
+  CommandStatusIn->Name = NULL;
+  CommandStatusIn->CommandID =  new XmlNonNegativeInteger("0");
+  CommandStatusIn->StatusID = new XmlPositiveInteger("1");
+  CommandStatusIn->CommandState = new CommandStateEnumType("CRCL_Working");
+
+  for (int t = 1; t <= jointNum; t++) {
+    JointStatusesIn->JointStatus->push_back(new JointStatusType(NULL, new XmlPositiveInteger(intToStr(t)), new XmlDecimal(0.0), new XmlDecimal(0.0), new XmlDecimal(0.0)));
+  }
+
+  PoseIn->Name = NULL;
+  PoseIn->Pose = new PoseType();
+  PoseIn->Pose->Point = new PointType(NULL, new XmlDecimal(0.0), new XmlDecimal(0.0), new XmlDecimal(0.0));
+  PoseIn->Pose->XAxis = new VectorType(NULL, new XmlDecimal(1.0), new XmlDecimal(0.0), new XmlDecimal(0.0));
+  PoseIn->Pose->ZAxis = new VectorType(NULL, new XmlDecimal(0.0), new XmlDecimal(0.0), new XmlDecimal(1.0));
+}
+
+CRCLStatus::~CRCLStatus(void)
+{
+
+}
+
+int CRCLStatus::setPose(double x, double y, double z, double r, double p, double w)
+{
+  tf::Matrix3x3 m;
+  tf::Vector3 xaxis, zaxis;
+
+  PoseIn->Pose->Point->X->val = x;
+  PoseIn->Pose->Point->Y->val = y;
+  PoseIn->Pose->Point->Z->val = z;
+
+  m.setRPY(r, p, w);
+  xaxis = m.getColumn(0);
+  zaxis = m.getColumn(2);
+
+  PoseIn->Pose->XAxis->I->val = xaxis.getX();
+  PoseIn->Pose->XAxis->J->val = xaxis.getY();
+  PoseIn->Pose->XAxis->K->val = xaxis.getZ();
+
+  PoseIn->Pose->ZAxis->I->val = zaxis.getX();
+  PoseIn->Pose->ZAxis->J->val = zaxis.getY();
+  PoseIn->Pose->ZAxis->K->val = zaxis.getZ();
+
+  return 0;
+}
+
+void CRCLStatus::print(void)
+{
+  enum {BIG_ENOUGH = 10000};
+  char statusMessage[BIG_ENOUGH];
+  int k = 0;
+
+  CRCLStatusFileIn->printSelf(statusMessage, &k);
+  printf("%s", statusMessage);
+}

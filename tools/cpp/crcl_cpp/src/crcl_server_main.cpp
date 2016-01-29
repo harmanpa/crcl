@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <tf/transform_datatypes.h>
 #include "crcl_cpp/CRCLProgramInstanceClasses.hh"
+#include "crcl_cpp/CRCLStatusClasses.hh"
 #include "crcl_cpp/crcl_server.h"
 
 class MyCRCLServer : public CRCLServer
@@ -94,60 +95,70 @@ int main(int argc, char * argv[])
 {
   MyCRCLServer me;
   CRCLCommandType *cmd;
+  CRCLStatus stat;
   int retval;
+
+  stat.print();
+  stat.setPose(1, -2, 3, 1, -1, 0.4);
+  stat.print();
+
+  return 0;
 
   me.debug(true);
 
   me.init(1234);
 
-  printf("waiting for connection...\n");
-  me.getConnection();
-  printf("got a connection\n");
-
   while (true) {
-    cmd = me.getCommand();
-    if (NULL == cmd) {
-      continue;
-    }
+    printf("waiting for connection...\n");
+    me.getConnection();
+    printf("got a connection\n");
+
+    while (true) {
+      if (0 != me.readCommand()) break;
+      cmd = me.parseCommand();
+      if (NULL == cmd) continue;
 
 #define DO_IT(TYPE)					\
-    if (dynamic_cast<TYPE *>(cmd)) {			\
-      me.Handle ## TYPE(dynamic_cast<TYPE *>(cmd));	\
-	continue;					\
-    }
-    DO_IT(ActuateJointsType);
-    DO_IT(CloseToolChangerType);
-    DO_IT(ConfigureJointReportsType);
-    DO_IT(DwellType);
-    DO_IT(GetStatusType);
-    DO_IT(MessageType);
-    DO_IT(MoveScrewType);
-    DO_IT(MoveThroughToType);
-    DO_IT(MoveToType);
-    DO_IT(OpenToolChangerType);
-    DO_IT(RunProgramType);
-    DO_IT(SetAngleUnitsType);
-    DO_IT(SetEndEffectorParametersType);
-    DO_IT(SetEndEffectorType);
-    DO_IT(SetEndPoseToleranceType);
-    DO_IT(SetForceUnitsType);
-    DO_IT(SetIntermediatePoseToleranceType);
-    DO_IT(SetLengthUnitsType);
-    DO_IT(SetMotionCoordinationType);
-    DO_IT(SetRobotParametersType);
-    DO_IT(SetRotAccelType);
-    DO_IT(SetRotSpeedType);
-    DO_IT(SetTorqueUnitsType);
-    DO_IT(SetTransAccelType);
-    DO_IT(SetTransSpeedType);
-    DO_IT(StopMotionType);
-    // else unknown type
-    enum {BUFFERLEN = 1024};
-    char outbuf[BUFFERLEN];
-    int k = 0;
-    cmd->printSelf(outbuf, &k);
-    printf("%s\n", outbuf);
-  } // while (true)
+      if (dynamic_cast<TYPE *>(cmd)) {			\
+	me.Handle ## TYPE(dynamic_cast<TYPE *>(cmd));	\
+	  continue;					\
+      }
+      DO_IT(ActuateJointsType);
+      DO_IT(CloseToolChangerType);
+      DO_IT(ConfigureJointReportsType);
+      DO_IT(DwellType);
+      DO_IT(GetStatusType);
+      DO_IT(MessageType);
+      DO_IT(MoveScrewType);
+      DO_IT(MoveThroughToType);
+      DO_IT(MoveToType);
+      DO_IT(OpenToolChangerType);
+      DO_IT(RunProgramType);
+      DO_IT(SetAngleUnitsType);
+      DO_IT(SetEndEffectorParametersType);
+      DO_IT(SetEndEffectorType);
+      DO_IT(SetEndPoseToleranceType);
+      DO_IT(SetForceUnitsType);
+      DO_IT(SetIntermediatePoseToleranceType);
+      DO_IT(SetLengthUnitsType);
+      DO_IT(SetMotionCoordinationType);
+      DO_IT(SetRobotParametersType);
+      DO_IT(SetRotAccelType);
+      DO_IT(SetRotSpeedType);
+      DO_IT(SetTorqueUnitsType);
+      DO_IT(SetTransAccelType);
+      DO_IT(SetTransSpeedType);
+      DO_IT(StopMotionType);
+      // else unknown type
+      enum {BUFFERLEN = 1024};
+      char outbuf[BUFFERLEN];
+      int k = 0;
+      cmd->printSelf(outbuf, &k);
+      printf("what's this?\n");
+      printf("%s\n", outbuf);
+    } // while (true)
+    // get another connection
+  }   // while (true)
 
   me.quit();
 
