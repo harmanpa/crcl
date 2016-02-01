@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="../xmlSchemas/CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="MoveToType">
+    <CommandID>2</CommandID>
+    <MoveStraight>false</MoveStraight>
+    <EndPosition>
+      <Point>
+        <X>2.5</X> <Y>1</Y> <Z>1</Z>
+      </Point>
+      <XAxis>
+        <I>1</I> <J>0</J> <K>0</K>
+      </XAxis>
+      <ZAxis>
+        <I>0</I> <J>0</J> <K>-1</K>
+      </ZAxis>
+    </EndPosition>
+  </CRCLCommand>
+</CRCLCommandInstance>

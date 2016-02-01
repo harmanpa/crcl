@@ -18,9 +18,14 @@ public:
 
 int MyCRCLServer::HandleMoveToType(MoveToType *cmd)
 {
+  double x, y, z;
   double xi, xj, xk;
   double zi, zj, zk;
-  double r, p, y;
+  double r, p, w;
+
+  x = cmd->EndPosition->Point->X->val;
+  y = cmd->EndPosition->Point->Y->val;
+  z = cmd->EndPosition->Point->Z->val;
 
   xi = cmd->EndPosition->XAxis->I->val;
   xj = cmd->EndPosition->XAxis->J->val;
@@ -34,15 +39,13 @@ int MyCRCLServer::HandleMoveToType(MoveToType *cmd)
   tf::Matrix3x3 m(xi, yaxis.getX(), zi,
 		  xj, yaxis.getY(), zj,
 		  xk, yaxis.getZ(), zk);
-  m.getRPY(r, p, y);
+  m.getRPY(r, p, w);
+
+  robotModel.setPose(x, y, z, r, p, w);
 
   printf("MoveToType(%d) %f %f %f / %f %f %f\n",
 	 cmd->CommandID->val,
-	 cmd->EndPosition->Point->X->val,
-	 cmd->EndPosition->Point->Y->val,
-	 cmd->EndPosition->Point->Z->val,
-	 r, p, y
-    );
+	 x, y, z, r, p, w);
 
   return 0;
 }
@@ -98,12 +101,6 @@ int main(int argc, char * argv[])
   int retval;
 
   me.setJointNumber(2);
-
-  me.printStatus();
-
-  sleep(3);
-
-  return 0;
 
   me.getServer(1234);
 

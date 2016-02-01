@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
   remain = 10000;
   CRCLStatusFileIn->printSelf(statusMessage, &remain, &start);
   if (remain > 0)
-    printf("%s", statusMessage);
+    printf("start = %d, left = %d\n%s", start, remain, statusMessage);
 #else
   outFile = fopen("CRCLStatusFile", "w");
   CRCLStatusFileIn->printSelf(outFile);

@@ -47,6 +47,8 @@ class CRCLRobotModel
 public:
   CRCLRobotModel(void);
   ~CRCLRobotModel(void);
+  int setPose(double x, double y, double z, double r, double p, double w);
+  int getPose(double *x, double *y, double *z, double *r, double *p, double *w);
   int setJointNumber(int jointNumber);
   int getJointNumber(void);
   int setJointPosition(int index, double value);
@@ -65,7 +67,7 @@ public:
   ~CRCLStatus(void);
   int setJointNumber(int jointNumber);
   int setPose(double x, double y, double z, double r, double p, double w);
-  void print(void);
+  int print(char *buffer, size_t len);
 
 private:
   int jointNumber;
@@ -91,7 +93,7 @@ public:
   int getConnection(void);
   int readCommand(void);
   CRCLCommandType *parseCommand(void);
-  void printStatus(void);
+  int writeStatus(void);
   void quit(void);
 
   /* override these with your own */
@@ -122,13 +124,13 @@ public:
   int HandleSetTransSpeedType(SetTransSpeedType *) { return 0; };
   int HandleStopMotionType(StopMotionType *) { return 0; };
 
+  CRCLRobotModel robotModel;
+  CRCLStatus status;
+
 private:
   int port;			/* the socket port to serve */
   int server_fd;		/* the served socket file descriptor */
   int client_fd;		/* the connected client file descriptor */
-
-  CRCLRobotModel robotModel;
-  CRCLStatus status;
 };
 
 #endif	/* CRCL_SERVER_H */

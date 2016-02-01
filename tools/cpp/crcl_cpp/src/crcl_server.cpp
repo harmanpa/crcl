@@ -87,6 +87,22 @@ CRCLRobotModel::~CRCLRobotModel(void)
 {
 }
 
+int CRCLRobotModel::setPose(double x, double y, double z, double r, double p, double w)
+{
+  pose.setXYZ(x, y, z);
+  pose.setRPY(r, p, w);
+
+  return 0;
+}
+
+int CRCLRobotModel::getPose(double *x, double *y, double *z, double *r, double *p, double *w)
+{
+  pose.getXYZ(x, y, z);
+  pose.getRPY(r, p, w);
+
+  return 0;
+}
+
 int CRCLRobotModel::setJointNumber(int _jointNumber)
 {
   CRCLJointModel j;
@@ -192,17 +208,16 @@ int CRCLStatus::setPose(double x, double y, double z, double r, double p, double
   return 0;
 }
 
-void CRCLStatus::print(void)
+int CRCLStatus::print(char *buffer, size_t len)
 {
-  enum {BIG_ENOUGH = 10000};
-  char statusMessage[BIG_ENOUGH];
   size_t left, start;
 
-  left = sizeof(statusMessage);
+  left = len;
   start = 0;
 
-  CRCLStatusFileIn->printSelf(statusMessage, &left, &start);
-  printf("%s", statusMessage);
+  CRCLStatusFileIn->printSelf(buffer, &left, &start);
+
+  return left;
 }
 
 // ---------------------
@@ -339,7 +354,7 @@ static int task_start(pthread_t *task,
   return 0;
 }
 
-void task_sleep(double secs)
+static void task_sleep(double secs)
 {
   int isecs, insecs;
   struct timespec ts;
@@ -353,25 +368,32 @@ void task_sleep(double secs)
   (void) nanosleep(&ts, NULL);
 }
 
-static void *beep(void *args)
+static void *reportStatus(void *arg)
 {
+  CRCLServer *me = reinterpret_cast<CRCLServer *>(arg);
+  double x, y, z;
+  double r, p, w;
+  int retval;
+
   while (true) {
-    printf("beep\n");
+    me->robotModel.getPose(&x, &y, &z, &r, &p, &w);
+    me->status.setPose(x, y, z, r, p, w);
+    
+    retval = me->writeStatus();
+    if (0 != retval) break;
     task_sleep(1);
   }
+
+  return NULL;
 }
 
 // -----------------
 
 CRCLServer::CRCLServer(void)
 {
-  pthread_t pt;
-
   port = -1;
   server_fd = -1;
   client_fd = -1;
-
-  task_start(&pt, beep, NULL, 1);
 }
 
 CRCLServer::~CRCLServer(void)
@@ -403,10 +425,13 @@ int CRCLServer::getServer(int _port)
 int CRCLServer::getConnection(void)
 {
   int _fd;
+  pthread_t pt;
 
   _fd = socket_get_connection_id(server_fd);
   if (_fd < 0) return -1;
   client_fd = _fd;
+
+  task_start(&pt, reportStatus, this, 1);
 
   return 0;
 }
@@ -462,9 +487,23 @@ CRCLCommandType *CRCLServer::parseCommand(void)
   return NULL;
 }
 
-void CRCLServer::printStatus(void)
+int CRCLServer::writeStatus(void)
 {
-  status.print();
+  enum {BUFFERLEN = 8192};
+  char outbuf[BUFFERLEN];
+  int nchars;
+
+  if (client_fd < 0) return -1;
+
+  nchars = status.print(outbuf, sizeof(outbuf));
+
+#if 0
+  send(client_fd, outbuf, nchars, 0);
+#else
+  printf("%s\n", outbuf);
+#endif
+
+  return 0;
 }
 
 void CRCLServer::quit(void)
