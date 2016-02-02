@@ -1,3 +1,13 @@
+/*
+  The derived class should provide all the 'HandleXXXCommand' methods
+  to override the stubs.
+
+  'GetXXXStatus' methods need to be provided to get the current pose, etc.
+  from the derived system. 
+
+  The robot model in the base class just implements the stubbed simulation.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
