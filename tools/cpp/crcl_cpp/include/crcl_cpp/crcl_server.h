@@ -6,67 +6,14 @@
 #include "xml_parser_generator/xmlSchemaInstance.hh"
 #include "crcl_cpp/CRCLStatusClasses.hh"
 
-class CRCLPose
-{
-public:
-  CRCLPose(void) {} ;
-  ~CRCLPose(void) {} ;
-  int setXYZ(double x, double y, double z);
-  int setRPY(double r, double p, double y);
-  int setVec(double xx, double xy, double xz, double zx, double zy, double zz);
-
-  int getXYZ(double *x, double *y, double *z);
-  int getRPY(double *r, double *p, double *y);
-  int getVec(double *xx, double *xy, double *xz, double *zx, double *zy, double *zz);
-
-private:
-  tf::Vector3 tran;
-  tf::Matrix3x3 rot;
-};
-
-class CRCLJointModel
-{
-public:
-  CRCLJointModel(void) { position = velocity = effort = 0; };
-  ~CRCLJointModel(void) {};
-  int setPosition(double value) { position = value; return 0; };
-  int getPosition(double *value) { *value = position; return 0; };
-  int setVelocity(double value) { velocity = value; return 0; };
-  int getVelocity(double *value) { *value = velocity; return 0; };
-  int setEffort(double value) { effort = value; return 0; };
-  int getEffort(double *value) { *value = effort; return 0; };
-
-private:
-  double position;
-  double velocity;
-  double effort;
-};
-
-class CRCLRobotModel
-{
-public:
-  CRCLRobotModel(void);
-  ~CRCLRobotModel(void);
-  int setPose(double x, double y, double z, double r, double p, double w);
-  int getPose(double *x, double *y, double *z, double *r, double *p, double *w);
-  int setJointNumber(int jointNumber);
-  int getJointNumber(void);
-  int setJointPosition(int index, double value);
-  int getJointPosition(int index, double *value);
-
-private:
-  int jointNumber;
-  CRCLPose pose;
-  std::vector<CRCLJointModel> joints;
-};
-
 class CRCLStatus
 {
 public:
   CRCLStatus(void);
   ~CRCLStatus(void);
-  int setJointNumber(int jointNumber);
-  int setPose(double x, double y, double z, double r, double p, double w);
+  int setJointPosition(int number, double position);
+  int setXYZ(double x, double y, double z);
+  int setVec(double xx, double xy, double xz, double zx, double zy, double zz);
   int print(char *buffer, size_t len);
 
 private:
@@ -88,46 +35,46 @@ public:
   CRCLServer(void);
   ~CRCLServer(void);
 
-  int setJointNumber(int);
   int getServer(int);
   int getConnection(void);
   int readCommand(void);
   CRCLCommandType *parseCommand(void);
   int writeStatus(void);
+  void *reportStatus(void);
   void quit(void);
 
-  /* override these with your own */
-  int HandleActuateJointsType(ActuateJointsType *) { return 0; };
-  int HandleCloseToolChangerType(CloseToolChangerType *) { return 0; };
-  int HandleConfigureJointReportsType(ConfigureJointReportsType *) { return 0; };
-  int HandleDwellType(DwellType *) { return 0; };
-  int HandleGetStatusType(GetStatusType *) { return 0; };
-  int HandleMessageType(MessageType *) { return 0; };
-  int HandleMoveScrewType(MoveScrewType *) { return 0; };
-  int HandleMoveThroughToType(MoveThroughToType *) { return 0; };
-  int HandleMoveToType(MoveToType *) { return 0; };
-  int HandleOpenToolChangerType(OpenToolChangerType *) { return 0; };
-  int HandleRunProgramType(RunProgramType *) { return 0; };
-  int HandleSetAngleUnitsType(SetAngleUnitsType *) { return 0; };
-  int HandleSetEndEffectorParametersType(SetEndEffectorParametersType *) { return 0; };
-  int HandleSetEndEffectorType(SetEndEffectorType *) { return 0; };
-  int HandleSetEndPoseToleranceType(SetEndPoseToleranceType *) { return 0; };
-  int HandleSetForceUnitsType(SetForceUnitsType *) { return 0; };
-  int HandleSetIntermediatePoseToleranceType(SetIntermediatePoseToleranceType *) { return 0; };
-  int HandleSetLengthUnitsType(SetLengthUnitsType *) { return 0; };
-  int HandleSetMotionCoordinationType(SetMotionCoordinationType *) { return 0; };
-  int HandleSetRobotParametersType(SetRobotParametersType *) { return 0; };
-  int HandleSetRotAccelType(SetRotAccelType *) { return 0; };
-  int HandleSetRotSpeedType(SetRotSpeedType *) { return 0; };
-  int HandleSetTorqueUnitsType(SetTorqueUnitsType *) { return 0; };
-  int HandleSetTransAccelType(SetTransAccelType *) { return 0; };
-  int HandleSetTransSpeedType(SetTransSpeedType *) { return 0; };
-  int HandleStopMotionType(StopMotionType *) { return 0; };
-
-  CRCLRobotModel robotModel;
   CRCLStatus status;
 
+  /* override these with your own */
+  int HandleActuateJointsType(ActuateJointsType *cmd);
+  int HandleCloseToolChangerType(CloseToolChangerType *cmd);
+  int HandleConfigureJointReportsType(ConfigureJointReportsType *cmd);
+  int HandleDwellType(DwellType *cmd);
+  int HandleGetStatusType(GetStatusType *cmd);
+  int HandleMessageType(MessageType *cmd);
+  int HandleMoveScrewType(MoveScrewType *cmd);
+  int HandleMoveThroughToType(MoveThroughToType *cmd);
+  int HandleMoveToType(MoveToType *cmd);
+  int HandleOpenToolChangerType(OpenToolChangerType *cmd);
+  int HandleRunProgramType(RunProgramType *cmd);
+  int HandleSetAngleUnitsType(SetAngleUnitsType *cmd);
+  int HandleSetEndEffectorParametersType(SetEndEffectorParametersType *cmd);
+  int HandleSetEndEffectorType(SetEndEffectorType *cmd);
+  int HandleSetEndPoseToleranceType(SetEndPoseToleranceType *cmd);
+  int HandleSetForceUnitsType(SetForceUnitsType *cmd);
+  int HandleSetIntermediatePoseToleranceType(SetIntermediatePoseToleranceType *cmd);
+  int HandleSetLengthUnitsType(SetLengthUnitsType *cmd);
+  int HandleSetMotionCoordinationType(SetMotionCoordinationType *cmd);
+  int HandleSetRobotParametersType(SetRobotParametersType *cmd);
+  int HandleSetRotAccelType(SetRotAccelType *cmd);
+  int HandleSetRotSpeedType(SetRotSpeedType *cmd);
+  int HandleSetTorqueUnitsType(SetTorqueUnitsType *cmd);
+  int HandleSetTransAccelType(SetTransAccelType *cmd);
+  int HandleSetTransSpeedType(SetTransSpeedType *cmd);
+  int HandleStopMotionType(StopMotionType *cmd);
+
 private:
+
   int port;			/* the socket port to serve */
   int server_fd;		/* the served socket file descriptor */
   int client_fd;		/* the connected client file descriptor */

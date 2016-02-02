@@ -41,7 +41,13 @@ int MyCRCLServer::HandleMoveToType(MoveToType *cmd)
 		  xk, yaxis.getZ(), zk);
   m.getRPY(r, p, w);
 
-  robotModel.setPose(x, y, z, r, p, w);
+  status.setXYZ(x, y, z);
+  status.setJointPosition(1, x);
+  status.setJointPosition(2, y);
+  status.setJointPosition(3, z);
+  status.setJointPosition(4, r);
+  status.setJointPosition(5, p);
+  status.setJointPosition(6, w);
 
   printf("MoveToType(%d) %f %f %f / %f %f %f\n",
 	 cmd->CommandID->val,
@@ -99,8 +105,6 @@ int main(int argc, char * argv[])
   MyCRCLServer me;
   CRCLCommandType *cmd;
   int retval;
-
-  me.setJointNumber(2);
 
   me.getServer(1234);
 

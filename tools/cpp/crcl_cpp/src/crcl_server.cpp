@@ -22,136 +22,9 @@
 #include <pthread.h>
 #include <time.h>
 
-#include <vector>
-
-#include <tf/transform_datatypes.h>
-
 #include <crcl_cpp/CRCLCommandInstanceClasses.hh>
 #include <crcl_cpp/CRCLCommandsClasses.hh>
 #include <crcl_cpp/crcl_server.h>
-
-// ----------------------
-
-int CRCLPose::setXYZ(double x, double y, double z)
-{
-  tran.setX(x);
-  tran.setY(y);
-  tran.setZ(z);
-
-  return 0;
-}
-
-int CRCLPose::setRPY(double r, double p, double y)
-{
-  rot.setRPY(r, p, y);
-}
-
-int CRCLPose::setVec(double xx, double xy, double xz, double zx, double zy, double zz)
-{
-  tf::Vector3 xaxis(xx, xy, xz);
-  tf::Vector3 zaxis(zx, zy, zz);
-  tf::Vector3 yaxis = zaxis.cross(xaxis);
-  rot = tf::Matrix3x3(xx, yaxis.getX(), zx,
-		      xy, yaxis.getY(), zy,
-		      xz, yaxis.getZ(), zz);
-
-  return 0;
-}
-
-int CRCLPose::getXYZ(double *x, double *y, double *z)
-{
-  *x = tran.getX(), *y = tran.getY(), *z = tran.getZ();
-}
-
-int CRCLPose::getRPY(double *r, double *p, double *y)
-{
-  double _r, _p, _y;
-
-  rot.getRPY(_r, _p, _y);
-  *r = _r, *p = _p, *y = _y;
-
-  return 0;
-}
-
-int CRCLPose::getVec(double *xx, double *xy, double *xz, double *zx, double *zy, double *zz)
-{
-  tf::Vector3 vec;
-
-  vec = rot.getColumn(0);
-  *xx = vec.getX(), *xy = vec.getY(), *xz = vec.getZ();
-
-  vec = rot.getColumn(2);
-  *zx = vec.getX(), *zy = vec.getY(), *zz = vec.getZ();
-
-  return 0;
-}
-
-// ---------------------------
-
-CRCLRobotModel::CRCLRobotModel()
-{
-  jointNumber = 0;
-}
-
-CRCLRobotModel::~CRCLRobotModel(void)
-{
-}
-
-int CRCLRobotModel::setPose(double x, double y, double z, double r, double p, double w)
-{
-  pose.setXYZ(x, y, z);
-  pose.setRPY(r, p, w);
-
-  return 0;
-}
-
-int CRCLRobotModel::getPose(double *x, double *y, double *z, double *r, double *p, double *w)
-{
-  pose.getXYZ(x, y, z);
-  pose.getRPY(r, p, w);
-
-  return 0;
-}
-
-int CRCLRobotModel::setJointNumber(int _jointNumber)
-{
-  CRCLJointModel j;
-
-  jointNumber = _jointNumber;
-
-  for (int t = 0; t < jointNumber; t++) {
-    joints.push_back(j);
-  }
-  
-  return 0;
-}
-
-int CRCLRobotModel::setJointPosition(int index, double value)
-{
-  if (index < 0 || index >= joints.size()) return -1;
-  joints[index].setPosition(value);
-  return 0;
-}
-
-int CRCLRobotModel::getJointPosition(int index, double *value)
-{
-  if (index < 0 || index >= joints.size()) return -1;
-  joints[index].getPosition(value);
-  return 0;
-}
-
-// ----------------------
-
-// number of digits occupied by integer type 'x'
-#define DIGITS_IN(x) (sizeof(x) * 3 + 1)
-
-// results are volatile, so copy them right away
-char *intToStr(int i)
-{
-  static char str[DIGITS_IN(int)];
-  sprintf(str, "%i", i);
-  return str;
-}
 
 CRCLStatus::CRCLStatus(void)
 {
@@ -183,38 +56,51 @@ CRCLStatus::~CRCLStatus(void)
 
 }
 
-int CRCLStatus::setJointNumber(int _jointNumber)
+int CRCLStatus::setXYZ(double x, double y, double z)
 {
-  jointNumber = _jointNumber;
-
-  for (int t = 1; t <= jointNumber; t++) {
-    JointStatusesIn->JointStatus->push_back(new JointStatusType(NULL, new XmlPositiveInteger(intToStr(t)), new XmlDecimal(0.0), new XmlDecimal(0.0), new XmlDecimal(0.0)));
-  }
-
-  return 0;
-}
-
-int CRCLStatus::setPose(double x, double y, double z, double r, double p, double w)
-{
-  tf::Matrix3x3 m;
-  tf::Vector3 xaxis, zaxis;
-
   PoseIn->Pose->Point->X->val = x;
   PoseIn->Pose->Point->Y->val = y;
   PoseIn->Pose->Point->Z->val = z;
 
-  m.setRPY(r, p, w);
-  xaxis = m.getColumn(0);
-  zaxis = m.getColumn(2);
+  return 0;
+}
 
-  PoseIn->Pose->XAxis->I->val = xaxis.getX();
-  PoseIn->Pose->XAxis->J->val = xaxis.getY();
-  PoseIn->Pose->XAxis->K->val = xaxis.getZ();
+int CRCLStatus::setVec(double xx, double xy, double xz, double zx, double zy, double zz)
+{
+  PoseIn->Pose->XAxis->I->val = xx;
+  PoseIn->Pose->XAxis->J->val = xy;
+  PoseIn->Pose->XAxis->K->val = xz;
 
-  PoseIn->Pose->ZAxis->I->val = zaxis.getX();
-  PoseIn->Pose->ZAxis->J->val = zaxis.getY();
-  PoseIn->Pose->ZAxis->K->val = zaxis.getZ();
+  PoseIn->Pose->ZAxis->I->val = zx;
+  PoseIn->Pose->ZAxis->J->val = zy;
+  PoseIn->Pose->ZAxis->K->val = zz;
 
+  return 0;
+}
+
+// number of digits occupied by integer type 'x'
+#define DIGITS_IN(x) (sizeof(x) * 3 + 1)
+
+// results are volatile, so copy them right away
+char *intToStr(int i)
+{
+  static char str[DIGITS_IN(int)];
+  sprintf(str, "%i", i);
+  return str;
+}
+
+int CRCLStatus::setJointPosition(int number, double position)
+{
+  for (std::list<JointStatusType *>::iterator iter = JointStatusesIn->JointStatus->begin(); iter != JointStatusesIn->JointStatus->end(); iter++) {
+    if (number == (*iter)->JointNumber->val) {
+      (*iter)->JointPosition->val = position;
+      return 0;
+    }
+  }
+  // else there's no joint with this number, so add one
+
+  JointStatusesIn->JointStatus->push_back(new JointStatusType(NULL, new XmlPositiveInteger(intToStr(number)), new XmlDecimal(position), new XmlDecimal(0.0), new XmlDecimal(0.0)));
+  
   return 0;
 }
 
@@ -378,25 +264,6 @@ static void task_sleep(double secs)
   (void) nanosleep(&ts, NULL);
 }
 
-static void *reportStatus(void *arg)
-{
-  CRCLServer *me = reinterpret_cast<CRCLServer *>(arg);
-  double x, y, z;
-  double r, p, w;
-  int retval;
-
-  while (true) {
-    me->robotModel.getPose(&x, &y, &z, &r, &p, &w);
-    me->status.setPose(x, y, z, r, p, w);
-    
-    retval = me->writeStatus();
-    if (0 != retval) break;
-    task_sleep(1);
-  }
-
-  return NULL;
-}
-
 // -----------------
 
 CRCLServer::CRCLServer(void)
@@ -410,14 +277,6 @@ CRCLServer::~CRCLServer(void)
 {
   if (-1 != client_fd) close(client_fd);
   if (-1 != server_fd) close(server_fd);
-}
-
-int CRCLServer::setJointNumber(int jointNumber)
-{
-  robotModel.setJointNumber(jointNumber);
-  status.setJointNumber(jointNumber);
-
-  return 0;
 }
 
 int CRCLServer::getServer(int _port)
@@ -441,7 +300,7 @@ int CRCLServer::getConnection(void)
   if (_fd < 0) return -1;
   client_fd = _fd;
 
-  task_start(&pt, reportStatus, this, 1);
+  task_start(&pt, reinterpret_cast<void *(*)(void *)>(&CRCLServer::reportStatus), this, 1);
 
   return 0;
 }
@@ -507,13 +366,28 @@ int CRCLServer::writeStatus(void)
 
   nchars = status.print(outbuf, sizeof(outbuf));
 
-#if 0
+#if 1
   send(client_fd, outbuf, nchars, 0);
 #else
   printf("%s\n", outbuf);
 #endif
 
   return 0;
+}
+
+void *CRCLServer::reportStatus(void)
+{
+  double x, y, z;
+  double xx, xy, xz, zx, zy, zz;
+  int retval;
+
+  while (true) {
+    retval = writeStatus();
+    if (0 != retval) break;
+    task_sleep(1);
+  }
+
+  return NULL;
 }
 
 void CRCLServer::quit(void)
@@ -527,3 +401,134 @@ void CRCLServer::quit(void)
 
   return;
 }
+
+int CRCLServer::HandleActuateJointsType(ActuateJointsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleCloseToolChangerType(CloseToolChangerType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleConfigureJointReportsType(ConfigureJointReportsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleDwellType(DwellType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleGetStatusType(GetStatusType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleMessageType(MessageType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleMoveScrewType(MoveScrewType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleMoveThroughToType(MoveThroughToType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleMoveToType(MoveToType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleOpenToolChangerType(OpenToolChangerType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleRunProgramType(RunProgramType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetAngleUnitsType(SetAngleUnitsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetEndEffectorParametersType(SetEndEffectorParametersType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetEndEffectorType(SetEndEffectorType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetEndPoseToleranceType(SetEndPoseToleranceType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetForceUnitsType(SetForceUnitsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetIntermediatePoseToleranceType(SetIntermediatePoseToleranceType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetLengthUnitsType(SetLengthUnitsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetMotionCoordinationType(SetMotionCoordinationType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetRobotParametersType(SetRobotParametersType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetRotAccelType(SetRotAccelType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetRotSpeedType(SetRotSpeedType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetTorqueUnitsType(SetTorqueUnitsType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetTransAccelType(SetTransAccelType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleSetTransSpeedType(SetTransSpeedType *cmd)
+{
+  return 0;
+}
+
+int CRCLServer::HandleStopMotionType(StopMotionType *cmd)
+{
+  return 0;
+}
+
