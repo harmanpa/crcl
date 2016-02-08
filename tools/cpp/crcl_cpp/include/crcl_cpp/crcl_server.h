@@ -40,7 +40,7 @@ public:
   int readCommand(void);
   CRCLCommandType *parseCommand(void);
   int writeStatus(void);
-  void *reportStatus(void);
+  void *reportStatus(void *arg);
   void quit(void);
 
   CRCLStatus status;

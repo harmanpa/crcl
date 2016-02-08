@@ -1,13 +1,3 @@
-/*
-  The derived class should provide all the 'HandleXXXCommand' methods
-  to override the stubs.
-
-  'GetXXXStatus' methods need to be provided to get the current pose, etc.
-  from the derived system. 
-
-  The robot model in the base class just implements the stubbed simulation.
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -98,7 +88,6 @@ int CRCLStatus::setJointPosition(int number, double position)
     }
   }
   // else there's no joint with this number, so add one
-
   JointStatusesIn->JointStatus->push_back(new JointStatusType(NULL, new XmlPositiveInteger(intToStr(number)), new XmlDecimal(position), new XmlDecimal(0.0), new XmlDecimal(0.0)));
   
   return 0;
@@ -375,10 +364,8 @@ int CRCLServer::writeStatus(void)
   return 0;
 }
 
-void *CRCLServer::reportStatus(void)
+void *CRCLServer::reportStatus(void *arg)
 {
-  double x, y, z;
-  double xx, xy, xz, zx, zy, zz;
   int retval;
 
   while (true) {
@@ -444,6 +431,31 @@ int CRCLServer::HandleMoveThroughToType(MoveThroughToType *cmd)
 
 int CRCLServer::HandleMoveToType(MoveToType *cmd)
 {
+  double x, y, z;
+  double xi, xj, xk;
+  double zi, zj, zk;
+
+  x = cmd->EndPosition->Point->X->val;
+  y = cmd->EndPosition->Point->Y->val;
+  z = cmd->EndPosition->Point->Z->val;
+
+  xi = cmd->EndPosition->XAxis->I->val;
+  xj = cmd->EndPosition->XAxis->J->val;
+  xk = cmd->EndPosition->XAxis->K->val;
+
+  zi = cmd->EndPosition->ZAxis->I->val;
+  zj = cmd->EndPosition->ZAxis->J->val;
+  zk = cmd->EndPosition->ZAxis->K->val;
+
+  status.setXYZ(x, y, z);
+  status.setVec(xi, xj, xk, zi, zj, zk);
+  status.setJointPosition(1, x);
+  status.setJointPosition(2, y);
+  status.setJointPosition(3, z);
+  status.setJointPosition(4, xi);
+  status.setJointPosition(5, xj);
+  status.setJointPosition(6, xk);
+
   return 0;
 }
 

@@ -61,6 +61,18 @@ target_link_libraries(crcl_server_main
   pthread
 )
 
+add_executable(crcl_program_client
+  src/crcl_program_client.cpp
+  src/CRCLProgramInstanceLex.cc
+  src/CRCLProgramInstanceYACC.cc
+  include/crcl_cpp/CRCLProgramInstanceYACC.hh
+)
+
+target_link_libraries(crcl_program_client
+  crcl_cpp
+  xml_instance
+)
+
 # 
 # these commands create the source code from the schema, if the schema is newer
 #

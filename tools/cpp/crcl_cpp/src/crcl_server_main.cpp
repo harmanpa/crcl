@@ -42,6 +42,7 @@ int MyCRCLServer::HandleMoveToType(MoveToType *cmd)
   m.getRPY(r, p, w);
 
   status.setXYZ(x, y, z);
+  status.setVec(xi, xj, xk, zi, zj, zk);
   status.setJointPosition(1, x);
   status.setJointPosition(2, y);
   status.setJointPosition(3, z);
