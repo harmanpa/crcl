@@ -1,10 +1,134 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include <tf/transform_datatypes.h>
 #include "crcl_cpp/CRCLProgramInstanceClasses.hh"
 #include "crcl_cpp/CRCLStatusClasses.hh"
 #include "crcl_cpp/crcl_server.h"
+#include <stdio.h>
+#include <math.h>
+#include <go.h>
+
+/*
+  Given two points in one coordinate system {A}, and their associated
+  coordinates in {B}, return the transform from {B} to {A}
+*/
+
+static tf::Transform twoPointTransform(const tf::Vector3 &a1, const tf::Vector3 &a2, const tf::Vector3 &b1, const tf::Vector3 &b2)
+{
+  double tha, thb, theta;
+
+  // tha is the angle of the line segment from a1 to a2, in frame {A}
+  tha = atan2(a2.getY() - a1.getY(), a2.getX() - a1.getX());
+  // thb is the angle of the line segment from b1 to b2, in frame {B}
+  thb = atan2(b2.getY() - b1.getY(), b2.getX() - b1.getX());
+  // their difference is the rotation from {A} to {B}
+  theta = thb - tha;
+  // normalize it, [-pi .. pi]
+  while (theta > M_PI) theta -= (M_PI + M_PI);
+  while (theta < -M_PI) theta += (M_PI + M_PI);
+  // make it a rotation matrix, where theta is rotation about Z
+  tf::Matrix3x3 B_R_A;
+  B_R_A.setRPY(0, 0, theta);
+
+  // ac is the vector to the centroid of a1 and a2, in {A}
+  tf::Vector3 ac((a1.getX() + a2.getX()) * 0.5, (a1.getY() + a2.getY()) * 0.5, 0);
+  // bc is the vector to the centroid of b1 and b2, in {B}
+  tf::Vector3 bc((b1.getX() + b2.getX()) * 0.5, (b1.getY() + b2.getY()) * 0.5, 0);
+  // get the vector from {A} to {B} in frame {B} by rotating ac into {B}
+  // and subtracting from bc
+  tf::Vector3 B_P_A(bc - B_R_A * ac);
+
+  // convert it to a complete transform
+  return tf::Transform(B_R_A, B_P_A);
+}
+
+static double randf(void)
+{
+  return ((double) rand()) / ((double) RAND_MAX);
+}
+
+static void test_two_point_transform(void)
+{
+  for (int t = 0; t < 10; t++) {
+    tf::Vector3 a1, a2, b1, b2;
+    tf::Vector3 B_P_A;
+    tf::Matrix3x3 B_R_A;
+    tf::Transform B_T_A, B_T_A_out;
+    double theta;
+
+    // generate two random points in {A} frame
+    a1.setValue(randf(), randf(), 0);
+    a2.setValue(randf(), randf(), 0);
+
+    // generate a random transform from {A} to {B}
+    B_P_A.setValue(randf(), randf(), 0);
+    theta = M_PI * (2.0 * randf() - 1.0);
+    B_R_A.setRPY(0, 0, theta);
+    B_T_A.setOrigin(B_P_A);
+    B_T_A.setBasis(B_R_A);
+
+    // transform two points to {B} frame
+    b1 = B_T_A * a1;
+    b2 = B_T_A * a2;
+
+    B_T_A_out = twoPointTransform(a1, a2, b1, b2);
+
+    printf("%f %f / %f %f\n", B_T_A.getOrigin().getX(), B_T_A.getOrigin().getY(), B_T_A_out.getOrigin().getX(), B_T_A_out.getOrigin().getY());
+  }
+}
+
+static void test_two_point_transform_e(void)
+{
+  for (int t = 0; t < 10; t++) {
+    tf::Vector3 a1, a2, b1, b2;
+    tf::Vector3 ac, bc;
+    tf::Vector3 B_P_A, B_P_A_out;
+    tf::Matrix3x3 B_R_A, B_R_A_out;
+    tf::Transform B_T_A;
+    double theta, tha, thb, theta_out;
+
+    // generate two random points in {A} frame
+    a1.setValue(randf(), randf(), 0);
+    a2.setValue(randf(), randf(), 0);
+
+    // generate a random transform from {A} to {B}
+    B_P_A.setValue(randf(), randf(), 0);
+    theta = M_PI * (2.0 * randf() - 1.0);
+    B_R_A.setRPY(0, 0, theta);
+    B_T_A.setOrigin(B_P_A);
+    B_T_A.setBasis(B_R_A);
+
+    // transform two points to {B} frame
+    b1 = B_T_A * a1;
+    b2 = B_T_A * a2;
+
+    tha = atan2(a2.getY() - a1.getY(), a2.getX() - a1.getX());
+    thb = atan2(b2.getY() - b1.getY(), b2.getX() - b1.getX());
+    theta_out = thb - tha;
+    while (theta_out > M_PI) theta_out -= (M_PI + M_PI);
+    while (theta_out < -M_PI) theta_out += (M_PI + M_PI);
+
+    /* theta_out = B_theta_A, from A to B */
+
+    printf("%f %f\n", theta, theta_out);
+
+    B_R_A_out.setRPY(0, 0, theta_out);
+
+    ac.setX((a1.getX() + a2.getX()) * 0.5);
+    ac.setY((a1.getY() + a2.getY()) * 0.5);
+    ac.setZ(0);
+
+    bc.setX((b1.getX() + b2.getX()) * 0.5);
+    bc.setY((b1.getY() + b2.getY()) * 0.5);
+    bc.setZ(0);
+
+    B_P_A_out = bc - B_R_A_out * ac;
+
+    printf("%f %f / %f %f\n", B_P_A.getX(), B_P_A.getY(), B_P_A_out.getX(), B_P_A_out.getY());
+  }
+}
 
 class MyCRCLServer : public CRCLServer
 {
@@ -106,6 +230,9 @@ int main(int argc, char * argv[])
   MyCRCLServer me;
   CRCLCommandType *cmd;
   int retval;
+
+  test_two_point_transform();
+  return 0;
 
   me.getServer(1234);
 

@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "crcl_cpp/CRCLProgramInstanceClasses.hh"
+#include "crcl_cpp/CRCLCommandInstanceClasses.hh"
+#include "crcl_cpp/CRCLCommandsClasses.hh"
 
 extern CRCLProgramFile *CRCLProgramTree;
 extern FILE *yyin;
@@ -11,6 +13,10 @@ extern void yylex_destroy();
 int main(int argc, char *argv[])
 {
   FILE *inFile;
+  XmlVersion *versionIn;
+  XmlHeaderForCRCLCommandInstance *headerIn;
+  CRCLCommandInstanceType *CRCLCommandInstanceIn;
+  CRCLCommandInstanceFile *CRCLCommandInstanceFileIn;
 
   if (argc != 2) {
     fprintf(stderr, "Usage: %s <data file name>\n", argv[0]);
@@ -27,9 +33,26 @@ int main(int argc, char *argv[])
   yyparse();
   fclose(inFile);
 
+  versionIn = new XmlVersion(true);
+  headerIn = new XmlHeaderForCRCLCommandInstance;
+  headerIn->location = new SchemaLocation("xsi", "CRCLCommandInstance.xsd", false);
+  CRCLCommandInstanceIn = new CRCLCommandInstanceType;
+  CRCLCommandInstanceFileIn = new CRCLCommandInstanceFile(versionIn, headerIn, CRCLCommandInstanceIn);
+
   for (std::list<MiddleCommandType *>::iterator iter = CRCLProgramTree->CRCLProgram->MiddleCommand->begin(); iter != CRCLProgramTree->CRCLProgram->MiddleCommand->end(); iter++) {
-    char buffer[1024];
-    size_t left, start;
+  char buffer[1024];
+  size_t left, start;
+
+#if 0
+  WHEREWASI:
+  You need to do something like this for each command:
+  EndCanonCommand = new EndCanonType;
+  EndCanonCommand->Name = 0;
+  EndCanonCommand->printTypp = true;
+  EndCanonCommand->CommandID = new XmlPositiveInteger("3");
+  CRCLCommandInstanceIn->Name = 0;
+  CRCLCommandInstanceIn->CRCLCommand = EndCanonCommand;
+#endif
 
 #define DO_IT(TYPE)					\
     if (dynamic_cast<TYPE *>(*iter)) {			\
