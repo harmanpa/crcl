@@ -91,13 +91,15 @@ public:
     XmlID * NameIn,
     XmlNonNegativeInteger * CommandIDIn,
     XmlPositiveInteger * StatusIDIn,
-    CommandStateEnumType * CommandStateIn);
+    CommandStateEnumType * CommandStateIn,
+    XmlString * StateDescriptionIn);
   ~CommandStatusType();
   void PRINTSELFDECL;
 
   XmlNonNegativeInteger * CommandID;
   XmlPositiveInteger * StatusID;
   CommandStateEnumType * CommandState;
+  XmlString * StateDescription;
 
   bool printTypp;
 };

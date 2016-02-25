@@ -1,5 +1,5 @@
 
-#line 3 "<stdout>"
+#line 3 "/home/isd/proctor/test_ws/src/crcl/tools/cpp/crcl_cpp/src/CRCLProgramInstanceLex.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -1625,8 +1625,32 @@ This ignores white space outside of meaningful strings of characters.
 #endif
 #define ECH if (ECHO_IT) ECHO
 
+#ifdef STRINGIN
+#undef YY_INPUT
+#define YY_INPUT(b, r, ms) (r = set_yyinput(b, ms))
+
 extern int yyReadData;
 extern int yyReadDataList;
+char * yyStringInputPointer;
+char * yyStringInputEnd;
+
+int set_yyinput(char * buffer, int maxSize)
+{
+  int n;
+
+  n = (maxSize < (yyStringInputEnd - yyStringInputPointer) ?
+       maxSize : (yyStringInputEnd - yyStringInputPointer));
+  if (n > 0)
+    {
+      memcpy(buffer, yyStringInputPointer, n);
+      yyStringInputPointer += n;
+    }
+  return n;
+}
+#else
+extern int yyReadData;
+extern int yyReadDataList;
+#endif
 
 #define INITIAL 0
 #define COMMENT 1

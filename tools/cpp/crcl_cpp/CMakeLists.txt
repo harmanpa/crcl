@@ -52,7 +52,6 @@ add_executable(crcl_server_main
   src/crcl_server.cpp
   src/CRCLCommandInstanceLex.cc
   src/CRCLCommandInstanceYACC.cc
-  include/crcl_cpp/CRCLCommandInstanceYACC.hh
 )
 
 target_link_libraries(crcl_server_main
@@ -65,7 +64,6 @@ add_executable(crcl_program_client
   src/crcl_program_client.cpp
   src/CRCLProgramInstanceLex.cc
   src/CRCLProgramInstanceYACC.cc
-  include/crcl_cpp/CRCLProgramInstanceYACC.hh
 )
 
 target_link_libraries(crcl_program_client

@@ -161,6 +161,8 @@ W [ \t\n\r]*
 "<"{W}"Pose"                  {ECH; return POSESTART;}
 "</"{W}"Separation"{W}">"     {ECH; return SEPARATIONEND;}
 "<"{W}"Separation"            {ECH; return SEPARATIONSTART;}
+"</"{W}"StateDescription"{W}">" {ECH; return STATEDESCRIPTIONEND;}
+"<"{W}"StateDescription"      {ECH; return STATEDESCRIPTIONSTART;}
 "</"{W}"StatusID"{W}">"       {ECH; return STATUSIDEND;}
 "<"{W}"StatusID"              {ECH; return STATUSIDSTART;}
 "</"{W}"Twist"{W}">"          {ECH; return TWISTEND;}

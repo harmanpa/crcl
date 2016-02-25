@@ -106,8 +106,8 @@ int yyerror(const char * s);
 
 /* In a future release of Bison, this section will be replaced
    by #include "CRCLStatusYACC.hh".  */
-#ifndef YY_YY_SRC_CRCLSTATUSYACC_HH_INCLUDED
-# define YY_YY_SRC_CRCLSTATUSYACC_HH_INCLUDED
+#ifndef YY_YY_HOME_ISD_PROCTOR_TEST_WS_SRC_CRCL_TOOLS_CPP_CRCL_CPP_SRC_CRCLSTATUSYACC_HH_INCLUDED
+# define YY_YY_HOME_ISD_PROCTOR_TEST_WS_SRC_CRCL_TOOLS_CPP_CRCL_CPP_SRC_CRCLSTATUSYACC_HH_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -194,36 +194,38 @@ extern int yydebug;
     POSESTART = 328,
     SEPARATIONEND = 329,
     SEPARATIONSTART = 330,
-    STATUSIDEND = 331,
-    STATUSIDSTART = 332,
-    TWISTEND = 333,
-    TWISTSTART = 334,
-    WRENCHEND = 335,
-    WRENCHSTART = 336,
-    XAXISEND = 337,
-    XAXISSTART = 338,
-    XEND = 339,
-    XSTART = 340,
-    YEND = 341,
-    YSTART = 342,
-    ZAXISEND = 343,
-    ZAXISSTART = 344,
-    ZEND = 345,
-    ZSTART = 346,
-    CRCLSTATUSTYPEDECL = 347,
-    COMMANDSTATUSTYPEDECL = 348,
-    GRIPPERSTATUSTYPEDECL = 349,
-    JOINTSTATUSTYPEDECL = 350,
-    JOINTSTATUSESTYPEDECL = 351,
-    PARALLELGRIPPERSTATUSTYPEDECL = 352,
-    POINTTYPEDECL = 353,
-    POSESTATUSTYPEDECL = 354,
-    POSETYPEDECL = 355,
-    THREEFINGERGRIPPERSTATUSTYPEDECL = 356,
-    TWISTTYPEDECL = 357,
-    VACUUMGRIPPERSTATUSTYPEDECL = 358,
-    VECTORTYPEDECL = 359,
-    WRENCHTYPEDECL = 360
+    STATEDESCRIPTIONEND = 331,
+    STATEDESCRIPTIONSTART = 332,
+    STATUSIDEND = 333,
+    STATUSIDSTART = 334,
+    TWISTEND = 335,
+    TWISTSTART = 336,
+    WRENCHEND = 337,
+    WRENCHSTART = 338,
+    XAXISEND = 339,
+    XAXISSTART = 340,
+    XEND = 341,
+    XSTART = 342,
+    YEND = 343,
+    YSTART = 344,
+    ZAXISEND = 345,
+    ZAXISSTART = 346,
+    ZEND = 347,
+    ZSTART = 348,
+    CRCLSTATUSTYPEDECL = 349,
+    COMMANDSTATUSTYPEDECL = 350,
+    GRIPPERSTATUSTYPEDECL = 351,
+    JOINTSTATUSTYPEDECL = 352,
+    JOINTSTATUSESTYPEDECL = 353,
+    PARALLELGRIPPERSTATUSTYPEDECL = 354,
+    POINTTYPEDECL = 355,
+    POSESTATUSTYPEDECL = 356,
+    POSETYPEDECL = 357,
+    THREEFINGERGRIPPERSTATUSTYPEDECL = 358,
+    TWISTTYPEDECL = 359,
+    VACUUMGRIPPERSTATUSTYPEDECL = 360,
+    VECTORTYPEDECL = 361,
+    WRENCHTYPEDECL = 362
   };
 #endif
 
@@ -245,6 +247,7 @@ union YYSTYPE
   XmlNMTOKEN *                        XmlNMTOKENVal;
   XmlNonNegativeInteger *             XmlNonNegativeIntegerVal;
   XmlPositiveInteger *                XmlPositiveIntegerVal;
+  XmlString *                         XmlStringVal;
 
   CRCLStatusFile *                    CRCLStatusFileVal;
 
@@ -277,7 +280,7 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_SRC_CRCLSTATUSYACC_HH_INCLUDED  */
+#endif /* !YY_YY_HOME_ISD_PROCTOR_TEST_WS_SRC_CRCL_TOOLS_CPP_CRCL_CPP_SRC_CRCLSTATUSYACC_HH_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
@@ -523,21 +526,21 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   172
+#define YYLAST   186
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  106
+#define YYNTOKENS  108
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  87
+#define YYNNTS  90
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  106
+#define YYNRULES  110
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  258
+#define YYNSTATES  265
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   360
+#define YYMAXUTOK   362
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -582,24 +585,25 @@ static const yytype_uint8 yytranslate[] =
       75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
       85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
       95,    96,    97,    98,    99,   100,   101,   102,   103,   104,
-     105
+     105,   106,   107
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   234,   234,   244,   249,   256,   265,   274,   283,   292,
-     301,   310,   316,   329,   334,   341,   341,   347,   347,   357,
-     363,   369,   370,   370,   377,   378,   378,   389,   390,   390,
-     397,   398,   398,   409,   410,   410,   417,   418,   418,   428,
-     433,   433,   439,   441,   443,   449,   450,   455,   455,   460,
-     460,   466,   466,   471,   471,   478,   479,   479,   485,   492,
-     497,   503,   504,   510,   511,   511,   518,   519,   519,   525,
-     525,   530,   535,   538,   545,   551,   552,   552,   557,   563,
-     568,   575,   576,   581,   587,   592,   592,   598,   598,   604,
-     611,   612,   617,   623,   629,   630,   635,   640,   640,   645,
-     645,   650,   655,   655,   660,   668,   679
+       0,   239,   239,   249,   254,   261,   270,   279,   288,   297,
+     306,   315,   324,   330,   343,   348,   355,   355,   361,   361,
+     371,   378,   384,   385,   385,   392,   393,   393,   404,   405,
+     405,   412,   413,   413,   424,   425,   425,   432,   433,   433,
+     443,   448,   448,   454,   456,   458,   464,   465,   470,   470,
+     475,   475,   481,   481,   486,   486,   493,   494,   494,   500,
+     507,   512,   518,   519,   525,   526,   526,   533,   534,   534,
+     540,   540,   545,   550,   553,   560,   566,   567,   567,   572,
+     578,   583,   590,   591,   596,   602,   607,   607,   614,   615,
+     615,   621,   621,   627,   634,   635,   640,   646,   652,   653,
+     658,   663,   663,   668,   668,   673,   678,   678,   683,   691,
+     702
 };
 #endif
 
@@ -628,19 +632,20 @@ static const char *const yytname[] =
   "LINEARVELOCITYEND", "LINEARVELOCITYSTART", "MOMENTEND", "MOMENTSTART",
   "NAMEEND", "NAMESTART", "POINTEND", "POINTSTART", "POSESTATUSEND",
   "POSESTATUSSTART", "POSEEND", "POSESTART", "SEPARATIONEND",
-  "SEPARATIONSTART", "STATUSIDEND", "STATUSIDSTART", "TWISTEND",
-  "TWISTSTART", "WRENCHEND", "WRENCHSTART", "XAXISEND", "XAXISSTART",
-  "XEND", "XSTART", "YEND", "YSTART", "ZAXISEND", "ZAXISSTART", "ZEND",
-  "ZSTART", "CRCLSTATUSTYPEDECL", "COMMANDSTATUSTYPEDECL",
-  "GRIPPERSTATUSTYPEDECL", "JOINTSTATUSTYPEDECL", "JOINTSTATUSESTYPEDECL",
+  "SEPARATIONSTART", "STATEDESCRIPTIONEND", "STATEDESCRIPTIONSTART",
+  "STATUSIDEND", "STATUSIDSTART", "TWISTEND", "TWISTSTART", "WRENCHEND",
+  "WRENCHSTART", "XAXISEND", "XAXISSTART", "XEND", "XSTART", "YEND",
+  "YSTART", "ZAXISEND", "ZAXISSTART", "ZEND", "ZSTART",
+  "CRCLSTATUSTYPEDECL", "COMMANDSTATUSTYPEDECL", "GRIPPERSTATUSTYPEDECL",
+  "JOINTSTATUSTYPEDECL", "JOINTSTATUSESTYPEDECL",
   "PARALLELGRIPPERSTATUSTYPEDECL", "POINTTYPEDECL", "POSESTATUSTYPEDECL",
   "POSETYPEDECL", "THREEFINGERGRIPPERSTATUSTYPEDECL", "TWISTTYPEDECL",
   "VACUUMGRIPPERSTATUSTYPEDECL", "VECTORTYPEDECL", "WRENCHTYPEDECL",
   "$accept", "y_CRCLStatusFile", "y_XmlHeaderForCRCLStatus",
   "y_SchemaLocation", "y_XmlBoolean", "y_XmlDecimal", "y_XmlID",
   "y_XmlNMTOKEN", "y_XmlNonNegativeInteger", "y_XmlPositiveInteger",
-  "y_XmlVersion", "y_AngularVelocity_VectorType", "y_CRCLStatusType",
-  "y_CommandID_XmlNonNegativeInteger", "$@1",
+  "y_XmlString", "y_XmlVersion", "y_AngularVelocity_VectorType",
+  "y_CRCLStatusType", "y_CommandID_XmlNonNegativeInteger", "$@1",
   "y_CommandState_CommandStateEnumType", "$@2", "y_CommandStatusType",
   "y_CommandStatus_CommandStatusType", "y_Finger1Force_XmlDecimal_0",
   "$@3", "y_Finger1Position_FractionType_0", "$@4",
@@ -660,10 +665,11 @@ static const char *const yytname[] =
   "y_Moment_VectorType", "y_Name_XmlID_0", "$@18", "y_PointType",
   "y_Point_PointType", "y_PoseStatusType", "y_PoseStatus_PoseStatusType_0",
   "y_PoseType", "y_Pose_PoseType", "y_Separation_XmlDecimal", "$@19",
-  "y_StatusID_XmlPositiveInteger", "$@20", "y_TwistType",
+  "y_StateDescription_XmlString_0", "$@20",
+  "y_StatusID_XmlPositiveInteger", "$@21", "y_TwistType",
   "y_Twist_TwistType_0", "y_VectorType", "y_WrenchType",
-  "y_Wrench_WrenchType_0", "y_XAxis_VectorType", "y_X_XmlDecimal", "$@21",
-  "y_Y_XmlDecimal", "$@22", "y_ZAxis_VectorType", "y_Z_XmlDecimal", "$@23",
+  "y_Wrench_WrenchType_0", "y_XAxis_VectorType", "y_X_XmlDecimal", "$@22",
+  "y_Y_XmlDecimal", "$@23", "y_ZAxis_VectorType", "y_Z_XmlDecimal", "$@24",
   "y_x_ParallelGripperStatusType", "y_x_ThreeFingerGripperStatusType",
   "y_x_VacuumGripperStatusType", YY_NULLPTR
 };
@@ -684,14 +690,14 @@ static const yytype_uint16 yytoknum[] =
      325,   326,   327,   328,   329,   330,   331,   332,   333,   334,
      335,   336,   337,   338,   339,   340,   341,   342,   343,   344,
      345,   346,   347,   348,   349,   350,   351,   352,   353,   354,
-     355,   356,   357,   358,   359,   360
+     355,   356,   357,   358,   359,   360,   361,   362
 };
 # endif
 
-#define YYPACT_NINF -156
+#define YYPACT_NINF -166
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-156)))
+  (!!((Yystate) == (-166)))
 
 #define YYTABLE_NINF -1
 
@@ -702,32 +708,33 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      -7,    -2,    14,    -1,     8,  -156,     4,     5,    11,    15,
-      12,  -156,    16,  -156,   -43,    13,    20,  -156,    22,     7,
-    -156,  -156,  -156,    25,   -23,    29,   -43,    17,    28,   -36,
-    -156,   -29,    19,  -156,   -43,   -13,    36,     2,  -156,    38,
-     -28,    -3,  -156,   -43,   -19,   -94,  -156,  -156,    46,    32,
-      48,  -156,    -3,   -16,  -156,    52,    53,    54,    21,  -156,
-    -156,  -156,    58,  -156,    57,  -156,   -43,    23,  -156,    59,
-     -15,   -43,   -43,   -43,  -156,  -156,    49,    64,  -156,    24,
-    -156,   -43,     6,    63,   -10,    37,    37,    37,  -156,  -156,
-       1,    75,    76,    30,    27,  -156,   -43,    10,    77,  -156,
-      79,    18,    62,    47,  -156,    71,  -156,    88,    40,    92,
-      26,    39,  -156,   -43,    31,  -156,    93,  -156,    94,    72,
-      98,  -156,  -156,    64,  -156,    99,    51,   -43,    44,   100,
-      34,   100,   101,    70,  -156,   104,  -156,  -156,   107,    80,
-    -156,    66,   113,  -156,   112,  -156,    35,  -156,   -43,    42,
-     100,  -156,    65,   100,  -156,   100,    56,  -156,    81,   113,
-     121,  -156,   120,   103,   125,  -156,  -156,    82,   113,  -156,
-     124,    50,    90,  -156,    43,  -156,   122,   102,   100,  -156,
-    -156,    60,   109,   135,  -156,   134,   114,  -156,    97,  -156,
-      86,   113,  -156,   138,    55,   139,   105,  -156,  -156,  -156,
-      83,  -156,  -156,   118,   145,  -156,   144,   123,  -156,  -156,
-      95,   113,  -156,   148,  -156,  -156,   149,    96,  -156,  -156,
-     117,   113,  -156,   152,  -156,  -156,    78,   113,  -156,   113,
-    -156,   153,  -156,  -156,   136,   113,  -156,  -156,    84,   113,
-     119,   113,  -156,  -156,   137,   113,  -156,    73,  -156,   126,
-     113,  -156,   132,  -156,  -156,   106,  -156,  -156
+      -4,     0,    14,    -2,     6,  -166,     7,    -1,    11,    15,
+      10,  -166,    13,  -166,   -43,    12,    19,  -166,    23,     8,
+    -166,  -166,  -166,    24,   -23,    30,   -43,    16,    29,   -35,
+    -166,   -29,    20,  -166,   -43,   -13,    36,     2,  -166,    38,
+     -31,     1,  -166,   -43,   -21,   -96,  -166,  -166,    45,    31,
+      49,  -166,     1,   -17,  -166,    52,    53,    54,    21,  -166,
+    -166,  -166,    58,  -166,    59,   -11,   -43,    18,  -166,    61,
+      -9,   -43,   -43,   -43,  -166,  -166,    46,    64,  -166,    68,
+    -166,    26,  -166,   -43,     4,    72,    -3,    40,    40,    40,
+    -166,  -166,    17,    78,  -166,    79,    33,    25,  -166,   -43,
+       9,    80,  -166,    82,    22,    63,    48,  -166,    76,    94,
+    -166,    93,    43,    95,    27,    39,  -166,   -43,    28,  -166,
+      97,  -166,    98,    74,   100,  -166,  -166,  -166,    32,    64,
+    -166,   103,    55,   -43,    47,   105,    34,   105,   101,    81,
+    -166,   109,  -166,  -166,   111,    84,  -166,  -166,    73,   116,
+    -166,   117,  -166,    35,  -166,   -43,    42,   105,  -166,    62,
+     105,  -166,   105,    65,  -166,    89,   116,   124,  -166,   125,
+     107,   129,  -166,  -166,    85,   116,  -166,   128,    50,    99,
+    -166,    51,  -166,   122,   102,   105,  -166,  -166,    66,   118,
+     133,  -166,   137,   119,  -166,   106,  -166,    90,   116,  -166,
+     139,    56,   141,   104,  -166,  -166,  -166,    88,  -166,  -166,
+     123,   150,  -166,   149,   126,  -166,  -166,   108,   116,  -166,
+     151,  -166,  -166,   152,   110,  -166,  -166,   127,   116,  -166,
+     154,  -166,  -166,    70,   116,  -166,   116,  -166,   156,  -166,
+    -166,   140,   116,  -166,  -166,    75,   116,   130,   116,  -166,
+    -166,   142,   116,  -166,    77,  -166,   121,   116,  -166,   136,
+    -166,  -166,   113,  -166,  -166
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -736,59 +743,60 @@ static const yytype_int16 yypact[] =
 static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,     0,     0,     1,     0,     0,     0,     0,
-       0,    11,     0,     3,    75,     0,     0,     4,     0,     0,
-       2,    12,    76,     0,    61,     0,    75,     0,     0,    81,
-       7,     0,     0,    20,    75,     0,     0,    45,    77,     0,
-       0,     0,    62,    75,     0,     0,    14,    15,     0,     0,
-       0,    72,    60,     0,    82,     0,     0,     0,     0,    42,
-      43,    44,     0,    87,     0,    19,    75,     0,    73,     0,
-      90,    75,    75,    75,    46,     9,     0,     0,    17,     0,
-      59,    75,     0,     0,    94,     0,     0,     0,    16,    10,
-       0,     0,     0,    55,     0,    84,    75,     0,     0,    80,
-       0,     0,    24,     0,    88,     0,    53,     0,    63,     0,
-       0,     0,    91,    75,     0,    40,     0,   104,     0,    30,
-       0,   106,    18,     0,    56,     0,    66,    75,     0,     0,
-       0,     0,     0,     0,    95,     0,    85,    25,     0,    36,
-      49,     0,     0,    64,     0,    58,     0,    79,    75,     0,
-       0,    83,     0,     0,    89,     0,     0,     8,     0,     0,
-       0,    31,     0,    21,     0,    54,     6,     0,     0,    67,
-       0,     0,     0,    96,     0,    71,     0,     0,     0,    93,
-      41,     0,     0,     0,    37,     0,    27,     5,     0,    57,
-       0,     0,    97,     0,     0,     0,     0,   101,    13,    39,
-       0,    86,    26,     0,     0,    22,     0,    33,    50,    65,
-       0,     0,    99,     0,    78,    47,     0,     0,    74,    32,
-       0,     0,    28,     0,   105,    68,     0,     0,   102,     0,
-      51,     0,    92,    38,     0,     0,    34,    98,     0,     0,
-       0,     0,    69,    23,     0,     0,   100,     0,    48,     0,
-       0,    29,     0,   103,    52,     0,    35,    70
+       0,    12,     0,     3,    76,     0,     0,     4,     0,     0,
+       2,    13,    77,     0,    62,     0,    76,     0,     0,    82,
+       7,     0,     0,    21,    76,     0,     0,    46,    78,     0,
+       0,     0,    63,    76,     0,     0,    15,    16,     0,     0,
+       0,    73,    61,     0,    83,     0,     0,     0,     0,    43,
+      44,    45,     0,    91,     0,    88,    76,     0,    74,     0,
+      94,    76,    76,    76,    47,     9,     0,     0,    18,     0,
+      20,     0,    60,    76,     0,     0,    98,     0,     0,     0,
+      17,    10,     0,     0,    89,     0,    56,     0,    85,    76,
+       0,     0,    81,     0,     0,    25,     0,    92,     0,     0,
+      54,     0,    64,     0,     0,     0,    95,    76,     0,    41,
+       0,   108,     0,    31,     0,   110,    19,    11,     0,     0,
+      57,     0,    67,    76,     0,     0,     0,     0,     0,     0,
+      99,     0,    86,    26,     0,    37,    50,    90,     0,     0,
+      65,     0,    59,     0,    80,    76,     0,     0,    84,     0,
+       0,    93,     0,     0,     8,     0,     0,     0,    32,     0,
+      22,     0,    55,     6,     0,     0,    68,     0,     0,     0,
+     100,     0,    72,     0,     0,     0,    97,    42,     0,     0,
+       0,    38,     0,    28,     5,     0,    58,     0,     0,   101,
+       0,     0,     0,     0,   105,    14,    40,     0,    87,    27,
+       0,     0,    23,     0,    34,    51,    66,     0,     0,   103,
+       0,    79,    48,     0,     0,    75,    33,     0,     0,    29,
+       0,   109,    69,     0,     0,   106,     0,    52,     0,    96,
+      39,     0,     0,    35,   102,     0,     0,     0,     0,    70,
+      24,     0,     0,   104,     0,    49,     0,     0,    30,     0,
+     107,    53,     0,    36,    71
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -156,  -156,  -156,  -156,  -156,  -155,  -156,  -156,  -156,    45,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,
-    -156,  -156,   -81,  -156,  -156,  -156,  -156,  -156,  -156,  -156,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156,   115,  -156,  -156,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,   -26,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,  -156,
-    -156,  -156,  -156,  -130,  -156,  -156,  -156,  -156,  -156,  -156,
-    -156,  -156,  -156,  -156,  -156,  -156,  -156
+    -166,  -166,  -166,  -166,  -166,  -165,  -166,  -166,  -166,    57,
+    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,
+    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,
+    -166,  -166,  -166,   -77,  -166,  -166,  -166,  -166,  -166,  -166,
+    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,   131,  -166,
+    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,
+     -26,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,
+    -166,  -166,  -166,  -166,  -166,  -166,  -135,  -166,  -166,  -166,
+    -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166,  -166
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-      -1,     2,     9,    13,   188,   167,    31,   158,    76,    90,
-       3,   154,    15,    40,    62,    65,    91,    27,    24,   186,
-     221,   119,   160,   207,   235,   139,   183,   224,   245,   163,
-     204,   156,   101,   135,    58,    46,   196,   229,   121,   164,
-     217,   241,    93,   123,   108,   142,    67,    51,    35,    29,
-     126,   168,   145,   191,   232,   250,   132,    52,   179,    19,
-      25,   128,   110,    44,    37,    82,    70,   117,   159,    49,
-      77,    97,    84,   149,   114,    99,   130,   171,   211,   194,
-     227,   151,   214,   239,    59,    60,    61
+      -1,     2,     9,    13,   195,   174,    31,   165,    76,    92,
+     128,     3,   161,    15,    40,    62,    65,    93,    27,    24,
+     193,   228,   123,   167,   214,   242,   145,   190,   231,   252,
+     170,   211,   163,   104,   141,    58,    46,   203,   236,   125,
+     171,   224,   248,    96,   129,   112,   149,    67,    51,    35,
+      29,   132,   175,   152,   198,   239,   257,   138,    52,   186,
+      19,    25,   134,   114,    44,    37,    84,    70,   121,   166,
+      80,   109,    49,    77,   100,    86,   156,   118,   102,   136,
+     178,   218,   201,   234,   158,   221,   246,    59,    60,    61
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -796,110 +804,115 @@ static const yytype_int16 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint16 yytable[] =
 {
-      32,   152,     1,    55,   181,   102,   103,    56,    41,    57,
-      10,     4,    11,   190,     5,     8,     6,    53,     7,    12,
-     174,    14,    16,   176,    18,   177,    17,    21,    22,    20,
-      23,    26,    28,    30,    34,    36,   210,    38,    39,    33,
-      79,    42,    43,    45,    47,    85,    86,    87,   200,    48,
-      50,    54,    63,    64,    66,    94,   226,    69,    71,    72,
-      73,    74,    75,    78,    83,    81,   234,    88,    89,    96,
-     111,    98,   238,    92,   240,    80,   100,   104,    95,   105,
-     244,   107,   106,   113,   247,   115,   249,   133,   112,   118,
-     252,   122,   120,   116,   124,   255,   109,   125,   127,   136,
-     137,   146,   131,   138,   140,   143,   148,   155,   157,   129,
-     144,   134,   147,   161,   165,   162,   153,   166,   169,   180,
-     170,   178,   172,   150,   173,   182,   184,   175,   185,   187,
-     192,   197,   189,   195,   201,   202,   198,   193,   199,   203,
-     205,   208,   209,   206,   212,   215,   213,   218,   219,   220,
-     222,   233,   216,   225,   228,   230,   223,   231,   236,   242,
-     243,   248,   237,   253,   256,   251,   257,    68,   141,     0,
-     246,     0,   254
+      32,   188,   159,    55,    10,     1,    11,    56,    41,    57,
+     197,   105,   106,     4,     5,     6,     7,    53,     8,    12,
+      16,    14,   181,    17,    18,   183,    21,   184,    20,    22,
+      26,    23,    28,   217,    30,    34,    36,    38,    33,    39,
+      81,    42,    43,    45,    47,    87,    88,    89,    48,    54,
+     207,    63,    64,   233,    50,    66,    69,    97,    71,    72,
+      73,    74,    75,   241,    90,    78,    79,    83,    91,   245,
+      82,   247,    85,   115,    94,    95,    98,   251,    99,   103,
+     101,   254,   108,   256,   111,   110,   117,   259,   119,   116,
+     122,   139,   262,   124,   113,   107,   126,   120,   127,   130,
+     131,   133,   137,   142,   143,   144,   146,   153,   147,   150,
+     140,   155,   135,   164,   151,   154,   160,   168,   162,   169,
+     173,   172,   177,   176,   182,   157,   180,   187,   189,   179,
+     185,   191,   192,   194,   199,   196,   205,   210,   206,   200,
+     208,   204,   202,   212,   209,   219,   216,   222,   213,   220,
+     215,   223,   225,   226,   227,   229,   244,   235,   237,   230,
+     243,   240,   249,   253,   250,     0,   232,   261,   263,   260,
+     258,   238,   255,   264,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,    68,     0,     0,   148
 };
 
 static const yytype_int16 yycheck[] =
 {
-      26,   131,     9,    97,   159,    86,    87,   101,    34,   103,
-       5,    13,     7,   168,     0,    11,    17,    43,    10,     8,
-     150,     6,    10,   153,    67,   155,    10,     7,     6,    16,
-      23,     6,    55,     4,     6,    71,   191,    66,    19,    22,
-      66,    54,     6,    41,     6,    71,    72,    73,   178,    77,
-      53,    70,     6,    21,     6,    81,   211,    73,     6,     6,
-       6,    40,     4,     6,    79,     6,   221,    18,     4,     6,
-      96,    81,   227,    49,   229,    52,    39,    76,    72,     4,
-     235,    51,     6,     6,   239,     6,   241,   113,    78,    27,
-     245,    20,    45,    75,     6,   250,    69,    57,     6,     6,
-       6,   127,    63,    31,     6,     6,     6,    37,     4,    83,
-      59,    80,    68,     6,    48,    35,    15,     4,     6,    38,
-      85,    65,   148,    89,    82,     4,     6,    62,    25,     4,
-       6,    88,    50,    43,    74,    26,    14,    87,    36,     4,
-       6,    44,    56,    29,     6,     6,    91,    64,    30,     4,
-       6,    34,    47,    58,     6,     6,    33,    61,     6,     6,
-      24,    42,    84,    90,    32,    28,    60,    52,   123,    -1,
-      86,    -1,    46
+      26,   166,   137,    99,     5,     9,     7,   103,    34,   105,
+     175,    88,    89,    13,     0,    17,    10,    43,    11,     8,
+      10,     6,   157,    10,    67,   160,     7,   162,    16,     6,
+       6,    23,    55,   198,     4,     6,    71,    66,    22,    19,
+      66,    54,     6,    41,     6,    71,    72,    73,    79,    70,
+     185,     6,    21,   218,    53,     6,    73,    83,     6,     6,
+       6,    40,     4,   228,    18,     6,    77,     6,     4,   234,
+      52,   236,    81,    99,     6,    49,    72,   242,     6,    39,
+      83,   246,     4,   248,    51,     6,     6,   252,     6,    80,
+      27,   117,   257,    45,    69,    78,    20,    75,     4,     6,
+      57,     6,    63,     6,     6,    31,     6,   133,    76,     6,
+      82,     6,    85,     4,    59,    68,    15,     6,    37,    35,
+       4,    48,    87,     6,    62,    91,    84,    38,     4,   155,
+      65,     6,    25,     4,     6,    50,    14,     4,    36,    89,
+      74,    90,    43,     6,    26,     6,    56,     6,    29,    93,
+      44,    47,    64,    30,     4,     6,    86,     6,     6,    33,
+       6,    34,     6,    88,    24,    -1,    58,    46,    32,    92,
+      28,    61,    42,    60,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    52,    -1,    -1,   129
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     9,   107,   116,    13,     0,    17,    10,    11,   108,
-       5,     7,     8,   109,     6,   118,    10,    10,    67,   165,
-      16,     7,     6,    23,   124,   166,     6,   123,    55,   155,
-       4,   112,   165,    22,     6,   154,    71,   170,    66,    19,
-     119,   165,    54,     6,   169,    41,   141,     6,    77,   175,
-      53,   153,   163,   165,    70,    97,   101,   103,   140,   190,
-     191,   192,   120,     6,    21,   121,     6,   152,   153,    73,
-     172,     6,     6,     6,    40,     4,   114,   176,     6,   165,
-      52,     6,   171,    79,   178,   165,   165,   165,    18,     4,
-     115,   122,    49,   148,   165,    72,     6,   177,    81,   181,
-      39,   138,   138,   138,    76,     4,     6,    51,   150,    69,
-     168,   165,    78,     6,   180,     6,    75,   173,    27,   127,
-      45,   144,    20,   149,     6,    57,   156,     6,   167,    83,
-     182,    63,   162,   165,    80,   139,     6,     6,    31,   131,
-       6,   115,   151,     6,    59,   158,   165,    68,     6,   179,
-      89,   187,   179,    15,   117,    37,   137,     4,   113,   174,
-     128,     6,    35,   135,   145,    48,     4,   111,   157,     6,
-      85,   183,   165,    82,   179,    62,   179,   179,    65,   164,
-      38,   111,     4,   132,     6,    25,   125,     4,   110,    50,
-     111,   159,     6,    87,   185,    43,   142,    88,    14,    36,
-     179,    74,    26,     4,   136,     6,    29,   129,    44,    56,
-     111,   184,     6,    91,   188,     6,    47,   146,    64,    30,
-       4,   126,     6,    33,   133,    58,   111,   186,     6,   143,
-       6,    61,   160,    34,   111,   130,     6,    84,   111,   189,
-     111,   147,     6,    24,   111,   134,    86,   111,    42,   111,
-     161,    28,   111,    90,    46,   111,    32,    60
+       0,     9,   109,   119,    13,     0,    17,    10,    11,   110,
+       5,     7,     8,   111,     6,   121,    10,    10,    67,   168,
+      16,     7,     6,    23,   127,   169,     6,   126,    55,   158,
+       4,   114,   168,    22,     6,   157,    71,   173,    66,    19,
+     122,   168,    54,     6,   172,    41,   144,     6,    79,   180,
+      53,   156,   166,   168,    70,    99,   103,   105,   143,   195,
+     196,   197,   123,     6,    21,   124,     6,   155,   156,    73,
+     175,     6,     6,     6,    40,     4,   116,   181,     6,    77,
+     178,   168,    52,     6,   174,    81,   183,   168,   168,   168,
+      18,     4,   117,   125,     6,    49,   151,   168,    72,     6,
+     182,    83,   186,    39,   141,   141,   141,    78,     4,   179,
+       6,    51,   153,    69,   171,   168,    80,     6,   185,     6,
+      75,   176,    27,   130,    45,   147,    20,     4,   118,   152,
+       6,    57,   159,     6,   170,    85,   187,    63,   165,   168,
+      82,   142,     6,     6,    31,   134,     6,    76,   117,   154,
+       6,    59,   161,   168,    68,     6,   184,    91,   192,   184,
+      15,   120,    37,   140,     4,   115,   177,   131,     6,    35,
+     138,   148,    48,     4,   113,   160,     6,    87,   188,   168,
+      84,   184,    62,   184,   184,    65,   167,    38,   113,     4,
+     135,     6,    25,   128,     4,   112,    50,   113,   162,     6,
+      89,   190,    43,   145,    90,    14,    36,   184,    74,    26,
+       4,   139,     6,    29,   132,    44,    56,   113,   189,     6,
+      93,   193,     6,    47,   149,    64,    30,     4,   129,     6,
+      33,   136,    58,   113,   191,     6,   146,     6,    61,   163,
+      34,   113,   133,     6,    86,   113,   194,   113,   150,     6,
+      24,   113,   137,    88,   113,    42,   113,   164,    28,   113,
+      92,    46,   113,    32,    60
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,   106,   107,   108,   109,   110,   111,   112,   113,   114,
-     115,   116,   116,   117,   118,   120,   119,   122,   121,   123,
-     124,   125,   126,   125,   127,   128,   127,   129,   130,   129,
-     131,   132,   131,   133,   134,   133,   135,   136,   135,   137,
-     139,   138,   140,   140,   140,   141,   141,   143,   142,   145,
-     144,   147,   146,   149,   148,   150,   151,   150,   152,   153,
-     154,   155,   155,   156,   157,   156,   158,   159,   158,   161,
-     160,   162,   163,   163,   164,   165,   166,   165,   167,   168,
-     169,   170,   170,   171,   172,   174,   173,   176,   175,   177,
-     178,   178,   179,   180,   181,   181,   182,   184,   183,   186,
-     185,   187,   189,   188,   190,   191,   192
+       0,   108,   109,   110,   111,   112,   113,   114,   115,   116,
+     117,   118,   119,   119,   120,   121,   123,   122,   125,   124,
+     126,   127,   128,   129,   128,   130,   131,   130,   132,   133,
+     132,   134,   135,   134,   136,   137,   136,   138,   139,   138,
+     140,   142,   141,   143,   143,   143,   144,   144,   146,   145,
+     148,   147,   150,   149,   152,   151,   153,   154,   153,   155,
+     156,   157,   158,   158,   159,   160,   159,   161,   162,   161,
+     164,   163,   165,   166,   166,   167,   168,   169,   168,   170,
+     171,   172,   173,   173,   174,   175,   177,   176,   178,   179,
+     178,   181,   180,   182,   183,   183,   184,   185,   186,   186,
+     187,   189,   188,   191,   190,   192,   194,   193,   195,   196,
+     197
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     5,     2,     2,     1,     1,     1,     1,     1,
-       1,     4,     6,     3,     6,     0,     5,     0,     5,     5,
-       3,     0,     0,     5,     0,     0,     5,     0,     0,     5,
-       0,     0,     5,     0,     0,     5,     0,     0,     5,     3,
-       0,     5,     1,     1,     1,     0,     3,     0,     5,     0,
-       5,     0,     5,     0,     5,     0,     0,     5,     6,     3,
-       3,     0,     3,     0,     0,     5,     0,     0,     5,     0,
-       5,     3,     1,     2,     3,     0,     0,     5,     5,     3,
-       5,     0,     3,     5,     3,     0,     5,     0,     5,     4,
-       0,     3,     5,     4,     0,     3,     3,     0,     5,     0,
-       5,     3,     0,     5,     5,    10,     5
+       1,     1,     4,     6,     3,     6,     0,     5,     0,     5,
+       6,     3,     0,     0,     5,     0,     0,     5,     0,     0,
+       5,     0,     0,     5,     0,     0,     5,     0,     0,     5,
+       3,     0,     5,     1,     1,     1,     0,     3,     0,     5,
+       0,     5,     0,     5,     0,     5,     0,     0,     5,     6,
+       3,     3,     0,     3,     0,     0,     5,     0,     0,     5,
+       0,     5,     3,     1,     2,     3,     0,     0,     5,     5,
+       3,     5,     0,     3,     5,     3,     0,     5,     0,     0,
+       5,     0,     5,     4,     0,     3,     5,     4,     0,     3,
+       3,     0,     5,     0,     5,     3,     0,     5,     5,    10,
+       5
 };
 
 
@@ -1661,6 +1674,16 @@ yyreduce:
 
   case 11:
 
+    {(yyval.XmlStringVal) = new XmlString((yyvsp[0].sVal));
+	   if ((yyval.XmlStringVal)->bad)
+	     yyerror("bad XmlString");
+	   free((yyvsp[0].sVal));
+	  }
+
+    break;
+
+  case 12:
+
     {(yyval.XmlVersionVal) = new XmlVersion(false);
 	   if (strcmp((yyvsp[-1].sVal), "1.0"))
 	     yyerror("version number must be 1.0");
@@ -1669,7 +1692,7 @@ yyreduce:
 
     break;
 
-  case 12:
+  case 13:
 
     {(yyval.XmlVersionVal) = new XmlVersion(true);
 	   if (strcmp((yyvsp[-3].sVal), "1.0"))
@@ -1682,37 +1705,37 @@ yyreduce:
 
     break;
 
-  case 13:
+  case 14:
 
     {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
 
     break;
 
-  case 14:
+  case 15:
 
     {(yyval.CRCLStatusTypeVal) = new CRCLStatusType((yyvsp[-4].XmlIDVal), (yyvsp[-3].CommandStatusTypeVal), (yyvsp[-2].JointStatusesTypeVal), (yyvsp[-1].PoseStatusTypeVal), (yyvsp[0].GripperStatusTypeVal));}
 
     break;
 
-  case 15:
-
-    {yyReadData = 1;}
-
-    break;
-
   case 16:
 
-    {(yyval.XmlNonNegativeIntegerVal) = (yyvsp[-1].XmlNonNegativeIntegerVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 17:
 
-    {yyReadData = 1;}
+    {(yyval.XmlNonNegativeIntegerVal) = (yyvsp[-1].XmlNonNegativeIntegerVal);}
 
     break;
 
   case 18:
+
+    {yyReadData = 1;}
+
+    break;
+
+  case 19:
 
     {(yyval.CommandStateEnumTypeVal) = new CommandStateEnumType((yyvsp[-1].sVal));
 	   if ((yyval.CommandStateEnumTypeVal)->bad)
@@ -1722,49 +1745,49 @@ yyreduce:
 
     break;
 
-  case 19:
-
-    {(yyval.CommandStatusTypeVal) = new CommandStatusType((yyvsp[-3].XmlIDVal), (yyvsp[-2].XmlNonNegativeIntegerVal), (yyvsp[-1].XmlPositiveIntegerVal), (yyvsp[0].CommandStateEnumTypeVal));}
-
-    break;
-
   case 20:
 
-    {(yyval.CommandStatusTypeVal) = (yyvsp[-1].CommandStatusTypeVal);}
+    {(yyval.CommandStatusTypeVal) = new CommandStatusType((yyvsp[-4].XmlIDVal), (yyvsp[-3].XmlNonNegativeIntegerVal), (yyvsp[-2].XmlPositiveIntegerVal), (yyvsp[-1].CommandStateEnumTypeVal), (yyvsp[0].XmlStringVal));}
 
     break;
 
   case 21:
 
-    {(yyval.XmlDecimalVal) = 0;}
+    {(yyval.CommandStatusTypeVal) = (yyvsp[-1].CommandStatusTypeVal);}
 
     break;
 
   case 22:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
   case 23:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 24:
 
-    {(yyval.FractionTypeVal) = 0;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 25:
 
-    {yyReadData = 1;}
+    {(yyval.FractionTypeVal) = 0;}
 
     break;
 
   case 26:
+
+    {yyReadData = 1;}
+
+    break;
+
+  case 27:
 
     {(yyval.FractionTypeVal) = new FractionType((yyvsp[-1].sVal));
 	   if ((yyval.FractionTypeVal)->bad)
@@ -1774,37 +1797,37 @@ yyreduce:
 
     break;
 
-  case 27:
+  case 28:
 
     {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
-  case 28:
-
-    {yyReadData = 1;}
-
-    break;
-
   case 29:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 30:
 
-    {(yyval.FractionTypeVal) = 0;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 31:
 
-    {yyReadData = 1;}
+    {(yyval.FractionTypeVal) = 0;}
 
     break;
 
   case 32:
+
+    {yyReadData = 1;}
+
+    break;
+
+  case 33:
 
     {(yyval.FractionTypeVal) = new FractionType((yyvsp[-1].sVal));
 	   if ((yyval.FractionTypeVal)->bad)
@@ -1814,37 +1837,37 @@ yyreduce:
 
     break;
 
-  case 33:
+  case 34:
 
     {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
-  case 34:
-
-    {yyReadData = 1;}
-
-    break;
-
   case 35:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 36:
 
-    {(yyval.FractionTypeVal) = 0;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 37:
 
-    {yyReadData = 1;}
+    {(yyval.FractionTypeVal) = 0;}
 
     break;
 
   case 38:
+
+    {yyReadData = 1;}
+
+    break;
+
+  case 39:
 
     {(yyval.FractionTypeVal) = new FractionType((yyvsp[-1].sVal));
 	   if ((yyval.FractionTypeVal)->bad)
@@ -1854,399 +1877,417 @@ yyreduce:
 
     break;
 
-  case 39:
-
-    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
-
-    break;
-
   case 40:
 
-    {yyReadData = 1;}
+    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
 
     break;
 
   case 41:
 
-    {(yyval.XmlNMTOKENVal) = (yyvsp[-1].XmlNMTOKENVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 42:
 
-    {(yyval.GripperStatusTypeVal) = (yyvsp[0].ParallelGripperStatusTypeVal);}
+    {(yyval.XmlNMTOKENVal) = (yyvsp[-1].XmlNMTOKENVal);}
 
     break;
 
   case 43:
 
-    {(yyval.GripperStatusTypeVal) = (yyvsp[0].ThreeFingerGripperStatusTypeVal);}
+    {(yyval.GripperStatusTypeVal) = (yyvsp[0].ParallelGripperStatusTypeVal);}
 
     break;
 
   case 44:
 
-    {(yyval.GripperStatusTypeVal) = (yyvsp[0].VacuumGripperStatusTypeVal);}
+    {(yyval.GripperStatusTypeVal) = (yyvsp[0].ThreeFingerGripperStatusTypeVal);}
 
     break;
 
   case 45:
 
-    {(yyval.GripperStatusTypeVal) = 0;}
+    {(yyval.GripperStatusTypeVal) = (yyvsp[0].VacuumGripperStatusTypeVal);}
 
     break;
 
   case 46:
 
-    {(yyval.GripperStatusTypeVal) = (yyvsp[-1].GripperStatusTypeVal);}
+    {(yyval.GripperStatusTypeVal) = 0;}
 
     break;
 
   case 47:
 
-    {yyReadData = 1;}
+    {(yyval.GripperStatusTypeVal) = (yyvsp[-1].GripperStatusTypeVal);}
 
     break;
 
   case 48:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 49:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 50:
 
-    {(yyval.XmlBooleanVal) = (yyvsp[-1].XmlBooleanVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 51:
 
-    {yyReadData = 1;}
+    {(yyval.XmlBooleanVal) = (yyvsp[-1].XmlBooleanVal);}
 
     break;
 
   case 52:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 53:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 54:
 
-    {(yyval.XmlPositiveIntegerVal) = (yyvsp[-1].XmlPositiveIntegerVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 55:
 
-    {(yyval.XmlDecimalVal) = 0;}
+    {(yyval.XmlPositiveIntegerVal) = (yyvsp[-1].XmlPositiveIntegerVal);}
 
     break;
 
   case 56:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
   case 57:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 58:
 
-    {(yyval.JointStatusTypeVal) = new JointStatusType((yyvsp[-4].XmlIDVal), (yyvsp[-3].XmlPositiveIntegerVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 59:
 
-    {(yyval.JointStatusTypeVal) = (yyvsp[-1].JointStatusTypeVal);}
+    {(yyval.JointStatusTypeVal) = new JointStatusType((yyvsp[-4].XmlIDVal), (yyvsp[-3].XmlPositiveIntegerVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
 
     break;
 
   case 60:
 
-    {(yyval.JointStatusesTypeVal) = new JointStatusesType((yyvsp[-1].XmlIDVal), (yyvsp[0].ListJointStatusTypeVal));}
+    {(yyval.JointStatusTypeVal) = (yyvsp[-1].JointStatusTypeVal);}
 
     break;
 
   case 61:
 
-    {(yyval.JointStatusesTypeVal) = 0;}
+    {(yyval.JointStatusesTypeVal) = new JointStatusesType((yyvsp[-1].XmlIDVal), (yyvsp[0].ListJointStatusTypeVal));}
 
     break;
 
   case 62:
 
-    {(yyval.JointStatusesTypeVal) = (yyvsp[-1].JointStatusesTypeVal);}
+    {(yyval.JointStatusesTypeVal) = 0;}
 
     break;
 
   case 63:
 
-    {(yyval.XmlDecimalVal) = 0;}
+    {(yyval.JointStatusesTypeVal) = (yyvsp[-1].JointStatusesTypeVal);}
 
     break;
 
   case 64:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
   case 65:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 66:
 
-    {(yyval.XmlDecimalVal) = 0;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 67:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = 0;}
 
     break;
 
   case 68:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 69:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 70:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 71:
 
-    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 72:
+
+    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
+
+    break;
+
+  case 73:
 
     {(yyval.ListJointStatusTypeVal) = new std::list<JointStatusType *>;
 	   (yyval.ListJointStatusTypeVal)->push_back((yyvsp[0].JointStatusTypeVal));}
 
     break;
 
-  case 73:
+  case 74:
 
     {(yyval.ListJointStatusTypeVal) = (yyvsp[-1].ListJointStatusTypeVal);
 	   (yyval.ListJointStatusTypeVal)->push_back((yyvsp[0].JointStatusTypeVal));}
 
     break;
 
-  case 74:
-
-    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
-
-    break;
-
   case 75:
 
-    {(yyval.XmlIDVal) = 0;}
+    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
 
     break;
 
   case 76:
 
-    {yyReadData = 1;}
+    {(yyval.XmlIDVal) = 0;}
 
     break;
 
   case 77:
 
-    {(yyval.XmlIDVal) = (yyvsp[-1].XmlIDVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 78:
 
-    {(yyval.PointTypeVal) = new PointType((yyvsp[-3].XmlIDVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
+    {(yyval.XmlIDVal) = (yyvsp[-1].XmlIDVal);}
 
     break;
 
   case 79:
 
-    {(yyval.PointTypeVal) = (yyvsp[-1].PointTypeVal);}
+    {(yyval.PointTypeVal) = new PointType((yyvsp[-3].XmlIDVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
 
     break;
 
   case 80:
 
-    {(yyval.PoseStatusTypeVal) = new PoseStatusType((yyvsp[-3].XmlIDVal), (yyvsp[-2].PoseTypeVal), (yyvsp[-1].TwistTypeVal), (yyvsp[0].WrenchTypeVal));}
+    {(yyval.PointTypeVal) = (yyvsp[-1].PointTypeVal);}
 
     break;
 
   case 81:
 
-    {(yyval.PoseStatusTypeVal) = 0;}
+    {(yyval.PoseStatusTypeVal) = new PoseStatusType((yyvsp[-3].XmlIDVal), (yyvsp[-2].PoseTypeVal), (yyvsp[-1].TwistTypeVal), (yyvsp[0].WrenchTypeVal));}
 
     break;
 
   case 82:
 
-    {(yyval.PoseStatusTypeVal) = (yyvsp[-1].PoseStatusTypeVal);}
+    {(yyval.PoseStatusTypeVal) = 0;}
 
     break;
 
   case 83:
 
-    {(yyval.PoseTypeVal) = new PoseType((yyvsp[-3].XmlIDVal), (yyvsp[-2].PointTypeVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
+    {(yyval.PoseStatusTypeVal) = (yyvsp[-1].PoseStatusTypeVal);}
 
     break;
 
   case 84:
 
-    {(yyval.PoseTypeVal) = (yyvsp[-1].PoseTypeVal);}
+    {(yyval.PoseTypeVal) = new PoseType((yyvsp[-3].XmlIDVal), (yyvsp[-2].PointTypeVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
 
     break;
 
   case 85:
 
-    {yyReadData = 1;}
+    {(yyval.PoseTypeVal) = (yyvsp[-1].PoseTypeVal);}
 
     break;
 
   case 86:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 87:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 88:
 
-    {(yyval.XmlPositiveIntegerVal) = (yyvsp[-1].XmlPositiveIntegerVal);}
+    {(yyval.XmlStringVal) = 0;}
 
     break;
 
   case 89:
 
-    {(yyval.TwistTypeVal) = new TwistType((yyvsp[-2].XmlIDVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
+    {yyReadData = 1;}
 
     break;
 
   case 90:
 
-    {(yyval.TwistTypeVal) = 0;}
+    {(yyval.XmlStringVal) = (yyvsp[-1].XmlStringVal);}
 
     break;
 
   case 91:
 
-    {(yyval.TwistTypeVal) = (yyvsp[-1].TwistTypeVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 92:
 
-    {(yyval.VectorTypeVal) = new VectorType((yyvsp[-3].XmlIDVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
+    {(yyval.XmlPositiveIntegerVal) = (yyvsp[-1].XmlPositiveIntegerVal);}
 
     break;
 
   case 93:
 
-    {(yyval.WrenchTypeVal) = new WrenchType((yyvsp[-2].XmlIDVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
+    {(yyval.TwistTypeVal) = new TwistType((yyvsp[-2].XmlIDVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
 
     break;
 
   case 94:
 
-    {(yyval.WrenchTypeVal) = 0;}
+    {(yyval.TwistTypeVal) = 0;}
 
     break;
 
   case 95:
 
-    {(yyval.WrenchTypeVal) = (yyvsp[-1].WrenchTypeVal);}
+    {(yyval.TwistTypeVal) = (yyvsp[-1].TwistTypeVal);}
 
     break;
 
   case 96:
 
-    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
+    {(yyval.VectorTypeVal) = new VectorType((yyvsp[-3].XmlIDVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));}
 
     break;
 
   case 97:
 
-    {yyReadData = 1;}
+    {(yyval.WrenchTypeVal) = new WrenchType((yyvsp[-2].XmlIDVal), (yyvsp[-1].VectorTypeVal), (yyvsp[0].VectorTypeVal));}
 
     break;
 
   case 98:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {(yyval.WrenchTypeVal) = 0;}
 
     break;
 
   case 99:
 
-    {yyReadData = 1;}
+    {(yyval.WrenchTypeVal) = (yyvsp[-1].WrenchTypeVal);}
 
     break;
 
   case 100:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
 
     break;
 
   case 101:
 
-    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 102:
 
-    {yyReadData = 1;}
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
 
     break;
 
   case 103:
 
-    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+    {yyReadData = 1;}
 
     break;
 
   case 104:
+
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+
+    break;
+
+  case 105:
+
+    {(yyval.VectorTypeVal) = (yyvsp[-1].VectorTypeVal);}
+
+    break;
+
+  case 106:
+
+    {yyReadData = 1;}
+
+    break;
+
+  case 107:
+
+    {(yyval.XmlDecimalVal) = (yyvsp[-1].XmlDecimalVal);}
+
+    break;
+
+  case 108:
 
     {(yyval.ParallelGripperStatusTypeVal) = new ParallelGripperStatusType((yyvsp[-2].XmlIDVal), (yyvsp[-1].XmlNMTOKENVal), (yyvsp[0].XmlDecimalVal));
 	   (yyval.ParallelGripperStatusTypeVal)->printTypp = true;
@@ -2254,7 +2295,7 @@ yyreduce:
 
     break;
 
-  case 105:
+  case 109:
 
     {(yyval.ThreeFingerGripperStatusTypeVal) = new ThreeFingerGripperStatusType((yyvsp[-7].XmlIDVal), (yyvsp[-6].XmlNMTOKENVal), (yyvsp[-5].FractionTypeVal), (yyvsp[-4].FractionTypeVal), (yyvsp[-3].FractionTypeVal), (yyvsp[-2].XmlDecimalVal), (yyvsp[-1].XmlDecimalVal), (yyvsp[0].XmlDecimalVal));
 	   (yyval.ThreeFingerGripperStatusTypeVal)->printTypp = true;
@@ -2262,7 +2303,7 @@ yyreduce:
 
     break;
 
-  case 106:
+  case 110:
 
     {(yyval.VacuumGripperStatusTypeVal) = new VacuumGripperStatusType((yyvsp[-2].XmlIDVal), (yyvsp[-1].XmlNMTOKENVal), (yyvsp[0].XmlBooleanVal));
 	   (yyval.VacuumGripperStatusTypeVal)->printTypp = true;

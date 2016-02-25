@@ -34,6 +34,7 @@ int yyerror(const char * s);
   XmlNMTOKEN *                        XmlNMTOKENVal;
   XmlNonNegativeInteger *             XmlNonNegativeIntegerVal;
   XmlPositiveInteger *                XmlPositiveIntegerVal;
+  XmlString *                         XmlStringVal;
 
   CRCLStatusFile *                    CRCLStatusFileVal;
 
@@ -66,6 +67,7 @@ int yyerror(const char * s);
 %type <XmlNMTOKENVal>                 y_XmlNMTOKEN
 %type <XmlNonNegativeIntegerVal>      y_XmlNonNegativeInteger
 %type <XmlPositiveIntegerVal>         y_XmlPositiveInteger
+%type <XmlStringVal>                  y_XmlString
 
 %type <VectorTypeVal>                 y_AngularVelocity_VectorType
 %type <CRCLStatusTypeVal>             y_CRCLStatusType
@@ -106,6 +108,7 @@ int yyerror(const char * s);
 %type <PoseTypeVal>                   y_PoseType
 %type <PoseTypeVal>                   y_Pose_PoseType
 %type <XmlDecimalVal>                 y_Separation_XmlDecimal
+%type <XmlStringVal>                  y_StateDescription_XmlString_0
 %type <XmlPositiveIntegerVal>         y_StatusID_XmlPositiveInteger
 %type <TwistTypeVal>                  y_TwistType
 %type <TwistTypeVal>                  y_Twist_TwistType_0
@@ -195,6 +198,8 @@ int yyerror(const char * s);
 %token <iVal> POSESTART
 %token <iVal> SEPARATIONEND
 %token <iVal> SEPARATIONSTART
+%token <iVal> STATEDESCRIPTIONEND
+%token <iVal> STATEDESCRIPTIONSTART
 %token <iVal> STATUSIDEND
 %token <iVal> STATUSIDSTART
 %token <iVal> TWISTEND
@@ -306,6 +311,15 @@ y_XmlPositiveInteger :
 	  }
 	;
 
+y_XmlString :
+	  DATASTRING
+	  {$$ = new XmlString($1);
+	   if ($$->bad)
+	     yyerror("bad XmlString");
+	   free($1);
+	  }
+	;
+
 y_XmlVersion :
 	  STARTVERSION XMLVERSION TERMINALSTRING ENDVERSION
 	  {$$ = new XmlVersion(false);
@@ -356,7 +370,8 @@ y_CommandState_CommandStateEnumType :
 y_CommandStatusType :
 	   ENDITEM y_Name_XmlID_0 y_CommandID_XmlNonNegativeInteger
 	  y_StatusID_XmlPositiveInteger y_CommandState_CommandStateEnumType
-	  {$$ = new CommandStatusType($2, $3, $4, $5);}
+	  y_StateDescription_XmlString_0
+	  {$$ = new CommandStatusType($2, $3, $4, $5, $6);}
 	;
 
 y_CommandStatus_CommandStatusType :
@@ -591,6 +606,14 @@ y_Pose_PoseType :
 y_Separation_XmlDecimal :
 	  SEPARATIONSTART ENDITEM {yyReadData = 1;} y_XmlDecimal
 	  SEPARATIONEND
+	  {$$ = $4;}
+	;
+
+y_StateDescription_XmlString_0 :
+	  /* empty */
+	  {$$ = 0;}
+	| STATEDESCRIPTIONSTART ENDITEM {yyReadData = 1;} y_XmlString
+	  STATEDESCRIPTIONEND
 	  {$$ = $4;}
 	;
 

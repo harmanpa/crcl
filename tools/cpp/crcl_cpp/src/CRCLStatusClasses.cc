@@ -188,19 +188,22 @@ CommandStatusType::CommandStatusType() :
   CommandID = 0;
   StatusID = 0;
   CommandState = 0;
+  StateDescription = 0;
 }
 
 CommandStatusType::CommandStatusType(
  XmlID * NameIn,
  XmlNonNegativeInteger * CommandIDIn,
  XmlPositiveInteger * StatusIDIn,
- CommandStateEnumType * CommandStateIn) :
+ CommandStateEnumType * CommandStateIn,
+ XmlString * StateDescriptionIn) :
   DataThingType(
     NameIn)
 {
   CommandID = CommandIDIn;
   StatusID = StatusIDIn;
   CommandState = CommandStateIn;
+  StateDescription = StateDescriptionIn;
   printTypp = false;
 }
 
@@ -209,6 +212,7 @@ CommandStatusType::~CommandStatusType()
   delete CommandID;
   delete StatusID;
   delete CommandState;
+  delete StateDescription;
 }
 
 void CommandStatusType::PRINTSELFDECL
@@ -236,6 +240,13 @@ void CommandStatusType::PRINTSELFDECL
   XFPRINTF "<CommandState>");
   CommandState->PRINTSELF;
   XFPRINTF "</CommandState>\n");
+  if (StateDescription)
+    {
+      SPACESZERO;
+      XFPRINTF "<StateDescription>");
+      StateDescription->PRINTSELF;
+      XFPRINTF "</StateDescription>\n");
+    }
   SPACESMINUS;
 }
 
