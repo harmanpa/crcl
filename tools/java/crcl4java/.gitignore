@@ -1,0 +1,42 @@
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+run*.log
+run*.err
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+/CRCLJavaBase/target/
+/crcl4java-base/target/
+/crcl4java-utils/target/
+/crcl4java-utils/nbproject/
+/crcl-ui/target/
+/crcl4java-ui/target/
+examples/C++/*.o
+examples/C++/*.jar
+examples/C++/test_crclj
+examples/C++/crclj[0-9]*.cpp
+examples/C++/crclj[0-9]*.h
+examples/C++/crclj.h
+examples/C++/crclj_fwd.h
+examples/C++/crclj_test
+/target/
+/crcl4java-ui/nbproject/
+/crcl4java-vaadin-webapp/target/
+/fanucCOMJavaWrapper/target/
+/fanucCRCLServer/target/
+/fanucCRCLServerMain/target/
+/fanucCom4JBase/target/
+/fanucStatusMonitor/target/
+/crcl4java-fanuc/fanucCom4JBase/target/
+/crcl4java-fanuc/fanucCRCLServer/target/
+/crcl4java-fanuc/fanucStatusMonitor/target/
+/crcl4java-jmh-tests/target/
+/crcl4java-exi/target/
+/crcl4java-commons-math/target/
