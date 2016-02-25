@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="/home/shackle/crcl4java/examples/C++" name="0">
+      <df name="java_home">
+        <df name="bin">
+        </df>
+        <df name="db">
+          <df name="bin">
+          </df>
+          <df name="lib">
+          </df>
+        </df>
+        <df name="include">
+          <df name="linux">
+          </df>
+        </df>
+        <df name="jre">
+          <df name="bin">
+          </df>
+          <df name="lib">
+            <df name="amd64">
+              <df name="jli">
+              </df>
+              <df name="server">
+              </df>
+            </df>
+            <df name="applet">
+            </df>
+            <df name="cmm">
+            </df>
+            <df name="deploy">
+            </df>
+            <df name="desktop">
+              <df name="applications">
+              </df>
+              <df name="icons">
+                <df name="hicolor">
+                  <df name="16x16">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                  <df name="48x48">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                </df>
+                <df name="HighContrast">
+                  <df name="16x16">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                  <df name="48x48">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                </df>
+                <df name="HighContrastInverse">
+                  <df name="16x16">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                  <df name="48x48">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                </df>
+                <df name="LowContrast">
+                  <df name="16x16">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                  <df name="48x48">
+                    <df name="apps">
+                    </df>
+                    <df name="mimetypes">
+                    </df>
+                  </df>
+                </df>
+              </df>
+              <df name="mime">
+                <df name="packages">
+                </df>
+              </df>
+            </df>
+            <df name="ext">
+            </df>
+            <df name="fonts">
+            </df>
+            <df name="images">
+              <df name="cursors">
+              </df>
+              <df name="icons">
+              </df>
+            </df>
+            <df name="jfr">
+            </df>
+            <df name="locale">
+              <df name="de">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="es">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="fr">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="it">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="ja">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="ko">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="ko.UTF-8">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="pt_BR">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="sv">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="zh">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="zh.GBK">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="zh_HK.BIG5HK">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="zh_TW">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+              <df name="zh_TW.BIG5">
+                <df name="LC_MESSAGES">
+                </df>
+              </df>
+            </df>
+            <df name="management">
+            </df>
+            <df name="oblique-fonts">
+            </df>
+            <df name="security">
+            </df>
+          </df>
+          <df name="plugin">
+            <df name="desktop">
+            </df>
+          </df>
+        </df>
+        <df name="lib">
+          <df name="amd64">
+            <df name="jli">
+            </df>
+          </df>
+          <df name="missioncontrol">
+            <df name="configuration">
+              <df name="org.eclipse.equinox.simpleconfigurator">
+              </df>
+              <df name="org.eclipse.update">
+              </df>
+            </df>
+            <df name="dropins">
+            </df>
+            <df name="features">
+              <df name="com.jrockit.mc.feature.console_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.feature.core_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.feature.flightrecorder_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.feature.rcp.ja_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.feature.rcp.zh_CN_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.feature.rcp_5.5.0.165303">
+              </df>
+              <df name="com.jrockit.mc.rcp.product_5.5.0.165303">
+              </df>
+              <df name="org.eclipse.babel.nls_eclipse_ja_4.4.0.v20140623020002">
+              </df>
+              <df name="org.eclipse.babel.nls_eclipse_zh_4.4.0.v20140623020002">
+              </df>
+              <df name="org.eclipse.e4.rcp_1.3.100.v20141007-2033">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.core.feature_1.1.0.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.core.ssl.feature_1.0.0.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.filetransfer.feature_3.9.0.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.filetransfer.httpclient4.feature_3.9.1.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature_1.0.0.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ecf.filetransfer.ssl.feature_1.0.0.v20140827-1444">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.emf.common_2.10.1.v20140901-1043">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.emf.ecore_2.10.1.v20140901-1043">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.equinox.p2.core.feature_1.3.0.v20140523-0116">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.equinox.p2.rcp.feature_1.2.0.v20140523-0116">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.help_2.0.102.v20141007-2301">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.rcp_4.4.0.v20141007-2301">
+                <df name="META-INF">
+                </df>
+              </df>
+            </df>
+            <df name="p2">
+              <df name="org.eclipse.equinox.p2.core">
+                <df name="cache">
+                  <df name="binary">
+                  </df>
+                </df>
+              </df>
+              <df name="org.eclipse.equinox.p2.engine">
+                <df name="profileRegistry">
+                  <df name="JMC.profile">
+                  </df>
+                </df>
+              </df>
+            </df>
+            <df name="plugins">
+              <df name="com.jrockit.mc.console.ui.notification_5.5.0.165303">
+                <df name="html">
+                  <df name="dcommon">
+                    <df name="css">
+                    </df>
+                    <df name="gifs">
+                    </df>
+                    <df name="html">
+                    </df>
+                  </df>
+                </df>
+                <df name="icons">
+                </df>
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="com.jrockit.mc.rjmx_5.5.0.165303">
+                <df name="icons">
+                </df>
+                <df name="lib">
+                </df>
+                <df name="META-INF">
+                </df>
+                <df name="schema">
+                </df>
+              </df>
+              <df name="org.eclipse.equinox.launcher.gtk.linux.x86_64_1.1.200.v20141007-2033">
+                <df name="META-INF">
+                </df>
+              </df>
+              <df name="org.eclipse.ui.themes_1.0.1.v20140819-1717">
+                <df name="css">
+                  <df name="dark">
+                  </df>
+                </df>
+                <df name="images">
+                </df>
+                <df name="META-INF">
+                </df>
+              </df>
+            </df>
+          </df>
+          <df name="visualvm">
+            <df name="etc">
+            </df>
+            <df name="platform">
+              <df name="config">
+                <df name="ModuleAutoDeps">
+                </df>
+                <df name="Modules">
+                </df>
+              </df>
+              <df name="core">
+                <df name="locale">
+                </df>
+              </df>
+              <df name="lib">
+                <df name="locale">
+                </df>
+              </df>
+              <df name="modules">
+                <df name="ext">
+                  <df name="locale">
+                  </df>
+                </df>
+                <df name="locale">
+                </df>
+              </df>
+              <df name="update_tracking">
+              </df>
+            </df>
+            <df name="profiler">
+              <df name="config">
+                <df name="Modules">
+                </df>
+              </df>
+              <df name="lib">
+                <df name="deployed">
+                  <df name="jdk15">
+                    <df name="linux-amd64">
+                    </df>
+                  </df>
+                  <df name="jdk16">
+                    <df name="linux-amd64">
+                    </df>
+                  </df>
+                </df>
+                <df name="locale">
+                </df>
+              </df>
+              <df name="modules">
+                <df name="locale">
+                </df>
+              </df>
+              <df name="update_tracking">
+              </df>
+            </df>
+            <df name="visualvm">
+              <df name="config">
+                <df name="Modules">
+                </df>
+              </df>
+              <df name="core">
+                <df name="locale">
+                </df>
+              </df>
+              <df name="modules">
+                <df name="locale">
+                </df>
+              </df>
+              <df name="update_tracking">
+              </df>
+            </df>
+          </df>
+        </df>
+        <df name="man">
+          <df name="ja">
+            <df name="man1">
+            </df>
+          </df>
+          <df name="ja_JP.UTF-8">
+            <df name="man1">
+            </df>
+          </df>
+          <df name="man1">
+          </df>
+        </df>
+      </df>
+      <df name="jvm_lib_dir">
+      </df>
+      <in>crclj00.cpp</in>
+      <in>crclj01.cpp</in>
+      <in>crclj02.cpp</in>
+      <in>crclj03.cpp</in>
+      <in>crclj04.cpp</in>
+      <in>crclj05.cpp</in>
+      <in>crclj06.cpp</in>
+      <in>crclj07.cpp</in>
+      <in>crclj08.cpp</in>
+      <in>crclj09.cpp</in>
+      <in>crclj10.cpp</in>
+      <in>crclj11.cpp</in>
+      <in>use_crcl.cpp</in>
+    </df>
+  </logicalFolder>
+  <projectmakefile></projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <nativedebugger version="1">
+        <engine>gdb</engine>
+      </nativedebugger>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"/crclj_test</runcommandpicklistitem>
+          <runcommandpicklistitem>crclj_test</runcommandpicklistitem>
+          <runcommandpicklistitem>./crclj_test</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>./crclj_test</runcommand>
+        <rundir>../../C++</rundir>
+        <buildfirst>false</buildfirst>
+        <terminal-type>0</terminal-type>
+        <remove-instrumentation>0</remove-instrumentation>
+        <environment>
+        </environment>
+      </runprofile>
+    </conf>
+  </confs>
+</configurationDescriptor>
