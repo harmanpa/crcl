@@ -21,3 +21,4 @@ notifications:
 # Change this to your needs
 #script: ./configure && make && make check && cd rcsjava_maven/rcslib && mvn -version && mvn -e compile &&  mvn test && mvn verify 
 
+
