@@ -1,5 +1,5 @@
 
-#line 3 "/home/isd/proctor/test_ws/src/crcl/tools/cpp/crcl_cpp/src/CRCLStatusLex.cc"
+#line 3 "/usr/local/proctor/fanuc_ws/src/crcl/tools/cpp/crcl_cpp/src/CRCLStatusLex.cc"
 
 #define  YY_INT_ALIGNED short int
 

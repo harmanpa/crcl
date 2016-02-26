@@ -75,11 +75,6 @@ target_link_libraries(crcl_program_client
 # these commands create the source code from the schema, if the schema is newer
 #
 
-# add_custom_target(testit
-#   COMMAND xmlInstanceParserGenerator || true
-#   )
-# add_dependencies(makeStatusExample testit)
-
 add_custom_command(OUTPUT ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstanceClasses.cc ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstanceParser.cc ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstance.lex ${PROJECT_SOURCE_DIR}/src/CRCLCommandInstance.y ${PROJECT_SOURCE_DIR}/include/crcl_cpp/CRCLCommandInstanceClasses.hh
   DEPENDS ${PROJECT_SOURCE_DIR}/../../../schemas/CRCLCommandInstance.xsd
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../../schemas
