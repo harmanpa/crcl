@@ -646,6 +646,8 @@ public class CrclClientUI extends UI {
         }
     }
 
+    private static final BigDecimal JOG_WORLD_TRANS_INC = BigDecimal.valueOf(20.0);
+    
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -698,7 +700,7 @@ public class CrclClientUI extends UI {
                         BigInteger nextId;
                         switch (curJogState) {
                             case X_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(BigDecimal.valueOf(-5)));
+                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -707,7 +709,7 @@ public class CrclClientUI extends UI {
                                 break;
 
                             case X_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(BigDecimal.valueOf(5)));
+                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -716,7 +718,7 @@ public class CrclClientUI extends UI {
                                 break;
 
                             case Y_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(BigDecimal.valueOf(-5)));
+                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -725,7 +727,7 @@ public class CrclClientUI extends UI {
                                 break;
 
                             case Y_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(BigDecimal.valueOf(5)));
+                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -734,7 +736,7 @@ public class CrclClientUI extends UI {
                                 break;
 
                             case Z_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(BigDecimal.valueOf(-5)));
+                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -743,7 +745,7 @@ public class CrclClientUI extends UI {
                                 break;
 
                             case Z_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(BigDecimal.valueOf(5)));
+                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);

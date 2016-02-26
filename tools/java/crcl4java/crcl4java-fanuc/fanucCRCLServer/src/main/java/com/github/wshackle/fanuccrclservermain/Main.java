@@ -453,6 +453,11 @@ public class Main {
         }
 
         ICurPosition icp = robot.curPosition();
+        if(null == icp) {
+            showError("robot.curPosition() returned null");
+            status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            return status;
+        }
         ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
         Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
         IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
