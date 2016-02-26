@@ -1,0 +1,5 @@
+/home/shackle/usnistgov/crcl/tools/csharp/CRCL_CSharp/CRCL_CSharp/obj/Release/.NETFramework,Version=v4.0.AssemblyAttribute.cs
+/home/shackle/usnistgov/crcl/tools/csharp/CRCL_CSharp/CRCL_CSharp/bin/Release/CRCL_CSharp.dll.mdb
+/home/shackle/usnistgov/crcl/tools/csharp/CRCL_CSharp/CRCL_CSharp/bin/Release/CRCL_CSharp.dll
+/home/shackle/usnistgov/crcl/tools/csharp/CRCL_CSharp/CRCL_CSharp/obj/Release/CRCL_CSharp.dll
+/home/shackle/usnistgov/crcl/tools/csharp/CRCL_CSharp/CRCL_CSharp/obj/Release/CRCL_CSharp.dll.mdb
