@@ -13,7 +13,7 @@
         <module>crcl4java-commons-math</module>
     </modules>
     <url>
-        https://github.com/wshackle/crcl4java
+        https://github.com/usnistgov/crcl
     </url>
     <description>
         Tools and Libraries for Java Developers using "Canonical Robot Command Language" (CRCL)
@@ -56,8 +56,8 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:https://github.com/wshackle/crcl4java.git</connection>
-        <developerConnection>scm:git:git@github.com:wshackle/crcl4java.git</developerConnection>
+        <connection>scm:git:https://github.com/usnistgov/crcl.git</connection>
+        <developerConnection>scm:git:git@github.com:usnistgov/crcl.git</developerConnection>
         <url>https://github.com/wshackle/crcl4java</url>
         <tag>HEAD</tag>
     </scm>
