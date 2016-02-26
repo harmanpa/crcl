@@ -12,57 +12,54 @@ import java.util.function.Consumer;
 public class JogButton extends AbstractComponent {
     
     
-    private final Set<Consumer<MouseEventDetails>> mouseDownConsumers = new HashSet<>();
+    private final Set<Consumer<AbstractComponent>> mouseDownConsumers = new HashSet<>();
     
-    public void addMouseDownConsumer(Consumer<MouseEventDetails> consumer) {
+    public void addMouseDownConsumer(Consumer<AbstractComponent> consumer) {
         mouseDownConsumers.add(consumer);
     }
     
-    public void removeMouseDownConsumer(Consumer<MouseEventDetails> consumer) {
+    public void removeMouseDownConsumer(Consumer<AbstractComponent> consumer) {
         mouseDownConsumers.remove(consumer);
     }
     
-    private final Set<Consumer<MouseEventDetails>> mouseUpConsumers = new HashSet<>();
+    private final Set<Consumer<AbstractComponent>> mouseUpConsumers = new HashSet<>();
     
-    public void addMouseUpConsumer(Consumer<MouseEventDetails> consumer) {
+    public void addMouseUpConsumer(Consumer<AbstractComponent> consumer) {
         mouseUpConsumers.add(consumer);
     }
     
-    public void removeMouseUpConsumer(Consumer<MouseEventDetails> consumer) {
+    public void removeMouseUpConsumer(Consumer<AbstractComponent> consumer) {
         mouseUpConsumers.remove(consumer);
     }
     
     private JogButtonServerRpc rpc = new JogButtonServerRpc() {
         private int clickCount = 0;
         
-        public void clicked(MouseEventDetails mouseDetails) {
-//            // nag every 5:th click using RPC
-//            if (++clickCount % 5 == 0) {
-//                getRpcProxy(JogButtonClientRpc.class).alert(
-//                        "Ok, that's enough!");
-//            }
-//            // update shared state
-//            getState().text = "You have clicked " + clickCount + " times";
-            clickCount++;
-            System.out.println("mouseDetails = " + mouseDetails);
-            System.out.println("clickCount = " + clickCount);
-        }
+//        public void clicked(MouseEventDetails mouseDetails) {
+////            // nag every 5:th click using RPC
+////            if (++clickCount % 5 == 0) {
+////                getRpcProxy(JogButtonClientRpc.class).alert(
+////                        "Ok, that's enough!");
+////            }
+////            // update shared state
+////            getState().text = "You have clicked " + clickCount + " times";
+//            clickCount++;
+//            System.out.println("mouseDetails = " + mouseDetails);
+//            System.out.println("clickCount = " + clickCount);
+//        }
 
         @Override
-        public void mousedown(MouseEventDetails mouseDetails) {
-            System.out.println("mouseDetails = " + mouseDetails);
+        public void mousedown() {
             System.out.println("mousedown");
-            for(Consumer<MouseEventDetails> consumer : mouseDownConsumers) {
-                consumer.accept(mouseDetails);
+            for(Consumer<AbstractComponent> consumer : mouseDownConsumers) {
+                consumer.accept(JogButton.this);
             }
         }
 
         @Override
-        public void mouseup(MouseEventDetails mouseDetails) {
-            System.out.println("mouseDetails = " + mouseDetails);
-            System.out.println("mouseup");
-            for(Consumer<MouseEventDetails> consumer : mouseUpConsumers) {
-                consumer.accept(mouseDetails);
+        public void mouseup() {
+            for(Consumer<AbstractComponent> consumer : mouseUpConsumers) {
+                consumer.accept(JogButton.this);
             }
         }
     };
