@@ -4,15 +4,17 @@
 #include "crcl_cpp/CRCLProgramInstanceClasses.hh"
 #include "crcl_cpp/CRCLCommandInstanceClasses.hh"
 #include "crcl_cpp/CRCLCommandsClasses.hh"
+#include <fstream>
+#include <string>
 
 extern CRCLProgramFile *CRCLProgramTree;
-extern FILE *yyin;
+extern const char *yyStringInputPointer;
+extern const char *yyStringInputEnd;
 extern int yyparse();
 extern void yylex_destroy();
 
 int main(int argc, char *argv[])
 {
-  FILE *inFile;
   XmlVersion *versionIn;
   XmlHeaderForCRCLCommandInstance *headerIn;
   CRCLCommandInstanceType *CRCLCommandInstanceIn;
@@ -23,15 +25,13 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  inFile = fopen(argv[1], "r");
-  if (NULL == inFile) {
-    fprintf(stderr, "unable to open file %s for reading\n", argv[1]);
-    return 1;
-  }
-
-  yyin = inFile;
+  std::ifstream ifs(argv[1]);
+  std::string content;
+  content.assign(std::istreambuf_iterator<char>(ifs),
+		 std::istreambuf_iterator<char>());
+  yyStringInputPointer = content.c_str();
+  yyStringInputEnd = content.c_str() + strlen(content.c_str());
   yyparse();
-  fclose(inFile);
 
   versionIn = new XmlVersion(true);
   headerIn = new XmlHeaderForCRCLCommandInstance;
