@@ -23,7 +23,6 @@
 
 
 import com.github.wshackle.crcl4java.exi.CrclExiSocket;
-import com.siemens.ct.exi.exceptions.EXIException;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -37,10 +36,9 @@ import crcl.base.PoseType;
 
 import crcl.base.VectorType;
 import crcl.utils.CRCLPosemath;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -54,11 +52,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import org.junit.Assert;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -817,7 +813,7 @@ public class CrclExiSocketTest {
                                 }
                             }
                             LOGGER.log(Level.INFO, "j = {0}", j);
-                        } catch (CRCLSocketException ex) {
+                        } catch (CRCLException ex) {
                             Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }

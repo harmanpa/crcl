@@ -760,7 +760,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                 gripperReadThread.start();
                 this.inner.setGripperSocket(gripperSocket);
 
-            } catch (IOException | CRCLExceptionex) {
+            } catch (IOException | CRCLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             } 
         }

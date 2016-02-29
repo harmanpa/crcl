@@ -2849,7 +2849,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             try {
                 File f = chooser.getSelectedFile();
                 saveXmlProgramFile(f);
-            } catch (JAXBException | CRCLExceptionex) {
+            } catch (JAXBException | CRCLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex);
             }

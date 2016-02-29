@@ -1029,8 +1029,8 @@ public class PendantClientInner {
                 poseQueue.offer(annotatedPose);
             }
             this.setStatus(curStatus);
-        } catch (CRCLException crclSocketException) {
-            Throwable ex = crclSocketException.getCause();
+        } catch (CRCLException crclException) {
+            Throwable ex = crclException.getCause();
             if (ex instanceof SocketException) {
                 if (ex.getMessage().contains("closed")) {
                     LOGGER.log(Level.WARNING, ex.getMessage());
@@ -1078,8 +1078,6 @@ public class PendantClientInner {
                 }
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (PmException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1541,7 +1539,7 @@ public class PendantClientInner {
                 = Optional.ofNullable(status)
                 .map(CRCLPosemath::getPoint)
                 .filter(x -> x != null)
-                .map(CRCLPosemath::pointToPmCartesian)
+                .map(CRCLPosemath::toPmCartesian)
                 .orElse(new PmCartesian());
         return p0;
     }

@@ -599,7 +599,7 @@ public class CrclClientUI extends UI {
                 }
             });
             updateThread.start();
-        } catch (IOException | CRCLExceptionex) {
+        } catch (IOException | CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
