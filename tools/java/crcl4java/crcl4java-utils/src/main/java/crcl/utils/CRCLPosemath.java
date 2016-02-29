@@ -20,8 +20,13 @@
  */
 package crcl.utils;
 
+import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.DataThingType;
+import crcl.base.EndCanonType;
+import crcl.base.InitCanonType;
+import crcl.base.MiddleCommandType;
+import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
@@ -77,21 +82,80 @@ public class CRCLPosemath {
     }
 
     /**
+     * Create a Point an initialize X,Y, and Z to zero.
+     *
+     * @return new zeroed point.
+     */
+    public static PointType newZeroedPoint() {
+        PointType pt = new PointType();
+        pt.setX(BigDecimal.ZERO);
+        pt.setY(BigDecimal.ZERO);
+        pt.setZ(BigDecimal.ZERO);
+        return pt;
+    }
+
+    public static CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
+        CRCLProgramType programOut = new CRCLProgramType();
+        InitCanonType initCmdOut = new InitCanonType();
+        InitCanonType initCmdIn = programIn.getInitCanon();
+        if (null != initCmdIn) {
+            initCmdOut.setCommandID(initCmdIn.getCommandID());
+        }
+        BigInteger id = initCmdIn.getCommandID();
+        if (null == id) {
+            id = BigInteger.ONE;
+        }
+        programOut.setInitCanon(initCmdOut);
+        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmdIn = (MoveToType) cmd;
+                MoveToType moveToCmdOut = new MoveToType();
+                if (null != moveToCmdIn.getCommandID()) {
+                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                } else {
+                    moveToCmdOut.setCommandID(id);
+                }
+                moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose,moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                programOut.getMiddleCommand().add(moveToCmdOut);
+            } else {
+                programOut.getMiddleCommand().add(cmd);
+            }
+            if (null != cmd.getCommandID()) {
+                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
+            } else {
+                id = id.add(BigInteger.ONE);
+            }
+        }
+        EndCanonType endCmdOut = new EndCanonType();
+        EndCanonType endCmdIn = programIn.getEndCanon();
+        if (null != endCmdIn) {
+            endCmdOut.setCommandID(endCmdIn.getCommandID());
+        }
+        if (null == endCmdOut.getCommandID()) {
+            id = id.add(BigInteger.ONE);
+            endCmdOut.setCommandID(id);
+        }
+        programOut.setEndCanon(endCmdOut);
+        return programOut;
+    }
+
+    /**
      * Compute a transform such that two points on a rigid body taken in one
      * coordinated system can be tranformed into corresponding two points of the
      * same rigid body on another coordinate system. In order to require only 2
      * points it is assumed that the Z axis is the same in both coordinate
      * systems.
      *
-     * In order to produce reasonable outputs the two points  need to be the same
-     * distance apart in both coordinate systems both along the Z axis and within the XY plane.
-     * 
+     * In order to produce reasonable outputs the two points need to be the same
+     * distance apart in both coordinate systems both along the Z axis and
+     * within the XY plane.
+     *
      * @param a1 Point 1 on the rigid body in the A coordinate system.
      * @param a2 Point 2 on the rigid body in the A coordinate system.
      * @param b1 Point 1 on the rigid body in the B coordinate system.
      * @param b2 Point 2 on the rigid body in the B coordinate system.
-     * @return Pose such that b1 = multiply(pose,a1) and
-     * b2 = multiply(pose,a2)
+     * @return Pose such that b1 = multiply(pose,a1) and b2 = multiply(pose,a2)
      * @throws crcl.utils.CRCLException if the two points are identical.
      */
     public static PoseType compute2DTransform(PointType a1,
@@ -118,9 +182,10 @@ public class CRCLPosemath {
      * points it is assumed that the Z axis is the same in both coordinate
      * systems.
      *
-     * In order to produce reasonable outputs the two points  need to be the same
-     * distance apart in both coordinate systems both along the Z axis and within the XY plane.
-     * 
+     * In order to produce reasonable outputs the two points need to be the same
+     * distance apart in both coordinate systems both along the Z axis and
+     * within the XY plane.
+     *
      *
      * Code was tranformed from C code sent from Fred Proctor to Will
      * Shackleford in an email on 2/26/2016 titled "Code to compute pose from
@@ -130,8 +195,7 @@ public class CRCLPosemath {
      * @param a2 Point 2 on the rigid body in the A coordinate system.
      * @param b1 Point 1 on the rigid body in the B coordinate system.
      * @param b2 Point 2 on the rigid body in the B coordinate system.
-     * @return Pose such that b1 = multiply(pose,a1) and
-     * b2 = multiply(pose,a2)
+     * @return Pose such that b1 = multiply(pose,a1) and b2 = multiply(pose,a2)
      */
     public static PmPose compute2DPmTransform(
             PmCartesian a1,
@@ -154,7 +218,7 @@ public class CRCLPosemath {
                 theta += 2 * PI;
             }
             /* 'theta' is now the angle from {A} to {B} */
-            /* make it the rotation part of 'pout' */
+ /* make it the rotation part of 'pout' */
             PmEulerZyx zyxout = new PmEulerZyx();
             PmPose pout = new PmPose();
             zyxout.z = theta;
@@ -164,8 +228,8 @@ public class CRCLPosemath {
 
 
             /* now do the translation part */
-            /* the translation part is the displacement between the centroids */
-            /* with 'ac' being the centroid of the 'a' points */
+ /* the translation part is the displacement between the centroids */
+ /* with 'ac' being the centroid of the 'a' points */
             PmCartesian ac = new PmCartesian();
             ac.x = (a1.x + a2.x) * 0.5;
             ac.y = (a1.y + a2.y) * 0.5;
@@ -182,7 +246,7 @@ public class CRCLPosemath {
             /* you have to rotate 'ac' into the {B} frame to difference them */
             Posemath.pmQuatCartMult(pout.rot, ac, ac_out);
             Posemath.pmCartCartSub(bc, ac_out, pout.tran);
-            pout.tran.z = (b2.z + b1.z - a1.z - a2.z)/2.0;
+            pout.tran.z = (b2.z + b1.z - a1.z - a2.z) / 2.0;
             return pout;
         } catch (PmException e) {
             throw new CRCLException(e);
@@ -336,7 +400,7 @@ public class CRCLPosemath {
         }
         return dataTypeThingToStartString(pose)
                 + "pt=" + toString(pose.getPoint()) + ","
-                + "xAxis=" + toString(pose.getXAxis())+ ","
+                + "xAxis=" + toString(pose.getXAxis()) + ","
                 + "zAxis=" + toString(pose.getZAxis())
                 + "}";
     }
@@ -524,7 +588,7 @@ public class CRCLPosemath {
         if (normv < Double.MIN_VALUE) {
             throw new CRCLException(new IllegalArgumentException("Can't normalize vector with zero magnitude."));
         }
-        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)),MathContext.DECIMAL64);
+        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)), MathContext.DECIMAL64);
         vout.setI(v.getI().multiply(normInv));
         vout.setJ(v.getJ().multiply(normInv));
         vout.setK(v.getK().multiply(normInv));

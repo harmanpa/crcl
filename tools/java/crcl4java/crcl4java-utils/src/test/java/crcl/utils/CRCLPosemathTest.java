@@ -1256,4 +1256,16 @@ public class CRCLPosemathTest {
         checkEquals("pose",expResult, result);
     }
 
+    /**
+     * Test of newZeroedPoint method, of class CRCLPosemath.
+     */
+    @Test
+    public void testNewZeroedPoint() {
+        System.out.println("newZeroedPoint");
+        PointType result = CRCLPosemath.newZeroedPoint();
+        checkEquals("x", BigDecimal.ZERO, result.getX());
+        checkEquals("y", BigDecimal.ZERO, result.getY());
+        checkEquals("z", BigDecimal.ZERO, result.getZ());
+    }
+
 }

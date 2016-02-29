@@ -1369,7 +1369,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jMenuBarReplaceCommandState.add(jMenu2);
 
         jMenuTools.setText(" Tools ");
-        jMenuTools.addActionListener(formListener);
 
         jMenuItemXPathQuery.setText("XPath Status  Query ... ");
         jMenuItemXPathQuery.addActionListener(formListener);
@@ -1404,6 +1403,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jMenuTools.add(jMenuItemShowCommandLog);
 
         jMenuItemTransformProgram.setText("Transform Program");
+        jMenuItemTransformProgram.addActionListener(formListener);
         jMenuTools.add(jMenuItemTransformProgram);
 
         jMenuBarReplaceCommandState.add(jMenuTools);
@@ -1656,8 +1656,8 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jCheckBoxMenuItemQuitProgramOnTestCommandFail) {
                 PendantClient.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
             }
-            else if (evt.getSource() == jMenuTools) {
-                PendantClient.this.jMenuToolsActionPerformed(evt);
+            else if (evt.getSource() == jMenuItemTransformProgram) {
+                PendantClient.this.jMenuItemTransformProgramActionPerformed(evt);
             }
         }
 
@@ -1976,7 +1976,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
     }
 
-    private void updatePoseTable(PoseType p, JTable jTable) {
+    public static void updatePoseTable(PoseType p, JTable jTable) {
         try {
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
             PointType pt = p.getPoint();
@@ -3320,11 +3320,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jogWorldSpeedsSet = false;
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
-    private void jMenuToolsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuToolsActionPerformed
+    private void jMenuItemTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemTransformProgramActionPerformed
         TransformSetupJFrame setupFrame = new TransformSetupJFrame();
         setupFrame.setParent(this);
         setupFrame.setVisible(true);
-    }//GEN-LAST:event_jMenuToolsActionPerformed
+    }//GEN-LAST:event_jMenuItemTransformProgramActionPerformed
 
     private static void scrollToVisible(JTable table, int rowIndex, int vColIndex) {
         if (!(table.getParent() instanceof JViewport)) {

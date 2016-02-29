@@ -2,7 +2,7 @@
 
 <Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <Properties>
-    <Property name="defaultCloseOperation" type="int" value="3"/>
+    <Property name="defaultCloseOperation" type="int" value="2"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -142,7 +142,11 @@
                           <Data value="Y"/>
                           <Data value="Z"/>
                         </Column>
-                        <Column editable="true" title="Value" type="java.lang.Double"/>
+                        <Column editable="true" title="Value" type="java.lang.Double">
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                        </Column>
                       </Table>
                     </Property>
                   </Properties>
@@ -225,7 +229,11 @@
                           <Data value="Y"/>
                           <Data value="Z"/>
                         </Column>
-                        <Column editable="true" title="Value" type="java.lang.Double"/>
+                        <Column editable="true" title="Value" type="java.lang.Double">
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                        </Column>
                       </Table>
                     </Property>
                   </Properties>
@@ -348,7 +356,11 @@
                           <Data value="Y"/>
                           <Data value="Z"/>
                         </Column>
-                        <Column editable="true" title="Value" type="java.lang.Double"/>
+                        <Column editable="true" title="Value" type="java.lang.Double">
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                        </Column>
                       </Table>
                     </Property>
                   </Properties>
@@ -359,11 +371,17 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Use Current Position"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonNewPoint1CurrentActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="jButtonNewPoint1Program">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Use Position in Program"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonNewPoint1ProgramActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -416,7 +434,7 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JTable" name="jTableOrigPoint4">
+                <Component class="javax.swing.JTable" name="jTableNewPoint2">
                   <Properties>
                     <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                       <Table columnCount="2" rowCount="3">
@@ -425,7 +443,11 @@
                           <Data value="Y"/>
                           <Data value="Z"/>
                         </Column>
-                        <Column editable="true" title="Value" type="java.lang.Double"/>
+                        <Column editable="true" title="Value" type="java.lang.Double">
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                          <Data value="0.0"/>
+                        </Column>
                       </Table>
                     </Property>
                   </Properties>
@@ -436,11 +458,17 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Use Current Position"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonNewPoint2CurrentActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="jButtonNewPoint2Program">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Use Position in Program"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonNewPoint2ProgramActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

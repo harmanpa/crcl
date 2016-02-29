@@ -26,13 +26,22 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
+import crcl.utils.CRCLException;
+import crcl.utils.CRCLPosemath;
+import java.math.BigDecimal;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class TransformSetupJFrame extends javax.swing.JFrame {
-
+    
     private PendantClient parent;
 
     /**
@@ -58,8 +67,66 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
      */
     public TransformSetupJFrame() {
         initComponents();
+        this.jTableOrigPoint1.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                try {
+                    if (!ignoreModelUpdates) {
+                        setOrigPoint1(getPointFromTable(jTableOrigPoint1));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(TransformSetupJFrame.class.getCanonicalName()).log(Level.SEVERE, "TableChanged", ex);
+                }
+            }
+        });
+        this.jTableOrigPoint2.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                try {
+                    if (!ignoreModelUpdates) {
+                        setOrigPoint2(getPointFromTable(jTableOrigPoint2));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(TransformSetupJFrame.class.getCanonicalName()).log(Level.SEVERE, "TableChanged", ex);
+                }
+            }
+        });
+        this.jTableNewPoint1.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                try {
+                    if (!ignoreModelUpdates) {
+                        setNewPoint1(getPointFromTable(jTableNewPoint1));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(TransformSetupJFrame.class.getCanonicalName()).log(Level.SEVERE, "TableChanged", ex);
+                }
+            }
+        });
+        this.jTableNewPoint2.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                try {
+                    if (!ignoreModelUpdates) {
+                        setNewPoint2(getPointFromTable(jTableNewPoint2));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(TransformSetupJFrame.class.getCanonicalName()).log(Level.SEVERE, "TableChanged", ex);
+                }
+            }
+        });
+        
     }
 
+    static public PointType getPointFromTable(JTable table) {
+        final TableModel model = table.getModel();
+        PointType pt = new PointType();
+        pt.setX(new BigDecimal(model.getValueAt(0, 1).toString()));
+        pt.setY(new BigDecimal(model.getValueAt(1, 1).toString()));
+        pt.setZ(new BigDecimal(model.getValueAt(2, 1).toString()));
+        return pt;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -88,7 +155,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
         jButtonNewPoint1Program = new javax.swing.JButton();
         jPanel6 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTableOrigPoint4 = new javax.swing.JTable();
+        jTableNewPoint2 = new javax.swing.JTable();
         jButtonNewPoint2Current = new javax.swing.JButton();
         jButtonNewPoint2Program = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
@@ -98,7 +165,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
         jTableTransformErrors = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Original Points"));
 
@@ -106,9 +173,9 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
 
         jTableOrigPoint1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null}
+                {"X",  new Double(0.0)},
+                {"Y",  new Double(0.0)},
+                {"Z",  new Double(0.0)}
             },
             new String [] {
                 "Axis", "Value"
@@ -175,9 +242,9 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
 
         jTableOrigPoint2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null}
+                {"X",  new Double(0.0)},
+                {"Y",  new Double(0.0)},
+                {"Z",  new Double(0.0)}
             },
             new String [] {
                 "Axis", "Value"
@@ -267,9 +334,9 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
 
         jTableNewPoint1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null}
+                {"X",  new Double(0.0)},
+                {"Y",  new Double(0.0)},
+                {"Z",  new Double(0.0)}
             },
             new String [] {
                 "Axis", "Value"
@@ -293,8 +360,18 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
         jScrollPane3.setViewportView(jTableNewPoint1);
 
         jButtonNewPoint1Current.setText("Use Current Position");
+        jButtonNewPoint1Current.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNewPoint1CurrentActionPerformed(evt);
+            }
+        });
 
         jButtonNewPoint1Program.setText("Use Position in Program");
+        jButtonNewPoint1Program.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNewPoint1ProgramActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -326,11 +403,11 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
 
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Point2"));
 
-        jTableOrigPoint4.setModel(new javax.swing.table.DefaultTableModel(
+        jTableNewPoint2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null}
+                {"X",  new Double(0.0)},
+                {"Y",  new Double(0.0)},
+                {"Z",  new Double(0.0)}
             },
             new String [] {
                 "Axis", "Value"
@@ -351,11 +428,21 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane4.setViewportView(jTableOrigPoint4);
+        jScrollPane4.setViewportView(jTableNewPoint2);
 
         jButtonNewPoint2Current.setText("Use Current Position");
+        jButtonNewPoint2Current.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNewPoint2CurrentActionPerformed(evt);
+            }
+        });
 
         jButtonNewPoint2Program.setText("Use Position in Program");
+        jButtonNewPoint2Program.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonNewPoint2ProgramActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -539,7 +626,8 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private PointType origPoint1;
+    
+    private PointType origPoint1 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of origPoint1
@@ -558,18 +646,64 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
     public void setOrigPoint1(PointType origPoint1) {
         this.origPoint1 = origPoint1;
         if (null != origPoint1) {
-            this.jTableOrigPoint1.getModel().setValueAt(origPoint1.getX().doubleValue(),
-                    0, 1);
-            this.jTableOrigPoint1.getModel().setValueAt(origPoint1.getY().doubleValue(),
-                    0, 1);
-            this.jTableOrigPoint1.getModel().setValueAt(origPoint1.getZ().doubleValue(),
-                    0, 1);
+            updatePointTable(this.jTableOrigPoint1, origPoint1);
         }
         updateTransform();
     }
+    
+    private volatile boolean ignoreModelUpdates = false;
+    
+    
+    public synchronized void updatePointTable(JTable table, PointType pt) {
+        ignoreModelUpdates = true;
+        final TableModel model = table.getModel();
+        model.setValueAt(pt.getX().doubleValue(), 0, 1);
+        model.setValueAt(pt.getY().doubleValue(), 1, 1);
+        model.setValueAt(pt.getZ().doubleValue(), 2, 1);
+        ignoreModelUpdates = false;
+    }
+    
+    private PoseType transform = CRCLPosemath.identityPose();
 
+    /**
+     * Get the value of transform
+     *
+     * @return the value of transform
+     */
+    public PoseType getTransform() {
+        return transform;
+    }
+
+    /**
+     * Set the value of transform
+     *
+     * @param transform new value of transform
+     */
+    public void setTransform(PoseType transform) {
+        this.transform = transform;
+        PendantClient.updatePoseTable(transform, jTablePose);
+    }
+    
     private void updateTransform() {
-        
+        try {
+            PoseType newTransform = CRCLPosemath.compute2DTransform(origPoint1, origPoint2, newPoint1, newPoint2);
+            this.setTransform(newTransform);
+            PointType newPoint1Transformed = CRCLPosemath.multiply(transform, origPoint1);
+            PointType point1Error = CRCLPosemath.subtract(newPoint1, newPoint1Transformed);
+            PointType newPoint2Transformed = CRCLPosemath.multiply(transform, origPoint2);
+            PointType point2Error = CRCLPosemath.subtract(newPoint2, newPoint2Transformed);
+            TableModel m = this.jTableTransformErrors.getModel();
+            m.setValueAt(point1Error.getX(),0, 1);
+            m.setValueAt(point1Error.getY(),1, 1);
+            m.setValueAt(point1Error.getZ(),2, 1);
+            m.setValueAt(point2Error.getX(),3, 1);
+            m.setValueAt(point2Error.getY(),4, 1);
+            m.setValueAt(point2Error.getZ(),5, 1);
+            
+        } catch (CRCLException ex) {
+            Logger.getLogger(TransformSetupJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            parent.showMessage(ex);
+        }
     }
     private void jButtonOrigPoint1CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOrigPoint1CurrentActionPerformed
         if (null != parent) {
@@ -585,15 +719,15 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
             MiddleCommandType cmd = parent.getCurrentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
-                PoseType pose = moveToCmd.getEndPosition(); 
-                if(null != pose) {
+                PoseType pose = moveToCmd.getEndPosition();
+                if (null != pose) {
                     setOrigPoint1(pose.getPoint());
                 }
             }
         }
     }//GEN-LAST:event_jButtonOrigPoint1ProgramActionPerformed
-
-        private PointType origPoint2;
+    
+    private PointType origPoint2 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of origPoint2
@@ -612,12 +746,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
     public void setOrigPoint2(PointType origPoint2) {
         this.origPoint2 = origPoint2;
         if (null != origPoint2) {
-            this.jTableOrigPoint2.getModel().setValueAt(origPoint2.getX().doubleValue(),
-                    0, 1);
-            this.jTableOrigPoint2.getModel().setValueAt(origPoint2.getY().doubleValue(),
-                    0, 1);
-            this.jTableOrigPoint2.getModel().setValueAt(origPoint2.getZ().doubleValue(),
-                    0, 1);
+            updatePointTable(this.jTableOrigPoint2, origPoint2);
         }
         updateTransform();
     }
@@ -636,13 +765,105 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
             MiddleCommandType cmd = parent.getCurrentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
-                PoseType pose = moveToCmd.getEndPosition(); 
-                if(null != pose) {
+                PoseType pose = moveToCmd.getEndPosition();
+                if (null != pose) {
                     setOrigPoint2(pose.getPoint());
                 }
             }
         }
     }//GEN-LAST:event_jButtonOrigPoint2ProgramActionPerformed
+    
+    private PointType newPoint1 = CRCLPosemath.newZeroedPoint();
+
+    /**
+     * Get the value of newPoint1
+     *
+     * @return the value of newPoint1
+     */
+    public PointType getNewPoint1() {
+        return newPoint1;
+    }
+
+    /**
+     * Set the value of newPoint1
+     *
+     * @param newPoint1 new value of newPoint1
+     */
+    public void setNewPoint1(PointType newPoint1) {
+        this.newPoint1 = newPoint1;
+        if (null != newPoint1) {
+            updatePointTable(this.jTableNewPoint1, newPoint1);
+        }
+        updateTransform();
+    }
+    
+    private PointType newPoint2 = CRCLPosemath.newZeroedPoint();
+
+    /**
+     * Get the value of newPoint2
+     *
+     * @return the value of newPoint2
+     */
+    public PointType getNewPoint2() {
+        return newPoint2;
+    }
+
+    /**
+     * Set the value of newPoint2
+     *
+     * @param newPoint2 new value of newPoint2
+     */
+    public void setNewPoint2(PointType newPoint2) {
+        this.newPoint2 = newPoint2;
+        if (null != newPoint1) {
+            updatePointTable(this.jTableNewPoint2, newPoint2);
+        }
+        updateTransform();
+    }
+
+    private void jButtonNewPoint1CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint1CurrentActionPerformed
+        if (null != parent) {
+            PoseType pose = parent.getCurrentPose();
+            if (null != pose) {
+                setNewPoint1(pose.getPoint());
+            }
+        }
+    }//GEN-LAST:event_jButtonNewPoint1CurrentActionPerformed
+
+    private void jButtonNewPoint2CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint2CurrentActionPerformed
+        if (null != parent) {
+            PoseType pose = parent.getCurrentPose();
+            if (null != pose) {
+                setNewPoint2(pose.getPoint());
+            }
+        }
+    }//GEN-LAST:event_jButtonNewPoint2CurrentActionPerformed
+
+    private void jButtonNewPoint1ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint1ProgramActionPerformed
+       if (null != parent) {
+            MiddleCommandType cmd = parent.getCurrentProgramCommand();
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmd = (MoveToType) cmd;
+                PoseType pose = moveToCmd.getEndPosition();
+                if (null != pose) {
+                    setNewPoint1(pose.getPoint());
+                }
+            }
+        }
+    }//GEN-LAST:event_jButtonNewPoint1ProgramActionPerformed
+
+    private void jButtonNewPoint2ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint2ProgramActionPerformed
+       if (null != parent) {
+            MiddleCommandType cmd = parent.getCurrentProgramCommand();
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmd = (MoveToType) cmd;
+                PoseType pose = moveToCmd.getEndPosition();
+                if (null != pose) {
+                    setNewPoint2(pose.getPoint());
+                }
+            }
+        }
+    }//GEN-LAST:event_jButtonNewPoint2ProgramActionPerformed
 
     /**
      * @param args the command line arguments
@@ -703,9 +924,9 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTable jTableNewPoint1;
+    private javax.swing.JTable jTableNewPoint2;
     private javax.swing.JTable jTableOrigPoint1;
     private javax.swing.JTable jTableOrigPoint2;
-    private javax.swing.JTable jTableOrigPoint4;
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTableTransformErrors;
     // End of variables declaration//GEN-END:variables

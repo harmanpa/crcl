@@ -157,4 +157,4 @@ http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-exi/1.2/crcl4j
 http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-ui/1.2/crcl4java-ui-1.2-jar-with-dependencies.jar
 
  
-[![Build Status](https://travis-ci.org/wshackle/crcl4java.svg?branch=crac_schemas)](https://travis-ci.org/wshackle/crcl4java)
+[![Build Status](https://travis-ci.org/usnistgov/crcl.svg?branch=master)](https://travis-ci.org/usnistgov/crcl)
