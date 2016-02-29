@@ -77,7 +77,7 @@ import crcl.base.VectorType;
 import crcl.utils.AnnotatedPose;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import crcl.utils.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.XpathUtils;
@@ -466,7 +466,7 @@ public class PendantClientInner {
             if (null == checkerCRCLSocket) {
                 try {
                     checkerCRCLSocket = new CRCLSocket();
-                } catch (CRCLSocketException ex) {
+                } catch (CRCLException ex) {
                     Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -509,7 +509,7 @@ public class PendantClientInner {
             if (null != this.crclSocket) {
                 this.crclSocket.setStatSchema(CRCLSocket.defaultStatSchema);
             }
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -525,7 +525,7 @@ public class PendantClientInner {
                 this.crclSocket.setCmdSchema(CRCLSocket.defaultCmdSchema);
             }
             cmdSchemaFiles = fa;
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -539,7 +539,7 @@ public class PendantClientInner {
             }
             programSchemaFiles = fa;
 //            xpu.setSchemaFiles(cmdSchemaFiles);
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -573,7 +573,7 @@ public class PendantClientInner {
         }
     }
 
-    public void openXmlProgramFile(File f, boolean addRecent) throws SAXException, IOException, CRCLSocketException, XPathExpressionException, ParserConfigurationException  {
+    public void openXmlProgramFile(File f, boolean addRecent) throws SAXException, IOException, CRCLException, XPathExpressionException, ParserConfigurationException  {
 
         if (null != logStream) {
             try {
@@ -605,7 +605,7 @@ public class PendantClientInner {
 //        this.saveRecentCommand(cmd);
     }
 
-    public void saveXmlProgramFile(File f) throws CRCLSocketException  {
+    public void saveXmlProgramFile(File f) throws CRCLException  {
         CRCLSocket cs = getTempCRCLSocket();
         if (null == program.getName() || program.getName().length() < 1) {
             String fname = f.getName();
@@ -664,7 +664,7 @@ public class PendantClientInner {
             }
             crclSocket.writeCommand(cmdInstance, outer.validateXmlSelected());
             return true;
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
@@ -1029,7 +1029,7 @@ public class PendantClientInner {
                 poseQueue.offer(annotatedPose);
             }
             this.setStatus(curStatus);
-        } catch (CRCLSocketException crclSocketException) {
+        } catch (CRCLException crclSocketException) {
             Throwable ex = crclSocketException.getCause();
             if (ex instanceof SocketException) {
                 if (ex.getMessage().contains("closed")) {
@@ -1095,7 +1095,7 @@ public class PendantClientInner {
             crclSocket.setEXIEnabled(outer.isEXISelected());
             startStatusReaderThread();
             outer.finishConnect();
-        } catch (CRCLSocketException| IOException ex) {
+        } catch (CRCLException | IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage("Can't connect to " + host + ":" + port + " -- " + ex.getMessage());
         } 
@@ -1527,7 +1527,7 @@ public class PendantClientInner {
             if (close_test_count <= start_close_test_count) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (CRCLSocketException| IOException | PmException | JAXBException ex) {
+        } catch (CRCLException | IOException | PmException | JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             this.runEndMillis = System.currentTimeMillis();
@@ -1894,7 +1894,7 @@ public class PendantClientInner {
             this.openXmlProgramFile(testProgramFile, false);
             outer.showDebugMessage("Test program saved to " + testProgramFile.getCanonicalPath());
             return runProgram(testProgram, 0);
-        } catch (CRCLSocketException| InterruptedException | IOException | JAXBException | ParserConfigurationException | XPathExpressionException | SAXException | PmException ex) {
+        } catch (CRCLException | InterruptedException | IOException | JAXBException | ParserConfigurationException | XPathExpressionException | SAXException | PmException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
             outer.showMessage(ex);
         } finally {
@@ -2253,7 +2253,7 @@ public class PendantClientInner {
      * @return false for failure or true for success
      * @throws InterruptedException
      */
-    private boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLSocketException {
+    private boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
         int pause_count_start = this.pause_count;
         long testCommandStartTime = System.currentTimeMillis();

@@ -109,7 +109,7 @@ public class CRCLSocketExample {
             for(JointStatusType js : l) {
                 System.out.println("Num="+js.getJointNumber()+" Pos="+js.getJointPosition());
             }
-        } catch (CRCLSocketException | IOException ex) {
+        } catch (CRCLException | IOException ex) {
             Logger.getLogger(CRCLSocketExample.class.getName()).log(Level.SEVERE, "Example Main failed.", ex);
         } 
     }

@@ -20,7 +20,7 @@
  */
 package crcl.ui;
 
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import crcl.utils.PendantClientOuterStub;
 import java.io.File;
 import java.io.IOException;
@@ -116,7 +116,7 @@ public class CmdLineClient {
             }
             pendantClientInner.disconnect();
 
-        } catch (CRCLSocketException | ParserConfigurationException | SAXException | IOException | XPathExpressionException ex) {
+        } catch (CRCLException | ParserConfigurationException | SAXException | IOException | XPathExpressionException ex) {
             Logger.getLogger(CmdLineClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

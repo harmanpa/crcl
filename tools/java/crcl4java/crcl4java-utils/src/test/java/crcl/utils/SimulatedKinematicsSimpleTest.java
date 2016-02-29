@@ -62,7 +62,7 @@ public class SimulatedKinematicsSimpleTest {
             if (Math.abs(jtest[ii] - j2[ii]) > 1.0) {
                 try {
                     System.err.println("pose=" + CRCLPosemath.poseToString(pose));
-                } catch (PmException ex) {
+                } catch (CRCLException ex) {
                     Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 System.err.println("j2=" + Arrays.toString(j2));
@@ -91,7 +91,7 @@ public class SimulatedKinematicsSimpleTest {
                     if (Math.abs(jtest[ii] - j2[ii]) > 1.0) {
                         try {
                             System.err.println("pose=" + CRCLPosemath.poseToString(pose));
-                        } catch (PmException ex) {
+                        } catch (CRCLException ex) {
                             Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         System.err.println("j2=" + Arrays.toString(j2));
@@ -162,21 +162,21 @@ public class SimulatedKinematicsSimpleTest {
                 case 3: {
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     rpy.r += r.nextDouble()*Math.toRadians(20.0) - Math.toRadians(10.0);
-                    pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                    pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                 }
                 break;
                 
                 case 4: {
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     rpy.p += r.nextDouble()*Math.toRadians(20.0) - Math.toRadians(10.0);
-                    pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                    pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                 }
                 break;
                 
                 case 5: {
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     rpy.y += r.nextDouble()*Math.toRadians(20.0) - Math.toRadians(10.0);
-                    pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                    pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                 }
                 break;
                 
@@ -207,7 +207,7 @@ public class SimulatedKinematicsSimpleTest {
                     try {
                         System.err.println("pose=" + CRCLPosemath.poseToString(pose));
                         System.err.println("pose2=" + CRCLPosemath.poseToString(pose2));
-                    } catch (PmException ex) {
+                    } catch (CRCLException ex) {
                         Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     System.err.println("j2=" + Arrays.toString(j2));

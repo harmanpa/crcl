@@ -105,6 +105,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value=" Tools "/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuToolsActionPerformed"/>
+          </Events>
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItemXPathQuery">
               <Properties>
@@ -167,6 +170,11 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemShowCommandLogActionPerformed"/>
               </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="jMenuItemTransformProgram">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Transform Program"/>
+              </Properties>
             </MenuItem>
           </SubComponents>
         </Menu>

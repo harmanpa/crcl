@@ -20,7 +20,9 @@
  */
 package crcl.utils;
 
+import crcl.base.CRCLStatusType;
 import crcl.base.PointType;
+import crcl.base.PoseToleranceType;
 import crcl.base.PoseType;
 import crcl.base.VectorType;
 import java.math.BigDecimal;
@@ -67,7 +69,8 @@ public class CRCLPosemathTest {
     private PoseType pose123 = null;
     private PoseType pose321 = null;
     private PoseType pose321rot90 = null;
-
+    private PmPose pmPose123 = null;
+    
     static final private double ASSERT_TOLERANCE_DELTA = 1e-6;
 
     private void checkEquals(String msg, double v1, double v2) {
@@ -103,6 +106,10 @@ public class CRCLPosemathTest {
         checkEquals(msg + ".z", quat1.z, quat2.z);
     }
 
+    private void checkEquals(String msg, PmPose p1, PmPose p2) {
+        checkEquals(msg + ".tran",p1.tran, p2.tran);
+        checkEquals(msg + ".rot", p1.rot, p2.rot);
+    }
     private void checkEquals(String msg, PmRotationMatrix cart1, PmRotationMatrix cart2) {
         checkEquals(msg + ".x", cart1.x, cart2.x);
         checkEquals(msg + ".y", cart1.y, cart2.y);
@@ -184,14 +191,14 @@ public class CRCLPosemathTest {
     }
 
     /**
-     * Test of pointToPmCartesian method, of class CRCLToPosemath.
+     * Test of toPmCartesian method, of class CRCLToPosemath.
      */
     @Test
     public void testPointToPmCartesian() {
         System.out.println("pointToPmCartesian");
         PointType pt = this.pt123;
         PmCartesian expResult = this.cart123;
-        PmCartesian result = CRCLPosemath.pointToPmCartesian(pt);
+        PmCartesian result = CRCLPosemath.toPmCartesian(pt);
         checkEquals("123", expResult, result);
     }
 
@@ -234,7 +241,7 @@ public class CRCLPosemathTest {
         VectorType v = this.xvec;
         PmCartesian expResult = new PmCartesian(1.0, 0.0, 0.0);
         PmCartesian result = CRCLPosemath.vectorToPmCartesian(v);
-        checkEquals("xvec", result, expResult);
+        checkEquals("xvec", expResult, result);
     }
 
     /**
@@ -248,7 +255,7 @@ public class CRCLPosemathTest {
         PmRotationVector v = new PmRotationVector(Math.PI / 2, 0.0, 0.0, 1.0);
         PoseType expResult = this.pose321rot90;
         PoseType result = CRCLPosemath.toPoseType(tran, v);
-        checkEquals("pose321rot90", result, expResult);
+        checkEquals("pose321rot90", expResult, result);
     }
 
     /**
@@ -337,7 +344,7 @@ public class CRCLPosemathTest {
         PmCartesian c = this.cart123;
         PointType expResult = this.pt123;
         PointType result = CRCLPosemath.toPointType(c);
-        checkEquals("123", result, expResult);
+        checkEquals("123", expResult, result);
     }
 
 //    /**
@@ -365,7 +372,7 @@ public class CRCLPosemathTest {
 //        expResult.setXAxis(xvector);
 //        expResult.setZAxis(zvector);
 //        PoseType result = CRCLPosemath.toPoseType(tran, v);
-//        checkEquals("123", result, expResult);
+//        checkEquals("123", expResult, result);
 //    }
 
     /**
@@ -431,7 +438,7 @@ public class CRCLPosemathTest {
         result = CRCLPosemath.toPoseType(tran, v, null);
         // result no longer refences the same memory but all members are approximately equal
         assertTrue(expResult != result);
-        checkEquals("123rot90", result, expResult);
+        checkEquals("123rot90", expResult, result);
 
     }
 
@@ -448,7 +455,7 @@ public class CRCLPosemathTest {
         expResult.setY(BIG_DECIMAL_4);
         expResult.setZ(BIG_DECIMAL_4);
         PointType result = CRCLPosemath.add(p1, p2);
-        checkEquals("444", result, expResult);
+        checkEquals("444", expResult, result);
     }
 
     /**
@@ -464,7 +471,7 @@ public class CRCLPosemathTest {
         expResult.setY(BigDecimal.valueOf(0.0));
         expResult.setZ(BigDecimal.valueOf(+2.0));
         PointType result = CRCLPosemath.subtract(p1, p2);
-        checkEquals("-2,0,+2", result, expResult);
+        checkEquals("-2,0,+2", expResult, result);
     }
 
     /**
@@ -607,13 +614,13 @@ public class CRCLPosemathTest {
                 
                 
                 result = CRCLPosemath.cross(v1, v2);
-                checkEquals("randomCross (posemath)", result, expResult);
+                checkEquals("randomCross (posemath)", expResult, result);
                 
 //                Vector3D v3Da = new Vector3D(cart1.x,cart1.y,cart1.z);
 //                Vector3D v3Db = new Vector3D(cart2.x,cart2.y,cart2.z);
 //                Vector3D cross2 = v3Da.crossProduct(v3Db);
 //                expResult = CRCLPosemath.toCRCLVector(cross2);
-//                checkEquals("randomCross2 (commons-math)", result, expResult);
+//                checkEquals("randomCross2 (commons-math)", expResult, result);
                 
             } catch (PmException ex) {
                 Logger.getLogger(CRCLPosemathTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -655,7 +662,7 @@ public class CRCLPosemathTest {
         result = CRCLPosemath.multiply(p1, p2);
         try {
             PmCartesian chkCart
-                    = CRCLPosemath.toPmRotationMatrix(p1).multiply(CRCLPosemath.pointToPmCartesian(p2.getPoint()));
+                    = CRCLPosemath.toPmRotationMatrix(p1).multiply(CRCLPosemath.toPmCartesian(p2.getPoint()));
             System.out.println("chkCart = " + chkCart);
         } catch (PmException ex) {
             Logger.getLogger(CRCLPosemathTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -699,7 +706,7 @@ public class CRCLPosemathTest {
                 p2 = CRCLPosemath.toPoseType(cart2, Posemath.toRot(rpy2));
                 result = CRCLPosemath.multiply(p1, p2);
                 expResult = CRCLPosemath.toPoseType(poseProduct.tran, Posemath.toRot(poseProduct.rot));
-                checkEquals("poseProduct", result, expResult);
+                checkEquals("poseProduct", expResult, result);
             } catch (PmException ex) {
                 Logger.getLogger(CRCLPosemathTest.class.getName()).log(Level.SEVERE, null, ex);
                 fail("PmException thrown.");
@@ -722,7 +729,7 @@ public class CRCLPosemathTest {
         expResult.setXAxis(poseIn.getXAxis());
         expResult.setZAxis(poseIn.getZAxis());
         PoseType result = CRCLPosemath.shift(poseIn, pt);
-        checkEquals("444rot90", result, expResult);
+        checkEquals("444rot90", expResult, result);
     }
 
     /**
@@ -750,7 +757,7 @@ public class CRCLPosemathTest {
         PmRotationVector v = new PmRotationVector(Math.PI / 2.0, 0.0, 0.0, 1.0);
         PoseType expResult = this.pose321rot90;
         PoseType result = CRCLPosemath.toPoseType(tran, v);
-        checkEquals("pose321rot90", result, expResult);
+        checkEquals("pose321rot90", expResult, result);
     }
 
     /**
@@ -767,7 +774,7 @@ public class CRCLPosemathTest {
         };
         PoseType expResult = this.pose321rot90;
         PoseType result = CRCLPosemath.toPose(mat);
-        checkEquals("fromMat", result, expResult);
+        checkEquals("fromMat", expResult, result);
     }
 
     /**
@@ -865,5 +872,388 @@ public class CRCLPosemathTest {
         assertArrayEquals("mat[3]", expResult[3], result[3], ASSERT_TOLERANCE_DELTA);
     }
     private static final Logger LOG = Logger.getLogger(CRCLPosemathTest.class.getName());
+
+    /**
+     * Test of getPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testGetPose() {
+        System.out.println("getPose");
+        CRCLStatusType stat = new CRCLStatusType();
+        
+        PoseType expResult = pose123;
+        CRCLPosemath.setPose(stat, expResult);
+        PoseType result = CRCLPosemath.getPose(stat);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of compute2DTransform method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCompute2DTransform() throws Exception {
+        System.out.println("compute2DTransform");
+        PointType a1 = CRCLPosemath.toPointType(new PmCartesian(1.0, 2.0,0.0));
+        PointType a2 = CRCLPosemath.toPointType( new PmCartesian(2.0, 2.0,0.0));
+        PointType b1 = CRCLPosemath.toPointType(new PmCartesian(2.0, 3.0,0.0));
+        PointType b2 = CRCLPosemath.toPointType(new PmCartesian(3.0, 3.0,0.0));
+        PoseType expResult = CRCLPosemath.toPose(new PmPose(new PmCartesian(1.0, 1.0, 0.0), 
+            new PmRpy(0, 0, 0.0)));
+        PoseType result = CRCLPosemath.compute2DTransform(a1, a2, b1, b2);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of compute2DPmTransform method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCompute2DPmTransform() throws Exception {
+        System.out.println("compute2DPmTransform");
+        PmCartesian a1 = new PmCartesian(1.0, 2.0,0.0);
+        PmCartesian a2 = new PmCartesian(1.0, 3.0,0.0);
+        PmCartesian b1 = new PmCartesian(2.0, 2.0,0.0);
+        PmCartesian b2 = new PmCartesian(2.0, 3.0,0.0);;
+        PmPose expResult = new PmPose(new PmCartesian(1.0,0.0,0.0), 
+            new PmRpy(0, 0, 0.0));
+        PmPose result = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
+        checkEquals("PmTransform", expResult, result);
+        a1 = new PmCartesian(1.0, 0.0,0.0);
+        a2 = new PmCartesian(-1.0, 0.0,0.0);
+        b1 = new PmCartesian(0.0, 1.0,0.0);
+        b2 = new PmCartesian(0.0, -1.0,0.0);;
+        expResult = new PmPose(new PmCartesian(0.0,0.0,0.0), 
+            new PmRpy(0, 0, Math.PI/2.0));
+        result = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
+        checkEquals("PmTransform", expResult, result);
+        Random rand = new Random(2344);
+        for(int i = 0; i < 100; i++) {
+            a1  = new PmCartesian(rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0);
+            a2  = new PmCartesian(rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0);
+            b1  = new PmCartesian(rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0, rand.nextDouble()*10.0-5.0);
+            double dist = Math.sqrt((a1.x-a2.x)*(a1.x-a2.x)+(a1.y-a2.y)*(a1.y-a2.y));
+            double angle = rand.nextDouble()*2*Math.PI;
+            b2 = new PmCartesian(b1.x +Math.cos(angle)*dist, b1.y+Math.sin(angle)*dist, b1.z+a2.z-a1.z);
+            PmPose pose = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
+            PmCartesian b1Recompute = new PmCartesian();
+            Posemath.pmPoseCartMult(pose, a1,b1Recompute);
+            checkEquals("b1("+i+")", b1, b1Recompute);
+            PmCartesian b2Recompute = new PmCartesian();
+            Posemath.pmPoseCartMult(pose, a2,b2Recompute);
+            checkEquals("b2("+i+")", b2, b2Recompute);
+        }
+    }
+
+    /**
+     * Test of getPoint method, of class CRCLPosemath.
+     */
+    @Test
+    public void testGetPoint() {
+        System.out.println("getPoint");
+        CRCLStatusType stat = new CRCLStatusType();
+        PointType expResult = pt123;
+        CRCLPosemath.setPoint(stat, expResult);
+        PointType result = CRCLPosemath.getPoint(stat);
+        checkEquals("point", expResult, result);
+    }
+
+    /**
+     * Test of getXAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testGetXAxis() {
+        System.out.println("getXAxis");
+        CRCLStatusType stat = new CRCLStatusType();
+        VectorType expResult =  xvec;
+        CRCLPosemath.setXAxis(stat, expResult);
+        VectorType result = CRCLPosemath.getXAxis(stat);
+        checkEquals("xaxis", expResult,result);
+    }
+
+    /**
+     * Test of getZAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testGetZAxis() {
+        System.out.println("getZAxis");
+        CRCLStatusType stat = new CRCLStatusType();
+        VectorType expResult = zvec;
+        CRCLPosemath.setZAxis(stat, expResult);
+        VectorType result = CRCLPosemath.getZAxis(stat);
+        checkEquals("zaxis",expResult, result);
+    }
+
+    /**
+     * Test of setPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testSetPose() {
+        System.out.println("setPose");
+        CRCLStatusType stat = new CRCLStatusType();
+        PoseType pose = pose123;
+        CRCLPosemath.setPose(stat, pose);
+        assertTrue(CRCLPosemath.getPose(stat)==pose);
+    }
+
+    /**
+     * Test of setPoint method, of class CRCLPosemath.
+     */
+    @Test
+    public void testSetPoint() {
+        System.out.println("setPoint");
+        CRCLStatusType stat = new CRCLStatusType();
+        PointType pt = pt123;
+        CRCLPosemath.setPoint(stat, pt);
+        assertTrue(CRCLPosemath.getPoint(stat)==pt);
+    }
+
+    /**
+     * Test of setXAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testSetXAxis() {
+        System.out.println("setXAxis");
+        CRCLStatusType stat = new CRCLStatusType();
+        VectorType xAxis = xvec;
+        CRCLPosemath.setXAxis(stat, xAxis);
+        assertTrue(CRCLPosemath.getXAxis(stat)==xAxis);
+    }
+
+    /**
+     * Test of setZAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testSetZAxis() {
+        System.out.println("setZAxis");
+        CRCLStatusType stat = new CRCLStatusType();
+        VectorType zAxis = zvec;
+        CRCLPosemath.setZAxis(stat, zAxis);
+        assertTrue(CRCLPosemath.getZAxis(stat)==zAxis);
+    }
+
+    /**
+     * Test of initPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testInitPose() {
+        System.out.println("initPose");
+        CRCLStatusType status = new CRCLStatusType();
+        CRCLPosemath.initPose(status);
+        assertTrue(status.getPoseStatus() != null);
+        assertTrue(status.getPoseStatus().getPose() != null);
+        assertTrue(status.getPoseStatus().getPose().getPoint() != null);
+        assertTrue(status.getPoseStatus().getPose().getXAxis() != null);
+        assertTrue(status.getPoseStatus().getPose().getZAxis() != null);
+    }
+
+    /**
+     * Test of toString method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToString_PointType() {
+        System.out.println("toString");
+        PointType pt = pt123;
+        String expResult = "{x=1,y=2,z=3}";
+        String result = CRCLPosemath.toString(pt);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of toString method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToString_VectorType() {
+        System.out.println("toString");
+        VectorType v = xvec;
+        String expResult = "{i=1,j=0,k=0}";
+        String result = CRCLPosemath.toString(v);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of toString method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToString_PoseType() {
+        System.out.println("toString");
+        PoseType pose = pose123;
+        String expResult = "{pt={x=1,y=2,z=3},xAxis={i=1,j=0,k=0},zAxis={i=0,j=0,k=1}}";
+        String result = CRCLPosemath.toString(pose);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of toString method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToString_PoseToleranceType() {
+        System.out.println("toString");
+        PoseToleranceType posetol = new PoseToleranceType();
+        posetol.setXPointTolerance(BIG_DECIMAL_1);
+        String expResult = "{XPointTolerance=1,YPointTolerance=null,ZPointTolerance=null,XAxisTolerance=null,ZAxisTolerance=null,}";
+        String result = CRCLPosemath.toString(posetol);
+        assertEquals(expResult, result);
+    }
+
+    
+    /**
+     * Test of toPmCartesian method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPmCartesian() {
+        System.out.println("toPmCartesian");
+        PointType pt = pt123;
+        PmCartesian expResult = new PmCartesian(1.0, 2.0, 3.0);
+        PmCartesian result = CRCLPosemath.toPmCartesian(pt);
+        checkEquals("cart", expResult, result);
+    }
+
+    /**
+     * Test of toPmPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPmPose_CRCLStatusType() throws Exception {
+        System.out.println("toPmPose");
+        CRCLStatusType stat = new CRCLStatusType();
+        CRCLPosemath.setPose(stat, pose321rot90);
+        PoseType p = pose321rot90;
+        PmPose expResult = new PmPose(cart321,
+                new PmQuaternion(new PmRotationVector(Math.PI / 2, 0, 0, 1)));
+        
+        PmPose result = CRCLPosemath.toPmPose(stat);
+        checkEquals("pose", expResult, result);
+    }
+    
+
+    /**
+     * Test of toPmPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPmPose_PoseType() throws Exception {
+        System.out.println("toPmPose");
+        PoseType p = pose321rot90;
+        PmPose expResult = new PmPose(cart321,
+                new PmQuaternion(new PmRotationVector(Math.PI / 2, 0, 0, 1)));;
+        PmPose result = CRCLPosemath.toPmPose(p);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of multiply method, of class CRCLPosemath.
+     */
+    @Test
+    public void testMultiply_PoseType_PointType() throws Exception {
+        System.out.println("multiply");
+        PoseType pose = pose321rot90;
+        PointType pt = pt123;
+        PointType expResult = new PointType();
+        expResult.setX(BigDecimal.ONE);
+        expResult.setY(BigDecimal.valueOf(3.0));
+        expResult.setZ(BigDecimal.valueOf(4.0));
+        PointType result = CRCLPosemath.multiply(pose, pt);
+        checkEquals("point", expResult, result);
+    }
+
+    /**
+     * Test of norm method, of class CRCLPosemath.
+     */
+    @Test
+    public void testNorm() {
+        System.out.println("norm");
+        VectorType v1 = new VectorType();
+        v1.setI(BIG_DECIMAL_1);
+        v1.setJ(BIG_DECIMAL_1);
+        v1.setK(BigDecimal.ZERO);
+        double expResult = Math.sqrt(2.0);
+        double result = CRCLPosemath.norm(v1);
+        assertEquals(expResult, result, ASSERT_TOLERANCE_DELTA);
+    }
+
+    /**
+     * Test of normalize method, of class CRCLPosemath.
+     */
+    @Test
+    public void testNormalize() throws Exception {
+        System.out.println("normalize");
+        VectorType v1 = new VectorType();
+        v1.setI(BIG_DECIMAL_1);
+        v1.setJ(BIG_DECIMAL_1);
+        v1.setK(BigDecimal.ZERO);
+        VectorType expResult = new VectorType();
+        expResult.setI(new BigDecimal(String.format("%.6f",Math.sqrt(2.0)/2.0)));
+        expResult.setJ(new BigDecimal(String.format("%.6f",Math.sqrt(2.0)/2.0)));
+        expResult.setK(BigDecimal.ZERO);
+        VectorType result = CRCLPosemath.normalize(v1);
+        checkEquals("vec", expResult, result);
+    }
+
+    /**
+     * Test of toPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPose_PmPose() throws Exception {
+        System.out.println("toPose");
+        PmPose pose = new PmPose(new PmCartesian(1.0, 2.0, 3.0),new PmRpy());
+        PoseType expResult = pose123;
+        PoseType result = CRCLPosemath.toPose(pose);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of toPose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPose_doubleArrArr() {
+        System.out.println("toPose");
+        double[][] mat = new double[][]{
+            {1.0, 0.0,0.0, 1.0},
+            {0.0, 1.0,0.0, 2.0},
+            {0.0, 0.0,1.0, 3.0},
+            {0.0, 0.0,0.0, 1.0},
+        };
+        PoseType expResult = pose123;
+        PoseType result = CRCLPosemath.toPose(mat);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of toPoseType method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPoseType_3args_1() throws Exception {
+        System.out.println("toPoseType");
+        PmCartesian tran = new PmCartesian(3.0,2.0,1.0);
+        PmRotationVector v = new PmRotationVector(Math.PI/2.0, 0.0, 0.0, 1.0);
+        PoseType pose_in = null;
+        PoseType expResult = pose321rot90;
+        PoseType result = CRCLPosemath.toPoseType(tran, v, pose_in);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of toPoseType method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPoseType_3args_2() throws Exception {
+        System.out.println("toPoseType");
+        PmCartesian tran = new PmCartesian(3.0,2.0,1.0);
+        PmRpy v = new PmRpy(0.0,0.0, Math.PI/2.0);
+        PoseType pose_in = null;
+        PoseType expResult = pose321rot90;
+        PoseType result = CRCLPosemath.toPoseType(tran, v, pose_in);
+        checkEquals("pose", expResult, result);
+    }
+
+    /**
+     * Test of toPoseType method, of class CRCLPosemath.
+     */
+    @Test
+    public void testToPoseType_PmCartesian_PmRpy() throws Exception {
+        System.out.println("toPoseType");
+        PmCartesian tran = new PmCartesian(3.0, 2.0, 1.0);
+        PmRpy v = new PmRpy(0.0, 0.0,Math.PI/2.0);
+        PoseType expResult = pose321rot90;
+        PoseType result = CRCLPosemath.toPoseType(tran, v);
+        checkEquals("pose",expResult, result);
+    }
 
 }

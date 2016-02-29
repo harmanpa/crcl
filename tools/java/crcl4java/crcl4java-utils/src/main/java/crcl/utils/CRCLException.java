@@ -22,20 +22,17 @@
  */
 package crcl.utils;
 
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
 /**
  *
  * @author shackle
  */
-public class CRCLSocketException extends Exception {
+public class CRCLException extends Exception {
     
-    public CRCLSocketException(Throwable cause) {
+    public CRCLException(Throwable cause) {
         super(cause);
     }
     
-    public CRCLSocketException(String msg, Throwable cause) {
+    public CRCLException(String msg, Throwable cause) {
         super(msg,cause);
     }
 }

@@ -104,7 +104,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.ParserConfigurationException;
 import static crcl.utils.CRCLPosemath.maxDiffDoubleArray;
-import static crcl.utils.CRCLPosemath.pointToPmCartesian;
 import static crcl.utils.CRCLPosemath.shift;
 import static crcl.utils.CRCLPosemath.toPmRotationVector;
 import static crcl.utils.CRCLPosemath.vectorToPmCartesian;
@@ -122,10 +121,17 @@ import rcs.posemath.PmRotationVector;
 import rcs.posemath.Posemath;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import static crcl.utils.CRCLPosemath.toPmCartesian;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
 
 /**
  *
@@ -609,8 +615,8 @@ public class SimServerInner {
             PoseType current) {
         PoseType newGoal = goal;
         try {
-            PmCartesian goalPt = pointToPmCartesian(goalPose.getPoint());
-            PmCartesian currentPt = pointToPmCartesian(current.getPoint());
+            PmCartesian goalPt = toPmCartesian(goalPose.getPoint());
+            PmCartesian currentPt = toPmCartesian(current.getPoint());
             PmCartesian diffPt = goalPt.subtract(currentPt);
             double lastTransSpeed = this.curTransSpeed;
             double diffTransSpeed = diffPt.mag() / (delayMillis * 1e-3);
@@ -665,8 +671,8 @@ public class SimServerInner {
     public double[] getStraightMoveCommandedJointVals(PoseType curGoalPose) {
         try {
             final double JOINT_DIFF_MAX = getJointDiffMax();
-            PmCartesian goalPt = pointToPmCartesian(curGoalPose.getPoint());
-            PmCartesian currentPt = pointToPmCartesian(CRCLPosemath.getPoint(status));
+            PmCartesian goalPt = toPmCartesian(curGoalPose.getPoint());
+            PmCartesian currentPt = toPmCartesian(CRCLPosemath.getPoint(status));
             PmCartesian diffPt = goalPt.subtract(currentPt);
             PmRotationVector goalRotv = toPmRotationVector(curGoalPose);
             PmRotationVector currentRotv = toPmRotationVector(CRCLPosemath.getPose(status));
@@ -698,7 +704,7 @@ public class SimServerInner {
             for (ClientState state : this.clientStates) {
                 state.getCs().setCmdSchema(CRCLSocket.defaultCmdSchema);
             }
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -711,7 +717,7 @@ public class SimServerInner {
                 state.getCs().setStatSchema(CRCLSocket.defaultStatSchema);
             }
             this.statSchemaFiles = fa;
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -878,7 +884,7 @@ public class SimServerInner {
                             lsi.lastSentState = status.getCommandStatus().getCommandState();
                             this.lastStatusMap.put(socket, lsi);
                         }
-                    } catch (CRCLSocketException ex) {
+                    } catch (CRCLException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
                         try {
                             socket.close();
@@ -965,7 +971,7 @@ public class SimServerInner {
                 }
             }
 //            System.out.println("SimServer.sendStatus() sent data to " + write_count + " clients.");
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex + "\n" + ((curSocket != null) ? curSocket.getLastStatusString() : ""));
         }
@@ -1129,8 +1135,8 @@ public class SimServerInner {
                                 break;
                         }
 //                        if (null != curGoalPose) {
-//                            PmCartesian curGoalCart = CRCLPosemath.pointToPmCartesian(curGoalPose.getPoint());
-//                            PmCartesian curCart = CRCLPosemath.pointToPmCartesian(CRCLPosemath.getPoint(status));
+//                            PmCartesian curGoalCart = CRCLPosemath.toPmCartesian(curGoalPose.getPoint());
+//                            PmCartesian curCart = CRCLPosemath.toPmCartesian(CRCLPosemath.getPoint(status));
 //                            PmCartesian cartDiff = curCart.subtract(curGoalCart);
 //                            double cartDiffMag = cartDiff.mag();
 //                            PmRotationVector curGoalRotv = CRCLPosemath.toPmRotationVector(curGoalPose);
@@ -1160,8 +1166,8 @@ public class SimServerInner {
 //                                goalPoseToCommandedPositions(curGoalPose);
 //                                System.arraycopy(commandedJointPositions, 0, jointPositions, 0,
 //                                        jointPositions.length);
-//                                curGoalCart = CRCLPosemath.pointToPmCartesian(curGoalPose.getPoint());
-//                                curCart = CRCLPosemath.pointToPmCartesian(CRCLPosemath.getPoint(status));
+//                                curGoalCart = CRCLPosemath.toPmCartesian(curGoalPose.getPoint());
+//                                curCart = CRCLPosemath.toPmCartesian(CRCLPosemath.getPoint(status));
 //                                cartDiff = curCart.subtract(curGoalCart);
 //                                cartDiffMag = cartDiff.mag();
 //                                curGoalRotv = CRCLPosemath.toPmRotationVector(curGoalPose);
@@ -1395,7 +1401,7 @@ public class SimServerInner {
 //                LOGGER.log(Level.SEVERE, null, ex1);
             }
             this.clientStates.remove(state);
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
 //            System.err.println("ex.getCause() ="+ex.getCause());
 //            if(null != ex.getCause()) {
 //                System.err.println("ex.getCause().getCause()="+ex.getCause().getCause());
@@ -1462,7 +1468,7 @@ public class SimServerInner {
                 clientThreadMap.put(cs, t);
                 t.start();
                 this.updateConnectedClients();
-            } catch (CRCLSocketException | IOException ex) {
+            } catch (CRCLException | IOException ex) {
                 if (close_count <= start_close_count) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
@@ -2138,7 +2144,7 @@ public class SimServerInner {
         if (null == checkerCRCLSocket) {
             try {
                 checkerCRCLSocket = new CRCLSocket();
-            } catch (CRCLSocketException ex) {
+            } catch (CRCLException ex) {
                 Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

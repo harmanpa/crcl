@@ -31,7 +31,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import crcl.utils.SimRobotEnum;
 import crcl.utils.SimServerOuter;
 import java.io.File;
@@ -749,7 +749,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                                         = gripperSocket.readStatus(jCheckBoxMenuItemValidateXML.isSelected());
                                 SimServer.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
                             }
-                        } catch (CRCLSocketException ex) {
+                        } catch (CRCLException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                             showMessage(ex);
                         } catch (InterruptedException ex) {
@@ -760,7 +760,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                 gripperReadThread.start();
                 this.inner.setGripperSocket(gripperSocket);
 
-            } catch (IOException | CRCLSocketException ex) {
+            } catch (IOException | CRCLExceptionex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             } 
         }

@@ -53,7 +53,7 @@ import crcl.base.StopMotionType;
 import crcl.base.VectorType;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -296,7 +296,7 @@ public class CrclClientUI extends UI {
                             skip_wait_for_done = true;
                         }
                         running = true;
-                    } catch (CRCLSocketException ex) {
+                    } catch (CRCLException ex) {
                         Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -355,7 +355,7 @@ public class CrclClientUI extends UI {
                                 }
 
                             });
-                        } catch (CRCLSocketException ex) {
+                        } catch (CRCLException ex) {
                             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
@@ -394,8 +394,7 @@ public class CrclClientUI extends UI {
         runStopLayout.addComponent(runButton);
         final Button stepButton = new Button("One Step");
 
-        stepButton.addClickListener(
-                new Button.ClickListener() {
+        stepButton.addClickListener(new Button.ClickListener() {
 
             @Override
             public void buttonClick(ClickEvent event) {
@@ -404,7 +403,7 @@ public class CrclClientUI extends UI {
                         connect();
                     }
                     runOneProgramStep();
-                } catch (CRCLSocketException ex) {
+                } catch (CRCLException ex) {
                     Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -533,7 +532,7 @@ public class CrclClientUI extends UI {
             instance.setCRCLCommand(stopMotionCmd);
             socket.writeCommand(instance);
             lastCmdIdSent = nextId;
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             curJogState = JogState.NONE;
@@ -595,12 +594,12 @@ public class CrclClientUI extends UI {
             updateThread = new Thread(() -> {
                 try {
                     pollForStatus();
-                } catch (CRCLSocketException | InterruptedException ex) {
+                } catch (CRCLException | InterruptedException ex) {
                     Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
             updateThread.start();
-        } catch (IOException | CRCLSocketException ex) {
+        } catch (IOException | CRCLExceptionex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -619,7 +618,7 @@ public class CrclClientUI extends UI {
     private int jogJointNumber = -1;
     private JogState curJogState = JogState.NONE;
 
-    private void pollForStatus() throws CRCLSocketException, InterruptedException {
+    private void pollForStatus() throws CRCLException, InterruptedException {
         while (!Thread.currentThread().isInterrupted()) {
             Thread.sleep(200);
             CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
@@ -756,7 +755,7 @@ public class CrclClientUI extends UI {
                             case ROLL_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.r -= Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -768,7 +767,7 @@ public class CrclClientUI extends UI {
                             case ROLL_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.r += Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -780,7 +779,7 @@ public class CrclClientUI extends UI {
                             case PITCH_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.p -= Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -792,7 +791,7 @@ public class CrclClientUI extends UI {
                             case PITCH_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.p += Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -804,7 +803,7 @@ public class CrclClientUI extends UI {
                             case YAW_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.y -= Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -816,7 +815,7 @@ public class CrclClientUI extends UI {
                             case YAW_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.y += Math.toRadians(3.0);
-                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy));
+                                moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
                                 instance.setCRCLCommand(moveToCmd);
@@ -974,7 +973,7 @@ public class CrclClientUI extends UI {
                     }
                 }
             }
-        } catch (CRCLSocketException | Property.ReadOnlyException | PmException ex) {
+        } catch (CRCLException | Property.ReadOnlyException | PmException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -982,7 +981,7 @@ public class CrclClientUI extends UI {
     private BigInteger lastCmdIdSent = BigInteger.ONE;
 
     @SuppressWarnings("unchecked")
-    private void runOneProgramStep() throws CRCLSocketException {
+    private void runOneProgramStep() throws CRCLException {
         instance.setCRCLCommand(program.getMiddleCommand().get(program_index));
         instance.getCRCLCommand().setCommandID(BigInteger.valueOf(program_index + 2));
         lastCmdIdSent = instance.getCRCLCommand().getCommandID();
