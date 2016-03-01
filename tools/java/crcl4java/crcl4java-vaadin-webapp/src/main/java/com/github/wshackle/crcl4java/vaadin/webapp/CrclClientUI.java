@@ -23,6 +23,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
@@ -45,6 +46,7 @@ import crcl.base.InitCanonType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.MessageType;
+import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
@@ -57,19 +59,25 @@ import crcl.utils.CRCLException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
+import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
+import rcs.posemath.PmPose;
 import rcs.posemath.PmRpy;
-import rcs.posemath.Posemath;
 
 /**
  *
@@ -77,14 +85,33 @@ import rcs.posemath.Posemath;
 @Theme("default_theme")
 @Widgetset("com.github.wshackle.crcl4java.vaadin.webapp.Crcl4JavaWidgetset")
 @Push
-public class CrclClientUI extends UI {
+public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
+
+    private static final List<Consumer<ProgramInfo>> programInfoListeners = new ArrayList<>();
+
+    public static void addProgramInfoListener(Consumer<ProgramInfo> l) {
+        programInfoListeners.add(l);
+    }
+
+    public static void removeProgramInfoListener(Consumer<ProgramInfo> l) {
+        programInfoListeners.add(l);
+    }
+
+    private final static File REMOTE_PROGRAM_DIR = new File(System.getProperty("user.home"), ".crcl4java.programs");
+
+    private static ProgramInfo programInfo = new ProgramInfo(REMOTE_PROGRAM_DIR.list(), "", null, 0);
+
+    public static void setProgramInfo(ProgramInfo newProgramInfo) {
+        programInfo = newProgramInfo;
+        for (Consumer<ProgramInfo> l : programInfoListeners) {
+            l.accept(programInfo);
+        }
+    }
 
 //    private Navigator navigator;
     private CRCLSocket socket;
     private Thread updateThread;
-    private CRCLProgramType program;
     private ByteArrayOutputStream recieverOutputStream;
-    private int program_index = 0;
     private static Map<String, Resource> browserMap;
     private static final Resource defaultBrowserResource
             = new ExternalResource("http://www.gtri.gatech.edu/canonicalrobotcommandlanguage");
@@ -95,8 +122,10 @@ public class CrclClientUI extends UI {
     private final TextField portField = new TextField("Port");
     private final Button disconnectButton = new Button("Disconnect");
     private final Button connectButton = new Button("Connect");
+    private final Table remoteProgramTable = new Table("Remote Programs");
+    private final Button remoteProgramLoadButton = new Button("Load Selected Remote Program");
     private final Table progTable = new Table("Program");
-    private final Label programIndexLabel = new Label("Program Index : " + program_index);
+    private final Label programIndexLabel = new Label("Program Index : " + programInfo.getProgramIndex());
     private final Label cmdIdLbl = new Label("Command ID :" + String.format("%10s", "0"));
     private final Label stateLbl = new Label("State : UNKNOWN");
     private final Label stateDescriptionLbl = new Label("");
@@ -150,6 +179,17 @@ public class CrclClientUI extends UI {
         new Label("Joint6 : " + String.format("%+6.1f ", 0.0)),};
     private final HorizontalLayout jogJointLines[] = new HorizontalLayout[6];
     private final CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+    private final Table transformPos1Table = new Table("First Live Position");
+    private final Button setPos1CurrentButton = new Button("Set First Live Postion to Current Live Position");
+    private final Table transformPos2Table = new Table("Second Live Position");
+    private final Button setPos2CurrentButton = new Button("Set Second Postion to Current Live Position");
+    private final Table programPos1Table = new Table("First Program Position");
+    private final Button setPos1ProgramButton = new Button("Set First Program Postion to Selected Program Line");
+    private final Table programPos2Table = new Table("Second Program Position");
+    private final Button setPos2ProgramButton = new Button("Set Second Program Postion to Selected Program Line");
+    private final Table transformTable = new Table("Computed Transform");
+    private final Button computeTransformButton = new Button("ComputeTransform");
+    private final Button transformProgramButton = new Button("Apply Transform To Program");
 
     static {
         String tempDirProp = System.getProperty("temp.dir");
@@ -176,6 +216,118 @@ public class CrclClientUI extends UI {
         browserMap.put("SetLengthUnitsType", new ExternalResource("http://www.gtri.gatech.edu/crclcommands#Link22"));
     }
 
+    private CRCLProgramType oldProgram = null;
+    private String oldRemotePrograms[] = null;
+
+    private void loadRemotePrograms() {
+        remoteProgramTable.clear();
+        String remotePrograms[] = programInfo.getRemotePrograms();
+        if (null != remotePrograms) {
+            for (int i = 0; i < remotePrograms.length; i++) {
+                String remoteProgram = remotePrograms[i];
+                remoteProgramTable.addItem(new Object[]{remoteProgram}, i);
+            }
+        }
+    }
+
+    private int getSelectedProgramLine() {
+        Object id = progTable.firstItemId();
+        while (id != null && id != progTable.lastItemId()) {
+            if (progTable.isSelected(id)) {
+                return (int) id;
+            }
+            id = progTable.nextItemId(id);
+        }
+        return -1;
+    }
+
+    private PointType getSelectedProgramPoint() {
+        if (null != programInfo) {
+            if (null != programInfo.getCurrentProgram()) {
+                CRCLProgramType program = programInfo.getCurrentProgram();
+                final int program_index = getSelectedProgramLine();
+                if (program_index > 0 && program_index <= program.getMiddleCommand().size()) {
+                    MiddleCommandType cmd = program.getMiddleCommand().get(program_index);
+                    if (cmd instanceof MoveToType) {
+                        MoveToType moveToCmd = (MoveToType) cmd;
+                        return moveToCmd.getEndPosition().getPoint();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private void loadSelectedRemoteProgram() {
+        Object id = remoteProgramTable.firstItemId();
+        while (id != null) {
+            if (remoteProgramTable.isSelected(id)) {
+                try {
+                    Item item = remoteProgramTable.getItem(id);
+                    Property fnameProperty = item.getItemProperty("File");
+                    String filename = fnameProperty.getValue().toString();
+                    File f = new File(REMOTE_PROGRAM_DIR, filename);
+                    String progContents = new String(Files.readAllBytes(f.toPath()));
+                    CRCLProgramType prog = socket.stringToProgram(progContents, false);
+                    setProgramInfo(new ProgramInfo(REMOTE_PROGRAM_DIR.list(), filename, prog, 0));
+                } catch (IOException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (CRCLException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                break;
+            }
+            id = remoteProgramTable.nextItemId(id);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void accept(ProgramInfo t) {
+        CRCLSocket tmpsocket = socket;
+        try {
+            if (null == tmpsocket) {
+                tmpsocket = new CRCLSocket();
+            }
+            final CRCLSocket tmpsocketf = tmpsocket;
+            final CRCLProgramType newProgram = programInfo.getCurrentProgram();
+            final boolean programIsNew = newProgram != oldProgram;
+            oldProgram = newProgram;
+            final boolean remoteProgramsNew = programInfo.getRemotePrograms() != oldRemotePrograms;
+            oldRemotePrograms = programInfo.getRemotePrograms();
+            final int program_index = programInfo.getProgramIndex();
+            CrclClientUI.this.access(() -> {
+                programIndexLabel.setValue("Program Index :" + programInfo.getProgramIndex());
+                if (programIsNew) {
+                    progTable.clear();
+                    try {
+                        for (int i = 0; i < newProgram.getMiddleCommand().size(); i++) {
+                            String tableCommandString = tmpsocketf.commandToSimpleString(newProgram.getMiddleCommand().get(i));
+                            progTable.addItem(new Object[]{i, tableCommandString}, i);
+                            Item item = progTable.getItem(i);
+                            item.<String>getItemProperty("Command").setValue(tableCommandString);
+                        }
+                    } catch (ParserConfigurationException | SAXException | IOException ex) {
+                        Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    Item item = progTable.getItem(program_index);
+                    if (null != item) {
+                        programIndexLabel.setValue("Program Index :" + program_index);
+                        progTable.select(program_index);
+                        progTable.setCurrentPageFirstItemId(program_index);
+                    }
+                }
+                if (remoteProgramsNew) {
+                    loadRemotePrograms();
+                }
+            });
+        } catch (CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
     public class JogView extends VerticalLayout implements View {
 
         @Override
@@ -192,10 +344,60 @@ public class CrclClientUI extends UI {
 
     }
 
+//    private PointType getPointFromTable(Table tbl) {
+//        
+//        Item xItem = tbl.getItem(0);
+//        Property xProp = xItem.getItemProperty(VALUE_ITEM_PROPERTY);
+//        double x = (double) xProp.getValue();
+//        Item yItem = tbl.getItem(1);
+//        Property yProp = yItem.getItemProperty(VALUE_ITEM_PROPERTY);
+//        double y = (double) yProp.getValue();
+//        Item zItem = tbl.getItem(0);
+//        Property zProp = zItem.getItemProperty(VALUE_ITEM_PROPERTY);
+//        double z = (double) zProp.getValue();
+//        
+//        PointType pt = new PointType();
+//        pt.setX(BigDecimal.valueOf(x));
+//        pt.setY(BigDecimal.valueOf(y));
+//        pt.setZ(BigDecimal.valueOf(z));
+//        return pt;
+//    }
+    private PmCartesian getPmPointFromTable(Table tbl) {
+        PmCartesian pt = new PmCartesian();
+        Item xItem = tbl.getItem(0);
+        Property xProp = xItem.getItemProperty(VALUE_ITEM_PROPERTY);
+        pt.x = (double) xProp.getValue();
+        Item yItem = tbl.getItem(1);
+        Property yProp = yItem.getItemProperty(VALUE_ITEM_PROPERTY);
+        pt.y = (double) yProp.getValue();
+        Item zItem = tbl.getItem(0);
+        Property zProp = zItem.getItemProperty(VALUE_ITEM_PROPERTY);
+        pt.z = (double) zProp.getValue();
+        return pt;
+    }
+
+    public static final String VALUE_ITEM_PROPERTY = "Value";
+    PmPose transformPm = null;
+    PoseType transformPose = null;
+
+    private void computeTransform() {
+        try {
+            PmCartesian a1 = getPmPointFromTable(programPos1Table);
+            PmCartesian a2 = getPmPointFromTable(programPos2Table);
+            PmCartesian b1 = getPmPointFromTable(transformPos1Table);
+            PmCartesian b2 = getPmPointFromTable(transformPos2Table);
+            transformPm = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
+            transformPose = CRCLPosemath.toPose(transformPm);
+            loadPoseToTable(transformPose, transformTable);
+        } catch (CRCLException | PmException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
-
+        addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
         final HorizontalLayout navButtons = new HorizontalLayout();
         final Button mainNavButton = new Button("Main View");
@@ -204,12 +406,19 @@ public class CrclClientUI extends UI {
         navButtons.addComponent(jogWorldNavButton);
         final Button jogJointNavButton = new Button("Jog Joint View");
         navButtons.addComponent(jogJointNavButton);
+        final Button remoteProgramsNavButton = new Button("Remote Programs View");
+        navButtons.addComponent(remoteProgramsNavButton);
+        final Button transformSetupNavButton = new Button("Transform Setup View");
+        navButtons.addComponent(transformSetupNavButton);
         navLayout.addComponent(navButtons);
         Panel panel = new Panel();
         navLayout.addComponent(panel);
         final MainView mainLayout = new MainView();
         final JogView jogJointLayout = new JogView();
         final JogView jogWorldLayout = new JogView();
+        final VerticalLayout remoteProgramsLayout = new VerticalLayout();
+        final VerticalLayout transformSetupLayout = new VerticalLayout();
+
 //        navigator = new Navigator(this, navLayout);
 //        navigator.addView("", mainLayout);
 //        navigator.addView("Jog", jogLayout);
@@ -219,6 +428,8 @@ public class CrclClientUI extends UI {
         jogJointNavButton.addClickListener(l -> panel.setContent(jogJointLayout));
         jogWorldNavButton.addClickListener(l -> panel.setContent(jogWorldLayout));
         mainNavButton.addClickListener(l -> panel.setContent(mainLayout));
+        remoteProgramsNavButton.addClickListener(l -> panel.setContent(remoteProgramsLayout));
+        transformSetupNavButton.addClickListener(l -> panel.setContent(transformSetupLayout));
         panel.setContent(mainLayout);
         mainLayout.setMargin(true);
         setContent(navLayout);
@@ -231,13 +442,8 @@ public class CrclClientUI extends UI {
         middleLayout.addComponent(stateLbl);
         middleLayout.addComponent(stateDescriptionLbl);
         middleLayout.addComponent(statusIdLbl);
-        posTable.addContainerProperty("Axis", String.class, null);
-        posTable.addContainerProperty("Value", Double.class, null);
-        posTable.addItem(new Object[]{"X", 0.0}, 0);
-        posTable.addItem(new Object[]{"Y", 0.0}, 1);
-        posTable.addItem(new Object[]{"Z", 0.0}, 2);
-        posTable.setWidth("220px");
-        posTable.setHeight("170px");
+        setupPosTable(posTable);
+
         rotTable.addContainerProperty("Axis", String.class, null);
         rotTable.addContainerProperty("I", Double.class, null);
         rotTable.addContainerProperty("J", Double.class, null);
@@ -273,11 +479,60 @@ public class CrclClientUI extends UI {
                 return recieverOutputStream;
             }
         });
+        remoteProgramTable.addContainerProperty("File", String.class, null);
+        remoteProgramTable.setWidth("500px");
+        remoteProgramTable.setHeight("500px");
+        remoteProgramTable.setMultiSelect(false);
+        remoteProgramTable.setSelectable(true);
+        loadRemotePrograms();
+        remoteProgramLoadButton.addClickListener(e -> loadSelectedRemoteProgram());
         progTable.addContainerProperty("Index", Integer.class, null);
         progTable.addContainerProperty("Command", String.class, null);
         progTable.setWidth("500px");
         progTable.setHeight("500px");
+        progTable.setMultiSelect(false);
+        progTable.setSelectable(true);
         final Button runButton = new Button("Run");
+
+        GridLayout posGridLayout = new GridLayout(2, 2);
+        posGridLayout.setSpacing(true);
+        VerticalLayout livePos1VLayout = new VerticalLayout();
+
+        setupPosTable(transformPos1Table);
+        livePos1VLayout.addComponent(transformPos1Table);
+        setPos1CurrentButton.addClickListener(e -> loadPointToTable(currentPoint, transformPos1Table));
+        livePos1VLayout.addComponent(setPos1CurrentButton);
+        posGridLayout.addComponent(livePos1VLayout, 0, 0);
+
+        VerticalLayout livePos2VLayout = new VerticalLayout();
+        setupPosTable(transformPos2Table);
+        livePos2VLayout.addComponent(transformPos2Table);
+        setPos2CurrentButton.addClickListener(e -> loadPointToTable(currentPoint, transformPos2Table));
+        livePos2VLayout.addComponent(setPos2CurrentButton);
+        posGridLayout.addComponent(livePos2VLayout, 1, 0);
+
+        VerticalLayout programPos1VLayout = new VerticalLayout();
+
+        setupPosTable(programPos1Table);
+        programPos1VLayout.addComponent(programPos1Table);
+        setPos1ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos1Table));
+        programPos1VLayout.addComponent(setPos1ProgramButton);
+        posGridLayout.addComponent(programPos1VLayout, 0, 1);
+
+        VerticalLayout programPos2VLayout = new VerticalLayout();
+
+        setupPosTable(programPos2Table);
+        programPos2VLayout.addComponent(programPos2Table);
+        setPos2ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos2Table));
+        programPos2VLayout.addComponent(setPos2ProgramButton);
+        posGridLayout.addComponent(programPos2VLayout, 1, 1);
+        transformSetupLayout.addComponent(posGridLayout);
+
+        setupTransformTable(transformTable);
+        computeTransformButton.addClickListener(e -> computeTransform());
+        transformSetupLayout.addComponent(computeTransformButton);
+        transformSetupLayout.addComponent(transformTable);
+        transformSetupLayout.addComponent(transformProgramButton);
         runButton.addClickListener(new Button.ClickListener() {
 
             @Override
@@ -285,9 +540,10 @@ public class CrclClientUI extends UI {
                 if (null == socket) {
                     connect();
                 }
+                CRCLProgramType program = programInfo.getCurrentProgram();
                 if (null != socket && null != program && program.getMiddleCommand().size() > 0) {
                     try {
-                        if (program_index < 1) {
+                        if (programInfo.getProgramIndex() < 1) {
                             CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
                             instance.setCRCLCommand(program.getInitCanon());
                             instance.getCRCLCommand().setCommandID(BigInteger.ONE);
@@ -328,33 +584,25 @@ public class CrclClientUI extends UI {
             @Override
             public void uploadSucceeded(Upload.SucceededEvent event) {
                 if (null != recieverOutputStream) {
+
                     String string = recieverOutputStream.toString();
                     if (null != string && string.length() > 0) {
                         try {
+                            REMOTE_PROGRAM_DIR.mkdirs();
+                            try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, event.getFilename()))) {
+                                fos.write(string.getBytes());
+                            } catch (IOException ex) {
+                                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+
                             CRCLSocket tmpsocket = socket;
                             if (null == tmpsocket) {
                                 tmpsocket = new CRCLSocket();
                             }
-                            final CRCLSocket tmpsocketf = tmpsocket;
-                            program = tmpsocket.stringToProgram(string, false);
-                            program_index = 0;
+                            CRCLProgramType newProgram = tmpsocket.stringToProgram(string, false);
+                            setProgramInfo(new ProgramInfo(REMOTE_PROGRAM_DIR.list(), event.getFilename(), newProgram, 0));
                             running = false;
-                            CrclClientUI.this.access(() -> {
-                                programIndexLabel.setValue("Program Index :" + program_index);
-                                progTable.clear();
-                                try {
-                                    for (int i = 0; i < program.getMiddleCommand().size(); i++) {
-                                        String tableCommandString = tmpsocketf.commandToSimpleString(program.getMiddleCommand().get(i));
-                                        progTable.addItem(new Object[]{i, tableCommandString}, i);
-                                        Item item = progTable.getItem(i);
-                                        item.<String>getItemProperty("Command").setValue(tableCommandString);
 
-                                    }
-                                } catch (ParserConfigurationException | SAXException | IOException ex) {
-                                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-
-                            });
                         } catch (CRCLException ex) {
                             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -424,6 +672,8 @@ public class CrclClientUI extends UI {
         );
         runStopLayout.addComponent(stopButton);
         leftLayout.addComponent(runStopLayout);
+        remoteProgramsLayout.addComponent(remoteProgramTable);
+        remoteProgramsLayout.addComponent(remoteProgramLoadButton);
         leftLayout.addComponent(progTable);
 
         final HorizontalLayout xLine = new HorizontalLayout();
@@ -522,6 +772,32 @@ public class CrclClientUI extends UI {
         connect();
     }
 
+    public void setupPosTable(Table tbl) throws UnsupportedOperationException {
+        tbl.addContainerProperty("Axis", String.class, null);
+        tbl.addContainerProperty(VALUE_ITEM_PROPERTY, Double.class, null);
+        tbl.addItem(new Object[]{"X", 0.0}, 0);
+        tbl.addItem(new Object[]{"Y", 0.0}, 1);
+        tbl.addItem(new Object[]{"Z", 0.0}, 2);
+        tbl.setWidth("220px");
+        tbl.setHeight("160px");
+    }
+
+    public void setupTransformTable(Table tbl) throws UnsupportedOperationException {
+        tbl.addContainerProperty("Axis", String.class, null);
+        tbl.addContainerProperty(VALUE_ITEM_PROPERTY, Double.class, null);
+        tbl.addItem(new Object[]{"X", 0.0}, 0);
+        tbl.addItem(new Object[]{"Y", 0.0}, 1);
+        tbl.addItem(new Object[]{"Z", 0.0}, 2);
+        tbl.addItem(new Object[]{"X I", 0.0}, 3);
+        tbl.addItem(new Object[]{"X J", 0.0}, 4);
+        tbl.addItem(new Object[]{"X K", 0.0}, 5);
+        tbl.addItem(new Object[]{"Z I", 0.0}, 6);
+        tbl.addItem(new Object[]{"Z J", 0.0}, 7);
+        tbl.addItem(new Object[]{"Z K", 0.0}, 8);
+        tbl.setWidth("220px");
+        tbl.setHeight("450px");
+    }
+
     public void stopMotion() {
         try {
             curJogState = JogState.NONE;
@@ -542,9 +818,8 @@ public class CrclClientUI extends UI {
     @Override
     public void close() {
         try {
-            program = null;
+            oldProgram = null;
             running = false;
-            program_index = 0;
             if (null != updateThread) {
                 updateThread.interrupt();
                 try {
@@ -599,6 +874,7 @@ public class CrclClientUI extends UI {
                 }
             });
             updateThread.start();
+            this.accept(programInfo);
         } catch (IOException | CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -627,7 +903,8 @@ public class CrclClientUI extends UI {
             instance.setCRCLCommand(getStatus);
             socket.writeCommand(instance);
             final CRCLStatusType stat = socket.readStatus();
-
+            final int program_index = programInfo.getProgramIndex();
+            final CRCLProgramType program = programInfo.getCurrentProgram();
             if (running
                     && null != program
                     && null != stat
@@ -645,8 +922,110 @@ public class CrclClientUI extends UI {
         }
     }
 
+    private PointType currentPoint = null;
+
+    private void loadPointToTable(PointType pt, Table tbl) {
+        if (null == pt) {
+            return;
+        }
+        if (null != pt.getX()) {
+            Item it = tbl.getItem(0);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(pt.getX().doubleValue());
+                }
+            }
+        }
+        if (null != pt.getY()) {
+            Item it = tbl.getItem(1);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(pt.getY().doubleValue());
+                }
+            }
+        }
+        if (null != pt.getZ()) {
+            Item it = tbl.getItem(2);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(pt.getZ().doubleValue());
+                }
+            }
+        }
+    }
+
+    private void loadPoseToTable(PoseType pose, Table tbl) {
+        if (null == pose) {
+            return;
+        }
+        PointType pt = pose.getPoint();
+        loadPointToTable(pt, tbl);
+        VectorType xAxis = pose.getXAxis();
+        if (null != xAxis) {
+            if (null != xAxis.getI()) {
+                Item it = tbl.getItem(3);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(xAxis.getI().doubleValue());
+                    }
+                }
+            }
+            if (null != xAxis.getJ()) {
+                Item it = tbl.getItem(4);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(xAxis.getJ().doubleValue());
+                    }
+                }
+            }
+            if (null != xAxis.getK()) {
+                Item it = tbl.getItem(5);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(xAxis.getK().doubleValue());
+                    }
+                }
+            }
+        }
+        VectorType zAxis = pose.getZAxis();
+        if (null != zAxis) {
+            if (null != zAxis.getI()) {
+                Item it = tbl.getItem(6);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(zAxis.getI().doubleValue());
+                    }
+                }
+            }
+            if (null != zAxis.getJ()) {
+                Item it = tbl.getItem(7);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(zAxis.getJ().doubleValue());
+                    }
+                }
+            }
+            if (null != zAxis.getK()) {
+                Item it = tbl.getItem(8);
+                if (null != it) {
+                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    if (null != ip) {
+                        ip.setValue(zAxis.getK().doubleValue());
+                    }
+                }
+            }
+        }
+    }
     private static final BigDecimal JOG_WORLD_TRANS_INC = BigDecimal.valueOf(20.0);
-    
+
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -674,9 +1053,10 @@ public class CrclClientUI extends UI {
             if (null != pose) {
                 PointType pt = pose.getPoint();
                 if (null != pt) {
-                    System.out.println("cst.getCommandID() = " + cst.getCommandID());
-                    System.out.println("lastCmdIdSent = " + lastCmdIdSent);
-                    System.out.println("cst.getCommandID().compareTo(lastCmdIdSent) = " + cst.getCommandID().compareTo(lastCmdIdSent));
+                    this.currentPoint = pt;
+//                    System.out.println("cst.getCommandID() = " + cst.getCommandID());
+//                    System.out.println("lastCmdIdSent = " + lastCmdIdSent);
+//                    System.out.println("cst.getCommandID().compareTo(lastCmdIdSent) = " + cst.getCommandID().compareTo(lastCmdIdSent));
                     if (cst.getCommandState() == CommandStateEnumType.CRCL_DONE
                             && cst.getCommandID().compareTo(lastCmdIdSent) >= 0) {
                         MoveToType moveToCmd = new MoveToType();
@@ -695,7 +1075,7 @@ public class CrclClientUI extends UI {
                         moveToCmd.getEndPosition().getZAxis().setI(pose.getZAxis().getI());
                         moveToCmd.getEndPosition().getZAxis().setJ(pose.getZAxis().getJ());
                         moveToCmd.getEndPosition().getZAxis().setK(pose.getZAxis().getK());
-                        System.out.println("curJogState = " + curJogState);
+//                        System.out.println("curJogState = " + curJogState);
                         BigInteger nextId;
                         switch (curJogState) {
                             case X_MINUS:
@@ -875,7 +1255,7 @@ public class CrclClientUI extends UI {
                     if (null != pt.getX()) {
                         Item it = posTable.getItem(0);
                         if (null != it) {
-                            Property ip = it.getItemProperty("Value");
+                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
                             if (null != ip) {
                                 ip.setValue(pt.getX().doubleValue());
                             }
@@ -885,7 +1265,7 @@ public class CrclClientUI extends UI {
                     if (null != pt.getY()) {
                         Item it = posTable.getItem(1);
                         if (null != it) {
-                            Property ip = it.getItemProperty("Value");
+                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
                             if (null != ip) {
                                 ip.setValue(pt.getY().doubleValue());
                             }
@@ -895,7 +1275,7 @@ public class CrclClientUI extends UI {
                     if (null != pt.getZ()) {
                         Item it = posTable.getItem(2);
                         if (null != it) {
-                            Property ip = it.getItemProperty("Value");
+                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
                             if (null != ip) {
                                 ip.setValue(pt.getZ().doubleValue());
                             }
@@ -907,7 +1287,7 @@ public class CrclClientUI extends UI {
                     pitchJogLabel.setValue(" Pitch: " + String.format("%+6.1f ", Math.toDegrees(rpy.p)) + " degrees  ");
                     yawJogLabel.setValue(" Yaw: " + String.format("%+6.1f ", Math.toDegrees(rpy.y)) + " degrees  ");
                     for (JointStatusType js : stat.getJointStatuses().getJointStatus()) {
-                        jogJointLabels[js.getJointNumber().intValue()-1].setValue("Joint"+js.getJointNumber()+" "+ String.format("%+6.1f ", js.getJointPosition().doubleValue()));
+                        jogJointLabels[js.getJointNumber().intValue() - 1].setValue("Joint" + js.getJointNumber() + " " + String.format("%+6.1f ", js.getJointPosition().doubleValue()));
                     }
                 }
                 VectorType xAxis = pose.getXAxis();
@@ -982,14 +1362,20 @@ public class CrclClientUI extends UI {
 
     @SuppressWarnings("unchecked")
     private void runOneProgramStep() throws CRCLException {
+        final int program_index = programInfo.getProgramIndex();
+        final CRCLProgramType program = programInfo.getCurrentProgram();
         instance.setCRCLCommand(program.getMiddleCommand().get(program_index));
         instance.getCRCLCommand().setCommandID(BigInteger.valueOf(program_index + 2));
         lastCmdIdSent = instance.getCRCLCommand().getCommandID();
         socket.writeCommand(instance);
-        program_index++;
+        setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
+                programInfo.getCurrentFileName(),
+                program,
+                program_index + 1));
         skip_wait_for_done = false;
-        if (program.getMiddleCommand().get(program_index) instanceof crcl.base.MessageType) {
-            MessageType msg = (MessageType) program.getMiddleCommand().get(program_index);
+        final int new_program_index = program_index + 1;
+        if (program.getMiddleCommand().get(new_program_index) instanceof crcl.base.MessageType) {
+            MessageType msg = (MessageType) program.getMiddleCommand().get(new_program_index);
             final String msgString = msg.getMessage();
             CrclClientUI.this.access(() -> {
                 Notification n = new Notification("Program Paused to Show Message. Review the message to the right, then click Run to continue.");
@@ -1003,7 +1389,10 @@ public class CrclClientUI extends UI {
                             System.currentTimeMillis() + "msg.html"));
                 }
                 running = false;
-                program_index++;
+                setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
+                        programInfo.getCurrentFileName(),
+                        program,
+                        new_program_index + 1));
             });
             running = false;
         }
@@ -1016,6 +1405,16 @@ public class CrclClientUI extends UI {
             }
         });
     }
+
+    @Override
+    public void detach() {
+        removeProgramInfoListener(this);
+        oldProgram = null;
+        oldRemotePrograms = null;
+        close();
+        super.detach();
+    }
+
     private static final Logger LOGGER = Logger.getLogger(CrclClientUI.class
             .getName());
 
