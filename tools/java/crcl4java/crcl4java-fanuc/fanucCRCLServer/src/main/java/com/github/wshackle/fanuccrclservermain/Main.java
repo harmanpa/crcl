@@ -35,7 +35,6 @@ import com.github.wshackle.fanuc.robotserver.ITask;
 import com.github.wshackle.fanuc.robotserver.IVar;
 import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
-import com.siemens.ct.exi.exceptions.EXIException;
 import com4j.Com4jObject;
 import com4j.ComException;
 import crcl.base.ActuateJointType;
@@ -73,6 +72,7 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.io.IOException;
@@ -365,6 +365,10 @@ public class Main {
     double lastMaxJointDiff = Double.MAX_VALUE;
 
     public CRCLStatusType readStatusFromRobot() throws PmException {
+        if (null == robot) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            status.getCommandStatus().setStatusID(BigInteger.ONE);
+        }
         if (status.getCommandStatus() == null) {
             status.setCommandStatus(new CommandStatusType());
             setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -453,7 +457,7 @@ public class Main {
         }
 
         ICurPosition icp = robot.curPosition();
-        if(null == icp) {
+        if (null == icp) {
             showError("robot.curPosition() returned null");
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
             return status;
@@ -775,7 +779,7 @@ public class Main {
         posReg97Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         PointType moveCmdEndPt = moveCmd.getEndPosition().getPoint();
-        PmCartesian cart = CRCLPosemath.pointToPmCartesian(moveCmdEndPt);
+        PmCartesian cart = CRCLPosemath.toPmCartesian(moveCmdEndPt);
         PmCartesian endCart = new PmCartesian(cart.x * lengthScale, cart.y * lengthScale, cart.z * lengthScale);
         PmRpy rpy = CRCLPosemath.toPmRpy(moveCmd.getEndPosition());
         updatePosReg98();
@@ -973,7 +977,7 @@ public class Main {
 //        // System.out.println("w: " + pos.w() + "   y:" + pos.p() + "    r:" + pos.r());
         PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
         PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
-        return cart.distFrom(CRCLPosemath.pointToPmCartesian(pose.getPoint()));
+        return cart.distFrom(CRCLPosemath.toPmCartesian(pose.getPoint()));
     }
 
     public double distRotFrom(PoseType pose) throws PmException {
@@ -1058,7 +1062,7 @@ public class Main {
             try {
                 for (currentWaypointNumber = 0; currentWaypointNumber < moveCmd.getNumPositions().intValue() && currentWaypointNumber < moveCmd.getWaypoint().size(); currentWaypointNumber++) {
                     PoseType pose = moveCmd.getWaypoint().get(currentWaypointNumber);
-                    PmCartesian cart = CRCLPosemath.pointToPmCartesian(pose.getPoint());
+                    PmCartesian cart = CRCLPosemath.toPmCartesian(pose.getPoint());
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     ICurPosition icp = robot.curPosition();
 //        // System.out.println("icp = " + icp);
@@ -1450,7 +1454,11 @@ public class Main {
 
     private CRCLCommandType prevCmd = null;
 
-    CRCLSocket utilCrclSocket = new CRCLSocket();
+    final CRCLSocket utilCrclSocket;
+
+    public Main() throws CRCLException {
+        utilCrclSocket = new CRCLSocket();
+    }
 
     private void startCrclServer() throws IOException {
         es = Executors.newWorkStealingPool();
@@ -1539,7 +1547,7 @@ public class Main {
                             }
                         } catch (SocketException se) {
                             // probably just closing the connection.
-                        } catch (JAXBException | EXIException | SAXException | IOException | InterruptedException ex) {
+                        } catch (JAXBException | SAXException | IOException | InterruptedException ex) {
                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                             showError(ex.getMessage());
                         } catch (Exception ex) {
@@ -1558,6 +1566,8 @@ public class Main {
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                     return;
+                } catch (CRCLException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
@@ -1571,10 +1581,10 @@ public class Main {
     private ITPProgram move_w_time_prog;
     private ITPProgram move_joint_prog;
     private IVar overrideVar = null;
-    private IVar reg96Var=null;
-    private IVar reg97Var=null;
-    private IVar reg98Var=null;
-    
+    private IVar reg96Var = null;
+    private IVar reg97Var = null;
+    private IVar reg98Var = null;
+
     private IRegNumeric regNumeric96 = null;
     private IRegNumeric regNumeric97 = null;
     private IRegNumeric regNumeric98 = null;
@@ -2062,7 +2072,7 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, CRCLException {
         Main main = new Main();
         String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";
         String host = args.length > 1 ? args[1] : "129.6.78.111";

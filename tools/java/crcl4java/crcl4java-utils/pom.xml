@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.wshackle</groupId>
     <artifactId>crcl4java-utils</artifactId>
-    <version>1.3-SNAPSHOT</version>
+    
     <packaging>jar</packaging>
     <parent>
         <relativePath>..</relativePath>
-        <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java</artifactId>
+        <groupId>com.github.wshackle</groupId>
         <version>1.3-SNAPSHOT</version>
     </parent>
     <description>
@@ -21,9 +20,9 @@
             <version>2015.05.04.02</version>
         </dependency>
         <dependency>
-            <groupId>com.github.wshackle</groupId>
             <artifactId>crcl4java-base</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

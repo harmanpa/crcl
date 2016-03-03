@@ -37,6 +37,7 @@ import com.github.wshackle.fanuc.robotserver.ITPSimpleLine;
 import com.github.wshackle.fanuc.robotserver.ITask;
 import com.github.wshackle.fanuc.robotserver.ITasks;
 import com.github.wshackle.fanuc.robotserver.IVar;
+import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
 import com4j.Com4jObject;
 import com4j.ComException;
@@ -53,6 +54,7 @@ import crcl.base.SetEndPoseToleranceType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.TransSpeedAbsoluteType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.awt.event.ActionEvent;
@@ -82,8 +84,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.bind.JAXBException;
-import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -422,11 +422,11 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 File f = chooser.getSelectedFile();
                 Files.write(f.toPath(), crclProgText.getBytes());
             }
-        } catch (JAXBException | IOException | SAXException ex) {
+        } catch (CRCLException | IOException ex) {
             this.jTextAreaErrors.append(ex.toString());
             JOptionPane.showMessageDialog(this, ex);
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
     }
 
     private IRobot2 robot = null;
@@ -455,7 +455,9 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             if (null != robot1) {
                 String varName = this.jTextFieldSysVarName.getText();
                 System.out.println("varName = " + varName);
-                varToWatch = Optional.ofNullable(robot1).map(IRobot2::sysVariables).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
+                IVars sysVars = robot1.sysVariables();
+                System.out.println("sysVars = " + sysVars);
+                varToWatch = Optional.ofNullable(sysVars).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
                 System.out.println("varToWatch = " + varToWatch);
             }
         } catch (Exception e) {
