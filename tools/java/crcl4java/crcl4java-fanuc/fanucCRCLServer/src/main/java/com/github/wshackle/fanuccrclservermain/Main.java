@@ -367,7 +367,8 @@ public class Main {
     public CRCLStatusType readStatusFromRobot() throws PmException {
         if (null == robot) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
-            status.getCommandStatus().setStatusID(BigInteger.ONE);
+            showError("fanucCRCLServer not connected to robot");
+            return status;
         }
         if (status.getCommandStatus() == null) {
             status.setCommandStatus(new CommandStatusType());
@@ -433,13 +434,16 @@ public class Main {
                         double maxDiff = 0;
                         for (ActuateJointType aj : actJoints.getActuateJoint()) {
                             int num = aj.getJointNumber().intValue();
-                            for (JointStatusType jst : status.getJointStatuses().getJointStatus()) {
-                                if (num == jst.getJointNumber().intValue()) {
-                                    double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
-                                    if (diff > maxDiff) {
-                                        maxDiff = diff;
+                            JointStatusesType jointStatuses = status.getJointStatuses();
+                            if (null != jointStatuses) {
+                                for (JointStatusType jst : jointStatuses.getJointStatus()) {
+                                    if (num == jst.getJointNumber().intValue()) {
+                                        double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
+                                        if (diff > maxDiff) {
+                                            maxDiff = diff;
+                                        }
+                                        break;
                                     }
-                                    break;
                                 }
                             }
                         }
@@ -456,6 +460,11 @@ public class Main {
             lastCheckAtPosition = false;
         }
 
+        if (null == robot) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError("fanucCRCLServer not connected to robot");
+            return status;
+        }
         ICurPosition icp = robot.curPosition();
         if (null == icp) {
             showError("robot.curPosition() returned null");
@@ -473,47 +482,50 @@ public class Main {
         if (null == status.getJointStatuses()) {
             status.setJointStatuses(new JointStatusesType());
         }
-        status.getJointStatuses().getJointStatus().clear();
-        for (short i = 1; i <= joint_pos.count(); i++) {
-            JointStatusType js = new JointStatusType();
-            js.setJointNumber(BigInteger.valueOf(i));
-            double cur_joint_pos = joint_pos.item(i);
-            double last_joint_pos = lastJointPosArray[i];
-            long last_joint_pos_time = lastJointPosTimeArray[i];
-            long cur_time = System.currentTimeMillis();
-            double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
-            lastJointPosArray[i] = cur_joint_pos;
-            lastJointPosTimeArray[i] = cur_time;
-            BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
-            js.setJointPosition(jointPosition);
-            try {
-                if (null != cjrMap && cjrMap.size() > 0) {
-                    js.setJointPosition(null);
-                    js.setJointVelocity(null);
-                    js.setJointTorqueOrForce(null);
-                    ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
-                    if (null != cjrt) {
-                        if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
-                            if (cjrt.isReportPosition()) {
-                                js.setJointPosition(jointPosition);
-                            }
-                            if (cjrt.isReportVelocity()) {
-                                js.setJointVelocity(BigDecimal.valueOf(joint_vel));
-                            }
-                            if (cjrt.isReportTorqueOrForce()) {
-                                js.setJointTorqueOrForce(BigDecimal.ZERO);
+        final JointStatusesType jointStatuses = status.getJointStatuses();
+        if (null != jointStatuses) {
+            jointStatuses.getJointStatus().clear();
+            for (short i = 1; i <= joint_pos.count(); i++) {
+                JointStatusType js = new JointStatusType();
+                js.setJointNumber(BigInteger.valueOf(i));
+                double cur_joint_pos = joint_pos.item(i);
+                double last_joint_pos = lastJointPosArray[i];
+                long last_joint_pos_time = lastJointPosTimeArray[i];
+                long cur_time = System.currentTimeMillis();
+                double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
+                lastJointPosArray[i] = cur_joint_pos;
+                lastJointPosTimeArray[i] = cur_time;
+                BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
+                js.setJointPosition(jointPosition);
+                try {
+                    if (null != cjrMap && cjrMap.size() > 0) {
+                        js.setJointPosition(null);
+                        js.setJointVelocity(null);
+                        js.setJointTorqueOrForce(null);
+                        ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                        if (null != cjrt) {
+                            if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                if (cjrt.isReportPosition()) {
+                                    js.setJointPosition(jointPosition);
+                                }
+                                if (cjrt.isReportVelocity()) {
+                                    js.setJointVelocity(BigDecimal.valueOf(joint_vel));
+                                }
+                                if (cjrt.isReportTorqueOrForce()) {
+                                    js.setJointTorqueOrForce(BigDecimal.ZERO);
+                                }
                             }
                         }
+                        if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                && prevCmd instanceof ConfigureJointReportsType) {
+                            this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                        }
                     }
-                    if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
-                            && prevCmd instanceof ConfigureJointReportsType) {
-                        this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                    }
+                } catch (Throwable ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (Throwable ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                jointStatuses.getJointStatus().add(js);
             }
-            status.getJointStatuses().getJointStatus().add(js);
         }
         return status;
     }
@@ -622,12 +634,10 @@ public class Main {
                 status.getCommandStatus().setCommandID(BigInteger.ONE);
             }
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            status.getCommandStatus().setStateDescription(error);
         }
         if (null != jframe) {
             jframe.getjTextAreaErrors().append(error + "\n");
-        }
-        if (null != robot) {
-
         }
     }
 
@@ -1475,8 +1485,15 @@ public class Main {
                                     CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
                                     CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                                     if (cmd instanceof GetStatusType) {
-                                        CRCLStatusType status = readStatusFromRobot();
-                                        cs.writeStatus(status, validate);
+                                        try {
+                                            CRCLStatusType status = readStatusFromRobot();
+                                            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+                                                status.setJointStatuses(null);
+                                            }
+                                            cs.writeStatus(status, validate);
+                                        } catch (Throwable t) {
+                                            showError(t.toString());
+                                        }
                                     } else {
                                         try {
                                             if (null == status.getCommandStatus()) {
