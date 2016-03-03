@@ -41,6 +41,7 @@ import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
+import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointSpeedAccelType;
@@ -50,8 +51,11 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
+import crcl.base.SetEndEffectorType;
+import crcl.base.SetTransSpeedType;
 import crcl.base.StopConditionEnumType;
 import crcl.base.StopMotionType;
+import crcl.base.TransSpeedRelativeType;
 import crcl.base.VectorType;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -65,13 +69,18 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
@@ -138,6 +147,13 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     private final Resource defaultSideImageResource = new ThemeResource("side.jpg");
     private final Image sideImage = new Image("Side", defaultSideImageResource);
     private static File tempDir = null;
+    private final JogButton speedMinusJB = new JogButton(" Speed-");
+    private final JogButton speedPlusJB = new JogButton(" Speed+");
+    private final Label speedJogLabel = new Label(" Speed: " + String.format("%+6.1f ", speedFraction * 100.0) + " % ");
+    private final Button openGripperButton = new Button("Open Gripper");
+    private final Button closeGripperButton = new Button("Close Gripper");
+    private final Button recordPointButton = new Button("Record Point");
+
     private final JogButton xPlusJB = new JogButton(" X+ ");
     private final JogButton xMinusJB = new JogButton(" X- ");
     private final Label xJogLabel = new Label(" X: " + String.format("%+6.1f ", 0.0) + " mm ");
@@ -190,6 +206,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     private final Table transformTable = new Table("Computed Transform");
     private final Button computeTransformButton = new Button("ComputeTransform");
     private final Button transformProgramButton = new Button("Apply Transform To Program");
+    private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
 
     static {
         String tempDirProp = System.getProperty("temp.dir");
@@ -218,14 +235,102 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
     private CRCLProgramType oldProgram = null;
     private String oldRemotePrograms[] = null;
+    private String recordPointsProgramName = null;
+    private CRCLProgramType recordPointsProgram = null;
 
+    public void recordCurrentPoint() {
+        if (null == recordPointsProgram) {
+            recordPointsProgram = new CRCLProgramType();
+            InitCanonType initcmd = new InitCanonType();
+            initcmd.setCommandID(BigInteger.ONE);
+            recordPointsProgram.setInitCanon(initcmd);
+            EndCanonType endcmd = new EndCanonType();
+            endcmd.setCommandID(BigInteger.valueOf(2));
+            recordPointsProgram.setEndCanon(endcmd);
+        }
+        MoveToType moveToCmd = new MoveToType();
+        PoseType pose = new PoseType();
+        PointType pt = new PointType();
+        pt.setX(currentPoint.getX());
+        pt.setY(currentPoint.getY());
+        pt.setZ(currentPoint.getZ());
+        pose.setPoint(pt);
+        VectorType xAxis = new VectorType();
+        xAxis.setI(currentPose.getXAxis().getI());
+        xAxis.setJ(currentPose.getXAxis().getJ());
+        xAxis.setK(currentPose.getXAxis().getK());
+        pose.setXAxis(xAxis);
+        VectorType zAxis = new VectorType();
+        zAxis.setI(currentPose.getZAxis().getI());
+        zAxis.setJ(currentPose.getZAxis().getJ());
+        zAxis.setK(currentPose.getZAxis().getK());
+        pose.setZAxis(zAxis);
+        moveToCmd.setEndPosition(pose);
+        moveToCmd.setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size() + 1));
+        recordPointsProgram.getMiddleCommand().add(moveToCmd);
+        recordPointsProgram.getEndCanon().setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size() + 2));
+    }
+
+    public void recordAndSaveCurrentPoint() {
+        recordCurrentPoint();
+        saveRecordedPointsProgram();
+    }
+
+    public void saveRecordedPointsProgram() {
+        if (null == recordPointsProgramName) {
+            recordPointsProgramName = "recordedPoints." + currentDateString() + ".xml";
+        }
+        try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, recordPointsProgramName))) {
+            CRCLSocket tmpsocket = socket;
+            if (null == tmpsocket) {
+                tmpsocket = new CRCLSocket();
+            }
+            final CRCLSocket tmpsocketf = tmpsocket;
+            fos.write(tmpsocketf.programToPrettyDocString(recordPointsProgram, false).getBytes());
+        } catch (IOException | CRCLException | JAXBException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        setProgramInfo(
+                new ProgramInfo(REMOTE_PROGRAM_DIR.list(),
+                        programInfo.getCurrentFileName(),
+                        programInfo.getCurrentProgram(),
+                        programInfo.getProgramIndex()));
+    }
+
+    public void openGripper() {
+        SetEndEffectorType seeCmd = new SetEndEffectorType();
+        seeCmd.setSetting(BigDecimal.ONE);
+        cmdQueue.offer(seeCmd);
+        this.recordCurrentPoint();
+        recordPointsProgram.getMiddleCommand().add(seeCmd);
+        saveRecordedPointsProgram();
+    }
+
+    public void closeGripper() {
+        SetEndEffectorType seeCmd = new SetEndEffectorType();
+        seeCmd.setSetting(BigDecimal.ZERO);
+        cmdQueue.offer(seeCmd);
+        this.recordCurrentPoint();
+        recordPointsProgram.getMiddleCommand().add(seeCmd);
+        saveRecordedPointsProgram();
+    }
+
+    @SuppressWarnings("unchecked")
     private void loadRemotePrograms() {
         remoteProgramTable.clear();
         String remotePrograms[] = programInfo.getRemotePrograms();
         if (null != remotePrograms) {
             for (int i = 0; i < remotePrograms.length; i++) {
                 String remoteProgram = remotePrograms[i];
-                remoteProgramTable.addItem(new Object[]{remoteProgram}, i);
+                Item oldItem = remoteProgramTable.getItem(i);
+                if (null == oldItem) {
+                    remoteProgramTable.addItem(new Object[]{remoteProgram}, i);
+                } else {
+                    System.out.println("oldItem = " + oldItem);
+                    Property prop = oldItem.getItemProperty("File");
+                    System.out.println("prop = " + prop);
+                    prop.setValue(remoteProgram);
+                }
             }
         }
     }
@@ -259,25 +364,28 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     }
 
     private void loadSelectedRemoteProgram() {
-        Object id = remoteProgramTable.firstItemId();
-        while (id != null) {
-            if (remoteProgramTable.isSelected(id)) {
-                try {
+        try {
+            CRCLSocket tmpsocket = socket;
+            if (null == tmpsocket) {
+                tmpsocket = new CRCLSocket();
+            }
+            final CRCLSocket tmpsocketf = tmpsocket;
+            Object id = remoteProgramTable.firstItemId();
+            while (id != null) {
+                if (remoteProgramTable.isSelected(id)) {
                     Item item = remoteProgramTable.getItem(id);
                     Property fnameProperty = item.getItemProperty("File");
                     String filename = fnameProperty.getValue().toString();
                     File f = new File(REMOTE_PROGRAM_DIR, filename);
                     String progContents = new String(Files.readAllBytes(f.toPath()));
-                    CRCLProgramType prog = socket.stringToProgram(progContents, false);
+                    CRCLProgramType prog = tmpsocketf.stringToProgram(progContents, false);
                     setProgramInfo(new ProgramInfo(REMOTE_PROGRAM_DIR.list(), filename, prog, 0));
-                } catch (IOException ex) {
-                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (CRCLException ex) {
-                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                    break;
                 }
-                break;
+                id = remoteProgramTable.nextItemId(id);
             }
-            id = remoteProgramTable.nextItemId(id);
+        } catch (IOException | CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -394,6 +502,42 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    private String currentDateString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'at'HHmm");
+        return sdf.format(new Date());
+    }
+
+    private void transformProgram() {
+        try {
+            CRCLSocket tmpsocket = socket;
+            if (null == tmpsocket) {
+                tmpsocket = new CRCLSocket();
+            }
+            final CRCLSocket tmpsocketf = tmpsocket;
+            if (null == transformPose || null == programInfo.getCurrentProgram()) {
+                return;
+            }
+            String newProgName = programInfo.getCurrentFileName();
+            if (newProgName.endsWith(".xml")) {
+                newProgName = newProgName.substring(0, newProgName.length() - 4);
+            }
+            int transformedIndex = newProgName.indexOf(".transformed");
+            if (transformedIndex > 0) {
+                newProgName = newProgName.substring(0, transformedIndex);
+            }
+            newProgName += ".transformed." + currentDateString() + ".xml";
+            CRCLProgramType newProgram = CRCLPosemath.transformProgram(transformPose, programInfo.getCurrentProgram());
+            try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
+                fos.write(tmpsocketf.programToPrettyDocString(newProgram, false).getBytes());
+            } catch (IOException | JAXBException ex) {
+                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            setProgramInfo(new ProgramInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
+        } catch (CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
@@ -414,8 +558,10 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         Panel panel = new Panel();
         navLayout.addComponent(panel);
         final MainView mainLayout = new MainView();
-        final JogView jogJointLayout = new JogView();
-        final JogView jogWorldLayout = new JogView();
+        final VerticalLayout jogJointLayout = new VerticalLayout();
+        final HorizontalLayout jogWorldLayout = new HorizontalLayout();
+        final VerticalLayout jogWorldLeftLayout = new VerticalLayout();
+        final VerticalLayout jogWorldRightLayout = new VerticalLayout();
         final VerticalLayout remoteProgramsLayout = new VerticalLayout();
         final VerticalLayout transformSetupLayout = new VerticalLayout();
 
@@ -492,6 +638,11 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         progTable.setHeight("500px");
         progTable.setMultiSelect(false);
         progTable.setSelectable(true);
+        progTable.addItemClickListener(e -> setProgramInfo(
+                new ProgramInfo(programInfo.getRemotePrograms(),
+                        programInfo.getCurrentFileName(),
+                        programInfo.getCurrentProgram(),
+                        (int) e.getItemId())));
         final Button runButton = new Button("Run");
 
         GridLayout posGridLayout = new GridLayout(2, 2);
@@ -533,6 +684,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         transformSetupLayout.addComponent(computeTransformButton);
         transformSetupLayout.addComponent(transformTable);
         transformSetupLayout.addComponent(transformProgramButton);
+        transformProgramButton.addClickListener(e -> transformProgram());
         runButton.addClickListener(new Button.ClickListener() {
 
             @Override
@@ -686,7 +838,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         xLine.addComponent(xPlusJB);
         xLine.addComponent(xJogLabel);
-        jogWorldLayout.addComponent(xLine);
+        jogWorldLeftLayout.addComponent(xLine);
 
         final HorizontalLayout yLine = new HorizontalLayout();
         yLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
@@ -698,7 +850,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         yLine.addComponent(yPlusJB);
         yLine.addComponent(yJogLabel);
-        jogWorldLayout.addComponent(yLine);
+        jogWorldLeftLayout.addComponent(yLine);
 
         final HorizontalLayout zLine = new HorizontalLayout();
         zLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
@@ -710,7 +862,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         zLine.addComponent(zPlusJB);
         zLine.addComponent(zJogLabel);
-        jogWorldLayout.addComponent(zLine);
+        jogWorldLeftLayout.addComponent(zLine);
 
         final HorizontalLayout rollLine = new HorizontalLayout();
         rollLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
@@ -722,7 +874,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         rollLine.addComponent(rollPlusJB);
         rollLine.addComponent(rollJogLabel);
-        jogWorldLayout.addComponent(rollLine);
+        jogWorldLeftLayout.addComponent(rollLine);
 
         final HorizontalLayout pitchLine = new HorizontalLayout();
         pitchLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
@@ -734,7 +886,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         pitchLine.addComponent(pitchPlusJB);
         pitchLine.addComponent(pitchJogLabel);
-        jogWorldLayout.addComponent(pitchLine);
+        jogWorldLeftLayout.addComponent(pitchLine);
 
         final HorizontalLayout yawLine = new HorizontalLayout();
         yawLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
@@ -746,7 +898,30 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
         yawLine.addComponent(yawPlusJB);
         yawLine.addComponent(yawJogLabel);
-        jogWorldLayout.addComponent(yawLine);
+        jogWorldLeftLayout.addComponent(yawLine);
+        jogWorldLayout.addComponent(jogWorldLeftLayout);
+
+        final HorizontalLayout speedLine = new HorizontalLayout();
+        speedLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        speedLine.addComponent(speedMinusJB);
+        speedMinusJB.addMouseDownConsumer(med -> curJogState = JogState.SPEED_MINUS);
+        speedMinusJB.addMouseUpConsumer(med -> stopMotion());
+        speedPlusJB.addMouseDownConsumer(med -> curJogState = JogState.SPEED_PLUS);
+        speedPlusJB.addMouseUpConsumer(med -> stopMotion());
+        speedLine.addComponent(speedPlusJB);
+        speedLine.addComponent(speedJogLabel);
+        jogWorldRightLayout.addComponent(speedLine);
+
+        final HorizontalLayout buttonLine = new HorizontalLayout();
+        openGripperButton.addClickListener(e -> openGripper());
+        buttonLine.addComponent(openGripperButton);
+        closeGripperButton.addClickListener(e -> closeGripper());
+        buttonLine.addComponent(closeGripperButton);
+        recordPointButton.addClickListener(e -> recordAndSaveCurrentPoint());
+        buttonLine.addComponent(recordPointButton);
+        jogWorldRightLayout.addComponent(buttonLine);
+        jogWorldLayout.addComponent(jogWorldRightLayout);
+
         for (int i = 0; i < jogJointLines.length; i++) {
             final int jointIndex = i;
             HorizontalLayout hl = new HorizontalLayout();
@@ -842,6 +1017,8 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    public static double speedFraction = 0.1;
+
     @SuppressWarnings("unchecked")
     private void connect() {
         try {
@@ -866,6 +1043,12 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
             });
+            cmdQueue.clear();
+            SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
+            TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
+            relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+            setSpeedCmd.setTransSpeed(relSpeed);
+            cmdQueue.offer(setSpeedCmd);
             updateThread = new Thread(() -> {
                 try {
                     pollForStatus();
@@ -888,7 +1071,8 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         ROLL_MINUS, ROLL_PLUS,
         PITCH_MINUS, PITCH_PLUS,
         YAW_MINUS, YAW_PLUS,
-        JOINT_MINUS, JOINT_PLUS;
+        JOINT_MINUS, JOINT_PLUS,
+        SPEED_MINUS, SPEED_PLUS;
     }
 
     private int jogJointNumber = -1;
@@ -914,8 +1098,19 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                     || (stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE
                     && (program_index < 1 || program_index + 1 <= stat.getCommandStatus().getCommandID().intValue())))) {
                 runOneProgramStep();
+                cmdQueue.clear();
             }
-
+            if (stat.getCommandStatus().getCommandID().compareTo(lastCmdIdSent) > 0
+                    && stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                MiddleCommandType cmd = cmdQueue.poll();
+                if (null != cmd) {
+                    BigInteger id = lastCmdIdSent.add(BigInteger.ONE);
+                    cmd.setCommandID(id);
+                    instance.setCRCLCommand(cmd);
+                    socket.writeCommand(instance);
+                    lastCmdIdSent = id;
+                }
+            }
             access(() -> {
                 updateUIComponents(stat);
             });
@@ -924,6 +1119,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
     private PointType currentPoint = null;
 
+    @SuppressWarnings("unchecked")
     private void loadPointToTable(PointType pt, Table tbl) {
         if (null == pt) {
             return;
@@ -957,6 +1153,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void loadPoseToTable(PoseType pose, Table tbl) {
         if (null == pose) {
             return;
@@ -968,7 +1165,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             if (null != xAxis.getI()) {
                 Item it = tbl.getItem(3);
                 if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                    Property<Double> ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
                     if (null != ip) {
                         ip.setValue(xAxis.getI().doubleValue());
                     }
@@ -1026,6 +1223,8 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     }
     private static final BigDecimal JOG_WORLD_TRANS_INC = BigDecimal.valueOf(20.0);
 
+    private PoseType currentPose = null;
+
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -1051,6 +1250,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             }
             PoseType pose = CRCLPosemath.getPose(stat);
             if (null != pose) {
+                this.currentPose = pose;
                 PointType pt = pose.getPoint();
                 if (null != pt) {
                     this.currentPoint = pt;
@@ -1245,6 +1445,41 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 instance.setCRCLCommand(actuateJointsCmd);
                                 socket.writeCommand(instance);
                                 lastCmdIdSent = nextId;
+                            }
+                            break;
+
+                            case SPEED_MINUS: {
+                                if (speedFraction > 0.01) {
+                                    speedFraction -= 0.01;
+                                    SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
+                                    TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
+                                    relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                                    setSpeedCmd.setTransSpeed(relSpeed);
+                                    nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                    setSpeedCmd.setCommandID(nextId);
+                                    instance.setCRCLCommand(setSpeedCmd);
+                                    socket.writeCommand(instance);
+                                    lastCmdIdSent = nextId;
+                                    speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
+                                }
+                            }
+                            break;
+
+                            case SPEED_PLUS: {
+                                if (speedFraction < .99) {
+                                    speedFraction += 0.01;
+                                    SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
+                                    TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
+                                    relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                                    setSpeedCmd.setTransSpeed(relSpeed);
+                                    nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                    setSpeedCmd.setCommandID(nextId);
+                                    instance.setCRCLCommand(setSpeedCmd);
+                                    socket.writeCommand(instance);
+                                    lastCmdIdSent = nextId;
+                                    speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
+
+                                }
                             }
                             break;
 
