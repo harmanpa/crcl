@@ -49,6 +49,7 @@ import crcl.base.MoveScrewType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
+import crcl.base.PointType;
 import crcl.base.PoseAndSetType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
@@ -119,17 +120,11 @@ import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.Posemath;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import crcl.utils.CRCLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import static crcl.utils.CRCLPosemath.toPmCartesian;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 
@@ -371,32 +366,58 @@ public class SimServerInner {
         return port;
     }
 
+    private boolean teleportToGoals;
+
+    /**
+     * Get the value of teleportToGoals
+     *
+     * @return the value of teleportToGoals
+     */
+    public boolean isTeleportToGoals() {
+        return teleportToGoals;
+    }
+
+    /**
+     * Set the value of teleportToGoals
+     *
+     * @param teleportToGoals new value of teleportToGoals
+     */
+    public void setTeleportToGoals(boolean teleportToGoals) {
+        this.teleportToGoals = teleportToGoals;
+    }
+
     public void simulatedTeleportToPose(PoseType pose) {
         try {
-            switch (robotType) {
-                case PLAUSIBLE:
-                    jointPositions = skPlausible.poseToJoints(this.jointPositions, pose);
+            if (null != pose) {
+                PointType pt = pose.getPoint();
+                if (null != pt) {
+                    switch (robotType) {
+                        case PLAUSIBLE:
+                            jointPositions = skPlausible.poseToJoints(this.jointPositions, pose);
 
-                    CRCLPosemath.setPose(this.getStatus(), skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
-                    break;
+                            CRCLPosemath.setPose(this.getStatus(), skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                            break;
 
-                case SIMPLE:
-                    jointPositions = skSimple.poseToJoints(this.jointPositions, pose);
-                    CRCLPosemath.setPose(this.getStatus(), skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
-                    break;
-            }
-            commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
-            this.goalPose = null;
-            this.setWaypoints(null);
-            CommandStatusType cst = this.getStatus().getCommandStatus();
-            if (cst == null) {
-                cst = new CommandStatusType();
-            }
-            if (null == cst.getStatusID()) {
-                cst.setStatusID(BigInteger.ONE);
+                        case SIMPLE:
+                            jointPositions = skSimple.poseToJoints(this.jointPositions, pose);
+                            CRCLPosemath.setPose(this.getStatus(), skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                            break;
+                    }
+                    commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
+                    this.goalPose = null;
+                    this.setWaypoints(null);
+                    CommandStatusType cst = this.getStatus().getCommandStatus();
+                    if (cst == null) {
+                        cst = new CommandStatusType();
+                    }
+                    if (null == cst.getStatusID()) {
+                        cst.setStatusID(BigInteger.ONE);
+                    }
+
+                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                }
             }
 
-            setCommandState(CommandStateEnumType.CRCL_DONE);
         } catch (PmException ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -471,7 +492,11 @@ public class SimServerInner {
         this.goalPose = goalPose;
         if (null != goalPose) {
             checkPose(goalPose);
+            if (teleportToGoals) {
+                this.simulatedTeleportToPose(goalPose);
+            }
         }
+
     }
 
     public boolean isFinishedMove() {

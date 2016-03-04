@@ -534,7 +534,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         Item yItem = tbl.getItem(1);
         Property yProp = yItem.getItemProperty(VALUE_ITEM_PROPERTY);
         pt.y = (double) yProp.getValue();
-        Item zItem = tbl.getItem(0);
+        Item zItem = tbl.getItem(2);
         Property zProp = zItem.getItemProperty(VALUE_ITEM_PROPERTY);
         pt.z = (double) zProp.getValue();
         return pt;
