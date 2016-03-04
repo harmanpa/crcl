@@ -404,6 +404,7 @@ public class Main {
                     double rotDist = distRotFrom(mtPrev.getEndPosition());
                     if ((dist < distanceTolerance
                             && rotDist < distanceRotTolerance
+                            && System.currentTimeMillis() > expectedEndMoveToTime
                             && posReg98.isAtCurPosition()) && (System.currentTimeMillis() - moveTime > 20)) {
                         if (!lastCheckAtPosition) {
                             moveDoneTime = System.currentTimeMillis();
@@ -797,6 +798,8 @@ public class Main {
         }
     }
 
+    long expectedEndMoveToTime = -1;
+    
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
@@ -835,6 +838,7 @@ public class Main {
             reg96Var.update();
 //        System.out.println("move_linear_prog = " + move_linear_prog);
             move_w_time_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
+            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms;
         } else {
             move_linear_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
         }
@@ -1163,7 +1167,7 @@ public class Main {
         moveThread.start();
     }
     public double distanceTolerance = 1.0; // millimeter
-    public double distanceRotTolerance = 0.5; // degrees
+    public double distanceRotTolerance = 0.25; // degrees
 
     private void handleSetLengthUnits(SetLengthUnitsType slu) {
         this.setLengthUnit(slu.getUnitName());

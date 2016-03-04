@@ -137,6 +137,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     private final TextField portField = new TextField("Port");
     private final Button disconnectButton = new Button("Disconnect");
     private final Button connectButton = new Button("Connect");
+    private final Button initButton = new Button("Init/Reset");
     final Button runButton = new Button("Run from Start");
     final Button continueButton = new Button("Continue from current");
 
@@ -626,15 +627,15 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
         final HorizontalLayout navButtons = new HorizontalLayout();
-        final Button mainNavButton = new Button("Main View");
+        final Button mainNavButton = new Button("Main");
         navButtons.addComponent(mainNavButton);
-        final Button jogWorldNavButton = new Button("Jog World View");
+        final Button jogWorldNavButton = new Button("Jog World");
         navButtons.addComponent(jogWorldNavButton);
-        final Button jogJointNavButton = new Button("Jog Joint View");
+        final Button jogJointNavButton = new Button("Jog Joint");
         navButtons.addComponent(jogJointNavButton);
-        final Button remoteProgramsNavButton = new Button("Remote Programs View");
+        final Button remoteProgramsNavButton = new Button("Remote Programs");
         navButtons.addComponent(remoteProgramsNavButton);
-        final Button transformSetupNavButton = new Button("Transform Setup View");
+        final Button transformSetupNavButton = new Button("Transform Setup");
         navButtons.addComponent(transformSetupNavButton);
         navLayout.addComponent(navButtons);
         Panel panel = new Panel();
@@ -707,6 +708,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         final HorizontalLayout connectDisconnectLayout = new HorizontalLayout();
         connectDisconnectLayout.addComponent(disconnectButton);
         connectDisconnectLayout.addComponent(connectButton);
+        navButtons.addComponent(initButton);
         leftLayout.addComponent(connectDisconnectLayout);
         final Upload uploadProgram = new Upload("Upload Program", new Upload.Receiver() {
 
@@ -853,6 +855,17 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 connect();
             }
         });
+        initButton.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                try {
+                    sendInit();
+                    running=false;
+                } catch (CRCLException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         disconnectButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(ClickEvent event
@@ -897,7 +910,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             }
         }
         );
-        runStopLayout.addComponent(stopButton);
+        navButtons.addComponent(stopButton);
         leftLayout.addComponent(runStopLayout);
         remoteProgramsLayout.addComponent(remoteProgramTable);
         remoteProgramsLayout.addComponent(remoteProgramLoadButton);
@@ -1207,11 +1220,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 }
             }
             socket = new CRCLSocket(hostField.getValue(), Integer.valueOf(portField.getValue()));
-            InitCanonType initCmd = new InitCanonType();
-            lastCmdIdSent = lastCmdIdSent.add(BigInteger.ONE);
-            initCmd.setCommandID(lastCmdIdSent);
-            instance.setCRCLCommand(initCmd);
-            socket.writeCommand(instance);
+            sendInit();
             mySyncAccess(() -> {
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
@@ -1231,6 +1240,13 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         } catch (IOException | CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void sendInit() throws CRCLException {
+        InitCanonType initCmd = new InitCanonType();
+        BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
+        initCmd.setCommandID(nextId);
+        sendCommand(initCmd);
     }
 
     enum JogState {
@@ -1516,7 +1532,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case ROLL_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.r -= Math.toRadians(3.0);
+                                rpy.r -= WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1526,7 +1542,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case ROLL_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.r += Math.toRadians(3.0);
+                                rpy.r += WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1536,7 +1552,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case PITCH_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.p -= Math.toRadians(3.0);
+                                rpy.p -= WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1546,7 +1562,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case PITCH_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.p += Math.toRadians(3.0);
+                                rpy.p += WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1556,7 +1572,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case YAW_MINUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.y -= Math.toRadians(3.0);
+                                rpy.y -= WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1566,7 +1582,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
                             case YAW_PLUS: {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
-                                rpy.y += Math.toRadians(3.0);
+                                rpy.y += WORLD_ANGLE_INCREMENT_RAD;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
@@ -1757,6 +1773,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    public static final double WORLD_ANGLE_INCREMENT_RAD = Math.toRadians(30.0);
 
     private BigInteger lastCmdIdSent = BigInteger.ONE;
 
