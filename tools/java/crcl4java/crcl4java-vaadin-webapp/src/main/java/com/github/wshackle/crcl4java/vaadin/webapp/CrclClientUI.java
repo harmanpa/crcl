@@ -37,6 +37,7 @@ import com.vaadin.ui.VerticalLayout;
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
 import crcl.base.CRCLCommandInstanceType;
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
@@ -123,8 +124,12 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     private Thread updateThread;
     private ByteArrayOutputStream recieverOutputStream;
     private static Map<String, Resource> browserMap;
+//    private static final Resource defaultBrowserResource
+//            = new ExternalResource("http://www.gtri.gatech.edu/canonicalrobotcommandlanguage");
     private static final Resource defaultBrowserResource
-            = new ExternalResource("http://www.gtri.gatech.edu/canonicalrobotcommandlanguage");
+            = new StreamResource(
+                    () -> new ByteArrayInputStream(("<html><body>" + "Message Panel" + "</body></html>").getBytes()),
+                    System.currentTimeMillis() + "msg.html");
     private boolean running = false;
     private boolean skip_wait_for_done = false;
     private final BrowserFrame browser = new BrowserFrame("Message", defaultBrowserResource);
@@ -132,6 +137,9 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     private final TextField portField = new TextField("Port");
     private final Button disconnectButton = new Button("Disconnect");
     private final Button connectButton = new Button("Connect");
+    final Button runButton = new Button("Run from Start");
+    final Button continueButton = new Button("Continue from current");
+
     private final Table remoteProgramTable = new Table("Remote Programs");
     private final Button remoteProgramLoadButton = new Button("Load Selected Remote Program");
     private final Table progTable = new Table("Program");
@@ -303,26 +311,38 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
     }
 
     public void openGripper() {
-        SetEndEffectorType seeCmd = new SetEndEffectorType();
-        seeCmd.setSetting(BigDecimal.ONE);
-        cmdQueue.offer(seeCmd);
-        this.recordCurrentPoint();
-        recordPointsProgram.getMiddleCommand().add(seeCmd);
-        saveRecordedPointsProgram();
+        try {
+            SetEndEffectorType seeCmd = new SetEndEffectorType();
+            seeCmd.setSetting(BigDecimal.ONE);
+            BigInteger nextId = lastCmdIdSent.and(BigInteger.ONE);
+            seeCmd.setCommandID(nextId);
+            sendCommand(seeCmd);
+            this.recordCurrentPoint();
+            recordPointsProgram.getMiddleCommand().add(seeCmd);
+            saveRecordedPointsProgram();
+        } catch (CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void closeGripper() {
-        SetEndEffectorType seeCmd = new SetEndEffectorType();
-        seeCmd.setSetting(BigDecimal.ZERO);
-        cmdQueue.offer(seeCmd);
-        this.recordCurrentPoint();
-        recordPointsProgram.getMiddleCommand().add(seeCmd);
-        saveRecordedPointsProgram();
+        try {
+            SetEndEffectorType seeCmd = new SetEndEffectorType();
+            seeCmd.setSetting(BigDecimal.ZERO);
+            BigInteger nextId = lastCmdIdSent.and(BigInteger.ONE);
+            seeCmd.setCommandID(nextId);
+            sendCommand(seeCmd);
+            this.recordCurrentPoint();
+            recordPointsProgram.getMiddleCommand().add(seeCmd);
+            saveRecordedPointsProgram();
+        } catch (CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @SuppressWarnings("unchecked")
     private void loadRemotePrograms() {
-        remoteProgramTable.clear();
+        remoteProgramTable.removeAllItems();
         String remotePrograms[] = programInfo.getRemotePrograms();
         if (null != remotePrograms) {
             for (int i = 0; i < remotePrograms.length; i++) {
@@ -392,6 +412,26 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    private volatile boolean insideMySynAccessCount = false;
+
+    private synchronized void mySyncAccess(Runnable r) {
+        if (insideMySynAccessCount) {
+            System.err.println("mySyncAccess called recursively");
+            Thread.dumpStack();
+        }
+        try {
+            insideMySynAccessCount = true;
+            CrclClientUI.this.access(r);
+        } catch (Throwable ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            r.run();
+        } finally {
+            insideMySynAccessCount = false;
+        }
+    }
+
+    private String oldProgramFileName = null;
+
     @Override
     @SuppressWarnings("unchecked")
     public void accept(ProgramInfo t) {
@@ -402,15 +442,26 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             }
             final CRCLSocket tmpsocketf = tmpsocket;
             final CRCLProgramType newProgram = programInfo.getCurrentProgram();
-            final boolean programIsNew = newProgram != oldProgram;
+            String currentFileName = programInfo.getCurrentFileName();
+
+            final boolean programIsNew = newProgram != oldProgram && !currentFileName.equals(oldProgramFileName);
+            if (newProgram != oldProgram) {
+                System.out.println("programIsNew = " + programIsNew);
+                System.out.println("currentFileName = " + currentFileName);
+                System.out.println("oldProgramFileName = " + oldProgramFileName);
+            }
             oldProgram = newProgram;
-            final boolean remoteProgramsNew = programInfo.getRemotePrograms() != oldRemotePrograms;
+            oldProgramFileName = currentFileName;
+            String remotePrograms[] = programInfo.getRemotePrograms();
+            final boolean remoteProgramsNew = remotePrograms != null
+                    && remotePrograms != oldRemotePrograms
+                    && (oldRemotePrograms == null || remotePrograms.length != oldRemotePrograms.length);
             oldRemotePrograms = programInfo.getRemotePrograms();
             final int program_index = programInfo.getProgramIndex();
-            CrclClientUI.this.access(() -> {
+            mySyncAccess(() -> {
                 programIndexLabel.setValue("Program Index :" + programInfo.getProgramIndex());
                 if (programIsNew) {
-                    progTable.clear();
+                    progTable.removeAllItems();
                     try {
                         for (int i = 0; i < newProgram.getMiddleCommand().size(); i++) {
                             String tableCommandString = tmpsocketf.commandToSimpleString(newProgram.getMiddleCommand().get(i));
@@ -432,6 +483,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 if (remoteProgramsNew) {
                     loadRemotePrograms();
                 }
+                continueButton.setEnabled(programInfo.getProgramIndex() > 1);
             });
             updateStatusLabel();
         } catch (CRCLException ex) {
@@ -501,7 +553,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             transformPm = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
             transformPose = CRCLPosemath.toPose(transformPm);
             loadPoseToTable(transformPose, transformTable);
-        } catch (CRCLException | PmException ex) {
+        } catch (PmException | CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -542,9 +594,35 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    public void startRun() {
+        if (null == socket) {
+            connect();
+        }
+        CRCLProgramType program = programInfo.getCurrentProgram();
+        if (null != socket && null != program && program.getMiddleCommand().size() > 0) {
+            try {
+                if (programInfo.getProgramIndex() < 1) {
+                    CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+                    instance.setCRCLCommand(program.getInitCanon());
+                    if (null == instance.getCRCLCommand().getCommandID()) {
+                        instance.getCRCLCommand().setCommandID(BigInteger.ONE);
+                    }
+                    socket.writeCommand(instance);
+                    lastCmdIdSent = instance.getCRCLCommand().getCommandID();
+                } else {
+                    skip_wait_for_done = true;
+                }
+                running = true;
+            } catch (CRCLException ex) {
+                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
+        System.out.println("init(" + vaadinRequest + ")");
         addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
         final HorizontalLayout navButtons = new HorizontalLayout();
@@ -602,20 +680,29 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         rotTable.addItem(new Object[]{"Z", 0.0, 0.0, 1.0}, "Z");
         rotTable.setWidth("220px");
         rotTable.setHeight("120px");
-        middleLayout.addComponent(overHeadImage);
-        middleLayout.addComponent(sideImage);
-        middleLayout.addComponent(posTable);
-        middleLayout.addComponent(rotTable);
+        HorizontalLayout imageLine = new HorizontalLayout();
+        imageLine.setSpacing(true);
+        imageLine.addComponent(overHeadImage);
+        imageLine.addComponent(sideImage);
+        middleLayout.addComponent(imageLine);
+        HorizontalLayout posRotateLine = new HorizontalLayout();
+        posRotateLine.setSpacing(true);
+        posRotateLine.addComponent(posTable);
+        posRotateLine.addComponent(rotTable);
+        middleLayout.addComponent(posRotateLine);
         middleLayout.addComponent(programIndexLabel);
-        browser.setWidth("800px");
-        browser.setHeight("800px");
+        browser.setWidth("600px");
+        browser.setHeight("600px");
 //        browser.setWidth(50, Unit.PERCENTAGE);
 //        browser.setHeight(100, Unit.PERCENTAGE);
         mainLayout.addComponent(browser);
+        HorizontalLayout hostPortLine = new HorizontalLayout();
+        hostPortLine.setSpacing(true);
         hostField.setValue("localhost");
-        leftLayout.addComponent(hostField);
+        hostPortLine.addComponent(hostField);
         portField.setValue("64444");
-        leftLayout.addComponent(portField);
+        hostPortLine.addComponent(portField);
+        leftLayout.addComponent(hostPortLine);
         disconnectButton.setEnabled(false);
         final HorizontalLayout connectDisconnectLayout = new HorizontalLayout();
         connectDisconnectLayout.addComponent(disconnectButton);
@@ -631,7 +718,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         });
         remoteProgramTable.addContainerProperty("File", String.class, null);
         remoteProgramTable.setWidth("500px");
-        remoteProgramTable.setHeight("500px");
+        remoteProgramTable.setHeight("460px");
         remoteProgramTable.setMultiSelect(false);
         remoteProgramTable.setSelectable(true);
         loadRemotePrograms();
@@ -639,7 +726,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         progTable.addContainerProperty("Index", Integer.class, null);
         progTable.addContainerProperty("Command", String.class, null);
         progTable.setWidth("500px");
-        progTable.setHeight("500px");
+        progTable.setHeight("460px");
         progTable.setMultiSelect(false);
         progTable.setSelectable(true);
         progTable.addItemClickListener(e -> setProgramInfo(
@@ -647,7 +734,6 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                         programInfo.getCurrentFileName(),
                         programInfo.getCurrentProgram(),
                         (int) e.getItemId())));
-        final Button runButton = new Button("Run");
 
         GridLayout posGridLayout = new GridLayout(2, 2);
         posGridLayout.setSpacing(true);
@@ -693,25 +779,20 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
             @Override
             public void buttonClick(ClickEvent event) {
-                if (null == socket) {
-                    connect();
-                }
-                CRCLProgramType program = programInfo.getCurrentProgram();
-                if (null != socket && null != program && program.getMiddleCommand().size() > 0) {
-                    try {
-                        if (programInfo.getProgramIndex() < 1) {
-                            CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
-                            instance.setCRCLCommand(program.getInitCanon());
-                            instance.getCRCLCommand().setCommandID(BigInteger.ONE);
-                            socket.writeCommand(instance);
-                        } else {
-                            skip_wait_for_done = true;
-                        }
-                        running = true;
-                    } catch (CRCLException ex) {
-                        Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
+                setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
+                        programInfo.getCurrentFileName(),
+                        programInfo.getCurrentProgram(), 0));
+                startRun();
+            }
+        });
+        continueButton.addClickListener(new Button.ClickListener() {
+
+            @Override
+            public void buttonClick(ClickEvent event) {
+                setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
+                        programInfo.getCurrentFileName(),
+                        programInfo.getCurrentProgram(), 0));
+                startRun();
             }
         });
         progTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
@@ -725,11 +806,11 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 }
                 Resource r = browserMap.get(cmd);
                 if (null != r) {
-                    CrclClientUI.this.access(() -> {
+                    mySyncAccess(() -> {
                         browser.setSource(r);
                     });
                 } else {
-                    CrclClientUI.this.access(() -> {
+                    mySyncAccess(() -> {
                         browser.setSource(defaultBrowserResource);
                     });
                 }
@@ -784,6 +865,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         final HorizontalLayout runStopLayout = new HorizontalLayout();
 
         runStopLayout.addComponent(runButton);
+        runStopLayout.addComponent(continueButton);
         final Button stepButton = new Button("One Step");
 
         stepButton.addClickListener(new Button.ClickListener() {
@@ -811,6 +893,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             @Override
             public void buttonClick(ClickEvent event) {
                 running = false;
+                stopMotion();
             }
         }
         );
@@ -953,49 +1036,54 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         StringBuffer sb = new StringBuffer("Status: ");
         sb.append("connected=");
         sb.append(socket != null && socket.isConnected());
-        sb.append(",");
+        sb.append(STATUS_SEPERATOR);
         sb.append("program_running=");
         sb.append(running);
-        sb.append(",");
+        sb.append(STATUS_SEPERATOR);
         sb.append("program_index=");
         sb.append(programInfo.getProgramIndex());
-        sb.append(",");
+        sb.append(STATUS_SEPERATOR);
         sb.append("programFile=");
         sb.append(programInfo.getCurrentFileName());
-        sb.append(",");
+        sb.append(STATUS_SEPERATOR);
         if (null != lastCmdIdSent) {
             sb.append("lastCmdIdSent=");
             sb.append(lastCmdIdSent);
-            sb.append(",");
+            sb.append(STATUS_SEPERATOR);
         }
         if (stat != null) {
             CommandStatusType cmdStat = stat.getCommandStatus();
             if (null != cmdStat) {
                 sb.append("statusId=");
                 sb.append(cmdStat.getStatusID());
-                sb.append(",");
+                sb.append(STATUS_SEPERATOR);
                 sb.append("commandID=");
                 sb.append(cmdStat.getCommandID());
-                sb.append(",");
+                sb.append(STATUS_SEPERATOR);
                 sb.append("state=");
                 sb.append(cmdStat.getCommandState());
-                sb.append(",");
+                sb.append(STATUS_SEPERATOR);
                 sb.append("description=");
                 sb.append(cmdStat.getStateDescription());
-                sb.append(",");
+                sb.append(STATUS_SEPERATOR);
             }
         }
         statusLabel.setValue(sb.toString());
     }
+    public static final String STATUS_SEPERATOR = ", ";
+
+    private int disconnectCount = 0;
 
     public void disconnect() {
         try {
+            System.out.println("disconnect() called. " + disconnectCount);
+            disconnectCount++;
             if (null != socket) {
                 socket.close();
                 socket = null;
             }
             stat = null;
-            CrclClientUI.this.access(() -> {
+            mySyncAccess(() -> {
                 connectButton.setEnabled(true);
                 disconnectButton.setEnabled(false);
             });
@@ -1038,9 +1126,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             stopMotionCmd.setStopCondition(StopConditionEnumType.IMMEDIATE);
             BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
             stopMotionCmd.setCommandID(nextId);
-            instance.setCRCLCommand(stopMotionCmd);
-            socket.writeCommand(instance);
-            lastCmdIdSent = nextId;
+            sendCommand(stopMotionCmd);
             cmdQueue.clear();
         } catch (CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -1049,9 +1135,16 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    public void sendCommand(CRCLCommandType cmd) throws CRCLException {
+        instance.setCRCLCommand(cmd);
+        socket.writeCommand(instance);
+        lastCmdIdSent = instance.getCRCLCommand().getCommandID();
+    }
+
     @Override
     public void close() {
         try {
+            System.out.println("close() called.");
             oldProgram = null;
             running = false;
             if (null != updateThread) {
@@ -1087,7 +1180,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             setSpeedCmd.setTransSpeed(relSpeed);
             instance.setCRCLCommand(setSpeedCmd);
             socket.writeCommand(instance);
-            CrclClientUI.this.access(() -> {
+            mySyncAccess(() -> {
                 speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
             });
         } catch (CRCLException ex) {
@@ -1095,9 +1188,13 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         }
     }
 
+    private int connectCount = -1;
+
     @SuppressWarnings("unchecked")
     private void connect() {
         try {
+            System.out.println("connect() called. " + connectCount);
+            connectCount = disconnectCount;
             if (null != socket) {
                 socket.close();
             }
@@ -1115,7 +1212,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             initCmd.setCommandID(lastCmdIdSent);
             instance.setCRCLCommand(initCmd);
             socket.writeCommand(instance);
-            CrclClientUI.this.access(() -> {
+            mySyncAccess(() -> {
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
             });
@@ -1192,7 +1289,9 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 });
             }
         } catch (CRCLException ex) {
-            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            if (disconnectCount <= connectCount) {
+                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
 //            if (!Thread.currentThread().isInterrupted()) {
 //                new Thread(() -> {
 //                    connect();
@@ -1377,54 +1476,42 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case X_PLUS:
                                 moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case Y_MINUS:
                                 moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case Y_PLUS:
                                 moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case Z_MINUS:
                                 moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().subtract(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case Z_PLUS:
                                 moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(JOG_WORLD_TRANS_INC));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                                 break;
 
                             case ROLL_MINUS: {
@@ -1433,9 +1520,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1445,9 +1530,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1457,9 +1540,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1469,9 +1550,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1481,9 +1560,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1493,9 +1570,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 moveToCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(moveToCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(moveToCmd);
                             }
                             break;
 
@@ -1515,9 +1590,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 }
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 actuateJointsCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(actuateJointsCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(actuateJointsCmd);
                             }
                             break;
 
@@ -1537,9 +1610,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                 }
                                 nextId = lastCmdIdSent.add(BigInteger.ONE);
                                 actuateJointsCmd.setCommandID(nextId);
-                                instance.setCRCLCommand(actuateJointsCmd);
-                                socket.writeCommand(instance);
-                                lastCmdIdSent = nextId;
+                                sendCommand(actuateJointsCmd);
                             }
                             break;
 
@@ -1552,9 +1623,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                     setSpeedCmd.setTransSpeed(relSpeed);
                                     nextId = lastCmdIdSent.add(BigInteger.ONE);
                                     setSpeedCmd.setCommandID(nextId);
-                                    instance.setCRCLCommand(setSpeedCmd);
-                                    socket.writeCommand(instance);
-                                    lastCmdIdSent = nextId;
+                                    sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
                                 }
                             }
@@ -1569,9 +1638,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                                     setSpeedCmd.setTransSpeed(relSpeed);
                                     nextId = lastCmdIdSent.add(BigInteger.ONE);
                                     setSpeedCmd.setCommandID(nextId);
-                                    instance.setCRCLCommand(setSpeedCmd);
-                                    socket.writeCommand(instance);
-                                    lastCmdIdSent = nextId;
+                                    sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
 
                                 }
@@ -1704,13 +1771,13 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
                 programInfo.getCurrentFileName(),
                 program,
-                program_index + 1));
+                new_program_index));
         skip_wait_for_done = false;
 //        final int new_program_index = program_index + 1;
         if (program.getMiddleCommand().get(new_program_index) instanceof crcl.base.MessageType) {
             MessageType msg = (MessageType) program.getMiddleCommand().get(new_program_index);
             final String msgString = msg.getMessage();
-            CrclClientUI.this.access(() -> {
+            mySyncAccess(() -> {
                 Notification n = new Notification("Program Paused to Show Message. Review the message to the right, then click Run to continue.");
                 n.setDelayMsec(5000);
                 n.show(Page.getCurrent());
@@ -1729,7 +1796,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             });
             running = false;
         }
-        CrclClientUI.this.access(() -> {
+        mySyncAccess(() -> {
             Item item = progTable.getItem(program_index);
             if (null != item) {
                 programIndexLabel.setValue("Program Index :" + program_index);
@@ -1741,8 +1808,10 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
 
     @Override
     public void detach() {
+        System.out.println("detach() called.");
         removeProgramInfoListener(this);
         oldProgram = null;
+        oldProgramFileName = null;
         oldRemotePrograms = null;
         disconnect();
         super.detach();

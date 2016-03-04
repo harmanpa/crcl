@@ -244,7 +244,7 @@ public class Main {
                 sliderOv.setMaximum(sliderMaxOv.getValue());
                 maxRelativeSpeed = sliderMaxOv.getValue();
             });
-            jframe.setRobot(robot);
+            jframe.setMain(this);
             jframe.setPrograms(tpPrograms);
             jframe.getjMenuItemReconnectRobot().addActionListener(e -> {
                 disconnectRemoteRobot();
@@ -353,7 +353,7 @@ public class Main {
     }
 
     long statusUpdateTime = 0;
-    private CRCLStatusType status = new CRCLStatusType();
+    private final CRCLStatusType status = new CRCLStatusType();
     volatile long moveDoneTime = 0;
     volatile boolean lastCheckAtPosition = false;
     private final double lastJointPosArray[] = new double[10];
@@ -363,6 +363,20 @@ public class Main {
         return status;
     }
     double lastMaxJointDiff = Double.MAX_VALUE;
+
+    public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
+        if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
+            CRCLStatusType status = readStatusFromRobot();
+            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+                status.setJointStatuses(null);
+            }
+            lastUpdateStatusTime = System.currentTimeMillis();
+            return status;
+        } else {
+            CRCLStatusType status = getStatus();
+            return status;
+        }
+    }
 
     public CRCLStatusType readStatusFromRobot() throws PmException {
         if (null == robot) {
@@ -626,7 +640,7 @@ public class Main {
         }
     }
 
-    private void showError(String error) {
+    public void showError(String error) {
         System.err.println(error);
         if (null != status) {
             if (null == status.getCommandStatus()) {
@@ -701,7 +715,7 @@ public class Main {
     volatile long moveTime = 0;
     private Set<String> origProgNames;
     private double transSpeed = 200; // 200 mm/s
-    private double rotSpeed = 10; // 10 deg/s
+    private double rotSpeed = 90; // 10 deg/s
 
     private boolean posReg98Updated = false;
 
@@ -1173,7 +1187,16 @@ public class Main {
     }
 
     private void setCommandState(CommandStateEnumType newState) {
-        status.getCommandStatus().setCommandState(newState);
+        if (null == status.getCommandStatus()) {
+            status.setCommandStatus(new CommandStatusType());
+        }
+        CommandStatusType cmdStatus = status.getCommandStatus();
+        if (null != cmdStatus) {
+            cmdStatus.setCommandState(newState);
+            if (newState != CommandStateEnumType.CRCL_ERROR && null != prevCmd) {
+                cmdStatus.setStateDescription(prevCmd.getClass().getName());
+            }
+        }
     }
     private ConfigureJointReportsType cjrs;
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
@@ -1470,6 +1493,20 @@ public class Main {
         utilCrclSocket = new CRCLSocket();
     }
 
+    private long lastUpdateStatusTime = -1;
+
+    private synchronized void updateStatus(CRCLSocket cs) {
+        try {
+            CRCLStatusType status = readCachedStatusFromRobot();
+            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+                status.setJointStatuses(null);
+            }
+            cs.writeStatus(status, validate);
+        } catch (Throwable t) {
+            showError(t.toString());
+        }
+    }
+
     private void startCrclServer() throws IOException {
         es = Executors.newWorkStealingPool();
         ss = new ServerSocket(localPort);
@@ -1485,15 +1522,7 @@ public class Main {
                                     CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
                                     CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                                     if (cmd instanceof GetStatusType) {
-                                        try {
-                                            CRCLStatusType status = readStatusFromRobot();
-                                            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
-                                                status.setJointStatuses(null);
-                                            }
-                                            cs.writeStatus(status, validate);
-                                        } catch (Throwable t) {
-                                            showError(t.toString());
-                                        }
+                                        updateStatus(cs);
                                     } else {
                                         try {
                                             if (null == status.getCommandStatus()) {
@@ -1515,37 +1544,7 @@ public class Main {
                                                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
                                                 showError(cs.getLastCommandString());
                                             }
-                                            if (cmd instanceof InitCanonType) {
-                                                handleInitCanon((InitCanonType) cmd);
-                                            } else if (cmd instanceof StopMotionType) {
-                                                handleStopMotion((StopMotionType) cmd);
-                                            } else if (cmd instanceof EndCanonType) {
-                                                handleEndCanon((EndCanonType) cmd);
-                                            } else if (cmd instanceof MoveToType) {
-                                                handleMoveTo((MoveToType) cmd);
-                                            } else if (cmd instanceof MoveThroughToType) {
-                                                handleMoveThroughTo((MoveThroughToType) cmd);
-                                            } else if (cmd instanceof SetEndEffectorType) {
-                                                handleSetEndEffector((SetEndEffectorType) cmd);
-                                            } else if (cmd instanceof SetTransSpeedType) {
-                                                handleSetTransSpeed((SetTransSpeedType) cmd);
-                                            } else if (cmd instanceof SetRotSpeedType) {
-                                                handleSetRotSpeed((SetRotSpeedType) cmd);
-                                            } else if (cmd instanceof ActuateJointsType) {
-                                                handleActuateJoints((ActuateJointsType) cmd);
-                                            } else if (cmd instanceof SetLengthUnitsType) {
-                                                handleSetLengthUnits((SetLengthUnitsType) cmd);
-                                            } else if (cmd instanceof SetEndPoseToleranceType) {
-                                                handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
-                                            } else if (cmd instanceof DwellType) {
-                                                handleDwell((DwellType) cmd);
-                                            } else if (cmd instanceof ConfigureJointReportsType) {
-                                                handleConfigureJointReports((ConfigureJointReportsType) cmd);
-                                            } else {
-                                                showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
-                                            }
-                                            prevCmd = cmd;
-//                                    this.checkAlarms();
+                                            handleCommand(cmd);
                                         } catch (ComException comEx) {
                                             showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
                                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
@@ -1589,6 +1588,40 @@ public class Main {
             }
         });
 
+    }
+
+    public synchronized void handleCommand(CRCLCommandType cmd) throws PmException, InterruptedException {
+        if (cmd instanceof InitCanonType) {
+            handleInitCanon((InitCanonType) cmd);
+        } else if (cmd instanceof StopMotionType) {
+            handleStopMotion((StopMotionType) cmd);
+        } else if (cmd instanceof EndCanonType) {
+            handleEndCanon((EndCanonType) cmd);
+        } else if (cmd instanceof MoveToType) {
+            handleMoveTo((MoveToType) cmd);
+        } else if (cmd instanceof MoveThroughToType) {
+            handleMoveThroughTo((MoveThroughToType) cmd);
+        } else if (cmd instanceof SetEndEffectorType) {
+            handleSetEndEffector((SetEndEffectorType) cmd);
+        } else if (cmd instanceof SetTransSpeedType) {
+            handleSetTransSpeed((SetTransSpeedType) cmd);
+        } else if (cmd instanceof SetRotSpeedType) {
+            handleSetRotSpeed((SetRotSpeedType) cmd);
+        } else if (cmd instanceof ActuateJointsType) {
+            handleActuateJoints((ActuateJointsType) cmd);
+        } else if (cmd instanceof SetLengthUnitsType) {
+            handleSetLengthUnits((SetLengthUnitsType) cmd);
+        } else if (cmd instanceof SetEndPoseToleranceType) {
+            handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
+        } else if (cmd instanceof DwellType) {
+            handleDwell((DwellType) cmd);
+        } else if (cmd instanceof ConfigureJointReportsType) {
+            handleConfigureJointReports((ConfigureJointReportsType) cmd);
+        } else {
+            showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
+        }
+        prevCmd = cmd;
+//                                    this.checkAlarms();
     }
     private IRobot2 robot;
     private IIndGroupPosition groupPos;
@@ -2067,7 +2100,7 @@ public class Main {
 //            final int startOverride = Math.max(9, Math.min(mcr_genoverride_value, ((int)maxRelativeSpeed)));
 //            overrideVar.value(startOverride);
         if (null != jframe) {
-            jframe.setRobot(robot);
+            jframe.setMain(this);
             jframe.setPrograms(tpPrograms);
             jframe.getjTableCartesianLimits().setModel(new DefaultTableModel(
                     new Object[][]{
