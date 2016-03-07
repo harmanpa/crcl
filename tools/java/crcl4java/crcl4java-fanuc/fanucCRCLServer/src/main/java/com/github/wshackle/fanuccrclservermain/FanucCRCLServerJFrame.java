@@ -28,7 +28,6 @@ import com.github.wshackle.fanuc.robotserver.FRETaskStatusConstants;
 import com.github.wshackle.fanuc.robotserver.FRETypeCodeConstants;
 import com.github.wshackle.fanuc.robotserver.IConfig;
 import com.github.wshackle.fanuc.robotserver.ICurGroupPosition;
-import com.github.wshackle.fanuc.robotserver.IJoint;
 import com.github.wshackle.fanuc.robotserver.IProgram;
 import com.github.wshackle.fanuc.robotserver.IRobot2;
 import com.github.wshackle.fanuc.robotserver.ISysPosition;
@@ -87,6 +86,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -104,6 +104,23 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
     private javax.swing.Timer timer = null;
 
+    public void updateCartLimits() {
+        if (this.jCheckBoxEditCartesianLimits.isSelected()) {
+            PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+            PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+            TableModel model = this.jTableCartesianLimits.getModel();
+            min.x = Double.valueOf( model.getValueAt(0, 1).toString());
+            max.x = Double.valueOf( model.getValueAt(0, 3).toString());
+            min.y = Double.valueOf( model.getValueAt(1, 1).toString());
+            max.y = Double.valueOf( model.getValueAt(1, 3).toString());
+            min.z = Double.valueOf( model.getValueAt(2, 1).toString());
+            max.z = Double.valueOf( model.getValueAt(2, 3).toString());
+            
+            main.applyAdditionalCartLimits(min, max);
+            main.saveCartLimits(min, max);
+        }
+    }
+
     /**
      * Creates new form FanucCRCLServerJFrame
      */
@@ -111,6 +128,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         initComponents();
         timer = new Timer(200, e -> updateDisplay());
         timer.start();
+        this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits());
     }
 
     IVar varToWatch = null;

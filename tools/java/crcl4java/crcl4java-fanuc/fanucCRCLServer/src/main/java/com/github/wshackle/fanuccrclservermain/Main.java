@@ -75,7 +75,12 @@ import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -91,6 +96,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JSlider;
@@ -170,7 +176,7 @@ public class Main {
     private float yMin;
     private float zMax;
     private float zMin;
-    private float border1 = 120;
+    private float border1 = 10;
 
     private void limitAndUpdatePos(ISysGroupPosition pos) {
 
@@ -189,23 +195,29 @@ public class Main {
 
         if (cart.x > xMaxEffective) {
             posXyzWpr.x(xMaxEffective);
+            showError("X move of " + cart.x + " limited to max = " + xMaxEffective);
             changed = true;
         } else if (cart.x < xMinEffective) {
             posXyzWpr.x(xMinEffective);
+            showError("X move of " + cart.x + " limited to min= " + xMinEffective);
             changed = true;
         }
         if (cart.y > yMaxEffective) {
             posXyzWpr.y(yMaxEffective);
+            showError("Y move of " + cart.y + " limited to max = " + yMaxEffective);
             changed = true;
         } else if (cart.y < yMinEffective) {
             posXyzWpr.y(yMinEffective);
+            showError("Y move of " + cart.y + " limited to min = " + yMinEffective);
             changed = true;
         }
         if (cart.z > zMaxEffective) {
             posXyzWpr.x(zMaxEffective);
+            showError("Z move of " + cart.y + " limited to max = " + zMaxEffective);
             changed = true;
         } else if (cart.z < zMinEffective) {
             posXyzWpr.z(zMinEffective);
+            showError("Z move of " + cart.y + " limited to min = " + zMinEffective);
             changed = true;
         }
 
@@ -799,7 +811,7 @@ public class Main {
     }
 
     long expectedEndMoveToTime = -1;
-    
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
@@ -827,13 +839,13 @@ public class Main {
         moveCmdEndPt.setY(BigDecimal.valueOf(endCart.y / lengthScale));
         moveCmdEndPt.setZ(BigDecimal.valueOf(endCart.z / lengthScale));
         double cartMoveTime = cartDiff / transSpeed;
-        System.out.println("cartMoveTime = " + cartMoveTime);
+//        System.out.println("cartMoveTime = " + cartMoveTime);
         double rotMoveTime = rotDiff / rotSpeed;
-        System.out.println("rotMoveTime = " + rotMoveTime);
+//        System.out.println("rotMoveTime = " + rotMoveTime);
         if (rotMoveTime > cartMoveTime) {
             double timeNeeded = Math.max(rotMoveTime, cartMoveTime);
             int time_needed_ms = (int) (1000.0 * timeNeeded);
-            System.out.println("time_needed_ms = " + time_needed_ms);
+//            System.out.println("time_needed_ms = " + time_needed_ms);
             regNumeric96.regLong(time_needed_ms);
             reg96Var.update();
 //        System.out.println("move_linear_prog = " + move_linear_prog);
@@ -1025,7 +1037,7 @@ public class Main {
         PmRotationVector rotvCurrent = Posemath.toRot(rpy);
         PmRotationVector rotvArg = CRCLPosemath.toPmRotationVector(pose);
         PmRotationVector rotvDiff = rotvArg.multiply(rotvCurrent.inv());
-        System.out.println("rotvDiff.s = " + rotvDiff.s);
+//        System.out.println("rotvDiff.s = " + rotvDiff.s);
         return Math.toDegrees(rotvDiff.s);
     }
 
@@ -1698,6 +1710,57 @@ public class Main {
     float lowerJointLimits[] = new float[6];
     float upperJointLimits[] = new float[6];
 
+    public void applyAdditionalCartLimits(PmCartesian min, PmCartesian max) {
+        xMax = (float) Math.min(xMax, max.x);
+        xMin = (float) Math.max(xMin, min.x);
+        yMax = (float) Math.min(yMax, max.y);
+        yMin = (float) Math.max(yMin, min.y);
+        zMax = (float) Math.min(zMax, max.z);
+        zMin = (float) Math.max(zMin, min.z);
+    }
+
+    public void saveCartLimits(PmCartesian min, PmCartesian max) {
+        try (PrintWriter pw = new PrintWriter(CART_LIMITS_FILE)) {
+            pw.println("min.x=" + min.x);
+            pw.println("min.y=" + min.y);
+            pw.println("min.z=" + min.z);
+            pw.println("max.x=" + max.x);
+            pw.println("max.y=" + max.y);
+            pw.println("max.z=" + max.z);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    public static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
+            ".fanucCRLCCartLimits.txt");
+
+    private void findString(String input, String token, Consumer<String> tailConsumer) {
+        int index = input.indexOf(token);
+        if(index >= 0) {
+            String tail = input.substring(index+token.length());
+            tailConsumer.accept(tail);
+        }
+    }
+
+    public void readAndApplyUserCartLimits() {
+        PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                findString(line,"min.x=", t -> min.x = Double.valueOf(t));
+                findString(line,"max.x=", t -> max.x = Double.valueOf(t));
+                findString(line,"min.y=", t -> min.y = Double.valueOf(t));
+                findString(line,"max.y=", t -> max.y = Double.valueOf(t));
+                findString(line,"min.z=", t -> min.z = Double.valueOf(t));
+                findString(line,"max.z=", t -> max.z = Double.valueOf(t));
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        applyAdditionalCartLimits(min, max);
+    }
+
     private void connectRemoteRobot() {
         try {
 
@@ -1945,125 +2008,8 @@ public class Main {
             IVars sysvars = robot.sysVariables();
             System.out.println("Getting system variable for $MCR.$GENOVERRIDE ...");
             overrideVar = sysvars.item("$MCR.$GENOVERRIDE", null).queryInterface(IVar.class);
-            IVar xLimitVar1 = sysvars.item("$DCSS_CPC[1].$X[1]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar1 = " + xLimitVar1);
-            if (null != xLimitVar1) {
-                System.out.println("xLimitVar1.value() = " + xLimitVar1.value());
-                xMax = xMin = (Float) xLimitVar1.value();
-            }
-            IVar xLimitVar2 = sysvars.item("$DCSS_CPC[1].$X[2]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar2 = " + xLimitVar2);
-            if (null != xLimitVar2) {
-                System.out.println("xLimitVar2.value() = " + xLimitVar2.value());
-                float v = (Float) xLimitVar2.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-            IVar xLimitVar3 = sysvars.item("$DCSS_CPC[1].$X[3]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar3 = " + xLimitVar3);
-            if (null != xLimitVar3) {
-                System.out.println("xLimitVar3.value() = " + xLimitVar3.value());
-                float v = (Float) xLimitVar3.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-            IVar xLimitVar4 = sysvars.item("$DCSS_CPC[1].$X[4]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar4 = " + xLimitVar4);
-            if (null != xLimitVar4) {
-                System.out.println("xLimitVar4.value() = " + xLimitVar4.value());
-                float v = (Float) xLimitVar4.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-
-            System.out.println("xMin = " + xMin);
-            System.out.println("xMax = " + xMax);
-
-            IVar yLimitVar1 = sysvars.item("$DCSS_CPC[1].$Y[1]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar1 = " + yLimitVar1);
-            if (null != yLimitVar1) {
-                System.out.println("yLimitVar1.value() = " + yLimitVar1.value());
-                yMax = yMin = (Float) yLimitVar1.value();
-            }
-            IVar yLimitVar2 = sysvars.item("$DCSS_CPC[1].$Y[2]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar2 = " + yLimitVar2);
-            if (null != yLimitVar2) {
-                System.out.println("yLimitVar2.value() = " + yLimitVar2.value());
-                float v = (Float) yLimitVar2.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-            IVar yLimitVar3 = sysvars.item("$DCSS_CPC[1].$Y[3]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar3 = " + yLimitVar3);
-            if (null != yLimitVar3) {
-                System.out.println("yLimitVar3.value() = " + yLimitVar3.value());
-                float v = (Float) yLimitVar3.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-            IVar yLimitVar4 = sysvars.item("$DCSS_CPC[1].$Y[4]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar4 = " + yLimitVar4);
-            if (null != yLimitVar4) {
-                System.out.println("yLimitVar4.value() = " + yLimitVar4.value());
-                float v = (Float) yLimitVar4.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-
-            System.out.println("yMin = " + yMin);
-            System.out.println("yMax = " + yMax);
-
-            IVar zLimitVar1 = sysvars.item("$DCSS_CPC[1].$Z1", null).queryInterface(IVar.class);
-            System.out.println("zLimitVar1 = " + zLimitVar1);
-            if (null != zLimitVar1) {
-                System.out.println("zLimitVar1.value() = " + zLimitVar1.value());
-                zMax = zMin = (Float) zLimitVar1.value();
-            }
-            IVar zLimitVar2 = sysvars.item("$DCSS_CPC[1].$Z2", null).queryInterface(IVar.class);
-            System.out.println("zLimitVar2 = " + zLimitVar2);
-            if (null != zLimitVar2) {
-                System.out.println("zLimitVar2.value() = " + zLimitVar2.value());
-                float v = (Float) zLimitVar2.value();
-                if (zMax < v) {
-                    zMax = v;
-                }
-                if (zMin > v) {
-                    zMin = v;
-                }
-            }
-
-            System.out.println("zMin = " + zMin);
-            System.out.println("zMax = " + zMax);
-            for (int i = 0; i < 6; i++) {
-                IVar jointLowerLimVar = sysvars.item("$MRR_GRP[1].$LOWERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
-                System.out.println("joint1LowerLimVar = " + jointLowerLimVar);
-                System.out.println("joint1LowerLimVar.value() = " + jointLowerLimVar.value());
-                this.lowerJointLimits[i] = (Float) jointLowerLimVar.value();
-            }
+            readCartLimitsFromRobot();
+            readAndApplyUserCartLimits();
             for (int i = 0; i < 6; i++) {
                 IVar jointUpperLimVar = sysvars.item("$MRR_GRP[1].$UPPERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
                 System.out.println("joint1UpperLimVar = " + jointUpperLimVar);
@@ -2080,6 +2026,129 @@ public class Main {
             showError(e.toString());
         }
 //        robot.
+    }
+
+    public void readCartLimitsFromRobot() {
+        IVars sysvars = robot.sysVariables();
+        IVar xLimitVar1 = sysvars.item("$DCSS_CPC[1].$X[1]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar1 = " + xLimitVar1);
+        if (null != xLimitVar1) {
+            System.out.println("xLimitVar1.value() = " + xLimitVar1.value());
+            xMax = xMin = (Float) xLimitVar1.value();
+        }
+        IVar xLimitVar2 = sysvars.item("$DCSS_CPC[1].$X[2]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar2 = " + xLimitVar2);
+        if (null != xLimitVar2) {
+            System.out.println("xLimitVar2.value() = " + xLimitVar2.value());
+            float v = (Float) xLimitVar2.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+        IVar xLimitVar3 = sysvars.item("$DCSS_CPC[1].$X[3]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar3 = " + xLimitVar3);
+        if (null != xLimitVar3) {
+            System.out.println("xLimitVar3.value() = " + xLimitVar3.value());
+            float v = (Float) xLimitVar3.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+        IVar xLimitVar4 = sysvars.item("$DCSS_CPC[1].$X[4]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar4 = " + xLimitVar4);
+        if (null != xLimitVar4) {
+            System.out.println("xLimitVar4.value() = " + xLimitVar4.value());
+            float v = (Float) xLimitVar4.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+
+        System.out.println("xMin = " + xMin);
+        System.out.println("xMax = " + xMax);
+
+        IVar yLimitVar1 = sysvars.item("$DCSS_CPC[1].$Y[1]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar1 = " + yLimitVar1);
+        if (null != yLimitVar1) {
+            System.out.println("yLimitVar1.value() = " + yLimitVar1.value());
+            yMax = yMin = (Float) yLimitVar1.value();
+        }
+        IVar yLimitVar2 = sysvars.item("$DCSS_CPC[1].$Y[2]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar2 = " + yLimitVar2);
+        if (null != yLimitVar2) {
+            System.out.println("yLimitVar2.value() = " + yLimitVar2.value());
+            float v = (Float) yLimitVar2.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+        IVar yLimitVar3 = sysvars.item("$DCSS_CPC[1].$Y[3]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar3 = " + yLimitVar3);
+        if (null != yLimitVar3) {
+            System.out.println("yLimitVar3.value() = " + yLimitVar3.value());
+            float v = (Float) yLimitVar3.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+        IVar yLimitVar4 = sysvars.item("$DCSS_CPC[1].$Y[4]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar4 = " + yLimitVar4);
+        if (null != yLimitVar4) {
+            System.out.println("yLimitVar4.value() = " + yLimitVar4.value());
+            float v = (Float) yLimitVar4.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+
+        System.out.println("yMin = " + yMin);
+        System.out.println("yMax = " + yMax);
+
+        IVar zLimitVar1 = sysvars.item("$DCSS_CPC[1].$Z1", null).queryInterface(IVar.class);
+        System.out.println("zLimitVar1 = " + zLimitVar1);
+        if (null != zLimitVar1) {
+            System.out.println("zLimitVar1.value() = " + zLimitVar1.value());
+            zMax = zMin = (Float) zLimitVar1.value();
+        }
+        IVar zLimitVar2 = sysvars.item("$DCSS_CPC[1].$Z2", null).queryInterface(IVar.class);
+        System.out.println("zLimitVar2 = " + zLimitVar2);
+        if (null != zLimitVar2) {
+            System.out.println("zLimitVar2.value() = " + zLimitVar2.value());
+            float v = (Float) zLimitVar2.value();
+            if (zMax < v) {
+                zMax = v;
+            }
+            if (zMin > v) {
+                zMin = v;
+            }
+        }
+
+        System.out.println("zMin = " + zMin);
+        System.out.println("zMax = " + zMax);
+        for (int i = 0; i < 6; i++) {
+            IVar jointLowerLimVar = sysvars.item("$MRR_GRP[1].$LOWERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
+            System.out.println("joint1LowerLimVar = " + jointLowerLimVar);
+            System.out.println("joint1LowerLimVar.value() = " + jointLowerLimVar.value());
+            this.lowerJointLimits[i] = (Float) jointLowerLimVar.value();
+        }
     }
     public static final float DEFAULT_CART_SPEED = 100.0f;
 
@@ -2123,6 +2192,7 @@ public class Main {
                     },
                     new String[]{"Joint", "Minimum", "Current", "Maximum"}));
             jframe.setOverrideVar(getOverideVar());
+            jframe.getjTableCartesianLimits().getModel().addTableModelListener(e -> jframe.updateCartLimits());
         }
     }
 
