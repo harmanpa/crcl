@@ -247,6 +247,7 @@ public class CRCLPosemath {
             Posemath.pmQuatCartMult(pout.rot, ac, ac_out);
             Posemath.pmCartCartSub(bc, ac_out, pout.tran);
             pout.tran.z = (b2.z + b1.z - a1.z - a2.z) / 2.0;
+            System.out.println("pout = " + pout);
             return pout;
         } catch (PmException e) {
             throw new CRCLException(e);
@@ -636,12 +637,12 @@ public class CRCLPosemath {
         newPose.setPoint(pt);
         VectorType xAxis = new VectorType();
         xAxis.setI(BigDecimal.valueOf(mat[0][0]));
-        xAxis.setJ(BigDecimal.valueOf(mat[0][1]));
-        xAxis.setK(BigDecimal.valueOf(mat[0][2]));
+        xAxis.setJ(BigDecimal.valueOf(mat[1][0]));
+        xAxis.setK(BigDecimal.valueOf(mat[2][0]));
         newPose.setXAxis(xAxis);
         VectorType zAxis = new VectorType();
-        zAxis.setI(BigDecimal.valueOf(mat[2][0]));
-        zAxis.setJ(BigDecimal.valueOf(mat[2][1]));
+        zAxis.setI(BigDecimal.valueOf(mat[0][2]));
+        zAxis.setJ(BigDecimal.valueOf(mat[1][2]));
         zAxis.setK(BigDecimal.valueOf(mat[2][2]));
         newPose.setZAxis(zAxis);
         return newPose;
