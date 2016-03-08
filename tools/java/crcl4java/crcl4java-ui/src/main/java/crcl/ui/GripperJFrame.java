@@ -35,7 +35,7 @@ import crcl.base.SetEndEffectorType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -582,7 +582,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                             Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-                } catch (CRCLSocketException ex) {
+                } catch (CRCLException ex) {
                     Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -635,7 +635,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                             } else {
                                 cmdQueue.put(cmd);
                             }
-                        } catch (CRCLSocketException ex) {
+                        } catch (CRCLException ex) {
                             Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
                         } catch (IOException | InterruptedException iex) {
                             try {
@@ -652,7 +652,7 @@ public class GripperJFrame extends javax.swing.JFrame {
             }
             clientThreads.add(t);
             t.start();
-        } catch (CRCLSocketException ex) {
+        } catch (CRCLException ex) {
             Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

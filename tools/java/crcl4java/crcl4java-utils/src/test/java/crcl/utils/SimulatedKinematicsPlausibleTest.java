@@ -115,21 +115,21 @@ public class SimulatedKinematicsPlausibleTest {
                     case 3: {
                         PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                         rpy.r += r.nextDouble() * Math.toRadians(20.0) - Math.toRadians(10.0);
-                        pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                        pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                     }
                     break;
 
                     case 4: {
                         PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                         rpy.p += r.nextDouble() * Math.toRadians(20.0) - Math.toRadians(10.0);
-                        pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                        pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                     }
                     break;
 
                     case 5: {
                         PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                         rpy.y += r.nextDouble() * Math.toRadians(20.0) - Math.toRadians(10.0);
-                        pose = CRCLPosemath.toPoseType(CRCLPosemath.pointToPmCartesian(pt), rpy);
+                        pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                     }
                     break;
                 }

@@ -302,7 +302,7 @@ public class PerfTest {
                     diff_max * 1e-6,
                     (end - start) * 1e-6 / repeats
             );
-        } catch (CRCLSocketException | IOException | InterruptedException ex) {
+        } catch (CRCLException | IOException | InterruptedException ex) {
             Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, "Error in PerfTest", ex);
         } finally {
             if (null != ss) {

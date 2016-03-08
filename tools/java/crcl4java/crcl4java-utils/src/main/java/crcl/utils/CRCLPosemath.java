@@ -20,19 +20,28 @@
  */
 package crcl.utils;
 
-
+import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.DataThingType;
+import crcl.base.EndCanonType;
+import crcl.base.InitCanonType;
+import crcl.base.MiddleCommandType;
+import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
 import crcl.base.VectorType;
+import static java.lang.Math.PI;
+import static java.lang.Math.atan2;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
+import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmException;
+import rcs.posemath.PmHomogeneous;
 import rcs.posemath.PmPose;
 import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.PmRotationVector;
@@ -52,64 +61,235 @@ import rcs.posemath.PmQuaternion;
  * the framework allows potential NullPointerExceptions to be found.
  */
 
-/*>>>
+ /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
-
 public class CRCLPosemath {
 
     private CRCLPosemath() {
         // never to be called.
     }
-    
+
     /*@Nullable*/
     public static PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
-        if(stat != null) {
+        if (stat != null) {
             PoseStatusType poseStatus = stat.getPoseStatus();
-            if(null != poseStatus) {
+            if (null != poseStatus) {
                 return poseStatus.getPose();
             }
         }
         return null;
     }
-    
+
+    /**
+     * Create a Point an initialize X,Y, and Z to zero.
+     *
+     * @return new zeroed point.
+     */
+    public static PointType newZeroedPoint() {
+        PointType pt = new PointType();
+        pt.setX(BigDecimal.ZERO);
+        pt.setY(BigDecimal.ZERO);
+        pt.setZ(BigDecimal.ZERO);
+        return pt;
+    }
+
+    public static CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
+        CRCLProgramType programOut = new CRCLProgramType();
+        InitCanonType initCmdOut = new InitCanonType();
+        InitCanonType initCmdIn = programIn.getInitCanon();
+        if (null != initCmdIn) {
+            initCmdOut.setCommandID(initCmdIn.getCommandID());
+        }
+        BigInteger id = initCmdIn.getCommandID();
+        if (null == id) {
+            id = BigInteger.ONE;
+        }
+        programOut.setInitCanon(initCmdOut);
+        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmdIn = (MoveToType) cmd;
+                MoveToType moveToCmdOut = new MoveToType();
+                if (null != moveToCmdIn.getCommandID()) {
+                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                } else {
+                    moveToCmdOut.setCommandID(id);
+                }
+                moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose,moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                programOut.getMiddleCommand().add(moveToCmdOut);
+            } else {
+                programOut.getMiddleCommand().add(cmd);
+            }
+            if (null != cmd.getCommandID()) {
+                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
+            } else {
+                id = id.add(BigInteger.ONE);
+            }
+        }
+        EndCanonType endCmdOut = new EndCanonType();
+        EndCanonType endCmdIn = programIn.getEndCanon();
+        if (null != endCmdIn) {
+            endCmdOut.setCommandID(endCmdIn.getCommandID());
+        }
+        if (null == endCmdOut.getCommandID()) {
+            id = id.add(BigInteger.ONE);
+            endCmdOut.setCommandID(id);
+        }
+        programOut.setEndCanon(endCmdOut);
+        return programOut;
+    }
+
+    /**
+     * Compute a transform such that two points on a rigid body taken in one
+     * coordinated system can be tranformed into corresponding two points of the
+     * same rigid body on another coordinate system. In order to require only 2
+     * points it is assumed that the Z axis is the same in both coordinate
+     * systems.
+     *
+     * In order to produce reasonable outputs the two points need to be the same
+     * distance apart in both coordinate systems both along the Z axis and
+     * within the XY plane.
+     *
+     * @param a1 Point 1 on the rigid body in the A coordinate system.
+     * @param a2 Point 2 on the rigid body in the A coordinate system.
+     * @param b1 Point 1 on the rigid body in the B coordinate system.
+     * @param b2 Point 2 on the rigid body in the B coordinate system.
+     * @return Pose such that b1 = multiply(pose,a1) and b2 = multiply(pose,a2)
+     * @throws crcl.utils.CRCLException if the two points are identical.
+     */
+    public static PoseType compute2DTransform(PointType a1,
+            PointType a2,
+            PointType b1,
+            PointType b2) throws CRCLException {
+        try {
+            return toPose(
+                    compute2DPmTransform(
+                            toPmCartesian(a1),
+                            toPmCartesian(a2),
+                            toPmCartesian(b1),
+                            toPmCartesian(b2))
+            );
+        } catch (PmException pmException) {
+            throw new CRCLException(pmException);
+        }
+    }
+
+    /**
+     * Compute a transform such that two points on a rigid body taken in one
+     * coordinated system can be tranformed into corresponding two points of the
+     * same rigid body on another coordinate system. In order to require only 2
+     * points it is assumed that the Z axis is the same in both coordinate
+     * systems.
+     *
+     * In order to produce reasonable outputs the two points need to be the same
+     * distance apart in both coordinate systems both along the Z axis and
+     * within the XY plane.
+     *
+     *
+     * Code was tranformed from C code sent from Fred Proctor to Will
+     * Shackleford in an email on 2/26/2016 titled "Code to compute pose from
+     * pairs of points"
+     *
+     * @param a1 Point 1 on the rigid body in the A coordinate system.
+     * @param a2 Point 2 on the rigid body in the A coordinate system.
+     * @param b1 Point 1 on the rigid body in the B coordinate system.
+     * @param b2 Point 2 on the rigid body in the B coordinate system.
+     * @return Pose such that b1 = multiply(pose,a1) and b2 = multiply(pose,a2)
+     */
+    public static PmPose compute2DPmTransform(
+            PmCartesian a1,
+            PmCartesian a2,
+            PmCartesian b1,
+            PmCartesian b2) throws CRCLException {
+        try {
+            /* first do the rotation part */
+ /* 'tha' is the angle of the line a2-a1 in {A} */
+            double tha = atan2(a2.y - a1.y, a2.x - a1.x);
+            /* 'thb' is the angle of the line b2-b1 in {B} */
+            double thb = atan2(b2.y - b1.y, b2.x - b1.x);
+            /* the difference of these is the angle between {A} and {B} */
+            double theta = thb - tha;
+            /* normalize it */
+            while (theta > PI) {
+                theta -= 2 * PI;
+            }
+            while (theta < -PI) {
+                theta += 2 * PI;
+            }
+            /* 'theta' is now the angle from {A} to {B} */
+ /* make it the rotation part of 'pout' */
+            PmEulerZyx zyxout = new PmEulerZyx();
+            PmPose pout = new PmPose();
+            zyxout.z = theta;
+            zyxout.y = 0;
+            zyxout.x = 0;
+            Posemath.pmZyxQuatConvert(zyxout, pout.rot);
+
+
+            /* now do the translation part */
+ /* the translation part is the displacement between the centroids */
+ /* with 'ac' being the centroid of the 'a' points */
+            PmCartesian ac = new PmCartesian();
+            ac.x = (a1.x + a2.x) * 0.5;
+            ac.y = (a1.y + a2.y) * 0.5;
+            ac.z = 0;
+
+            /* and 'bc' being the centroid of the 'b' points */
+            PmCartesian bc = new PmCartesian();
+            bc.x = (b1.x + b2.x) * 0.5;
+            bc.y = (b1.y + b2.y) * 0.5;
+            bc.z = 0;
+
+            PmCartesian ac_out = new PmCartesian();
+
+            /* you have to rotate 'ac' into the {B} frame to difference them */
+            Posemath.pmQuatCartMult(pout.rot, ac, ac_out);
+            Posemath.pmCartCartSub(bc, ac_out, pout.tran);
+            pout.tran.z = (b2.z + b1.z - a1.z - a2.z) / 2.0;
+            return pout;
+        } catch (PmException e) {
+            throw new CRCLException(e);
+        }
+    }
+
     /*@Nullable*/
     public static PointType getPoint(/*@Nullable*/CRCLStatusType stat) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(pose != null) {
+            if (pose != null) {
                 return pose.getPoint();
             }
         }
         return null;
     }
-    
+
     /*@Nullable*/
     public static VectorType getXAxis(/*@Nullable*/CRCLStatusType stat) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(pose != null) {
+            if (pose != null) {
                 return pose.getXAxis();
             }
         }
         return null;
     }
-    
+
     /*@Nullable*/
     public static VectorType getZAxis(/*@Nullable*/CRCLStatusType stat) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(pose != null) {
+            if (pose != null) {
                 return pose.getZAxis();
             }
         }
         return null;
     }
-    
+
     public static void setPose(/*@Nullable*/CRCLStatusType stat, PoseType pose) {
-        if(null != stat) {
+        if (null != stat) {
             PoseStatusType poseStatus = stat.getPoseStatus();
-            if(null != poseStatus) {
+            if (null != poseStatus) {
                 poseStatus.setPose(pose);
             } else {
                 PoseStatusType newPoseStatus = new PoseStatusType();
@@ -118,126 +298,125 @@ public class CRCLPosemath {
             }
         }
     }
-    
+
     public static void setPoint(/*@Nullable*/CRCLStatusType stat, PointType pt) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(null != pose) {
+            if (null != pose) {
                 pose.setPoint(pt);
             } else {
                 PoseType newPose = new PoseType();
                 newPose.setPoint(pt);
-                setPose(stat,newPose);
+                setPose(stat, newPose);
             }
         }
     }
-    
+
     public static void setXAxis(/*@Nullable*/CRCLStatusType stat, VectorType xAxis) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(null != pose) {
+            if (null != pose) {
                 pose.setXAxis(xAxis);
             } else {
                 PoseType newPose = new PoseType();
                 newPose.setXAxis(xAxis);
-                setPose(stat,newPose);
+                setPose(stat, newPose);
             }
         }
     }
-    
+
     public static void setZAxis(/*@Nullable*/CRCLStatusType stat, VectorType zAxis) {
-        if(stat != null) {
+        if (stat != null) {
             PoseType pose = getPose(stat);
-            if(null != pose) {
+            if (null != pose) {
                 pose.setZAxis(zAxis);
-            }  else {
+            } else {
                 PoseType newPose = new PoseType();
                 newPose.setZAxis(zAxis);
-                setPose(stat,newPose);
+                setPose(stat, newPose);
             }
         }
     }
-    
+
     public static void initPose(CRCLStatusType status) {
-        if(null == CRCLPosemath.getPose(status)) {
+        if (null == CRCLPosemath.getPose(status)) {
             CRCLPosemath.setPose(status, new PoseType());
         }
         if (null == CRCLPosemath.getPoint(status)) {
-            CRCLPosemath.setPoint(status,new PointType());
+            CRCLPosemath.setPoint(status, new PointType());
         }
         if (null == CRCLPosemath.getXAxis(status)) {
             CRCLPosemath.setXAxis(status, new VectorType());
         }
         if (null == CRCLPosemath.getZAxis(status)) {
-            CRCLPosemath.setZAxis(status,new VectorType());
+            CRCLPosemath.setZAxis(status, new VectorType());
         }
     }
-    
+
     private static String toString(BigInteger bi) {
-        if(null == bi) {
+        if (null == bi) {
             return "null";
         }
         return bi.toString();
     }
-    
+
     private static String toString(BigDecimal bd) {
-        if(null == bd) {
+        if (null == bd) {
             return "null";
         }
         return bd.toString();
     }
-    
+
     private static String dataTypeThingToStartString(DataThingType dtt) {
         return "{"
-                + ((dtt.getName() != null)?"name="+dtt.getName()+",":"");
+                + ((dtt.getName() != null) ? "name=" + dtt.getName() + "," : "");
     }
-    
+
     public static String toString(PointType pt) {
-        if(null == pt) {
+        if (null == pt) {
             return "null";
         }
         return dataTypeThingToStartString(pt)
-                + "x="+toString(pt.getX())+","
-                + "y="+toString(pt.getY())+","
-                +"z="+toString(pt.getZ())
-                +"}";
+                + "x=" + toString(pt.getX()) + ","
+                + "y=" + toString(pt.getY()) + ","
+                + "z=" + toString(pt.getZ())
+                + "}";
     }
-    
+
     public static String toString(VectorType v) {
-        if(null == v) {
+        if (null == v) {
             return "null";
         }
         return dataTypeThingToStartString(v)
-                + "i="+toString(v.getI())+","
-                + "j="+toString(v.getJ())+","
-                +"k="+toString(v.getK())
-                +"}";
+                + "i=" + toString(v.getI()) + ","
+                + "j=" + toString(v.getJ()) + ","
+                + "k=" + toString(v.getK())
+                + "}";
     }
-    
+
     public static String toString(PoseType pose) {
-        if(null == pose) {
+        if (null == pose) {
             return "null";
         }
         return dataTypeThingToStartString(pose)
-                + "pt="+toString(pose.getPoint())+","
-                + "xAxis=" +toString(pose.getXAxis())
-                + "zAxis="+toString(pose.getZAxis()) 
-                +"}";
+                + "pt=" + toString(pose.getPoint()) + ","
+                + "xAxis=" + toString(pose.getXAxis()) + ","
+                + "zAxis=" + toString(pose.getZAxis())
+                + "}";
     }
-    
+
     public static String toString(PoseToleranceType posetol) {
-        if(null == posetol) {
+        if (null == posetol) {
             return "null";
         }
         return dataTypeThingToStartString(posetol)
-                + "XPointTolerance="+toString(posetol.getXPointTolerance())+","
-                + "YPointTolerance="+toString(posetol.getYPointTolerance())+","
-                + "ZPointTolerance="+toString(posetol.getZPointTolerance())+","
-                + "XAxisTolerance="+toString(posetol.getXAxisTolerance())+","
-                + "ZAxisTolerance="+toString(posetol.getZAxisTolerance())+","
-                +"}";
+                + "XPointTolerance=" + toString(posetol.getXPointTolerance()) + ","
+                + "YPointTolerance=" + toString(posetol.getYPointTolerance()) + ","
+                + "ZPointTolerance=" + toString(posetol.getZPointTolerance()) + ","
+                + "XAxisTolerance=" + toString(posetol.getXAxisTolerance()) + ","
+                + "ZAxisTolerance=" + toString(posetol.getZAxisTolerance()) + ","
+                + "}";
     }
-
 
     /**
      * Convert crcl.PointType to rcs.posemath.PmCartesian
@@ -245,7 +424,7 @@ public class CRCLPosemath {
      * @param pt Point to be converted
      * @return PmCartesian equivalent
      */
-    public static PmCartesian pointToPmCartesian(final PointType pt) {
+    public static PmCartesian toPmCartesian(final PointType pt) {
         return new PmCartesian(
                 pt.getX().doubleValue(),
                 pt.getY().doubleValue(),
@@ -272,14 +451,18 @@ public class CRCLPosemath {
         return newPose;
     }
 
-    public static String poseToString(PoseType pose) throws PmException {
-        PmRotationMatrix rmat = toPmRotationMatrix(pose);
-        PmCartesian cart = pointToPmCartesian(pose.getPoint());
-        return String.format("{\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g}\n}",
-                rmat.x.x, rmat.x.y, rmat.x.z, cart.x,
-                rmat.y.x, rmat.y.y, rmat.y.z, cart.y,
-                rmat.z.x, rmat.z.y, rmat.z.z, cart.z,
-                0.0, 0.0, 0.0, 1.0);
+    public static String poseToString(PoseType pose) throws CRCLException {
+        try {
+            PmRotationMatrix rmat = toPmRotationMatrix(pose);
+            PmCartesian cart = toPmCartesian(pose.getPoint());
+            return String.format("{\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g}\n}",
+                    rmat.x.x, rmat.x.y, rmat.x.z, cart.x,
+                    rmat.y.x, rmat.y.y, rmat.y.z, cart.y,
+                    rmat.z.x, rmat.z.y, rmat.z.z, cart.z,
+                    0.0, 0.0, 0.0, 1.0);
+        } catch (PmException pmException) {
+            throw new CRCLException(pmException);
+        }
     }
 
     public static PointType add(PointType p1, PointType p2) {
@@ -297,28 +480,46 @@ public class CRCLPosemath {
         sum.setZ(p1.getZ().subtract(p2.getZ()));
         return sum;
     }
-    
-    public static PmPose toPmPose(CRCLStatusType stat) throws PmException {
-        if(stat == null) {
+
+    public static PmPose toPmPose(CRCLStatusType stat) throws CRCLException {
+        if (stat == null) {
             throw new IllegalArgumentException("Can not convert null status to PmPose");
         }
-        PoseType pose = getPose(stat);
-        if(pose != null) {
-            PointType pt = getPoint(stat);
-            if(null != pt) {
-                PmCartesian cart = pointToPmCartesian(pt);
-                PmRotationMatrix mat = toPmRotationMatrix(pose);
-                if(null != mat) {
-                    return new PmPose(cart,new PmQuaternion(mat));
+        try {
+            PoseType pose = getPose(stat);
+            if (pose != null) {
+                PointType pt = getPoint(stat);
+                if (null != pt) {
+                    PmCartesian cart = toPmCartesian(pt);
+                    PmRotationMatrix mat = toPmRotationMatrix(pose);
+                    if (null != mat) {
+                        return new PmPose(cart, new PmQuaternion(mat));
+                    }
                 }
             }
+        } catch (PmException pmException) {
+            throw new CRCLException(pmException);
         }
-        throw new RuntimeException("stat has null pose components");
+        throw new IllegalArgumentException("stat has null pose components");
     }
 
-    public static PmPose toPmPose(PoseType p) throws PmException {
-        return new PmPose(pointToPmCartesian(p.getPoint()),
-                Posemath.toQuat(toPmRotationMatrix(p)));
+    public static PmPose toPmPose(PoseType p) throws CRCLException {
+        try {
+            return new PmPose(toPmCartesian(p.getPoint()),
+                    Posemath.toQuat(toPmRotationMatrix(p)));
+        } catch (PmException pmException) {
+            throw new CRCLException(pmException);
+        }
+    }
+
+    public static PointType multiply(PoseType pose, PointType pt) throws CRCLException {
+        try {
+            PmCartesian cartOut = new PmCartesian();
+            Posemath.pmPoseCartMult(toPmPose(pose), toPmCartesian(pt), cartOut);
+            return toPointType(cartOut);
+        } catch (PmException pmException) {
+            throw new CRCLException(pmException);
+        }
     }
 
     public static PointType multiply(final BigDecimal dist, final VectorType v) {
@@ -358,8 +559,9 @@ public class CRCLPosemath {
     }
 
     /**
-     * Generate L2 norm of Vector
-     * WARNING: This function loses the BigDecimal precision and range in VectorType
+     * Generate L2 norm of Vector WARNING: This function loses the BigDecimal
+     * precision and range in VectorType
+     *
      * @param v1 vector to compute norm of
      * @return norm of input vector
      */
@@ -369,39 +571,34 @@ public class CRCLPosemath {
         double i = v1.getI().doubleValue();
         double j = v1.getJ().doubleValue();
         double k = v1.getK().doubleValue();
-        return Math.sqrt(i*i + j*j + k*k);
+        return Math.sqrt(i * i + j * j + k * k);
     }
-    
-    public static class ZeroNormException extends RuntimeException {
-        public ZeroNormException(String message) {
-            super(message);
-        }
-    }
-    
+
     /**
-     * Normalize the vector so its L2 Norm is 1
-     * WARNING: This function uses norm()
-     * which loses the BigDecimal precision and range in VectorType
+     * Normalize the vector so its L2 Norm is 1 WARNING: This function uses
+     * norm() which loses the BigDecimal precision and range in VectorType
+     *
      * @param v vector to compute norm of
      * @return normalized input vector
-     * @throws  ZeroNormException if norm(v) less than Double.MIN_VALUE
+     * @throws CRCLException if norm(v) less than Double.MIN_VALUE
      */
-    public static VectorType normalize(VectorType v) {
-        VectorType vout  = new VectorType();
+    public static VectorType normalize(VectorType v) throws CRCLException {
+        VectorType vout = new VectorType();
         double normv = norm(v);
-        if(normv < Double.MIN_VALUE) {
-            throw new ZeroNormException("Can't normalize vector with zero magnitude.");
+        if (normv < Double.MIN_VALUE) {
+            throw new CRCLException(new IllegalArgumentException("Can't normalize vector with zero magnitude."));
         }
-        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)));
+        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)), MathContext.DECIMAL64);
         vout.setI(v.getI().multiply(normInv));
         vout.setJ(v.getJ().multiply(normInv));
         vout.setK(v.getK().multiply(normInv));
         return vout;
     }
-    
+
     /**
-     * Compute cross product of two Vectors
-     * WARNING: The output may not be normalized even if the input vectors are.
+     * Compute cross product of two Vectors WARNING: The output may not be
+     * normalized even if the input vectors are.
+     *
      * @param v1 first vector
      * @param v2 second vector
      * @return cross product vector
@@ -415,6 +612,12 @@ public class CRCLPosemath {
         vout.setJ(v1.getK().multiply(v2.getI()).subtract(v1.getI().multiply(v2.getK())));
         vout.setK(v1.getI().multiply(v2.getJ()).subtract(v1.getJ().multiply(v2.getI())));
         return vout;
+    }
+
+    public static PoseType toPose(PmPose pose) throws PmException {
+        PmHomogeneous hom = new PmHomogeneous();
+        Posemath.pmPoseHomConvert(pose, hom);
+        return toPose(hom.toMatdd());
     }
 
     public static PoseType toPose(double mat[][]) {
@@ -594,7 +797,7 @@ public class CRCLPosemath {
      * @return distance between pt1 and pt2
      */
     public static double diffPoints(PointType pt1, PointType pt2) {
-        return pointToPmCartesian(pt1).distFrom(pointToPmCartesian(pt2));
+        return toPmCartesian(pt1).distFrom(toPmCartesian(pt2));
     }
 
     /**
@@ -652,7 +855,8 @@ public class CRCLPosemath {
     }
 
     /**
-     * Combine an rcslib Posemath  translation and rotation(roll-pitch-yaw) in a PoseType
+     * Combine an rcslib Posemath translation and rotation(roll-pitch-yaw) in a
+     * PoseType
      *
      * @param tran translational component of pose
      * @param v rotational component of pose in roll-pith-yaw format.
@@ -679,7 +883,7 @@ public class CRCLPosemath {
         pose.setZAxis(zVec);
         return pose;
     }
-    
+
     /**
      * Combine a translation and rotation in a PoseType
      *
@@ -696,17 +900,17 @@ public class CRCLPosemath {
      * Combine a translation and rotation(roll-pitch-yaw) in a PoseType
      *
      * @param tran translational component of Pose
-     * @param v rotational component in roll-pitch-yaw format  of Pose
+     * @param v rotational component in roll-pitch-yaw format of Pose
      * @return new Pose
      * @throws PmException if rotation vector can not be converted to matrix
      */
     static public PoseType toPoseType(PmCartesian tran, PmRpy v) throws PmException {
         return toPoseType(tran, v, null);
     }
-    
+
     /**
-     * Extracts only the rotation part of a PoseType and converts it to
-     * a PmRotationMatrix
+     * Extracts only the rotation part of a PoseType and converts it to a
+     * PmRotationMatrix
      *
      * @param p Pose to be converted
      * @return Rotation matrix from rotational component of pose
@@ -721,8 +925,8 @@ public class CRCLPosemath {
     }
 
     /**
-     * Extracts only the rotation part of a PoseType and converts it to
-     * a PmRotationMatrix
+     * Extracts only the rotation part of a PoseType and converts it to a
+     * PmRotationMatrix
      *
      * @param p Pose to convert
      * @return Rotation Vector from rotational component of pose.
@@ -733,8 +937,8 @@ public class CRCLPosemath {
     }
 
     /**
-     * Extracts only the rotation part of a PoseType and converts it to
-     * a roll-pitch-yaw
+     * Extracts only the rotation part of a PoseType and converts it to a
+     * roll-pitch-yaw
      *
      * @param p Pose to convert
      * @return Roll-pitch-yaw taken from rotational component of Pose
@@ -764,7 +968,9 @@ public class CRCLPosemath {
     }
 
     /**
-     * Compute the magnitude of a rotation vector between the two poses in radians.
+     * Compute the magnitude of a rotation vector between the two poses in
+     * radians.
+     *
      * @param pose1 first pose to compare
      * @param pose2 second pose to compare
      * @return magnitude of rotation between poses.

@@ -32,8 +32,9 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.ObjectFactory;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -94,21 +95,21 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private String last_orig_first_tag = null;
     private boolean replaceHeader;
 
-    public CrclExiSocket() throws CRCLSocketException {
+    public CrclExiSocket() throws CRCLException {
         this(null);
     }
 
-    public CrclExiSocket(/*@Nullable*/Socket sock) throws CRCLSocketException {
+    public CrclExiSocket(/*@Nullable*/Socket sock) throws CRCLException {
         super(sock);
     }
 
-    public CrclExiSocket(String hostname, int port) throws IOException, CRCLSocketException {
+    public CrclExiSocket(String hostname, int port) throws IOException, CRCLException {
         super(hostname, port);
     }
 
     private static final Logger LOGGER = Logger.getLogger(CrclExiSocket.class.getName());
 
-    public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLSocketException, IOException {
+    public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         final boolean EXI = this.isEXIEnabled();
         if (this.isEXIEnabled()) {
@@ -120,7 +121,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     LOGGER.log(loglevel, "readCommand() returning {0} ID={1} called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
                     return c;
                 } catch (EXIException | JAXBException | IOException ex) {
-                    throw new CRCLSocketException(ex);
+                    throw new CRCLException(ex);
                 }
             } else {
                 try {
@@ -136,7 +137,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     LOGGER.log(loglevel, "readCommand() returning {0} ID={1} called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
                     return c;
                 } catch (EXIException | JAXBException ex) {
-                    throw new CRCLSocketException(ex);
+                    throw new CRCLException(ex);
                 }
             }
         }
@@ -222,9 +223,9 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
      * Set the value of EXIEnabled
      *
      * @param EXIEnabled new value of EXIEnabled
-     * @throws crcl.utils.CRCLSocketException wrapper for potential internal exceptions
+     * @throws crcl.utils.CRCLException wrapper for potential internal exceptions
      */
-    public void setEXIEnabled(boolean EXIEnabled) throws CRCLSocketException {
+    public void setEXIEnabled(boolean EXIEnabled) throws CRCLException {
         this.EXIEnabled = EXIEnabled;
         if (!EXIEnabled) {
             exiStatusFactory = null;
@@ -232,7 +233,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         }
     }
 
-    public byte[] statusToEXI(CRCLStatusType status) throws CRCLSocketException {
+    public byte[] statusToEXI(CRCLStatusType status) throws CRCLException {
         final String threadName = Thread.currentThread().getName();
         ByteArrayOutputStream exiOS = null;
         try {
@@ -254,7 +255,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 LOGGER.log(Level.SEVERE, "writeEXIStatusTOStream succeeded on second try. ba={0}", Arrays.toString(ba));
                 return ba;
             } catch (IOException | JAXBException | EXIException ex1) {
-                throw new CRCLSocketException(ex1);
+                throw new CRCLException(ex1);
             } finally {
                 xmlInternalLogger.setLevel(origXmlInternalLogLevel);
                 LOGGER.setLevel(origLevel);
@@ -269,7 +270,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         }
     }
 
-    public byte[] commandToEXI(CRCLCommandInstanceType cmd) throws CRCLSocketException {
+    public byte[] commandToEXI(CRCLCommandInstanceType cmd) throws CRCLException {
         ByteArrayOutputStream exiOS = null;
         try {
             exiOS = new ByteArrayOutputStream();
@@ -341,12 +342,12 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
      *
      * @param outStream the value of outStream
      * @param cmdInstance command to send
-     * @throws crcl.utils.CRCLSocketException
+     * @throws crcl.utils.CRCLException
      */
     public void writeEXICommandToStream(
             final java.io.OutputStream outStream,
             CRCLCommandInstanceType cmdInstance)
-            throws CRCLSocketException {
+            throws CRCLException {
         try {
             final EXIResult exiResult = new EXIResult(getExiCommandFactory());
             outStream.flush();
@@ -374,7 +375,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 }
             }
         } catch (EXIException | IOException | JAXBException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -593,7 +594,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
 
     @Override
     public CRCLStatusType readStatus(boolean validate)
-            throws CRCLSocketException {
+            throws CRCLException {
         if (this.isEXIEnabled()) {
             if (this.isPrefixEXISizeEnabled()) {
                 try {
@@ -606,13 +607,13 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     int r2 = getBufferedInputStream().read(ba);
                     return exiToStatus(ba);
                 } catch (IOException | EXIException | JAXBException ex) {
-                    throw new CRCLSocketException(ex);
+                    throw new CRCLException(ex);
                 }
             } else {
                 try {
                     return this.readStatusFromEXIStream(getBufferedInputStream());
                 } catch (EXIException | JAXBException | IOException ex) {
-                    throw new CRCLSocketException(ex);
+                    throw new CRCLException(ex);
                 }
             }
         }
@@ -621,7 +622,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
 
 
     @Override
-    public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLSocketException {
+    public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         final CRCLCommandType cc = cmd.getCRCLCommand();
         final boolean EXI = this.isEXIEnabled();
         final String threadName = Thread.currentThread().getName();
@@ -648,13 +649,13 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 return;
             }
         } catch ( IOException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
         super.writeCommand(cmd, validate);
     }
 
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
-            throws CRCLSocketException {
+            throws CRCLException {
         if (null == sock) {
             throw new IllegalStateException("Internal socket is null.");
         }
@@ -679,7 +680,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 return;
             }
         } catch (IOException | JAXBException | EXIException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         } 
         super.writeStatus(status, validate);
     }

@@ -182,14 +182,14 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     /*@Nullable*/
-    static public File generateSchema(Class<?> clss) throws CRCLSocketException {
+    static public File generateSchema(Class<?> clss) throws CRCLException {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(clss);
             CRCLSchemaOutputResolver sor = new CRCLSchemaOutputResolver();
             jaxbContext.generateSchema(sor);
             return sor.getFile();
         } catch (JAXBException | IOException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -409,7 +409,7 @@ public class CRCLSocket implements AutoCloseable {
         return EMPTY_FILE_ARRAY;
     }
 
-    public static Schema filesToSchema(File fa[]) throws CRCLSocketException {
+    public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
             for (int i = 0; i < sources.length; i++) {
@@ -419,7 +419,7 @@ public class CRCLSocket implements AutoCloseable {
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             return schemaFactory.newSchema(sources);
         } catch (SAXException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -712,11 +712,11 @@ public class CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private String last_orig_first_tag = null;
     private boolean replaceHeader;
 
-    public CRCLSocket() throws CRCLSocketException {
+    public CRCLSocket() throws CRCLException {
         this(null);
     }
 
-    public CRCLSocket(/*@Nullable*/Socket sock) throws CRCLSocketException {
+    public CRCLSocket(/*@Nullable*/Socket sock) throws CRCLException {
         try {
             Marshaller tmp_m_cmd = null;
             Unmarshaller tmp_u_cmd = null;
@@ -768,11 +768,11 @@ public class CRCLSocket implements AutoCloseable {
             this.sock = sock;
             bufferedInputStream = null;
         } catch (JAXBException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
-    public CRCLSocket(String hostname, int port) throws CRCLSocketException, IOException {
+    public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
         this(new Socket(hostname, port));
     }
 
@@ -1148,7 +1148,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLSocketException {
+    public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLException {
         this.checkCommandSchema(validate);
 
         synchronized (u_cmd) {
@@ -1160,7 +1160,7 @@ public class CRCLSocket implements AutoCloseable {
                         = (CRCLCommandInstanceType) el.getValue();
                 return instance;
             } catch (JAXBException ex) {
-                throw new CRCLSocketException(ex);
+                throw new CRCLException(ex);
             }
         }
 
@@ -1177,7 +1177,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public CRCLProgramType stringToProgram(String str, boolean validate) throws CRCLSocketException {
+    public CRCLProgramType stringToProgram(String str, boolean validate) throws CRCLException {
         this.checkProgramSchema(validate);
         try {
             synchronized (u_prog) {
@@ -1189,19 +1189,19 @@ public class CRCLSocket implements AutoCloseable {
                 return prog;
             }
         } catch (Exception ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
-    public CRCLCommandInstanceType readCommand() throws CRCLSocketException {
+    public CRCLCommandInstanceType readCommand() throws CRCLException {
         try {
             return readCommand(false);
         } catch (IOException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
-    public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLSocketException, IOException {
+    public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         final String str = this.readUntilEndTag("CRCLCommandInstance", getBufferedInputStream());
         if (null == str) {
@@ -1215,7 +1215,7 @@ public class CRCLSocket implements AutoCloseable {
         return cmd;
     }
 
-    public CRCLStatusType stringToStatus(String str, boolean validate) throws CRCLSocketException {
+    public CRCLStatusType stringToStatus(String str, boolean validate) throws CRCLException {
         this.checkStatusSchema(validate);
         synchronized (u_stat) {
             try {
@@ -1229,7 +1229,7 @@ public class CRCLSocket implements AutoCloseable {
                         = (CRCLStatusType) el.getValue();
                 return instance;
             } catch (JAXBException ex) {
-                throw new CRCLSocketException(ex);
+                throw new CRCLException(ex);
             }
         }
     }
@@ -1282,12 +1282,12 @@ public class CRCLSocket implements AutoCloseable {
         return newBufferedInputStream;
     }
 
-    public CRCLStatusType readStatus() throws CRCLSocketException {
+    public CRCLStatusType readStatus() throws CRCLException {
         return readStatus(false);
     }
 
     public CRCLStatusType readStatus(boolean validate)
-            throws CRCLSocketException {
+            throws CRCLException {
         try {
             this.lastStatusString = this.readUntilEndTag("CRCLStatus", getBufferedInputStream());
             if (null == this.lastStatusString) {
@@ -1295,7 +1295,7 @@ public class CRCLSocket implements AutoCloseable {
             }
             return stringToStatus(this.lastStatusString, validate);
         } catch (IOException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -1313,7 +1313,7 @@ public class CRCLSocket implements AutoCloseable {
         return "";
     }
 
-    private void checkCommandSchema(boolean validate) throws CRCLSocketException {
+    private void checkCommandSchema(boolean validate) throws CRCLException {
         if (validate && null == cmdSchema) {
             if (null == CRCLSocket.defaultCmdSchema) {
                 File fa[] = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
@@ -1324,7 +1324,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    private void checkStatusSchema(boolean validate) throws CRCLSocketException {
+    private void checkStatusSchema(boolean validate) throws CRCLException {
         if (validate && null == statSchema) {
             if (null == CRCLSocket.defaultStatSchema) {
                 File fa[] = CRCLSocket.readStatSchemaFiles(statSchemasFile);
@@ -1335,7 +1335,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    private void checkProgramSchema(boolean validate) throws CRCLSocketException {
+    private void checkProgramSchema(boolean validate) throws CRCLException {
         if (validate && null == programSchema) {
             if (null == CRCLSocket.defaultProgramSchema) {
                 File fa[] = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
@@ -1355,7 +1355,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public String commandToString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLSocketException {
+    public String commandToString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
                 = objectFactory.createCRCLCommandInstance(cmd);
         StringWriter sw = new StringWriter();
@@ -1373,14 +1373,14 @@ public class CRCLSocket implements AutoCloseable {
                     ret = str;
                 }
             } catch (JAXBException ex) {
-                throw new CRCLSocketException(ex);
+                throw new CRCLException(ex);
             }
         }
         this.lastCommandString = ret;
         return ret;
     }
 
-    public String programToString(CRCLProgramType prog, boolean validate) throws CRCLSocketException {
+    public String programToString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
                 = objectFactory.createCRCLProgram(prog);
         StringWriter sw = new StringWriter();
@@ -1397,7 +1397,7 @@ public class CRCLSocket implements AutoCloseable {
                     this.lastProgramString = str;
                 }
             } catch (JAXBException ex) {
-                throw new CRCLSocketException(ex);
+                throw new CRCLException(ex);
             }
         }
         return this.lastProgramString;
@@ -1464,7 +1464,7 @@ public class CRCLSocket implements AutoCloseable {
         return ret;
     }
 
-    public String programToPrettyString(CRCLProgramType prog, boolean validate) throws CRCLSocketException {
+    public String programToPrettyString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
                 = objectFactory.createCRCLProgram(prog);
         StringWriter sw = new StringWriter();
@@ -1483,7 +1483,7 @@ public class CRCLSocket implements AutoCloseable {
                     this.lastProgramString = str;
                 }
             } catch (JAXBException ex) {
-                throw new CRCLSocketException(ex);
+                throw new CRCLException(ex);
             }
         }
         return this.lastProgramString;
@@ -1511,11 +1511,11 @@ public class CRCLSocket implements AutoCloseable {
         return this.lastProgramString;
     }
 
-    public void writeCommand(CRCLCommandInstanceType cmd) throws CRCLSocketException {
+    public void writeCommand(CRCLCommandInstanceType cmd) throws CRCLException {
         writeCommand(cmd, false);
     }
 
-    public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLSocketException {
+    public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         try {
             final CRCLCommandType cc = cmd.getCRCLCommand();
             final String threadName = Thread.currentThread().getName();
@@ -1530,7 +1530,7 @@ public class CRCLSocket implements AutoCloseable {
             writeWithFill(str);
             this.lastCommandString = str;
         } catch (IOException | InterruptedException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -1584,12 +1584,12 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public void writeProgram(CRCLProgramType prog, boolean validate) throws CRCLSocketException {
+    public void writeProgram(CRCLProgramType prog, boolean validate) throws CRCLException {
         try {
             this.lastProgramString = programToString(prog, validate);
             this.writeWithFill(this.lastProgramString);
         } catch (IOException | InterruptedException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 
@@ -1611,7 +1611,7 @@ public class CRCLSocket implements AutoCloseable {
         this.replaceHeader = replaceHeader;
     }
 
-    public String statusToString(CRCLStatusType status, boolean validate) throws CRCLSocketException {
+    public String statusToString(CRCLStatusType status, boolean validate) throws CRCLException {
         JAXBElement<CRCLStatusType> jaxb_status
                 = objectFactory.createCRCLStatus(status);
         StringWriter sw = new StringWriter();
@@ -1748,12 +1748,12 @@ public class CRCLSocket implements AutoCloseable {
         return cmdName + " " + content;
     }
 
-    public void writeStatus(CRCLStatusType status) throws CRCLSocketException {
+    public void writeStatus(CRCLStatusType status) throws CRCLException {
         writeStatus(status, false);
     }
 
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
-            throws CRCLSocketException {
+            throws CRCLException {
         try {
             if (null == sock) {
                 throw new IllegalStateException("Internal socket is null.");
@@ -1762,7 +1762,7 @@ public class CRCLSocket implements AutoCloseable {
             this.lastStatusString = statusToString(status, validate);
             this.writeWithFill(this.lastStatusString);
         } catch (IOException | InterruptedException ex) {
-            throw new CRCLSocketException(ex);
+            throw new CRCLException(ex);
         }
     }
 

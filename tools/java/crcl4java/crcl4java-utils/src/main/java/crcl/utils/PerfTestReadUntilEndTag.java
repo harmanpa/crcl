@@ -356,7 +356,7 @@ public class PerfTestReadUntilEndTag {
         T get();
     }
     
-    public static void main(String[] args) throws CRCLSocketException  {
+    public static void main(String[] args) throws CRCLException  {
         final CRCLSocket s = new CRCLSocket();
 //        timeSupplier(new Supplier<String>() {
 //            @Override

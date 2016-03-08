@@ -50,7 +50,6 @@ public class JogButton extends AbstractComponent {
 
         @Override
         public void mousedown() {
-            System.out.println("mousedown");
             for(Consumer<AbstractComponent> consumer : mouseDownConsumers) {
                 consumer.accept(JogButton.this);
             }

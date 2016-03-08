@@ -28,7 +28,6 @@ import com.github.wshackle.fanuc.robotserver.FRETaskStatusConstants;
 import com.github.wshackle.fanuc.robotserver.FRETypeCodeConstants;
 import com.github.wshackle.fanuc.robotserver.IConfig;
 import com.github.wshackle.fanuc.robotserver.ICurGroupPosition;
-import com.github.wshackle.fanuc.robotserver.IJoint;
 import com.github.wshackle.fanuc.robotserver.IProgram;
 import com.github.wshackle.fanuc.robotserver.IRobot2;
 import com.github.wshackle.fanuc.robotserver.ISysPosition;
@@ -37,13 +36,17 @@ import com.github.wshackle.fanuc.robotserver.ITPSimpleLine;
 import com.github.wshackle.fanuc.robotserver.ITask;
 import com.github.wshackle.fanuc.robotserver.ITasks;
 import com.github.wshackle.fanuc.robotserver.IVar;
+import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
 import com4j.Com4jObject;
 import com4j.ComException;
 import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 import crcl.base.InitCanonType;
+import crcl.base.JointStatusType;
+import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.MoveToType;
 import crcl.base.PoseToleranceType;
@@ -53,6 +56,7 @@ import crcl.base.SetEndPoseToleranceType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.TransSpeedAbsoluteType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.awt.event.ActionEvent;
@@ -82,8 +86,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.bind.JAXBException;
-import org.xml.sax.SAXException;
+import javax.swing.table.TableModel;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -101,6 +104,23 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
     private javax.swing.Timer timer = null;
 
+    public void updateCartLimits() {
+        if (this.jCheckBoxEditCartesianLimits.isSelected()) {
+            PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+            PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+            TableModel model = this.jTableCartesianLimits.getModel();
+            min.x = Double.valueOf( model.getValueAt(0, 1).toString());
+            max.x = Double.valueOf( model.getValueAt(0, 3).toString());
+            min.y = Double.valueOf( model.getValueAt(1, 1).toString());
+            max.y = Double.valueOf( model.getValueAt(1, 3).toString());
+            min.z = Double.valueOf( model.getValueAt(2, 1).toString());
+            max.z = Double.valueOf( model.getValueAt(2, 3).toString());
+            
+            main.applyAdditionalCartLimits(min, max);
+            main.saveCartLimits(min, max);
+        }
+    }
+
     /**
      * Creates new form FanucCRCLServerJFrame
      */
@@ -108,6 +128,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         initComponents();
         timer = new Timer(200, e -> updateDisplay());
         timer.start();
+        this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits());
     }
 
     IVar varToWatch = null;
@@ -146,7 +167,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
     public void updateDisplay() {
         try {
-            if (null == robot) {
+            if (null == main) {
                 return;
             }
             if (null != varToWatch) {
@@ -155,6 +176,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
             DefaultTableModel dtm = (DefaultTableModel) this.jTableTasks.getModel();
             dtm.setRowCount(0);
+            IRobot2 robot = main.getRobot();
+            if (null == robot) {
+                return;
+            }
             ITasks tasks = robot.tasks();
             if (null != tasks) {
                 for (Com4jObject c4jo : tasks) {
@@ -208,12 +233,27 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 dtmCartPos.setValueAt(curXyzWpr.y(), 1, 2);
                 dtmCartPos.setValueAt(curXyzWpr.z(), 2, 2);
             }
-            if (!this.jCheckBoxEditJointLimits.isSelected()) {
-                curPos = robot.curPosition().group((short) 1, FRECurPositionConstants.frJointDisplayType);
-                IJoint curJoints = curPos.formats(FRETypeCodeConstants.frJoint).queryInterface(IJoint.class);
-                DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
-                for (short i = 0; i < curJoints.count(); i++) {
-                    dtmJointPos.setValueAt(curJoints.item((short) (i + 1)), i, 2);
+            synchronized (main) {
+                CRCLStatusType stat = main.readCachedStatusFromRobot();
+                if (!this.jCheckBoxEditJointLimits.isSelected()) {
+                    if (null != stat) {
+                        JointStatusesType jointStatuses = stat.getJointStatuses();
+                        if (null != jointStatuses) {
+                            List<JointStatusType> l = jointStatuses.getJointStatus();
+                            DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
+                            for (int i = 0; i < l.size(); i++) {
+                                JointStatusType js = l.get(i);
+                                int index = js.getJointNumber().intValue();
+                                dtmJointPos.setValueAt(js.getJointPosition(), index - 1, 2);
+                            }
+                        }
+                    }
+//                curPos = robot.curPosition().group((short) 1, FRECurPositionConstants.frJointDisplayType);
+//                IJoint curJoints = curPos.formats(FRETypeCodeConstants.frJoint).queryInterface(IJoint.class);
+//                DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
+//                for (short i = 0; i < curJoints.count(); i++) {
+//                    dtmJointPos.setValueAt(curJoints.item((short) (i + 1)), i, 2);
+//                }
                 }
             }
             if (null != overrideVar) {
@@ -222,8 +262,11 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
         } catch (ComException e) {
             if (e.getMessage().contains("8004000e compobj.dll is too old for the ole2.dll initialized : Object is no longer valid.")) {
-                this.updateWatchVar(robot);
+                this.updateWatchVar(main.getRobot());
             }
+        } catch (PmException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            main.showError(ex.getMessage());
         }
     }
 
@@ -365,6 +408,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             initCmd.setCommandID(cmdId);
             crclProg.setInitCanon(initCmd);
             Map<Integer, PmXyzWpr> posMap = new TreeMap<>();
+            IRobot2 robot = main.getRobot();
             for (Com4jObject posObj : robot.regPositions()) {
                 ISysPosition pos = posObj.queryInterface(ISysPosition.class);
                 Optional.ofNullable(pos)
@@ -422,32 +466,51 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 File f = chooser.getSelectedFile();
                 Files.write(f.toPath(), crclProgText.getBytes());
             }
-        } catch (JAXBException | IOException | SAXException ex) {
+        } catch (CRCLException | IOException ex) {
             this.jTextAreaErrors.append(ex.toString());
             JOptionPane.showMessageDialog(this, ex);
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private IRobot2 robot = null;
+//    private IRobot2 robot = null;
+//
+//    /**
+//     * Get the value of robot
+//     *
+//     * @return the value of robot
+//     */
+//    public IRobot2 getRobot() {
+//        return robot;
+//    }
+//
+//    /**
+//     * Set the value of robot
+//     *
+//     * @param robot new value of robot
+//     */
+//    public void setRobot(IRobot2 robot) {
+//        this.robot = robot;
+//        updateWatchVar(robot);
+//    }
+    private Main main;
 
     /**
-     * Get the value of robot
+     * Get the value of main
      *
-     * @return the value of robot
+     * @return the value of main
      */
-    public IRobot2 getRobot() {
-        return robot;
+    public Main getMain() {
+        return main;
     }
 
     /**
-     * Set the value of robot
+     * Set the value of main
      *
-     * @param robot new value of robot
+     * @param main new value of main
      */
-    public void setRobot(IRobot2 robot) {
-        this.robot = robot;
-        updateWatchVar(robot);
+    public void setMain(Main main) {
+        this.main = main;
     }
 
     public void updateWatchVar(IRobot2 robot1) {
@@ -455,7 +518,9 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             if (null != robot1) {
                 String varName = this.jTextFieldSysVarName.getText();
                 System.out.println("varName = " + varName);
-                varToWatch = Optional.ofNullable(robot1).map(IRobot2::sysVariables).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
+                IVars sysVars = robot1.sysVariables();
+                System.out.println("sysVars = " + sysVars);
+                varToWatch = Optional.ofNullable(sysVars).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
                 System.out.println("varToWatch = " + varToWatch);
             }
         } catch (Exception e) {
@@ -717,6 +782,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jCheckBoxLogAllCommands = new javax.swing.JCheckBox();
         jCheckBoxEditJointLimits = new javax.swing.JCheckBox();
         jCheckBoxEditCartesianLimits = new javax.swing.JCheckBox();
+        jButtonClearErrors = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemResetAlarms = new javax.swing.JMenuItem();
@@ -896,6 +962,13 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
         });
 
+        jButtonClearErrors.setText("Clear");
+        jButtonClearErrors.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearErrorsActionPerformed(evt);
+            }
+        });
+
         jMenu1.setText("File");
 
         jMenuItemResetAlarms.setText("Reset Alarms");
@@ -952,7 +1025,9 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jCheckBoxLogAllCommands))
+                                .addComponent(jCheckBoxLogAllCommands)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonClearErrors))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1044,7 +1119,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jCheckBoxLogAllCommands))
+                    .addComponent(jCheckBoxLogAllCommands)
+                    .addComponent(jButtonClearErrors))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -1054,16 +1130,20 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jTextFieldSysVarNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldSysVarNameActionPerformed
-        this.updateWatchVar(robot);
+        this.updateWatchVar(main.getRobot());
     }//GEN-LAST:event_jTextFieldSysVarNameActionPerformed
 
     private void jButtonAbortAllTasksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAbortAllTasksActionPerformed
-        robot.tasks().abortAll(true);
+        main.getRobot().tasks().abortAll(true);
     }//GEN-LAST:event_jButtonAbortAllTasksActionPerformed
 
     private void jCheckBoxEditCartesianLimitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEditCartesianLimitsActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jCheckBoxEditCartesianLimitsActionPerformed
+
+    private void jButtonClearErrorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearErrorsActionPerformed
+        this.jTextAreaErrors.setText("");
+    }//GEN-LAST:event_jButtonClearErrorsActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1103,6 +1183,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupConnectType;
     private javax.swing.JButton jButtonAbortAllTasks;
+    private javax.swing.JButton jButtonClearErrors;
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;

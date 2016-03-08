@@ -31,7 +31,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLSocketException;
+import crcl.utils.CRCLException;
 import crcl.utils.SimRobotEnum;
 import crcl.utils.SimServerOuter;
 import java.io.File;
@@ -165,6 +165,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         jCheckBoxSendStatusWithoutRequest = new javax.swing.JCheckBox();
         jButtonRestartServer = new javax.swing.JButton();
         jComboBoxRobotType = new javax.swing.JComboBox<>();
+        jCheckBoxTeleportToGoals = new javax.swing.JCheckBox();
         jPanel5 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -219,7 +220,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         );
         overHeadJPanel1Layout.setVerticalGroup(
             overHeadJPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 242, Short.MAX_VALUE)
+            .addGap(0, 250, Short.MAX_VALUE)
         );
 
         jPanel1.add(overHeadJPanel1, java.awt.BorderLayout.CENTER);
@@ -235,7 +236,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         );
         sideViewJPanel1Layout.setVerticalGroup(
             sideViewJPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 242, Short.MAX_VALUE)
+            .addGap(0, 251, Short.MAX_VALUE)
         );
 
         jPanel2.add(sideViewJPanel1, java.awt.BorderLayout.CENTER);
@@ -289,6 +290,9 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
 
         jComboBoxRobotType.addActionListener(formListener);
 
+        jCheckBoxTeleportToGoals.setText("Teleport to Goals");
+        jCheckBoxTeleportToGoals.addActionListener(formListener);
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
@@ -312,19 +316,24 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap(92, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextFieldCycleTime)
-                    .addComponent(jTextFieldPort, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jComboBoxRobotType, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextFieldCycleTime)
+                            .addComponent(jTextFieldPort, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(jCheckBoxTeleportToGoals)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -346,7 +355,8 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                 .addComponent(jCheckBoxInitialized)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxSendStatusWithoutRequest)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jCheckBoxTeleportToGoals))
         );
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Status"));
@@ -577,6 +587,9 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             else if (evt.getSource() == jButtonReset) {
                 SimServer.this.jButtonResetActionPerformed(evt);
             }
+            else if (evt.getSource() == jCheckBoxInitialized) {
+                SimServer.this.jCheckBoxInitializedActionPerformed(evt);
+            }
             else if (evt.getSource() == jButtonRestartServer) {
                 SimServer.this.jButtonRestartServerActionPerformed(evt);
             }
@@ -610,8 +623,8 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServer.this.jMenuItemViewCommandLogFullActionPerformed(evt);
             }
-            else if (evt.getSource() == jCheckBoxInitialized) {
-                SimServer.this.jCheckBoxInitializedActionPerformed(evt);
+            else if (evt.getSource() == jCheckBoxTeleportToGoals) {
+                SimServer.this.jCheckBoxTeleportToGoalsActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -749,7 +762,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                                         = gripperSocket.readStatus(jCheckBoxMenuItemValidateXML.isSelected());
                                 SimServer.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
                             }
-                        } catch (CRCLSocketException ex) {
+                        } catch (CRCLException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                             showMessage(ex);
                         } catch (InterruptedException ex) {
@@ -760,7 +773,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
                 gripperReadThread.start();
                 this.inner.setGripperSocket(gripperSocket);
 
-            } catch (IOException | CRCLSocketException ex) {
+            } catch (IOException | CRCLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             } 
         }
@@ -861,6 +874,10 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
            this.inner.initialize();
        }
     }//GEN-LAST:event_jCheckBoxInitializedActionPerformed
+
+    private void jCheckBoxTeleportToGoalsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTeleportToGoalsActionPerformed
+        this.inner.setTeleportToGoals(this.jCheckBoxTeleportToGoals.isSelected());
+    }//GEN-LAST:event_jCheckBoxTeleportToGoalsActionPerformed
 
     @Override
     public boolean isEXISelected() {
@@ -1120,6 +1137,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceXmlHeader;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXML;
     private javax.swing.JCheckBox jCheckBoxSendStatusWithoutRequest;
+    private javax.swing.JCheckBox jCheckBoxTeleportToGoals;
     private javax.swing.JComboBox<SimRobotEnum> jComboBoxRobotType;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

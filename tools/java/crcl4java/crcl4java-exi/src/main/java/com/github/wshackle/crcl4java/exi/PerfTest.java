@@ -37,8 +37,8 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
-import crcl.utils.CRCLSocketException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -307,7 +307,7 @@ public class PerfTest {
                     diff_max * 1e-6,
                     (end - start) * 1e-6 / repeats
             );
-        }catch (CRCLSocketException | IOException | InterruptedException ex) {
+        }catch (CRCLException | IOException | InterruptedException ex) {
             Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (null != ss) {

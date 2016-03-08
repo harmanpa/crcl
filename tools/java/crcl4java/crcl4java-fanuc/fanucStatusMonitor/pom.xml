@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <relativePath>..</relativePath>
-        <groupId>com.github.wshackle</groupId>
-        <artifactId>crcl4java-fanuc</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
     <artifactId>fanucStatusMonitor</artifactId>
     <packaging>jar</packaging>
+    <parent>
+        <relativePath>..</relativePath>
+        <artifactId>crcl4java-fanuc</artifactId>
+        <groupId>com.github.wshackle</groupId>
+        <version>1.3-SNAPSHOT</version>
+    </parent>
     <dependencies>
         <dependency>
-            <groupId>com.mycompany</groupId>
             <artifactId>fanucCom4JBase</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jvnet.com4j</groupId>

@@ -35,7 +35,6 @@ import com.github.wshackle.fanuc.robotserver.ITask;
 import com.github.wshackle.fanuc.robotserver.IVar;
 import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
-import com.siemens.ct.exi.exceptions.EXIException;
 import com4j.Com4jObject;
 import com4j.ComException;
 import crcl.base.ActuateJointType;
@@ -73,9 +72,15 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -91,6 +96,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JSlider;
@@ -170,7 +176,7 @@ public class Main {
     private float yMin;
     private float zMax;
     private float zMin;
-    private float border1 = 120;
+    private float border1 = 10;
 
     private void limitAndUpdatePos(ISysGroupPosition pos) {
 
@@ -189,23 +195,29 @@ public class Main {
 
         if (cart.x > xMaxEffective) {
             posXyzWpr.x(xMaxEffective);
+            showError("X move of " + cart.x + " limited to max = " + xMaxEffective);
             changed = true;
         } else if (cart.x < xMinEffective) {
             posXyzWpr.x(xMinEffective);
+            showError("X move of " + cart.x + " limited to min= " + xMinEffective);
             changed = true;
         }
         if (cart.y > yMaxEffective) {
             posXyzWpr.y(yMaxEffective);
+            showError("Y move of " + cart.y + " limited to max = " + yMaxEffective);
             changed = true;
         } else if (cart.y < yMinEffective) {
             posXyzWpr.y(yMinEffective);
+            showError("Y move of " + cart.y + " limited to min = " + yMinEffective);
             changed = true;
         }
         if (cart.z > zMaxEffective) {
             posXyzWpr.x(zMaxEffective);
+            showError("Z move of " + cart.y + " limited to max = " + zMaxEffective);
             changed = true;
         } else if (cart.z < zMinEffective) {
             posXyzWpr.z(zMinEffective);
+            showError("Z move of " + cart.y + " limited to min = " + zMinEffective);
             changed = true;
         }
 
@@ -244,7 +256,7 @@ public class Main {
                 sliderOv.setMaximum(sliderMaxOv.getValue());
                 maxRelativeSpeed = sliderMaxOv.getValue();
             });
-            jframe.setRobot(robot);
+            jframe.setMain(this);
             jframe.setPrograms(tpPrograms);
             jframe.getjMenuItemReconnectRobot().addActionListener(e -> {
                 disconnectRemoteRobot();
@@ -353,7 +365,7 @@ public class Main {
     }
 
     long statusUpdateTime = 0;
-    private CRCLStatusType status = new CRCLStatusType();
+    private final CRCLStatusType status = new CRCLStatusType();
     volatile long moveDoneTime = 0;
     volatile boolean lastCheckAtPosition = false;
     private final double lastJointPosArray[] = new double[10];
@@ -364,7 +376,26 @@ public class Main {
     }
     double lastMaxJointDiff = Double.MAX_VALUE;
 
+    public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
+        if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
+            CRCLStatusType status = readStatusFromRobot();
+            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+                status.setJointStatuses(null);
+            }
+            lastUpdateStatusTime = System.currentTimeMillis();
+            return status;
+        } else {
+            CRCLStatusType status = getStatus();
+            return status;
+        }
+    }
+
     public CRCLStatusType readStatusFromRobot() throws PmException {
+        if (null == robot) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError("fanucCRCLServer not connected to robot");
+            return status;
+        }
         if (status.getCommandStatus() == null) {
             status.setCommandStatus(new CommandStatusType());
             setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -385,6 +416,7 @@ public class Main {
                     double rotDist = distRotFrom(mtPrev.getEndPosition());
                     if ((dist < distanceTolerance
                             && rotDist < distanceRotTolerance
+                            && System.currentTimeMillis() > expectedEndMoveToTime
                             && posReg98.isAtCurPosition()) && (System.currentTimeMillis() - moveTime > 20)) {
                         if (!lastCheckAtPosition) {
                             moveDoneTime = System.currentTimeMillis();
@@ -429,13 +461,16 @@ public class Main {
                         double maxDiff = 0;
                         for (ActuateJointType aj : actJoints.getActuateJoint()) {
                             int num = aj.getJointNumber().intValue();
-                            for (JointStatusType jst : status.getJointStatuses().getJointStatus()) {
-                                if (num == jst.getJointNumber().intValue()) {
-                                    double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
-                                    if (diff > maxDiff) {
-                                        maxDiff = diff;
+                            JointStatusesType jointStatuses = status.getJointStatuses();
+                            if (null != jointStatuses) {
+                                for (JointStatusType jst : jointStatuses.getJointStatus()) {
+                                    if (num == jst.getJointNumber().intValue()) {
+                                        double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
+                                        if (diff > maxDiff) {
+                                            maxDiff = diff;
+                                        }
+                                        break;
                                     }
-                                    break;
                                 }
                             }
                         }
@@ -452,8 +487,13 @@ public class Main {
             lastCheckAtPosition = false;
         }
 
+        if (null == robot) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError("fanucCRCLServer not connected to robot");
+            return status;
+        }
         ICurPosition icp = robot.curPosition();
-        if(null == icp) {
+        if (null == icp) {
             showError("robot.curPosition() returned null");
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
             return status;
@@ -469,47 +509,50 @@ public class Main {
         if (null == status.getJointStatuses()) {
             status.setJointStatuses(new JointStatusesType());
         }
-        status.getJointStatuses().getJointStatus().clear();
-        for (short i = 1; i <= joint_pos.count(); i++) {
-            JointStatusType js = new JointStatusType();
-            js.setJointNumber(BigInteger.valueOf(i));
-            double cur_joint_pos = joint_pos.item(i);
-            double last_joint_pos = lastJointPosArray[i];
-            long last_joint_pos_time = lastJointPosTimeArray[i];
-            long cur_time = System.currentTimeMillis();
-            double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
-            lastJointPosArray[i] = cur_joint_pos;
-            lastJointPosTimeArray[i] = cur_time;
-            BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
-            js.setJointPosition(jointPosition);
-            try {
-                if (null != cjrMap && cjrMap.size() > 0) {
-                    js.setJointPosition(null);
-                    js.setJointVelocity(null);
-                    js.setJointTorqueOrForce(null);
-                    ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
-                    if (null != cjrt) {
-                        if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
-                            if (cjrt.isReportPosition()) {
-                                js.setJointPosition(jointPosition);
-                            }
-                            if (cjrt.isReportVelocity()) {
-                                js.setJointVelocity(BigDecimal.valueOf(joint_vel));
-                            }
-                            if (cjrt.isReportTorqueOrForce()) {
-                                js.setJointTorqueOrForce(BigDecimal.ZERO);
+        final JointStatusesType jointStatuses = status.getJointStatuses();
+        if (null != jointStatuses) {
+            jointStatuses.getJointStatus().clear();
+            for (short i = 1; i <= joint_pos.count(); i++) {
+                JointStatusType js = new JointStatusType();
+                js.setJointNumber(BigInteger.valueOf(i));
+                double cur_joint_pos = joint_pos.item(i);
+                double last_joint_pos = lastJointPosArray[i];
+                long last_joint_pos_time = lastJointPosTimeArray[i];
+                long cur_time = System.currentTimeMillis();
+                double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
+                lastJointPosArray[i] = cur_joint_pos;
+                lastJointPosTimeArray[i] = cur_time;
+                BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
+                js.setJointPosition(jointPosition);
+                try {
+                    if (null != cjrMap && cjrMap.size() > 0) {
+                        js.setJointPosition(null);
+                        js.setJointVelocity(null);
+                        js.setJointTorqueOrForce(null);
+                        ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                        if (null != cjrt) {
+                            if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                if (cjrt.isReportPosition()) {
+                                    js.setJointPosition(jointPosition);
+                                }
+                                if (cjrt.isReportVelocity()) {
+                                    js.setJointVelocity(BigDecimal.valueOf(joint_vel));
+                                }
+                                if (cjrt.isReportTorqueOrForce()) {
+                                    js.setJointTorqueOrForce(BigDecimal.ZERO);
+                                }
                             }
                         }
+                        if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                && prevCmd instanceof ConfigureJointReportsType) {
+                            this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                        }
                     }
-                    if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
-                            && prevCmd instanceof ConfigureJointReportsType) {
-                        this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                    }
+                } catch (Throwable ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (Throwable ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                jointStatuses.getJointStatus().add(js);
             }
-            status.getJointStatuses().getJointStatus().add(js);
         }
         return status;
     }
@@ -610,7 +653,7 @@ public class Main {
         }
     }
 
-    private void showError(String error) {
+    public void showError(String error) {
         System.err.println(error);
         if (null != status) {
             if (null == status.getCommandStatus()) {
@@ -618,12 +661,10 @@ public class Main {
                 status.getCommandStatus().setCommandID(BigInteger.ONE);
             }
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            status.getCommandStatus().setStateDescription(error);
         }
         if (null != jframe) {
             jframe.getjTextAreaErrors().append(error + "\n");
-        }
-        if (null != robot) {
-
         }
     }
 
@@ -687,7 +728,7 @@ public class Main {
     volatile long moveTime = 0;
     private Set<String> origProgNames;
     private double transSpeed = 200; // 200 mm/s
-    private double rotSpeed = 10; // 10 deg/s
+    private double rotSpeed = 90; // 10 deg/s
 
     private boolean posReg98Updated = false;
 
@@ -769,13 +810,15 @@ public class Main {
         }
     }
 
+    long expectedEndMoveToTime = -1;
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
         posReg97Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         PointType moveCmdEndPt = moveCmd.getEndPosition().getPoint();
-        PmCartesian cart = CRCLPosemath.pointToPmCartesian(moveCmdEndPt);
+        PmCartesian cart = CRCLPosemath.toPmCartesian(moveCmdEndPt);
         PmCartesian endCart = new PmCartesian(cart.x * lengthScale, cart.y * lengthScale, cart.z * lengthScale);
         PmRpy rpy = CRCLPosemath.toPmRpy(moveCmd.getEndPosition());
         updatePosReg98();
@@ -796,17 +839,18 @@ public class Main {
         moveCmdEndPt.setY(BigDecimal.valueOf(endCart.y / lengthScale));
         moveCmdEndPt.setZ(BigDecimal.valueOf(endCart.z / lengthScale));
         double cartMoveTime = cartDiff / transSpeed;
-        System.out.println("cartMoveTime = " + cartMoveTime);
+//        System.out.println("cartMoveTime = " + cartMoveTime);
         double rotMoveTime = rotDiff / rotSpeed;
-        System.out.println("rotMoveTime = " + rotMoveTime);
+//        System.out.println("rotMoveTime = " + rotMoveTime);
         if (rotMoveTime > cartMoveTime) {
             double timeNeeded = Math.max(rotMoveTime, cartMoveTime);
             int time_needed_ms = (int) (1000.0 * timeNeeded);
-            System.out.println("time_needed_ms = " + time_needed_ms);
+//            System.out.println("time_needed_ms = " + time_needed_ms);
             regNumeric96.regLong(time_needed_ms);
             reg96Var.update();
 //        System.out.println("move_linear_prog = " + move_linear_prog);
             move_w_time_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
+            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms;
         } else {
             move_linear_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
         }
@@ -973,7 +1017,7 @@ public class Main {
 //        // System.out.println("w: " + pos.w() + "   y:" + pos.p() + "    r:" + pos.r());
         PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
         PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
-        return cart.distFrom(CRCLPosemath.pointToPmCartesian(pose.getPoint()));
+        return cart.distFrom(CRCLPosemath.toPmCartesian(pose.getPoint()));
     }
 
     public double distRotFrom(PoseType pose) throws PmException {
@@ -993,7 +1037,7 @@ public class Main {
         PmRotationVector rotvCurrent = Posemath.toRot(rpy);
         PmRotationVector rotvArg = CRCLPosemath.toPmRotationVector(pose);
         PmRotationVector rotvDiff = rotvArg.multiply(rotvCurrent.inv());
-        System.out.println("rotvDiff.s = " + rotvDiff.s);
+//        System.out.println("rotvDiff.s = " + rotvDiff.s);
         return Math.toDegrees(rotvDiff.s);
     }
 
@@ -1058,7 +1102,7 @@ public class Main {
             try {
                 for (currentWaypointNumber = 0; currentWaypointNumber < moveCmd.getNumPositions().intValue() && currentWaypointNumber < moveCmd.getWaypoint().size(); currentWaypointNumber++) {
                     PoseType pose = moveCmd.getWaypoint().get(currentWaypointNumber);
-                    PmCartesian cart = CRCLPosemath.pointToPmCartesian(pose.getPoint());
+                    PmCartesian cart = CRCLPosemath.toPmCartesian(pose.getPoint());
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     ICurPosition icp = robot.curPosition();
 //        // System.out.println("icp = " + icp);
@@ -1135,7 +1179,7 @@ public class Main {
         moveThread.start();
     }
     public double distanceTolerance = 1.0; // millimeter
-    public double distanceRotTolerance = 0.5; // degrees
+    public double distanceRotTolerance = 0.25; // degrees
 
     private void handleSetLengthUnits(SetLengthUnitsType slu) {
         this.setLengthUnit(slu.getUnitName());
@@ -1159,7 +1203,16 @@ public class Main {
     }
 
     private void setCommandState(CommandStateEnumType newState) {
-        status.getCommandStatus().setCommandState(newState);
+        if (null == status.getCommandStatus()) {
+            status.setCommandStatus(new CommandStatusType());
+        }
+        CommandStatusType cmdStatus = status.getCommandStatus();
+        if (null != cmdStatus) {
+            cmdStatus.setCommandState(newState);
+            if (newState != CommandStateEnumType.CRCL_ERROR && null != prevCmd) {
+                cmdStatus.setStateDescription(prevCmd.getClass().getName());
+            }
+        }
     }
     private ConfigureJointReportsType cjrs;
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
@@ -1450,7 +1503,25 @@ public class Main {
 
     private CRCLCommandType prevCmd = null;
 
-    CRCLSocket utilCrclSocket = new CRCLSocket();
+    final CRCLSocket utilCrclSocket;
+
+    public Main() throws CRCLException {
+        utilCrclSocket = new CRCLSocket();
+    }
+
+    private long lastUpdateStatusTime = -1;
+
+    private synchronized void updateStatus(CRCLSocket cs) {
+        try {
+            CRCLStatusType status = readCachedStatusFromRobot();
+            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+                status.setJointStatuses(null);
+            }
+            cs.writeStatus(status, validate);
+        } catch (Throwable t) {
+            showError(t.toString());
+        }
+    }
 
     private void startCrclServer() throws IOException {
         es = Executors.newWorkStealingPool();
@@ -1467,8 +1538,7 @@ public class Main {
                                     CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
                                     CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                                     if (cmd instanceof GetStatusType) {
-                                        CRCLStatusType status = readStatusFromRobot();
-                                        cs.writeStatus(status, validate);
+                                        updateStatus(cs);
                                     } else {
                                         try {
                                             if (null == status.getCommandStatus()) {
@@ -1490,37 +1560,7 @@ public class Main {
                                                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
                                                 showError(cs.getLastCommandString());
                                             }
-                                            if (cmd instanceof InitCanonType) {
-                                                handleInitCanon((InitCanonType) cmd);
-                                            } else if (cmd instanceof StopMotionType) {
-                                                handleStopMotion((StopMotionType) cmd);
-                                            } else if (cmd instanceof EndCanonType) {
-                                                handleEndCanon((EndCanonType) cmd);
-                                            } else if (cmd instanceof MoveToType) {
-                                                handleMoveTo((MoveToType) cmd);
-                                            } else if (cmd instanceof MoveThroughToType) {
-                                                handleMoveThroughTo((MoveThroughToType) cmd);
-                                            } else if (cmd instanceof SetEndEffectorType) {
-                                                handleSetEndEffector((SetEndEffectorType) cmd);
-                                            } else if (cmd instanceof SetTransSpeedType) {
-                                                handleSetTransSpeed((SetTransSpeedType) cmd);
-                                            } else if (cmd instanceof SetRotSpeedType) {
-                                                handleSetRotSpeed((SetRotSpeedType) cmd);
-                                            } else if (cmd instanceof ActuateJointsType) {
-                                                handleActuateJoints((ActuateJointsType) cmd);
-                                            } else if (cmd instanceof SetLengthUnitsType) {
-                                                handleSetLengthUnits((SetLengthUnitsType) cmd);
-                                            } else if (cmd instanceof SetEndPoseToleranceType) {
-                                                handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
-                                            } else if (cmd instanceof DwellType) {
-                                                handleDwell((DwellType) cmd);
-                                            } else if (cmd instanceof ConfigureJointReportsType) {
-                                                handleConfigureJointReports((ConfigureJointReportsType) cmd);
-                                            } else {
-                                                showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
-                                            }
-                                            prevCmd = cmd;
-//                                    this.checkAlarms();
+                                            handleCommand(cmd);
                                         } catch (ComException comEx) {
                                             showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
                                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
@@ -1539,7 +1579,7 @@ public class Main {
                             }
                         } catch (SocketException se) {
                             // probably just closing the connection.
-                        } catch (JAXBException | EXIException | SAXException | IOException | InterruptedException ex) {
+                        } catch (JAXBException | SAXException | IOException | InterruptedException ex) {
                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                             showError(ex.getMessage());
                         } catch (Exception ex) {
@@ -1558,10 +1598,46 @@ public class Main {
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                     return;
+                } catch (CRCLException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
 
+    }
+
+    public synchronized void handleCommand(CRCLCommandType cmd) throws PmException, InterruptedException {
+        if (cmd instanceof InitCanonType) {
+            handleInitCanon((InitCanonType) cmd);
+        } else if (cmd instanceof StopMotionType) {
+            handleStopMotion((StopMotionType) cmd);
+        } else if (cmd instanceof EndCanonType) {
+            handleEndCanon((EndCanonType) cmd);
+        } else if (cmd instanceof MoveToType) {
+            handleMoveTo((MoveToType) cmd);
+        } else if (cmd instanceof MoveThroughToType) {
+            handleMoveThroughTo((MoveThroughToType) cmd);
+        } else if (cmd instanceof SetEndEffectorType) {
+            handleSetEndEffector((SetEndEffectorType) cmd);
+        } else if (cmd instanceof SetTransSpeedType) {
+            handleSetTransSpeed((SetTransSpeedType) cmd);
+        } else if (cmd instanceof SetRotSpeedType) {
+            handleSetRotSpeed((SetRotSpeedType) cmd);
+        } else if (cmd instanceof ActuateJointsType) {
+            handleActuateJoints((ActuateJointsType) cmd);
+        } else if (cmd instanceof SetLengthUnitsType) {
+            handleSetLengthUnits((SetLengthUnitsType) cmd);
+        } else if (cmd instanceof SetEndPoseToleranceType) {
+            handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
+        } else if (cmd instanceof DwellType) {
+            handleDwell((DwellType) cmd);
+        } else if (cmd instanceof ConfigureJointReportsType) {
+            handleConfigureJointReports((ConfigureJointReportsType) cmd);
+        } else {
+            showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
+        }
+        prevCmd = cmd;
+//                                    this.checkAlarms();
     }
     private IRobot2 robot;
     private IIndGroupPosition groupPos;
@@ -1571,10 +1647,10 @@ public class Main {
     private ITPProgram move_w_time_prog;
     private ITPProgram move_joint_prog;
     private IVar overrideVar = null;
-    private IVar reg96Var=null;
-    private IVar reg97Var=null;
-    private IVar reg98Var=null;
-    
+    private IVar reg96Var = null;
+    private IVar reg97Var = null;
+    private IVar reg98Var = null;
+
     private IRegNumeric regNumeric96 = null;
     private IRegNumeric regNumeric97 = null;
     private IRegNumeric regNumeric98 = null;
@@ -1633,6 +1709,57 @@ public class Main {
 
     float lowerJointLimits[] = new float[6];
     float upperJointLimits[] = new float[6];
+
+    public void applyAdditionalCartLimits(PmCartesian min, PmCartesian max) {
+        xMax = (float) Math.min(xMax, max.x);
+        xMin = (float) Math.max(xMin, min.x);
+        yMax = (float) Math.min(yMax, max.y);
+        yMin = (float) Math.max(yMin, min.y);
+        zMax = (float) Math.min(zMax, max.z);
+        zMin = (float) Math.max(zMin, min.z);
+    }
+
+    public void saveCartLimits(PmCartesian min, PmCartesian max) {
+        try (PrintWriter pw = new PrintWriter(CART_LIMITS_FILE)) {
+            pw.println("min.x=" + min.x);
+            pw.println("min.y=" + min.y);
+            pw.println("min.z=" + min.z);
+            pw.println("max.x=" + max.x);
+            pw.println("max.y=" + max.y);
+            pw.println("max.z=" + max.z);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    public static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
+            ".fanucCRLCCartLimits.txt");
+
+    private void findString(String input, String token, Consumer<String> tailConsumer) {
+        int index = input.indexOf(token);
+        if(index >= 0) {
+            String tail = input.substring(index+token.length());
+            tailConsumer.accept(tail);
+        }
+    }
+
+    public void readAndApplyUserCartLimits() {
+        PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+        try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                findString(line,"min.x=", t -> min.x = Double.valueOf(t));
+                findString(line,"max.x=", t -> max.x = Double.valueOf(t));
+                findString(line,"min.y=", t -> min.y = Double.valueOf(t));
+                findString(line,"max.y=", t -> max.y = Double.valueOf(t));
+                findString(line,"min.z=", t -> min.z = Double.valueOf(t));
+                findString(line,"max.z=", t -> max.z = Double.valueOf(t));
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        applyAdditionalCartLimits(min, max);
+    }
 
     private void connectRemoteRobot() {
         try {
@@ -1881,125 +2008,8 @@ public class Main {
             IVars sysvars = robot.sysVariables();
             System.out.println("Getting system variable for $MCR.$GENOVERRIDE ...");
             overrideVar = sysvars.item("$MCR.$GENOVERRIDE", null).queryInterface(IVar.class);
-            IVar xLimitVar1 = sysvars.item("$DCSS_CPC[1].$X[1]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar1 = " + xLimitVar1);
-            if (null != xLimitVar1) {
-                System.out.println("xLimitVar1.value() = " + xLimitVar1.value());
-                xMax = xMin = (Float) xLimitVar1.value();
-            }
-            IVar xLimitVar2 = sysvars.item("$DCSS_CPC[1].$X[2]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar2 = " + xLimitVar2);
-            if (null != xLimitVar2) {
-                System.out.println("xLimitVar2.value() = " + xLimitVar2.value());
-                float v = (Float) xLimitVar2.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-            IVar xLimitVar3 = sysvars.item("$DCSS_CPC[1].$X[3]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar3 = " + xLimitVar3);
-            if (null != xLimitVar3) {
-                System.out.println("xLimitVar3.value() = " + xLimitVar3.value());
-                float v = (Float) xLimitVar3.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-            IVar xLimitVar4 = sysvars.item("$DCSS_CPC[1].$X[4]", null).queryInterface(IVar.class);
-            System.out.println("xLimitVar4 = " + xLimitVar4);
-            if (null != xLimitVar4) {
-                System.out.println("xLimitVar4.value() = " + xLimitVar4.value());
-                float v = (Float) xLimitVar4.value();
-                if (xMax < v) {
-                    xMax = v;
-                }
-                if (xMin > v) {
-                    xMin = v;
-                }
-            }
-
-            System.out.println("xMin = " + xMin);
-            System.out.println("xMax = " + xMax);
-
-            IVar yLimitVar1 = sysvars.item("$DCSS_CPC[1].$Y[1]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar1 = " + yLimitVar1);
-            if (null != yLimitVar1) {
-                System.out.println("yLimitVar1.value() = " + yLimitVar1.value());
-                yMax = yMin = (Float) yLimitVar1.value();
-            }
-            IVar yLimitVar2 = sysvars.item("$DCSS_CPC[1].$Y[2]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar2 = " + yLimitVar2);
-            if (null != yLimitVar2) {
-                System.out.println("yLimitVar2.value() = " + yLimitVar2.value());
-                float v = (Float) yLimitVar2.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-            IVar yLimitVar3 = sysvars.item("$DCSS_CPC[1].$Y[3]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar3 = " + yLimitVar3);
-            if (null != yLimitVar3) {
-                System.out.println("yLimitVar3.value() = " + yLimitVar3.value());
-                float v = (Float) yLimitVar3.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-            IVar yLimitVar4 = sysvars.item("$DCSS_CPC[1].$Y[4]", null).queryInterface(IVar.class);
-            System.out.println("yLimitVar4 = " + yLimitVar4);
-            if (null != yLimitVar4) {
-                System.out.println("yLimitVar4.value() = " + yLimitVar4.value());
-                float v = (Float) yLimitVar4.value();
-                if (yMax < v) {
-                    yMax = v;
-                }
-                if (yMin > v) {
-                    yMin = v;
-                }
-            }
-
-            System.out.println("yMin = " + yMin);
-            System.out.println("yMax = " + yMax);
-
-            IVar zLimitVar1 = sysvars.item("$DCSS_CPC[1].$Z1", null).queryInterface(IVar.class);
-            System.out.println("zLimitVar1 = " + zLimitVar1);
-            if (null != zLimitVar1) {
-                System.out.println("zLimitVar1.value() = " + zLimitVar1.value());
-                zMax = zMin = (Float) zLimitVar1.value();
-            }
-            IVar zLimitVar2 = sysvars.item("$DCSS_CPC[1].$Z2", null).queryInterface(IVar.class);
-            System.out.println("zLimitVar2 = " + zLimitVar2);
-            if (null != zLimitVar2) {
-                System.out.println("zLimitVar2.value() = " + zLimitVar2.value());
-                float v = (Float) zLimitVar2.value();
-                if (zMax < v) {
-                    zMax = v;
-                }
-                if (zMin > v) {
-                    zMin = v;
-                }
-            }
-
-            System.out.println("zMin = " + zMin);
-            System.out.println("zMax = " + zMax);
-            for (int i = 0; i < 6; i++) {
-                IVar jointLowerLimVar = sysvars.item("$MRR_GRP[1].$LOWERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
-                System.out.println("joint1LowerLimVar = " + jointLowerLimVar);
-                System.out.println("joint1LowerLimVar.value() = " + jointLowerLimVar.value());
-                this.lowerJointLimits[i] = (Float) jointLowerLimVar.value();
-            }
+            readCartLimitsFromRobot();
+            readAndApplyUserCartLimits();
             for (int i = 0; i < 6; i++) {
                 IVar jointUpperLimVar = sysvars.item("$MRR_GRP[1].$UPPERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
                 System.out.println("joint1UpperLimVar = " + jointUpperLimVar);
@@ -2016,6 +2026,129 @@ public class Main {
             showError(e.toString());
         }
 //        robot.
+    }
+
+    public void readCartLimitsFromRobot() {
+        IVars sysvars = robot.sysVariables();
+        IVar xLimitVar1 = sysvars.item("$DCSS_CPC[1].$X[1]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar1 = " + xLimitVar1);
+        if (null != xLimitVar1) {
+            System.out.println("xLimitVar1.value() = " + xLimitVar1.value());
+            xMax = xMin = (Float) xLimitVar1.value();
+        }
+        IVar xLimitVar2 = sysvars.item("$DCSS_CPC[1].$X[2]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar2 = " + xLimitVar2);
+        if (null != xLimitVar2) {
+            System.out.println("xLimitVar2.value() = " + xLimitVar2.value());
+            float v = (Float) xLimitVar2.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+        IVar xLimitVar3 = sysvars.item("$DCSS_CPC[1].$X[3]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar3 = " + xLimitVar3);
+        if (null != xLimitVar3) {
+            System.out.println("xLimitVar3.value() = " + xLimitVar3.value());
+            float v = (Float) xLimitVar3.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+        IVar xLimitVar4 = sysvars.item("$DCSS_CPC[1].$X[4]", null).queryInterface(IVar.class);
+        System.out.println("xLimitVar4 = " + xLimitVar4);
+        if (null != xLimitVar4) {
+            System.out.println("xLimitVar4.value() = " + xLimitVar4.value());
+            float v = (Float) xLimitVar4.value();
+            if (xMax < v) {
+                xMax = v;
+            }
+            if (xMin > v) {
+                xMin = v;
+            }
+        }
+
+        System.out.println("xMin = " + xMin);
+        System.out.println("xMax = " + xMax);
+
+        IVar yLimitVar1 = sysvars.item("$DCSS_CPC[1].$Y[1]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar1 = " + yLimitVar1);
+        if (null != yLimitVar1) {
+            System.out.println("yLimitVar1.value() = " + yLimitVar1.value());
+            yMax = yMin = (Float) yLimitVar1.value();
+        }
+        IVar yLimitVar2 = sysvars.item("$DCSS_CPC[1].$Y[2]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar2 = " + yLimitVar2);
+        if (null != yLimitVar2) {
+            System.out.println("yLimitVar2.value() = " + yLimitVar2.value());
+            float v = (Float) yLimitVar2.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+        IVar yLimitVar3 = sysvars.item("$DCSS_CPC[1].$Y[3]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar3 = " + yLimitVar3);
+        if (null != yLimitVar3) {
+            System.out.println("yLimitVar3.value() = " + yLimitVar3.value());
+            float v = (Float) yLimitVar3.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+        IVar yLimitVar4 = sysvars.item("$DCSS_CPC[1].$Y[4]", null).queryInterface(IVar.class);
+        System.out.println("yLimitVar4 = " + yLimitVar4);
+        if (null != yLimitVar4) {
+            System.out.println("yLimitVar4.value() = " + yLimitVar4.value());
+            float v = (Float) yLimitVar4.value();
+            if (yMax < v) {
+                yMax = v;
+            }
+            if (yMin > v) {
+                yMin = v;
+            }
+        }
+
+        System.out.println("yMin = " + yMin);
+        System.out.println("yMax = " + yMax);
+
+        IVar zLimitVar1 = sysvars.item("$DCSS_CPC[1].$Z1", null).queryInterface(IVar.class);
+        System.out.println("zLimitVar1 = " + zLimitVar1);
+        if (null != zLimitVar1) {
+            System.out.println("zLimitVar1.value() = " + zLimitVar1.value());
+            zMax = zMin = (Float) zLimitVar1.value();
+        }
+        IVar zLimitVar2 = sysvars.item("$DCSS_CPC[1].$Z2", null).queryInterface(IVar.class);
+        System.out.println("zLimitVar2 = " + zLimitVar2);
+        if (null != zLimitVar2) {
+            System.out.println("zLimitVar2.value() = " + zLimitVar2.value());
+            float v = (Float) zLimitVar2.value();
+            if (zMax < v) {
+                zMax = v;
+            }
+            if (zMin > v) {
+                zMin = v;
+            }
+        }
+
+        System.out.println("zMin = " + zMin);
+        System.out.println("zMax = " + zMax);
+        for (int i = 0; i < 6; i++) {
+            IVar jointLowerLimVar = sysvars.item("$MRR_GRP[1].$LOWERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
+            System.out.println("joint1LowerLimVar = " + jointLowerLimVar);
+            System.out.println("joint1LowerLimVar.value() = " + jointLowerLimVar.value());
+            this.lowerJointLimits[i] = (Float) jointLowerLimVar.value();
+        }
     }
     public static final float DEFAULT_CART_SPEED = 100.0f;
 
@@ -2040,7 +2173,7 @@ public class Main {
 //            final int startOverride = Math.max(9, Math.min(mcr_genoverride_value, ((int)maxRelativeSpeed)));
 //            overrideVar.value(startOverride);
         if (null != jframe) {
-            jframe.setRobot(robot);
+            jframe.setMain(this);
             jframe.setPrograms(tpPrograms);
             jframe.getjTableCartesianLimits().setModel(new DefaultTableModel(
                     new Object[][]{
@@ -2059,10 +2192,11 @@ public class Main {
                     },
                     new String[]{"Joint", "Minimum", "Current", "Maximum"}));
             jframe.setOverrideVar(getOverideVar());
+            jframe.getjTableCartesianLimits().getModel().addTableModelListener(e -> jframe.updateCartLimits());
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, CRCLException {
         Main main = new Main();
         String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";
         String host = args.length > 1 ? args[1] : "129.6.78.111";
