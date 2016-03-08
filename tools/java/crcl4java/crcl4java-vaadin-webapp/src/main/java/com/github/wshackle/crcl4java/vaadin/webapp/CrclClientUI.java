@@ -132,7 +132,7 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                     System.currentTimeMillis() + "msg.html");
     private boolean running = false;
     private boolean skip_wait_for_done = false;
-    private final BrowserFrame browser = new BrowserFrame("Message", defaultBrowserResource);
+//    private final BrowserFrame browser = new BrowserFrame("Message", defaultBrowserResource);
     private final TextField hostField = new TextField("Host");
     private final TextField portField = new TextField("Port");
     private final Button disconnectButton = new Button("Disconnect");
@@ -692,11 +692,11 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         posRotateLine.addComponent(rotTable);
         middleLayout.addComponent(posRotateLine);
         middleLayout.addComponent(programIndexLabel);
-        browser.setWidth("600px");
-        browser.setHeight("600px");
-//        browser.setWidth(50, Unit.PERCENTAGE);
-//        browser.setHeight(100, Unit.PERCENTAGE);
-        mainLayout.addComponent(browser);
+//        browser.setWidth("600px");
+//        browser.setHeight("600px");
+////        browser.setWidth(50, Unit.PERCENTAGE);
+////        browser.setHeight(100, Unit.PERCENTAGE);
+//        mainLayout.addComponent(browser);
         HorizontalLayout hostPortLine = new HorizontalLayout();
         hostPortLine.setSpacing(true);
         hostField.setValue("localhost");
@@ -806,16 +806,16 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 if (spaceindex > 0) {
                     cmd = cmd.substring(0, spaceindex);
                 }
-                Resource r = browserMap.get(cmd);
-                if (null != r) {
-                    mySyncAccess(() -> {
-                        browser.setSource(r);
-                    });
-                } else {
-                    mySyncAccess(() -> {
-                        browser.setSource(defaultBrowserResource);
-                    });
-                }
+//                Resource r = browserMap.get(cmd);
+//                if (null != r) {
+//                    mySyncAccess(() -> {
+//                        browser.setSource(r);
+//                    });
+//                } else {
+//                    mySyncAccess(() -> {
+//                        browser.setSource(defaultBrowserResource);
+//                    });
+//                }
             }
         });
         uploadProgram.addSucceededListener(new Upload.SucceededListener() {
@@ -1091,6 +1091,15 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
         try {
             System.out.println("disconnect() called. " + disconnectCount);
             disconnectCount++;
+            if (null != updateThread) {
+                updateThread.interrupt();
+                try {
+                    updateThread.join(50);
+                } catch (InterruptedException ex) {
+//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                updateThread = null;
+            }
             if (null != socket) {
                 socket.close();
                 socket = null;
@@ -1160,25 +1169,11 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
             System.out.println("close() called.");
             oldProgram = null;
             running = false;
-            if (null != updateThread) {
-                updateThread.interrupt();
-                try {
-                    updateThread.join(50);
-                } catch (InterruptedException ex) {
-//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                updateThread = null;
-            }
-            if (null != socket) {
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                socket = null;
-            }
+            disconnect();
         } finally {
+            System.out.println("super.close() called.");
             super.close();
+            System.out.println("close() returning.");
         }
     }
 
@@ -1798,13 +1793,13 @@ public class CrclClientUI extends UI implements Consumer<ProgramInfo> {
                 Notification n = new Notification("Program Paused to Show Message. Review the message to the right, then click Run to continue.");
                 n.setDelayMsec(5000);
                 n.show(Page.getCurrent());
-                if (msgString.startsWith("http:") || msgString.startsWith("https:")) {
-                    browser.setSource(new ExternalResource(msgString));
-                } else {
-                    browser.setSource(new StreamResource(
-                            () -> new ByteArrayInputStream(("<html><body>" + msgString + "</body></html>").getBytes()),
-                            System.currentTimeMillis() + "msg.html"));
-                }
+//                if (msgString.startsWith("http:") || msgString.startsWith("https:")) {
+//                    browser.setSource(new ExternalResource(msgString));
+//                } else {
+//                    browser.setSource(new StreamResource(
+//                            () -> new ByteArrayInputStream(("<html><body>" + msgString + "</body></html>").getBytes()),
+//                            System.currentTimeMillis() + "msg.html"));
+//                }
                 running = false;
                 setProgramInfo(new ProgramInfo(programInfo.getRemotePrograms(),
                         programInfo.getCurrentFileName(),
