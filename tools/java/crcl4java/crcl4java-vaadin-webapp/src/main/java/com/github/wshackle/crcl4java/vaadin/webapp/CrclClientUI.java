@@ -164,10 +164,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button speed10Button = new Button("10% Speed");
     private final Button speed50Button = new Button("50% Speed");
     private final Button speed100Button = new Button("100% Speed");
-    private final Button jogInc1Button = new Button("1 mm/1 deg.");
-    private final Button jogInc10Button = new Button("10 mm/10 deg.");
-    private final Button jogInc100Button = new Button("100 mm/100 deg.");
-    private final Label jogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,  " + String.format("%+6.1f ", Math.toDegrees(worldAngleIncrementRad)) + " deg.  ");
+    private final Button jogIncPoint1Button = new Button(".1 mm");
+    private final Button jogInc1Button = new Button("1 mm");
+    private final Button jogInc10Button = new Button("10 mm");
+    private final Button jogInc100Button = new Button("100 mm");
+    private final Button jogInc1000Button = new Button("1m");
+    private final Label jogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
     final ProgressBar jogIncProgressBar = new ProgressBar(0.0f);
     private final Button openGripperButton = new Button("Open Gripper");
     private final Button closeGripperButton = new Button("Close Gripper");
@@ -1049,28 +1051,46 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final HorizontalLayout incrementButtonLine = new HorizontalLayout();
         incrementButtonLine.setSpacing(true);
         incrementButtonLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        jogIncPoint1Button.addClickListener(e -> {
+            worldAngleIncrementRad = Math.toRadians(0.1);
+            jogWorldTransInc = BigDecimal.valueOf(0.1);
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
+        });
+        incrementButtonLine.addComponent(jogIncPoint1Button);
         jogInc1Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(1.0);
             jogWorldTransInc = BigDecimal.ONE;
-            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,  " + String.format("%+6.1f ", Math.toDegrees(worldAngleIncrementRad)) + " deg.  ");
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
         });
         incrementButtonLine.addComponent(jogInc1Button);
         jogInc10Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(10.0);
             jogWorldTransInc = BigDecimal.TEN;
-            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,  " + String.format("%+6.1f ", Math.toDegrees(worldAngleIncrementRad)) + " deg.  ");
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
         });
         incrementButtonLine.addComponent(jogInc10Button);
         jogInc100Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(100.0);
             jogWorldTransInc = BigDecimal.valueOf(100.0);
-            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,  " + String.format("%+6.1f ", Math.toDegrees(worldAngleIncrementRad)) + " deg.  ");
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,");
         });
         incrementButtonLine.addComponent(jogInc100Button);
-        incrementButtonLine.addComponent(jogIncLabel);
+        jogInc1000Button.addClickListener(e -> {
+            worldAngleIncrementRad = Math.toRadians(1000.0);
+            jogWorldTransInc = BigDecimal.valueOf(1000.0);
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc.doubleValue()/1000.0) + "m");
+        });
+        incrementButtonLine.addComponent(jogInc1000Button);
         jogWorldRightLayout.addComponent(incrementButtonLine);
 
-        jogWorldRightLayout.addComponent(jogIncProgressBar);
+        HorizontalLayout jogIncLine = new HorizontalLayout();
+        jogIncLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        jogIncLine.setSpacing(true);
+        jogIncLine.addComponent(jogIncLabel);
+        jogIncLine.addComponent(jogIncProgressBar);
+        jogWorldRightLayout.addComponent(jogIncLine);
+
+        
 
         final HorizontalLayout buttonLine = new HorizontalLayout();
         buttonLine.setSpacing(true);
