@@ -227,6 +227,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Table transformTable = new Table("Computed Transform");
     private final Button computeTransformButton = new Button("ComputeTransform");
     private final Button transformProgramButton = new Button("Apply Transform To Program");
+    private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
     private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
 
@@ -308,7 +309,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 tmpsocket = new CRCLSocket();
             }
             final CRCLSocket tmpsocketf = tmpsocket;
-            fos.write(tmpsocketf.programToPrettyDocString(recordPointsProgram, false).getBytes());
+            fos.write(tmpsocketf.programToPrettyDocString(recordPointsProgram, true).getBytes());
         } catch (IOException | CRCLException | JAXBException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -621,6 +622,38 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
+    private void flipXAxis() {
+        try {
+            CRCLSocket tmpsocket = socket;
+            if (null == tmpsocket) {
+                tmpsocket = new CRCLSocket();
+            }
+            final CRCLSocket tmpsocketf = tmpsocket;
+            if (null == commonInfo.getCurrentProgram()) {
+                return;
+            }
+            String newProgName = commonInfo.getCurrentFileName();
+            if (newProgName.endsWith(".xml")) {
+                newProgName = newProgName.substring(0, newProgName.length() - 4);
+            }
+            int flippedIndex = newProgName.indexOf(".flipped");
+            if (flippedIndex > 0) {
+                newProgName = newProgName.substring(0, flippedIndex);
+            }
+            newProgName += ".flipped." + currentDateString() + ".xml";
+            CRCLProgramType newProgram = CRCLPosemath.flipXAxis(commonInfo.getCurrentProgram());
+            try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
+                fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
+            } catch (IOException | JAXBException ex) {
+                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+//            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
+            setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
+        } catch (CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public void startRun() {
         if (null == socket) {
             connect();
@@ -823,8 +856,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         computeTransformButton.addClickListener(e -> computeTransform());
         transformSetupLayout.addComponent(computeTransformButton);
         transformSetupLayout.addComponent(transformTable);
-        transformSetupLayout.addComponent(transformProgramButton);
+        HorizontalLayout applyLine = new HorizontalLayout();
+        applyLine.addComponent(transformProgramButton);
         transformProgramButton.addClickListener(e -> transformProgram());
+        applyLine.addComponent(flipXAxisButton);
+        flipXAxisButton.addClickListener(e -> flipXAxis());
+        transformSetupLayout.addComponent(applyLine);
         runButton.addClickListener(new Button.ClickListener() {
 
             @Override
@@ -1078,7 +1115,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jogInc1000Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(1000.0);
             jogWorldTransInc = BigDecimal.valueOf(1000.0);
-            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc.doubleValue()/1000.0) + "m");
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc.doubleValue() / 1000.0) + "m");
         });
         incrementButtonLine.addComponent(jogInc1000Button);
         jogWorldRightLayout.addComponent(incrementButtonLine);
@@ -1089,8 +1126,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jogIncLine.addComponent(jogIncLabel);
         jogIncLine.addComponent(jogIncProgressBar);
         jogWorldRightLayout.addComponent(jogIncLine);
-
-        
 
         final HorizontalLayout buttonLine = new HorizontalLayout();
         buttonLine.setSpacing(true);
@@ -1242,7 +1277,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     public void sendCommand(CRCLCommandType cmd) throws CRCLException {
-        if(cmd.getCommandID() == null) {
+        if (cmd.getCommandID() == null) {
             BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
             cmd.setCommandID(nextId);
         }
@@ -1518,9 +1553,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private static BigDecimal jogWorldRotInc = BigDecimal.valueOf(100.0);
 
     private static float computeFraction(BigDecimal goal, BigDecimal current, BigDecimal inc) {
-        return (float) (Math.abs(inc.doubleValue() - Math.abs(goal.doubleValue()-current.doubleValue()))/inc.doubleValue());
+        return (float) (Math.abs(inc.doubleValue() - Math.abs(goal.doubleValue() - current.doubleValue())) / inc.doubleValue());
     }
-    
+
     private PoseType currentPose = null;
 
     @SuppressWarnings("unchecked")
@@ -1767,7 +1802,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             case X_PLUS:
                                 if (null != prevMoveTo) {
                                     float fraction
-                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getX(), pt.getX(),jogWorldTransInc);
+                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getX(), pt.getX(), jogWorldTransInc);
                                     jogIncProgressBar.setValue(fraction);
                                 }
                                 break;
@@ -1776,7 +1811,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             case Y_PLUS:
                                 if (null != prevMoveTo) {
                                     float fraction
-                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getY(), pt.getY(),jogWorldTransInc);
+                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getY(), pt.getY(), jogWorldTransInc);
                                     jogIncProgressBar.setValue(fraction);
                                 }
                                 break;
@@ -1785,7 +1820,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             case Z_PLUS:
                                 if (null != prevMoveTo) {
                                     float fraction
-                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getZ(), pt.getZ(),jogWorldTransInc);
+                                            = computeFraction(prevMoveTo.getEndPosition().getPoint().getZ(), pt.getZ(), jogWorldTransInc);
                                     jogIncProgressBar.setValue(fraction);
                                 }
                                 break;

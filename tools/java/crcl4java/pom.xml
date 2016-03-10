@@ -252,6 +252,9 @@
         </profile>
         <profile> 
             <id>release</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>

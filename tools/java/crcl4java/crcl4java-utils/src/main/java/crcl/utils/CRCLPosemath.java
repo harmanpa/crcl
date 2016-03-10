@@ -82,6 +82,67 @@ public class CRCLPosemath {
     }
 
     /**
+     * Copy or clone the point.
+     * @param pt point to be cloned.
+     * @return PointType with same initial values as pt but can be independantly modified.
+     */
+    public static PointType copy(PointType pt) {
+        PointType newPt = new PointType();
+        newPt.setName(pt.getName());
+        newPt.setX(pt.getX());
+        newPt.setY(pt.getY());
+        newPt.setZ(pt.getZ());
+        return newPt;
+    }
+
+    /**
+     * Copy or clone the vector.
+     * @param vec vector to be cloned
+     * @return VectorType with same initial values as vec but can be independantly modified.
+     */
+    public static VectorType copy(VectorType vec) {
+        VectorType newVec = new VectorType();
+        newVec.setName(vec.getName());
+        newVec.setI(vec.getI());
+        newVec.setJ(vec.getJ());
+        newVec.setK(vec.getK());
+        return newVec;
+    }
+    
+    /**
+     * Copy or clone the pose.
+     * @param pose pose to be cloned
+     * @return PoseType with same initial values as pose but can be independantly modified.
+     */
+    public static PoseType copy(PoseType pose) {
+        PoseType newPose = new PoseType();
+        newPose.setName(pose.getName());
+        newPose.setPoint(copy(pose.getPoint()));
+        newPose.setXAxis(copy(pose.getXAxis()));
+        newPose.setZAxis(copy(pose.getZAxis()));
+        return newPose;
+    }
+    
+    /**
+     * Copy or clone the pose.
+     * @param pose pose to be have x axis flipped.
+     * @return PoseType with same initial values as pose except X points in the opposite direction. 
+     */
+    public static PoseType flipXAxis(PoseType pose) {
+        PoseType newPose = new PoseType();
+        newPose.setName(pose.getName());
+        newPose.setPoint(copy(pose.getPoint()));
+        VectorType newXAxis = new VectorType();
+        final BigDecimal MINUS_ONE = BigDecimal.valueOf(-1);
+        newXAxis.setI(pose.getXAxis().getI().multiply(MINUS_ONE));
+        newXAxis.setJ(pose.getXAxis().getJ().multiply(MINUS_ONE));
+        newXAxis.setK(pose.getXAxis().getK().multiply(MINUS_ONE));
+        newPose.setXAxis(newXAxis);
+        newPose.setZAxis(copy(pose.getZAxis()));
+        return newPose;
+    }
+    
+    /**
      * Create a Point an initialize X,Y, and Z to zero.
      *
      * @return new zeroed point.
@@ -115,7 +176,53 @@ public class CRCLPosemath {
                 } else {
                     moveToCmdOut.setCommandID(id);
                 }
-                moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose,moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                programOut.getMiddleCommand().add(moveToCmdOut);
+            } else {
+                programOut.getMiddleCommand().add(cmd);
+            }
+            if (null != cmd.getCommandID()) {
+                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
+            } else {
+                id = id.add(BigInteger.ONE);
+            }
+        }
+        EndCanonType endCmdOut = new EndCanonType();
+        EndCanonType endCmdIn = programIn.getEndCanon();
+        if (null != endCmdIn) {
+            endCmdOut.setCommandID(endCmdIn.getCommandID());
+        }
+        if (null == endCmdOut.getCommandID()) {
+            id = id.add(BigInteger.ONE);
+            endCmdOut.setCommandID(id);
+        }
+        programOut.setEndCanon(endCmdOut);
+        return programOut;
+    }
+
+    public static CRCLProgramType flipXAxis(CRCLProgramType programIn) {
+        CRCLProgramType programOut = new CRCLProgramType();
+        InitCanonType initCmdOut = new InitCanonType();
+        InitCanonType initCmdIn = programIn.getInitCanon();
+        if (null != initCmdIn) {
+            initCmdOut.setCommandID(initCmdIn.getCommandID());
+        }
+        BigInteger id = initCmdIn.getCommandID();
+        if (null == id) {
+            id = BigInteger.ONE;
+        }
+        programOut.setInitCanon(initCmdOut);
+        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmdIn = (MoveToType) cmd;
+                MoveToType moveToCmdOut = new MoveToType();
+                if (null != moveToCmdIn.getCommandID()) {
+                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                } else {
+                    moveToCmdOut.setCommandID(id);
+                }
+                moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
             } else {
