@@ -38,6 +38,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import rcs.posemath.PmCartesian;
 
 /**
  *
@@ -49,7 +50,7 @@ public class ProgramPlotter {
         this.view = view;
     }
 
-    private boolean autoScale;
+    private boolean autoScale = true;
 
     public static enum View {
         OVERHEAD, SIDE;
@@ -119,6 +120,13 @@ public class ProgramPlotter {
                 ymin = Math.min(ymin, pt2D.y);
                 ymax = Math.max(ymax, pt2D.y);
             }
+        }
+        if (null != currentPoint) {
+            Point2D.Double pt2D = toPoint2D(currentPoint);
+            xmin = Math.min(xmin, pt2D.x);
+            xmax = Math.max(xmax, pt2D.x);
+            ymin = Math.min(ymin, pt2D.y);
+            ymax = Math.max(ymax, pt2D.y);
         }
         rect.x = xmin;
         rect.width = xmax - xmin;
@@ -262,7 +270,7 @@ public class ProgramPlotter {
         this.beforeIndexPointColor = beforeIndexPointColor;
     }
 
-    private Color afterIndexPointColor = Color.red.darker();
+    private Color afterIndexPointColor = Color.orange;
 
     /**
      * Get the value of afterIndexPointColor
@@ -309,6 +317,48 @@ public class ProgramPlotter {
         return bi;
     }
 
+    private PointType currentPoint;
+
+    /**
+     * Get the value of currentPoint
+     *
+     * @return the value of currentPoint
+     */
+    public PointType getCurrentPoint() {
+        return currentPoint;
+    }
+
+    /**
+     * Set the value of currentPoint
+     *
+     * @param currentPoint new value of currentPoint
+     */
+    public void setCurrentPoint(PointType currentPoint) {
+        this.currentPoint = currentPoint;
+    }
+
+    private Color currentPointColor = Color.red.darker();
+
+    ;
+
+    /**
+     * Get the value of currentPointColor
+     *
+     * @return the value of currentPointColor
+     */
+    public Color getCurrentPointColor() {
+        return currentPointColor;
+    }
+
+    /**
+     * Set the value of currentPointColor
+     *
+     * @param currentPointColor new value of currentPointColor
+     */
+    public void setCurrentPointColor(Color currentPointColor) {
+        this.currentPointColor = currentPointColor;
+    }
+
     public void paint(CRCLProgramType program, Graphics2D g2d, int programIndex) {
         if (autoScale || null == bounds) {
             setBounds(findBounds(program));
@@ -324,8 +374,10 @@ public class ProgramPlotter {
                 (dimension.height - yMargin) / bounds.height);
         g2d.setBackground(background);
         g2d.clearRect(0, 0, dimension.width, dimension.height);
-        g2d.scale(scale, scale);
-        g2d.translate(-bounds.x + xMargin / (2 * scale) + widthUnder / 2.0, -bounds.y + yMargin / (2 * scale) + heightUnder / 2.0);
+        g2d.translate(0, dimension.height);
+        g2d.scale(scale, -scale);
+        g2d.translate(-bounds.x + xMargin / (2 * scale) + widthUnder / 2.0,
+                -bounds.y + yMargin / (2 * scale) + heightUnder / 2.0);
 
 //        g2d.setColor(Color.pink);
 //        g2d.draw(bounds);
@@ -338,7 +390,7 @@ public class ProgramPlotter {
                 MoveToType moveCmd = (MoveToType) cmd;
                 Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
                 if (null != lastPoint) {
-                    if (i > programIndex+1) {
+                    if (i > programIndex + 1) {
                         g2d.setColor(afterIndexLineColor);
                     } else {
                         g2d.setColor(beforeIndexLineColor);
@@ -355,7 +407,7 @@ public class ProgramPlotter {
                 MoveToType moveCmd = (MoveToType) cmd;
                 Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
                 if (null != lastPoint) {
-                    if (i > programIndex+1) {
+                    if (i > programIndex + 1) {
                         g2d.setColor(afterIndexLineColor);
                     } else {
                         g2d.setColor(beforeIndexLineColor);
@@ -370,7 +422,7 @@ public class ProgramPlotter {
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
                 Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
-                if (i > programIndex+1) {
+                if (i > programIndex + 1) {
                     g2d.setColor(afterIndexPointColor);
                 } else {
                     g2d.setColor(beforeIndexPointColor);
@@ -378,12 +430,12 @@ public class ProgramPlotter {
                 g2d.fill(new Arc2D.Double(nextPoint.x - halfPointSize, nextPoint.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
             }
         }
-        for (int i = 0; i < program.getMiddleCommand().size() && i <= programIndex+1; i++) {
+        for (int i = 0; i < program.getMiddleCommand().size() && i <= programIndex + 1; i++) {
             MiddleCommandType cmd = program.getMiddleCommand().get(i);
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
                 Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
-                if (i > programIndex+1) {
+                if (i > programIndex + 1) {
                     g2d.setColor(afterIndexPointColor);
                 } else {
                     g2d.setColor(beforeIndexPointColor);
@@ -394,19 +446,40 @@ public class ProgramPlotter {
         }
         if (null != lastPoint) {
             g2d.setColor(beforeIndexPointColor);
-            g2d.draw(new Line2D.Double(lastPoint.x, bounds.y - yMargin / (2 * scale) - heightUnder / 2.0,
-                    lastPoint.x, bounds.y + bounds.height + yMargin / (2 * scale) + heightUnder / 2.0));
-            g2d.draw(new Line2D.Double(bounds.x - xMargin / (2 * scale) - widthUnder / 2.0, lastPoint.y,
-                    bounds.x + bounds.width + xMargin / (2 * scale) + widthUnder / 2.0, lastPoint.y));
+            paintCrossHairs(g2d, lastPoint, halfPointSize, pointSize, scale, heightUnder, widthUnder);
+        }
+        if (null != currentPoint) {
+            Point2D.Double currentPoint2D = toPoint2D(currentPoint);
+            g2d.setColor(currentPointColor);
+            paintCrossHairs(g2d, currentPoint2D, halfPointSize, pointSize, scale, heightUnder, widthUnder);
         }
     }
 
+    public void paintCrossHairs(Graphics2D g2d, Point2D.Double currentPoint2D, final double halfPointSize, final double pointSize, double scale, double heightUnder, double widthUnder) {
+        g2d.fill(new Arc2D.Double(currentPoint2D.x - halfPointSize, currentPoint2D.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
+        g2d.draw(new Line2D.Double(currentPoint2D.x, bounds.y - yMargin / (2 * scale) - heightUnder / 2.0,
+                currentPoint2D.x, bounds.y));
+        g2d.draw(new Line2D.Double(currentPoint2D.x, bounds.y + bounds.height,
+                currentPoint2D.x, bounds.y + bounds.height + yMargin / (2 * scale) + heightUnder / 2.0));
+        g2d.draw(new Line2D.Double(bounds.x - xMargin / (2 * scale) - widthUnder / 2.0, currentPoint2D.y,
+                bounds.x, currentPoint2D.y));
+        g2d.draw(new Line2D.Double(bounds.x + bounds.width, currentPoint2D.y,
+                bounds.x + bounds.width + xMargin / (2 * scale) + widthUnder / 2.0, currentPoint2D.y));
+    }
+
     public static void main(String[] args) throws CRCLException, IOException {
-        ProgramPlotter pp = new ProgramPlotter(View.OVERHEAD);
-        pp.setAutoScale(true);
+        ProgramPlotter ppOverHead = new ProgramPlotter(View.OVERHEAD);
+        ppOverHead.setAutoScale(true);
         CRCLSocket cs = new CRCLSocket();
-        CRCLProgramType program = CRCLSocket.readProgramFile("/home/shackle/usnistgov/crcl/tools/java/crcl4java/crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
-        BufferedImage bi = pp.plotProgram(program, 34);
-        ImageIO.write(bi, "jpg", new File("test.jpg"));
+        CRCLProgramType program = CRCLSocket.readProgramFile("../crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
+        PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
+        ppOverHead.setCurrentPoint(pt);
+        BufferedImage biOverhead = ppOverHead.plotProgram(program, 0);
+        ImageIO.write(biOverhead, "jpg", new File("overhead.jpg"));
+        ProgramPlotter ppSide = new ProgramPlotter(View.SIDE);
+        ppSide.setCurrentPoint(pt);
+        ppSide.setAutoScale(true);
+        BufferedImage biSide = ppSide.plotProgram(program, 0);
+        ImageIO.write(biSide, "jpg", new File("side.jpg"));
     }
 }

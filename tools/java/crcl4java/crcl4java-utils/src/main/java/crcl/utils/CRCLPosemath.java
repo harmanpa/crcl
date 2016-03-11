@@ -411,7 +411,7 @@ public class CRCLPosemath {
             Posemath.pmQuatCartMult(pout.rot, ac, ac_out);
             Posemath.pmCartCartSub(bc, ac_out, pout.tran);
             pout.tran.z = (b2.z + b1.z - a1.z - a2.z) / 2.0;
-            System.out.println("pout = " + pout);
+//            System.out.println("pout = " + pout);
             return pout;
         } catch (PmException e) {
             throw new CRCLException(e);
