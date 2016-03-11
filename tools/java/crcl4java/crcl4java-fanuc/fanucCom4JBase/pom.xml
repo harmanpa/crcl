@@ -19,6 +19,7 @@
         <plugins>
             <plugin>
                 <groupId>org.jvnet.com4j</groupId>
+                <version>2.1</version>
                 <artifactId>maven-com4j-plugin</artifactId>
                 <executions>
                     <!-- <execution>
