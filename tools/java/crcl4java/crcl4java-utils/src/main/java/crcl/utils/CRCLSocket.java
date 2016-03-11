@@ -50,6 +50,9 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,7 +68,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
@@ -115,6 +117,56 @@ public class CRCLSocket implements AutoCloseable {
 
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
+    }
+
+    private static CRCLSocket utilSocket = null;
+
+    public static void setUtilSocket(CRCLSocket newUtilSocket) {
+        utilSocket = newUtilSocket;
+    }
+
+    public static CRCLSocket getUtilSocket() {
+        return utilSocket;
+    }
+
+    /**
+     * Read a CRCL Program from a File with the given file.
+     * @param f File to read
+     * @return CRCLProgram read from file.
+     * @throws CRCLException file is not valid CRCLProgram
+     * @throws IOException unable to read from file
+     */
+    public static CRCLProgramType readProgramFile(File f) throws CRCLException, IOException {
+        return readProgramFile(f.toPath());
+    }
+
+    /**
+     * Read a CRCL Program from a File with the given path.
+     * @param p Path to file to read
+     * @return CRCLProgram read from file.
+     * @throws CRCLException file is not valid CRCLProgram
+     * @throws IOException unable to read from file
+     */
+    public static CRCLProgramType readProgramFile(Path p) throws CRCLException, IOException {
+        if (null == utilSocket) {
+            utilSocket = new CRCLSocket();
+        }
+        CRCLSocket cs = utilSocket;
+        String str = new String(Files.readAllBytes(p));
+        synchronized (cs) {
+            return cs.stringToProgram(str, true);
+        }
+    }
+
+    /**
+     * Read a CRCL Program from a File with the given filename.
+     * @param filename name of file to read
+     * @return CRCLProgram read from file.
+     * @throws CRCLException file is not valid CRCLProgram
+     * @throws IOException unable to read from file
+     */
+    public static CRCLProgramType readProgramFile(String filename) throws CRCLException, IOException {
+        return readProgramFile(Paths.get(filename));
     }
 
     static final public UnaryOperator<String> removeCRCLFromState = new UnaryOperator<String>() {
@@ -330,7 +382,7 @@ public class CRCLSocket implements AutoCloseable {
             while (true) {
                 byte buf[] = new byte[4096];
                 int bytes_read = is.read(buf);
-                if(bytes_read < 1) {
+                if (bytes_read < 1) {
                     return;
                 }
                 fos.write(buf, 0, bytes_read);

@@ -32,6 +32,7 @@ import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
 import crcl.base.VectorType;
+import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
@@ -83,8 +84,10 @@ public class CRCLPosemath {
 
     /**
      * Copy or clone the point.
+     *
      * @param pt point to be cloned.
-     * @return PointType with same initial values as pt but can be independantly modified.
+     * @return PointType with same initial values as pt but can be independantly
+     * modified.
      */
     public static PointType copy(PointType pt) {
         PointType newPt = new PointType();
@@ -96,9 +99,59 @@ public class CRCLPosemath {
     }
 
     /**
+     * Extract the X and Y coordinates for a Point2D.Double.
+     * The Z coordinate is ignored.
+     * 
+     * @param pt input point
+     * @return Point2D.Double with x and y from PointType
+     */
+    public static Point2D.Double xyPoint2D(PointType pt) {
+        return new Point2D.Double(pt.getX().doubleValue(),
+                pt.getY().doubleValue());
+    }
+
+    /**
+     * Extract the X and Y coordinates for a Point2D.Double.
+     * The Z coordinate is ignored and the rotation are ignored.
+     * 
+     * @param pose input pose
+     * @return Point2D.Double with x and y from PointType
+     */
+    public static Point2D.Double xyPoint2D(PoseType pose) {
+        return xyPoint2D(pose.getPoint());
+    }
+    
+    /**
+     * Extract the cylindrical r and z coordinates for a Point2D.Double.
+     * The X and Y coordinates are combined to compute r as the x of then Point2D.Double 
+     * and the z is extracted as the y of the new Point2D.Double
+     * 
+     * @param pt input point
+     * @return Point2D.Double with x and y from PointType
+     */
+    public static Point2D.Double rzPoint2D(PointType pt) {
+        PmCartesian cart = CRCLPosemath.toPmCartesian(pt);
+        return new Point2D.Double(Math.sqrt(cart.x*cart.x+cart.y*cart.y),cart.z);
+    }
+
+    /**
+     * Extract the X and Y coordinates for a Point2D.Double.
+     * The X and Y coordinates are combined to compute r as the x of then Point2D.Double 
+     * and the z is extracted as the y of the new Point2D.Double
+     * 
+     * @param pose input pose
+     * @return Point2D.Double with x and y from PointType
+     */
+    public static Point2D.Double rzPoint2D(PoseType pose) {
+        return rzPoint2D(pose.getPoint());
+    }
+    
+    /**
      * Copy or clone the vector.
+     *
      * @param vec vector to be cloned
-     * @return VectorType with same initial values as vec but can be independantly modified.
+     * @return VectorType with same initial values as vec but can be
+     * independantly modified.
      */
     public static VectorType copy(VectorType vec) {
         VectorType newVec = new VectorType();
@@ -108,11 +161,13 @@ public class CRCLPosemath {
         newVec.setK(vec.getK());
         return newVec;
     }
-    
+
     /**
      * Copy or clone the pose.
+     *
      * @param pose pose to be cloned
-     * @return PoseType with same initial values as pose but can be independantly modified.
+     * @return PoseType with same initial values as pose but can be
+     * independantly modified.
      */
     public static PoseType copy(PoseType pose) {
         PoseType newPose = new PoseType();
@@ -122,11 +177,13 @@ public class CRCLPosemath {
         newPose.setZAxis(copy(pose.getZAxis()));
         return newPose;
     }
-    
+
     /**
      * Copy or clone the pose.
+     *
      * @param pose pose to be have x axis flipped.
-     * @return PoseType with same initial values as pose except X points in the opposite direction. 
+     * @return PoseType with same initial values as pose except X points in the
+     * opposite direction.
      */
     public static PoseType flipXAxis(PoseType pose) {
         PoseType newPose = new PoseType();
@@ -141,7 +198,7 @@ public class CRCLPosemath {
         newPose.setZAxis(copy(pose.getZAxis()));
         return newPose;
     }
-    
+
     /**
      * Create a Point an initialize X,Y, and Z to zero.
      *

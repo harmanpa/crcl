@@ -109,6 +109,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(CrclExiSocket.class.getName());
 
+    @Override
     public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         final boolean EXI = this.isEXIEnabled();
@@ -282,7 +283,6 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     exiOS.close();
                 } catch (Exception exx) {
                 }
-                exiOS = null;
             }
         }
     }
