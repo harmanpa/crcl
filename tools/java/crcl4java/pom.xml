@@ -251,6 +251,13 @@
             </build>
         </profile>
         <profile> 
+            <id>all</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+                <module>crcl4java-fanuc</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>release</id>
             <modules>
                 <module>crcl4java-vaadin-webapp</module>
