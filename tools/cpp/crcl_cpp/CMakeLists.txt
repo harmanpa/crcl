@@ -47,6 +47,12 @@ target_link_libraries(makeStatusExample
   xml_instance
   )
 
+### Testing
+add_executable(matrix_test
+  src/matrix_test.cpp
+  )
+###
+
 add_executable(crcl_server_main
   src/crcl_server_main.cpp
   src/crcl_server.cpp
