@@ -17,7 +17,6 @@
     </url>
     <description>
         Tools and Libraries for Java Developers using "Canonical Robot Command Language" (CRCL)
-
         The language called "Canonical Robot Command Language" (CRCL) provides generic command and status definitions that implement the functionality of typical industrial robots without being specific either to the language of a plan that is being executed or to the language used by a robot controller that executes CRCL commands. 
     </description>
     <repositories>
@@ -251,7 +250,17 @@
             </build>
         </profile>
         <profile> 
+            <id>all</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+                <module>crcl4java-fanuc</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>release</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>

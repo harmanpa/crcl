@@ -212,12 +212,12 @@ public class Main {
             changed = true;
         }
         if (cart.z > zMaxEffective) {
-            posXyzWpr.x(zMaxEffective);
-            showError("Z move of " + cart.y + " limited to max = " + zMaxEffective);
+            posXyzWpr.z(zMaxEffective);
+            showError("Z move of " + cart.z + " limited to max = " + zMaxEffective);
             changed = true;
         } else if (cart.z < zMinEffective) {
             posXyzWpr.z(zMinEffective);
-            showError("Z move of " + cart.y + " limited to min = " + zMinEffective);
+            showError("Z move of " + cart.z + " limited to min = " + zMinEffective);
             changed = true;
         }
 
