@@ -8,7 +8,6 @@
 #include "crcl_cpp/crcl_server.h"
 #include <stdio.h>
 #include <math.h>
-#include <go.h>
 
 /*
   Given two points in one coordinate system {A}, and their associated
