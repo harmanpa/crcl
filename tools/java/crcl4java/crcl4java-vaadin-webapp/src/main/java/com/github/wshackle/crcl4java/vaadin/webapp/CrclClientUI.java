@@ -12,6 +12,7 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -94,6 +95,7 @@ import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmPose;
 import rcs.posemath.PmRpy;
+import rcs.posemath.Posemath;
 
 /**
  *
@@ -131,35 +133,37 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     static final File sideImageDir;
     static final File overheadImageDir;
     private static int imgcount = 0;
-    
+
     private static PoseType lastGlobalPoseInImage = null;
-    
+
     public static void updateImages(CommonInfo newCommonInfo, CommonInfo oldCommonInfo) {
         if (null != newCommonInfo) {
             if (null != newCommonInfo.getCurrentProgram()) {
-                boolean newPose = 
-                        globalCurrentPose != null
-                        && (lastGlobalPoseInImage == null 
-                         || CRCLPosemath.diffPosesTran(globalCurrentPose, lastGlobalPoseInImage) > 2.0);
+                boolean newPose
+                        = globalCurrentPose != null
+                        && (lastGlobalPoseInImage == null
+                        || CRCLPosemath.diffPosesTran(globalCurrentPose, lastGlobalPoseInImage) > 2.0);
                 if (newCommonInfo.getCurrentProgram() != oldCommonInfo.getCurrentProgram()
                         || newCommonInfo.getProgramIndex() != oldCommonInfo.getProgramIndex()
                         || newPose) {
                     try {
                         imgcount++;
                         String imgCountString = String.format("%06d", imgcount);
-                        if(null != globalCurrentPose) {
+                        if (null != globalCurrentPose) {
                             sidePlotter.setCurrentPoint(globalCurrentPose.getPoint());
                         }
                         BufferedImage sideImage = sidePlotter.plotProgram(newCommonInfo.getCurrentProgram(),
                                 newCommonInfo.getProgramIndex());
-                        ImageIO.write(sideImage, "jpg", new File(sideImageDir,"side"+currentDateString()+imgCountString+".jpg"));
-                        if(null != globalCurrentPose) {
+                        ImageIO.write(sideImage, "jpg", new File(sideImageDir, "side" + currentDateString() + imgCountString + ".jpg"));
+                        if (null != globalCurrentPose) {
                             overheadPlotter.setCurrentPoint(globalCurrentPose.getPoint());
                         }
                         BufferedImage overheadImage = overheadPlotter.plotProgram(newCommonInfo.getCurrentProgram(),
                                 newCommonInfo.getProgramIndex());
-                        ImageIO.write(overheadImage, "jpg", new File(overheadImageDir,"overhead"+currentDateString()+imgCountString+".jpg"));
-                        lastGlobalPoseInImage= CRCLPosemath.copy(globalCurrentPose);
+                        ImageIO.write(overheadImage, "jpg", new File(overheadImageDir, "overhead" + currentDateString() + imgCountString + ".jpg"));
+                        if (null != globalCurrentPose) {
+                            lastGlobalPoseInImage = CRCLPosemath.copy(globalCurrentPose);
+                        }
                     } catch (IOException ex) {
                         Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -192,6 +196,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private final Table remoteProgramTable = new Table("Remote Programs");
     private final Button remoteProgramLoadButton = new Button("Load Selected Remote Program");
+    private final Button remoteProgramDownloadButton = new Button("Download Selected Remote Program");
+    private Resource remoteProgramResource = null;
+    private FileDownloader remoteProgramDownloader = null;
     private final Table progTable = new Table("Program");
     private final Label programIndexLabel = new Label("Program Index : " + commonInfo.getProgramIndex());
     private final Label cmdIdLbl = new Label("Command ID :" + String.format("%10s", "0"));
@@ -275,7 +282,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Table programPos2Table = new Table("Second Program Position");
     private final Button setPos2ProgramButton = new Button("Set Second Program Postion to Selected Program Line");
     private final Table transformTable = new Table("Computed Transform");
-    private final Button computeTransformButton = new Button("ComputeTransform");
+    private final Table point1Errors = new Table("Point 1 Errors");
+    private final Table point2Errors = new Table("Point 2 Errors");
+    private final Button compute2PointTransformButton = new Button("Compute Transform with Both Points");
+    private final Button computePoint1TransformButton = new Button("Compute Transform with Point 1 Only");
+    private final Button computePoint2TransformButton = new Button("Compute Transform with Point 2 Only");
     private final Button transformProgramButton = new Button("Apply Transform To Program");
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
@@ -304,14 +315,14 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         sideImageDir = new File(tempDir, "simserver/side");
         sideImageDir.mkdirs();
         System.out.println("sideImageDir = " + sideImageDir);
-        for(File f : sideImageDir.listFiles()) {
+        for (File f : sideImageDir.listFiles()) {
             System.out.println("f = " + f);
             f.delete();
         }
         overheadImageDir = new File(tempDir, "simserver/overhead");
         overheadImageDir.mkdirs();
         System.out.println("overheadImageDir = " + overheadImageDir);
-        for(File f : overheadImageDir.listFiles()) {
+        for (File f : overheadImageDir.listFiles()) {
             System.out.println("f = " + f);
             f.delete();
         }
@@ -456,6 +467,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         return null;
     }
 
+    private String selectedRemoteProgramFilename = null;
+
     private void loadSelectedRemoteProgram() {
         try {
             CRCLSocket tmpsocket = socket;
@@ -463,21 +476,24 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 tmpsocket = new CRCLSocket();
             }
             final CRCLSocket tmpsocketf = tmpsocket;
-            Object id = remoteProgramTable.firstItemId();
-            while (id != null) {
-                if (remoteProgramTable.isSelected(id)) {
-                    Item item = remoteProgramTable.getItem(id);
-                    Property fnameProperty = item.getItemProperty("File");
-                    String filename = fnameProperty.getValue().toString();
-                    File f = new File(REMOTE_PROGRAM_DIR, filename);
-                    String progContents = new String(Files.readAllBytes(f.toPath()));
-                    CRCLProgramType prog = tmpsocketf.stringToProgram(progContents, false);
+//            Object id = remoteProgramTable.firstItemId();
+//            while (id != null) {
+//                if (remoteProgramTable.isSelected(id)) {
+//                    Item item = remoteProgramTable.getItem(id);
+//                    Property fnameProperty = item.getItemProperty("File");
+//                    String filename = fnameProperty.getValue().toString();
+            String filename = this.selectedRemoteProgramFilename;
+            File f = new File(REMOTE_PROGRAM_DIR, filename);
+            remoteProgramResource = new FileResource(f);
+            remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
+            String progContents = new String(Files.readAllBytes(f.toPath()));
+            CRCLProgramType prog = tmpsocketf.stringToProgram(progContents, false);
 //                    setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), filename, prog, 0));
-                    setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), filename, prog));
-                    break;
-                }
-                id = remoteProgramTable.nextItemId(id);
-            }
+            setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), filename, prog));
+//                    break;
+//                }
+//                id = remoteProgramTable.nextItemId(id);
+//            }
         } catch (IOException | CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -556,9 +572,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     }
                 }
                 PoseType selectedProgramPose = getSelectedProgramPose();
-                if(selectedProgramPose != null) {
+                if (selectedProgramPose != null) {
                     loadPointToTable(selectedProgramPose.getPoint(), posProgramTable);
-                    loadPoseToRotTable(currentPose, rotProgramTable);
+                    loadPoseToRotTable(selectedProgramPose, rotProgramTable);
                 }
                 if (remoteProgramsNew) {
                     loadRemotePrograms();
@@ -641,7 +657,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     PmPose transformPm = null;
     PoseType transformPose = null;
 
-    private void computeTransform() {
+    private void compute2PointTransform() {
         try {
             PmCartesian a1 = getPmPointFromTable(programPos1Table);
             PmCartesian a2 = getPmPointFromTable(programPos2Table);
@@ -650,6 +666,59 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             transformPm = CRCLPosemath.compute2DPmTransform(a1, a2, b1, b2);
             transformPose = CRCLPosemath.toPose(transformPm);
             loadPoseToTable(transformPose, transformTable);
+            updateTransformErrors();
+
+        } catch (PmException | CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void updateTransformErrors() throws PmException {
+        updatePoint1Errors();
+        updatePoint2Errors();
+    }
+
+    public void updatePoint1Errors() throws PmException {
+        PmCartesian a1 = getPmPointFromTable(programPos1Table);
+        PmCartesian b1 = getPmPointFromTable(transformPos1Table);
+        PmCartesian b1Recompute = new PmCartesian();
+        Posemath.pmPoseCartMult(transformPm, a1, b1Recompute);
+        PmCartesian point1Error = new PmCartesian();
+        Posemath.pmCartCartSub(b1, b1Recompute, point1Error);
+        loadPointToTable(CRCLPosemath.toPointType(point1Error), point1Errors);
+    }
+
+    public void updatePoint2Errors() throws PmException {
+        PmCartesian a2 = getPmPointFromTable(programPos2Table);
+        PmCartesian b2 = getPmPointFromTable(transformPos2Table);
+        PmCartesian b2Recompute = new PmCartesian();
+        Posemath.pmPoseCartMult(transformPm, a2, b2Recompute);
+        PmCartesian point2Error = new PmCartesian();
+        Posemath.pmCartCartSub(b2, b2Recompute, point2Error);
+        loadPointToTable(CRCLPosemath.toPointType(point2Error), point2Errors);
+    }
+
+    private void computePoint1Transform() {
+        try {
+            PmCartesian a1 = getPmPointFromTable(programPos1Table);
+            PmCartesian b1 = getPmPointFromTable(transformPos1Table);
+            transformPm = CRCLPosemath.compute2DPmTransform(a1, a1, b1, b1);
+            transformPose = CRCLPosemath.toPose(transformPm);
+            loadPoseToTable(transformPose, transformTable);
+            updateTransformErrors();
+        } catch (PmException | CRCLException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void computePoint2Transform() {
+        try {
+            PmCartesian a2 = getPmPointFromTable(programPos2Table);
+            PmCartesian b2 = getPmPointFromTable(transformPos2Table);
+            transformPm = CRCLPosemath.compute2DPmTransform(a2, a2, b2, b2);
+            transformPose = CRCLPosemath.toPose(transformPm);
+            loadPoseToTable(transformPose, transformTable);
+            updateTransformErrors();
         } catch (PmException | CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -820,7 +889,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         middleLayout.addComponent(statusIdLbl);
         setupPosTable(posCurrentTable);
         setupRotTable(rotCurrentTable);
-        
+
         HorizontalLayout imageLine = new HorizontalLayout();
         imageLine.setSpacing(true);
         imageLine.addComponent(overHeadImage);
@@ -831,16 +900,16 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         posRotateLine.addComponent(posCurrentTable);
         posRotateLine.addComponent(rotCurrentTable);
         middleLayout.addComponent(posRotateLine);
-        
+
         setupPosTable(posProgramTable);
         setupRotTable(rotProgramTable);
-        
+
         HorizontalLayout posProgramRotateLine = new HorizontalLayout();
         posProgramRotateLine.setSpacing(true);
         posProgramRotateLine.addComponent(posProgramTable);
         posProgramRotateLine.addComponent(rotProgramTable);
         middleLayout.addComponent(posProgramRotateLine);
-        
+
         middleLayout.addComponent(programIndexLabel);
 //        browser.setWidth("600px");
 //        browser.setHeight("600px");
@@ -875,6 +944,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         remoteProgramTable.setSelectable(true);
         loadRemotePrograms();
         remoteProgramLoadButton.addClickListener(e -> loadSelectedRemoteProgram());
+
         progTable.addContainerProperty("Index", Integer.class, null);
         progTable.addContainerProperty("Command", String.class, null);
         progTable.setWidth("500px");
@@ -927,9 +997,27 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         transformSetupLayout.addComponent(posGridLayout);
 
         setupTransformTable(transformTable);
-        computeTransformButton.addClickListener(e -> computeTransform());
-        transformSetupLayout.addComponent(computeTransformButton);
-        transformSetupLayout.addComponent(transformTable);
+        setupPosTable(point1Errors);
+        setupPosTable(point2Errors);
+
+        HorizontalLayout transformButtonsLine = new HorizontalLayout();
+        transformButtonsLine.setSpacing(true);
+        compute2PointTransformButton.addClickListener(e -> compute2PointTransform());
+        transformButtonsLine.addComponent(compute2PointTransformButton);
+        computePoint1TransformButton.addClickListener(e -> computePoint1Transform());
+        transformButtonsLine.addComponent(computePoint1TransformButton);
+        computePoint2TransformButton.addClickListener(e -> computePoint2Transform());
+        transformButtonsLine.addComponent(computePoint2TransformButton);
+
+        transformSetupLayout.addComponent(transformButtonsLine);
+
+        HorizontalLayout outputTablesLine = new HorizontalLayout();
+        outputTablesLine.setSpacing(true);
+        outputTablesLine.addComponent(transformTable);
+        outputTablesLine.addComponent(point1Errors);
+        outputTablesLine.addComponent(point2Errors);
+        transformSetupLayout.addComponent(outputTablesLine);
+
         CheckBox editable = new CheckBox("Editable", false);
         editable.addValueChangeListener(valueChange
                 -> transformTable.setEditable(editable.getValue()));
@@ -1065,8 +1153,38 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         );
         navButtons.addComponent(stopButton);
         leftLayout.addComponent(runStopLayout);
+        remoteProgramTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+            @Override
+            public void itemClick(ItemClickEvent event) {
+                try {
+                    Item selectedItem = event.getItem();
+                    CrclClientUI.this.selectedRemoteProgramFilename = selectedItem.getItemProperty("File").getValue().toString();
+                    String filename = CrclClientUI.this.selectedRemoteProgramFilename;
+                    File f = new File(REMOTE_PROGRAM_DIR, filename);
+                    System.out.println("f = " + f);
+                    System.out.println("f.exists() = " + f.exists());
+                    System.out.println("f.getCanonicalPath() = " + f.getCanonicalPath());
+                    remoteProgramResource = new FileResource(f);
+                    if (null == remoteProgramDownloader) {
+                        remoteProgramDownloader = new FileDownloader(remoteProgramResource);
+                        remoteProgramDownloader.extend(remoteProgramDownloadButton);
+                        remoteProgramDownloadButton.setEnabled(true);
+                    } else {
+                        remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         remoteProgramsLayout.addComponent(remoteProgramTable);
-        remoteProgramsLayout.addComponent(remoteProgramLoadButton);
+        HorizontalLayout remoteButtonsLine = new HorizontalLayout();
+        remoteProgramDownloadButton.setEnabled(false);
+        remoteButtonsLine.addComponent(remoteProgramLoadButton);
+//        remoteProgramResource = new StreamResource(streamSource, lastDescription);
+
+        remoteButtonsLine.addComponent(remoteProgramDownloadButton);
+        remoteProgramsLayout.addComponent(remoteButtonsLine);
         leftLayout.addComponent(progTable);
 
         final HorizontalLayout xLine = new HorizontalLayout();
@@ -1346,7 +1464,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         tbl.addItem(new Object[]{"Z I", 0.0}, 6);
         tbl.addItem(new Object[]{"Z J", 0.0}, 7);
         tbl.addItem(new Object[]{"Z K", 1.0}, 8);
-        tbl.setWidth("220px");
+        tbl.setWidth("300px");
         tbl.setHeight("450px");
     }
 
@@ -1666,7 +1784,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private PoseType currentPose = null;
     private static PoseType globalCurrentPose = null;
-    
+
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -1989,20 +2107,23 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     @SuppressWarnings("unchecked")
     public void loadPoseToRotTable(PoseType pose, Table rotTable) throws Property.ReadOnlyException {
-        VectorType xAxis = pose.getXAxis();
-        if (null != xAxis) {
-            Item xItem = rotTable.getItem("X");
-            xItem.<Double>getItemProperty("I").setValue(xAxis.getI().doubleValue());
-            xItem.<Double>getItemProperty("J").setValue(xAxis.getJ().doubleValue());
-            xItem.<Double>getItemProperty("K").setValue(xAxis.getK().doubleValue());
+        if (null != pose) {
+            VectorType xAxis = pose.getXAxis();
+            if (null != xAxis) {
+                Item xItem = rotTable.getItem("X");
+                xItem.<Double>getItemProperty("I").setValue(xAxis.getI().doubleValue());
+                xItem.<Double>getItemProperty("J").setValue(xAxis.getJ().doubleValue());
+                xItem.<Double>getItemProperty("K").setValue(xAxis.getK().doubleValue());
+            }
+            VectorType zAxis = pose.getZAxis();
+            if (null != zAxis) {
+                Item zItem = rotTable.getItem("Z");
+                zItem.<Double>getItemProperty("I").setValue(zAxis.getI().doubleValue());
+                zItem.<Double>getItemProperty("J").setValue(zAxis.getJ().doubleValue());
+                zItem.<Double>getItemProperty("K").setValue(zAxis.getK().doubleValue());
+            }
         }
-        VectorType zAxis = pose.getZAxis();
-        if (null != zAxis) {
-            Item zItem = rotTable.getItem("Z");
-            zItem.<Double>getItemProperty("I").setValue(zAxis.getI().doubleValue());
-            zItem.<Double>getItemProperty("J").setValue(zAxis.getJ().doubleValue());
-            zItem.<Double>getItemProperty("K").setValue(zAxis.getK().doubleValue());
-        }
+
     }
 
     public void checkImageDirs() {

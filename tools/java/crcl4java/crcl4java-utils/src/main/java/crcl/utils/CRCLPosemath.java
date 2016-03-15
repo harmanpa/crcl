@@ -90,6 +90,9 @@ public class CRCLPosemath {
      * modified.
      */
     public static PointType copy(PointType pt) {
+        if(null == pt) {
+            return null;
+        }
         PointType newPt = new PointType();
         newPt.setName(pt.getName());
         newPt.setX(pt.getX());
@@ -154,6 +157,9 @@ public class CRCLPosemath {
      * independantly modified.
      */
     public static VectorType copy(VectorType vec) {
+        if(null == vec) {
+            return null;
+        }
         VectorType newVec = new VectorType();
         newVec.setName(vec.getName());
         newVec.setI(vec.getI());
@@ -170,6 +176,9 @@ public class CRCLPosemath {
      * independantly modified.
      */
     public static PoseType copy(PoseType pose) {
+        if(null == pose)  {
+            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
+        }
         PoseType newPose = new PoseType();
         newPose.setName(pose.getName());
         newPose.setPoint(copy(pose.getPoint()));
