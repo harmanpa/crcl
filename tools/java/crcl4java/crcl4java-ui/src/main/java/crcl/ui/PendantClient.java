@@ -1849,6 +1849,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         });
     }
 
+    private String lastStateDescription = "";
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();
@@ -1861,10 +1862,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 }
                 this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
                 String stateDescription = ccst.getStateDescription();
-                if (null != stateDescription) {
-                    this.jTextFieldStatusStateDescription.setText(ccst.getStateDescription());
-                } else {
-                    this.jTextFieldStatusStateDescription.setText("");
+                if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
+                    this.jTextFieldStatusStateDescription.setText(stateDescription);
+                    lastStateDescription = stateDescription;
                 }
             }
             JointStatusesType jsst = internal.getStatus().getJointStatuses();
