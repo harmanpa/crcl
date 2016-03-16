@@ -28,6 +28,7 @@ import com.github.wshackle.fanuc.robotserver.FRETaskStatusConstants;
 import com.github.wshackle.fanuc.robotserver.FRETypeCodeConstants;
 import com.github.wshackle.fanuc.robotserver.IConfig;
 import com.github.wshackle.fanuc.robotserver.ICurGroupPosition;
+import com.github.wshackle.fanuc.robotserver.ICurPosition;
 import com.github.wshackle.fanuc.robotserver.IProgram;
 import com.github.wshackle.fanuc.robotserver.IRobot2;
 import com.github.wshackle.fanuc.robotserver.ISysPosition;
@@ -77,6 +78,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -109,13 +111,13 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
             PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
             TableModel model = this.jTableCartesianLimits.getModel();
-            min.x = Double.valueOf( model.getValueAt(0, 1).toString());
-            max.x = Double.valueOf( model.getValueAt(0, 3).toString());
-            min.y = Double.valueOf( model.getValueAt(1, 1).toString());
-            max.y = Double.valueOf( model.getValueAt(1, 3).toString());
-            min.z = Double.valueOf( model.getValueAt(2, 1).toString());
-            max.z = Double.valueOf( model.getValueAt(2, 3).toString());
-            
+            min.x = Double.valueOf(model.getValueAt(0, 1).toString());
+            max.x = Double.valueOf(model.getValueAt(0, 3).toString());
+            min.y = Double.valueOf(model.getValueAt(1, 1).toString());
+            max.y = Double.valueOf(model.getValueAt(1, 3).toString());
+            min.z = Double.valueOf(model.getValueAt(2, 1).toString());
+            max.z = Double.valueOf(model.getValueAt(2, 3).toString());
+
             main.applyAdditionalCartLimits(min, max);
             main.saveCartLimits(min, max);
         }
@@ -143,6 +145,46 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
     public JTextField getjTextFieldLimitSafetyBumper() {
         return jTextFieldLimitSafetyBumper;
+    }
+
+    private IVar morSafetyStatVar = null;
+
+    /**
+     * Get the value of morSafetyStatVar
+     *
+     * @return the value of morSafetyStatVar
+     */
+    public IVar getMorSafetyStatVar() {
+        return morSafetyStatVar;
+    }
+
+    private IVar moveGroup1ServoReadyVar = null;
+
+    /**
+     * Get the value of moveGroup1ServoReadyVar
+     *
+     * @return the value of moveGroup1ServoReadyVar
+     */
+    public IVar getMoveGroup1ServoReadyVar() {
+        return moveGroup1ServoReadyVar;
+    }
+
+    /**
+     * Set the value of moveGroup1ServoReadyVar
+     *
+     * @param moveGroup1ServoReadyVar new value of moveGroup1ServoReadyVar
+     */
+    public void setMoveGroup1ServoReadyVar(IVar moveGroup1ServoReadyVar) {
+        this.moveGroup1ServoReadyVar = moveGroup1ServoReadyVar;
+    }
+
+    /**
+     * Set the value of morSafetyStatVar
+     *
+     * @param morSafetyStatVar new value of morSafetyStatVar
+     */
+    public void setMorSafetyStatVar(IVar morSafetyStatVar) {
+        this.morSafetyStatVar = morSafetyStatVar;
     }
 
     private IVar overrideVar;
@@ -178,6 +220,11 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             dtm.setRowCount(0);
             IRobot2 robot = main.getRobot();
             if (null == robot) {
+                jLabelStatus.setText("Status : Robot is NOT connected.");
+                return;
+            }
+            if (!robot.isConnected()) {
+                jLabelStatus.setText("Status : Robot is NOT connected.");
                 return;
             }
             ITasks tasks = robot.tasks();
@@ -223,8 +270,21 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                         tskStatus == null ? "" : tskStatus.toString()});
                 }
             }
-            ICurGroupPosition curPos = robot.curPosition().group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-            IXyzWpr curXyzWpr = curPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+            ICurPosition curPos = robot.curPosition();
+            if (curPos == null) {
+                jLabelStatus.setText("Status : Current position not available.");
+                return;
+            }
+            ICurGroupPosition curGourpPos = curPos.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+            if (curGourpPos == null) {
+                jLabelStatus.setText("Status : Current position not available.");
+                return;
+            }
+            IXyzWpr curXyzWpr = curGourpPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+            if (curXyzWpr == null) {
+                jLabelStatus.setText("Status : Current position not available.");
+                return;
+            }
             IConfig conf = curXyzWpr.config();
             if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
                 this.jTextFieldCartesianConfig.setText(conf.text());
@@ -260,11 +320,26 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 overrideVar.refresh();
                 jSliderOverride.setValue((Integer) overrideVar.value());
             }
+            if (null != morSafetyStatVar) {
+                morSafetyStatVar.refresh();
+                int safety_stat = ((Integer) morSafetyStatVar.value());
+
+                if (null != moveGroup1ServoReadyVar) {
+                    moveGroup1ServoReadyVar.refresh();
+                    Object val = moveGroup1ServoReadyVar.value();
+                    if (val instanceof Boolean) {
+                        boolean servoReady = (boolean) val;
+                        jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                    }
+                } else {
+                    jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat));
+                }
+            }
         } catch (ComException e) {
             if (e.getMessage().contains("8004000e compobj.dll is too old for the ole2.dll initialized : Object is no longer valid.")) {
                 this.updateWatchVar(main.getRobot());
             }
-        } catch (PmException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             main.showError(ex.getMessage());
         }
@@ -310,6 +385,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
         }
         System.out.println("includeProgram returning for " + prog.name());
+    }
+
+    public JLabel getjLabelStatus() {
+        return jLabelStatus;
     }
 
     public static class PmXyzWpr {
@@ -783,6 +862,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jCheckBoxEditJointLimits = new javax.swing.JCheckBox();
         jCheckBoxEditCartesianLimits = new javax.swing.JCheckBox();
         jButtonClearErrors = new javax.swing.JButton();
+        jLabelStatus = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemResetAlarms = new javax.swing.JMenuItem();
@@ -969,6 +1049,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
         });
 
+        jLabelStatus.setText("Status: UNINITIALIZED");
+
         jMenu1.setText("File");
 
         jMenuItemResetAlarms.setText("Reset Alarms");
@@ -1020,6 +1102,25 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jCheckBoxShowAborted)
                                     .addComponent(jButtonAbortAllTasks)))))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jSliderMaxOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))
+                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jRadioButtonUseDirectIP)
+                            .addComponent(jRadioButtonUseRobotNeighborhood))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE)
+                            .addComponent(jTextFieldHostName)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jCheckBoxEditJointLimits)
+                                .addComponent(jTextFieldCartesianConfig, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -1042,27 +1143,9 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel9)
-                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSliderMaxOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
-                        .addGap(18, 18, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jRadioButtonUseDirectIP)
-                            .addComponent(jRadioButtonUseRobotNeighborhood))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE)
-                            .addComponent(jTextFieldHostName)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jCheckBoxEditJointLimits)
-                                .addComponent(jTextFieldCartesianConfig, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabelStatus))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -1112,7 +1195,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(14, 14, 14)
                         .addComponent(jLabel3)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jSliderMaxOverride, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -1122,8 +1205,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                     .addComponent(jCheckBoxLogAllCommands)
                     .addComponent(jButtonClearErrors))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabelStatus)
+                .addGap(18, 18, 18))
         );
 
         pack();
@@ -1198,6 +1283,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabelStatus;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;

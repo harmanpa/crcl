@@ -114,11 +114,14 @@ public class ProgramPlotter {
         for (MiddleCommandType cmd : program.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
-                Point2D.Double pt2D = toPoint2D(((MoveToType) cmd).getEndPosition());
-                xmin = Math.min(xmin, pt2D.x);
-                xmax = Math.max(xmax, pt2D.x);
-                ymin = Math.min(ymin, pt2D.y);
-                ymax = Math.max(ymax, pt2D.y);
+                PoseType endPose = moveCmd.getEndPosition();
+                if (null != endPose) {
+                    Point2D.Double pt2D = toPoint2D(((MoveToType) cmd).getEndPosition());
+                    xmin = Math.min(xmin, pt2D.x);
+                    xmax = Math.max(xmax, pt2D.x);
+                    ymin = Math.min(ymin, pt2D.y);
+                    ymax = Math.max(ymax, pt2D.y);
+                }
             }
         }
         if (null != currentPoint) {

@@ -129,6 +129,12 @@ public class CRCLSocket implements AutoCloseable {
         return utilSocket;
     }
 
+    @Override
+    public String toString() {
+        return "CRCLSocket(" +(( this.sock == null)?"null": this.sock.getRemoteSocketAddress()+")");
+    }
+
+    
     /**
      * Read a CRCL Program from a File with the given file.
      * @param f File to read

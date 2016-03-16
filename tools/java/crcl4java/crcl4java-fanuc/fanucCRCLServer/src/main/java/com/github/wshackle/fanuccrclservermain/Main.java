@@ -76,6 +76,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.io.BufferedReader;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -164,6 +165,18 @@ public class Main {
 
     public IVar getOverideVar() {
         return this.overrideVar;
+    }
+
+    public IVar getMorSafetyStatVar() {
+        return this.morSafetyStatVar;
+    }
+
+    public IVar getMoveGroup1RobMove() {
+        return moveGroup1RobMoveVar;
+    }
+
+    public IVar getMoveGroup1ServoReadyVar() {
+        return moveGroup1ServoReadyVar;
     }
 
     public IRobot2 getRobot() {
@@ -267,6 +280,9 @@ public class Main {
                 if (null != robot) {
                     robot.alarms().reset();
                     robot.tasks().abortAll(true);
+                    this.lastRobotIsConnected = true;
+                    this.lastServoReady = true;
+                    this.last_safety_stat = 0;
                 } else {
                     showError("Can NOT reset alarms since robot is not initialized.");
                 }
@@ -390,12 +406,26 @@ public class Main {
         }
     }
 
+    boolean lastRobotIsConnected = true;
+
     public CRCLStatusType readStatusFromRobot() throws PmException {
         if (null == robot) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
-            showError("fanucCRCLServer not connected to robot");
+            if (lastRobotIsConnected) {
+                showError("Robot is NOT connected.");
+            }
+            lastRobotIsConnected = false;
             return status;
         }
+        if (!robot.isConnected()) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            if (lastRobotIsConnected) {
+                showError("Robot is NOT connected.");
+            }
+            lastRobotIsConnected = false;
+            return status;
+        }
+        lastRobotIsConnected = true;
         if (status.getCommandStatus() == null) {
             status.setCommandStatus(new CommandStatusType());
             setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -554,8 +584,35 @@ public class Main {
                 jointStatuses.getJointStatus().add(js);
             }
         }
+        if (null != morSafetyStatVar) {
+            morSafetyStatVar.refresh();
+            int safety_stat = (int) morSafetyStatVar.value();
+            if (isMoreSafetyStatError(safety_stat)) {
+                if (safety_stat != last_safety_stat) {
+                    showError(morSafetyStatToString(safety_stat));
+                }
+                lastServoReady = true;
+            } else if (null != moveGroup1ServoReadyVar) {
+                moveGroup1ServoReadyVar.refresh();
+                Object val = moveGroup1ServoReadyVar.value();
+                if (val instanceof Boolean) {
+                    boolean servoReady = (boolean) val;
+                    if (!servoReady && lastServoReady) {
+                        showError("SERVO_NOT_READY (Need to reset fault?)");
+                    }
+                    lastServoReady = servoReady;
+                }
+                
+            } else {
+                lastServoReady = true;
+            }
+            last_safety_stat = safety_stat;
+        }
         return status;
     }
+
+    int last_safety_stat = 0;
+    boolean lastServoReady = true;
 
     private ExecutorService es;
     private ServerSocket ss;
@@ -653,8 +710,9 @@ public class Main {
         }
     }
 
+    private String lastErrorString = null;
+
     public void showError(String error) {
-        System.err.println(error);
         if (null != status) {
             if (null == status.getCommandStatus()) {
                 status.setCommandStatus(new CommandStatusType());
@@ -663,8 +721,12 @@ public class Main {
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
             status.getCommandStatus().setStateDescription(error);
         }
-        if (null != jframe) {
-            jframe.getjTextAreaErrors().append(error + "\n");
+        if (null != error && !error.equals(lastErrorString)) {
+            System.err.println(error);
+            if (null != jframe) {
+                jframe.getjTextAreaErrors().append(error + "\n");
+            }
+            lastErrorString = error;
         }
     }
 
@@ -1531,6 +1593,7 @@ public class Main {
                 try {
                     CRCLSocket cs = new CRCLSocket(ss.accept());
                     clients.add(cs);
+                    System.out.println("clients = " + clients);
                     es.submit(() -> {
                         try {
                             while (!Thread.currentThread().isInterrupted()) {
@@ -1568,6 +1631,9 @@ public class Main {
                                             connectRemoteRobot();
                                         }
                                     }
+                                } catch (SocketException | EOFException se) {
+                                    // probably just closing the connection.
+                                    break;
                                 } catch (PmException ex) {
                                     showError(ex.getMessage());
                                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -1577,7 +1643,7 @@ public class Main {
                                     connectRemoteRobot();
                                 }
                             }
-                        } catch (SocketException se) {
+                        } catch (SocketException | EOFException se) {
                             // probably just closing the connection.
                         } catch (JAXBException | SAXException | IOException | InterruptedException ex) {
                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -1590,6 +1656,7 @@ public class Main {
                                 System.out.println("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
                                 clients.remove(cs);
                                 cs.close();
+                                System.out.println("clients = " + clients);
                             } catch (IOException ex) {
                                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                             }
@@ -1647,6 +1714,29 @@ public class Main {
     private ITPProgram move_w_time_prog;
     private ITPProgram move_joint_prog;
     private IVar overrideVar = null;
+    private IVar morSafetyStatVar = null;
+    private IVar moveGroup1RobMoveVar = null;
+    private IVar moveGroup1ServoReadyVar = null;
+
+    private long isMovingLastCheckTime = 0;
+    private boolean lastIsMoving = false;
+
+    public boolean isMoving() {
+        if (System.currentTimeMillis() - isMovingLastCheckTime < 20) {
+            return lastIsMoving;
+        }
+        if (null != moveGroup1RobMoveVar) {
+            moveGroup1RobMoveVar.refresh();
+            Object val = moveGroup1RobMoveVar.value();
+            if (val instanceof Boolean) {
+                lastIsMoving = (Boolean) val;
+            }
+            isMovingLastCheckTime = System.currentTimeMillis();
+            return lastIsMoving;
+        }
+        return false;
+    }
+
     private IVar reg96Var = null;
     private IVar reg97Var = null;
     private IVar reg98Var = null;
@@ -1736,8 +1826,8 @@ public class Main {
 
     private void findString(String input, String token, Consumer<String> tailConsumer) {
         int index = input.indexOf(token);
-        if(index >= 0) {
-            String tail = input.substring(index+token.length());
+        if (index >= 0) {
+            String tail = input.substring(index + token.length());
             tailConsumer.accept(tail);
         }
     }
@@ -1748,12 +1838,12 @@ public class Main {
         try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
             String line = null;
             while ((line = br.readLine()) != null) {
-                findString(line,"min.x=", t -> min.x = Double.valueOf(t));
-                findString(line,"max.x=", t -> max.x = Double.valueOf(t));
-                findString(line,"min.y=", t -> min.y = Double.valueOf(t));
-                findString(line,"max.y=", t -> max.y = Double.valueOf(t));
-                findString(line,"min.z=", t -> min.z = Double.valueOf(t));
-                findString(line,"max.z=", t -> max.z = Double.valueOf(t));
+                findString(line, "min.x=", t -> min.x = Double.valueOf(t));
+                findString(line, "max.x=", t -> max.x = Double.valueOf(t));
+                findString(line, "min.y=", t -> min.y = Double.valueOf(t));
+                findString(line, "max.y=", t -> max.y = Double.valueOf(t));
+                findString(line, "min.z=", t -> min.z = Double.valueOf(t));
+                findString(line, "max.z=", t -> max.z = Double.valueOf(t));
             }
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -1761,9 +1851,12 @@ public class Main {
         applyAdditionalCartLimits(min, max);
     }
 
-    private void connectRemoteRobot() {
+    public void connectRemoteRobot() {
         try {
-
+            this.lastIsMoving = false;
+            this.lastRobotIsConnected = true;
+            this.last_safety_stat = 0;
+            this.lastServoReady = true;
             if (preferRobotNeighborhood) {
                 if (null == neighborhood) {
                     System.out.println("Calling createFRCRobotNeighborhood ...");
@@ -2008,6 +2101,29 @@ public class Main {
             IVars sysvars = robot.sysVariables();
             System.out.println("Getting system variable for $MCR.$GENOVERRIDE ...");
             overrideVar = sysvars.item("$MCR.$GENOVERRIDE", null).queryInterface(IVar.class);
+            System.out.println("overrideVar = " + overrideVar);
+            if (null != overrideVar) {
+                overrideVar.refresh();
+                System.out.println("overrideVar.value() = " + overrideVar.value());
+            }
+            morSafetyStatVar = sysvars.item("$MOR.$safety_stat", null).queryInterface(IVar.class);
+            System.out.println("morSafetyStatVar = " + morSafetyStatVar);
+            if (null != overrideVar) {
+                morSafetyStatVar.refresh();
+                System.out.println("morSafetyStatVar.value() = " + morSafetyStatVar.value());
+            }
+            moveGroup1RobMoveVar = sysvars.item("$MOR_GRP[1].$ROB_MOVE", null).queryInterface(IVar.class);
+            System.out.println("moveGroup1RobMove = " + moveGroup1RobMoveVar);
+            if (null != moveGroup1RobMoveVar) {
+                moveGroup1RobMoveVar.refresh();
+                System.out.println("moveGroup1RobMove.value() = " + moveGroup1RobMoveVar.value());
+            }
+            moveGroup1ServoReadyVar = sysvars.item("$MOR_GRP[1].$SERVO_READY", null).queryInterface(IVar.class);
+            System.out.println("moveGroup1ServoReady = " + moveGroup1RobMoveVar);
+            if (null != moveGroup1RobMoveVar) {
+                moveGroup1RobMoveVar.refresh();
+                System.out.println("moveGroup1ServoReady.value() = " + moveGroup1RobMoveVar.value());
+            }
             readCartLimitsFromRobot();
             readAndApplyUserCartLimits();
             for (int i = 0; i < 6; i++) {
@@ -2193,7 +2309,62 @@ public class Main {
                     new String[]{"Joint", "Minimum", "Current", "Maximum"}));
             jframe.setOverrideVar(getOverideVar());
             jframe.getjTableCartesianLimits().getModel().addTableModelListener(e -> jframe.updateCartLimits());
+            jframe.setMorSafetyStatVar(getMorSafetyStatVar());
+            jframe.setMoveGroup1ServoReadyVar(getMoveGroup1ServoReadyVar());
         }
+    }
+
+    // Taken from https://github.com/ros-industrial/fanuc/blob/indigo-devel/fanuc_driver/karel/libind_rs.kl
+//// CONST
+//	                     -- '$MOR.$safety_stat', R-J3iC Software Reference Manual, 
+//	                     --   MARACSSRF03061E Rev A
+//	MFS_EMGOP    =    1  -- E-Stop SOP
+//	MFS_EMGTP    =    2  -- E-Stop TP
+//	MFS_DEADMAN  =    4  -- TP Deadman
+//	MFS_FENCE    =    8  -- Fence Open
+//	MFS_ROT      =   16  -- Over Travel
+//	MFS_HBK      =   32  -- Hand Broken
+//	MFS_EMGEX    =   64  -- External E-Stop
+//	MFS_PPABN    =  128  -- ?
+//	MFS_BLTBREAK =  256  -- Belt Broken
+//	MFS_ENABLE   =  512  -- TP Enable
+//	MFS_FALM     = 1024  -- Alarm?
+    public static final int MOR_SAFETY_STAT_ESTOP_SOP_FLAG = 1;
+    public static final int MOR_SAFETY_STAT_ESTOP_TP_FLAG = 2;
+    public static final int MOR_SAFETY_STAT_TP_DEADMAN_FLAG = 4;
+    public static final int MOR_SAFETY_STAT_FENCE_OPEN_FLAG = 8;
+    public static final int MOR_SAFETY_STAT_OVER_TRAVEL_FLAG = 16;
+//    public static final int MOR_SAFETY_STAT_HAND_BROKEN_FLAG = 32; not sure what this is but seems to be always set
+    public static final int MOR_SAFETY_STAT_EXTERNAL_ESTOP_FLAG = 64;
+    public static final int MOR_SAFETY_STAT_BELT_BROKEN_FLAG = 256;
+    public static final int MOR_SAFETY_STAT_TP_ENABLE_FLAG = 512;
+    public static final int MOR_SAFETY_STAT_ALARM_FLAG = 1024;
+
+    public static boolean isMoreSafetyStatError(int val) {
+        return (val
+                & (MOR_SAFETY_STAT_ESTOP_SOP_FLAG
+                | MOR_SAFETY_STAT_ESTOP_TP_FLAG
+                | MOR_SAFETY_STAT_TP_DEADMAN_FLAG
+                | MOR_SAFETY_STAT_FENCE_OPEN_FLAG
+                | MOR_SAFETY_STAT_OVER_TRAVEL_FLAG
+                | MOR_SAFETY_STAT_EXTERNAL_ESTOP_FLAG
+                | MOR_SAFETY_STAT_TP_ENABLE_FLAG
+                | MOR_SAFETY_STAT_ALARM_FLAG)) != 0;
+    }
+
+    public static String morSafetyStatToString(int val) {
+        return val + " : "
+                + ((val & MOR_SAFETY_STAT_ESTOP_SOP_FLAG) == MOR_SAFETY_STAT_ESTOP_SOP_FLAG ? " Main E-Stop | " : "")
+                + ((val & MOR_SAFETY_STAT_ESTOP_TP_FLAG) == MOR_SAFETY_STAT_ESTOP_TP_FLAG ? " Teach-Pendant E-Stop | " : "")
+                + ((val & MOR_SAFETY_STAT_TP_DEADMAN_FLAG) == MOR_SAFETY_STAT_TP_DEADMAN_FLAG ? " Teach-Pendant Deadman | " : "")
+                + ((val & MOR_SAFETY_STAT_FENCE_OPEN_FLAG) == MOR_SAFETY_STAT_FENCE_OPEN_FLAG ? " Fence Open | " : "")
+                + ((val & MOR_SAFETY_STAT_OVER_TRAVEL_FLAG) == MOR_SAFETY_STAT_OVER_TRAVEL_FLAG ? " Over Travel | " : "")
+                //                + ((val & MOR_SAFETY_STAT_HAND_BROKEN_FLAG) == MOR_SAFETY_STAT_HAND_BROKEN_FLAG ? " Hand Broken | " : "")
+                + ((val & MOR_SAFETY_STAT_EXTERNAL_ESTOP_FLAG) == MOR_SAFETY_STAT_EXTERNAL_ESTOP_FLAG ? " External E-Stop | " : "")
+                + ((val & MOR_SAFETY_STAT_BELT_BROKEN_FLAG) == MOR_SAFETY_STAT_BELT_BROKEN_FLAG ? " Belt Broken | " : "")
+                + ((val & MOR_SAFETY_STAT_TP_ENABLE_FLAG) == MOR_SAFETY_STAT_TP_ENABLE_FLAG ? " TP Enable | " : "")
+                + ((val & MOR_SAFETY_STAT_ALARM_FLAG) == MOR_SAFETY_STAT_ALARM_FLAG ? " Alarm | " : "")
+                + " 0 ";
     }
 
     public static void main(String[] args) throws IOException, CRCLException {

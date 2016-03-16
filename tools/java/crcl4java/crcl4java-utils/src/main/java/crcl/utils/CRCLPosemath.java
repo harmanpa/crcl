@@ -313,6 +313,53 @@ public class CRCLPosemath {
         return programOut;
     }
 
+
+    public static CRCLProgramType copy(CRCLProgramType programIn) {
+        CRCLProgramType programOut = new CRCLProgramType();
+        InitCanonType initCmdOut = new InitCanonType();
+        InitCanonType initCmdIn = programIn.getInitCanon();
+        if (null != initCmdIn) {
+            initCmdOut.setCommandID(initCmdIn.getCommandID());
+        }
+        BigInteger id = initCmdIn.getCommandID();
+        if (null == id) {
+            id = BigInteger.ONE;
+        }
+        programOut.setInitCanon(initCmdOut);
+        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+            if (cmd instanceof MoveToType) {
+                MoveToType moveToCmdIn = (MoveToType) cmd;
+                MoveToType moveToCmdOut = new MoveToType();
+                if (null != moveToCmdIn.getCommandID()) {
+                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                } else {
+                    moveToCmdOut.setCommandID(id);
+                }
+                moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                programOut.getMiddleCommand().add(moveToCmdOut);
+            } else {
+                programOut.getMiddleCommand().add(cmd);
+            }
+            if (null != cmd.getCommandID()) {
+                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
+            } else {
+                id = id.add(BigInteger.ONE);
+            }
+        }
+        EndCanonType endCmdOut = new EndCanonType();
+        EndCanonType endCmdIn = programIn.getEndCanon();
+        if (null != endCmdIn) {
+            endCmdOut.setCommandID(endCmdIn.getCommandID());
+        }
+        if (null == endCmdOut.getCommandID()) {
+            id = id.add(BigInteger.ONE);
+            endCmdOut.setCommandID(id);
+        }
+        programOut.setEndCanon(endCmdOut);
+        return programOut;
+    }
+    
     /**
      * Compute a transform such that two points on a rigid body taken in one
      * coordinated system can be tranformed into corresponding two points of the

@@ -175,6 +175,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 //    private Navigator navigator;
     private CRCLSocket socket;
     private Thread updateThread;
+    private Thread monitorThread;
+    private long lastUpdateTime = 0;
+
     private ByteArrayOutputStream recieverOutputStream;
     private static Map<String, Resource> browserMap;
 //    private static final Resource defaultBrowserResource
@@ -210,6 +213,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Table rotCurrentTable = new Table("Current Rotation");
     private final Table posProgramTable = new Table("Program Position");
     private final Table rotProgramTable = new Table("Program Rotation");
+    private final CheckBox editProgramPosCheckbox = new CheckBox("Edit Program Position");
+    private final Button currentToProgamButton = new Button("Copy Current Position to Program");
+    private final Button modifyProgramPositionButton = new Button("Modify Program Position");
     private final Resource defaultOverheadImageResource = new ThemeResource("overhead.jpg");
     private final Image overHeadImage = new Image("Overhead", defaultOverheadImageResource);
     private final Resource defaultSideImageResource = new ThemeResource("side.jpg");
@@ -287,6 +293,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button compute2PointTransformButton = new Button("Compute Transform with Both Points");
     private final Button computePoint1TransformButton = new Button("Compute Transform with Point 1 Only");
     private final Button computePoint2TransformButton = new Button("Compute Transform with Point 2 Only");
+    private final Label transformStatusLabel = new Label("Transform Notes:");
     private final Button transformProgramButton = new Button("Apply Transform To Program");
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
@@ -423,6 +430,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     @SuppressWarnings("unchecked")
     private void loadRemotePrograms() {
+        this.running = false;
         remoteProgramTable.removeAllItems();
         String remotePrograms[] = commonInfo.getRemotePrograms();
         if (null != remotePrograms) {
@@ -463,6 +471,14 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     }
                 }
             }
+        }
+        return null;
+    }
+
+    private PointType getSelectedProgramPoint() {
+        PoseType pose = getSelectedProgramPose();
+        if (null != pose) {
+            return pose.getPoint();
         }
         return null;
     }
@@ -674,28 +690,39 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     public void updateTransformErrors() throws PmException {
-        updatePoint1Errors();
-        updatePoint2Errors();
-    }
-
-    public void updatePoint1Errors() throws PmException {
         PmCartesian a1 = getPmPointFromTable(programPos1Table);
         PmCartesian b1 = getPmPointFromTable(transformPos1Table);
-        PmCartesian b1Recompute = new PmCartesian();
-        Posemath.pmPoseCartMult(transformPm, a1, b1Recompute);
-        PmCartesian point1Error = new PmCartesian();
-        Posemath.pmCartCartSub(b1, b1Recompute, point1Error);
-        loadPointToTable(CRCLPosemath.toPointType(point1Error), point1Errors);
-    }
-
-    public void updatePoint2Errors() throws PmException {
+        updatePointErrors(a1, b1, point1Errors);
         PmCartesian a2 = getPmPointFromTable(programPos2Table);
         PmCartesian b2 = getPmPointFromTable(transformPos2Table);
-        PmCartesian b2Recompute = new PmCartesian();
-        Posemath.pmPoseCartMult(transformPm, a2, b2Recompute);
-        PmCartesian point2Error = new PmCartesian();
-        Posemath.pmCartCartSub(b2, b2Recompute, point2Error);
-        loadPointToTable(CRCLPosemath.toPointType(point2Error), point2Errors);
+        updatePointErrors(a2, b2, point2Errors);
+        double point1_xy_distance = a1.distance(b1.x, b1.y);
+        double point1_z_distance = b1.z - a1.z;
+        double point2_xy_distance = a2.distance(b2.x, b2.y);
+        double point2_z_distance = b2.z - a2.z;
+        double xy_dist_difference = point1_xy_distance - point2_xy_distance;
+        double z_dist_difference = point1_xy_distance - point2_xy_distance;
+        double rotation = Math.toDegrees(Posemath.toRot(transformPm.rot).s);
+        transformStatusLabel.setValue(
+                String.format("Transform Notes: point1_xy_distance=%.3f, point2_xy_distance=%.3f, xy_dist_difference=%.3f, "
+                        + " point1_z_distance=%.3f, point2_z_distance=%.3f, z_dist_difference=%.3f, "
+                        + "rotation=%.1f degrees",
+                        point1_xy_distance,
+                        point2_xy_distance,
+                        xy_dist_difference,
+                        point1_z_distance,
+                        point2_z_distance,
+                        z_dist_difference,
+                        rotation
+                ));
+    }
+
+    public void updatePointErrors(PmCartesian a, PmCartesian b, Table errorsTable) throws PmException {
+        PmCartesian b1Recompute = new PmCartesian();
+        Posemath.pmPoseCartMult(transformPm, a, b1Recompute);
+        PmCartesian point1Error = new PmCartesian();
+        Posemath.pmCartCartSub(b, b1Recompute, point1Error);
+        loadPointToTable(CRCLPosemath.toPointType(point1Error), errorsTable);
     }
 
     private void computePoint1Transform() {
@@ -751,7 +778,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             newProgName += ".transformed." + currentDateString() + ".xml";
             CRCLProgramType newProgram = CRCLPosemath.transformProgram(transformPose, commonInfo.getCurrentProgram());
             try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
-                fos.write(tmpsocketf.programToPrettyDocString(newProgram, false).getBytes());
+                fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
             } catch (IOException | JAXBException ex) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -835,12 +862,91 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         setCommonInfo(CommonInfo.withTransformInfoB2(commonInfo, b2));
     }
 
+    private void currentToProgram() {
+        loadPointToTable(currentPoint, posProgramTable);
+        loadPoseToRotTable(currentPose, rotProgramTable);
+    }
+
+    private void saveNewProgram(CRCLProgramType newProgram) throws CRCLException {
+        CRCLSocket tmpsocket = socket;
+        if (null == tmpsocket) {
+            tmpsocket = new CRCLSocket();
+        }
+        final CRCLSocket tmpsocketf = tmpsocket;
+        transformPose = getPoseFromTable(transformTable);
+        if (null == transformPose || null == commonInfo.getCurrentProgram()) {
+            return;
+        }
+        String newProgName = commonInfo.getCurrentFileName();
+        if (newProgName.endsWith(".xml")) {
+            newProgName = newProgName.substring(0, newProgName.length() - 4);
+        }
+        int modifiedIndex = newProgName.indexOf(".modified");
+        if (modifiedIndex > 0) {
+            newProgName = newProgName.substring(0, modifiedIndex);
+        }
+        newProgName += ".modified." + currentDateString() + ".xml";
+        try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
+            fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
+        } catch (IOException | JAXBException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+//            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
+        setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
+    }
+
+    private void modifySelectedProgramPose() {
+        if (null == commonInfo.getCurrentProgram()) {
+            alert("No Program Selected to Modify.");
+            return;
+        }
+        final int program_index = commonInfo.getProgramIndex();
+        if (program_index < 0 || program_index >= commonInfo.getCurrentProgram().getMiddleCommand().size()) {
+            alert("Selected program index invalid.");
+            return;
+        }
+        CRCLProgramType newProgram = CRCLPosemath.copy(commonInfo.getCurrentProgram());
+        MiddleCommandType cmd = newProgram.getMiddleCommand().get(commonInfo.getProgramIndex());
+        if (cmd instanceof MoveToType) {
+            try {
+                MoveToType moveToCmd = (MoveToType) cmd;
+                PoseType newPose = new PoseType();
+                PointType pt = CRCLPosemath.toPointType(getPmPointFromTable(posProgramTable));
+                newPose.setPoint(pt);
+                readPoseFromRotTable(newPose, rotProgramTable);
+                moveToCmd.setEndPosition(newPose);
+                newProgram.getMiddleCommand().set(program_index, cmd);
+                saveNewProgram(newProgram);
+            } catch (CRCLException ex) {
+                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            alert("Selected program command is of wrong type:" + cmd.getClass());
+            return;
+        }
+    }
+
+    public void alert(String msg) {
+        mySyncAccess(() -> {
+            Notification n = new Notification(msg);
+            n.setDelayMsec(5000);
+            n.show(Page.getCurrent());
+        });
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
         System.out.println("init(" + vaadinRequest + ")");
         addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
+        final HorizontalLayout topStatusLine = new HorizontalLayout();
+        topStatusLine.setSpacing(true);
+        topStatusLine.addComponent(cmdIdLbl);
+        topStatusLine.addComponent(stateLbl);
+        topStatusLine.addComponent(stateDescriptionLbl);
+        topStatusLine.addComponent(statusIdLbl);
+        navLayout.addComponent(topStatusLine);
         final HorizontalLayout navButtons = new HorizontalLayout();
         navButtons.setSpacing(true);
         final Button mainNavButton = new Button("Main");
@@ -883,10 +989,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final VerticalLayout middleLayout = new VerticalLayout();
         mainLayout.addComponent(middleLayout);
         middleLayout.setMargin(true);
-        middleLayout.addComponent(cmdIdLbl);
-        middleLayout.addComponent(stateLbl);
-        middleLayout.addComponent(stateDescriptionLbl);
-        middleLayout.addComponent(statusIdLbl);
+//        middleLayout.addComponent(cmdIdLbl);
+//        middleLayout.addComponent(stateLbl);
+//        middleLayout.addComponent(stateDescriptionLbl);
+//        middleLayout.addComponent(statusIdLbl);
         setupPosTable(posCurrentTable);
         setupRotTable(rotCurrentTable);
 
@@ -908,8 +1014,17 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         posProgramRotateLine.setSpacing(true);
         posProgramRotateLine.addComponent(posProgramTable);
         posProgramRotateLine.addComponent(rotProgramTable);
-        middleLayout.addComponent(posProgramRotateLine);
 
+        middleLayout.addComponent(posProgramRotateLine);
+        editProgramPosCheckbox.addValueChangeListener((Property.ValueChangeEvent event) -> {
+            posProgramTable.setEditable(editProgramPosCheckbox.getValue());
+            rotProgramTable.setEditable(editProgramPosCheckbox.getValue());
+        });
+        middleLayout.addComponent(editProgramPosCheckbox);
+        currentToProgamButton.addClickListener(e -> currentToProgram());
+        middleLayout.addComponent(currentToProgamButton);
+        modifyProgramPositionButton.addClickListener(e -> modifySelectedProgramPose());
+        middleLayout.addComponent(modifyProgramPositionButton);
         middleLayout.addComponent(programIndexLabel);
 //        browser.setWidth("600px");
 //        browser.setHeight("600px");
@@ -981,7 +1096,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         setupPosTable(programPos1Table);
         programPos1VLayout.addComponent(programPos1Table);
 //        setPos1ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos1Table));
-        setPos1ProgramButton.addClickListener(e -> setTransformA1(getSelectedProgramPose().getPoint()));
+        setPos1ProgramButton.addClickListener(e -> setTransformA1(getSelectedProgramPoint()));
 
         programPos1VLayout.addComponent(setPos1ProgramButton);
         posGridLayout.addComponent(programPos1VLayout, 0, 1);
@@ -991,7 +1106,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         setupPosTable(programPos2Table);
         programPos2VLayout.addComponent(programPos2Table);
 //        setPos2ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos2Table));
-        setPos2ProgramButton.addClickListener(e -> setTransformA2(getSelectedProgramPose().getPoint()));
+        setPos2ProgramButton.addClickListener(e -> setTransformA2(getSelectedProgramPoint()));
         programPos2VLayout.addComponent(setPos2ProgramButton);
         posGridLayout.addComponent(programPos2VLayout, 1, 1);
         transformSetupLayout.addComponent(posGridLayout);
@@ -1010,7 +1125,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         transformButtonsLine.addComponent(computePoint2TransformButton);
 
         transformSetupLayout.addComponent(transformButtonsLine);
-
+        transformSetupLayout.addComponent(transformStatusLabel);
         HorizontalLayout outputTablesLine = new HorizontalLayout();
         outputTablesLine.setSpacing(true);
         outputTablesLine.addComponent(transformTable);
@@ -1030,12 +1145,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         flipXAxisButton.addClickListener(e -> flipXAxis());
         transformSetupLayout.addComponent(applyLine);
         runButton.addClickListener(new Button.ClickListener() {
-
             @Override
             public void buttonClick(ClickEvent event) {
-//                setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
-//                        commonInfo.getCurrentFileName(),
-//                        commonInfo.getCurrentProgram(), 0));
                 setCommonInfo(CommonInfo.withProgramIndex(commonInfo, 0));
                 startRun();
             }
@@ -1107,6 +1218,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         initButton.addClickListener((ClickEvent event) -> {
             try {
                 sendInit();
+                cmdQueue.clear();
+                SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
+                TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
+                relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                setSpeedCmd.setTransSpeed(relSpeed);
+                cmdQueue.offer(setSpeedCmd);
                 running = false;
             } catch (CRCLException ex) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -1427,14 +1544,26 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 }
                 updateThread = null;
             }
+            if (null != monitorThread) {
+                monitorThread.interrupt();
+                try {
+                    monitorThread.join(50);
+                } catch (InterruptedException ex) {
+//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                monitorThread = null;
+            }
             if (null != socket) {
                 socket.close();
                 socket = null;
             }
             stat = null;
+            running = false;
             mySyncAccess(() -> {
                 connectButton.setEnabled(true);
                 disconnectButton.setEnabled(false);
+                updateStateLabels(CommandStateEnumType.CRCL_ERROR);
+                stateDescriptionLbl.setValue("DISCONNECTED from CRCL Server");
             });
             updateStatusLabel();
         } catch (IOException ex) {
@@ -1489,9 +1618,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
             cmd.setCommandID(nextId);
         }
-        instance.setCRCLCommand(cmd);
-        socket.writeCommand(instance);
-        lastCmdIdSent = instance.getCRCLCommand().getCommandID();
+        if (null != instance && null != socket) {
+            instance.setCRCLCommand(cmd);
+            socket.writeCommand(instance);
+            lastCmdIdSent = instance.getCRCLCommand().getCommandID();
+        }
     }
 
     @Override
@@ -1545,25 +1676,26 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 }
             }
             socket = new CRCLSocket(hostField.getValue(), Integer.valueOf(portField.getValue()));
-            sendInit();
             mySyncAccess(() -> {
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
             });
             cmdQueue.clear();
-            SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
-            TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
-            relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
-            setSpeedCmd.setTransSpeed(relSpeed);
-            cmdQueue.offer(setSpeedCmd);
+            running = false;
             updateThread = new Thread(() -> {
                 pollForStatus();
-            });
+            }, "pollForStatus" + this.getSession());
             updateThread.start();
+            monitorThread = new Thread(() -> {
+                monitorConnection();
+            }, "monitorConnection" + this.getSession());
+            monitorThread.start();
             this.accept(commonInfo);
             updateStatusLabel();
         } catch (IOException | CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+            updateStateLabels(CommandStateEnumType.CRCL_ERROR);
+            stateDescriptionLbl.setValue("Connect failed : " + ex);
         }
     }
 
@@ -1591,6 +1723,23 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private JogState prevJogState = JogState.NONE;
     private CRCLStatusType stat = null;
 
+    private void monitorConnection() {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                Thread.sleep(300);
+                long diff = System.currentTimeMillis() - lastUpdateTime;
+                if (diff > 500) {
+                    access(() -> {
+                        updateStateLabels(CommandStateEnumType.CRCL_ERROR);
+                        stateDescriptionLbl.setValue("TIMEOUT Communicating with CRCL Server : " + diff + " ms");
+                    });
+                }
+            }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private void pollForStatus() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
@@ -1601,6 +1750,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 instance.setCRCLCommand(getStatus);
                 socket.writeCommand(instance);
                 stat = socket.readStatus();
+                lastUpdateTime = System.currentTimeMillis();
                 updateStatusLabel();
                 final int program_index = commonInfo.getProgramIndex();
                 final CRCLProgramType program = commonInfo.getCurrentProgram();
@@ -1633,6 +1783,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         } catch (CRCLException ex) {
             if (disconnectCount <= connectCount) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                updateStateLabels(CommandStateEnumType.CRCL_ERROR);
+                stateDescriptionLbl.setValue(ex.toString());
             }
 //            if (!Thread.currentThread().isInterrupted()) {
 //                new Thread(() -> {
@@ -1791,21 +1943,22 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             CommandStatusType cst = stat.getCommandStatus();
             if (null != cst) {
                 cmdIdLbl.setValue("Command ID: " + String.format("%10s", cst.getCommandID()));
-                stateLbl.setValue("State: " + cst.getCommandState());
-//                String description = cst.getStateDescription();
-//                if (null == description) {
-//                    description = "";
-//                }
-//                if(cst.getCommandState() == CommandStateEnumType.CRCL_ERROR) {
-//                    if(description.length() > 1 && !description.equals(lastDescription)) {
-//                        new Notification(description).show(Page.getCurrent());
-//                        lastDescription = description;
-//                    }
-//                }
-//                if(description.length() > 40) {
-//                    description = description.substring(0, 36)+" ...";
-//                }
-//                stateDescriptionLbl.setValue(description);
+                updateStateLabels(cst.getCommandState());
+
+                String description = cst.getStateDescription();
+                if (null == description) {
+                    description = "";
+                }
+                if (cst.getCommandState() == CommandStateEnumType.CRCL_ERROR) {
+                    if (description.length() > 1 && !description.equals(lastDescription)) {
+                        new Notification(description).show(Page.getCurrent());
+                        lastDescription = description;
+                    }
+                }
+                if (description.length() > 40) {
+                    description = description.substring(0, 36) + " ...";
+                }
+                stateDescriptionLbl.setValue(description);
                 statusIdLbl.setValue("Status ID: " + cst.getStatusID());
             }
             PoseType pose = CRCLPosemath.getPose(stat);
@@ -2023,8 +2176,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             prevMoveTo = moveToCmd;
                             prevJogState = curJogState;
                             curJogState = JogState.NONE;
+                            jogIncProgressBar.setValue(0.0f);
                         }
-                        jogIncProgressBar.setValue(0.0f);
                     } else {
                         switch (prevJogState) {
                             case X_MINUS:
@@ -2105,75 +2258,140 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    public void updateStateLabels(CommandStateEnumType state) {
+        stateLbl.setValue("State: " + state);
+        for (CommandStateEnumType stateToRemove : CommandStateEnumType.values()) {
+            if (!stateToRemove.equals(state)) {
+                stateLbl.removeStyleName(stateToRemove.toString());
+                statusLabel.removeStyleName(stateToRemove.toString());
+                stateDescriptionLbl.removeStyleName(stateToRemove.toString());
+            }
+        }
+        stateLbl.addStyleName(state.toString());
+        statusLabel.addStyleName(state.toString());
+        stateDescriptionLbl.addStyleName(state.toString());
+    }
+
     public void loadPoseToRotTable(PoseType pose, Table rotTable) throws Property.ReadOnlyException {
         if (null != pose) {
             VectorType xAxis = pose.getXAxis();
             if (null != xAxis) {
                 Item xItem = rotTable.getItem("X");
-                xItem.<Double>getItemProperty("I").setValue(xAxis.getI().doubleValue());
-                xItem.<Double>getItemProperty("J").setValue(xAxis.getJ().doubleValue());
-                xItem.<Double>getItemProperty("K").setValue(xAxis.getK().doubleValue());
+                setAxisItem(xAxis, xItem);
             }
             VectorType zAxis = pose.getZAxis();
             if (null != zAxis) {
                 Item zItem = rotTable.getItem("Z");
-                zItem.<Double>getItemProperty("I").setValue(zAxis.getI().doubleValue());
-                zItem.<Double>getItemProperty("J").setValue(zAxis.getJ().doubleValue());
-                zItem.<Double>getItemProperty("K").setValue(zAxis.getK().doubleValue());
+                setAxisItem(zAxis, zItem);
             }
         }
+    }
 
+    @SuppressWarnings("unchecked")
+    public void setAxisItem(VectorType xAxis, Item xItem) throws Property.ReadOnlyException {
+        BigDecimal I = xAxis.getI();
+        if (null != I) {
+            xItem.getItemProperty("I").setValue(I.doubleValue());
+        }
+        BigDecimal J = xAxis.getJ();
+        if (null != J) {
+            xItem.getItemProperty("J").setValue(J.doubleValue());
+        }
+        BigDecimal K = xAxis.getK();
+        if (null != K) {
+            xItem.getItemProperty("K").setValue(K.doubleValue());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void readPoseFromRotTable(PoseType pose, Table rotTable) throws Property.ReadOnlyException {
+        if (null == pose) {
+            throw new IllegalArgumentException("pose may not be null");
+        }
+        VectorType xAxis = pose.getXAxis();
+        if (null == xAxis) {
+            xAxis = new VectorType();
+            pose.setXAxis(xAxis);
+        }
+        Item xItem = rotTable.getItem("X");
+        xAxis.setI(new BigDecimal(xItem.getItemProperty("I").getValue().toString()));
+        xAxis.setJ(new BigDecimal(xItem.getItemProperty("J").getValue().toString()));
+        xAxis.setK(new BigDecimal(xItem.getItemProperty("K").getValue().toString()));
+        VectorType zAxis = pose.getZAxis();
+        if (null == zAxis) {
+            zAxis = new VectorType();
+            pose.setZAxis(zAxis);
+        }
+        Item zItem = rotTable.getItem("Z");
+        zAxis.setI(new BigDecimal(zItem.getItemProperty("I").getValue().toString()));
+        zAxis.setJ(new BigDecimal(zItem.getItemProperty("J").getValue().toString()));
+        zAxis.setK(new BigDecimal(zItem.getItemProperty("K").getValue().toString()));
     }
 
     public void checkImageDirs() {
-        if (null != tempDir) {
-            File dirOverhead = overheadImageDir;
-            long max_last_modified = 0;
-            File max_last_modified_File = null;
-            if (dirOverhead.exists()) {
-                for (File f : dirOverhead.listFiles()) {
-                    long last_modified = f.lastModified();
-                    if (max_last_modified < last_modified) {
-                        max_last_modified = last_modified;
-                        max_last_modified_File = f;
+        try {
+            if (null != tempDir) {
+                File dirOverhead = overheadImageDir;
+                long max_last_modified = 0;
+                File max_last_modified_File = null;
+                if (dirOverhead.exists()) {
+                    for (File f : dirOverhead.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified < last_modified) {
+                            max_last_modified = last_modified;
+                            max_last_modified_File = f;
+                        }
+                    }
+                    for (File f : dirOverhead.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified > last_modified + 2000) {
+                            f.delete();
+                        }
+                    }
+                    if (null != max_last_modified_File) {
+                        final Resource res = new FileResource(max_last_modified_File);
+                        CrclClientUI.this.access(() -> {
+                            try {
+                                overHeadImage.setSource(res);
+                                overHeadImage.markAsDirty();
+                            } catch (Exception e) {
+                                LOGGER.log(Level.SEVERE, null, e);
+                            }
+                        });
                     }
                 }
-                for (File f : dirOverhead.listFiles()) {
-                    long last_modified = f.lastModified();
-                    if (max_last_modified > last_modified + 2000) {
-                        f.delete();
+                File dirSide = sideImageDir;
+                max_last_modified = 0;
+                max_last_modified_File = null;
+                if (dirSide.exists()) {
+                    for (File f : dirSide.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified < last_modified) {
+                            max_last_modified = last_modified;
+                            max_last_modified_File = f;
+                        }
                     }
-                }
-                if (null != max_last_modified_File) {
-                    Resource res = new FileResource(max_last_modified_File);
-                    overHeadImage.setSource(res);
-                    overHeadImage.markAsDirty();
+                    for (File f : dirSide.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified > last_modified + 2000) {
+                            f.delete();
+                        }
+                    }
+                    if (null != max_last_modified_File) {
+                        final Resource res = new FileResource(max_last_modified_File);
+                        CrclClientUI.this.access(() -> {
+                            try {
+                                sideImage.setSource(res);
+                                sideImage.markAsDirty();
+                            } catch (Exception e) {
+                                LOGGER.log(Level.SEVERE, null, e);
+                            }
+                        });
+                    }
                 }
             }
-            File dirSide = sideImageDir;
-            max_last_modified = 0;
-            max_last_modified_File = null;
-            if (dirSide.exists()) {
-                for (File f : dirSide.listFiles()) {
-                    long last_modified = f.lastModified();
-                    if (max_last_modified < last_modified) {
-                        max_last_modified = last_modified;
-                        max_last_modified_File = f;
-                    }
-                }
-                for (File f : dirSide.listFiles()) {
-                    long last_modified = f.lastModified();
-                    if (max_last_modified > last_modified + 2000) {
-                        f.delete();
-                    }
-                }
-                if (null != max_last_modified_File) {
-                    Resource res = new FileResource(max_last_modified_File);
-                    sideImage.setSource(res);
-                    sideImage.markAsDirty();
-                }
-            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, null, e);
         }
     }
     public static double worldAngleIncrementRad = Math.toRadians(30.0);
@@ -2197,29 +2415,31 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index));
         skip_wait_for_done = false;
 //        final int new_program_index = program_index + 1;
-        if (program.getMiddleCommand().get(new_program_index) instanceof crcl.base.MessageType) {
-            MessageType msg = (MessageType) program.getMiddleCommand().get(new_program_index);
-            final String msgString = msg.getMessage();
-            mySyncAccess(() -> {
-                Notification n = new Notification("Program Paused to Show Message. Review the message to the right, then click Run to continue.");
-                n.setDelayMsec(5000);
-                n.show(Page.getCurrent());
-                if (msgString.startsWith("http:") || msgString.startsWith("https:")) {
-                    browser.setSource(new ExternalResource(msgString));
-                } else {
-                    browser.setSource(new StreamResource(
-                            () -> new ByteArrayInputStream(("<html><body>" + msgString + "</body></html>").getBytes()),
-                            System.currentTimeMillis() + "msg.html"));
-                }
-                running = false;
+        if (new_program_index < program.getMiddleCommand().size() && new_program_index >= 0) {
+            if (program.getMiddleCommand().get(new_program_index) instanceof crcl.base.MessageType) {
+                MessageType msg = (MessageType) program.getMiddleCommand().get(new_program_index);
+                final String msgString = msg.getMessage();
+                mySyncAccess(() -> {
+                    Notification n = new Notification("Program Paused to Show Message. Review the message to the right, then click Run to continue.");
+                    n.setDelayMsec(5000);
+                    n.show(Page.getCurrent());
+                    if (msgString.startsWith("http:") || msgString.startsWith("https:")) {
+                        browser.setSource(new ExternalResource(msgString));
+                    } else {
+                        browser.setSource(new StreamResource(
+                                () -> new ByteArrayInputStream(("<html><body>" + msgString + "</body></html>").getBytes()),
+                                System.currentTimeMillis() + "msg.html"));
+                    }
+                    running = false;
 //                setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
 //                        commonInfo.getCurrentFileName(),
 //                        program,
 //                        new_program_index + 1));
 //                
-                setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index + 1));
-            });
-            running = false;
+                    setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index + 1));
+                });
+                running = false;
+            }
         }
         mySyncAccess(() -> {
             Item item = progTable.getItem(program_index);
