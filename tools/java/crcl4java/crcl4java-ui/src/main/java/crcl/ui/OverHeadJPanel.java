@@ -38,30 +38,31 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-
 public class OverHeadJPanel extends JPanel {
 
-     private String tempDir = System.getProperty("temp.dir","/tmp");
+    private static final String DEFAULT_IMAGE_LOG_DIR = System.getProperty("crcl4java.simserver.imagelogdir", "/tmp");
+
+    private String imageLogDir = DEFAULT_IMAGE_LOG_DIR;
 
     /**
-     * Get the value of tempDir
+     * Get the value of imageLogDir
      *
-     * @return the value of tempDir
+     * @return the value of imageLogDir
      */
-    public String getTempDir() {
-        return tempDir;
+    public String getImageLogDir() {
+        return imageLogDir;
     }
 
     /**
-     * Set the value of tempDir
+     * Set the value of imageLogDir
      *
-     * @param tempDir new value of tempDir
+     * @param imageLogDir new value of imageLogDir
      */
-    public void setTempDir(String tempDir) {
-        this.tempDir = tempDir;
+    public void setImageLogDir(String imageLogDir) {
+        this.imageLogDir = imageLogDir;
     }
-    
-        private boolean logImages = false;
+
+    private boolean logImages = false;
 
     /**
      * Get the value of logImages
@@ -121,10 +122,10 @@ public class OverHeadJPanel extends JPanel {
     public void setJointvals(double[] jointvals) {
         this.jointvals = jointvals;
         try {
-            if(logImages) {
+            if (logImages) {
                 logImage();
             }
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             logImages = false;
         }
@@ -140,27 +141,27 @@ public class OverHeadJPanel extends JPanel {
      */
     public void setSeglengths(double[] seglengths) {
         this.seglengths = seglengths;
-        if(null == seglengths || seglengths.length < 1) {
+        if (null == seglengths || seglengths.length < 1) {
             return;
         }
         l0rect.width = seglengths[0];
-        if(seglengths.length < 2) {
+        if (seglengths.length < 2) {
             return;
         }
         l1rect.width = seglengths[1];
-        if(seglengths.length < 3) {
+        if (seglengths.length < 3) {
             return;
         }
         l2rect.width = seglengths[2];
-        if(seglengths.length < 4) {
+        if (seglengths.length < 4) {
             return;
         }
         l3rect.width = seglengths[3];
-        if(seglengths.length < 5) {
+        if (seglengths.length < 5) {
             return;
         }
         l4rect.height = seglengths[4];
-        if(seglengths.length < 6) {
+        if (seglengths.length < 6) {
             return;
         }
         l5rect.width = seglengths[5];
@@ -212,24 +213,23 @@ public class OverHeadJPanel extends JPanel {
         }
         return false;
     }
-    
-    
+
     public void logImage() throws IOException {
         Dimension d = this.getSize();
-        BufferedImage bi = new BufferedImage(d.width,d.height,BufferedImage.TYPE_3BYTE_BGR);
+        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
         g2d.setColor(this.getBackground());
         g2d.fillRect(0, 0, d.width, d.height);
         g2d.setColor(this.getForeground());
         this.paintImage(g2d, d);
-        File dir = new File(tempDir,"/simserver/overhead");
+        File dir = new File(imageLogDir, "/simserver/overhead");
         dir.mkdirs();
-        ImageIO.write(bi, "jpg", new File(dir,"overhead_"+System.currentTimeMillis()+".jpg"));
+        ImageIO.write(bi, "jpg", new File(dir, "overhead_" + System.currentTimeMillis() + ".jpg"));
     }
     private double maxSimpleJv0 = 0;
 
     private boolean paintSimpleRobot(Dimension d, Graphics2D g2d) {
-        if(null == jointvals || jointvals.length < SimulatedKinematicsSimple.NUM_JOINTS) {
+        if (null == jointvals || jointvals.length < SimulatedKinematicsSimple.NUM_JOINTS) {
             return true;
         }
         maxSimpleJv0 = Math.max(maxSimpleJv0, jointvals[0]);

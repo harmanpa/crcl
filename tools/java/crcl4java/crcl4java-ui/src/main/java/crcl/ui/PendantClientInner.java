@@ -222,7 +222,7 @@ public class PendantClientInner {
     private volatile int pause_count = 0;
     long programCommandStartTime;
     private volatile boolean stepMode = false;
-    private boolean quitOnTestCommandFailure = Boolean.valueOf(System.getProperty("PendantClient.quitOnTestCommandFailure", "false"));
+    private boolean quitOnTestCommandFailure = Boolean.getBoolean("crcl4java.client.quitOnTestCommandFailure");
     long runStartMillis = 0;
     long runEndMillis = 0;
     private BigDecimal jointMoveAccel = null;

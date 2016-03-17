@@ -22,6 +22,8 @@
  */
 package crcl.ui;
 
+import crcl.utils.SimRobotEnum;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -40,7 +42,7 @@ public class DefaultMain {
                         if(porti < 1) {
                             System.err.println("port ("+porti+") must be positive.");
                         }
-                        System.setProperty("crcljava.port", Integer.toString(porti));
+                        System.setProperty("crcl4java.port", Integer.toString(porti));
                     } catch (NumberFormatException numberFormatException) {
                         System.err.println("port\"("+args[i+1]+"\" must be an integer");
                         System.exit(i);
@@ -48,11 +50,11 @@ public class DefaultMain {
                     i++;
                     continue;
                 } else if (args[i].compareTo("--host") == 0 || args[i].compareTo("-h") == 0) {
-                    System.setProperty("crcljava.host", args[i + 1]);
+                    System.setProperty("crcl4java.host", args[i + 1]);
                     i++;
                     continue;
                 } else if (args[i].compareTo("--program") == 0) {
-                    System.setProperty("crcljava.program", args[i + 1]);
+                    System.setProperty("crcl4java.program", args[i + 1]);
                     i++;
                     continue;
                 } else if (args[i].compareTo("--mode") == 0 || args[i].compareTo("-m") == 0) {
@@ -62,13 +64,40 @@ public class DefaultMain {
                 }
             }
             if (args[i].startsWith("-")) {
-                System.err.println("Unrecognized argument : " + args[i]);
+                if(!"--help".equals(args[i])) {
+                    System.err.println("Unrecognized argument : " + args[i]);
+                }
                 System.err.println("Options are:");
+                System.err.println("\t--help\tPrint this help message.");
                 System.err.println("\t--port\tSet main tcp port.");
                 System.err.println("\t--host\tSet tcp port used by client to connect.");
                 System.err.println("\t--program\tSet xml program file to be sent by client one command at a time.");
                 System.err.println("\t--mode\tSet mode to one of:"
                         +"\n\t\tLauncher,CmdLineClient,CmdLineServer,GraphicalServer,GraphicalClient");
+                System.err.println("");
+                System.err.println("The following properties can be set with -Dpropertyname=value before the -jar arguments.");
+                System.err.println("eg:");
+                System.err.println("java -Dcrcl4java.simserver.logimages=true -jar crcl4java-ui-1.3-SNAPSHOT-jar-with-dependencies.jar --mode GraphicalServer");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.imagelogdir\tDirectory for simserver to log images to. Default=/tmp/ ");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.logimages\tSet to true to have simserver log images. Default=false ");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.maxTransSpeed\tSet to max translational speed. Default=2.0");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.maxRotSpeed\tSet to max rotational speed. Default=2.0");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.delayMillis\tNumber of milliseconds to sleep in simulation thread. Default=100");
+                System.err.println("");
+                System.err.println("crcl4java.simserver.robottype\tType of robot to simulate. Default="+SimRobotEnum.SIMPLE+" Options include"+Arrays.toString(SimRobotEnum.values()));
+                System.err.println("");
+                System.err.println("crcl4java.simserver.teleportToGoals\tWhenever the server receives a command to go somehere it will immediately report back that it is DONE and exactly there. Makes programs for testing run fast. Default=false");
+                System.err.println("");
+                
+                
+                System.err.println("crcl4java.client.quitOnTestCommandFailure\tHave the client stop running a program if a command test fails. eg. MoveTo results in server reporting DONE but position is not within tolerance of the EndPoint. Default=false. NOTE: A server reporting ERROR always stops the program regardless of this setting. ");
+                System.err.println("");
+                
                 System.exit(1);
             }
         }
@@ -96,8 +125,6 @@ public class DefaultMain {
             default:
                 System.err.println("Unrecognized mode:"+mode);
                 System.err.println("Options are:");
-                System.err.println("\t--port\tSet main tcp port.");
-                System.err.println("\t--host\tSet tcp port used by client to connect.");
                 System.err.println("\t--mode\tSet mode to one of:"
                         +"\n\t\tLauncher,CmdLineClient,CmdLineServer,GraphicalServer,GraphicalClient");
                 System.exit(1);

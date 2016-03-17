@@ -40,3 +40,4 @@ examples/C++/crclj_test
 /crcl4java-jmh-tests/target/
 /crcl4java-exi/target/
 /crcl4java-commons-math/target/
+.extract

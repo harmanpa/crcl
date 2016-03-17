@@ -38,29 +38,30 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-
 public class SideViewJPanel extends JPanel {
 
-     private String tempDir = System.getProperty("temp.dir","/tmp");
+    private static final String DEFAULT_IMAGE_LOG_DIR = System.getProperty("crcl4java.simserver.imagelogdir", "/tmp");
+
+    private String imageLogDir = DEFAULT_IMAGE_LOG_DIR;
 
     /**
-     * Get the value of tempDir
+     * Get the value of imageLogDir
      *
-     * @return the value of tempDir
+     * @return the value of imageLogDir
      */
-    public String getTempDir() {
-        return tempDir;
+    public String getImageLogDir() {
+        return imageLogDir;
     }
 
     /**
-     * Set the value of tempDir
+     * Set the value of imageLogDir
      *
-     * @param tempDir new value of tempDir
+     * @param imageLogDir new value of imageLogDir
      */
-    public void setTempDir(String tempDir) {
-        this.tempDir = tempDir;
+    public void setImageLogDir(String imageLogDir) {
+        this.imageLogDir = imageLogDir;
     }
-    
+
     private SimRobotEnum robotType = SimRobotEnum.PLAUSIBLE;
 
     /**
@@ -118,7 +119,7 @@ public class SideViewJPanel extends JPanel {
         g2d.fillRect(0, 0, d.width, d.height);
         g2d.setColor(this.getForeground());
         this.paintImage(g2d, d);
-        File dir = new File(tempDir,"/simserver/side");
+        File dir = new File(imageLogDir, "/simserver/side");
         dir.mkdirs();
         ImageIO.write(bi, "jpg", new File(dir, "side_" + System.currentTimeMillis() + ".jpg"));
     }

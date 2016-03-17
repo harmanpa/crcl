@@ -148,10 +148,6 @@ public class SimServerInner {
         SimServerInner.runningServers.forEach(s -> s.printClientStates(ps));
     }
 
-    private static long getLongProperty(String propName, long defaultLong) {
-        return Long.valueOf(System.getProperty(propName, Long.toString(defaultLong)));
-    }
-
     private CRCLSocket gripperSocket;
 
     private final XpathUtils xpu;
@@ -178,16 +174,16 @@ public class SimServerInner {
 //    double seglengths[] = SimulatedKinematicsPlausible.DEFAULT_SEGLENGTHS;
     private PoseType goalPose;
 
-    private final double maxTransSpeed = getDoubleProperty("SimServer.maxTransSpeed", 2.0);
-    private final double maxTransAccel = getDoubleProperty("SimServer.maxTransAccell", 20.0);
+    private final double maxTransSpeed = getDoubleProperty("crcl4java.simserver.maxTransSpeed", 2.0);
+    private final double maxTransAccel = getDoubleProperty("crcl4java.simserver.maxTransAccell", 20.0);
 
     private double curTransSpeed = 0;
     private double commandedTransSpeed = maxTransSpeed * 0.5;
     private double curTransAccel = 0;
     private double commandedTransAccel = maxTransAccel * 0.5;
 
-    private final double maxRotSpeed = getDoubleProperty("SimServer.maxRotSpeed", 2.0);
-    private final double maxRotAccel = getDoubleProperty("SimServer.maxRotAccell", 20.0);
+    private final double maxRotSpeed = getDoubleProperty("crcl4java.simserver.maxRotSpeed", 2.0);
+    private final double maxRotAccel = getDoubleProperty("crcl4java.simserver.maxRotAccell", 20.0);
 
     private double curRotSpeed = 0;
     private double commandedRotSpeed = maxRotSpeed * 0.5;
@@ -206,7 +202,7 @@ public class SimServerInner {
     private CRCLCommandType multiStepCommand = null;
     private int moveScrewStep = 0;
     private BigDecimal moveScriptTurnComplete = BigDecimal.ZERO;
-    private double jointSpeedMax = getDoubleProperty("SimServer.jointSpeedMax", 200.0);
+    private double jointSpeedMax = getDoubleProperty("crcl4java.simserver.jointSpeedMax", 200.0);
     private PmRotationVector lastDiffRotv = null;
     private int cycle_count = 0;
     private final List<ClientState> clientStates = new ArrayList<>();
@@ -219,7 +215,7 @@ public class SimServerInner {
     long debugUpdateStatusTime = 0;
     private int currentWaypoint;
     private final boolean enableGetStatusIDCheck
-            = Boolean.valueOf(System.getProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "false"));
+            = Boolean.valueOf(System.getProperty("crcl4java.simserver.enableGetStatusIDCheck", "false"));
     private final Set<Class<? extends CRCLCommandType>> gripperCommands = new HashSet<>(
             Arrays.asList(
                     InitCanonType.class,
@@ -231,7 +227,7 @@ public class SimServerInner {
     private boolean debug_this_command = false;
     private int cmdQueueCmdsOffered = 0;
     Thread acceptClientsThread = null;
-    private long delayMillis = getLongProperty("SimServer.delayMillis", 100);
+    private long delayMillis = Long.getLong("crcl4java.simserver.delayMillis", 100);
     private ConfigureJointReportsType cjrs = null;
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
@@ -366,7 +362,7 @@ public class SimServerInner {
         return port;
     }
 
-    private boolean teleportToGoals;
+    private boolean teleportToGoals = Boolean.getBoolean("crcl4java.simserver.teleportToGoals");;
 
     /**
      * Get the value of teleportToGoals
@@ -946,7 +942,7 @@ public class SimServerInner {
                             + status.getCommandStatus().getCommandState());
                 }
                 String xmls = curSocket.statusToString(status, outer.isValidateXMLSelected());
-//            System.out.println("SimServer.sendStatus() : xmls = " + xmls);
+//            System.out.println("crcl4java.simserver.sendStatus() : xmls = " + xmls);
 //            String strout = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+xmls;
 
 //            byte ba[] = xmls.getBytes();
@@ -995,7 +991,7 @@ public class SimServerInner {
                     this.lastStatusMap.put(socket, lsi);
                 }
             }
-//            System.out.println("SimServer.sendStatus() sent data to " + write_count + " clients.");
+//            System.out.println("crcl4java.simserver.sendStatus() sent data to " + write_count + " clients.");
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex + "\n" + ((curSocket != null) ? curSocket.getLastStatusString() : ""));
@@ -1903,6 +1899,16 @@ public class SimServerInner {
                                 this.commandedJointAccellerations[index] = acc.doubleValue();
                             }
                         }
+                    }
+                    if (teleportToGoals) {
+                        goalPose = null;
+                        if(jointPositions == null ) {
+                            jointPositions = Arrays.copyOf(commandedJointPositions, commandedJointPositions.length);
+                        } else {
+                            System.arraycopy(commandedJointPositions,0, jointPositions, 0, Math.min(commandedJointPositions.length, jointPositions.length));
+                        }
+                        goalPose = null;
+                        waypoints = null;
                     }
                     if (debug_this_command || outer.isDebugReadCommandSelected()) {
                         outer.showDebugMessage("SimServer commandedJointPositions = " + Arrays.toString(commandedJointPositions));

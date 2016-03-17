@@ -59,6 +59,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
 
     String tempDir = "/tmp";
 
+    private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
     /**
      * Creates new form SimServer
      *
@@ -68,7 +69,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     public SimServer() throws ParserConfigurationException {
         initComponents();
         SimRobotEnum defaultRobotType
-                = SimRobotEnum.valueOf(System.getProperty("simserver.robottype", SimRobotEnum.PLAUSIBLE.toString()));
+                = DEFAULT_ROBOTTYPE;
         this.inner = new SimServerInner(this);
         java.awt.EventQueue.invokeLater(() -> this.updatePanelsPrivate());
         this.lengthUnitComboBox.setSelectedItem(LengthUnitEnumType.MILLIMETER);
@@ -90,34 +91,38 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         }
         inner.restartServer();
         try {
-            String tempDirProp = System.getProperty("temp.dir");
-            File tempDir = null;
-            if (tempDirProp != null && tempDirProp.length() > 0) {
-                tempDir = new File(tempDirProp);
-                if (!tempDir.exists()
-                        || !tempDir.isDirectory()
-                        || !tempDir.canWrite()) {
-                    Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, "Can''t use tempDir from property temp.dir {0}", tempDir);
-                    tempDir = null;
+            String imageLogDirProp = System.getProperty("crcl4java.simserver.imagelogdir");
+            File imageLogDir = null;
+            if (imageLogDirProp != null && imageLogDirProp.length() > 0) {
+                imageLogDir = new File(imageLogDirProp);
+                if (!imageLogDir.exists()
+                        || !imageLogDir.isDirectory()
+                        || !imageLogDir.canWrite()) {
+                    Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, "Can''t use tempDir from property temp.dir {0}", imageLogDir);
+                    imageLogDir = null;
                 }
             }
-            if (null == tempDir) {
+            if (null == imageLogDir) {
                 File testTempFile = File.createTempFile("test", "suffix");
-                tempDir = testTempFile.getParentFile();
+                imageLogDir = testTempFile.getParentFile();
                 Files.delete(testTempFile.toPath());
             }
-            String tempDirPath = tempDir.getCanonicalPath();
-            this.overHeadJPanel1.setTempDir(tempDirPath);
-            this.sideViewJPanel1.setTempDir(tempDirPath);
+            String imageLogDirPath = imageLogDir.getCanonicalPath();
+            this.overHeadJPanel1.setImageLogDir(imageLogDirPath);
+            this.sideViewJPanel1.setImageLogDir(imageLogDirPath);
         } catch (IOException ex) {
             Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        boolean logImages = Boolean.valueOf(System.getProperty("simserver.logimages", "false"));
+        boolean logImages = LOG_IMAGES_DEFAULT;
         this.jCheckBoxMenuItemLogImages.setSelected(logImages);
         this.overHeadJPanel1.setLogImages(logImages);
         this.sideViewJPanel1.setLogImages(logImages);
+        this.jCheckBoxTeleportToGoals.setSelected(inner.isTeleportToGoals());
+        
     }
 
+    private static final boolean LOG_IMAGES_DEFAULT = Boolean.getBoolean("crcl4java.simserver.logimages");
+    
     private boolean toolChangerOpen;
 
     /**

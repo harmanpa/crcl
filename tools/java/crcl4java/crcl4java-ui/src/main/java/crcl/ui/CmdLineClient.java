@@ -86,7 +86,7 @@ public class CmdLineClient {
             PendantClientOuterStub pendantClientOuterStub = new PendantClientOuterStub();
             PendantClientInner pendantClientInner = new PendantClientInner(pendantClientOuterStub);
             pendantClientInner.setQuitOnTestCommandFailure(true);
-            final String programPropertyString = System.getProperty("crcljava.program");
+            final String programPropertyString = System.getProperty("crcl4java.program");
             pendantClientInner.connect(pendantClientOuterStub.getHost(), pendantClientOuterStub.getPort());
             if(!pendantClientInner.isConnected()) {
                 Logger.getLogger(CmdLineClient.class.getName()).log(Level.SEVERE, "Failed to connect to {0}:{1}", 

@@ -57,31 +57,31 @@ public class CmdLineClientIT {
             CmdLineClient.setProgramSucceeded(false);
             URL programURL = getClass().getResource("/main/programAll.xml");
             Path programPath = Paths.get(programURL.toURI());
-            System.setProperty("crcljava.program", programPath.toString());
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.program", programPath.toString());
+            System.setProperty("crcl4java.port", "0");
             URL initPoseURL = getClass().getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
-            System.setProperty("crcljava.program", programPath.toString());
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.program", programPath.toString());
+            System.setProperty("crcl4java.port", "0");
 
-            System.setProperty("crcjava.SimServer.validateXML", "true");// validateXML
-            System.setProperty("crcjava.SimServer.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
-            System.setProperty("crcjava.SimServer.appendZero", "false");// appendZero
-            System.setProperty("crcjava.SimServer.randomPacket", "false");// randomPacket
-            System.setProperty("crcjava.SimServer.replaceState", "false");// replaceState
-            System.setProperty("crcjava.SimServer.debugMoveDone", "true");// debugMoveDone
-            System.setProperty("crcjava.SimServer.debugReadCommand", "true");// debugReadCommand
-            System.setProperty("crcjava.SimServer.replaceXmlHeader", "true");// replaceXmlHeader
-            System.setProperty("crcjava.SimServer.debugSendStatus", "true");// debugSendStatus
-            System.setProperty("crcjava.SimServer.exiSelected", "false");// exiSelected
+            System.setProperty("crcl4java.simserver.validateXML", "true");// validateXML
+            System.setProperty("crcl4java.simserver.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
+            System.setProperty("crcl4java.simserver.appendZero", "false");// appendZero
+            System.setProperty("crcl4java.simserver.randomPacket", "false");// randomPacket
+            System.setProperty("crcl4java.simserver.replaceState", "false");// replaceState
+            System.setProperty("crcl4java.simserver.debugMoveDone", "true");// debugMoveDone
+            System.setProperty("crcl4java.simserver.debugReadCommand", "true");// debugReadCommand
+            System.setProperty("crcl4java.simserver.replaceXmlHeader", "true");// replaceXmlHeader
+            System.setProperty("crcl4java.simserver.debugSendStatus", "true");// debugSendStatus
+            System.setProperty("crcl4java.simserver.exiSelected", "false");// exiSelected
 
-            System.setProperty("crcjava.PendandClient.validateXML", "true");// validateXML
-            System.setProperty("crcjava.PendandClient.replaceState", "false");// validateXML
-            System.setProperty("crcjava.PendandClient.debugWaitForDone", "false");// debugWaitForDone
-            System.setProperty("crcjava.PendandClient.debugSendCommand", "true");// debugSendCommand
-            System.setProperty("crcjava.PendandClient.recordPose", "true");// recordPose
-            System.setProperty("crcjava.PendandClient.exiSelected", "false");// exiSelected
-            System.setProperty("crcjava.PendandClient.useReadStatusThreadSelected", "false");
+            System.setProperty("crcl4java.client.validateXML", "true");// validateXML
+            System.setProperty("crcl4java.client.replaceState", "false");// validateXML
+            System.setProperty("crcl4java.client.debugWaitForDone", "false");// debugWaitForDone
+            System.setProperty("crcl4java.client.debugSendCommand", "true");// debugSendCommand
+            System.setProperty("crcl4java.client.recordPose", "true");// recordPose
+            System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
+            System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
@@ -136,24 +136,25 @@ public class CmdLineClientIT {
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcljava.port", "0");
 
-            System.setProperty("crcjava.SimServer.validateXML", "true");// validateXML
-            System.setProperty("crcjava.SimServer.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
-            System.setProperty("crcjava.SimServer.appendZero", "false");// appendZero
-            System.setProperty("crcjava.SimServer.randomPacket", "false");// randomPacket
-            System.setProperty("crcjava.SimServer.replaceState", "false");// replaceState
-            System.setProperty("crcjava.SimServer.debugMoveDone", "true");// debugMoveDone
-            System.setProperty("crcjava.SimServer.debugReadCommand", "true");// debugReadCommand
-            System.setProperty("crcjava.SimServer.replaceXmlHeader", "true");// replaceXmlHeader
-            System.setProperty("crcjava.SimServer.debugSendStatus", "true");// debugSendStatus
-            System.setProperty("crcjava.SimServer.exiSelected", "false");// exiSelected
+            System.setProperty("crcl4java.simserver.validateXML", "true");// validateXML
+            System.setProperty("crcl4java.simserver.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
+            System.setProperty("crcl4java.simserver.appendZero", "false");// appendZero
+            System.setProperty("crcl4java.simserver.randomPacket", "false");// randomPacket
+            System.setProperty("crcl4java.simserver.replaceState", "false");// replaceState
+            System.setProperty("crcl4java.simserver.debugMoveDone", "true");// debugMoveDone
+            System.setProperty("crcl4java.simserver.debugReadCommand", "true");// debugReadCommand
+            System.setProperty("crcl4java.simserver.replaceXmlHeader", "true");// replaceXmlHeader
+            System.setProperty("crcl4java.simserver.debugSendStatus", "true");// debugSendStatus
+            System.setProperty("crcl4java.simserver.exiSelected", "false");// exiSelected
 
-            System.setProperty("crcjava.PendandClient.validateXML", "true");// validateXML
-            System.setProperty("crcjava.PendandClient.replaceState", "false");// validateXML
-            System.setProperty("crcjava.PendandClient.debugWaitForDone", "false");// debugWaitForDone
-            System.setProperty("crcjava.PendandClient.debugSendCommand", "true");// debugSendCommand
-            System.setProperty("crcjava.PendandClient.recordPose", "true");// recordPose
-            System.setProperty("crcjava.PendandClient.exiSelected", "false");// exiSelected
-            System.setProperty("crcjava.PendandClient.useReadStatusThreadSelected", "false");
+            System.setProperty("crcl4java.client.validateXML", "true");// validateXML
+            System.setProperty("crcl4java.client.replaceState", "false");// validateXML
+            System.setProperty("crcl4java.client.debugWaitForDone", "false");// debugWaitForDone
+            System.setProperty("crcl4java.client.debugSendCommand", "true");// debugSendCommand
+            System.setProperty("crcl4java.client.recordPose", "true");// recordPose
+            System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
+            System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
+            System.setProperty("crcl4java.simserver.teleportToGoals", "true");
             System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
@@ -211,33 +212,35 @@ public class CmdLineClientIT {
             CmdLineClient.setProgramSucceeded(false);
             URL programURL = getClass().getResource("/main/programAll.xml");
             Path programPath = Paths.get(programURL.toURI());
-            System.setProperty("crcljava.program", programPath.toString());
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.program", programPath.toString());
+            System.setProperty("crcl4java.port", "0");
             URL initPoseURL = getClass().getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
-            System.setProperty("crcljava.program", programPath.toString());
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.program", programPath.toString());
+            System.setProperty("crcl4java.port", "0");
 
-            System.setProperty("crcjava.SimServer.validateXML", "false");// validateXML
-            System.setProperty("crcjava.SimServer.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
-            System.setProperty("crcjava.SimServer.appendZero", "false");// appendZero
-            System.setProperty("crcjava.SimServer.randomPacket", "false");// randomPacket
-            System.setProperty("crcjava.SimServer.replaceState", "false");// replaceState
-            System.setProperty("crcjava.SimServer.debugMoveDone", "true");// debugMoveDone
-            System.setProperty("crcjava.SimServer.debugReadCommand", "true");// debugReadCommand
-            System.setProperty("crcjava.SimServer.replaceXmlHeader", "false");// replaceXmlHeader
-            System.setProperty("crcjava.SimServer.debugSendStatus", "true");// debugSendStatus
-            System.setProperty("crcjava.SimServer.exiSelected", "true");// exiSelected
-
-            System.setProperty("crcjava.PendandClient.validateXML", "false");// validateXML
-            System.setProperty("crcjava.PendandClient.replaceState", "false");// validateXML
-            System.setProperty("crcjava.PendandClient.debugWaitForDone", "false");// debugWaitForDone
-            System.setProperty("crcjava.PendandClient.debugSendCommand", "true");// debugSendCommand
-            System.setProperty("crcjava.PendandClient.recordPose", "true");// recordPose
-            System.setProperty("crcjava.PendandClient.exiSelected", "true");// exiSelected
-            System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
+            System.setProperty("crcl4java.simserver.validateXML", "false");// validateXML
+            System.setProperty("crcl4java.simserver.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
+            System.setProperty("crcl4java.simserver.appendZero", "false");// appendZero
+            System.setProperty("crcl4java.simserver.randomPacket", "false");// randomPacket
+            System.setProperty("crcl4java.simserver.replaceState", "false");// replaceState
+            System.setProperty("crcl4java.simserver.debugMoveDone", "true");// debugMoveDone
+            System.setProperty("crcl4java.simserver.debugReadCommand", "true");// debugReadCommand
+            System.setProperty("crcl4java.simserver.replaceXmlHeader", "false");// replaceXmlHeader
+            System.setProperty("crcl4java.simserver.debugSendStatus", "true");// debugSendStatus
+            System.setProperty("crcl4java.simserver.exiSelected", "true");// exiSelected
+            System.setProperty("crcl4java.simserver.enableGetStatusIDCheck", "true");
+            
+            
+            System.setProperty("crcl4java.client.validateXML", "false");// validateXML
+            System.setProperty("crcl4java.client.replaceState", "false");// validateXML
+            System.setProperty("crcl4java.client.debugWaitForDone", "false");// debugWaitForDone
+            System.setProperty("crcl4java.client.debugSendCommand", "true");// debugSendCommand
+            System.setProperty("crcl4java.client.recordPose", "true");// recordPose
+            System.setProperty("crcl4java.client.exiSelected", "true");// exiSelected
             System.setProperty("crcl.prefixEXISizeEnabled", "false");
-            System.setProperty("crcjava.PendandClient.useReadStatusThreadSelected", "false");
+            System.setProperty("crcl4java.simserver.teleportToGoals", "true");
+            System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             CmdLineSimServer.main(new String[]{
                 "--delayMillis", "10",
                 "--jointSpeedMax", "1000.0",

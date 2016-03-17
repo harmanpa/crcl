@@ -161,11 +161,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         initComponents();
         addCommandsMenu();
 
-        String portPropertyString = System.getProperty("crcljava.port");
+        String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             this.jTextFieldPort.setText(portPropertyString);
         }
-        String hostPropertyString = System.getProperty("crcljava.host");
+        String hostPropertyString = System.getProperty("crcl4java.host");
         if (null != hostPropertyString) {
             this.jTextFieldHost.setText(hostPropertyString);
         }
@@ -174,7 +174,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         internal.setProgramSchema(CRCLSocket.readProgramSchemaFiles(PendantClient.programSchemasFile));
         readRecentCommandFiles();
         readRecentPrograms();
-        final String programPropertyString = System.getProperty("crcljava.program");
+        final String programPropertyString = System.getProperty("crcl4java.program");
         if (null != programPropertyString) {
             java.awt.EventQueue.invokeLater(new Runnable() {
 
