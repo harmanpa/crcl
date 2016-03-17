@@ -83,6 +83,7 @@ public class CmdLineClientIT {
             System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
             System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
+            System.setProperty("crcl4java.maxdwell","0.01");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
                 "--delayMillis", "10",
@@ -155,7 +156,8 @@ public class CmdLineClientIT {
             System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
             System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             System.setProperty("crcl4java.simserver.teleportToGoals", "true");
-            System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
+            System.setProperty("crcl4java.maxdwell","0.01");
+//          System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
                 "--delayMillis", "10",

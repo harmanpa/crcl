@@ -1182,6 +1182,12 @@ public class PendantClientInner {
         return true;
     }
 
+    private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
+    
+    private static double getDoubleProperty(String propName, double defaultVal) {
+        return Double.valueOf(System.getProperty(propName, Double.toString(defaultVal)));
+    }
+    
     private boolean testAcutateJointsEffect(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
         for (ActuateJointType aj : ajl) {
@@ -1270,7 +1276,12 @@ public class PendantClientInner {
 
     private boolean testDwellEffect(DwellType dwell, long startTime) {
         long elapsed = System.currentTimeMillis() - startTime;
-        long expected = (long) (dwell.getDwellTime().doubleValue() * 1000.0);
+        double dwellTime = dwell.getDwellTime().doubleValue() * 1000.0;
+        if(dwellTime > maxDwell) {
+            LOGGER.warning("dwellTime of "+dwellTime +" exceeded max of "+maxDwell);
+            return true;
+        }
+        long expected = (long) (dwellTime);
         if (Math.abs(elapsed - expected) > 3500) {
             outer.showMessage("Dwell expected to take " + expected + " ms but took " + elapsed + " ms.");
             return false;

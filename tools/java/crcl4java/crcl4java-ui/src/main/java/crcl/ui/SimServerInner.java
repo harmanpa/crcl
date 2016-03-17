@@ -76,6 +76,7 @@ import crcl.base.TransAccelType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import static crcl.ui.PendantClientInner.LOGGER;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
@@ -140,6 +141,8 @@ public class SimServerInner {
     private static final double SCALE_FUDGE_FACTOR = 0.5;
     public static long debugCmdSendTime = 0;
 
+    private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
+    
     private static double getDoubleProperty(String propName, double defaultVal) {
         return Double.valueOf(System.getProperty(propName, Double.toString(defaultVal)));
     }
@@ -1849,6 +1852,10 @@ public class SimServerInner {
                     this.setCurrentWaypoint(0);
                     this.setGoalPose(wpts.get(0));
 
+                    if(teleportToGoals) {
+                        setCurrentWaypoint(wpts.size()-1);
+                        setGoalPose(wpts.get(wpts.size()-1));
+                    }
                     this.commandedJointAccellerations = null;
                     this.commandedJointVelocities = null;
                     this.commandedJointPositions = null;
@@ -1950,7 +1957,12 @@ public class SimServerInner {
                     setCommandState(CommandStateEnumType.CRCL_DONE);
                 } else if (cmd instanceof DwellType) {
                     DwellType dwellCmd = (DwellType) cmd;
-                    dwellEndTime = System.currentTimeMillis() + dwellCmd.getDwellTime().longValue() * 1000;
+                    double dwellTime = dwellCmd.getDwellTime().doubleValue() * 1000.0;
+                    if(dwellTime > maxDwell) {
+                        LOGGER.warning("dwellTime of "+dwellTime +" exceeded max of "+maxDwell);
+                        dwellTime = maxDwell;
+                    }
+                    dwellEndTime = System.currentTimeMillis() + ((long)dwellTime);
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 } else if (cmd instanceof MoveScrewType) {
                     MoveScrewType moveScrew = (MoveScrewType) cmd;
