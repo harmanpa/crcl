@@ -97,34 +97,7 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.1</version>
-                <executions>
-                    <execution>
-                        <id>tomcat-run</id>
-                        <goals>
-                            <goal>exec-war-only</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <path>crcl4java-vaadin-webapp</path>
-                            <warRunDependencies>
-                                <warRunDependency>
-                                    <dependency>
-                                        <groupId>${project.groupId}</groupId>
-                                        <artifactId>crcl4java-vaadin-webapp</artifactId>
-                                        <version>${project.version}</version>
-                                        <type>war</type>
-                                    </dependency>
-                                    <contextPath>/</contextPath>
-                                </warRunDependency>
-                            </warRunDependencies>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -254,6 +227,41 @@
 
     </build>
     <profiles>
+        <profile>
+            <id>Release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.tomcat.maven</groupId>
+                        <artifactId>tomcat7-maven-plugin</artifactId>
+                        <version>2.1</version>
+                        <executions>
+                            <execution>
+                                <id>tomcat-run</id>
+                                <goals>
+                                    <goal>exec-war-only</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <path>crcl4java-vaadin-webapp</path>
+                                    <warRunDependencies>
+                                        <warRunDependency>
+                                            <dependency>
+                                                <groupId>${project.groupId}</groupId>
+                                                <artifactId>crcl4java-vaadin-webapp</artifactId>
+                                                <version>${project.version}</version>
+                                                <type>war</type>
+                                            </dependency>
+                                            <contextPath>/</contextPath>
+                                        </warRunDependency>
+                                    </warRunDependencies>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>jdk8_diags_verbose</id>
             <activation>

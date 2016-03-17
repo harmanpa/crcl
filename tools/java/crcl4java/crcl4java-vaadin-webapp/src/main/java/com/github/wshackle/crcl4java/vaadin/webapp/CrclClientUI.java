@@ -227,6 +227,13 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button speed10Button = new Button("10% Speed");
     private final Button speed50Button = new Button("50% Speed");
     private final Button speed100Button = new Button("100% Speed");
+    private final JogButton jointSpeedMinusJB = new JogButton(" Speed-");
+    private final JogButton jointSpeedPlusJB = new JogButton(" Speed+");
+    private final Label jointSpeedJogLabel = new Label(" Speed: " + String.format("%+6.1f ", speedFraction * 100.0) + " % ");
+    private final Button jointSpeed10Button = new Button("10% Speed");
+    private final Button jointSpeed50Button = new Button("50% Speed");
+    private final Button jointSpeed100Button = new Button("100% Speed");
+
     private final Button jogIncPoint1Button = new Button(".1 mm");
     private final Button jogInc1Button = new Button("1 mm");
     private final Button jogInc10Button = new Button("10 mm");
@@ -234,6 +241,16 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button jogInc1000Button = new Button("1m");
     private final Label jogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
     final ProgressBar jogIncProgressBar = new ProgressBar(0.0f);
+
+    private final Button jointJogIncPoint1Button = new Button(".1 deg");
+    private final Button jointJogInc1Button = new Button("1 deg");
+    private final Button jointJogInc10Button = new Button("10 deg");
+    private final Button jointJogInc100Button = new Button("100 deg");
+    public BigDecimal jointJogIncrement = BigDecimal.TEN;
+
+    private final Label jointJogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+    final ProgressBar jointJogIncProgressBar = new ProgressBar(0.0f);
+
     private final Button openGripperButton = new Button("Open Gripper");
     private final Button closeGripperButton = new Button("Close Gripper");
     private final Button recordPointButton = new Button("Record Point");
@@ -963,12 +980,17 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         Panel panel = new Panel();
         navLayout.addComponent(panel);
         final MainView mainLayout = new MainView();
-        final VerticalLayout jogJointLayout = new VerticalLayout();
+        final HorizontalLayout jogJointLayout = new HorizontalLayout();
         final HorizontalLayout jogWorldLayout = new HorizontalLayout();
         final VerticalLayout jogWorldLeftLayout = new VerticalLayout();
         final VerticalLayout jogWorldRightLayout = new VerticalLayout();
+        final VerticalLayout jogJointLeftLayout = new VerticalLayout();
+        final VerticalLayout jogJointRightLayout = new VerticalLayout();
         final VerticalLayout remoteProgramsLayout = new VerticalLayout();
         final VerticalLayout transformSetupLayout = new VerticalLayout();
+        
+        jogJointLayout.setSpacing(true);
+        jogWorldLayout.setSpacing(true);
 
 //        navigator = new Navigator(this, navLayout);
 //        navigator.addView("", mainLayout);
@@ -1472,8 +1494,67 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             jpButton.addMouseUpConsumer(med -> stopMotion());
             hl.addComponent(jpButton);
             hl.addComponent(jogJointLabels[i]);
-            jogJointLayout.addComponent(jogJointLines[i]);
+            jogJointLeftLayout.addComponent(jogJointLines[i]);
         }
+        jogJointLayout.addComponent(jogJointLeftLayout);
+
+        final HorizontalLayout jointSpeedLine = new HorizontalLayout();
+        jointSpeedLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        jointSpeedLine.addComponent(jointSpeedMinusJB);
+        jointSpeedMinusJB.addMouseDownConsumer(med -> curJogState = JogState.SPEED_MINUS);
+        jointSpeedMinusJB.addMouseUpConsumer(med -> stopMotion());
+        jointSpeedPlusJB.addMouseDownConsumer(med -> curJogState = JogState.SPEED_PLUS);
+        jointSpeedPlusJB.addMouseUpConsumer(med -> stopMotion());
+        jointSpeedLine.addComponent(jointSpeedPlusJB);
+        jointSpeedLine.addComponent(jointSpeedJogLabel);
+        jogJointRightLayout.setSpacing(true);
+        jogJointRightLayout.addComponent(jointSpeedLine);
+
+        final HorizontalLayout jointSpeedButtonLine = new HorizontalLayout();
+        jointSpeedButtonLine.setSpacing(true);
+        jointSpeed10Button.addClickListener(e -> sendSetSpeed(0.1));
+        jointSpeedButtonLine.addComponent(jointSpeed10Button);
+        jointSpeed50Button.addClickListener(e -> sendSetSpeed(0.5));
+        jointSpeedButtonLine.addComponent(jointSpeed50Button);
+        jointSpeed100Button.addClickListener(e -> sendSetSpeed(1.0));
+        jointSpeedButtonLine.addComponent(jointSpeed100Button);
+        jogJointRightLayout.addComponent(jointSpeedButtonLine);
+
+        final HorizontalLayout jointIncrementButtonLine = new HorizontalLayout();
+        jointIncrementButtonLine.setSpacing(true);
+        jointIncrementButtonLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        jointJogIncPoint1Button.addClickListener(e -> {
+            jointJogIncrement = BigDecimal.valueOf(0.1);
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+        });
+        jointIncrementButtonLine.addComponent(jointJogIncPoint1Button);
+        jointJogInc1Button.addClickListener(e -> {
+            jointJogIncrement = BigDecimal.ONE;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+        });
+        jointIncrementButtonLine.addComponent(jointJogInc1Button);
+        jointJogInc10Button.addClickListener(e -> {
+            jointJogIncrement = BigDecimal.TEN;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+        });
+        jointIncrementButtonLine.addComponent(jointJogInc10Button);
+        jointJogInc100Button.addClickListener(e -> {
+            jointJogIncrement = BigDecimal.valueOf(100.0);
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+        });
+        jointIncrementButtonLine.addComponent(jointJogInc100Button);
+        jogJointRightLayout.addComponent(jointIncrementButtonLine);
+
+        HorizontalLayout jointJogIncLine = new HorizontalLayout();
+        jointJogIncLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        jointJogIncLine.setSpacing(true);
+        jointJogIncLine.addComponent(jointJogIncLabel);
+        jointJogIncLine.addComponent(jointJogIncProgressBar);
+        jogJointRightLayout.addComponent(jointJogIncLine);
+        
+//        jogJointRightLayout.addComponent(speedLine);
+//        jogJointRightLayout.addComponent(speedButtonLine);
+        jogJointLayout.addComponent(jogJointRightLayout);
         navLayout.addComponent(statusLabel);
         connect();
     }
@@ -1651,6 +1732,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             sendCommand(setSpeedCmd);
             mySyncAccess(() -> {
                 speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
+                jointSpeedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
             });
         } catch (CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -1976,7 +2058,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             && cst.getCommandID().compareTo(lastCmdIdSent) >= 0) {
                         prevJogState = JogState.NONE;
                         MoveToType moveToCmd = new MoveToType();
-
+                        ActuateJointsType actuateJointsCmd = new ActuateJointsType();
                         PoseType endPos = new PoseType();
                         endPos.setPoint(new PointType());
                         endPos.setXAxis(new VectorType());
@@ -2097,13 +2179,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             break;
 
                             case JOINT_MINUS: {
-                                ActuateJointsType actuateJointsCmd = new ActuateJointsType();
                                 for (JointStatusType js : stat.getJointStatuses().getJointStatus()) {
                                     ActuateJointType actuateJoint = new ActuateJointType();
                                     actuateJoint.setJointNumber(js.getJointNumber());
                                     actuateJoint.setJointPosition(js.getJointPosition());
                                     if (jogJointNumber == js.getJointNumber().intValue() - 1) {
-                                        actuateJoint.setJointPosition(js.getJointPosition().subtract(BigDecimal.ONE));
+                                        actuateJoint.setJointPosition(js.getJointPosition().subtract(jointJogIncrement));
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
                                     jas.setJointSpeed(BigDecimal.ONE);
@@ -2117,13 +2198,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             break;
 
                             case JOINT_PLUS: {
-                                ActuateJointsType actuateJointsCmd = new ActuateJointsType();
                                 for (JointStatusType js : stat.getJointStatuses().getJointStatus()) {
                                     ActuateJointType actuateJoint = new ActuateJointType();
                                     actuateJoint.setJointNumber(js.getJointNumber());
                                     actuateJoint.setJointPosition(js.getJointPosition());
                                     if (jogJointNumber == js.getJointNumber().intValue() - 1) {
-                                        actuateJoint.setJointPosition(js.getJointPosition().add(BigDecimal.ONE));
+                                        actuateJoint.setJointPosition(js.getJointPosition().add(jointJogIncrement));
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
                                     jas.setJointSpeed(BigDecimal.ONE);
@@ -2147,6 +2227,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     setSpeedCmd.setCommandID(nextId);
                                     sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
+                                    jointSpeedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
                                 }
                             }
                             break;
@@ -2162,7 +2243,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     setSpeedCmd.setCommandID(nextId);
                                     sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
-
+                                    jointSpeedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
                                 }
                             }
                             break;
@@ -2174,9 +2255,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 && curJogState != JogState.SPEED_MINUS
                                 && curJogState != JogState.SPEED_PLUS) {
                             prevMoveTo = moveToCmd;
+                            prevActuateJoints = actuateJointsCmd;
                             prevJogState = curJogState;
                             curJogState = JogState.NONE;
                             jogIncProgressBar.setValue(0.0f);
+                            jointJogIncProgressBar.setValue(0.0f);
                         }
                     } else {
                         switch (prevJogState) {
@@ -2207,6 +2290,35 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 }
                                 break;
 
+                            case JOINT_MINUS:
+                            case JOINT_PLUS:
+                                if (null != prevActuateJoints) {
+                                    BigDecimal curPosition = null;
+                                    BigDecimal goalPosition = null;
+                                    BigInteger jointNumber = BigInteger.valueOf(jogJointNumber+1); //jogJointNumber;//prevActuateJoints.getActuateJoint().get(0).getJointNumber();
+                                    for (int i = 0; i < stat.getJointStatuses().getJointStatus().size(); i++) {
+                                        JointStatusType js = stat.getJointStatuses().getJointStatus().get(i);
+                                        if (js.getJointNumber().compareTo(jointNumber) == 0) {
+                                            curPosition = js.getJointPosition();
+                                            break;
+                                        }
+                                    }
+                                    for (int i = 0; i < prevActuateJoints.getActuateJoint().size(); i++) {
+                                        ActuateJointType aj = prevActuateJoints.getActuateJoint().get(i);
+                                        if (aj.getJointNumber().compareTo(jointNumber) == 0) {
+                                            goalPosition = aj.getJointPosition();
+                                            break;
+                                        }
+                                    }
+                                    if (null != curPosition && goalPosition != null) {
+                                        float fraction
+                                                = computeFraction(goalPosition,
+                                                        curPosition, jointJogIncrement);
+
+                                        jointJogIncProgressBar.setValue(fraction);
+                                    }
+                                }
+                                break;
                         }
                     }
                     if (null != pt.getX()) {
@@ -2397,6 +2509,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     public static double worldAngleIncrementRad = Math.toRadians(30.0);
 
     private MoveToType prevMoveTo = null;
+    private ActuateJointsType prevActuateJoints = null;
     private BigInteger lastCmdIdSent = BigInteger.ONE;
 
     @SuppressWarnings("unchecked")
