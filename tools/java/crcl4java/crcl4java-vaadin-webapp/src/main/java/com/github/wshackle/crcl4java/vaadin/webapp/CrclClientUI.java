@@ -504,6 +504,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private void loadSelectedRemoteProgram() {
         try {
+            running = false;
             CRCLSocket tmpsocket = socket;
             if (null == tmpsocket) {
                 tmpsocket = new CRCLSocket();
@@ -1867,6 +1868,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 updateStateLabels(CommandStateEnumType.CRCL_ERROR);
                 stateDescriptionLbl.setValue(ex.toString());
+                System.err.println("connectCount = " + connectCount);
+                System.err.println("disconnectCount = " + disconnectCount);
             }
 //            if (!Thread.currentThread().isInterrupted()) {
 //                new Thread(() -> {
