@@ -161,7 +161,7 @@ public class SimulatedKinematicsPlausible {
             PmRpy rpy = CRCLPosemath.toPmRpy(pose);
             jv[5] = -Math.toDegrees(rpy.r);
         } catch (PmException ex) {
-            Logger.getLogger(SimulatedKinematicsPlausible.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SimulatedKinematicsPlausible.class.getName()).log(Level.SEVERE, "invalid pose", ex);
         }
 
         r = Math.sqrt(

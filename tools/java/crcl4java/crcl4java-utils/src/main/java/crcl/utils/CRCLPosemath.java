@@ -98,8 +98,8 @@ public class CRCLPosemath {
      * @return PointType with same initial values as pt but can be independently
      * modified.
      */
-    public static PointType copy(PointType pt) {
-        if(null == pt) {
+    public static /*@Nullable*/ PointType copy(PointType pt) {
+        if (null == pt) {
             return null;
         }
         PointType newPt = new PointType();
@@ -111,9 +111,9 @@ public class CRCLPosemath {
     }
 
     /**
-     * Extract the X and Y coordinates for a Point2D.Double.
-     * The Z coordinate is ignored.
-     * 
+     * Extract the X and Y coordinates for a Point2D.Double. The Z coordinate is
+     * ignored.
+     *
      * @param pt input point
      * @return Point2D.Double with x and y from PointType
      */
@@ -123,41 +123,41 @@ public class CRCLPosemath {
     }
 
     /**
-     * Extract the X and Y coordinates for a Point2D.Double.
-     * The Z coordinate is ignored and the rotation are ignored.
-     * 
+     * Extract the X and Y coordinates for a Point2D.Double. The Z coordinate is
+     * ignored and the rotation are ignored.
+     *
      * @param pose input pose
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double xyPoint2D(PoseType pose) {
         return xyPoint2D(pose.getPoint());
     }
-    
+
     /**
-     * Extract the cylindrical r and z coordinates for a Point2D.Double.
-     * The X and Y coordinates are combined to compute r as the x of then Point2D.Double 
-     * and the z is extracted as the y of the new Point2D.Double
-     * 
+     * Extract the cylindrical r and z coordinates for a Point2D.Double. The X
+     * and Y coordinates are combined to compute r as the x of then
+     * Point2D.Double and the z is extracted as the y of the new Point2D.Double
+     *
      * @param pt input point
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double rzPoint2D(PointType pt) {
         PmCartesian cart = CRCLPosemath.toPmCartesian(pt);
-        return new Point2D.Double(Math.sqrt(cart.x*cart.x+cart.y*cart.y),cart.z);
+        return new Point2D.Double(Math.sqrt(cart.x * cart.x + cart.y * cart.y), cart.z);
     }
 
     /**
-     * Extract the X and Y coordinates for a Point2D.Double.
-     * The X and Y coordinates are combined to compute r as the x of then Point2D.Double 
-     * and the z is extracted as the y of the new Point2D.Double
-     * 
+     * Extract the X and Y coordinates for a Point2D.Double. The X and Y
+     * coordinates are combined to compute r as the x of then Point2D.Double and
+     * the z is extracted as the y of the new Point2D.Double
+     *
      * @param pose input pose
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double rzPoint2D(PoseType pose) {
         return rzPoint2D(pose.getPoint());
     }
-    
+
     /**
      * Copy or clone the vector.
      *
@@ -165,8 +165,8 @@ public class CRCLPosemath {
      * @return VectorType with same initial values as vec but can be
      * independently modified.
      */
-    public static VectorType copy(VectorType vec) {
-        if(null == vec) {
+    public static /*@Nullable*/ VectorType copy(VectorType vec) {
+        if (null == vec) {
             return null;
         }
         VectorType newVec = new VectorType();
@@ -185,14 +185,23 @@ public class CRCLPosemath {
      * independently modified.
      */
     public static PoseType copy(PoseType pose) {
-        if(null == pose)  {
+        if (null == pose) {
             throw new IllegalArgumentException("copy(PoseType) called with null argument.");
         }
         PoseType newPose = new PoseType();
         newPose.setName(pose.getName());
-        newPose.setPoint(copy(pose.getPoint()));
-        newPose.setXAxis(copy(pose.getXAxis()));
-        newPose.setZAxis(copy(pose.getZAxis()));
+        PointType pt = copy(pose.getPoint());
+        if (null != pt) {
+            newPose.setPoint(pt);
+        }
+        VectorType xAxis = copy(pose.getXAxis());
+        if (null != xAxis) {
+            newPose.setXAxis(xAxis);
+        }
+        VectorType zAxis = copy(pose.getZAxis());
+        if (null != zAxis) {
+            newPose.setZAxis(zAxis);
+        }
         return newPose;
     }
 
@@ -204,40 +213,53 @@ public class CRCLPosemath {
      * independently modified.
      */
     public static CRCLStatusType copy(CRCLStatusType status) {
-        if(null == status)  {
+        if (null == status) {
             throw new IllegalArgumentException("copy(CRCLStatusType) called with null argument.");
         }
         CRCLStatusType newStatus = new CRCLStatusType();
         newStatus.setName(status.getName());
-        newStatus.setCommandStatus(copy(status.getCommandStatus()));
-        newStatus.setJointStatuses(copy(status.getJointStatuses()));
-        newStatus.setPoseStatus(copy(status.getPoseStatus()));
-        newStatus.setGripperStatus(copy(status.getGripperStatus()));
+        CommandStatusType commandStatus = copy(status.getCommandStatus());
+        if (null != commandStatus) {
+            newStatus.setCommandStatus(commandStatus);
+        }
+        JointStatusesType jointStatuses = copy(status.getJointStatuses());
+        if(null != jointStatuses) {
+            newStatus.setJointStatuses(jointStatuses);
+        }
+        PoseStatusType poseStatus = copy(status.getPoseStatus());
+        if (null != poseStatus) {
+            newStatus.setPoseStatus(poseStatus);
+        }
+        GripperStatusType gripperStatus = copy(status.getGripperStatus());
+        if (null != gripperStatus) {
+            newStatus.setGripperStatus(gripperStatus);
+        }
         return newStatus;
     }
-    
+
     /**
      * Copy or clone a gripper status.
      *
      * @param status status to be cloned
      * @return GripperStatusType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static GripperStatusType copy(GripperStatusType status) {
-        if(null == status)  {
+    public static /*@Nullable*/ GripperStatusType copy(GripperStatusType status) {
+        if (null == status) {
             return null;
         }
         GripperStatusType newStatus = null;
-        if(status instanceof  VacuumGripperStatusType) {
+        if (status instanceof VacuumGripperStatusType) {
             VacuumGripperStatusType vacuumGripperStatus = (VacuumGripperStatusType) status;
             VacuumGripperStatusType newVacuumGripperStatus = new VacuumGripperStatusType();
             newVacuumGripperStatus.setIsPowered(vacuumGripperStatus.isIsPowered());
             newStatus = newVacuumGripperStatus;
-        } else if(status instanceof  ParallelGripperStatusType) {
+        } else if (status instanceof ParallelGripperStatusType) {
             ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status;
             ParallelGripperStatusType newParallelGripperStatus = new ParallelGripperStatusType();
             newParallelGripperStatus.setSeparation(parallelGripperStatus.getSeparation());
-        } else if(status instanceof  ThreeFingerGripperStatusType) {
+            newStatus = newParallelGripperStatus;
+        } else if (status instanceof ThreeFingerGripperStatusType) {
             ThreeFingerGripperStatusType threeFingerGripperStatus = (ThreeFingerGripperStatusType) status;
             ThreeFingerGripperStatusType newThreeFingerGripperStatusType = new ThreeFingerGripperStatusType();
             newThreeFingerGripperStatusType.setFinger1Force(threeFingerGripperStatus.getFinger1Force());
@@ -246,122 +268,138 @@ public class CRCLPosemath {
             newThreeFingerGripperStatusType.setFinger1Position(threeFingerGripperStatus.getFinger1Position());
             newThreeFingerGripperStatusType.setFinger2Position(threeFingerGripperStatus.getFinger2Position());
             newThreeFingerGripperStatusType.setFinger3Position(threeFingerGripperStatus.getFinger2Position());
-        } else {
-            throw new IllegalArgumentException("status has unrecognized subtype"+status.getClass());
+            newStatus = newThreeFingerGripperStatusType;
         }
-        
-        if(newStatus != null) {
-            newStatus.setName(status.getName());
-            newStatus.setGripperName(status.getGripperName());
+        if (null == newStatus) {
+            throw new IllegalArgumentException("status has unrecognized subtype" + status.getClass());
         }
+
+        newStatus.setName(status.getName());
+        newStatus.setGripperName(status.getGripperName());
         return newStatus;
     }
-    
-    
+
     /**
      * Copy or clone a pose status.
      *
      * @param status status to be cloned
      * @return PoseStatusType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static PoseStatusType copy(PoseStatusType status) {
-        if(null == status)  {
+    public static /*@Nullable*/ PoseStatusType copy(PoseStatusType status) {
+        if (null == status) {
             return null;
         }
         PoseStatusType newStatus = new PoseStatusType();
         newStatus.setName(status.getName());
         newStatus.setPose(copy(status.getPose()));
-        newStatus.setTwist(copy(status.getTwist()));
-        newStatus.setWrench(copy(status.getWrench()));
+        TwistType twist = copy(status.getTwist());
+        if (twist != null) {
+            newStatus.setTwist(twist);
+        }
+        WrenchType wrench = copy(status.getWrench());
+        if (wrench != null) {
+            newStatus.setWrench(wrench);
+        }
         return newStatus;
     }
-    
+
     /**
      * Copy or clone a command status.
      *
      * @param twist status to be cloned
      * @return JointStatusesType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static TwistType copy(TwistType twist) {
-        if(null == twist)  {
+    public static /*@Nullable*/ TwistType copy(TwistType twist) {
+        if (null == twist) {
             return null;
         }
         TwistType newTwist = new TwistType();
         newTwist.setName(twist.getName());
-        newTwist.setAngularVelocity(copy(twist.getAngularVelocity()));
-        newTwist.setLinearVelocity(copy(twist.getLinearVelocity()));
+        VectorType angularVelocity = copy(twist.getAngularVelocity());
+        if (null != angularVelocity) {
+            newTwist.setAngularVelocity(angularVelocity);
+        }
+        VectorType linearVelocity = copy(twist.getLinearVelocity());
+        if (null != linearVelocity) {
+            newTwist.setLinearVelocity(linearVelocity);
+        }
         return newTwist;
     }
-    
+
     /**
      * Copy or clone a command status.
      *
      * @param wrench status to be cloned
      * @return JointStatusesType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static WrenchType copy(WrenchType wrench) {
-        if(null == wrench)  {
+    public static /*@Nullable*/ WrenchType copy(WrenchType wrench) {
+        if (null == wrench) {
             return null;
         }
         WrenchType newWrench = new WrenchType();
         newWrench.setName(wrench.getName());
-        newWrench.setForce(wrench.getForce());
-        newWrench.setMoment(wrench.getMoment());
+        VectorType force = copy(wrench.getForce());
+        if (null != force) {
+            newWrench.setForce(force);
+        }
+        VectorType moment = copy(wrench.getMoment());
+        if (null != moment) {
+            newWrench.setMoment(moment);
+        }
         return newWrench;
     }
-    
-    
+
     /**
      * Copy or clone a command status.
      *
      * @param status status to be cloned
      * @return JointStatusesType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static JointStatusesType copy(JointStatusesType status) {
-        if(null == status)  {
+    public static /*@Nullable*/ JointStatusesType copy(JointStatusesType status) {
+        if (null == status) {
             return null;
         }
         JointStatusesType newStatus = new JointStatusesType();
         newStatus.setName(status.getName());
-        for(int i=0; i < status.getJointStatus().size(); i++) {
+        for (int i = 0; i < status.getJointStatus().size(); i++) {
             newStatus.getJointStatus().add(copy(status.getJointStatus().get(i)));
         }
         return newStatus;
     }
-    
+
     /**
      * Copy or clone a command status.
      *
      * @param status status to be cloned
      * @return JointStatusesType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
     public static JointStatusType copy(JointStatusType status) {
-        if(null == status)  {
-            return null;
+        if (null == status) {
+            throw new IllegalArgumentException("copy(JointStatusType) should not be passed null.");
         }
         JointStatusType newStatus = new JointStatusType();
         newStatus.setName(status.getName());
         newStatus.setJointNumber(status.getJointNumber());
-        newStatus.setJointPosition(BigDecimal.valueOf(status.getJointPosition().doubleValue()));
-        newStatus.setJointVelocity(BigDecimal.valueOf(status.getJointVelocity().doubleValue()));
+        newStatus.setJointPosition(status.getJointPosition());
+        newStatus.setJointVelocity(status.getJointVelocity());
         newStatus.setJointTorqueOrForce(status.getJointTorqueOrForce());
         return newStatus;
     }
-    
+
     /**
      * Copy or clone a command status.
      *
-     * @param command status to be cloned
+     * @param status status to be cloned
      * @return CommandStatusType with same initial values as pose but can be
-     *  independently modified.
+     * independently modified.
      */
-    public static CommandStatusType copy(CommandStatusType status) {
-        if(null == status)  {
+    public static /*@Nullable*/ CommandStatusType copy(CommandStatusType status) {
+        if (null == status) {
             return null;
         }
         CommandStatusType newStatus = new CommandStatusType();
@@ -372,7 +410,7 @@ public class CRCLPosemath {
         newStatus.setStatusID(status.getStatusID());
         return newStatus;
     }
-    
+
     /**
      * Copy or clone the pose.
      *
@@ -383,14 +421,20 @@ public class CRCLPosemath {
     public static PoseType flipXAxis(PoseType pose) {
         PoseType newPose = new PoseType();
         newPose.setName(pose.getName());
-        newPose.setPoint(copy(pose.getPoint()));
+        PointType pt = copy(pose.getPoint());
+        if (null != pt) {
+            newPose.setPoint(pt);
+        }
         VectorType newXAxis = new VectorType();
         final BigDecimal MINUS_ONE = BigDecimal.valueOf(-1);
         newXAxis.setI(pose.getXAxis().getI().multiply(MINUS_ONE));
         newXAxis.setJ(pose.getXAxis().getJ().multiply(MINUS_ONE));
         newXAxis.setK(pose.getXAxis().getK().multiply(MINUS_ONE));
         newPose.setXAxis(newXAxis);
-        newPose.setZAxis(copy(pose.getZAxis()));
+        VectorType zAxis = copy(pose.getZAxis());
+        if (null != zAxis) {
+            newPose.setZAxis(zAxis);
+        }
         return newPose;
     }
 
@@ -499,7 +543,6 @@ public class CRCLPosemath {
         return programOut;
     }
 
-
     public static CRCLProgramType copy(CRCLProgramType programIn) {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
@@ -545,7 +588,7 @@ public class CRCLPosemath {
         programOut.setEndCanon(endCmdOut);
         return programOut;
     }
-    
+
     /**
      * Compute a transform such that two points on a rigid body taken in one
      * coordinated system can be tranformed into corresponding two points of the

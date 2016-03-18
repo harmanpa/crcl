@@ -119,13 +119,14 @@ public class CRCLSocket implements AutoCloseable {
         return crclSchemaDirFile;
     }
 
+    /*@Nullable*/
     private static CRCLSocket utilSocket = null;
 
     public static void setUtilSocket(CRCLSocket newUtilSocket) {
         utilSocket = newUtilSocket;
     }
 
-    public static CRCLSocket getUtilSocket() {
+    public static  /*@Nullable*/ CRCLSocket getUtilSocket() {
         return utilSocket;
     }
 

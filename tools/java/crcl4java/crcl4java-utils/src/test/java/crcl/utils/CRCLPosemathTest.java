@@ -20,12 +20,24 @@
  */
 package crcl.utils;
 
+import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
+import crcl.base.CommandStatusType;
+import crcl.base.GripperStatusType;
+import crcl.base.JointStatusType;
+import crcl.base.JointStatusesType;
+import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
+import crcl.base.PoseStatusType;
 import crcl.base.PoseToleranceType;
 import crcl.base.PoseType;
+import crcl.base.TwistType;
 import crcl.base.VectorType;
+import crcl.base.WrenchType;
+import java.awt.geom.Point2D;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1379,6 +1391,259 @@ public class CRCLPosemathTest {
         checkEquals("x", BigDecimal.ZERO, result.getX());
         checkEquals("y", BigDecimal.ZERO, result.getY());
         checkEquals("z", BigDecimal.ZERO, result.getZ());
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_PointType() {
+        System.out.println("copy(PointType)");
+        PointType pt = pt123;
+        PointType expResult = pt123;
+        PointType result = CRCLPosemath.copy(pt);
+        checkEquals("Point", result, expResult);
+        assertTrue(result != pt);
+    }
+
+    /**
+     * Test of xyPoint2D method, of class CRCLPosemath.
+     */
+    @Test
+    public void testXyPoint2D_PointType() {
+        System.out.println("xyPoint2D");
+        PointType pt = pt123;
+        Point2D.Double expResult = new Point2D.Double(1.0,2.0);
+        Point2D.Double result = CRCLPosemath.xyPoint2D(pt);
+        checkEquals("x", result.x, expResult.x);
+        checkEquals("y", result.y, expResult.y);
+    }
+
+    /**
+     * Test of xyPoint2D method, of class CRCLPosemath.
+     */
+    @Test
+    public void testXyPoint2D_PoseType() {
+        System.out.println("xyPoint2D");
+        PoseType pose = pose123;
+        Point2D.Double expResult = new Point2D.Double(1.0,2.0);
+        Point2D.Double result = CRCLPosemath.xyPoint2D(pose);
+        checkEquals("x", result.x, expResult.x);
+        checkEquals("y", result.y, expResult.y);
+    }
+
+    /**
+     * Test of rzPoint2D method, of class CRCLPosemath.
+     */
+    @Test
+    public void testRzPoint2D_PointType() {
+        System.out.println("rzPoint2D");
+        PointType pt = pt123;
+        Point2D.Double expResult = new Point2D.Double(Math.sqrt(5),3.0);
+        Point2D.Double result = CRCLPosemath.rzPoint2D(pt);
+        assertEquals(expResult, result);
+        checkEquals("x(r)", result.x, expResult.x);
+        checkEquals("y(z)", result.y, expResult.y);
+    }
+
+    /**
+     * Test of rzPoint2D method, of class CRCLPosemath.
+     */
+    @Test
+    public void testRzPoint2D_PoseType() {
+        System.out.println("rzPoint2D");
+        PoseType pose = pose123;
+        Point2D.Double expResult = new Point2D.Double(Math.sqrt(5),3.0);
+        Point2D.Double result = CRCLPosemath.rzPoint2D(pose);
+        checkEquals("x(r)", result.x, expResult.x);
+        checkEquals("y(z)", result.y, expResult.y);
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_VectorType() {
+        System.out.println("copy(VectorType)");
+        VectorType vec = xvec;
+        VectorType expResult = xvec;
+        VectorType result = CRCLPosemath.copy(vec);
+        checkEquals("vector", result, expResult);
+        assertTrue(result != vec);
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_PoseType() {
+        System.out.println("copy(PoseType)");
+        PoseType pose = pose321rot90;
+        PoseType expResult = pose321rot90;
+        PoseType result = CRCLPosemath.copy(pose);
+        checkEquals("pose", result, expResult);
+        assertTrue(result != pose);
+        assertTrue(result.getPoint() != pose.getPoint());
+        assertTrue(result.getXAxis() != pose.getXAxis());
+        assertTrue(result.getZAxis() != pose.getZAxis());
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_CRCLStatusType() {
+        System.out.println("copy(CRCLStatusType)");
+        CRCLStatusType status = new CRCLStatusType();
+        CommandStatusType commandStatus = new CommandStatusType();
+        commandStatus.setCommandID(BigInteger.valueOf(233));
+        commandStatus.setStatusID(BigInteger.valueOf(2343));
+        status.setCommandStatus(commandStatus);
+        PoseStatusType poseStatus = new PoseStatusType();
+        poseStatus.setPose(pose123);
+        status.setPoseStatus(poseStatus);
+        JointStatusesType jointStatuses = new JointStatusesType();
+        JointStatusType js1 = new JointStatusType();
+        js1.setJointNumber(BigInteger.ONE);
+        js1.setJointPosition(BIG_DECIMAL_1);
+        jointStatuses.getJointStatus().add(js1);
+        status.setJointStatuses(jointStatuses);
+        CRCLStatusType expResult = status;
+        CRCLStatusType result = CRCLPosemath.copy(status);
+        
+        checkEquals("pose", result.getPoseStatus().getPose(), expResult.getPoseStatus().getPose());
+        assertTrue(result != status);
+        assertTrue(result.getPoseStatus() != status.getPoseStatus());
+        assertTrue(result.getPoseStatus().getPose() != status.getPoseStatus().getPose());
+        assertTrue(result.getCommandStatus() != status.getCommandStatus());
+        assertEquals(result.getCommandStatus().getCommandID(), expResult.getCommandStatus().getCommandID());
+        assertTrue(result.getCommandStatus() != status.getCommandStatus());
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_GripperStatusType() {
+        System.out.println("copy(GripperStatusType)");
+        ParallelGripperStatusType status = new ParallelGripperStatusType();
+        status.setSeparation(BIG_DECIMAL_1);
+        GripperStatusType expResult = status;
+        GripperStatusType result = CRCLPosemath.copy(status);
+        checkEquals("seperation", ((ParallelGripperStatusType) result).getSeparation(), 
+                status.getSeparation());
+        assertTrue(result != status);
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_PoseStatusType() {
+        System.out.println("copy(PoseStatusType)");
+        PoseStatusType status = new PoseStatusType();
+        status.setPose(pose123);
+        PoseStatusType expResult = status;
+        PoseStatusType result = CRCLPosemath.copy(status);
+        checkEquals("pose", result.getPose(), expResult.getPose());
+        assertTrue(result != status);
+        assertTrue(result.getPose() != status.getPose());
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_TwistType() {
+        System.out.println("copy(TwistType)");
+        TwistType twist = new TwistType();
+        twist.setAngularVelocity(xvec);
+        twist.setLinearVelocity(zvec);
+        TwistType expResult = twist;
+        TwistType result = CRCLPosemath.copy(twist);
+        checkEquals("angularVelocity", result.getAngularVelocity(), expResult.getAngularVelocity());
+        checkEquals("linearVelocity", result.getLinearVelocity(), expResult.getLinearVelocity());
+        assertTrue(result != twist);
+        assertTrue(result.getAngularVelocity() != twist.getAngularVelocity());
+        assertTrue(result.getLinearVelocity() != twist.getLinearVelocity());
+        
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_WrenchType() {
+        System.out.println("copy(WrenchType)");
+        WrenchType wrench = new WrenchType();
+        wrench.setForce(yvec);
+        wrench.setMoment(xvec);
+        WrenchType expResult = wrench;
+        WrenchType result = CRCLPosemath.copy(wrench);
+        checkEquals("force", result.getForce(), expResult.getForce());
+        checkEquals("moment", result.getMoment(), expResult.getMoment());
+        assertTrue(result != wrench);
+        assertTrue(result.getForce() != wrench.getForce());
+        assertTrue(result.getMoment() != wrench.getMoment());
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_JointStatusesType() {
+        System.out.println("copy(JointStatusesType)");
+        JointStatusesType status = new JointStatusesType();
+        JointStatusType js1 = new JointStatusType();
+        js1.setJointNumber(BigInteger.ONE);
+        js1.setJointPosition(BIG_DECIMAL_1);
+        status.getJointStatus().add(js1);
+        JointStatusesType expResult = status;
+        JointStatusesType result = CRCLPosemath.copy(status);
+        checkEquals("jointPosition", result.getJointStatus().get(0).getJointPosition(),
+                expResult.getJointStatus().get(0).getJointPosition());
+        assertTrue(result != status);
+        assertTrue(result.getJointStatus() != status.getJointStatus());
+        assertTrue(result.getJointStatus().size() == status.getJointStatus().size());
+        assertTrue(result.getJointStatus().get(0) != status.getJointStatus().get(0));
+        
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_JointStatusType() {
+        System.out.println("copy(JointStatusType)");
+        JointStatusType status = new JointStatusType();
+        status.setJointNumber(BigInteger.ONE);
+        status.setJointPosition(BIG_DECIMAL_1);
+        status.setJointTorqueOrForce(BIG_DECIMAL_2);
+        status.setJointVelocity(BIG_DECIMAL_3);
+        JointStatusType expResult = status;
+        JointStatusType result = CRCLPosemath.copy(status);
+        checkEquals("Position", result.getJointPosition(), expResult.getJointPosition());
+        checkEquals("TorqueOrForce", result.getJointTorqueOrForce(), expResult.getJointTorqueOrForce());
+        checkEquals("Velocity", result.getJointVelocity(), expResult.getJointVelocity());
+        assertTrue(result != status);
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_CommandStatusType() {
+        System.out.println("copy(CommandStatusType)");
+        CommandStatusType status = new CommandStatusType();
+        status.setCommandID(BigInteger.ONE);
+        status.setCommandState(CommandStateEnumType.CRCL_DONE);
+        status.setStatusID(BigInteger.ONE);
+        CommandStatusType expResult = status;
+        CommandStatusType result = CRCLPosemath.copy(status);
+        assertEquals(expResult.getCommandID(), result.getCommandID());
+        assertEquals(expResult.getStatusID(), result.getStatusID());
+        assertEquals(expResult.getCommandState(), result.getCommandState());
+        assertTrue(result != status);
     }
 
 }

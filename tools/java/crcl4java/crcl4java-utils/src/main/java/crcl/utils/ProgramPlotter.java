@@ -40,6 +40,21 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import rcs.posemath.PmCartesian;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -85,7 +100,7 @@ public class ProgramPlotter {
         this.autoScale = autoScale;
     }
 
-    private Rectangle2D.Double bounds;
+    private Rectangle2D.Double bounds = new Rectangle2D.Double(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 
     /**
      * Get the value of bounds
@@ -320,6 +335,7 @@ public class ProgramPlotter {
         return bi;
     }
 
+    /*@Nullable*/
     private PointType currentPoint;
 
     /**
@@ -327,7 +343,7 @@ public class ProgramPlotter {
      *
      * @return the value of currentPoint
      */
-    public PointType getCurrentPoint() {
+    public /*@Nullable*/ PointType getCurrentPoint() {
         return currentPoint;
     }
 
