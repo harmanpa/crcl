@@ -172,7 +172,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-//    private Navigator navigator;
     private CRCLSocket socket;
     private Thread updateThread;
     private Thread monitorThread;
@@ -351,12 +350,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             f.delete();
         }
         browserMap = new HashMap<>();
-//        browserMap.put("MoveThroughToType", new ExternalResource("http://www.gtri.gatech.edu/crclcommands#Link11"));
-//        browserMap.put("SetLengthUnitsType", new ExternalResource("http://www.gtri.gatech.edu/crclcommands#Link22"));
     }
 
-//    private CRCLProgramType oldProgram = null;
-//    private String oldRemotePrograms[] = null;
     private String recordPointsProgramName = null;
     private CRCLProgramType recordPointsProgram = null;
 
@@ -510,24 +505,13 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 tmpsocket = new CRCLSocket();
             }
             final CRCLSocket tmpsocketf = tmpsocket;
-//            Object id = remoteProgramTable.firstItemId();
-//            while (id != null) {
-//                if (remoteProgramTable.isSelected(id)) {
-//                    Item item = remoteProgramTable.getItem(id);
-//                    Property fnameProperty = item.getItemProperty("File");
-//                    String filename = fnameProperty.getValue().toString();
             String filename = this.selectedRemoteProgramFilename;
             File f = new File(REMOTE_PROGRAM_DIR, filename);
             remoteProgramResource = new FileResource(f);
             remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
             String progContents = new String(Files.readAllBytes(f.toPath()));
             CRCLProgramType prog = tmpsocketf.stringToProgram(progContents, false);
-//                    setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), filename, prog, 0));
             setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), filename, prog));
-//                    break;
-//                }
-//                id = remoteProgramTable.nextItemId(id);
-//            }
         } catch (IOException | CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -551,7 +535,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-//    private String oldProgramFileName = null;
     private CommonInfo prevCommonInfo = CommonInfo.Default(REMOTE_PROGRAM_DIR.list());
 
     @Override
@@ -574,14 +557,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 System.out.println("currentFileName = " + currentFileName);
                 System.out.println("oldProgramFileName = " + oldProgramFileName);
             }
-//            oldProgram = newProgram;
-//            oldProgramFileName = currentFileName;
             String remotePrograms[] = commonInfo.getRemotePrograms();
             final String oldRemotePrograms[] = prevCommonInfo.getRemotePrograms();
             final boolean remoteProgramsNew = remotePrograms != null
                     && remotePrograms != oldRemotePrograms
                     && (oldRemotePrograms == null || remotePrograms.length != oldRemotePrograms.length);
-//            oldRemotePrograms = commonInfo.getRemotePrograms();
             final int program_index = commonInfo.getProgramIndex();
             mySyncAccess(() -> {
                 programIndexLabel.setValue("Program Index :" + commonInfo.getProgramIndex());
@@ -655,24 +635,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     }
 
-//    private PointType getPointFromTable(Table tbl) {
-//        
-//        Item xItem = tbl.getItem(0);
-//        Property xProp = xItem.getItemProperty(VALUE_ITEM_PROPERTY);
-//        double x = (double) xProp.getValue();
-//        Item yItem = tbl.getItem(1);
-//        Property yProp = yItem.getItemProperty(VALUE_ITEM_PROPERTY);
-//        double y = (double) yProp.getValue();
-//        Item zItem = tbl.getItem(0);
-//        Property zProp = zItem.getItemProperty(VALUE_ITEM_PROPERTY);
-//        double z = (double) zProp.getValue();
-//        
-//        PointType pt = new PointType();
-//        pt.setX(BigDecimal.valueOf(x));
-//        pt.setY(BigDecimal.valueOf(y));
-//        pt.setZ(BigDecimal.valueOf(z));
-//        return pt;
-//    }
     private PmCartesian getPmPointFromTable(Table tbl) {
         PmCartesian pt = new PmCartesian();
         Item xItem = tbl.getItem(0);
@@ -800,7 +762,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             } catch (IOException | JAXBException ex) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
             setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
         } catch (CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -832,7 +793,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             } catch (IOException | JAXBException ex) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
             setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
         } catch (CRCLException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -909,7 +869,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         } catch (IOException | JAXBException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-//            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), newProgName, newProgram, 0));
         setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
     }
 
@@ -993,12 +952,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jogJointLayout.setSpacing(true);
         jogWorldLayout.setSpacing(true);
 
-//        navigator = new Navigator(this, navLayout);
-//        navigator.addView("", mainLayout);
-//        navigator.addView("Jog", jogLayout);
-//        jogNavButton.addClickListener(l -> navigator.navigateTo("Jog"));
-//        mainNavButton.addClickListener(l -> navigator.navigateTo(""));
-//        navigator.navigateTo("");
         jogJointNavButton.addClickListener(l -> panel.setContent(jogJointLayout));
         jogWorldNavButton.addClickListener(l -> panel.setContent(jogWorldLayout));
         mainNavButton.addClickListener(l -> panel.setContent(mainLayout));
@@ -1012,10 +965,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final VerticalLayout middleLayout = new VerticalLayout();
         mainLayout.addComponent(middleLayout);
         middleLayout.setMargin(true);
-//        middleLayout.addComponent(cmdIdLbl);
-//        middleLayout.addComponent(stateLbl);
-//        middleLayout.addComponent(stateDescriptionLbl);
-//        middleLayout.addComponent(statusIdLbl);
         setupPosTable(posCurrentTable);
         setupRotTable(rotCurrentTable);
 
@@ -1049,11 +998,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         modifyProgramPositionButton.addClickListener(e -> modifySelectedProgramPose());
         middleLayout.addComponent(modifyProgramPositionButton);
         middleLayout.addComponent(programIndexLabel);
-//        browser.setWidth("600px");
-//        browser.setHeight("600px");
-////        browser.setWidth(50, Unit.PERCENTAGE);
-////        browser.setHeight(100, Unit.PERCENTAGE);
-//        mainLayout.addComponent(browser);
         HorizontalLayout hostPortLine = new HorizontalLayout();
         hostPortLine.setSpacing(true);
         hostField.setValue("localhost");
@@ -1089,10 +1033,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         progTable.setHeight("460px");
         progTable.setMultiSelect(false);
         progTable.setSelectable(true);
-//        progTable.addItemClickListener(e -> setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
-//                        commonInfo.getCurrentFileName(),
-//                        commonInfo.getCurrentProgram(),
-//                        (int) e.getItemId())));
 
         progTable.addItemClickListener(e -> setCommonInfo(CommonInfo.withProgramIndex(commonInfo, (int) e.getItemId())));
         GridLayout posGridLayout = new GridLayout(2, 2);
@@ -1101,7 +1041,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         setupPosTable(transformPos1Table);
         livePos1VLayout.addComponent(transformPos1Table);
-//        setPos1CurrentButton.addClickListener(e -> loadPointToTable(currentPoint, transformPos1Table));
         setPos1CurrentButton.addClickListener(e -> setTransformB1(currentPoint));
         livePos1VLayout.addComponent(setPos1CurrentButton);
         posGridLayout.addComponent(livePos1VLayout, 0, 0);
@@ -1109,7 +1048,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         VerticalLayout livePos2VLayout = new VerticalLayout();
         setupPosTable(transformPos2Table);
         livePos2VLayout.addComponent(transformPos2Table);
-//        setPos2CurrentButton.addClickListener(e -> loadPointToTable(currentPoint, transformPos2Table));
         setPos2CurrentButton.addClickListener(e -> setTransformB2(currentPoint));
         livePos2VLayout.addComponent(setPos2CurrentButton);
         posGridLayout.addComponent(livePos2VLayout, 1, 0);
@@ -1118,7 +1056,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         setupPosTable(programPos1Table);
         programPos1VLayout.addComponent(programPos1Table);
-//        setPos1ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos1Table));
         setPos1ProgramButton.addClickListener(e -> setTransformA1(getSelectedProgramPoint()));
 
         programPos1VLayout.addComponent(setPos1ProgramButton);
@@ -1128,7 +1065,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         setupPosTable(programPos2Table);
         programPos2VLayout.addComponent(programPos2Table);
-//        setPos2ProgramButton.addClickListener(e -> loadPointToTable(getSelectedProgramPoint(), programPos2Table));
         setPos2ProgramButton.addClickListener(e -> setTransformA2(getSelectedProgramPoint()));
         programPos2VLayout.addComponent(setPos2ProgramButton);
         posGridLayout.addComponent(programPos2VLayout, 1, 1);
@@ -1178,9 +1114,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
             @Override
             public void buttonClick(ClickEvent event) {
-//                setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
-//                        commonInfo.getCurrentFileName(),
-//                        commonInfo.getCurrentProgram(), 0));
                 setCommonInfo(CommonInfo.withProgramIndex(commonInfo, 0));
                 startRun();
             }
@@ -1224,7 +1157,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 tmpsocket = new CRCLSocket();
                             }
                             CRCLProgramType newProgram = tmpsocket.stringToProgram(string, false);
-//                            setCommonInfo(new CommonInfo(REMOTE_PROGRAM_DIR.list(), event.getFilename(), newProgram, 0));
                             setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), event.getFilename(), newProgram));
                             running = false;
 
@@ -1321,7 +1253,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         HorizontalLayout remoteButtonsLine = new HorizontalLayout();
         remoteProgramDownloadButton.setEnabled(false);
         remoteButtonsLine.addComponent(remoteProgramLoadButton);
-//        remoteProgramResource = new StreamResource(streamSource, lastDescription);
 
         remoteButtonsLine.addComponent(remoteProgramDownloadButton);
         remoteProgramsLayout.addComponent(remoteButtonsLine);
@@ -1553,8 +1484,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jointJogIncLine.addComponent(jointJogIncProgressBar);
         jogJointRightLayout.addComponent(jointJogIncLine);
         
-//        jogJointRightLayout.addComponent(speedLine);
-//        jogJointRightLayout.addComponent(speedButtonLine);
         jogJointLayout.addComponent(jogJointRightLayout);
         navLayout.addComponent(statusLabel);
         connect();
@@ -1622,7 +1551,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 try {
                     updateThread.join(50);
                 } catch (InterruptedException ex) {
-//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 updateThread = null;
             }
@@ -1631,7 +1559,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 try {
                     monitorThread.join(50);
                 } catch (InterruptedException ex) {
-//                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 monitorThread = null;
             }
@@ -1871,11 +1798,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 System.err.println("connectCount = " + connectCount);
                 System.err.println("disconnectCount = " + disconnectCount);
             }
-//            if (!Thread.currentThread().isInterrupted()) {
-//                new Thread(() -> {
-//                    connect();
-//                }).start();
-//            }
         } catch (InterruptedException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -2056,9 +1978,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 PointType pt = pose.getPoint();
                 if (null != pt) {
                     this.currentPoint = pt;
-//                    System.out.println("cst.getCommandID() = " + cst.getCommandID());
-//                    System.out.println("lastCmdIdSent = " + lastCmdIdSent);
-//                    System.out.println("cst.getCommandID().compareTo(lastCmdIdSent) = " + cst.getCommandID().compareTo(lastCmdIdSent));
                     if (cst.getCommandState() == CommandStateEnumType.CRCL_DONE
                             && cst.getCommandID().compareTo(lastCmdIdSent) >= 0) {
                         prevJogState = JogState.NONE;
@@ -2078,7 +1997,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                         moveToCmd.getEndPosition().getZAxis().setI(pose.getZAxis().getI());
                         moveToCmd.getEndPosition().getZAxis().setJ(pose.getZAxis().getJ());
                         moveToCmd.getEndPosition().getZAxis().setK(pose.getZAxis().getK());
-//                        System.out.println("curJogState = " + curJogState);
                         BigInteger nextId;
                         switch (curJogState) {
                             case X_MINUS:
@@ -2525,14 +2443,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         instance.getCRCLCommand().setCommandID(BigInteger.valueOf(program_index + 2));
         lastCmdIdSent = instance.getCRCLCommand().getCommandID();
         socket.writeCommand(instance);
-//        setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
-//                commonInfo.getCurrentFileName(),
-//                program,
-//                new_program_index));
 
         setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index));
         skip_wait_for_done = false;
-//        final int new_program_index = program_index + 1;
         if (new_program_index < program.getMiddleCommand().size() && new_program_index >= 0) {
             if (program.getMiddleCommand().get(new_program_index) instanceof crcl.base.MessageType) {
                 MessageType msg = (MessageType) program.getMiddleCommand().get(new_program_index);
@@ -2549,11 +2462,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 System.currentTimeMillis() + "msg.html"));
                     }
                     running = false;
-//                setCommonInfo(new CommonInfo(commonInfo.getRemotePrograms(),
-//                        commonInfo.getCurrentFileName(),
-//                        program,
-//                        new_program_index + 1));
-//                
                     setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index + 1));
                 });
                 running = false;
