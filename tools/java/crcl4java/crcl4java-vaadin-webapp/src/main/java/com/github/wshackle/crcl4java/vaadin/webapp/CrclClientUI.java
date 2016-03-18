@@ -2019,6 +2019,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private PoseType currentPose = null;
     private static PoseType globalCurrentPose = null;
 
+    private BigDecimal jointJogSpeed = BigDecimal.valueOf(5.0);
+    
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -2187,7 +2189,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                         actuateJoint.setJointPosition(js.getJointPosition().subtract(jointJogIncrement));
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
-                                    jas.setJointSpeed(BigDecimal.ONE);
+                                    jas.setJointSpeed(jointJogSpeed);
                                     actuateJoint.setJointDetails(jas);
                                     actuateJointsCmd.getActuateJoint().add(actuateJoint);
                                 }
@@ -2206,7 +2208,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                         actuateJoint.setJointPosition(js.getJointPosition().add(jointJogIncrement));
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
-                                    jas.setJointSpeed(BigDecimal.ONE);
+                                    jas.setJointSpeed(jointJogSpeed);
                                     actuateJoint.setJointDetails(jas);
                                     actuateJointsCmd.getActuateJoint().add(actuateJoint);
                                 }

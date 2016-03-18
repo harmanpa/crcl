@@ -150,8 +150,8 @@ public class PendantClientOuterStub implements PendantClientOuter{
         this(
                 prop("crcjava.PendandClient.validateXML",false),// validateXML
                 prop("crcjava.PendandClient.replaceState",false),// validateXML
-                System.getProperty("crcljava.host","localhost"), //host
-                Integer.valueOf(System.getProperty("crcljava.port",
+                System.getProperty("crcl4java.host","localhost"), //host
+                Integer.valueOf(System.getProperty("crcl4java.port",
                         Integer.toString(CRCLSocket.DEFAULT_PORT))), //port
                 prop("crcjava.PendandClient.debugWaitForDone",false),// debugWaitForDone
                 prop("crcjava.PendandClient.debugSendCommand",false),// debugSendCommand

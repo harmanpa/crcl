@@ -82,7 +82,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         this.setRobotType(defaultRobotType);
         this.setStatSchema(CRCLSocket.readStatSchemaFiles(SimServer.statSchemasFile));
         this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(SimServer.cmdSchemasFile));
-        String portPropertyString = System.getProperty("crcljava.port");
+        String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             inner.setPort(Integer.valueOf(portPropertyString));
             this.jTextFieldPort.setText(portPropertyString);

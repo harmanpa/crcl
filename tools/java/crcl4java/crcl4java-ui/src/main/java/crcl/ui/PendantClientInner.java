@@ -942,17 +942,20 @@ public class PendantClientInner {
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
-            String headers = "time,cmdId,cmdName,x,y,z,roll,pitch,yaw,"
+            String headers = "time,relTime,cmdId,cmdName,x,y,z,roll,pitch,yaw,"
                     + (havePos ? jointIds.stream().map((x) -> "Joint" + x + "Pos").collect(Collectors.joining(",")) : "")
-                    + (haveVel ? jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
-                    + (haveForce ? jointIds.stream().map((x) -> "Joint" + x + "Force").collect(Collectors.joining(",")) : "");
+                    + (haveVel ? ","+jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
+                    + (haveForce ? ","+jointIds.stream().map((x) -> "Joint" + x + "Force").collect(Collectors.joining(",")) : "");
             pw.println(headers);
+            final long firstTime = poseList.get(0).getTime();
+            
             poselist
                     .stream()
                     .map((pose) -> {
                         PmRpy rpy = tryGet(() -> Posemath.toRpy(pose.rot)).orElse(rpyZero);
                         Stream stream = Stream.builder()
                                 .add(pose.getTime())
+                                .add(pose.getTime()-firstTime)
                                 .add(pose.getCmdId())
                                 .add(pose.getCommandName())
                                 .add(pose.tran.x)
@@ -963,17 +966,17 @@ public class PendantClientInner {
                                 .add(Math.toDegrees(rpy.y))
                                 .build();
                         if (havePos) {
-                            stream = Stream.concat(stream, getJointValues(status, jointIds)
+                            stream = Stream.concat(stream, getJointValues(pose.getStatus(), jointIds)
                                     .map((x) -> x.getJointPosition())
                             );
                         }
                         if (haveVel) {
-                            stream = Stream.concat(stream, getJointValues(status, jointIds)
+                            stream = Stream.concat(stream, getJointValues(pose.getStatus(), jointIds)
                                     .map((x) -> x.getJointVelocity())
                             );
                         }
                         if (haveForce) {
-                            stream = Stream.concat(stream, getJointValues(status, jointIds)
+                            stream = Stream.concat(stream, getJointValues(pose.getStatus(), jointIds)
                                     .map((x) -> x.getJointTorqueOrForce())
                             );
                         }
@@ -1024,7 +1027,7 @@ public class PendantClientInner {
                                 cmdId2,
                                 cmdId.compareTo(cmdId2) <= 0 ? cmdNameString(lastCommandSent) : cmdNameString(prevLastCommandSent),
                                 pmPose.tran, pmPose.rot,
-                                status
+                                CRCLPosemath.copy(curStatus)
                         );
                 poseQueue.offer(annotatedPose);
             }

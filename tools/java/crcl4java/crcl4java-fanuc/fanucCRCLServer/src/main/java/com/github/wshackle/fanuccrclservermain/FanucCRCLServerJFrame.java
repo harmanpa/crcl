@@ -128,7 +128,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
      */
     public FanucCRCLServerJFrame() {
         initComponents();
-        timer = new Timer(200, e -> updateDisplay());
+        timer = new Timer(250, e -> updateDisplay());
         timer.start();
         this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits());
     }
@@ -212,88 +212,92 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             if (null == main) {
                 return;
             }
-            if (null != varToWatch) {
-                varToWatch.refresh();
-                jTextFieldSysVarValue.setText(varToWatch.value().toString());
-            }
+
             DefaultTableModel dtm = (DefaultTableModel) this.jTableTasks.getModel();
             dtm.setRowCount(0);
-            IRobot2 robot = main.getRobot();
-            if (null == robot) {
-                jLabelStatus.setText("Status : Robot is NOT connected.");
-                return;
-            }
-            if (!robot.isConnected()) {
-                jLabelStatus.setText("Status : Robot is NOT connected.");
-                return;
-            }
-            ITasks tasks = robot.tasks();
-            if (null != tasks) {
-                for (Com4jObject c4jo : tasks) {
-                    ITask tsk = null;
-                    String tskProgName = null;
-                    FREProgramTypeConstants pType = null;
-                    FRETaskStatusConstants tskStatus = null;
-                    try {
-                        tsk = c4jo.queryInterface(ITask.class);
-                        try {
-                            pType = tsk.programType();
-                        } catch (Exception e) {
-                        }
-
-                        try {
-                            IProgram tskProg = tsk.curProgram();
-                            if (null != tskProg) {
-                                tskProgName = tskProg.name();
-                            }
-                        } catch (Exception e) {
-                        }
-
-                        try {
-                            tskStatus = tsk.status();
-                        } catch (Exception e) {
-                        }
-                    } catch (ComException e) {
-                        e.printStackTrace();
-                        jTextAreaErrors.append(e.toString() + "\n");
-                        continue;
-                    }
-                    if (!jCheckBoxShowAborted.isSelected() && tskStatus == FRETaskStatusConstants.frStatusAborted) {
-                        continue;
-                    }
-                    if (null == tskProgName && null == pType && null == tskStatus) {
-                        continue;
-                    }
-                    dtm.addRow(new Object[]{
-                        tskProgName == null ? "" : tskProgName,
-                        pType == null ? "" : pType.toString(),
-                        tskStatus == null ? "" : tskStatus.toString()});
-                }
-            }
-            ICurPosition curPos = robot.curPosition();
-            if (curPos == null) {
-                jLabelStatus.setText("Status : Current position not available.");
-                return;
-            }
-            ICurGroupPosition curGourpPos = curPos.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-            if (curGourpPos == null) {
-                jLabelStatus.setText("Status : Current position not available.");
-                return;
-            }
-            IXyzWpr curXyzWpr = curGourpPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
-            if (curXyzWpr == null) {
-                jLabelStatus.setText("Status : Current position not available.");
-                return;
-            }
-            IConfig conf = curXyzWpr.config();
-            if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
-                this.jTextFieldCartesianConfig.setText(conf.text());
-                DefaultTableModel dtmCartPos = (DefaultTableModel) this.jTableCartesianLimits.getModel();
-                dtmCartPos.setValueAt(curXyzWpr.x(), 0, 2);
-                dtmCartPos.setValueAt(curXyzWpr.y(), 1, 2);
-                dtmCartPos.setValueAt(curXyzWpr.z(), 2, 2);
-            }
             synchronized (main) {
+                if (null != varToWatch) {
+                    varToWatch.refresh();
+                    jTextFieldSysVarValue.setText(varToWatch.value().toString());
+                }
+                IRobot2 robot = main.getRobot();
+                if (null == robot) {
+                    jLabelStatus.setText("Status : Robot is NOT connected.");
+                    return;
+                }
+                if (!robot.isConnected()) {
+                    jLabelStatus.setText("Status : Robot is NOT connected.");
+                    return;
+                }
+
+                ITasks tasks = robot.tasks();
+                if (null != tasks) {
+                    for (Com4jObject c4jo : tasks) {
+                        ITask tsk = null;
+                        String tskProgName = null;
+                        FREProgramTypeConstants pType = null;
+                        FRETaskStatusConstants tskStatus = null;
+                        try {
+                            tsk = c4jo.queryInterface(ITask.class);
+                            try {
+                                pType = tsk.programType();
+                            } catch (Exception e) {
+                            }
+
+                            try {
+                                IProgram tskProg = tsk.curProgram();
+                                if (null != tskProg) {
+                                    tskProgName = tskProg.name();
+                                }
+                            } catch (Exception e) {
+                            }
+
+                            try {
+                                tskStatus = tsk.status();
+                            } catch (Exception e) {
+                            }
+                        } catch (ComException e) {
+                            e.printStackTrace();
+                            jTextAreaErrors.append(e.toString() + "\n");
+                            continue;
+                        }
+                        if (!jCheckBoxShowAborted.isSelected() && tskStatus == FRETaskStatusConstants.frStatusAborted) {
+                            continue;
+                        }
+                        if (null == tskProgName && null == pType && null == tskStatus) {
+                            continue;
+                        }
+                        dtm.addRow(new Object[]{
+                            tskProgName == null ? "" : tskProgName,
+                            pType == null ? "" : pType.toString(),
+                            tskStatus == null ? "" : tskStatus.toString()});
+                    }
+                }
+
+                ICurPosition curPos = robot.curPosition();
+                if (curPos == null) {
+                    jLabelStatus.setText("Status : Current position not available.");
+                    return;
+                }
+                ICurGroupPosition curGourpPos = curPos.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+                if (curGourpPos == null) {
+                    jLabelStatus.setText("Status : Current position not available.");
+                    return;
+                }
+                IXyzWpr curXyzWpr = curGourpPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+                if (curXyzWpr == null) {
+                    jLabelStatus.setText("Status : Current position not available.");
+                    return;
+                }
+                IConfig conf = curXyzWpr.config();
+                if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
+                    this.jTextFieldCartesianConfig.setText(conf.text());
+                    DefaultTableModel dtmCartPos = (DefaultTableModel) this.jTableCartesianLimits.getModel();
+                    dtmCartPos.setValueAt(curXyzWpr.x(), 0, 2);
+                    dtmCartPos.setValueAt(curXyzWpr.y(), 1, 2);
+                    dtmCartPos.setValueAt(curXyzWpr.z(), 2, 2);
+                }
+
                 CRCLStatusType stat = main.readCachedStatusFromRobot();
                 if (!this.jCheckBoxEditJointLimits.isSelected()) {
                     if (null != stat) {
@@ -315,24 +319,24 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 //                    dtmJointPos.setValueAt(curJoints.item((short) (i + 1)), i, 2);
 //                }
                 }
-            }
-            if (null != overrideVar) {
-                overrideVar.refresh();
-                jSliderOverride.setValue((Integer) overrideVar.value());
-            }
-            if (null != morSafetyStatVar) {
-                morSafetyStatVar.refresh();
-                int safety_stat = ((Integer) morSafetyStatVar.value());
+                if (null != overrideVar) {
+                    overrideVar.refresh();
+                    jSliderOverride.setValue((Integer) overrideVar.value());
+                }
+                if (null != morSafetyStatVar) {
+                    morSafetyStatVar.refresh();
+                    int safety_stat = ((Integer) morSafetyStatVar.value());
 
-                if (null != moveGroup1ServoReadyVar) {
-                    moveGroup1ServoReadyVar.refresh();
-                    Object val = moveGroup1ServoReadyVar.value();
-                    if (val instanceof Boolean) {
-                        boolean servoReady = (boolean) val;
-                        jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                    if (null != moveGroup1ServoReadyVar) {
+                        moveGroup1ServoReadyVar.refresh();
+                        Object val = moveGroup1ServoReadyVar.value();
+                        if (val instanceof Boolean) {
+                            boolean servoReady = (boolean) val;
+                            jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                        }
+                    } else {
+                        jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat));
                     }
-                } else {
-                    jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat));
                 }
             }
         } catch (ComException e) {

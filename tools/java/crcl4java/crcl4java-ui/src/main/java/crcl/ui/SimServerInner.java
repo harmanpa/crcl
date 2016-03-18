@@ -261,7 +261,7 @@ public class SimServerInner {
         this.robotType = SimRobotEnum.SIMPLE;
         this.port = CRCLSocket.DEFAULT_PORT;
         this.resetToDefaults();
-        String portPropertyString = System.getProperty("crcljava.port");
+        String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             this.port = Integer.valueOf(portPropertyString);
         }
@@ -2102,7 +2102,7 @@ public class SimServerInner {
                 // For this test only force port to zero then it will be bound
                 // to a free port which gets passed back to the client with a system property.
                 this.port = ssock.getLocalPort();
-                System.setProperty("crcljava.port", Integer.toString(port));
+                System.setProperty("crcl4java.port", Integer.toString(port));
             }
             ssock.setReuseAddress(true);
             acceptClientsThread = new Thread(this::runAcceptClients,

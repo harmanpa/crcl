@@ -132,10 +132,10 @@ public class CmdLineClientIT {
             LOGGER.log(Level.INFO, "Begin CmdLineClientIT.testMain");
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.port", "0");
             URL initPoseURL = getClass().getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
-            System.setProperty("crcljava.port", "0");
+            System.setProperty("crcl4java.port", "0");
 
             System.setProperty("crcl4java.simserver.validateXML", "true");// validateXML
             System.setProperty("crcl4java.simserver.sendStatusWithoutRequest", "false");// sendStatusWithoutRequest
