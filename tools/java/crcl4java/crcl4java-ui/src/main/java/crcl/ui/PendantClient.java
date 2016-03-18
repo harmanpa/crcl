@@ -132,19 +132,19 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     public PoseType getCurrentPose() {
         return CRCLPosemath.getPose(internal.getStatus());
     }
-    
+
     public MiddleCommandType getCurrentProgramCommand() {
         CRCLProgramType program = internal.getProgram();
-        if(null == program) {
+        if (null == program) {
             return null;
         }
         int curRow = this.jTableProgram.getSelectedRow();
-        if(curRow > program.getMiddleCommand().size() || curRow < 1) {
+        if (curRow > program.getMiddleCommand().size() || curRow < 1) {
             return null;
         }
-        return program.getMiddleCommand().get(this.jTableProgram.getSelectedRow()-1);
+        return program.getMiddleCommand().get(this.jTableProgram.getSelectedRow() - 1);
     }
-    
+
     /**
      * Creates new form PendantClient
      *
@@ -1850,6 +1850,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }
 
     private String lastStateDescription = "";
+
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();
@@ -2103,6 +2104,20 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     if (internal.getStatus().getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
                         showMessage("Can't when status commandState = " + CommandStateEnumType.CRCL_ERROR);
                         jogStop();
+                    }
+                    if (internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_DONE) {
+                        if (PendantClient.this.jCheckBoxMenuItemDebugWaitForDone.isSelected()
+                                || PendantClient.this.jCheckBoxMenuItemDebugSendCommand.isSelected()) {
+                            System.err.println("Jog Timer ActionListener waiting for DONE");
+                        }
+                        return;
+                    }
+                    if (internal.getStatus().getCommandStatus().getCommandID().compareTo(internal.getCmdId()) < 0) {
+                        if (PendantClient.this.jCheckBoxMenuItemDebugWaitForDone.isSelected()
+                                || PendantClient.this.jCheckBoxMenuItemDebugSendCommand.isSelected()) {
+                            System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
+                        }
+                        return;
                     }
                     ActuateJointsType ajst = new ActuateJointsType();
                     List<ActuateJointType> ajl = ajst.getActuateJoint();
