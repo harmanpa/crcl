@@ -59,17 +59,14 @@
 		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-server</artifactId>
-                        <version>${vaadin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-push</artifactId>
-                        <version>${vaadin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-client</artifactId>
-                        <version>${vaadin.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<!--
@@ -228,8 +225,8 @@
     </build>
     <profiles>
         <profile>
-            <id>Release</id>
-            <build>
+            <id>tomcat_embed</id>
+              <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.tomcat.maven</groupId>
@@ -243,7 +240,7 @@
                                 </goals>
                                 <phase>package</phase>
                                 <configuration>
-                                    <path>crcl4java-vaadin-webapp</path>
+                                    <path>/crcl4java-vaadin-webapp</path>
                                     <warRunDependencies>
                                         <warRunDependency>
                                             <dependency>
