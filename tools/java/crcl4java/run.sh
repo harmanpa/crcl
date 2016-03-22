@@ -9,7 +9,8 @@ if test "x" != "x${JAVA_HOME}" ; then
     export PATH="${JAVA_HOME}/bin/:${PATH}";
 fi
 
-export JARFILE=crcl4java-ui/target/crcl4java-ui-1.0-SNAPSHOT-jar-with-dependencies.jar
+export JARFILE=`find crcl4java-ui -name crcl4java-ui\*jar-with-dependencies.jar | head -n 1`;
+
 if test ! -f "${JARFILE}" ; then
     mvn -version || ( echo "Please install maven." && false)
     mvn package
