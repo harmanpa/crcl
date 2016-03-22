@@ -97,6 +97,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,7 +116,7 @@ import rcs.posemath.Posemath;
  * @author shackle
  */
 public class Main {
-    
+
     private String remoteRobotHost;
 
     /**
@@ -142,7 +143,7 @@ public class Main {
             this.connectRemoteRobot();
         }
     }
-    
+
     private int localPort;
 
     /**
@@ -162,27 +163,27 @@ public class Main {
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
     }
-    
+
     public IVar getOverideVar() {
         return this.overrideVar;
     }
-    
+
     public IVar getMorSafetyStatVar() {
         return this.morSafetyStatVar;
     }
-    
+
     public IVar getMoveGroup1RobMove() {
         return moveGroup1RobMoveVar;
     }
-    
+
     public IVar getMoveGroup1ServoReadyVar() {
         return moveGroup1ServoReadyVar;
     }
-    
+
     public IRobot2 getRobot() {
         return robot;
     }
-    
+
     private float xMax;
     private float xMin;
     private float yMax;
@@ -190,9 +191,9 @@ public class Main {
     private float zMax;
     private float zMin;
     private float border1 = 10;
-    
+
     private void limitAndUpdatePos(ISysGroupPosition pos) {
-        
+
         IXyzWpr posXyzWpr = pos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
         if (null == posXyzWpr) {
             throw new IllegalArgumentException("Can't get xyzwpr for pos");
@@ -205,7 +206,7 @@ public class Main {
         float yMaxEffective = yMax - border1;
         float zMinEffective = zMin + border1;
         float zMaxEffective = zMax - border1;
-        
+
         if (cart.x > xMaxEffective) {
             posXyzWpr.x(xMaxEffective);
             showError("X move of " + cart.x + " limited to max = " + xMaxEffective);
@@ -233,7 +234,7 @@ public class Main {
             showError("Z move of " + cart.z + " limited to min = " + zMinEffective);
             changed = true;
         }
-        
+
         if (changed) {
             PmCartesian newcart = new PmCartesian(posXyzWpr.x(), posXyzWpr.y(), posXyzWpr.z());
             System.out.println("newcart = " + newcart);
@@ -241,7 +242,7 @@ public class Main {
         }
         pos.update();
     }
-    
+
     public void startJFrame() {
         java.awt.EventQueue.invokeLater(() -> {
             jframe = new FanucCRCLServerJFrame();
@@ -310,7 +311,7 @@ public class Main {
             jframe.setVisible(true);
         });
     }
-    
+
     public void start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
         try {
             this.preferRobotNeighborhood = preferRobotNeighborhood;
@@ -325,7 +326,7 @@ public class Main {
             showError(exception.toString());
         }
     }
-    
+
     private boolean validate = false;
 
     /**
@@ -345,7 +346,7 @@ public class Main {
     public void setValidate(boolean validate) {
         this.validate = validate;
     }
-    
+
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private double lengthScale = 1.0;
 
@@ -369,29 +370,29 @@ public class Main {
             case METER:
                 lengthScale = 1000.0;
                 break;
-            
+
             case MILLIMETER:
                 lengthScale = 1.0;
                 break;
-            
+
             case INCH:
                 lengthScale = 25.4;
                 break;
         }
     }
-    
+
     long statusUpdateTime = 0;
     private final CRCLStatusType status = new CRCLStatusType();
     volatile long moveDoneTime = 0;
     volatile boolean lastCheckAtPosition = false;
     private final double lastJointPosArray[] = new double[10];
     private final long lastJointPosTimeArray[] = new long[10];
-    
+
     public CRCLStatusType getStatus() {
         return status;
     }
     double lastMaxJointDiff = Double.MAX_VALUE;
-    
+
     public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
         if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
             CRCLStatusType status = readStatusFromRobot();
@@ -405,10 +406,10 @@ public class Main {
             return status;
         }
     }
-    
+
     boolean lastRobotIsConnected = true;
-    
-    public CRCLStatusType readStatusFromRobot() throws PmException {
+
+    public CRCLStatusType readStatusFromRobot() {
         if (null == robot) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
             if (lastRobotIsConnected) {
@@ -425,200 +426,239 @@ public class Main {
             lastRobotIsConnected = false;
             return status;
         }
-        lastRobotIsConnected = true;
-        if (status.getCommandStatus() == null) {
-            status.setCommandStatus(new CommandStatusType());
-            setCommandState(CommandStateEnumType.CRCL_WORKING);
-        }
-        if (null == status.getCommandStatus().getCommandID()) {
-            status.getCommandStatus().setCommandID(BigInteger.ONE);
-        }
-        if (null == status.getCommandStatus().getStatusID()) {
-            status.getCommandStatus().setStatusID(BigInteger.ONE);
-        }
-        status.getCommandStatus().setStatusID(BigInteger.ONE.add(status.getCommandStatus().getStatusID()));
-        CRCLPosemath.initPose(status);
-        if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-            if (prevCmd != null) {
-                if (prevCmd instanceof MoveToType) {
-                    MoveToType mtPrev = (MoveToType) prevCmd;
-                    double dist = distTransFrom(mtPrev.getEndPosition());
-                    double rotDist = distRotFrom(mtPrev.getEndPosition());
-                    if ((dist < distanceTolerance
-                            && rotDist < distanceRotTolerance
-                            && System.currentTimeMillis() > expectedEndMoveToTime
-                            && posReg98.isAtCurPosition()) && (System.currentTimeMillis() - moveTime > 20)) {
-                        if (!lastCheckAtPosition) {
-                            moveDoneTime = System.currentTimeMillis();
-                        } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
+        robotService.submit(this::readStatusFromRobotInternal);
+        return status;
+    }
+
+    private synchronized void readStatusFromRobotInternal() {
+        try {
+            if (null == robot) {
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                if (lastRobotIsConnected) {
+                    showError("Robot is NOT connected.");
+                }
+                lastRobotIsConnected = false;
+                return;
+            }
+            if (!robot.isConnected()) {
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                if (lastRobotIsConnected) {
+                    showError("Robot is NOT connected.");
+                }
+                lastRobotIsConnected = false;
+                return;
+            }
+            lastRobotIsConnected = true;
+            if (status.getCommandStatus() == null) {
+                status.setCommandStatus(new CommandStatusType());
+                setCommandState(CommandStateEnumType.CRCL_WORKING);
+            }
+            if (null == status.getCommandStatus().getCommandID()) {
+                status.getCommandStatus().setCommandID(BigInteger.ONE);
+            }
+            if (null == status.getCommandStatus().getStatusID()) {
+                status.getCommandStatus().setStatusID(BigInteger.ONE);
+            }
+            status.getCommandStatus().setStatusID(BigInteger.ONE.add(status.getCommandStatus().getStatusID()));
+            CRCLPosemath.initPose(status);
+            if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                if (prevCmd != null) {
+                    if (prevCmd instanceof MoveToType) {
+                        try {
+                            MoveToType mtPrev = (MoveToType) prevCmd;
+                            double dist = distTransFrom(mtPrev.getEndPosition());
+                            double rotDist = distRotFrom(mtPrev.getEndPosition());
+                            if ((dist < distanceTolerance
+                                    && rotDist < distanceRotTolerance
+                                    && System.currentTimeMillis() > expectedEndMoveToTime
+                                    && posReg98.isAtCurPosition()) && (System.currentTimeMillis() - moveTime > 20)) {
+                                if (!lastCheckAtPosition) {
+                                    moveDoneTime = System.currentTimeMillis();
+                                } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
+                                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
+                                lastCheckAtPosition = true;
+                            } else {
+                                setCommandState(CommandStateEnumType.CRCL_WORKING);
+                                lastCheckAtPosition = false;
+                            }
+                        } catch (PmException ex) {
+                            showError(ex.toString());
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } else if (prevCmd instanceof MoveThroughToType) {
+                        MoveThroughToType mtt = (MoveThroughToType) prevCmd;
+                        if (currentWaypointNumber >= mtt.getNumPositions().intValue()
+                                || currentWaypointNumber >= mtt.getWaypoint().size()) {
+                            try {
+                                PoseType pose = mtt.getWaypoint().get(mtt.getWaypoint().size() - 1);
+                                double dist = distTransFrom(pose);
+                                double rotDist = distRotFrom(pose);
+                                if (dist < distanceTolerance
+                                        && rotDist < distanceRotTolerance
+                                        && groupPos.isAtCurPosition() && (System.currentTimeMillis() - moveTime > 10)) {
+                                    if (!lastCheckAtPosition) {
+                                        moveDoneTime = System.currentTimeMillis();
+                                    } else if ((System.currentTimeMillis() - moveDoneTime) > 10) {
+                                        setCommandState(CommandStateEnumType.CRCL_DONE);
+                                    }
+                                    lastCheckAtPosition = true;
+                                } else {
+                                    setCommandState(CommandStateEnumType.CRCL_WORKING);
+                                    lastCheckAtPosition = false;
+                                }
+                            } catch (PmException ex) {
+                                showError(ex.toString());
+                                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    } else if (prevCmd instanceof DwellType) {
+                        long diff = System.currentTimeMillis() - dwellEndTime;
+                        if (diff > 0) {
                             setCommandState(CommandStateEnumType.CRCL_DONE);
                         }
-                        lastCheckAtPosition = true;
-                    } else {
-                        setCommandState(CommandStateEnumType.CRCL_WORKING);
-                        lastCheckAtPosition = false;
-                    }
-                } else if (prevCmd instanceof MoveThroughToType) {
-                    MoveThroughToType mtt = (MoveThroughToType) prevCmd;
-                    if (currentWaypointNumber >= mtt.getNumPositions().intValue()
-                            || currentWaypointNumber >= mtt.getWaypoint().size()) {
-                        PoseType pose = mtt.getWaypoint().get(mtt.getWaypoint().size() - 1);
-                        double dist = distTransFrom(pose);
-                        double rotDist = distRotFrom(pose);
-                        if (dist < distanceTolerance
-                                && rotDist < distanceRotTolerance
-                                && groupPos.isAtCurPosition() && (System.currentTimeMillis() - moveTime > 10)) {
-                            if (!lastCheckAtPosition) {
-                                moveDoneTime = System.currentTimeMillis();
-                            } else if ((System.currentTimeMillis() - moveDoneTime) > 10) {
-                                setCommandState(CommandStateEnumType.CRCL_DONE);
-                            }
-                            lastCheckAtPosition = true;
-                        } else {
-                            setCommandState(CommandStateEnumType.CRCL_WORKING);
-                            lastCheckAtPosition = false;
-                        }
-                    }
-                } else if (prevCmd instanceof DwellType) {
-                    long diff = System.currentTimeMillis() - dwellEndTime;
-                    if (diff > 0) {
-                        setCommandState(CommandStateEnumType.CRCL_DONE);
-                    }
-                } else if (prevCmd instanceof ActuateJointsType) {
-                    posReg97.update();
-                    if (posReg97.isAtCurPosition()) {
-                        ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
-                        double maxDiff = 0;
-                        for (ActuateJointType aj : actJoints.getActuateJoint()) {
-                            int num = aj.getJointNumber().intValue();
-                            JointStatusesType jointStatuses = status.getJointStatuses();
-                            if (null != jointStatuses) {
-                                for (JointStatusType jst : jointStatuses.getJointStatus()) {
-                                    if (num == jst.getJointNumber().intValue()) {
-                                        double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
-                                        if (diff > maxDiff) {
-                                            maxDiff = diff;
+                    } else if (prevCmd instanceof ActuateJointsType) {
+                        posReg97.update();
+                        if (posReg97.isAtCurPosition()) {
+                            ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
+                            double maxDiff = 0;
+                            for (ActuateJointType aj : actJoints.getActuateJoint()) {
+                                int num = aj.getJointNumber().intValue();
+                                JointStatusesType jointStatuses = status.getJointStatuses();
+                                if (null != jointStatuses) {
+                                    for (JointStatusType jst : jointStatuses.getJointStatus()) {
+                                        if (num == jst.getJointNumber().intValue()) {
+                                            double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
+                                            if (diff > maxDiff) {
+                                                maxDiff = diff;
+                                            }
+                                            break;
                                         }
-                                        break;
                                     }
                                 }
                             }
-                        }
-                        System.out.println("maxDiff = " + maxDiff);
-                        if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
-                            setCommandState(CommandStateEnumType.CRCL_DONE);
-                        }
-                        lastMaxJointDiff = maxDiff;
-                    }
-                    
-                }
-            }
-        } else {
-            lastCheckAtPosition = false;
-        }
-        
-        if (null == robot) {
-            setCommandState(CommandStateEnumType.CRCL_ERROR);
-            showError("fanucCRCLServer not connected to robot");
-            return status;
-        }
-        ICurPosition icp = robot.curPosition();
-        if (null == icp) {
-            showError("robot.curPosition() returned null");
-            status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
-            return status;
-        }
-        ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-        Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
-        IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
-        PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
-        PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
-        CRCLPosemath.setPose(status, CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), CRCLPosemath.getPose(status)));
-        Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
-        IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
-        if (null == status.getJointStatuses()) {
-            status.setJointStatuses(new JointStatusesType());
-        }
-        final JointStatusesType jointStatuses = status.getJointStatuses();
-        if (null != jointStatuses) {
-            jointStatuses.getJointStatus().clear();
-            for (short i = 1; i <= joint_pos.count(); i++) {
-                JointStatusType js = new JointStatusType();
-                js.setJointNumber(BigInteger.valueOf(i));
-                double cur_joint_pos = joint_pos.item(i);
-                double last_joint_pos = lastJointPosArray[i];
-                long last_joint_pos_time = lastJointPosTimeArray[i];
-                long cur_time = System.currentTimeMillis();
-                double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
-                lastJointPosArray[i] = cur_joint_pos;
-                lastJointPosTimeArray[i] = cur_time;
-                BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
-                js.setJointPosition(jointPosition);
-                try {
-                    if (null != cjrMap && cjrMap.size() > 0) {
-                        js.setJointPosition(null);
-                        js.setJointVelocity(null);
-                        js.setJointTorqueOrForce(null);
-                        ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
-                        if (null != cjrt) {
-                            if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
-                                if (cjrt.isReportPosition()) {
-                                    js.setJointPosition(jointPosition);
-                                }
-                                if (cjrt.isReportVelocity()) {
-                                    js.setJointVelocity(BigDecimal.valueOf(joint_vel));
-                                }
-                                if (cjrt.isReportTorqueOrForce()) {
-                                    js.setJointTorqueOrForce(BigDecimal.ZERO);
-                                }
+                            System.out.println("maxDiff = " + maxDiff);
+                            if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
+                                setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
+                            lastMaxJointDiff = maxDiff;
                         }
-                        if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
-                                && prevCmd instanceof ConfigureJointReportsType) {
-                            this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                        }
+
                     }
-                } catch (Throwable ex) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-                }
-                jointStatuses.getJointStatus().add(js);
-            }
-        }
-        if (null != morSafetyStatVar) {
-            morSafetyStatVar.refresh();
-            int safety_stat = (int) morSafetyStatVar.value();
-            if (isMoreSafetyStatError(safety_stat)) {
-                if (safety_stat != last_safety_stat) {
-                    showError(morSafetyStatToString(safety_stat));
-                }
-                lastServoReady = true;
-            } else if (null != moveGroup1ServoReadyVar) {
-                moveGroup1ServoReadyVar.refresh();
-                Object val = moveGroup1ServoReadyVar.value();
-                if (val instanceof Boolean) {
-                    boolean servoReady = (boolean) val;
-                    if (!servoReady && lastServoReady) {
-                        showError("SERVO_NOT_READY (Need to reset fault?)");
-                    }
-                    lastServoReady = servoReady;
                 }
             } else {
-                lastServoReady = true;
+                lastCheckAtPosition = false;
             }
-            last_safety_stat = safety_stat;
+
+            if (null == robot) {
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showError("fanucCRCLServer not connected to robot");
+                return;
+            }
+            ICurPosition icp = robot.curPosition();
+            if (null == icp) {
+                showError("robot.curPosition() returned null");
+                status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return;
+            }
+            ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+            Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
+            IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
+            PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
+            PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
+            CRCLPosemath.setPose(status, CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), CRCLPosemath.getPose(status)));
+            Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
+            IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
+            if (null == status.getJointStatuses()) {
+                status.setJointStatuses(new JointStatusesType());
+            }
+            final JointStatusesType jointStatuses = status.getJointStatuses();
+            if (null != jointStatuses) {
+                jointStatuses.getJointStatus().clear();
+                for (short i = 1; i <= joint_pos.count(); i++) {
+                    JointStatusType js = new JointStatusType();
+                    js.setJointNumber(BigInteger.valueOf(i));
+                    double cur_joint_pos = joint_pos.item(i);
+                    double last_joint_pos = lastJointPosArray[i];
+                    long last_joint_pos_time = lastJointPosTimeArray[i];
+                    long cur_time = System.currentTimeMillis();
+                    double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
+                    lastJointPosArray[i] = cur_joint_pos;
+                    lastJointPosTimeArray[i] = cur_time;
+                    BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
+                    js.setJointPosition(jointPosition);
+                    try {
+                        if (null != cjrMap && cjrMap.size() > 0) {
+                            js.setJointPosition(null);
+                            js.setJointVelocity(null);
+                            js.setJointTorqueOrForce(null);
+                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                            if (null != cjrt) {
+                                if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                    if (cjrt.isReportPosition()) {
+                                        js.setJointPosition(jointPosition);
+                                    }
+                                    if (cjrt.isReportVelocity()) {
+                                        js.setJointVelocity(BigDecimal.valueOf(joint_vel));
+                                    }
+                                    if (cjrt.isReportTorqueOrForce()) {
+                                        js.setJointTorqueOrForce(BigDecimal.ZERO);
+                                    }
+                                }
+                            }
+                            if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                    && prevCmd instanceof ConfigureJointReportsType) {
+                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            }
+                        }
+                    } catch (Throwable ex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                    }
+                    jointStatuses.getJointStatus().add(js);
+                }
+            }
+            if (null != morSafetyStatVar) {
+                morSafetyStatVar.refresh();
+                int safety_stat = (int) morSafetyStatVar.value();
+                if (isMoreSafetyStatError(safety_stat)) {
+                    if (safety_stat != last_safety_stat) {
+                        showError(morSafetyStatToString(safety_stat));
+                    }
+                    lastServoReady = true;
+                } else if (null != moveGroup1ServoReadyVar) {
+                    moveGroup1ServoReadyVar.refresh();
+                    Object val = moveGroup1ServoReadyVar.value();
+                    if (val instanceof Boolean) {
+                        boolean servoReady = (boolean) val;
+                        if (!servoReady && lastServoReady) {
+                            showError("SERVO_NOT_READY (Need to reset fault?)");
+                        }
+                        lastServoReady = servoReady;
+                    }
+                } else {
+                    lastServoReady = true;
+                }
+                last_safety_stat = safety_stat;
+            }
+        } catch (PmException ex) {
+            showError(ex.toString());
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return status;
     }
-    
+
+    public ExecutorService getRobotService() {
+        return robotService;
+    }
+
     int last_safety_stat = 0;
     boolean lastServoReady = true;
-    
+
     private ExecutorService es;
     private ServerSocket ss;
     private Set<CRCLSocket> clients = new HashSet<>();
-    
+
     public void stop() {
-        
+
         if (null != moveThread) {
             moveThread.interrupt();
             try {
@@ -654,8 +694,15 @@ public class Main {
             neighborhood = null;
         }
     }
-    
+
+    private final ExecutorService robotService = Executors.newSingleThreadExecutor();
+
     public void disconnectRemoteRobot() {
+        robotService.submit(this::disconnectRemoteRobotInternal);
+    }
+
+    private synchronized void disconnectRemoteRobotInternal() {
+
         try {
 //            if (null != robot_ec) {
 //                robot_ec.close();
@@ -674,14 +721,14 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
         }
     }
-    
+
     private void handleInitCanon(InitCanonType initCmd) {
         robot.alarms().reset();
         robot.tasks().abortAll(true);
         setCommandState(CommandStateEnumType.CRCL_DONE);
 //        checkAlarms();
     }
-    
+
     private void handleStopMotion(StopMotionType stopCmd) {
         if (null != moveThread) {
             moveThread.interrupt();
@@ -695,11 +742,11 @@ public class Main {
         robot.tasks().abortAll(true);
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
-    
+
     private void handleEndCanon(EndCanonType initCmd) {
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
-    
+
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
         setCommandState(CommandStateEnumType.CRCL_DONE);
         if (seeCmd.getSetting().compareTo(BigDecimal.valueOf(0.5)) > 0) {
@@ -708,9 +755,9 @@ public class Main {
             close_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
         }
     }
-    
+
     private String lastErrorString = null;
-    
+
     public void showError(String error) {
         if (null != status) {
             if (null == status.getCommandStatus()) {
@@ -728,16 +775,16 @@ public class Main {
             lastErrorString = error;
         }
     }
-    
+
     private void showInfo(String info) {
         // System.out.println(info);
         if (null != jframe) {
             jframe.getjTextAreaErrors().append(info + "\n");
         }
     }
-    
+
     double maxRelativeSpeed = 100.0;
-    
+
     private void handleSetTransSpeed(SetTransSpeedType stsCmd) {
         TransSpeedType ts = stsCmd.getTransSpeed();
         if (ts instanceof TransSpeedRelativeType) {
@@ -756,7 +803,7 @@ public class Main {
             setCommandState(CommandStateEnumType.CRCL_DONE);
         }
     }
-    
+
     private void handleSetRotSpeed(SetRotSpeedType stsCmd) {
         RotSpeedType ts = stsCmd.getRotSpeed();
         if (ts instanceof RotSpeedRelativeType) {
@@ -772,7 +819,7 @@ public class Main {
             setCommandState(CommandStateEnumType.CRCL_DONE);
         }
     }
-    
+
     private Set<String> getProgramNames() {
         IPrograms progs = robot.programs();
         Set<String> prognames = new TreeSet<String>();
@@ -783,7 +830,7 @@ public class Main {
         //// System.out.println("prognames = " + prognames);
         return prognames;
     }
-    
+
     Thread moveThread = null;
     volatile private int moveCount = 0;
     volatile long moveTime = 0;
@@ -792,7 +839,7 @@ public class Main {
     private double rotSpeed = 90; // 10 deg/s
 
     private boolean posReg98Updated = false;
-    
+
     private void updatePosReg98() {
         if (!posReg98Updated && null != posReg98) {
             posReg98.record();
@@ -817,9 +864,9 @@ public class Main {
             posReg98Updated = true;
         }
     }
-    
+
     private boolean posReg97Updated = false;
-    
+
     private void updatePosReg97() {
         if (true) {
             posReg97.refresh();
@@ -842,9 +889,9 @@ public class Main {
             posReg97Updated = true;
         }
     }
-    
+
     long expectedEndMoveToTime = -1;
-    
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
@@ -1034,7 +1081,7 @@ public class Main {
     }
     public static final long MOVE_INTERVAL_MILLIS = 100;
     private int currentWaypointNumber = 0;
-    
+
     public double distTransFrom(PoseType pose) {
         ICurPosition icp = robot.curPosition();
 
@@ -1052,7 +1099,7 @@ public class Main {
         PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
         return cart.distFrom(CRCLPosemath.toPmCartesian(pose.getPoint()));
     }
-    
+
     public double distRotFrom(PoseType pose) throws PmException {
         ICurPosition icp = robot.curPosition();
 
@@ -1073,7 +1120,7 @@ public class Main {
 //        System.out.println("rotvDiff.s = " + rotvDiff.s);
         return Math.toDegrees(rotvDiff.s);
     }
-    
+
     private void moveToGroupPos() throws InterruptedException {
         boolean didit = false;
         int tries = 0;
@@ -1096,7 +1143,7 @@ public class Main {
         }
 //        // System.out.println("moveToGroupPos took " + (t1 - t0) + "ms and " + tries + " tries.");
     }
-    
+
     private void handleMoveThroughTo(MoveThroughToType moveCmd) throws PmException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
@@ -1218,7 +1265,7 @@ public class Main {
         this.setLengthUnit(slu.getUnitName());
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
-    
+
     private void handleSetEndPoseTolerance(SetEndPoseToleranceType sepCmd) {
         PoseToleranceType poseTol = sepCmd.getTolerance();
         distanceTolerance = Math.min(poseTol.getXPointTolerance().doubleValue(),
@@ -1226,15 +1273,15 @@ public class Main {
                         poseTol.getZPointTolerance().doubleValue()));
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
-    
+
     long dwellEndTime = 0;
-    
+
     private void handleDwell(DwellType dwellCmd) {
         dwellEndTime = System.currentTimeMillis() + ((long) (dwellCmd.getDwellTime().doubleValue() * 1000.0 + 1.0));
         System.out.println("dwellEndTime = " + dwellEndTime);
         setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
-    
+
     private void setCommandState(CommandStateEnumType newState) {
         if (null == status.getCommandStatus()) {
             status.setCommandStatus(new CommandStatusType());
@@ -1249,12 +1296,12 @@ public class Main {
     }
     private ConfigureJointReportsType cjrs;
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
-    
+
     private void setDefaultJointReports() {
         if (null == this.cjrMap) {
             this.cjrMap = new HashMap<>();
         }
-        
+
         for (int i = 1; i <= 6; i++) {
             ConfigureJointReportType cjr = new ConfigureJointReportType();
             cjr.setReportPosition(true);
@@ -1276,7 +1323,7 @@ public class Main {
         }
         setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
-    
+
     private void runTPProgram(ITPProgram prog) {
         try {
             for (Com4jObject c4jo : robot.tasks()) {
@@ -1357,7 +1404,7 @@ public class Main {
             prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
         }
     }
-    
+
     private void handleActuateJoints(ActuateJointsType ajCmd) throws PmException, InterruptedException {
         // System.out.println("groupPos.isAtCurPosition() = " + groupPos.isAtCurPosition());
 //        groupPos.refresh();
@@ -1391,7 +1438,7 @@ public class Main {
             System.out.println("curVal = " + curVal);
             double absDiff = (double) Math.abs(val - curVal);
             double speed = DEFAULT_JOINT_SPEED;
-            
+
             JointDetailsType jd = aj.getJointDetails();
             if (jd instanceof JointSpeedAccelType) {
                 JointSpeedAccelType jsa = (JointSpeedAccelType) jd;
@@ -1421,7 +1468,7 @@ public class Main {
         posReg97.update();
         System.out.println("move_joint_prog = " + move_joint_prog);
         this.runTPProgram(move_joint_prog);
-        
+
         if (moveThread != null) {
             moveThread.interrupt();
             try {
@@ -1492,11 +1539,11 @@ public class Main {
 //        }, "moveThread" + moveCount);
 //        moveThread.start();
     }
-    
+
     public static final float DEFAULT_JOINT_SPEED = 10.0f;
-    
+
     private Set<String> lastAlarms;
-    
+
     private Set<String> getAlarms() {
         IAlarms alarms = robot.alarms();
         Map<java.util.Date, String> alarmMap = new java.util.TreeMap<>();
@@ -1554,18 +1601,18 @@ public class Main {
         // System.out.println("alarmSet = " + alarmSet);
         return alarmSet;
     }
-    
+
     private CRCLCommandType prevCmd = null;
-    
+
     final CRCLSocket utilCrclSocket;
-    
+
     public Main() throws CRCLException {
         utilCrclSocket = new CRCLSocket();
         setDefaultJointReports();
     }
-    
+
     private long lastUpdateStatusTime = -1;
-    
+
     private synchronized void updateStatus(CRCLSocket cs) {
         try {
             CRCLStatusType status = readCachedStatusFromRobot();
@@ -1577,7 +1624,7 @@ public class Main {
             showError(t.toString());
         }
     }
-    
+
     private void startCrclServer() throws IOException {
         es = Executors.newWorkStealingPool();
         ss = new ServerSocket(localPort);
@@ -1592,7 +1639,7 @@ public class Main {
                             while (!Thread.currentThread().isInterrupted()) {
                                 try {
                                     CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
-                                    CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+                                    final CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                                     if (cmd instanceof GetStatusType) {
                                         updateStatus(cs);
                                     } else {
@@ -1601,7 +1648,7 @@ public class Main {
                                                 status.setCommandStatus(new CommandStatusType());
                                                 status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                                             }
-                                            
+
                                             if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
                                                 setCommandState(CommandStateEnumType.CRCL_WORKING);
                                             }
@@ -1616,7 +1663,7 @@ public class Main {
                                                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
                                                 showError(cs.getLastCommandString());
                                             }
-                                            handleCommand(cmd);
+                                            robotService.submit(() -> handleCommand(cmd));
                                         } catch (ComException comEx) {
                                             showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
                                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
@@ -1627,9 +1674,6 @@ public class Main {
                                 } catch (SocketException | EOFException se) {
                                     // probably just closing the connection.
                                     break;
-                                } catch (PmException ex) {
-                                    showError(ex.getMessage());
-                                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                                 } catch (ComException comEx) {
                                     showComException(comEx);
                                     disconnectRemoteRobot();
@@ -1638,7 +1682,7 @@ public class Main {
                             }
                         } catch (SocketException | EOFException se) {
                             // probably just closing the connection.
-                        } catch (JAXBException | SAXException | IOException | InterruptedException ex) {
+                        } catch (JAXBException | SAXException | IOException ex) {
                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                             showError(ex.getMessage());
                         } catch (Exception ex) {
@@ -1663,38 +1707,43 @@ public class Main {
                 }
             }
         });
-        
+
     }
-    
-    public synchronized void handleCommand(CRCLCommandType cmd) throws PmException, InterruptedException {
-        if (cmd instanceof InitCanonType) {
-            handleInitCanon((InitCanonType) cmd);
-        } else if (cmd instanceof StopMotionType) {
-            handleStopMotion((StopMotionType) cmd);
-        } else if (cmd instanceof EndCanonType) {
-            handleEndCanon((EndCanonType) cmd);
-        } else if (cmd instanceof MoveToType) {
-            handleMoveTo((MoveToType) cmd);
-        } else if (cmd instanceof MoveThroughToType) {
-            handleMoveThroughTo((MoveThroughToType) cmd);
-        } else if (cmd instanceof SetEndEffectorType) {
-            handleSetEndEffector((SetEndEffectorType) cmd);
-        } else if (cmd instanceof SetTransSpeedType) {
-            handleSetTransSpeed((SetTransSpeedType) cmd);
-        } else if (cmd instanceof SetRotSpeedType) {
-            handleSetRotSpeed((SetRotSpeedType) cmd);
-        } else if (cmd instanceof ActuateJointsType) {
-            handleActuateJoints((ActuateJointsType) cmd);
-        } else if (cmd instanceof SetLengthUnitsType) {
-            handleSetLengthUnits((SetLengthUnitsType) cmd);
-        } else if (cmd instanceof SetEndPoseToleranceType) {
-            handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
-        } else if (cmd instanceof DwellType) {
-            handleDwell((DwellType) cmd);
-        } else if (cmd instanceof ConfigureJointReportsType) {
-            handleConfigureJointReports((ConfigureJointReportsType) cmd);
-        } else {
-            showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
+
+    public synchronized void handleCommand(CRCLCommandType cmd) {
+        try {
+            if (cmd instanceof InitCanonType) {
+                handleInitCanon((InitCanonType) cmd);
+            } else if (cmd instanceof StopMotionType) {
+                handleStopMotion((StopMotionType) cmd);
+            } else if (cmd instanceof EndCanonType) {
+                handleEndCanon((EndCanonType) cmd);
+            } else if (cmd instanceof MoveToType) {
+                handleMoveTo((MoveToType) cmd);
+            } else if (cmd instanceof MoveThroughToType) {
+                handleMoveThroughTo((MoveThroughToType) cmd);
+            } else if (cmd instanceof SetEndEffectorType) {
+                handleSetEndEffector((SetEndEffectorType) cmd);
+            } else if (cmd instanceof SetTransSpeedType) {
+                handleSetTransSpeed((SetTransSpeedType) cmd);
+            } else if (cmd instanceof SetRotSpeedType) {
+                handleSetRotSpeed((SetRotSpeedType) cmd);
+            } else if (cmd instanceof ActuateJointsType) {
+                handleActuateJoints((ActuateJointsType) cmd);
+            } else if (cmd instanceof SetLengthUnitsType) {
+                handleSetLengthUnits((SetLengthUnitsType) cmd);
+            } else if (cmd instanceof SetEndPoseToleranceType) {
+                handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
+            } else if (cmd instanceof DwellType) {
+                handleDwell((DwellType) cmd);
+            } else if (cmd instanceof ConfigureJointReportsType) {
+                handleConfigureJointReports((ConfigureJointReportsType) cmd);
+            } else {
+                showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
+            }
+        } catch (Exception ex) {
+            showError(ex.getMessage());
+            Logger.getLogger(Main.class.getCanonicalName()).log(Level.SEVERE, "handle command", ex);
         }
         prevCmd = cmd;
 //                                    this.checkAlarms();
@@ -1710,10 +1759,10 @@ public class Main {
     private IVar morSafetyStatVar = null;
     private IVar moveGroup1RobMoveVar = null;
     private IVar moveGroup1ServoReadyVar = null;
-    
+
     private long isMovingLastCheckTime = 0;
     private boolean lastIsMoving = false;
-    
+
     public boolean isMoving() {
         if (System.currentTimeMillis() - isMovingLastCheckTime < 20) {
             return lastIsMoving;
@@ -1729,11 +1778,11 @@ public class Main {
         }
         return false;
     }
-    
+
     private IVar reg96Var = null;
     private IVar reg97Var = null;
     private IVar reg98Var = null;
-    
+
     private IRegNumeric regNumeric96 = null;
     private IRegNumeric regNumeric97 = null;
     private IRegNumeric regNumeric98 = null;
@@ -1745,11 +1794,11 @@ public class Main {
     private IRobotNeighborhood neighborhood = null;
     private String neighborhoodname = "AgilityLabLRMate200iD";
     private Thread robotMonitorThread = null;
-    
+
     public String getNeighborhoodname() {
         return neighborhoodname;
     }
-    
+
     public void setNeighborhoodname(String neighborhoodname) {
         if (this.neighborhoodname != neighborhoodname) {
             this.neighborhoodname = neighborhoodname;
@@ -1760,9 +1809,9 @@ public class Main {
             this.connectRemoteRobot();
         }
     }
-    
+
     List<ITPProgram> tpPrograms = new ArrayList<>();
-    
+
     private boolean preferRobotNeighborhood = false;
 
     /**
@@ -1789,10 +1838,10 @@ public class Main {
             this.connectRemoteRobot();
         }
     }
-    
+
     float lowerJointLimits[] = new float[6];
     float upperJointLimits[] = new float[6];
-    
+
     public void applyAdditionalCartLimits(PmCartesian min, PmCartesian max) {
         xMax = (float) Math.min(xMax, max.x);
         xMin = (float) Math.max(xMin, min.x);
@@ -1801,7 +1850,7 @@ public class Main {
         zMax = (float) Math.min(zMax, max.z);
         zMin = (float) Math.max(zMin, min.z);
     }
-    
+
     public void saveCartLimits(PmCartesian min, PmCartesian max) {
         try (PrintWriter pw = new PrintWriter(CART_LIMITS_FILE)) {
             pw.println("min.x=" + min.x);
@@ -1814,9 +1863,32 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public void applyAdditionalJointLimits(float[] min, float[] max) {
+        for (int i = 0; i < min.length && i < lowerJointLimits.length; i++) {
+            lowerJointLimits[i] = Math.max(lowerJointLimits[i], min[i]);
+        }
+        for (int i = 0; i < max.length && i < lowerJointLimits.length; i++) {
+            upperJointLimits[i] = Math.min(upperJointLimits[i], max[i]);
+        }
+    }
+
+    public void saveJointLimits(float[] min, float[] max) {
+        try (PrintWriter pw = new PrintWriter(JOINT_LIMITS_FILE)) {
+            for (int i = 0; i < max.length && i < min.length; i++) {
+                pw.println("min[" + i + "]=" + min[i]);
+                pw.println("max[" + i + "]=" + max[i]);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
             ".fanucCRLCCartLimits.txt");
-    
+    public static final File JOINT_LIMITS_FILE = new File(System.getProperty("user.home"),
+            ".fanucCRLCJointLimits.txt");
+
     private void findString(String input, String token, Consumer<String> tailConsumer) {
         int index = input.indexOf(token);
         if (index >= 0) {
@@ -1824,7 +1896,23 @@ public class Main {
             tailConsumer.accept(tail);
         }
     }
-    
+
+    private void findIndexedString(String input, String token, BiConsumer<Integer, String> tailConsumer) {
+        int i0 = input.indexOf('[');
+        int i1 = input.indexOf(']');
+        if (i0 > 0 && i1 > i0) {
+            String indexString = input.substring(i0 + 1, i1);
+            int indexVal = Integer.valueOf(indexString);
+            String newInput = input.substring(0,i0+1) + input.substring(i1);
+            int index = input.indexOf(token);
+            if (index >= 0) {
+                String tail = input.substring(index + token.length());
+                tailConsumer.accept(indexVal,tail);
+            }
+        }
+
+    }
+
     public void readAndApplyUserCartLimits() {
         PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
         PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -1843,8 +1931,28 @@ public class Main {
         }
         applyAdditionalCartLimits(min, max);
     }
-    
+
+    public void readAndApplyUserJointLimits() {
+        float min[] = new float[6];
+        float max[] = new float[6];
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                findIndexedString(line, "min[]=", (i,t) -> min[i] = Float.valueOf(t));
+                findIndexedString(line, "max[]=", (i,t) -> max[i] = Float.valueOf(t));
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        applyAdditionalJointLimits(min, max);
+    }
+
     public void connectRemoteRobot() {
+        robotService.submit(this::connectRemoteRobotInternal);
+    }
+
+    private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
             this.lastRobotIsConnected = true;
@@ -2051,7 +2159,7 @@ public class Main {
                         if (null != program && program.name().equalsIgnoreCase("GRIPPER_OPEN")) {
                             System.out.println("Found open_gripper program.");
                             open_gripper_prog = program;
-                            
+
                         }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_W_TIME")) {
                             System.out.println("Found MOVE_W_TIME program.");
@@ -2072,7 +2180,7 @@ public class Main {
                     }
                 }
             }
-            
+
             reg96Var = robot.regNumerics().item(96, null).queryInterface(IVar.class);
             reg96Var.noUpdate(true);
             regNumeric96 = ((Com4jObject) reg96Var.value()).queryInterface(IRegNumeric.class);
@@ -2083,7 +2191,7 @@ public class Main {
             reg98Var = robot.regNumerics().item(98, null).queryInterface(IVar.class);
             regNumeric98 = ((Com4jObject) reg98Var.value()).queryInterface(IRegNumeric.class);
             regNumeric98.regFloat(DEFAULT_CART_SPEED);
-            
+
             posReg98 = robot.regPositions().item(98, null).queryInterface(ISysPosition.class).group((short) 1);
             posReg98.record();
             System.out.println("posReg98 = " + posReg98);
@@ -2127,6 +2235,7 @@ public class Main {
             }
             System.out.println("lowerJointLimits = " + Arrays.toString(lowerJointLimits));
             System.out.println("upperJointLimits = " + Arrays.toString(upperJointLimits));
+            readAndApplyUserJointLimits();
             updateJFrame();
         } catch (ComException comEx) {
             showComException(comEx);
@@ -2136,7 +2245,7 @@ public class Main {
         }
 //        robot.
     }
-    
+
     public void readCartLimitsFromRobot() {
         IVars sysvars = robot.sysVariables();
         IVar xLimitVar1 = sysvars.item("$DCSS_CPC[1].$X[1]", null).queryInterface(IVar.class);
@@ -2181,10 +2290,10 @@ public class Main {
                 xMin = v;
             }
         }
-        
+
         System.out.println("xMin = " + xMin);
         System.out.println("xMax = " + xMax);
-        
+
         IVar yLimitVar1 = sysvars.item("$DCSS_CPC[1].$Y[1]", null).queryInterface(IVar.class);
         System.out.println("yLimitVar1 = " + yLimitVar1);
         if (null != yLimitVar1) {
@@ -2227,10 +2336,10 @@ public class Main {
                 yMin = v;
             }
         }
-        
+
         System.out.println("yMin = " + yMin);
         System.out.println("yMax = " + yMax);
-        
+
         IVar zLimitVar1 = sysvars.item("$DCSS_CPC[1].$Z1", null).queryInterface(IVar.class);
         System.out.println("zLimitVar1 = " + zLimitVar1);
         if (null != zLimitVar1) {
@@ -2249,7 +2358,7 @@ public class Main {
                 zMin = v;
             }
         }
-        
+
         System.out.println("zMin = " + zMin);
         System.out.println("zMax = " + zMax);
         for (int i = 0; i < 6; i++) {
@@ -2260,10 +2369,10 @@ public class Main {
         }
     }
     public static final float DEFAULT_CART_SPEED = 100.0f;
-    
+
     private String lastComExString = null;
     private long last_com_ex_time = 0;
-    
+
     public void showComException(ComException comEx) {
         String newMsg = comEx.getMessage();
         if (!newMsg.equals(lastComExString) || (System.currentTimeMillis() - last_com_ex_time) > 5000) {
@@ -2273,7 +2382,7 @@ public class Main {
             last_com_ex_time = System.currentTimeMillis();
         }
     }
-    
+
     public void updateJFrame() {
         //        // System.out.println("mcrVar = " + mcrVar);
 //        // System.out.println("mcrVar.value() = " + mcrVar.value());
@@ -2332,7 +2441,7 @@ public class Main {
     public static final int MOR_SAFETY_STAT_BELT_BROKEN_FLAG = 256;
     public static final int MOR_SAFETY_STAT_TP_ENABLE_FLAG = 512;
     public static final int MOR_SAFETY_STAT_ALARM_FLAG = 1024;
-    
+
     public static boolean isMoreSafetyStatError(int val) {
         return (val
                 & (MOR_SAFETY_STAT_ESTOP_SOP_FLAG
@@ -2344,7 +2453,7 @@ public class Main {
                 | MOR_SAFETY_STAT_TP_ENABLE_FLAG
                 | MOR_SAFETY_STAT_ALARM_FLAG)) != 0;
     }
-    
+
     public static String morSafetyStatToString(int val) {
         return val + " : "
                 + ((val & MOR_SAFETY_STAT_ESTOP_SOP_FLAG) == MOR_SAFETY_STAT_ESTOP_SOP_FLAG ? " Main E-Stop | " : "")
@@ -2359,7 +2468,7 @@ public class Main {
                 + ((val & MOR_SAFETY_STAT_ALARM_FLAG) == MOR_SAFETY_STAT_ALARM_FLAG ? " Alarm | " : "")
                 + " 0 ";
     }
-    
+
     public static void main(String[] args) throws IOException, CRCLException {
         Main main = new Main();
         String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";

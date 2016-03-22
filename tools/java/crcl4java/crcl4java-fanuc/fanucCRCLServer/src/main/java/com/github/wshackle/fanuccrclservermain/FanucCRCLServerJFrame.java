@@ -67,6 +67,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,13 +100,13 @@ import rcs.posemath.Posemath;
  * @author shackle
  */
 public class FanucCRCLServerJFrame extends javax.swing.JFrame {
-
+    
     public JCheckBox getjCheckBoxLogAllCommands() {
         return jCheckBoxLogAllCommands;
     }
-
+    
     private javax.swing.Timer timer = null;
-
+    
     public void updateCartLimits() {
         if (this.jCheckBoxEditCartesianLimits.isSelected()) {
             PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
@@ -117,12 +118,29 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             max.y = Double.valueOf(model.getValueAt(1, 3).toString());
             min.z = Double.valueOf(model.getValueAt(2, 1).toString());
             max.z = Double.valueOf(model.getValueAt(2, 3).toString());
-
+            
             main.applyAdditionalCartLimits(min, max);
             main.saveCartLimits(min, max);
         }
     }
 
+    public void updateJointLimits() {
+        if (this.jCheckBoxEditJointLimits.isSelected()) {
+            
+            TableModel model = this.jTableJointLimits.getModel();
+            float min[] = new float[6];
+            float max[] = new float[6];
+            
+            for (int i = 0; i < model.getRowCount(); i++) {
+                min[i] =  Float.valueOf(model.getValueAt(i, 1).toString());
+                max[i] =  Float.valueOf(model.getValueAt(i, 3).toString());
+                
+            }
+            main.applyAdditionalJointLimits(min, max);
+            main.saveJointLimits(min, max);
+        }
+    }
+    
     /**
      * Creates new form FanucCRCLServerJFrame
      */
@@ -132,21 +150,21 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         timer.start();
         this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits());
     }
-
+    
     IVar varToWatch = null;
-
+    
     public JTable getjTableCartesianLimits() {
         return jTableCartesianLimits;
     }
-
+    
     public JTable getjTableJointLimits() {
         return jTableJointLimits;
     }
-
+    
     public JTextField getjTextFieldLimitSafetyBumper() {
         return jTextFieldLimitSafetyBumper;
     }
-
+    
     private IVar morSafetyStatVar = null;
 
     /**
@@ -157,7 +175,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     public IVar getMorSafetyStatVar() {
         return morSafetyStatVar;
     }
-
+    
     private IVar moveGroup1ServoReadyVar = null;
 
     /**
@@ -186,7 +204,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     public void setMorSafetyStatVar(IVar morSafetyStatVar) {
         this.morSafetyStatVar = morSafetyStatVar;
     }
-
+    
     private IVar overrideVar;
 
     /**
@@ -206,169 +224,178 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     public void setOverrideVar(IVar overrideVar) {
         this.overrideVar = overrideVar;
     }
-
+    
     public void updateDisplay() {
-        try {
-            if (null == main) {
-                return;
-            }
-
-            DefaultTableModel dtm = (DefaultTableModel) this.jTableTasks.getModel();
-            dtm.setRowCount(0);
-            synchronized (main) {
-                if (null != varToWatch) {
-                    varToWatch.refresh();
-                    jTextFieldSysVarValue.setText(varToWatch.value().toString());
-                }
-                IRobot2 robot = main.getRobot();
-                if (null == robot) {
-                    jLabelStatus.setText("Status : Robot is NOT connected.");
-                    return;
-                }
-                if (!robot.isConnected()) {
-                    jLabelStatus.setText("Status : Robot is NOT connected.");
-                    return;
-                }
-
-                ITasks tasks = robot.tasks();
-                if (null != tasks) {
-                    for (Com4jObject c4jo : tasks) {
-                        ITask tsk = null;
-                        String tskProgName = null;
-                        FREProgramTypeConstants pType = null;
-                        FRETaskStatusConstants tskStatus = null;
-                        try {
-                            tsk = c4jo.queryInterface(ITask.class);
+        if (null == main) {
+            return;
+        }
+        
+        main.getRobotService().submit(() -> {
+            try {
+                
+                synchronized (main) {
+                    if (null != varToWatch) {
+                        varToWatch.refresh();
+                        jTextFieldSysVarValue.setText(varToWatch.value().toString());
+                    }
+                    IRobot2 robot = main.getRobot();
+                    if (null == robot) {
+                        jLabelStatus.setText("Status : Robot is NOT connected.");
+                        return;
+                    }
+                    if (!robot.isConnected()) {
+                        jLabelStatus.setText("Status : Robot is NOT connected.");
+                        return;
+                    }
+                    
+                    ITasks tasks = robot.tasks();
+                    final List<Object[]> taskList = new ArrayList<>();
+                    if (null != tasks) {
+                        for (Com4jObject c4jo : tasks) {
+                            ITask tsk = null;
+                            String tskProgName = null;
+                            FREProgramTypeConstants pType = null;
+                            FRETaskStatusConstants tskStatus = null;
                             try {
-                                pType = tsk.programType();
-                            } catch (Exception e) {
-                            }
-
-                            try {
-                                IProgram tskProg = tsk.curProgram();
-                                if (null != tskProg) {
-                                    tskProgName = tskProg.name();
+                                tsk = c4jo.queryInterface(ITask.class);
+                                try {
+                                    pType = tsk.programType();
+                                } catch (Exception e) {
                                 }
-                            } catch (Exception e) {
+                                
+                                try {
+                                    IProgram tskProg = tsk.curProgram();
+                                    if (null != tskProg) {
+                                        tskProgName = tskProg.name();
+                                    }
+                                } catch (Exception e) {
+                                }
+                                
+                                try {
+                                    tskStatus = tsk.status();
+                                } catch (Exception e) {
+                                }
+                            } catch (ComException e) {
+                                e.printStackTrace();
+                                jTextAreaErrors.append(e.toString() + "\n");
+                                continue;
                             }
-
-                            try {
-                                tskStatus = tsk.status();
-                            } catch (Exception e) {
+                            if (!jCheckBoxShowAborted.isSelected() && tskStatus == FRETaskStatusConstants.frStatusAborted) {
+                                continue;
                             }
-                        } catch (ComException e) {
-                            e.printStackTrace();
-                            jTextAreaErrors.append(e.toString() + "\n");
-                            continue;
+                            if (null == tskProgName && null == pType && null == tskStatus) {
+                                continue;
+                            }
+                            taskList.add(new Object[]{
+                                tskProgName == null ? "" : tskProgName,
+                                pType == null ? "" : pType.toString(),
+                                tskStatus == null ? "" : tskStatus.toString()});
                         }
-                        if (!jCheckBoxShowAborted.isSelected() && tskStatus == FRETaskStatusConstants.frStatusAborted) {
-                            continue;
-                        }
-                        if (null == tskProgName && null == pType && null == tskStatus) {
-                            continue;
-                        }
-                        dtm.addRow(new Object[]{
-                            tskProgName == null ? "" : tskProgName,
-                            pType == null ? "" : pType.toString(),
-                            tskStatus == null ? "" : tskStatus.toString()});
+                        java.awt.EventQueue.invokeLater(() -> {
+                            DefaultTableModel dtm = (DefaultTableModel) this.jTableTasks.getModel();
+                            dtm.setRowCount(0);
+                            for (int i = 0; i < taskList.size(); i++) {
+                                dtm.addRow(taskList.get(i));
+                            }
+                        });
                     }
-                }
-
-                ICurPosition curPos = robot.curPosition();
-                if (curPos == null) {
-                    jLabelStatus.setText("Status : Current position not available.");
-                    return;
-                }
-                ICurGroupPosition curGourpPos = curPos.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-                if (curGourpPos == null) {
-                    jLabelStatus.setText("Status : Current position not available.");
-                    return;
-                }
-                IXyzWpr curXyzWpr = curGourpPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
-                if (curXyzWpr == null) {
-                    jLabelStatus.setText("Status : Current position not available.");
-                    return;
-                }
-                IConfig conf = curXyzWpr.config();
-                if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
-                    this.jTextFieldCartesianConfig.setText(conf.text());
-                    DefaultTableModel dtmCartPos = (DefaultTableModel) this.jTableCartesianLimits.getModel();
-                    dtmCartPos.setValueAt(curXyzWpr.x(), 0, 2);
-                    dtmCartPos.setValueAt(curXyzWpr.y(), 1, 2);
-                    dtmCartPos.setValueAt(curXyzWpr.z(), 2, 2);
-                }
-
-                CRCLStatusType stat = main.readCachedStatusFromRobot();
-                if (!this.jCheckBoxEditJointLimits.isSelected()) {
-                    if (null != stat) {
-                        JointStatusesType jointStatuses = stat.getJointStatuses();
-                        if (null != jointStatuses) {
-                            List<JointStatusType> l = jointStatuses.getJointStatus();
-                            DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
-                            for (int i = 0; i < l.size(); i++) {
-                                JointStatusType js = l.get(i);
-                                int index = js.getJointNumber().intValue();
-                                dtmJointPos.setValueAt(js.getJointPosition(), index - 1, 2);
+                    
+                    ICurPosition curPos = robot.curPosition();
+                    if (curPos == null) {
+                        jLabelStatus.setText("Status : Current position not available.");
+                        return;
+                    }
+                    ICurGroupPosition curGourpPos = curPos.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+                    if (curGourpPos == null) {
+                        jLabelStatus.setText("Status : Current position not available.");
+                        return;
+                    }
+                    IXyzWpr curXyzWpr = curGourpPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+                    if (curXyzWpr == null) {
+                        jLabelStatus.setText("Status : Current position not available.");
+                        return;
+                    }
+                    IConfig conf = curXyzWpr.config();
+                    if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
+                        this.jTextFieldCartesianConfig.setText(conf.text());
+                        DefaultTableModel dtmCartPos = (DefaultTableModel) this.jTableCartesianLimits.getModel();
+                        dtmCartPos.setValueAt(curXyzWpr.x(), 0, 2);
+                        dtmCartPos.setValueAt(curXyzWpr.y(), 1, 2);
+                        dtmCartPos.setValueAt(curXyzWpr.z(), 2, 2);
+                    }
+                    
+                    CRCLStatusType stat = main.readCachedStatusFromRobot();
+                    if (!this.jCheckBoxEditJointLimits.isSelected()) {
+                        if (null != stat) {
+                            JointStatusesType jointStatuses = stat.getJointStatuses();
+                            if (null != jointStatuses) {
+                                List<JointStatusType> l = jointStatuses.getJointStatus();
+                                DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
+                                for (int i = 0; i < l.size(); i++) {
+                                    JointStatusType js = l.get(i);
+                                    int index = js.getJointNumber().intValue();
+                                    dtmJointPos.setValueAt(js.getJointPosition(), index - 1, 2);
+                                }
                             }
                         }
-                    }
 //                curPos = robot.curPosition().group((short) 1, FRECurPositionConstants.frJointDisplayType);
 //                IJoint curJoints = curPos.formats(FRETypeCodeConstants.frJoint).queryInterface(IJoint.class);
 //                DefaultTableModel dtmJointPos = (DefaultTableModel) this.jTableJointLimits.getModel();
 //                for (short i = 0; i < curJoints.count(); i++) {
 //                    dtmJointPos.setValueAt(curJoints.item((short) (i + 1)), i, 2);
 //                }
-                }
-                if (null != overrideVar) {
-                    overrideVar.refresh();
-                    jSliderOverride.setValue((Integer) overrideVar.value());
-                }
-                if (null != morSafetyStatVar) {
-                    morSafetyStatVar.refresh();
-                    int safety_stat = ((Integer) morSafetyStatVar.value());
-
-                    if (null != moveGroup1ServoReadyVar) {
-                        moveGroup1ServoReadyVar.refresh();
-                        Object val = moveGroup1ServoReadyVar.value();
-                        if (val instanceof Boolean) {
-                            boolean servoReady = (boolean) val;
-                            jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                    }
+                    if (null != overrideVar) {
+                        overrideVar.refresh();
+                        jSliderOverride.setValue((Integer) overrideVar.value());
+                    }
+                    if (null != morSafetyStatVar) {
+                        morSafetyStatVar.refresh();
+                        int safety_stat = ((Integer) morSafetyStatVar.value());
+                        
+                        if (null != moveGroup1ServoReadyVar) {
+                            moveGroup1ServoReadyVar.refresh();
+                            Object val = moveGroup1ServoReadyVar.value();
+                            if (val instanceof Boolean) {
+                                boolean servoReady = (boolean) val;
+                                jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                            }
+                        } else {
+                            jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat));
                         }
-                    } else {
-                        jLabelStatus.setText("Status : " + Main.morSafetyStatToString(safety_stat));
                     }
                 }
+            } catch (ComException e) {
+                if (e.getMessage().contains("8004000e compobj.dll is too old for the ole2.dll initialized : Object is no longer valid.")) {
+                    this.updateWatchVar(main.getRobot());
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                main.showError(ex.getMessage());
             }
-        } catch (ComException e) {
-            if (e.getMessage().contains("8004000e compobj.dll is too old for the ole2.dll initialized : Object is no longer valid.")) {
-                this.updateWatchVar(main.getRobot());
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            main.showError(ex.getMessage());
-        }
+        });
     }
-
+    
     public JSlider getjSliderOverride() {
         return jSliderOverride;
     }
-
+    
     public JSlider getjSliderMaxOverride() {
         return jSliderMaxOverride;
     }
-
+    
     public JTextArea getjTextAreaErrors() {
         return jTextAreaErrors;
     }
-
+    
     public JMenuItem getjMenuItemReconnectRobot() {
         return jMenuItemReconnectRobot;
     }
-
+    
     public JMenuItem getjMenuItemResetAlarms() {
         return jMenuItemResetAlarms;
     }
-
+    
     private void includeProgram(CRCLProgramType crclProg, ITPProgram prog, Map<Integer, PmXyzWpr> posMap) {
         BigInteger cmdId = BigInteger.ONE;
         System.out.println("includeProgram called for " + prog.name());
@@ -390,31 +417,31 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
         System.out.println("includeProgram returning for " + prog.name());
     }
-
+    
     public JLabel getjLabelStatus() {
         return jLabelStatus;
     }
-
+    
     public static class PmXyzWpr {
-
+        
         public final PmCartesian cart;
         public final PmRpy rpy;
-
+        
         public PmXyzWpr() {
             cart = new PmCartesian();
             rpy = new PmRpy();
         }
-
+        
         public PmXyzWpr(double x, double y, double z, double w, double p, double r) {
             rpy = new PmRpy(r, p, w);
             cart = new PmCartesian(x, y, z);
         }
-
+        
         public PmXyzWpr(IXyzWpr xyzwpr) {
             rpy = new PmRpy(Math.toRadians(xyzwpr.w()), Math.toRadians(xyzwpr.p()), Math.toRadians(xyzwpr.r()));
             cart = new PmCartesian(xyzwpr.x(), xyzwpr.y(), xyzwpr.z());
         }
-
+        
         public void setAll(PmXyzWpr other) {
             cart.x = other.cart.x;
             cart.y = other.cart.y;
@@ -423,7 +450,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             rpy.p = other.rpy.p;
             rpy.y = other.rpy.y;
         }
-
+        
         public void incOne(int index, double value) {
             switch (index) {
                 case 1:
@@ -444,12 +471,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 case 6:
                     rpy.r += value;
                     break;
-
+                
                 default:
                     throw new IllegalArgumentException("index must be between 1 and 6, index=" + index);
             }
         }
-
+        
         public void setOne(int index, double value) {
             switch (index) {
                 case 1:
@@ -470,19 +497,19 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 case 6:
                     rpy.r = value;
                     break;
-
+                
                 default:
                     throw new IllegalArgumentException("index must be between 1 and 6, index=" + index);
             }
         }
-
+        
         @Override
         public String toString() {
             return "PmXyzWpr{" + "cart=" + cart + ", rpy=" + rpy + '}';
         }
-
+        
     }
-
+    
     public void ConvertProgram(ITPProgram prog) {
         try {
             CRCLProgramType crclProg = new CRCLProgramType();
@@ -509,7 +536,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             cmdId = cmdId.add(BigInteger.ONE);
             crclProg.getMiddleCommand().add(sluCmd);
             SetEndPoseToleranceType sepCmd = new SetEndPoseToleranceType();
-
+            
             sepCmd.setCommandID(cmdId);
             PoseToleranceType poseTol = new PoseToleranceType();
             final BigDecimal ZERO_POINT_ONE = BigDecimal.valueOf(0.1);
@@ -595,7 +622,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     public void setMain(Main main) {
         this.main = main;
     }
-
+    
     public void updateWatchVar(IRobot2 robot1) {
         try {
             if (null != robot1) {
@@ -610,7 +637,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
-
+    
     private boolean preferRobotNeighborhood = false;
 
     /**
@@ -640,23 +667,23 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
         }
     }
-
+    
     public JRadioButton getjRadioButtonUseDirectIP() {
         return jRadioButtonUseDirectIP;
     }
-
+    
     public JRadioButton getjRadioButtonUseRobotNeighborhood() {
         return jRadioButtonUseRobotNeighborhood;
     }
-
+    
     public JTextField getjTextFieldHostName() {
         return jTextFieldHostName;
     }
-
+    
     public JTextField getjTextFieldRobotNeighborhoodPath() {
         return jTextFieldRobotNeighborhoodPath;
     }
-
+    
     public boolean ConvertProgramLine(Com4jObject lineObj, BigInteger cmdId, CRCLProgramType crclProg, ITPProgram prog, Map<Integer, PmXyzWpr> posMap) throws PmException {
         ITPSimpleLine l = lineObj.queryInterface(ITPSimpleLine.class);
         if (null == l) {
@@ -738,7 +765,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 } else {
                     programs.stream().filter(p -> p.name().equals(progToCallName)).findAny()
                             .ifPresent(pToCall -> includeProgram(crclProg, pToCall, posMap));
-
+                    
                 }
             } else if (parts.length > 1 && parts[0].equalsIgnoreCase("WAIT")) {
                 DwellType dwellCmd = new DwellType();
@@ -786,15 +813,15 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
         return false;
     }
-
+    
     private List<ITPProgram> programs;
-
+    
     public void runReconnectAction(ActionEvent e) {
         for (ActionListener al : jMenuItemReconnectRobot.getActionListeners()) {
             al.actionPerformed(e);
         }
     }
-
+    
     public void setPrograms(List<ITPProgram> _programs) {
         this.programs = _programs;
         this.jMenuRunProgram.removeAll();
@@ -1037,7 +1064,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
         jCheckBoxLogAllCommands.setText("Log All Commands");
 
-        jCheckBoxEditJointLimits.setText("Edit Joint Limits");
+        jCheckBoxEditJointLimits.setText("Edit Joint Limits   ");
 
         jCheckBoxEditCartesianLimits.setText("Edit Cartesian Limits");
         jCheckBoxEditCartesianLimits.addActionListener(new java.awt.event.ActionListener() {
@@ -1110,7 +1137,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jSliderMaxOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel1))
-                        .addGap(18, 18, Short.MAX_VALUE)
+                        .addGap(18, 91, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3)
                             .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -1122,9 +1149,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE)
                             .addComponent(jTextFieldHostName)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jCheckBoxEditJointLimits)
-                                .addComponent(jTextFieldCartesianConfig, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jTextFieldCartesianConfig, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -1141,9 +1166,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jCheckBoxEditCartesianLimits)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel8))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jCheckBoxEditJointLimits)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel9)
@@ -1209,7 +1237,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                     .addComponent(jCheckBoxLogAllCommands)
                     .addComponent(jButtonClearErrors))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabelStatus)
                 .addGap(18, 18, 18))
