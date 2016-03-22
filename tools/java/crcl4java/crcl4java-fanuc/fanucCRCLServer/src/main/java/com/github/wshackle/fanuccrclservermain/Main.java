@@ -1904,9 +1904,9 @@ public class Main {
             String indexString = input.substring(i0 + 1, i1);
             int indexVal = Integer.valueOf(indexString);
             String newInput = input.substring(0,i0+1) + input.substring(i1);
-            int index = input.indexOf(token);
+            int index = newInput.indexOf(token);
             if (index >= 0) {
-                String tail = input.substring(index + token.length());
+                String tail = newInput.substring(index + token.length());
                 tailConsumer.accept(indexVal,tail);
             }
         }
@@ -1935,8 +1935,11 @@ public class Main {
     public void readAndApplyUserJointLimits() {
         float min[] = new float[6];
         float max[] = new float[6];
-        
-        try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
+        for (int i = 0; i < max.length; i++) {
+            max[i] = Float.POSITIVE_INFINITY;
+            min[i] = Float.NEGATIVE_INFINITY;
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(JOINT_LIMITS_FILE))) {
             String line = null;
             while ((line = br.readLine()) != null) {
                 findIndexedString(line, "min[]=", (i,t) -> min[i] = Float.valueOf(t));
@@ -2393,24 +2396,25 @@ public class Main {
         if (null != jframe) {
             jframe.setMain(this);
             jframe.setPrograms(tpPrograms);
-            jframe.getjTableCartesianLimits().setModel(new DefaultTableModel(
-                    new Object[][]{
-                        new Object[]{"X", xMin, 0, xMax},
-                        new Object[]{"Y", yMin, 0, yMax},
-                        new Object[]{"Z", zMin, 0, zMax},},
-                    new String[]{"Axis", "Minimum", "Current", "Maximum"}));
-            jframe.getjTableJointLimits().setModel(new DefaultTableModel(
-                    new Object[][]{
-                        new Object[]{1, lowerJointLimits[0], 0, upperJointLimits[0]},
-                        new Object[]{2, lowerJointLimits[1], 0, upperJointLimits[1]},
-                        new Object[]{3, lowerJointLimits[2], 0, upperJointLimits[2]},
-                        new Object[]{4, lowerJointLimits[3], 0, upperJointLimits[3]},
-                        new Object[]{5, lowerJointLimits[4], 0, upperJointLimits[4]},
-                        new Object[]{6, lowerJointLimits[5], 0, upperJointLimits[5]}
-                    },
-                    new String[]{"Joint", "Minimum", "Current", "Maximum"}));
+            jframe.updateCartesianLimits(xMax, xMin, yMax, yMin, zMax, zMin);
+            jframe.updateJointLimits(lowerJointLimits, upperJointLimits);
+//            jframe.getjTableCartesianLimits().setModel(new DefaultTableModel(
+//                    new Object[][]{
+//                        new Object[]{"X", xMin, 0, xMax},
+//                        new Object[]{"Y", yMin, 0, yMax},
+//                        new Object[]{"Z", zMin, 0, zMax},},
+//                    new String[]{"Axis", "Minimum", "Current", "Maximum"}));
+//            jframe.getjTableJointLimits().setModel(new DefaultTableModel(
+//                    new Object[][]{
+//                        new Object[]{1, lowerJointLimits[0], 0, upperJointLimits[0]},
+//                        new Object[]{2, lowerJointLimits[1], 0, upperJointLimits[1]},
+//                        new Object[]{3, lowerJointLimits[2], 0, upperJointLimits[2]},
+//                        new Object[]{4, lowerJointLimits[3], 0, upperJointLimits[3]},
+//                        new Object[]{5, lowerJointLimits[4], 0, upperJointLimits[4]},
+//                        new Object[]{6, lowerJointLimits[5], 0, upperJointLimits[5]}
+//                    },
+//                    new String[]{"Joint", "Minimum", "Current", "Maximum"}));
             jframe.setOverrideVar(getOverideVar());
-            jframe.getjTableCartesianLimits().getModel().addTableModelListener(e -> jframe.updateCartLimits());
             jframe.setMorSafetyStatVar(getMorSafetyStatVar());
             jframe.setMoveGroup1ServoReadyVar(getMoveGroup1ServoReadyVar());
         }

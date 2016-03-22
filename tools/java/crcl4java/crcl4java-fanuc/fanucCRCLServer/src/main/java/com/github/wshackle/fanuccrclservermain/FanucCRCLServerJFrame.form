@@ -374,7 +374,7 @@
                   <Data value="Y"/>
                   <Data value="Z"/>
                 </Column>
-                <Column editable="false" title="Minimum" type="java.lang.Double">
+                <Column editable="true" title="Minimum" type="java.lang.Double">
                   <Data value="-1000.0"/>
                   <Data value="-1000.0"/>
                   <Data value="-1000.0"/>
@@ -382,9 +382,9 @@
                 <Column editable="false" title="Current" type="java.lang.Double">
                   <Data value="0.0"/>
                   <Data value="0.0"/>
-                  <Data value="null"/>
+                  <Data value="0.0"/>
                 </Column>
-                <Column editable="false" title="Maximum" type="java.lang.Double">
+                <Column editable="true" title="Maximum" type="java.lang.Double">
                   <Data value="1000.0"/>
                   <Data value="1000.0"/>
                   <Data value="1000.0"/>
@@ -414,7 +414,7 @@
                   <Data value="5"/>
                   <Data value="6"/>
                 </Column>
-                <Column editable="false" title="Minimum" type="java.lang.Double">
+                <Column editable="true" title="Minimum" type="java.lang.Double">
                   <Data value="-1000.0"/>
                   <Data value="-1000.0"/>
                   <Data value="-1000.0"/>
@@ -430,7 +430,7 @@
                   <Data value="0.0"/>
                   <Data value="0.0"/>
                 </Column>
-                <Column editable="false" title="Maximum" type="java.lang.Double">
+                <Column editable="true" title="Maximum" type="java.lang.Double">
                   <Data value="1000.0"/>
                   <Data value="1000.0"/>
                   <Data value="1000.0"/>
@@ -507,6 +507,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Edit Joint Limits   "/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxEditJointLimitsActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="jCheckBoxEditCartesianLimits">
       <Properties>
