@@ -57,11 +57,16 @@ import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -92,6 +97,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -190,6 +196,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(this.jTableProgram.getSelectedRow()));
         this.internal.addPropertyChangeListener(new MyPropertyChangeListener());
         this.transformJPanel1.setPendantClient(this);
+        this.jTextFieldStatus.setBackground(Color.GRAY);
+        this.setIconImage(DISCONNECTED_IMAGE);
+        this.setTitle("CRCL Client: Disconnected?");
     }
 
     private void updateUIFromInternal() {
@@ -642,7 +651,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         FormListener formListener = new FormListener();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CRCL Pendant Client");
+        setTitle("CRCL Client");
 
         jTabbedPaneLeftUpper.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jTabbedPaneLeftUpper.setName(""); // NOI18N
@@ -1994,6 +2003,31 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
     private String lastStateDescription = "";
 
+    private static Image createImage(Dimension d, Color bgColor, Color textColor, char c) {
+        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = bi.createGraphics();
+        g2d.setBackground(bgColor);
+        g2d.setColor(textColor);
+        g2d.clearRect(0, 0, d.width, d.height);
+        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
+        g2d.drawString(new String(new char[]{c}), (float) (d.width * 0.1), (float) (d.height * 0.9));
+        bi.flush();
+//        try {
+//            File f = File.createTempFile("icon", ".png");
+//            System.out.println("f = " + f);
+//            ImageIO.write(bi, "PNG", f);
+//        } catch (IOException ex) {
+//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        return bi;
+    }
+
+    private static final Dimension ICON_SIZE = new Dimension(32, 32);
+    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.white, Color.BLACK, 'D');
+    private static final Image ERROR_IMAGE = createImage(ICON_SIZE, Color.red, Color.BLACK, 'E');
+    private static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, 'W');
+    private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, '?');
+
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();
@@ -2001,27 +2035,37 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 if (null != ccst.getCommandID()) {
                     this.jTextFieldStatCmdID.setText(ccst.getCommandID().toString());
                 }
+                String stateDescription = ccst.getStateDescription();
                 if (null != ccst.getCommandState()) {
-                    this.jTextFieldStatus.setText(ccst.getCommandState().toString());
-                    switch (ccst.getCommandState()) {
+                    final CommandStateEnumType state = ccst.getCommandState();
+                    final String stateString = state.toString();
+                    this.jTextFieldStatus.setText(stateString);
+                    switch (state) {
 
                         case CRCL_ERROR:
                             this.jTextFieldStatus.setBackground(Color.RED);
+                            this.setIconImage(ERROR_IMAGE);
                             break;
 
                         case CRCL_WORKING:
                             this.jTextFieldStatus.setBackground(Color.GREEN);
+                            this.setIconImage(WORKING_IMAGE);
                             break;
 
+                        case CRCL_READY:
                         case CRCL_DONE:
                         default:
                             this.jTextFieldStatus.setBackground(Color.WHITE);
+                            this.setIconImage(DONE_IMAGE);
+//                            this.setIconImage(image);
                             break;
 
                     }
+                    this.setTitle("CRCL Client:" + stateString+ 
+                            ((stateDescription != null && stateDescription.length()> 1)?" : "+stateDescription:""));
+
                 }
                 this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
-                String stateDescription = ccst.getStateDescription();
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
                     this.jTextAreaStateDescription.setText(stateDescription);
                     lastStateDescription = stateDescription;
@@ -2169,6 +2213,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }
 
     private void disconnect() {
+        this.jTextFieldStatus.setBackground(Color.GRAY);
+        this.setIconImage(DISCONNECTED_IMAGE);
+        this.setTitle("CRCL Client: Disconnected?");
         internal.disconnect();
         jogWorldSpeedsSet = false;
     }

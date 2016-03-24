@@ -270,7 +270,7 @@
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
-    <Property name="title" type="java.lang.String" value="CRCL Pendant Client"/>
+    <Property name="title" type="java.lang.String" value="CRCL Client"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="menuBar" type="java.lang.String" value="jMenuBarReplaceCommandState"/>
