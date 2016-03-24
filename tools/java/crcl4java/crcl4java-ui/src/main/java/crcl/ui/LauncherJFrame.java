@@ -20,9 +20,18 @@
  */
 package crcl.ui;
 
+import static crcl.ui.PendantClient.getRobotImage;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -36,7 +45,32 @@ public class LauncherJFrame extends javax.swing.JFrame {
      */
     public LauncherJFrame() {
         initComponents();
+        this.setIconImage(DONE_IMAGE);
+
     }
+
+    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
+        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = bi.createGraphics();
+        g2d.setBackground(bgColor);
+        g2d.setColor(textColor);
+        g2d.clearRect(0, 0, d.width, d.height);
+        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
+        g2d.drawImage(baseImage, 0, 0, null);
+        bi.flush();
+//        try {
+//            File f = File.createTempFile("icon", ".png");
+//            System.out.println("f = " + f);
+//            ImageIO.write(bi, "PNG", f);
+//        } catch (IOException ex) {
+//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        return bi;
+    }
+
+    private static final Dimension ICON_SIZE = new Dimension(32, 32);
+    private static final Image BASE_IMAGE = getRobotImage();
+    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.CYAN, Color.BLACK, BASE_IMAGE);
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -78,18 +112,13 @@ public class LauncherJFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButtonLaunchServer)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButtonLaunchGripperServer, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jButtonLaunchClient, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButtonLaunchAll, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
+                    .addComponent(jButtonLaunchServer)
+                    .addComponent(jButtonLaunchGripperServer)
+                    .addComponent(jButtonLaunchClient, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonLaunchAll, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonLaunchAll, jButtonLaunchClient, jButtonLaunchGripperServer, jButtonLaunchServer});
@@ -173,7 +202,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
             gripperJFrame.setState(Frame.ICONIFIED);
             PendantClient pendantClient = new PendantClient();
             pendantClient.setVisible(true);
-            javax.swing.Timer timer = new javax.swing.Timer(500, 
+            javax.swing.Timer timer = new javax.swing.Timer(500,
                     e -> {
                         pendantClient.connect("localhost", simServer.inner.getPort());
                     }

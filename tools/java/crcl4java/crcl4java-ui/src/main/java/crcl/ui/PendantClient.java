@@ -199,6 +199,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jTextFieldStatus.setBackground(Color.GRAY);
         this.setIconImage(DISCONNECTED_IMAGE);
         this.setTitle("CRCL Client: Disconnected?");
+        try {
+            this.setIconImage(ImageIO.read(ClassLoader.getSystemResource("robot.png")));
+        } catch (IOException ex) {
+            Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void updateUIFromInternal() {
@@ -2003,14 +2008,14 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
     private String lastStateDescription = "";
 
-    private static Image createImage(Dimension d, Color bgColor, Color textColor, char c) {
+    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
         g2d.setBackground(bgColor);
         g2d.setColor(textColor);
         g2d.clearRect(0, 0, d.width, d.height);
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawString(new String(new char[]{c}), (float) (d.width * 0.1), (float) (d.height * 0.9));
+        g2d.drawImage(baseImage,0,0,null);
         bi.flush();
 //        try {
 //            File f = File.createTempFile("icon", ".png");
@@ -2023,11 +2028,21 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }
 
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.white, Color.BLACK, 'D');
-    private static final Image ERROR_IMAGE = createImage(ICON_SIZE, Color.red, Color.BLACK, 'E');
-    private static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, 'W');
-    private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, '?');
+    private static final Image BASE_IMAGE = getRobotImage();
+    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.white, Color.BLACK, BASE_IMAGE);
+    private static final Image ERROR_IMAGE = createImage(ICON_SIZE, Color.red, Color.BLACK, BASE_IMAGE);
+    private static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, BASE_IMAGE);
+    private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
 
+    public static Image getRobotImage() {
+        Image img=null;
+        try {
+            img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
+        } catch (IOException ex) {
+            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return img;
+    }
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();

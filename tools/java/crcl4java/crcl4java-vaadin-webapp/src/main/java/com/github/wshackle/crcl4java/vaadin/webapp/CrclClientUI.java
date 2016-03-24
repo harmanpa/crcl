@@ -32,6 +32,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.ProgressBar;
+import com.vaadin.ui.Slider;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -314,6 +315,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
     private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
+    private final Slider minXSlider = new Slider();
 
     static {
         String tempDirProp = System.getProperty("temp.dir");
@@ -917,6 +919,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         System.out.println("init(" + vaadinRequest + ")");
         addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
+        navLayout.setSpacing(true);
         final HorizontalLayout topStatusLine = new HorizontalLayout();
         topStatusLine.setSpacing(true);
         topStatusLine.addComponent(cmdIdLbl);
@@ -934,8 +937,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         navButtons.addComponent(jogJointNavButton);
         final Button remoteProgramsNavButton = new Button("Remote Programs");
         navButtons.addComponent(remoteProgramsNavButton);
-        final Button transformSetupNavButton = new Button("Transform Setup");
-        navButtons.addComponent(transformSetupNavButton);
+        final Button transformNavButton = new Button("Transform");
+        navButtons.addComponent(transformNavButton);
         navLayout.addComponent(navButtons);
         Panel panel = new Panel();
         navLayout.addComponent(panel);
@@ -947,8 +950,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final VerticalLayout jogJointLeftLayout = new VerticalLayout();
         final VerticalLayout jogJointRightLayout = new VerticalLayout();
         final VerticalLayout remoteProgramsLayout = new VerticalLayout();
-        final VerticalLayout transformSetupLayout = new VerticalLayout();
-        
+        final VerticalLayout transformLayout = new VerticalLayout();
+        final VerticalLayout tranformGroupSetupLayout = new VerticalLayout();
+
+        mainLayout.setSpacing(true);
         jogJointLayout.setSpacing(true);
         jogWorldLayout.setSpacing(true);
 
@@ -956,7 +961,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jogWorldNavButton.addClickListener(l -> panel.setContent(jogWorldLayout));
         mainNavButton.addClickListener(l -> panel.setContent(mainLayout));
         remoteProgramsNavButton.addClickListener(l -> panel.setContent(remoteProgramsLayout));
-        transformSetupNavButton.addClickListener(l -> panel.setContent(transformSetupLayout));
+        transformNavButton.addClickListener(l -> panel.setContent(transformLayout));
+        
+        tranformGroupSetupLayout.setSpacing(true);
+        minXSlider.setHeight("200px");
+        minXSlider.setWidth("600px");
+        tranformGroupSetupLayout.addComponent(minXSlider);
         panel.setContent(mainLayout);
         mainLayout.setMargin(true);
         setContent(navLayout);
@@ -1035,6 +1045,22 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         progTable.setSelectable(true);
 
         progTable.addItemClickListener(e -> setCommonInfo(CommonInfo.withProgramIndex(commonInfo, (int) e.getItemId())));
+        
+        VerticalLayout transformSetupLayout = new VerticalLayout();
+        VerticalLayout transformGroupLayout = new VerticalLayout();
+        Panel transformPanel = new Panel();
+        Button transformSetupNavButton = new Button("Setup");
+        Button transformGroupNavButton = new Button("Group");
+        HorizontalLayout transformNavButtonLayout = new HorizontalLayout();
+        transformNavButtonLayout.setSpacing(true);
+        transformNavButtonLayout.addComponent(transformSetupNavButton);
+        transformNavButtonLayout.addComponent(transformGroupNavButton);
+        transformLayout.addComponent(transformNavButtonLayout);
+        transformLayout.addComponent(transformPanel);
+        
+        transformSetupNavButton.addClickListener(l -> transformPanel.setContent(transformSetupLayout));
+        transformGroupNavButton.addClickListener(l -> transformPanel.setContent(transformGroupLayout));
+        
         GridLayout posGridLayout = new GridLayout(2, 2);
         posGridLayout.setSpacing(true);
         VerticalLayout livePos1VLayout = new VerticalLayout();
@@ -1103,6 +1129,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         applyLine.addComponent(flipXAxisButton);
         flipXAxisButton.addClickListener(e -> flipXAxis());
         transformSetupLayout.addComponent(applyLine);
+        transformPanel.setContent(transformSetupLayout);
         runButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
@@ -1483,7 +1510,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jointJogIncLine.addComponent(jointJogIncLabel);
         jointJogIncLine.addComponent(jointJogIncProgressBar);
         jogJointRightLayout.addComponent(jointJogIncLine);
-        
+
         jogJointLayout.addComponent(jogJointRightLayout);
         navLayout.addComponent(statusLabel);
         connect();
@@ -1945,7 +1972,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private static PoseType globalCurrentPose = null;
 
     private BigDecimal jointJogSpeed = BigDecimal.valueOf(5.0);
-    
+
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -2218,7 +2245,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 if (null != prevActuateJoints) {
                                     BigDecimal curPosition = null;
                                     BigDecimal goalPosition = null;
-                                    BigInteger jointNumber = BigInteger.valueOf(jogJointNumber+1); //jogJointNumber;//prevActuateJoints.getActuateJoint().get(0).getJointNumber();
+                                    BigInteger jointNumber = BigInteger.valueOf(jogJointNumber + 1); //jogJointNumber;//prevActuateJoints.getActuateJoint().get(0).getJointNumber();
                                     for (int i = 0; i < stat.getJointStatuses().getJointStatus().size(); i++) {
                                         JointStatusType js = stat.getJointStatuses().getJointStatus().get(i);
                                         if (js.getJointNumber().compareTo(jointNumber) == 0) {
