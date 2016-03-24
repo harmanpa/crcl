@@ -52,6 +52,7 @@ import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.PendantClientOuter;
+import crcl.utils.ProgramPlotter;
 import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
 import java.awt.Color;
@@ -95,11 +96,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -188,6 +189,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.updateUIFromInternal();
         this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(this.jTableProgram.getSelectedRow()));
         this.internal.addPropertyChangeListener(new MyPropertyChangeListener());
+        this.transformJPanel1.setPendantClient(this);
     }
 
     private void updateUIFromInternal() {
@@ -259,8 +261,8 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 jm.add(jmi);
             }
         }
-
     }
+
     public static final Logger LOGGER = Logger.getLogger(PendantClient.class.getName());
 
     public void openXmlProgramFile(File f) {
@@ -292,6 +294,68 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         return this.jCheckBoxMenuItemRecordPoseList.isSelected();
     }
 
+    private File lastOpenedProgramFile;
+
+    /**
+     * Get the value of lastOpenedProgramFile
+     *
+     * @return the value of lastOpenedProgramFile
+     */
+    public File getLastOpenedProgramFile() {
+        return lastOpenedProgramFile;
+    }
+
+    /**
+     * Set the value of lastOpenedProgramFile
+     *
+     * @param lastOpenedProgramFile new value of lastOpenedProgramFile
+     */
+    public void setLastOpenedProgramFile(File lastOpenedProgramFile) {
+        this.lastOpenedProgramFile = lastOpenedProgramFile;
+    }
+
+    private ProgramPlotter sideProgramPlotter;
+
+    /**
+     * Get the value of sideProgramPlotter
+     *
+     * @return the value of sideProgramPlotter
+     */
+    public ProgramPlotter getSideProgramPlotter() {
+        return sideProgramPlotter;
+    }
+
+    /**
+     * Set the value of sideProgramPlotter
+     *
+     * @param sideProgramPlotter new value of sideProgramPlotter
+     */
+    public void setSideProgramPlotter(ProgramPlotter sideProgramPlotter) {
+        this.sideProgramPlotter = sideProgramPlotter;
+        this.programPlotterJPanelSide.setPlotter(sideProgramPlotter);
+    }
+
+    private ProgramPlotter overheadProgramPlotter;
+
+    /**
+     * Get the value of overheadProgramPlotter
+     *
+     * @return the value of overheadProgramPlotter
+     */
+    public ProgramPlotter getOverheadProgramPlotter() {
+        return overheadProgramPlotter;
+    }
+
+    /**
+     * Set the value of overheadProgramPlotter
+     *
+     * @param overheadProgramPlotter new value of overheadProgramPlotter
+     */
+    public void setOverheadProgramPlotter(ProgramPlotter overheadProgramPlotter) {
+        this.overheadProgramPlotter = overheadProgramPlotter;
+        this.programPlotterJPanelOverhead.setPlotter(overheadProgramPlotter);
+    }
+
     @Override
     public void finishOpenXmlProgramFile(File f,
             CRCLProgramType program, boolean saveRecent) {
@@ -300,7 +364,18 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             showProgram(program);
             internal.setProgram(program);
             this.saveRecentProgram(f);
-            this.jTabbedPane1.setSelectedComponent(this.jPanelProgram);
+            this.jTabbedPaneLeftUpper.setSelectedComponent(this.jPanelProgram);
+            if (null == overheadProgramPlotter) {
+                setOverheadProgramPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
+            }
+            if (null == sideProgramPlotter) {
+                setSideProgramPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
+            }
+            programPlotterJPanelOverhead.setProgram(program);
+            programPlotterJPanelSide.setProgram(program);
+            programPlotterJPanelOverhead.repaint();
+            programPlotterJPanelSide.repaint();
+            jTabbedPaneRightUpper.setSelectedComponent(jPanelProgramPlot);
         } catch (JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
@@ -434,45 +509,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jTextFieldStatCmdID = new javax.swing.JTextField();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jTableJoints = new javax.swing.JTable();
-        jLabel6 = new javax.swing.JLabel();
-        jTextFieldStatus = new javax.swing.JTextField();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTablePose = new javax.swing.JTable();
-        jTextFieldStatusID = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel18 = new javax.swing.JLabel();
-        jTextFieldStatusStateDescription = new javax.swing.JTextField();
-        jPanel3 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextAreaErrors = new javax.swing.JTextArea();
-        jPanel5 = new javax.swing.JPanel();
-        jTextFieldPort = new javax.swing.JTextField();
-        jButtonConnect = new javax.swing.JButton();
-        jButtonDisconnect = new javax.swing.JButton();
-        jButtonEnd = new javax.swing.JButton();
-        jButtonInit = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        jTextFieldHost = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jCheckBoxPoll = new javax.swing.JCheckBox();
-        jTextFieldPollTime = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        jButtonOpenGripper = new javax.swing.JButton();
-        jButtonCloseGripper = new javax.swing.JButton();
-        jButtonRecordPoint = new javax.swing.JButton();
-        jPanel6 = new javax.swing.JPanel();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanelMoveTo = new javax.swing.JPanel();
-        jButtonMoveTo = new javax.swing.JButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTableMoveToPose = new javax.swing.JTable();
-        jCheckBoxStraight = new javax.swing.JCheckBox();
-        jButtonMoveToCurrent = new javax.swing.JButton();
+        jTabbedPaneLeftUpper = new javax.swing.JTabbedPane();
         jPanelProgram = new javax.swing.JPanel();
         jScrollPaneProgram = new javax.swing.JScrollPane();
         jTableProgram = new javax.swing.JTable();
@@ -520,6 +557,50 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jTextFieldRotationSpeed = new javax.swing.JTextField();
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
+        jButtonRecordPoint = new javax.swing.JButton();
+        jButtonOpenGripper = new javax.swing.JButton();
+        jButtonCloseGripper = new javax.swing.JButton();
+        jPanelMoveTo = new javax.swing.JPanel();
+        jButtonMoveTo = new javax.swing.JButton();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTableMoveToPose = new javax.swing.JTable();
+        jCheckBoxStraight = new javax.swing.JCheckBox();
+        jButtonMoveToCurrent = new javax.swing.JButton();
+        transformJPanel1 = new crcl.ui.TransformJPanel();
+        jPanelConnectionTab = new javax.swing.JPanel();
+        jTextFieldPort = new javax.swing.JTextField();
+        jButtonConnect = new javax.swing.JButton();
+        jButtonDisconnect = new javax.swing.JButton();
+        jButtonEnd = new javax.swing.JButton();
+        jButtonInit = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jTextFieldHost = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jCheckBoxPoll = new javax.swing.JCheckBox();
+        jTextFieldPollTime = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jTabbedPaneRightUpper = new javax.swing.JTabbedPane();
+        jPanelStatus = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jTextFieldStatCmdID = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTableJoints = new javax.swing.JTable();
+        jLabel6 = new javax.swing.JLabel();
+        jTextFieldStatus = new javax.swing.JTextField();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTablePose = new javax.swing.JTable();
+        jTextFieldStatusID = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jTextAreaStateDescription = new javax.swing.JTextArea();
+        jPanelProgramPlot = new javax.swing.JPanel();
+        jPanelOverheadProgramPlot = new javax.swing.JPanel();
+        programPlotterJPanelOverhead = new crcl.ui.ProgramPlotterJPanel();
+        jPanelOverheadProgramPlot1 = new javax.swing.JPanel();
+        programPlotterJPanelSide = new crcl.ui.ProgramPlotterJPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaErrors = new javax.swing.JTextArea();
         jMenuBarReplaceCommandState = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemOpenXmlCommandInstance = new javax.swing.JMenuItem();
@@ -563,346 +644,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CRCL Pendant Client");
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Status"));
-
-        jLabel3.setText("Command ID:");
-
-        jTextFieldStatCmdID.setEditable(false);
-        jTextFieldStatCmdID.setText("0");
-
-        jTableJoints.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                { new Integer(1), null, null, null},
-                { new Integer(2), null, null, null},
-                { new Integer(3), null, null, null},
-                { new Integer(4), null, null, null},
-                { new Integer(5), null, null, null},
-                { new Integer(6), null, null, null}
-            },
-            new String [] {
-                "Joint", "Position", "Velocity", "TorqueOrForce"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jScrollPane2.setViewportView(jTableJoints);
-
-        jLabel6.setText("Status : ");
-
-        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
-                {"XI", null},
-                {"XJ", null},
-                {"XK", null},
-                {"ZI", null},
-                {"ZJ", null},
-                {"Zk", null},
-                {"Roll", null},
-                {"Pitch", null},
-                {"Yaw", null}
-            },
-            new String [] {
-                "Pose Axis", "Position"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jScrollPane3.setViewportView(jTablePose);
-
-        jTextFieldStatusID.setText("0");
-
-        jLabel10.setText("Status ID:");
-
-        jLabel18.setText("State Description:");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel18))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
-                            .addComponent(jTextFieldStatus)
-                            .addComponent(jTextFieldStatusID)
-                            .addComponent(jTextFieldStatusStateDescription))))
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel6)
-                    .addComponent(jTextFieldStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextFieldStatusID, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextFieldStatusStateDescription, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel18))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Errors"));
-
-        jTextAreaErrors.setColumns(20);
-        jTextAreaErrors.setLineWrap(true);
-        jTextAreaErrors.setRows(5);
-        jScrollPane1.setViewportView(jTextAreaErrors);
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 121, Short.MAX_VALUE)
-        );
-
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createTitledBorder("Connection")));
-
-        jTextFieldPort.setText("64444");
-
-        jButtonConnect.setText("Connect");
-        jButtonConnect.addActionListener(formListener);
-
-        jButtonDisconnect.setText("Disconnect ");
-        jButtonDisconnect.setEnabled(false);
-        jButtonDisconnect.addActionListener(formListener);
-
-        jButtonEnd.setText("End");
-        jButtonEnd.setEnabled(false);
-        jButtonEnd.addActionListener(formListener);
-
-        jButtonInit.setText("Init");
-        jButtonInit.setEnabled(false);
-        jButtonInit.addActionListener(formListener);
-
-        jLabel1.setText("Host: ");
-
-        jTextFieldHost.setText("localhost");
-
-        jLabel2.setText("Port:");
-
-        jCheckBoxPoll.setSelected(true);
-        jCheckBoxPoll.setText("Poll");
-        jCheckBoxPoll.addActionListener(formListener);
-
-        jTextFieldPollTime.setText("50");
-        jTextFieldPollTime.addActionListener(formListener);
-
-        jLabel4.setText("Poll interval(ms):");
-
-        jButtonOpenGripper.setText("Open Gripper");
-        jButtonOpenGripper.setEnabled(false);
-        jButtonOpenGripper.addActionListener(formListener);
-
-        jButtonCloseGripper.setText("Close Gripper");
-        jButtonCloseGripper.setEnabled(false);
-        jButtonCloseGripper.addActionListener(formListener);
-
-        jButtonRecordPoint.setText("Record Point");
-        jButtonRecordPoint.addActionListener(formListener);
-
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jCheckBoxPoll)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jButtonInit)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonEnd)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonRecordPoint)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonOpenGripper)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonCloseGripper)))
-                .addContainerGap(80, Short.MAX_VALUE))
-        );
-
-        jPanel5Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonConnect, jButtonDisconnect});
-
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonConnect)
-                    .addComponent(jButtonDisconnect)
-                    .addComponent(jCheckBoxPoll)
-                    .addComponent(jLabel4)
-                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonInit)
-                    .addComponent(jButtonEnd)
-                    .addComponent(jButtonRecordPoint)
-                    .addComponent(jButtonOpenGripper)
-                    .addComponent(jButtonCloseGripper))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanel6.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-
-        jTabbedPane1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jTabbedPane1.setName(""); // NOI18N
-        jTabbedPane1.addChangeListener(formListener);
-
-        jPanelMoveTo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        jPanelMoveTo.setName("MoveTo"); // NOI18N
-
-        jButtonMoveTo.setText("MoveTo");
-        jButtonMoveTo.setEnabled(false);
-        jButtonMoveTo.addActionListener(formListener);
-
-        jTableMoveToPose.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
-                {"XI",  new Double(1.0)},
-                {"XJ",  new Double(0.0)},
-                {"XK",  new Double(0.0)},
-                {"ZI",  new Double(0.0)},
-                {"ZJ",  new Double(0.0)},
-                {"ZK",  new Double(1.0)}
-            },
-            new String [] {
-                "Pose Axis", "Position"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, true
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        jScrollPane4.setViewportView(jTableMoveToPose);
-
-        jCheckBoxStraight.setSelected(true);
-        jCheckBoxStraight.setText("Straight");
-
-        jButtonMoveToCurrent.setText("Current");
-        jButtonMoveToCurrent.addActionListener(formListener);
-
-        javax.swing.GroupLayout jPanelMoveToLayout = new javax.swing.GroupLayout(jPanelMoveTo);
-        jPanelMoveTo.setLayout(jPanelMoveToLayout);
-        jPanelMoveToLayout.setHorizontalGroup(
-            jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelMoveToLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
-                        .addComponent(jButtonMoveTo)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jCheckBoxStraight)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonMoveToCurrent))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanelMoveToLayout.setVerticalGroup(
-            jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelMoveToLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonMoveTo)
-                    .addComponent(jCheckBoxStraight)
-                    .addComponent(jButtonMoveToCurrent))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jTabbedPane1.addTab("MoveTo", jPanelMoveTo);
+        jTabbedPaneLeftUpper.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jTabbedPaneLeftUpper.setName(""); // NOI18N
+        jTabbedPaneLeftUpper.addChangeListener(formListener);
 
         jTableProgram.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -982,12 +726,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jPanelProgram.setLayout(jPanelProgramLayout);
         jPanelProgramLayout.setHorizontalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelProgramLayout.createSequentialGroup()
+            .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane5)
-                    .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelProgramLayout.createSequentialGroup()
+                .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelProgramLayout.createSequentialGroup()
                         .addComponent(jButtonEditProgramItem)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonDeletProgramItem)
@@ -997,38 +739,37 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addComponent(jButtonPlotProgramItem)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jButtonStepBack)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonStepFwd))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelProgramLayout.createSequentialGroup()
+                    .addComponent(jLabel13)
+                    .addGroup(jPanelProgramLayout.createSequentialGroup()
+                        .addComponent(jButtonProgramPause)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonResume)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonProgramAbort)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonProgramRun)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonRunProgFromCurrentLine))
+                    .addGroup(jPanelProgramLayout.createSequentialGroup()
                         .addComponent(jLabel12)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldRunTime))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelProgramLayout.createSequentialGroup()
-                        .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelProgramLayout.createSequentialGroup()
-                                .addComponent(jButtonProgramPause)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonResume)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonProgramAbort)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonProgramRun)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonRunProgFromCurrentLine))
-                            .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane5)
+                    .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 741, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
+                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
-                .addGap(7, 7, 7)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
                     .addComponent(jTextFieldRunTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -1050,7 +791,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Program", jPanelProgram);
+        jTabbedPaneLeftUpper.addTab("Program", jPanelProgram);
 
         jPanelJogging.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jPanelJogging.setName("Jogging"); // NOI18N
@@ -1202,6 +943,17 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
         jLabel17.setText("degrees/second");
 
+        jButtonRecordPoint.setText("Record Point");
+        jButtonRecordPoint.addActionListener(formListener);
+
+        jButtonOpenGripper.setText("Open Gripper");
+        jButtonOpenGripper.setEnabled(false);
+        jButtonOpenGripper.addActionListener(formListener);
+
+        jButtonCloseGripper.setText("Close Gripper");
+        jButtonCloseGripper.setEnabled(false);
+        jButtonCloseGripper.addActionListener(formListener);
+
         javax.swing.GroupLayout jPanelJoggingLayout = new javax.swing.GroupLayout(jPanelJogging);
         jPanelJogging.setLayout(jPanelJoggingLayout);
         jPanelJoggingLayout.setHorizontalGroup(
@@ -1222,7 +974,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanelJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanelJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(jPanelJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonRecordPoint)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonOpenGripper)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonCloseGripper))))
                     .addGroup(jPanelJoggingLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1247,7 +1005,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(198, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanelJoggingLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldJogInterval, jTextFieldJointJogIncrement, jTextFieldJointJogSpeed, jTextFieldRPYJogIncrement, jTextFieldTransSpeed, jTextFieldXYZJogIncrement});
@@ -1256,10 +1014,15 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelJoggingLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanelJogMinus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jComboBox1)
-                    .addComponent(jPanelJogPlus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jPanelJogMinus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jComboBox1)
+                        .addComponent(jPanelJogPlus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButtonRecordPoint)
+                        .addComponent(jButtonOpenGripper)
+                        .addComponent(jButtonCloseGripper)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jPanelJogMinus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1296,27 +1059,410 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldJogInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
-                .addContainerGap(128, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanelJoggingLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jTextFieldJogInterval, jTextFieldJointJogIncrement, jTextFieldJointJogSpeed, jTextFieldRPYJogIncrement, jTextFieldTransSpeed, jTextFieldXYZJogIncrement});
 
-        jTabbedPane1.addTab("Jog", jPanelJogging);
+        jTabbedPaneLeftUpper.addTab("Jog", jPanelJogging);
 
-        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
-        jPanel6.setLayout(jPanel6Layout);
-        jPanel6Layout.setHorizontalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                .addGap(1, 1, 1))
+        jPanelMoveTo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jPanelMoveTo.setName("MoveTo"); // NOI18N
+
+        jButtonMoveTo.setText("MoveTo");
+        jButtonMoveTo.setEnabled(false);
+        jButtonMoveTo.addActionListener(formListener);
+
+        jTableMoveToPose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI",  new Double(1.0)},
+                {"XJ",  new Double(0.0)},
+                {"XK",  new Double(0.0)},
+                {"ZI",  new Double(0.0)},
+                {"ZJ",  new Double(0.0)},
+                {"ZK",  new Double(1.0)}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, true
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane4.setViewportView(jTableMoveToPose);
+
+        jCheckBoxStraight.setSelected(true);
+        jCheckBoxStraight.setText("Straight");
+
+        jButtonMoveToCurrent.setText("Current");
+        jButtonMoveToCurrent.addActionListener(formListener);
+
+        javax.swing.GroupLayout jPanelMoveToLayout = new javax.swing.GroupLayout(jPanelMoveTo);
+        jPanelMoveTo.setLayout(jPanelMoveToLayout);
+        jPanelMoveToLayout.setHorizontalGroup(
+            jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                        .addComponent(jButtonMoveTo)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jCheckBoxStraight)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonMoveToCurrent))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel6Layout.setVerticalGroup(
-            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
-                .addGap(6, 6, 6)
-                .addComponent(jTabbedPane1))
+        jPanelMoveToLayout.setVerticalGroup(
+            jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonMoveTo)
+                    .addComponent(jCheckBoxStraight)
+                    .addComponent(jButtonMoveToCurrent))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        jTabbedPaneLeftUpper.addTab("MoveTo", jPanelMoveTo);
+        jTabbedPaneLeftUpper.addTab("Transform Setup", transformJPanel1);
+
+        jPanelConnectionTab.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+        jTextFieldPort.setText("64444");
+
+        jButtonConnect.setText("Connect");
+        jButtonConnect.addActionListener(formListener);
+
+        jButtonDisconnect.setText("Disconnect ");
+        jButtonDisconnect.setEnabled(false);
+        jButtonDisconnect.addActionListener(formListener);
+
+        jButtonEnd.setText("End");
+        jButtonEnd.setEnabled(false);
+        jButtonEnd.addActionListener(formListener);
+
+        jButtonInit.setText("Init");
+        jButtonInit.setEnabled(false);
+        jButtonInit.addActionListener(formListener);
+
+        jLabel1.setText("Host: ");
+
+        jTextFieldHost.setText("localhost");
+
+        jLabel2.setText("Port:");
+
+        jCheckBoxPoll.setSelected(true);
+        jCheckBoxPoll.setText("Poll");
+        jCheckBoxPoll.addActionListener(formListener);
+
+        jTextFieldPollTime.setText("50");
+        jTextFieldPollTime.addActionListener(formListener);
+
+        jLabel4.setText("Poll interval(ms):");
+
+        javax.swing.GroupLayout jPanelConnectionTabLayout = new javax.swing.GroupLayout(jPanelConnectionTab);
+        jPanelConnectionTab.setLayout(jPanelConnectionTabLayout);
+        jPanelConnectionTabLayout.setHorizontalGroup(
+            jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                        .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonInit)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonEnd))
+                    .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                        .addComponent(jCheckBoxPoll)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel4)
+                        .addGap(1, 1, 1)
+                        .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanelConnectionTabLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonConnect, jButtonDisconnect});
+
+        jPanelConnectionTabLayout.setVerticalGroup(
+            jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonConnect)
+                    .addComponent(jButtonDisconnect)
+                    .addComponent(jButtonInit)
+                    .addComponent(jButtonEnd))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxPoll)
+                    .addComponent(jLabel4)
+                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPaneLeftUpper.addTab("Connection", jPanelConnectionTab);
+
+        jPanelStatus.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jPanelStatus.setName("Status"); // NOI18N
+
+        jLabel3.setText("Command ID:");
+
+        jTextFieldStatCmdID.setEditable(false);
+        jTextFieldStatCmdID.setText("0");
+
+        jTableJoints.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                { new Integer(1), null, null, null},
+                { new Integer(2), null, null, null},
+                { new Integer(3), null, null, null},
+                { new Integer(4), null, null, null},
+                { new Integer(5), null, null, null},
+                { new Integer(6), null, null, null}
+            },
+            new String [] {
+                "Joint", "Position", "Velocity", "TorqueOrForce"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(jTableJoints);
+
+        jLabel6.setText("Status : ");
+
+        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI", null},
+                {"XJ", null},
+                {"XK", null},
+                {"ZI", null},
+                {"ZJ", null},
+                {"Zk", null},
+                {"Roll", null},
+                {"Pitch", null},
+                {"Yaw", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(jTablePose);
+
+        jTextFieldStatusID.setText("0");
+
+        jLabel10.setText("Status ID:");
+
+        jLabel18.setText("State Description:");
+
+        jTextAreaStateDescription.setColumns(20);
+        jTextAreaStateDescription.setRows(3);
+        jScrollPane6.setViewportView(jTextAreaStateDescription);
+
+        javax.swing.GroupLayout jPanelStatusLayout = new javax.swing.GroupLayout(jPanelStatus);
+        jPanelStatus.setLayout(jPanelStatusLayout);
+        jPanelStatusLayout.setHorizontalGroup(
+            jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelStatusLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelStatusLayout.createSequentialGroup()
+                        .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel10)
+                            .addComponent(jLabel18))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                            .addComponent(jTextFieldStatus)
+                            .addComponent(jTextFieldStatusID))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanelStatusLayout.setVerticalGroup(
+            jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelStatusLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6)
+                    .addComponent(jTextFieldStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextFieldStatusID, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel10))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPaneRightUpper.addTab("Status", jPanelStatus);
+
+        jPanelProgramPlot.setName("ProgramPlot"); // NOI18N
+
+        jPanelOverheadProgramPlot.setBorder(javax.swing.BorderFactory.createTitledBorder("Overhead"));
+
+        javax.swing.GroupLayout programPlotterJPanelOverheadLayout = new javax.swing.GroupLayout(programPlotterJPanelOverhead);
+        programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
+        programPlotterJPanelOverheadLayout.setHorizontalGroup(
+            programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 286, Short.MAX_VALUE)
+        );
+        programPlotterJPanelOverheadLayout.setVerticalGroup(
+            programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 239, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout jPanelOverheadProgramPlotLayout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot);
+        jPanelOverheadProgramPlot.setLayout(jPanelOverheadProgramPlotLayout);
+        jPanelOverheadProgramPlotLayout.setHorizontalGroup(
+            jPanelOverheadProgramPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelOverheadProgramPlotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(programPlotterJPanelOverhead, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanelOverheadProgramPlotLayout.setVerticalGroup(
+            jPanelOverheadProgramPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelOverheadProgramPlotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(programPlotterJPanelOverhead, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jPanelOverheadProgramPlot1.setBorder(javax.swing.BorderFactory.createTitledBorder("Side"));
+
+        javax.swing.GroupLayout programPlotterJPanelSideLayout = new javax.swing.GroupLayout(programPlotterJPanelSide);
+        programPlotterJPanelSide.setLayout(programPlotterJPanelSideLayout);
+        programPlotterJPanelSideLayout.setHorizontalGroup(
+            programPlotterJPanelSideLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        programPlotterJPanelSideLayout.setVerticalGroup(
+            programPlotterJPanelSideLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 239, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout jPanelOverheadProgramPlot1Layout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot1);
+        jPanelOverheadProgramPlot1.setLayout(jPanelOverheadProgramPlot1Layout);
+        jPanelOverheadProgramPlot1Layout.setHorizontalGroup(
+            jPanelOverheadProgramPlot1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelOverheadProgramPlot1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(programPlotterJPanelSide, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanelOverheadProgramPlot1Layout.setVerticalGroup(
+            jPanelOverheadProgramPlot1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelOverheadProgramPlot1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(programPlotterJPanelSide, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout jPanelProgramPlotLayout = new javax.swing.GroupLayout(jPanelProgramPlot);
+        jPanelProgramPlot.setLayout(jPanelProgramPlotLayout);
+        jPanelProgramPlotLayout.setHorizontalGroup(
+            jPanelProgramPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelProgramPlotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelProgramPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanelOverheadProgramPlot, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanelOverheadProgramPlot1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jPanelProgramPlotLayout.setVerticalGroup(
+            jPanelProgramPlotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelProgramPlotLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanelOverheadProgramPlot, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanelOverheadProgramPlot1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPaneRightUpper.addTab("Program Plot", jPanelProgramPlot);
+
+        jTextAreaErrors.setColumns(20);
+        jTextAreaErrors.setLineWrap(true);
+        jTextAreaErrors.setRows(3);
+        jScrollPane1.setViewportView(jTextAreaErrors);
 
         jMenu1.setText("File");
         jMenu1.addActionListener(formListener);
@@ -1466,31 +1612,28 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(11, 11, 11))
+                        .addComponent(jScrollPane1)
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 781, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(11, 11, 11))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(6, 6, 6)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                    .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 638, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 506, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jTabbedPaneLeftUpper, jTabbedPaneRightUpper});
 
         pack();
     }
@@ -1500,40 +1643,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private class FormListener implements java.awt.event.ActionListener, java.awt.event.MouseListener, javax.swing.event.ChangeListener {
         FormListener() {}
         public void actionPerformed(java.awt.event.ActionEvent evt) {
-            if (evt.getSource() == jButtonConnect) {
-                PendantClient.this.jButtonConnectActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonDisconnect) {
-                PendantClient.this.jButtonDisconnectActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonEnd) {
-                PendantClient.this.jButtonEndActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonInit) {
-                PendantClient.this.jButtonInitActionPerformed(evt);
-            }
-            else if (evt.getSource() == jCheckBoxPoll) {
-                PendantClient.this.jCheckBoxPollActionPerformed(evt);
-            }
-            else if (evt.getSource() == jTextFieldPollTime) {
-                PendantClient.this.jTextFieldPollTimeActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonOpenGripper) {
-                PendantClient.this.jButtonOpenGripperActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonCloseGripper) {
-                PendantClient.this.jButtonCloseGripperActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonRecordPoint) {
-                PendantClient.this.jButtonRecordPointActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonMoveTo) {
-                PendantClient.this.jButtonMoveToActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonMoveToCurrent) {
-                PendantClient.this.jButtonMoveToCurrentActionPerformed(evt);
-            }
-            else if (evt.getSource() == jButtonProgramPause) {
+            if (evt.getSource() == jButtonProgramPause) {
                 PendantClient.this.jButtonProgramPauseActionPerformed(evt);
             }
             else if (evt.getSource() == jButtonProgramAbort) {
@@ -1590,6 +1700,39 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jTextFieldRotationSpeed) {
                 PendantClient.this.jTextFieldRotationSpeedActionPerformed(evt);
             }
+            else if (evt.getSource() == jButtonRecordPoint) {
+                PendantClient.this.jButtonRecordPointActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonOpenGripper) {
+                PendantClient.this.jButtonOpenGripperActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonCloseGripper) {
+                PendantClient.this.jButtonCloseGripperActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonMoveTo) {
+                PendantClient.this.jButtonMoveToActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonMoveToCurrent) {
+                PendantClient.this.jButtonMoveToCurrentActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonConnect) {
+                PendantClient.this.jButtonConnectActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonDisconnect) {
+                PendantClient.this.jButtonDisconnectActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonEnd) {
+                PendantClient.this.jButtonEndActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonInit) {
+                PendantClient.this.jButtonInitActionPerformed(evt);
+            }
+            else if (evt.getSource() == jCheckBoxPoll) {
+                PendantClient.this.jCheckBoxPollActionPerformed(evt);
+            }
+            else if (evt.getSource() == jTextFieldPollTime) {
+                PendantClient.this.jTextFieldPollTimeActionPerformed(evt);
+            }
             else if (evt.getSource() == jMenu1) {
                 PendantClient.this.jMenu1ActionPerformed(evt);
             }
@@ -1641,6 +1784,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jMenuItemShowCommandLog) {
                 PendantClient.this.jMenuItemShowCommandLogActionPerformed(evt);
             }
+            else if (evt.getSource() == jMenuItemTransformProgram) {
+                PendantClient.this.jMenuItemTransformProgramActionPerformed(evt);
+            }
             else if (evt.getSource() == jMenuItemSetSchemaFiles) {
                 PendantClient.this.jMenuItemSetSchemaFilesActionPerformed(evt);
             }
@@ -1655,9 +1801,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
             else if (evt.getSource() == jCheckBoxMenuItemQuitProgramOnTestCommandFail) {
                 PendantClient.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
-            }
-            else if (evt.getSource() == jMenuItemTransformProgram) {
-                PendantClient.this.jMenuItemTransformProgramActionPerformed(evt);
             }
         }
 
@@ -1719,8 +1862,8 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
 
         public void stateChanged(javax.swing.event.ChangeEvent evt) {
-            if (evt.getSource() == jTabbedPane1) {
-                PendantClient.this.jTabbedPane1StateChanged(evt);
+            if (evt.getSource() == jTabbedPaneLeftUpper) {
+                PendantClient.this.jTabbedPaneLeftUpperStateChanged(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -1860,11 +2003,27 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 }
                 if (null != ccst.getCommandState()) {
                     this.jTextFieldStatus.setText(ccst.getCommandState().toString());
+                    switch (ccst.getCommandState()) {
+
+                        case CRCL_ERROR:
+                            this.jTextFieldStatus.setBackground(Color.RED);
+                            break;
+
+                        case CRCL_WORKING:
+                            this.jTextFieldStatus.setBackground(Color.GREEN);
+                            break;
+
+                        case CRCL_DONE:
+                        default:
+                            this.jTextFieldStatus.setBackground(Color.WHITE);
+                            break;
+
+                    }
                 }
                 this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
                 String stateDescription = ccst.getStateDescription();
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
-                    this.jTextFieldStatusStateDescription.setText(stateDescription);
+                    this.jTextAreaStateDescription.setText(stateDescription);
                     lastStateDescription = stateDescription;
                 }
             }
@@ -2400,34 +2559,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         xqJFrame.setVisible(true);
     }//GEN-LAST:event_jMenuItemXPathQueryActionPerformed
 
-    private void jButtonMoveToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToActionPerformed
-        try {
-            MoveToType moveto = new MoveToType();
-            PoseType p = new PoseType();
-            DefaultTableModel tm = (DefaultTableModel) this.jTableMoveToPose.getModel();
-            PointType pt = new PointType();
-            pt.setX(BigDecimal.valueOf((Double) tm.getValueAt(0, 1)));
-            pt.setY(BigDecimal.valueOf((Double) tm.getValueAt(1, 1)));
-            pt.setZ(BigDecimal.valueOf((Double) tm.getValueAt(2, 1)));
-            VectorType xv = new VectorType();
-            xv.setI(BigDecimal.valueOf((Double) tm.getValueAt(3, 1)));
-            xv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(4, 1)));
-            xv.setK(BigDecimal.valueOf((Double) tm.getValueAt(5, 1)));
-            VectorType zv = new VectorType();
-            zv.setI(BigDecimal.valueOf((Double) tm.getValueAt(6, 1)));
-            zv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(7, 1)));
-            zv.setK(BigDecimal.valueOf((Double) tm.getValueAt(8, 1)));
-            p.setPoint(pt);
-            p.setXAxis(xv);
-            p.setZAxis(zv);
-            moveto.setEndPosition(p);
-            moveto.setMoveStraight(this.jCheckBoxStraight.isSelected());
-            internal.incAndSendCommand(moveto);
-        } catch (JAXBException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_jButtonMoveToActionPerformed
-
     diagapplet.plotter.plotterJFrame xyzPlotter = null;
 
     diagapplet.plotter.plotterJFrame jointsPlotter = null;
@@ -2469,10 +2600,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             xyzPlotter.setVisible(true);
         }
     }//GEN-LAST:event_jCheckBoxMenuItemPlotXYZActionPerformed
-
-    private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
-        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose);
-    }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
@@ -2745,114 +2872,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jogWorldSpeedsSet = false;
     }
 
-    private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
-
-        this.clearProgramTimesDistances();
-        int new_poll_ms = Integer.valueOf(this.jTextFieldPollTime.getText());
-        internal.setPoll_ms(new_poll_ms);
-        internal.setWaitForDoneDelay(new_poll_ms);
-        internal.startRunProgramThread(0);
-        this.jButtonResume.setEnabled(internal.isPaused());
-        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
-    }//GEN-LAST:event_jButtonProgramRunActionPerformed
-
-    private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
-        if (pauseTime > this.internal.getRunStartMillis()) {
-            this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
-            pauseTime = -1;
-        }
-        internal.unpause();
-        this.jButtonResume.setEnabled(internal.isPaused());
-        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
-    }//GEN-LAST:event_jButtonResumeActionPerformed
-
     long pauseTime = -1;
-
-    private void jButtonProgramPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramPauseActionPerformed
-        pauseTime = System.currentTimeMillis();
-        internal.pause();
-        this.jButtonResume.setEnabled(internal.isPaused());
-        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
-    }//GEN-LAST:event_jButtonProgramPauseActionPerformed
-
-    private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
-        pauseTime = System.currentTimeMillis();
-        internal.abort();
-    }//GEN-LAST:event_jButtonProgramAbortActionPerformed
-
-    private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
-        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
-            try {
-                internal.getProgram().getMiddleCommand().remove(index - 1);
-                this.showProgram(internal.getProgram());
-                this.showCurrentProgramLine(index);
-            } catch (JAXBException ex) {
-                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }//GEN-LAST:event_jButtonDeletProgramItemActionPerformed
-
-    private void jButtonEditProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
-        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
-            try {
-                MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
-                MiddleCommandType cmdEdited
-                        = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
-                                internal.getXpu(),
-                                internal.getCmdSchemaFiles(),
-                                PendantClient.this.internal.getCheckCommandValidPredicate());
-                if (null == cmdEdited) {
-                    showDebugMessage("Edit Program Item cancelled. cmdEdited == null");
-                    return;
-                }
-                internal.getProgram().getMiddleCommand().set(index - 1, cmdEdited);
-                this.showProgram(internal.getProgram());
-                this.showCurrentProgramLine(index);
-            } catch (JAXBException ex) {
-                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }//GEN-LAST:event_jButtonEditProgramItemActionPerformed
-
-    private void jButtonAddProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
-        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
-            try {
-                Class clss = MiddleCommandType.class;
-                List<Class> availClasses = getAssignableClasses(clss,
-                        ObjTableJPanel.getClasses());
-                Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
-                Class selectedClss = ListChooserJPanel.Choose(this, "Type of new Item", ca, null);
-                if (selectedClss == null) {
-                    showDebugMessage("Add Program Item cancelled. selectedClss == null");
-                    return;
-                }
-                MiddleCommandType cmdOrig = (MiddleCommandType) selectedClss.newInstance();
-                MiddleCommandType cmdEdited
-                        = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
-                                internal.getXpu(),
-                                internal.getCmdSchemaFiles(),
-                                PendantClient.this.internal.getCheckCommandValidPredicate());
-                if (null == cmdEdited) {
-                    showDebugMessage("Add Program Item cancelled. cmdEdited == null");
-                    return;
-                }
-                internal.getProgram().getMiddleCommand().add(index - 1, cmdEdited);
-                this.showProgram(internal.getProgram());
-                this.showCurrentProgramLine(index);
-            } catch (InstantiationException | IllegalAccessException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-                showMessage(ex);
-            } catch (JAXBException ex) {
-                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
 
     private void jMenuItemSaveProgramAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveProgramAsActionPerformed
         JFileChooser chooser = new JFileChooser();
@@ -2909,22 +2929,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jMenuItemOpenStatusLogActionPerformed
-
-    private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
-        final int index = this.jTableProgram.getSelectedRow();
-        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
-            MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
-            BigInteger id = cmdOrig.getCommandID();
-            final List<AnnotatedPose> l
-                    = this.internal
-                    .getPoseList()
-                    .stream()
-                    .filter(x -> x.getCmdId().compareTo(id) == 0)
-                    .collect(Collectors.toList());
-            com.github.wshackle.poselist3dplot.MainJFrame
-                    .showPoseList(l);
-        }
-    }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
     private void jCheckBoxMenuItemUseEXIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemUseEXIActionPerformed
         if (this.isConnected()) {
@@ -3080,41 +3084,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.connect(this.jTextFieldHost.getText(), Integer.valueOf(this.jTextFieldPort.getText()));
     }//GEN-LAST:event_jButtonConnectActionPerformed
 
-    private void jButtonStepFwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepFwdActionPerformed
-        internal.setStepMode(true);
-        if (internal.isPaused() && internal.isRunningProgram()) {
-            internal.unpause();
-        } else {
-            internal.startRunProgramThread(this.getCurrentProgramLine());
-        }
-    }//GEN-LAST:event_jButtonStepFwdActionPerformed
-
-    private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
-        if (pauseTime > this.internal.runStartMillis) {
-            this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
-        }
-        pauseTime = -1;
-        if (this.getCurrentProgramLine() < 1) {
-            this.internal.runStartMillis = System.currentTimeMillis();
-        }
-        this.internal.setStepMode(false);
-        if (internal.isPaused() && internal.isRunningProgram()) {
-            internal.unpause();
-        } else {
-            internal.startRunProgramThread(this.getCurrentProgramLine());
-        }
-    }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
-
-    private void jButtonStepBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepBackActionPerformed
-        internal.setStepMode(true);
-        internal.abort();
-        int l = this.getCurrentProgramLine();
-        if (l > 0) {
-            l--;
-        }
-        internal.startRunProgramThread(l);
-    }//GEN-LAST:event_jButtonStepBackActionPerformed
-
     private void jMenuItemLoadPrefsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPrefsActionPerformed
         JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
@@ -3196,6 +3165,67 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private void jMenuItemViewLogFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemViewLogFileActionPerformed
         internal.openLogFile();
     }//GEN-LAST:event_jMenuItemViewLogFileActionPerformed
+
+    private void jMenuItemTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemTransformProgramActionPerformed
+        TransformSetupJFrame setupFrame = new TransformSetupJFrame();
+        setupFrame.setPendantClient(this);
+        setupFrame.setVisible(true);
+    }//GEN-LAST:event_jMenuItemTransformProgramActionPerformed
+
+    private void jTabbedPaneLeftUpperStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPaneLeftUpperStateChanged
+        jogWorldSpeedsSet = false;
+    }//GEN-LAST:event_jTabbedPaneLeftUpperStateChanged
+
+    private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
+        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose);
+    }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
+
+    private void jButtonMoveToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToActionPerformed
+        try {
+            MoveToType moveto = new MoveToType();
+            PoseType p = tableToPose(this.jTableMoveToPose);
+            moveto.setEndPosition(p);
+            moveto.setMoveStraight(this.jCheckBoxStraight.isSelected());
+            internal.incAndSendCommand(moveto);
+        } catch (JAXBException ex) {
+            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonMoveToActionPerformed
+
+    public CRCLProgramType getProgram() {
+        return internal.getProgram();
+    }
+
+    public void setProgram(CRCLProgramType program) throws JAXBException {
+        this.internal.setProgram(program);
+        this.showProgram(program);
+    }
+
+    public static PoseType tableToPose(JTable table) {
+        PoseType p = new PoseType();
+        TableModel tm = table.getModel();
+        PointType pt = new PointType();
+        pt.setX(BigDecimal.valueOf((Double) tm.getValueAt(0, 1)));
+        pt.setY(BigDecimal.valueOf((Double) tm.getValueAt(1, 1)));
+        pt.setZ(BigDecimal.valueOf((Double) tm.getValueAt(2, 1)));
+        VectorType xv = new VectorType();
+        xv.setI(BigDecimal.valueOf((Double) tm.getValueAt(3, 1)));
+        xv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(4, 1)));
+        xv.setK(BigDecimal.valueOf((Double) tm.getValueAt(5, 1)));
+        VectorType zv = new VectorType();
+        zv.setI(BigDecimal.valueOf((Double) tm.getValueAt(6, 1)));
+        zv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(7, 1)));
+        zv.setK(BigDecimal.valueOf((Double) tm.getValueAt(8, 1)));
+        p.setPoint(pt);
+        p.setXAxis(xv);
+        p.setZAxis(zv);
+        return p;
+    }
+
+    private void jTextFieldRotationSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldRotationSpeedActionPerformed
+        internal.setJogRotSpeed(Double.valueOf(this.jTextFieldRotationSpeed.getText()));
+        jogWorldSpeedsSet = false;
+    }//GEN-LAST:event_jTextFieldRotationSpeedActionPerformed
 
     private void jTextFieldTransSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldTransSpeedActionPerformed
         internal.setJogTransSpeed(Double.valueOf(this.jTextFieldTransSpeed.getText()));
@@ -3309,10 +3339,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         //        this.sendCommand();
     }//GEN-LAST:event_jPanelJogMinusMousePressed
 
-    private void jLabelJogMinusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseExited
-        this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogMinusMouseExited
-
     private void jLabelJogMinusMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseReleased
         this.commonJogStop();
     }//GEN-LAST:event_jLabelJogMinusMouseReleased
@@ -3326,20 +3352,167 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jPanelJogMinus.repaint();
     }//GEN-LAST:event_jLabelJogMinusMousePressed
 
-    private void jTextFieldRotationSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldRotationSpeedActionPerformed
-        internal.setJogRotSpeed(Double.valueOf(this.jTextFieldRotationSpeed.getText()));
-        jogWorldSpeedsSet = false;
-    }//GEN-LAST:event_jTextFieldRotationSpeedActionPerformed
+    private void jLabelJogMinusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseExited
+        this.commonJogStop();
+    }//GEN-LAST:event_jLabelJogMinusMouseExited
 
-    private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
-        jogWorldSpeedsSet = false;
-    }//GEN-LAST:event_jTabbedPane1StateChanged
+    private void jButtonStepFwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepFwdActionPerformed
+        internal.setStepMode(true);
+        if (internal.isPaused() && internal.isRunningProgram()) {
+            internal.unpause();
+        } else {
+            internal.startRunProgramThread(this.getCurrentProgramLine());
+        }
+    }//GEN-LAST:event_jButtonStepFwdActionPerformed
 
-    private void jMenuItemTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemTransformProgramActionPerformed
-        TransformSetupJFrame setupFrame = new TransformSetupJFrame();
-        setupFrame.setParent(this);
-        setupFrame.setVisible(true);
-    }//GEN-LAST:event_jMenuItemTransformProgramActionPerformed
+    private void jButtonStepBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepBackActionPerformed
+        internal.setStepMode(true);
+        internal.abort();
+        int l = this.getCurrentProgramLine();
+        if (l > 0) {
+            l--;
+        }
+        internal.startRunProgramThread(l);
+    }//GEN-LAST:event_jButtonStepBackActionPerformed
+
+    private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
+        if (pauseTime > this.internal.runStartMillis) {
+            this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
+        }
+        pauseTime = -1;
+        if (this.getCurrentProgramLine() < 1) {
+            this.internal.runStartMillis = System.currentTimeMillis();
+        }
+        this.internal.setStepMode(false);
+        if (internal.isPaused() && internal.isRunningProgram()) {
+            internal.unpause();
+        } else {
+            internal.startRunProgramThread(this.getCurrentProgramLine());
+        }
+    }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
+
+    private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
+        final int index = this.jTableProgram.getSelectedRow();
+        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
+            MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
+            BigInteger id = cmdOrig.getCommandID();
+            final List<AnnotatedPose> l
+                    = this.internal
+                    .getPoseList()
+                    .stream()
+                    .filter(x -> x.getCmdId().compareTo(id) == 0)
+                    .collect(Collectors.toList());
+            com.github.wshackle.poselist3dplot.MainJFrame
+                    .showPoseList(l);
+        }
+    }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
+
+    private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
+        if (pauseTime > this.internal.getRunStartMillis()) {
+            this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
+            pauseTime = -1;
+        }
+        internal.unpause();
+        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+        jogWorldSpeedsSet = false;
+    }//GEN-LAST:event_jButtonResumeActionPerformed
+
+    private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
+
+        this.clearProgramTimesDistances();
+        int new_poll_ms = Integer.valueOf(this.jTextFieldPollTime.getText());
+        internal.setPoll_ms(new_poll_ms);
+        internal.setWaitForDoneDelay(new_poll_ms);
+        internal.startRunProgramThread(0);
+        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+        jogWorldSpeedsSet = false;
+    }//GEN-LAST:event_jButtonProgramRunActionPerformed
+
+    private void jButtonAddProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddProgramItemActionPerformed
+        int index = this.jTableProgram.getSelectedRow();
+        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
+            try {
+                Class clss = MiddleCommandType.class;
+                List<Class> availClasses = getAssignableClasses(clss,
+                        ObjTableJPanel.getClasses());
+                Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
+                Class selectedClss = ListChooserJPanel.Choose(this, "Type of new Item", ca, null);
+                if (selectedClss == null) {
+                    showDebugMessage("Add Program Item cancelled. selectedClss == null");
+                    return;
+                }
+                MiddleCommandType cmdOrig = (MiddleCommandType) selectedClss.newInstance();
+                MiddleCommandType cmdEdited
+                        = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
+                                internal.getXpu(),
+                                internal.getCmdSchemaFiles(),
+                                PendantClient.this.internal.getCheckCommandValidPredicate());
+                if (null == cmdEdited) {
+                    showDebugMessage("Add Program Item cancelled. cmdEdited == null");
+                    return;
+                }
+                internal.getProgram().getMiddleCommand().add(index - 1, cmdEdited);
+                this.showProgram(internal.getProgram());
+                this.showCurrentProgramLine(index);
+            } catch (InstantiationException | IllegalAccessException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+                showMessage(ex);
+            } catch (JAXBException ex) {
+                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
+
+    private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
+        int index = this.jTableProgram.getSelectedRow();
+        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
+            try {
+                internal.getProgram().getMiddleCommand().remove(index - 1);
+                this.showProgram(internal.getProgram());
+                this.showCurrentProgramLine(index);
+            } catch (JAXBException ex) {
+                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonDeletProgramItemActionPerformed
+
+    private void jButtonEditProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditProgramItemActionPerformed
+        int index = this.jTableProgram.getSelectedRow();
+        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
+            try {
+                MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
+                MiddleCommandType cmdEdited
+                        = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
+                                internal.getXpu(),
+                                internal.getCmdSchemaFiles(),
+                                PendantClient.this.internal.getCheckCommandValidPredicate());
+                if (null == cmdEdited) {
+                    showDebugMessage("Edit Program Item cancelled. cmdEdited == null");
+                    return;
+                }
+                internal.getProgram().getMiddleCommand().set(index - 1, cmdEdited);
+                this.showProgram(internal.getProgram());
+                this.showCurrentProgramLine(index);
+            } catch (JAXBException ex) {
+                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonEditProgramItemActionPerformed
+
+    private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
+        pauseTime = System.currentTimeMillis();
+        internal.abort();
+    }//GEN-LAST:event_jButtonProgramAbortActionPerformed
+
+    private void jButtonProgramPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramPauseActionPerformed
+        pauseTime = System.currentTimeMillis();
+        internal.pause();
+        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+        jogWorldSpeedsSet = false;
+    }//GEN-LAST:event_jButtonProgramPauseActionPerformed
 
     private static void scrollToVisible(JTable table, int rowIndex, int vColIndex) {
         if (!(table.getParent() instanceof JViewport)) {
@@ -3360,42 +3533,67 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
     private void finishShowCurrentProgramLine(final int line) {
         if (line != programLineShowing) {
-            if (jTableProgram.getSelectedRow() != line) {
-                jTableProgram.getSelectionModel().setSelectionInterval(line, line);
-            }
-            scrollToVisible(jTableProgram, line, 0);
-            jTableProgram.repaint();
-            jPanelProgram.revalidate();
-            jPanelProgram.repaint();
-            long endMillis
-                    = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                            ? internal.getRunEndMillis() : System.currentTimeMillis();
-            double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
-            this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
-            if (line == 0) {
-                try {
-                    InitCanonType cmd = this.internal.getProgram().getInitCanon();
-                    String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                    showSelectedProgramCommand(cmdString);
-                } catch (JAXBException ex) {
-                    Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            final CRCLProgramType program = internal.getProgram();
+            if (null != program) {
+                if (jTableProgram.getSelectedRow() != line) {
+                    jTableProgram.getSelectionModel().setSelectionInterval(line, line);
                 }
-            } else if (line > 0 && line <= this.internal.getProgram().getMiddleCommand().size()) {
-                try {
-                    MiddleCommandType cmd = this.internal.getProgram().getMiddleCommand().get(line - 1);
-                    String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                    showSelectedProgramCommand(cmdString);
-                } catch (JAXBException ex) {
-                    Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                scrollToVisible(jTableProgram, line, 0);
+                jTableProgram.repaint();
+                jPanelProgram.revalidate();
+                jPanelProgram.repaint();
+                long endMillis
+                        = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
+                                ? internal.getRunEndMillis() : System.currentTimeMillis();
+                double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
+                this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
+                if (line == 0) {
+                    try {
+                        InitCanonType cmd = program.getInitCanon();
+                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                        showSelectedProgramCommand(cmdString);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if (line > 0 && (null == program.getMiddleCommand())) {
+                    try {
+                        EndCanonType cmd = program.getEndCanon();
+                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                        showSelectedProgramCommand(cmdString);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if (line > 0 && line <= program.getMiddleCommand().size()) {
+                    try {
+                        MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
+                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                        showSelectedProgramCommand(cmdString);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if (line == program.getMiddleCommand().size() + 1) {
+                    try {
+                        EndCanonType cmd = program.getEndCanon();
+                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                        showSelectedProgramCommand(cmdString);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            } else if (line == this.internal.getProgram().getMiddleCommand().size() + 1) {
-                try {
-                    EndCanonType cmd = this.internal.getProgram().getEndCanon();
-                    String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                    showSelectedProgramCommand(cmdString);
-                } catch (JAXBException ex) {
-                    Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                if (null == overheadProgramPlotter) {
+                    setOverheadProgramPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
                 }
+                if (null == sideProgramPlotter) {
+                    setSideProgramPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
+                }
+                programPlotterJPanelOverhead.setProgram(program);
+                programPlotterJPanelSide.setProgram(program);
+                programPlotterJPanelOverhead.setIndex(line);
+                programPlotterJPanelSide.setIndex(line);
+                programPlotterJPanelOverhead.repaint();
+                programPlotterJPanelSide.repaint();
+            } else {
+                showSelectedProgramCommand("No Program loaded.");
             }
         }
         programLineShowing = line;
@@ -3517,8 +3715,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private Optional<Object> safeInvokeMethod(Method m, Object o) {
         try {
             return Optional.ofNullable(m.invoke(o));
+
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClient.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         return Optional.empty();
     }
@@ -3526,8 +3726,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private void safeInvokeMethod2(Method m, Object... args) {
         try {
             m.invoke(this, args);
+
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClient.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -3541,11 +3743,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
             try (PrintStream ps = new PrintStream(new FileOutputStream(f))) {
                 Method ma[] = this.getClass().getMethods();
-                Stream.of(ma)
+                Stream
+                        .of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
-                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class))
+                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClient.this)
                                 .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
                                 .orElse("# could not invoke" + m.getName()))
@@ -3559,11 +3763,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                                 .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
-                Stream.of(ma)
+                Stream
+                        .of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
-                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class))
+                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClient.this.internal)
                                 .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
                                 .orElse("# could not invoke" + m.getName()))
@@ -3589,40 +3795,69 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     .filter(m -> m.getName().equals("valueOf"))
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
-                    .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class))
+                    .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
+                    ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
                 return (T) vmethod.invoke(null, s);
+
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClient.class
+                    .getName()).log(Level.SEVERE, null, ex);
+
         }
-        if (clss.isAssignableFrom(String.class)) {
+        if (clss.isAssignableFrom(String.class
+        )) {
             return (T) s;
-        } else if (clss.isAssignableFrom(double.class)) {
+
+        } else if (clss.isAssignableFrom(double.class
+        )) {
             return (T) Double.valueOf(s);
-        } else if (clss.isAssignableFrom(float.class)) {
+
+        } else if (clss.isAssignableFrom(float.class
+        )) {
             return (T) Float.valueOf(s);
-        } else if (clss.isAssignableFrom(long.class)) {
+
+        } else if (clss.isAssignableFrom(long.class
+        )) {
             return (T) Long.valueOf(s);
-        } else if (clss.isAssignableFrom(int.class)) {
+
+        } else if (clss.isAssignableFrom(int.class
+        )) {
             return (T) Integer.valueOf(s);
-        } else if (clss.isAssignableFrom(short.class)) {
+
+        } else if (clss.isAssignableFrom(short.class
+        )) {
             return (T) Short.valueOf(s);
-        } else if (clss.isAssignableFrom(byte.class)) {
+
+        } else if (clss.isAssignableFrom(byte.class
+        )) {
             return (T) Byte.valueOf(s);
-        } else if (clss.isAssignableFrom(Double.class)) {
+
+        } else if (clss.isAssignableFrom(Double.class
+        )) {
             return (T) Double.valueOf(s);
-        } else if (clss.isAssignableFrom(Float.class)) {
+
+        } else if (clss.isAssignableFrom(Float.class
+        )) {
             return (T) Float.valueOf(s);
-        } else if (clss.isAssignableFrom(Long.class)) {
+
+        } else if (clss.isAssignableFrom(Long.class
+        )) {
             return (T) Long.valueOf(s);
-        } else if (clss.isAssignableFrom(Integer.class)) {
+
+        } else if (clss.isAssignableFrom(Integer.class
+        )) {
             return (T) Integer.valueOf(s);
-        } else if (clss.isAssignableFrom(Short.class)) {
+
+        } else if (clss.isAssignableFrom(Short.class
+        )) {
             return (T) Short.valueOf(s);
-        } else if (clss.isAssignableFrom(Byte.class)) {
+
+        } else if (clss.isAssignableFrom(Byte.class
+        )) {
             return (T) Byte.valueOf(s);
         }
         return null;
@@ -3636,6 +3871,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
 
             Class clss = null;
+
             switch (args[0]) {
                 case "boolean":
                     clss = boolean.class;
@@ -3691,9 +3927,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     return;
                 }
                 m.invoke(this, o);
+
             }
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, "Can not setParam with args = " + Arrays.toString(args), ex);
+            Logger.getLogger(PendantClient.class
+                    .getName()).log(Level.SEVERE, "Can not setParam with args = " + Arrays.toString(args), ex);
         }
 
     }
@@ -3710,12 +3948,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             String prefsFileName = new String(Files.readAllBytes(settingsRef.toPath())).trim();
             File prefsFile = new File(prefsFileName);
             if (prefsFile.exists() && prefsFile.canRead()) {
-                if (JOptionPane.showConfirmDialog(this, "Load settings from " + prefsFileName) == JOptionPane.YES_OPTION) {
-                    loadPrefsFile(prefsFile);
-                }
+                loadPrefsFile(prefsFile);
+
             }
         } catch (IOException ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClient.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
     }
     private static final String SETTINGSREF = "clientsettingsref";
@@ -3853,30 +4091,34 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private javax.swing.JMenu jMenuRecentProgram;
     private javax.swing.JMenu jMenuTools;
     private javax.swing.JMenu jMenuXmlSchemas;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel5;
-    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanelConnectionTab;
     private javax.swing.JPanel jPanelJogMinus;
     private javax.swing.JPanel jPanelJogMinus1;
     private javax.swing.JPanel jPanelJogPlus;
     private javax.swing.JPanel jPanelJogPlus1;
     private javax.swing.JPanel jPanelJogging;
     private javax.swing.JPanel jPanelMoveTo;
+    private javax.swing.JPanel jPanelOverheadProgramPlot;
+    private javax.swing.JPanel jPanelOverheadProgramPlot1;
     private javax.swing.JPanel jPanelProgram;
+    private javax.swing.JPanel jPanelProgramPlot;
+    private javax.swing.JPanel jPanelStatus;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPaneProgram;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane jTabbedPaneLeftUpper;
+    private javax.swing.JTabbedPane jTabbedPaneRightUpper;
     private javax.swing.JTable jTableJoints;
     private javax.swing.JTable jTableMoveToPose;
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTableProgram;
     private javax.swing.JTextArea jTextAreaErrors;
     private javax.swing.JTextArea jTextAreaSelectedProgramCommand;
+    private javax.swing.JTextArea jTextAreaStateDescription;
     private javax.swing.JTextField jTextFieldHost;
     private javax.swing.JTextField jTextFieldJogInterval;
     private javax.swing.JTextField jTextFieldJointJogIncrement;
@@ -3889,10 +4131,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private javax.swing.JTextField jTextFieldStatCmdID;
     private javax.swing.JTextField jTextFieldStatus;
     private javax.swing.JTextField jTextFieldStatusID;
-    private javax.swing.JTextField jTextFieldStatusStateDescription;
     private javax.swing.JTextField jTextFieldTransSpeed;
     private javax.swing.JTextField jTextFieldXYZJogIncrement;
     private crcl.ui.LengthUnitComboBox lengthUnitComboBoxLengthUnit;
+    private crcl.ui.ProgramPlotterJPanel programPlotterJPanelOverhead;
+    private crcl.ui.ProgramPlotterJPanel programPlotterJPanelSide;
+    private crcl.ui.TransformJPanel transformJPanel1;
     // End of variables declaration//GEN-END:variables
 
     @Override

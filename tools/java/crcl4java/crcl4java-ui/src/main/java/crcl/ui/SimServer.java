@@ -1016,6 +1016,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     @Override
     public void showMessage(final String s) {
         showDebugMessage(s);
+        inner.setStateDescription(s);
         if (showing_message) {
             return;
         }

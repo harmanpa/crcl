@@ -142,9 +142,18 @@ public class SimServerInner {
     public static long debugCmdSendTime = 0;
 
     private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
-    
+
     private static double getDoubleProperty(String propName, double defaultVal) {
         return Double.valueOf(System.getProperty(propName, Double.toString(defaultVal)));
+    }
+
+    public void setStateDescription(String s) {
+        CommandStatusType commandStatus = this.getStatus().getCommandStatus();
+        if (commandStatus == null) {
+            commandStatus = new CommandStatusType();
+            this.getStatus().setCommandStatus(commandStatus);
+        }
+        commandStatus.setStateDescription(s);
     }
 
     static public void printAllClientStates(final PrintStream ps) {
@@ -365,7 +374,9 @@ public class SimServerInner {
         return port;
     }
 
-    private boolean teleportToGoals = Boolean.getBoolean("crcl4java.simserver.teleportToGoals");;
+    private boolean teleportToGoals = Boolean.getBoolean("crcl4java.simserver.teleportToGoals");
+
+    ;
 
     /**
      * Get the value of teleportToGoals
@@ -604,6 +615,7 @@ public class SimServerInner {
         }
 //        status.getCommandStatus().setStateDescription(short_status);
         outer.showMessage(s);
+        setStateDescription(short_status);
     }
 
     public boolean checkPose(PoseType goalPose) {
@@ -1029,7 +1041,9 @@ public class SimServerInner {
                 );
             }
             if (null != cmdLog && cmdLog.size() > 0) {
-                cst.setStateDescription("Running " + this.cmdLog.get(cmdLog.size() - 1).getClass().getSimpleName());
+                if (cst.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                    cst.setStateDescription("Running " + this.cmdLog.get(cmdLog.size() - 1).getClass().getSimpleName());
+                }
             }
         }
     }
@@ -1722,7 +1736,7 @@ public class SimServerInner {
                 }
                 if (!outer.isInitializedSelected()) {
                     setCommandState(CommandStateEnumType.CRCL_ERROR);
-                    showMessage("Command other than init recieved when not initialized.");
+                    showMessage("Not initialized when "+cmd.getClass().getCanonicalName().substring("crcl.base.".length())+" recieved.");
                     return;
                 }
                 if (cmd instanceof SetEndEffectorType) {
@@ -1852,9 +1866,9 @@ public class SimServerInner {
                     this.setCurrentWaypoint(0);
                     this.setGoalPose(wpts.get(0));
 
-                    if(teleportToGoals) {
-                        setCurrentWaypoint(wpts.size()-1);
-                        setGoalPose(wpts.get(wpts.size()-1));
+                    if (teleportToGoals) {
+                        setCurrentWaypoint(wpts.size() - 1);
+                        setGoalPose(wpts.get(wpts.size() - 1));
                     }
                     this.commandedJointAccellerations = null;
                     this.commandedJointVelocities = null;
@@ -1909,10 +1923,10 @@ public class SimServerInner {
                     }
                     if (teleportToGoals) {
                         goalPose = null;
-                        if(jointPositions == null ) {
+                        if (jointPositions == null) {
                             jointPositions = Arrays.copyOf(commandedJointPositions, commandedJointPositions.length);
                         } else {
-                            System.arraycopy(commandedJointPositions,0, jointPositions, 0, Math.min(commandedJointPositions.length, jointPositions.length));
+                            System.arraycopy(commandedJointPositions, 0, jointPositions, 0, Math.min(commandedJointPositions.length, jointPositions.length));
                         }
                         goalPose = null;
                         waypoints = null;
@@ -1958,11 +1972,11 @@ public class SimServerInner {
                 } else if (cmd instanceof DwellType) {
                     DwellType dwellCmd = (DwellType) cmd;
                     double dwellTime = dwellCmd.getDwellTime().doubleValue() * 1000.0;
-                    if(dwellTime > maxDwell) {
-                        LOGGER.warning("dwellTime of "+dwellTime +" exceeded max of "+maxDwell);
+                    if (dwellTime > maxDwell) {
+                        LOGGER.warning("dwellTime of " + dwellTime + " exceeded max of " + maxDwell);
                         dwellTime = maxDwell;
                     }
-                    dwellEndTime = System.currentTimeMillis() + ((long)dwellTime);
+                    dwellEndTime = System.currentTimeMillis() + ((long) dwellTime);
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 } else if (cmd instanceof MoveScrewType) {
                     MoveScrewType moveScrew = (MoveScrewType) cmd;
