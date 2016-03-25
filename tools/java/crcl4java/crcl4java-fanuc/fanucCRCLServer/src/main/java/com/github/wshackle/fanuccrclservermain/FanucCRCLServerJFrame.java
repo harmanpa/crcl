@@ -60,8 +60,14 @@ import crcl.base.TransSpeedAbsoluteType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -77,6 +83,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -150,8 +157,41 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         timer.start();
         this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits(false));
         this.jTableJointLimits.getModel().addTableModelListener(e -> updateJointLimits(false));
+        setIconImage(SERVER_IMAGE);
     }
 
+    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
+        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = bi.createGraphics();
+        g2d.setBackground(bgColor);
+        g2d.setColor(textColor);
+        g2d.clearRect(0, 0, d.width, d.height);
+        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
+        g2d.drawImage(baseImage,0,0,null);
+        bi.flush();
+//        try {
+//            File f = File.createTempFile("icon", ".png");
+//            System.out.println("f = " + f);
+//            ImageIO.write(bi, "PNG", f);
+//        } catch (IOException ex) {
+//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        return bi;
+    }
+
+     public static Image getRobotImage() {
+        Image img=null;
+        try {
+            img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return img;
+    }
+    private static final Dimension ICON_SIZE = new Dimension(32, 32);
+    private static final Image BASE_IMAGE = getRobotImage();
+    private static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
+    
     IVar varToWatch = null;
 
     public void updateCartesianLimits(float xMax,
