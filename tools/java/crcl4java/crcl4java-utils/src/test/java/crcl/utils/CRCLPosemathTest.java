@@ -362,33 +362,6 @@ public class CRCLPosemathTest {
         checkEquals("123", expResult, result);
     }
 
-//    /**
-//     * Test of toPoseType method, of class CRCLToPosemath.
-//     */
-//    @Test
-//    public void testToPoseType() throws Exception {
-//        System.out.println("toPoseType");
-//        PmCartesian tran = this.cart123;
-//        PmRotationVector v = new PmRotationVector(Math.toRadians(30), 0.0, 0.0, 1.0);
-//        PoseType expResult = new PoseType();
-//        VectorType xvector = new VectorType();
-//        xvector.setI(BigDecimal.valueOf(Math.cos(Math.toRadians(30.0))));
-//        xvector.setJ(BigDecimal.valueOf(Math.sin(Math.toRadians(30.0))));
-//        xvector.setK(BigDecimal.ZERO);
-//        VectorType zvector = new VectorType();
-//        zvector.setI(BigDecimal.ZERO);
-//        zvector.setJ(BigDecimal.ZERO);
-//        zvector.setK(BigDecimal.ONE);
-//        PointType pt = new PointType();
-//        pt.setX(BigDecimal.ONE);
-//        pt.setY(BIG_DECIMAL_2);
-//        pt.setZ(BIG_DECIMAL_3);
-//        expResult.setPoint(pt);
-//        expResult.setXAxis(xvector);
-//        expResult.setZAxis(zvector);
-//        PoseType result = CRCLPosemath.toPoseType(tran, v);
-//        checkEquals("123", expResult, result);
-//    }
     /**
      * Test of toPmRpy method, of class CRCLToPosemath.
      *

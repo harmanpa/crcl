@@ -82,7 +82,7 @@ public class XpathUtils {
             t.setOutputProperty(OutputKeys.INDENT, "yes");
             t.transform(new DOMSource(node), new StreamResult(sw));
         } catch (TransformerException te) {
-            System.out.println("nodeToString Transformer Exception");
+            te.printStackTrace();
         }
         return sw.toString();
     }
@@ -111,7 +111,6 @@ public class XpathUtils {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-//                resultString += "<!-- " + i + " -->\n";
             sb.append(nodeToString(n));
         }
         return sb.toString();

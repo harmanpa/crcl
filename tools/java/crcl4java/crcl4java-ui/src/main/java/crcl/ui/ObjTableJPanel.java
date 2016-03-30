@@ -88,7 +88,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     }
 
     private XpathUtils xpu = null;
-    private File []schemaFiles = null;
+    private File[] schemaFiles = null;
     private String defaultDocumentation = null;
 
     private void setupTableSelection() {
@@ -131,7 +131,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     }
                     if (null != xpu && null != schemaFiles) {
                         try {
-                            documentation = xpu.getDocumentation(schemaFiles,doctype);
+                            documentation = xpu.getDocumentation(schemaFiles, doctype);
                         } catch (SAXException | IOException | XPathExpressionException | ParserConfigurationException ex) {
                             Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -354,69 +354,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         }
     };
 
-//    private class MyTableCellEditor implements TableCellEditor {
-//
-//        private final JButton jButtonNew = new JButton("New");
-//        private final JButton jButtonDelete = new JButton("Delete");
-//        private final JTextField jtf = new JTextField();
-//
-//        public MyTableCellEditor() {
-//            jButtonNew.addActionListener(new ActionListener() {
-//
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    System.out.println("e = " + e);
-//                }
-//            });
-//        }
-//
-//        @Override
-//        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-//            if (column == 2) {
-//                NewDeletePanel ndp = pnlMap.get(row);
-//                if (null != ndp) {
-//                    return jButtonNew;
-//                }
-//            }
-//            return jtf;
-//        }
-//
-//        @Override
-//        public Object getCellEditorValue() {
-//            return jtf.getText();
-//        }
-//
-//        @Override
-//        public boolean isCellEditable(EventObject anEvent) {
-//            // TODO: implement this function
-//            return (boolean) false;
-//        }
-//
-//        @Override
-//        public boolean shouldSelectCell(EventObject anEvent) {
-//            // TODO: implement this function
-//            return (boolean) false;
-//        }
-//
-//        @Override
-//        public boolean stopCellEditing() {
-//            // TODO: implement this function
-//            return (boolean) false;
-//        }
-//
-//        @Override
-//        public void cancelCellEditing() {
-//        }
-//
-//        @Override
-//        public void addCellEditorListener(CellEditorListener l) {
-//        }
-//
-//        @Override
-//        public void removeCellEditorListener(CellEditorListener l) {
-//        }
-//
-//    };
     private static String removeTypeParams(String type) {
         String typenoparams = type;
         int ltindex = typenoparams.indexOf('<');
@@ -444,8 +381,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         if (clss.isPrimitive()) {
             return false;
         }
-//        System.out.println("List.class.isAssignableFrom(ArrayList.class) = "+ List.class.isAssignableFrom(ArrayList.class));
-//        System.out.println("ArrayList.class.isAssignableFrom(List.class) = "+ ArrayList.class.isAssignableFrom(List.class));
         if (List.class.isAssignableFrom(clss)) {
             return false;
         }
@@ -591,14 +526,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         SortedSet<String> names = new TreeSet<>();
         Map<String, Method> map = new HashMap<>();
         for (Method m : ma) {
-//            try {
-//                if (m.getName().startsWith("set") && m.getParameterCount() == 1) {
-//                    String mname = m.getName().substring(3);
-//                    names.add(mname);
-//                    map.put(mname, m);
-//                }
-//            } catch (Exception e) {
-//            }
             try {
                 if (m.getName().startsWith("get") && m.getParameterCount() == 0) {
                     String mname = m.getName().substring(3);
@@ -672,29 +599,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         type += "<" + list_item_type + ">";
                     } catch (Exception e) {
                     }
-//                    Class moclss = mo.getClass();
-//                    Method moa[] = moclss.getMethods();
-//                    for (Method mom : moa) {
-//                        System.out.println("mom = " + mom);
-////                    Method moget = moclss.getMethod("get", int.class);
-//                        try {
-//                            Type tret = mom.getGenericReturnType();
-//                            System.out.println("tret = " + tret);
-//                            Type[] params = mom.getGenericParameterTypes();
-//                            ParameterizedType firstParam = (ParameterizedType) params[0];
-//                            System.out.println("firstParam = " + firstParam);
-//                            Type[] paramsOfFirstGeneric = firstParam.getActualTypeArguments();
-//                            System.out.println("paramsOfFirstGeneric = " + Arrays.toString(paramsOfFirstGeneric));
-//                            System.out.println("paramsOfFirstGeneric[0] = " + paramsOfFirstGeneric[0]);
-//                            
-//                        } catch (Exception e) {
-//                        }
-//                    }
-//                    System.out.println("moget = " + moget);
-//                    Class mogetret = moget.getReturnType();
-//                    System.out.println("mogetret = " + mogetret);
                 }
-//                    type += "<"+mogetret.getCanonicalName()+">";
                 this.colorMap.put(tm.getRowCount(), Color.LIGHT_GRAY);
                 if (mclss.isEnum()) {
                     JComboBox comboBox = new JComboBox();
@@ -702,7 +607,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         comboBox.addItem(oc);
                     }
                     this.editorMap.put(tm.getRowCount(), new DefaultCellEditor(comboBox));
-//                    this.colorMap.put(tm.getRowCount(), Color.pink);
                 }
                 if (mclss.equals(boolean.class)) {
                     if (mo == null) {
@@ -784,74 +688,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                             return jta;
                         }
                     });
-//                    this.editorMap.put(tm.getRowCount()-1, new TableCellEditor() {
-//
-//                        @Override
-//                        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-//                            jta.setText(value.toString());
-//                            table.setRowHeight(row, Math.max(table.getRowHeight(row),jta.getPreferredSize().height));
-//                            return jta;
-//                        }
-//
-//                        @Override
-//                        public Object getCellEditorValue() {
-//                            return jta.getText();
-//                        }
-//
-//                        @Override
-//                        public boolean isCellEditable(EventObject anEvent) {
-//                            return jta.isEditable();
-//                        }
-//
-//                        @Override
-//                        public boolean shouldSelectCell(EventObject anEvent) {
-//                            return true;
-//                        }
-//
-//                        @Override
-//                        public boolean stopCellEditing() {
-//                            if(null != listeners) {
-//                                ChangeEvent changeEvent = new ChangeEvent(this);
-//                                Iterator<CellEditorListener> celit = listeners.iterator();
-//                                while(celit.hasNext()) {
-//                                    CellEditorListener l = celit.next();
-//                                    l.editingStopped(changeEvent);
-//                                }
-//                            }
-//                            return true;
-//                        }
-//
-//                        @Override
-//                        public void cancelCellEditing() {
-//                            if(null != listeners) {
-//                                ChangeEvent changeEvent = new ChangeEvent(this);
-//                                Iterator<CellEditorListener> celit = listeners.iterator();
-//                                while(celit.hasNext()) {
-//                                    CellEditorListener l = celit.next();
-//                                    l.editingStopped(changeEvent);
-//                                }
-//                            }
-////                            jta.setEditable(false);
-//                        }
-//
-//                        private List<CellEditorListener> listeners = null;
-//                        
-//                        @Override
-//                        public void addCellEditorListener(CellEditorListener l) {
-//                            if(listeners == null) {
-//                                listeners = new ArrayList<>();
-//                            }
-//                            listeners.add(l);
-//                        }
-//
-//                        @Override
-//                        public void removeCellEditorListener(CellEditorListener l) {
-//                            if(null != listeners) {
-//                                listeners.remove(l);
-//                            }
-//                        }
-//                    });
-//
                 }
                 if (List.class.isAssignableFrom(mclss) && null != mget && null != mo) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
@@ -914,8 +750,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     private boolean cancelled = false;
     private Predicate<T> isValid = null;
 
-    private static <T> T editObjectPriv(JDialog _dialog, T _obj, 
-            XpathUtils xpu, 
+    private static <T> T editObjectPriv(JDialog _dialog, T _obj,
+            XpathUtils xpu,
             File schemaFiles[],
             java.util.function.Predicate<T> isValid) {
         ObjTableJPanel<T> panel = new ObjTableJPanel<>();
@@ -930,7 +766,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         if (null != xpu && null != schemaFiles) {
             String documentation = null;
             try {
-                documentation = xpu.getDocumentation(schemaFiles,clssname);
+                documentation = xpu.getDocumentation(schemaFiles, clssname);
             } catch (SAXException ex) {
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -1251,7 +1087,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         List<Class> classes = new ArrayList<>();
         try {
             for (String classpathEntry : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
-//                System.out.println("classpathEntry = " + classpathEntry);
                 if (classpathEntry.endsWith(".jar")
                         && !classpathEntry.contains("commons-io")
                         && !classpathEntry.contains("commons-math")
@@ -1314,8 +1149,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             Logger.getLogger(ObjTableJPanel.class
                     .getName()).log(Level.SEVERE, null, t);
         }
-//        classes.add(javax.xml.datatype.XMLGregorianCalendar.class);
-//        classes.add(javax.xml.datatype.Duration.class);
         return classes;
     }
 
@@ -1342,16 +1175,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             mget = pobj.getClass().getMethod("get" + name);
 
         } catch (NoSuchMethodException ex) {
-//            Logger.getLogger(ObjTableJPanel.class
-//                    .getName()).log(Level.SEVERE, null, ex);
         }
         try {
             if (null == mget) {
                 mget = pobj.getClass().getMethod("is" + name);
             }
         } catch (NoSuchMethodException ex) {
-//            Logger.getLogger(ObjTableJPanel.class
-//                    .getName()).log(Level.SEVERE, null, ex);
         }
         if (mget == null) {
             System.err.println("Method to get object for " + name + " does not exist");
@@ -1423,7 +1252,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             try {
                 valueOf = tclass.getMethod("valueOf", String.class);
             } catch (NoSuchMethodException ex) {
-//                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SecurityException ex) {
                 Logger.getLogger(ObjTableJPanel.class
                         .getName()).log(Level.SEVERE, null, ex);
@@ -1479,17 +1307,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 mset = pobj.getClass().getMethod("set" + endname, tclass);
 
             } catch (NoSuchMethodException ex) {
-//                System.err.println("endname =" + endname);
-//                Logger.getLogger(ObjTableJPanel.class
-//                        .getName()).log(Level.SEVERE, null, ex);
             }
             if (mset == null) {
                 System.err.println("Method to set " + name + " does not exist");
                 return;
             }
             mset.invoke(pobj, new Object[]{tobj});
-//            System.out.println("pobj = " + pobj);
-//            System.out.println("tobj = " + tobj);
 
         } catch (SecurityException ex) {
             System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
@@ -1584,11 +1407,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 jButtonDelete.setEnabled(false);
                 return;
             }
-            String type = (String) tm.getValueAt(row, 0);
-            String name = (String) tm.getValueAt(row, 1);
             this.updateTableFromObject();
-//            clss.getClassLoader().
-
         } catch (Exception ex) {
             Logger.getLogger(ObjTableJPanel.class
                     .getName()).log(Level.SEVERE, null, ex);
@@ -1619,21 +1438,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     null,
                     ca,
                     null);
-//            System.out.println("ca[selected] = " + ca[selected]);
             this.updateObjFromTable();
             Object newo = null;
-//            if(javax.xml.datatype.XMLGregorianCalendar.class.isAssignableFrom(ca[selected])) {
-//                try {
-//                    newo = javax.xml.datatype.DatatypeFactory.newInstance().newXMLGregorianCalendar();
-//                } catch (DatatypeConfigurationException ex) {
-//                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            } else {
             newo = ca[selected].newInstance();
-//            }
             this.setObjectForName(type, name, newo);
             this.updateTableFromObject();
-//            clss.getClassLoader().
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ObjTableJPanel.class
@@ -1676,12 +1485,10 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     null,
                     ca,
                     null);
-//            System.out.println("ca[selected] = " + ca[selected]);
             Object newo = ca[selected].newInstance();
             this.updateObjFromTable();
             this.addObjectToList(typeparams, name, newo);
             this.updateTableFromObject();
-//            clss.getClassLoader().
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ObjTableJPanel.class
@@ -1707,7 +1514,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             this.updateObjFromTable();
             this.removeObjectFromList(name);
             this.updateTableFromObject();
-//            clss.getClassLoader().
 
         } catch (Exception ex) {
             Logger.getLogger(ObjTableJPanel.class

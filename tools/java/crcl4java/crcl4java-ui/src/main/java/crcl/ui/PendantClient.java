@@ -1632,7 +1632,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 781, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 364, Short.MAX_VALUE)
                         .addGap(11, 11, 11))))
         );
         layout.setVerticalGroup(
@@ -1640,14 +1640,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 638, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 506, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jTabbedPaneRightUpper)
+                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 638, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jTabbedPaneLeftUpper, jTabbedPaneRightUpper});
 
         pack();
     }
@@ -2017,13 +2015,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
         g2d.drawImage(baseImage,0,0,null);
         bi.flush();
-//        try {
-//            File f = File.createTempFile("icon", ".png");
-//            System.out.println("f = " + f);
-//            ImageIO.write(bi, "PNG", f);
-//        } catch (IOException ex) {
-//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-//        }
         return bi;
     }
 
@@ -2354,9 +2345,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     jsa.setJointSpeed(BigDecimal.valueOf(Double.valueOf(PendantClient.this.jTextFieldJointJogSpeed.getText())));
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
-//                    SimServerInner.debugCmdSendTime = System.currentTimeMillis();
                     internal.incAndSendCommand(ajst);
-//                    System.out.println("apCount = " + apCount);
                     apCount = 0;
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -2465,7 +2454,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             }
                             return;
                         }
-//                    System.out.println("jtstart is done =" + internal.getStatus().getCommandStatus().getCommandID().compareTo(internal.getCmdId()));
                         MoveToType moveToCmd = new MoveToType();
                         PoseType endPos = new PoseType();
                         endPos.setPoint(new PointType());
@@ -2513,7 +2501,6 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
                             }
                             internal.incAndSendCommand(moveToCmd);
-//                        System.out.println("jt end is done =" + internal.getStatus().getCommandStatus().getCommandID().compareTo(internal.getCmdId()));
                         } else {
                             showMessage("Can't jog when pose == null");
                             jogStop();

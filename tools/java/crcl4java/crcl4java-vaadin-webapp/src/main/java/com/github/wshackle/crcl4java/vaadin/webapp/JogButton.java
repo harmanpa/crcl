@@ -35,18 +35,6 @@ public class JogButton extends AbstractComponent {
     private JogButtonServerRpc rpc = new JogButtonServerRpc() {
         private int clickCount = 0;
         
-//        public void clicked(MouseEventDetails mouseDetails) {
-////            // nag every 5:th click using RPC
-////            if (++clickCount % 5 == 0) {
-////                getRpcProxy(JogButtonClientRpc.class).alert(
-////                        "Ok, that's enough!");
-////            }
-////            // update shared state
-////            getState().text = "You have clicked " + clickCount + " times";
-//            clickCount++;
-//            System.out.println("mouseDetails = " + mouseDetails);
-//            System.out.println("clickCount = " + clickCount);
-//        }
 
         @Override
         public void mousedown() {

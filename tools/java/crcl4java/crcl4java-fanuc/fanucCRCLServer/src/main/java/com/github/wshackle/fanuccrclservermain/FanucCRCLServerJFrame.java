@@ -167,7 +167,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         g2d.setColor(textColor);
         g2d.clearRect(0, 0, d.width, d.height);
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage,0,0,null);
+        g2d.drawImage(baseImage, 0, 0, null);
         bi.flush();
 //        try {
 //            File f = File.createTempFile("icon", ".png");
@@ -179,8 +179,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         return bi;
     }
 
-     public static Image getRobotImage() {
-        Image img=null;
+    public static Image getRobotImage() {
+        Image img = null;
         try {
             img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
         } catch (IOException ex) {
@@ -191,7 +191,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
     private static final Image BASE_IMAGE = getRobotImage();
     private static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
-    
+
     IVar varToWatch = null;
 
     public void updateCartesianLimits(float xMax,
@@ -454,7 +454,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
     private void includeProgram(CRCLProgramType crclProg, ITPProgram prog, Map<Integer, PmXyzWpr> posMap) {
         BigInteger cmdId = BigInteger.ONE;
-        System.out.println("includeProgram called for " + prog.name());
         if (crclProg.getMiddleCommand().size() > 0) {
             cmdId = crclProg.getMiddleCommand().get(crclProg.getMiddleCommand().size() - 1).getCommandID();
         }
@@ -471,7 +470,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        System.out.println("includeProgram returning for " + prog.name());
     }
 
     public JLabel getjLabelStatus() {
@@ -585,7 +583,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                         .map(PmXyzWpr::new)
                         .ifPresent(p -> posMap.put(pos.id(), p));
             }
-            System.out.println("posMap = " + posMap);
             SetLengthUnitsType sluCmd = new SetLengthUnitsType();
             sluCmd.setCommandID(cmdId);
             sluCmd.setUnitName(LengthUnitEnumType.MILLIMETER);
@@ -683,11 +680,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         try {
             if (null != robot1) {
                 String varName = this.jTextFieldSysVarName.getText();
-                System.out.println("varName = " + varName);
                 IVars sysVars = robot1.sysVariables();
-                System.out.println("sysVars = " + sysVars);
                 varToWatch = Optional.ofNullable(sysVars).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
-                System.out.println("varToWatch = " + varToWatch);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -749,7 +743,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         if (lineTxt == null) {
             return true;
         }
-        System.out.println("lineTxt = " + lineTxt);
         lineTxt = lineTxt.trim();
         if (lineTxt.endsWith(";")) {
             lineTxt = lineTxt.substring(0, lineTxt.length() - 1).trim();
@@ -759,53 +752,37 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
         String cmdName = prog.name() + " " + l.number() + " " + cmdId + " " + l.text();
         cmdName = cmdName.trim().replace('(', '_').replace(')', '_').replaceAll("[ \\[\\],.:;/\\\\]+", "_");
-        System.out.println("cmdName = " + cmdName);
         int eqIndex = lineTxt.indexOf('=');
         if (eqIndex > 0 && eqIndex < lineTxt.length() - 1) {
             String lhs = lineTxt.substring(0, eqIndex).trim();
-            System.out.println("lhs = " + lhs);
             String rhs = lineTxt.substring(eqIndex + 1).trim();
             if (rhs.endsWith(";")) {
                 rhs = rhs.substring(0, rhs.length() - 1).trim();
             }
-            System.out.println("rhs = " + rhs);
             if (lhs.startsWith("PR[") && lhs.endsWith("]")) {
                 int cindex = lhs.indexOf(',');
                 Integer lhs_id = 0;
                 if (cindex > 0) {
                     lhs_id = Integer.valueOf(lhs.substring(3, cindex));
-                    System.out.println("lhs_id = " + lhs_id);
-                    System.out.println("old posMap.get(lhs_id) = " + posMap.get(lhs_id));
                     String el_index_string = lhs.substring(cindex + 1, lhs.length() - 1);
-                    System.out.println("el_index_string = " + el_index_string);
                     int el_index = Integer.valueOf(el_index_string);
                     if (rhs.startsWith("(") && rhs.endsWith(")")) {
                         double value = Double.valueOf(rhs.substring(1, rhs.length() - 1));
                         posMap.get(lhs_id).setOne(el_index, value);
-                        System.out.println("el_index = " + el_index);
-                        System.out.println("value = " + value);
-                        System.out.println("new posMap.get(lhs_id) = " + posMap.get(lhs_id));
                     }
                 } else {
                     lhs_id = Integer.valueOf(lhs.substring(3, lhs.length() - 1));
-                    System.out.println("lhs_id = " + lhs_id);
-                    System.out.println("posMap.get(lhs_id) = " + posMap.get(lhs_id));
-                    if (rhs.startsWith("PR[") && rhs.endsWith("]")) {
+                   if (rhs.startsWith("PR[") && rhs.endsWith("]")) {
                         Integer rhs_id = Integer.valueOf(rhs.substring(3, rhs.length() - 1));
-                        System.out.println("rhs_id = " + rhs_id);
-                        System.out.println("posMap.get(rhs_id) = " + posMap.get(rhs_id));
                         posMap.get(lhs_id).setAll(posMap.get(rhs_id));
-                        System.out.println("new posMap.get(lhs_id) = " + posMap.get(lhs_id));
                     }
                 }
             }
             return true;
         } else {
             String parts[] = lineTxt.split("[ \t\r\n]+");
-            System.out.println("parts = " + Arrays.toString(parts));
             if (parts.length > 1 && parts[0].equalsIgnoreCase("call")) {
                 String progToCallName = parts[1];
-                System.out.println("progToCallName = " + progToCallName);
                 if (progToCallName.equalsIgnoreCase("GRIPPER_OPEN") || progToCallName.equalsIgnoreCase("OPEN_GRIPPER")) {
                     SetEndEffectorType seet = new SetEndEffectorType();
                     seet.setSetting(BigDecimal.ONE);
@@ -852,17 +829,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                             crclProg.getMiddleCommand().add(setSpeedCmd);
                             cmdId = cmdId.add(BigInteger.ONE);
                         }
-                        System.out.println("parts = " + Arrays.toString(parts));
                         MoveToType mtt = new MoveToType();
                         mtt.setEndPosition(pose);
                         mtt.setCommandID(cmdId);
                         mtt.setName(cmdName);
                         crclProg.getMiddleCommand().add(mtt);
                         cmdId = cmdId.add(BigInteger.ONE);
-//                        DwellType dwellCmd = new DwellType();
-//                        dwellCmd.setCommandID(cmdId);
-//                        dwellCmd.setDwellTime(BigDecimal.valueOf(0.25));
-//                        crclProg.getMiddleCommand().add(dwellCmd);
                     }
                 }
             }
@@ -1316,8 +1288,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonAbortAllTasksActionPerformed
 
     private void jCheckBoxEditCartesianLimitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEditCartesianLimitsActionPerformed
-        if(!this.jCheckBoxEditCartesianLimits.isSelected()) {
-            
+        if (!this.jCheckBoxEditCartesianLimits.isSelected()) {
+
             this.updateCartLimits(true);
 //            this.jTableCartesianLimits.
         }
@@ -1328,7 +1300,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonClearErrorsActionPerformed
 
     private void jCheckBoxEditJointLimitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEditJointLimitsActionPerformed
-        if(!this.jCheckBoxEditJointLimits.isSelected()) {
+        if (!this.jCheckBoxEditJointLimits.isSelected()) {
             this.updateJointLimits(true);
         }
     }//GEN-LAST:event_jCheckBoxEditJointLimitsActionPerformed

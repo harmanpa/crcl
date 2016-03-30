@@ -67,6 +67,7 @@ import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.ProgramPlotter;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -130,9 +131,13 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     static private ProgramPlotter sidePlotter = new ProgramPlotter(ProgramPlotter.View.SIDE);
     static private ProgramPlotter overheadPlotter = new ProgramPlotter(ProgramPlotter.View.OVERHEAD);
+    static private ProgramPlotter transformGroupSidePlotter = new ProgramPlotter(ProgramPlotter.View.SIDE);
+    static private ProgramPlotter transformGroupOverheadPlotter = new ProgramPlotter(ProgramPlotter.View.OVERHEAD);
 
     static final File sideImageDir;
     static final File overheadImageDir;
+    static final File transformGroupSideImageDir;
+    static final File transformGroupOverheadImageDir;
     private static int imgcount = 0;
 
     private static PoseType lastGlobalPoseInImage = null;
@@ -140,14 +145,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     public static void updateImages(CommonInfo newCommonInfo, CommonInfo oldCommonInfo) {
         if (null != newCommonInfo) {
             if (null != newCommonInfo.getCurrentProgram()) {
-                boolean newPose
-                        = globalCurrentPose != null
-                        && (lastGlobalPoseInImage == null
-                        || CRCLPosemath.diffPosesTran(globalCurrentPose, lastGlobalPoseInImage) > 2.0);
-                if (newCommonInfo.getCurrentProgram() != oldCommonInfo.getCurrentProgram()
-                        || newCommonInfo.getProgramIndex() != oldCommonInfo.getProgramIndex()
-                        || newPose) {
-                    try {
+                try {
+                    boolean newPose
+                            = globalCurrentPose != null
+                            && (lastGlobalPoseInImage == null
+                            || CRCLPosemath.diffPosesTran(globalCurrentPose, lastGlobalPoseInImage) > 2.0);
+                    if (newCommonInfo.getCurrentProgram() != oldCommonInfo.getCurrentProgram()
+                            || newCommonInfo.getProgramIndex() != oldCommonInfo.getProgramIndex()
+                            || newPose) {
+
                         imgcount++;
                         String imgCountString = String.format("%06d", imgcount);
                         if (null != globalCurrentPose) {
@@ -162,12 +168,23 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                         BufferedImage overheadImage = overheadPlotter.plotProgram(newCommonInfo.getCurrentProgram(),
                                 newCommonInfo.getProgramIndex());
                         ImageIO.write(overheadImage, "jpg", new File(overheadImageDir, "overhead" + currentDateString() + imgCountString + ".jpg"));
+
                         if (null != globalCurrentPose) {
                             lastGlobalPoseInImage = CRCLPosemath.copy(globalCurrentPose);
                         }
-                    } catch (IOException ex) {
-                        Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    imgcount++;
+                    String transformGroupImgCountString = String.format("%06d", imgcount);
+
+                    BufferedImage transformGroupSideImage = transformGroupSidePlotter.plotProgram(newCommonInfo.getCurrentProgram(),
+                            newCommonInfo.getProgramIndex());
+                    ImageIO.write(transformGroupSideImage, "jpg", new File(transformGroupSideImageDir, "side" + currentDateString() + transformGroupImgCountString + ".jpg"));
+
+                    BufferedImage transformGroupOverheadImage = transformGroupOverheadPlotter.plotProgram(newCommonInfo.getCurrentProgram(),
+                            newCommonInfo.getProgramIndex());
+                    ImageIO.write(transformGroupOverheadImage, "jpg", new File(transformGroupOverheadImageDir, "overhead" + currentDateString() + transformGroupImgCountString + ".jpg"));
+                } catch (IOException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -217,7 +234,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button currentToProgamButton = new Button("Copy Current Position to Program");
     private final Button modifyProgramPositionButton = new Button("Modify Program Position");
     private final Resource defaultOverheadImageResource = new ThemeResource("overhead.jpg");
-    private final Image overHeadImage = new Image("Overhead", defaultOverheadImageResource);
+    private final Image overheadImage = new Image("Overhead", defaultOverheadImageResource);
     private final Resource defaultSideImageResource = new ThemeResource("side.jpg");
     private final Image sideImage = new Image("Side", defaultSideImageResource);
     private static File tempDir = null;
@@ -315,7 +332,21 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
     private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
-    private final Slider minXSlider = new Slider();
+    private final Slider minXSlider = new Slider("Min X");
+    private final Slider maxXSlider = new Slider("Max X");
+    private final Slider minYSlider = new Slider("Min Y");
+    private final Slider maxYSlider = new Slider("Max Y");
+    private final Slider minZSlider = new Slider("Min Z");
+    private final Slider maxZSlider = new Slider("Max Z");
+
+    private final Resource transformGroupOverheadImageResource = new ThemeResource("overhead.jpg");
+    private final Image transformGroupOverheadImage = new Image("Overhead", transformGroupOverheadImageResource);
+    private final Resource transformGroupSideImageResource = new ThemeResource("side.jpg");
+    private final Image transformGroupSideImage = new Image("Side", transformGroupSideImageResource);
+    private final Button transformGroupResetButton = new Button("Reset");
+
+    private final Table transformMinPosTable = new Table("Minimum");
+    private final Table transformMaxPosTable = new Table("Maximum");
 
     static {
         String tempDirProp = System.getProperty("temp.dir");
@@ -351,6 +382,22 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             System.out.println("f = " + f);
             f.delete();
         }
+        transformGroupSideImageDir = new File(tempDir, "transformGroup/side");
+        transformGroupSideImageDir.mkdirs();
+        System.out.println("sideImageDir = " + transformGroupSideImageDir);
+        for (File f : transformGroupSideImageDir.listFiles()) {
+            System.out.println("f = " + f);
+            f.delete();
+        }
+        transformGroupOverheadImageDir = new File(tempDir, "transformGroup/overhead");
+        transformGroupOverheadImageDir.mkdirs();
+        System.out.println("overheadImageDir = " + transformGroupSideImageDir);
+        for (File f : transformGroupSideImageDir.listFiles()) {
+            System.out.println("f = " + f);
+            f.delete();
+        }
+        transformGroupOverheadPlotter.setDimension(new Dimension(400, 400));
+        transformGroupSidePlotter.setDimension(new Dimension(400, 400));
         browserMap = new HashMap<>();
     }
 
@@ -579,6 +626,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     } catch (ParserConfigurationException | SAXException | IOException ex) {
                         Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    resetTransformGroup();
                 } else {
                     Item item = progTable.getItem(program_index);
                     if (null != item) {
@@ -738,6 +786,16 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         return sdf.format(new Date());
     }
 
+    static private boolean acceptPose(PmCartesian min, PmCartesian max, PoseType pose) {
+        PointType pt = pose.getPoint();
+        return pt.getX().doubleValue() >= min.x 
+                && pt.getX().doubleValue() <= max.x
+                && pt.getY().doubleValue() >= min.y
+                && pt.getY().doubleValue() <= max.y
+                && pt.getZ().doubleValue() >= min.z
+                && pt.getZ().doubleValue() <= max.z;
+    }
+
     private void transformProgram() {
         try {
             CRCLSocket tmpsocket = socket;
@@ -758,7 +816,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 newProgName = newProgName.substring(0, transformedIndex);
             }
             newProgName += ".transformed." + currentDateString() + ".xml";
-            CRCLProgramType newProgram = CRCLPosemath.transformProgram(transformPose, commonInfo.getCurrentProgram());
+            final PmCartesian min = this.getPmPointFromTable(this.transformMinPosTable);
+            final PmCartesian max = this.getPmPointFromTable(this.transformMaxPosTable);
+            CRCLProgramType newProgram = CRCLPosemath.transformProgramWithFilter(transformPose,
+                    commonInfo.getCurrentProgram(),
+                    pose -> acceptPose(min,max,pose));
             try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
                 fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
             } catch (IOException | JAXBException ex) {
@@ -913,6 +975,45 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         });
     }
 
+    public void resetTransformGroup() {
+        this.minXSlider.setValue(this.minXSlider.getMin());
+        this.minYSlider.setValue(this.minYSlider.getMin());
+        this.minZSlider.setValue(this.minZSlider.getMin());
+        this.maxXSlider.setValue(this.maxXSlider.getMax());
+        this.maxYSlider.setValue(this.maxYSlider.getMax());
+        this.maxZSlider.setValue(this.maxZSlider.getMax());
+        for (int i = 0; i < transformGroupOverheadPlotter.getSelectionMin().length; i++) {
+            transformGroupOverheadPlotter.getSelectionMin()[i] = 0.0;
+        }
+        for (int i = 0; i < transformGroupOverheadPlotter.getSelectionMax().length; i++) {
+            transformGroupOverheadPlotter.getSelectionMax()[i] = 1.0;
+        }
+        for (int i = 0; i < transformGroupSidePlotter.getSelectionMin().length; i++) {
+            transformGroupSidePlotter.getSelectionMin()[i] = 0.0;
+        }
+        for (int i = 0; i < transformGroupSidePlotter.getSelectionMax().length; i++) {
+            transformGroupSidePlotter.getSelectionMax()[i] = 1.0;
+        }
+        this.updateTransformGroup();
+    }
+
+    public void updateTransformGroup() {
+        updateImages(commonInfo, commonInfo);
+        if (transformGroupOverheadPlotter.hasFiniteBounds() && transformGroupSidePlotter.hasFiniteBounds()) {
+            loadPointToTable(CRCLPosemath.toPointType(
+                    new PmCartesian(transformGroupOverheadPlotter.getXMin(),
+                            transformGroupOverheadPlotter.getYMin(),
+                            transformGroupSidePlotter.getZMin())),
+                    transformMinPosTable);
+            loadPointToTable(CRCLPosemath.toPointType(
+                    new PmCartesian(transformGroupOverheadPlotter.getXMax(),
+                            transformGroupOverheadPlotter.getYMax(),
+                            transformGroupSidePlotter.getZMax())),
+                    transformMaxPosTable);
+        }
+        checkImageDirs();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
@@ -951,7 +1052,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final VerticalLayout jogJointRightLayout = new VerticalLayout();
         final VerticalLayout remoteProgramsLayout = new VerticalLayout();
         final VerticalLayout transformLayout = new VerticalLayout();
-        final VerticalLayout tranformGroupSetupLayout = new VerticalLayout();
 
         mainLayout.setSpacing(true);
         jogJointLayout.setSpacing(true);
@@ -962,11 +1062,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         mainNavButton.addClickListener(l -> panel.setContent(mainLayout));
         remoteProgramsNavButton.addClickListener(l -> panel.setContent(remoteProgramsLayout));
         transformNavButton.addClickListener(l -> panel.setContent(transformLayout));
-        
-        tranformGroupSetupLayout.setSpacing(true);
-        minXSlider.setHeight("200px");
-        minXSlider.setWidth("600px");
-        tranformGroupSetupLayout.addComponent(minXSlider);
+
         panel.setContent(mainLayout);
         mainLayout.setMargin(true);
         setContent(navLayout);
@@ -980,7 +1076,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         HorizontalLayout imageLine = new HorizontalLayout();
         imageLine.setSpacing(true);
-        imageLine.addComponent(overHeadImage);
+        imageLine.addComponent(overheadImage);
         imageLine.addComponent(sideImage);
         middleLayout.addComponent(imageLine);
         HorizontalLayout posRotateLine = new HorizontalLayout();
@@ -1045,7 +1141,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         progTable.setSelectable(true);
 
         progTable.addItemClickListener(e -> setCommonInfo(CommonInfo.withProgramIndex(commonInfo, (int) e.getItemId())));
-        
+
         VerticalLayout transformSetupLayout = new VerticalLayout();
         VerticalLayout transformGroupLayout = new VerticalLayout();
         Panel transformPanel = new Panel();
@@ -1057,10 +1153,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         transformNavButtonLayout.addComponent(transformGroupNavButton);
         transformLayout.addComponent(transformNavButtonLayout);
         transformLayout.addComponent(transformPanel);
-        
+
         transformSetupNavButton.addClickListener(l -> transformPanel.setContent(transformSetupLayout));
         transformGroupNavButton.addClickListener(l -> transformPanel.setContent(transformGroupLayout));
-        
+
         GridLayout posGridLayout = new GridLayout(2, 2);
         posGridLayout.setSpacing(true);
         VerticalLayout livePos1VLayout = new VerticalLayout();
@@ -1130,6 +1226,90 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         flipXAxisButton.addClickListener(e -> flipXAxis());
         transformSetupLayout.addComponent(applyLine);
         transformPanel.setContent(transformSetupLayout);
+
+        HorizontalLayout transformGroupImageLine = new HorizontalLayout();
+        transformGroupImageLine.setSpacing(true);
+        transformGroupImageLine.addComponent(transformGroupOverheadImage);
+        transformGroupImageLine.addComponent(transformGroupSideImage);
+        transformGroupLayout.addComponent(transformGroupImageLine);
+
+        HorizontalLayout transformGroupLowerLayout = new HorizontalLayout();
+        VerticalLayout transformGroupLowerLeftLayout = new VerticalLayout();
+        VerticalLayout transformGroupLowerRightLayout = new VerticalLayout();
+
+        minXSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupOverheadPlotter.getSelectionMin()[0] = minXSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+        maxXSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupOverheadPlotter.getSelectionMax()[0] = maxXSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+        minYSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupOverheadPlotter.getSelectionMin()[1] = minYSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+        maxYSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupOverheadPlotter.getSelectionMax()[1] = maxYSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+        minZSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupSidePlotter.getSelectionMin()[2] = minZSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+        maxZSlider.addListener(new Listener() {
+            @Override
+            public void componentEvent(Event event) {
+                transformGroupSidePlotter.getSelectionMax()[2] = maxZSlider.getValue() / 100.0;
+                updateTransformGroup();
+            }
+        });
+
+        minXSlider.setWidth("600px");
+
+        transformGroupLowerLeftLayout.addComponent(minXSlider);
+
+        maxXSlider.setWidth("600px");
+        maxXSlider.setValue(100.0);
+        transformGroupLowerLeftLayout.addComponent(maxXSlider);
+        minYSlider.setWidth("600px");
+        transformGroupLowerLeftLayout.addComponent(minYSlider);
+        maxYSlider.setWidth("600px");
+        maxYSlider.setValue(100.0);
+        transformGroupLowerLeftLayout.addComponent(maxYSlider);
+        minZSlider.setWidth("600px");
+        transformGroupLowerLeftLayout.addComponent(minZSlider);
+        maxZSlider.setWidth("600px");
+        maxZSlider.setValue(100.0);
+        transformGroupLowerLeftLayout.addComponent(maxZSlider);
+
+        transformGroupLowerLayout.addComponent(transformGroupLowerLeftLayout);
+
+        setupPosTable(this.transformMinPosTable);
+        transformGroupLowerRightLayout.addComponent(this.transformMinPosTable);
+        setupPosTable(this.transformMaxPosTable);
+        transformGroupLowerRightLayout.addComponent(this.transformMaxPosTable);
+
+        transformGroupLowerLayout.addComponent(transformGroupLowerRightLayout);
+        transformGroupLayout.addComponent(transformGroupLowerLayout);
+        transformGroupResetButton.addClickListener(e -> resetTransformGroup());
+        transformGroupLayout.addComponent(this.transformGroupResetButton);
+
         runButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(ClickEvent event) {
@@ -2414,8 +2594,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                         final Resource res = new FileResource(max_last_modified_File);
                         CrclClientUI.this.access(() -> {
                             try {
-                                overHeadImage.setSource(res);
-                                overHeadImage.markAsDirty();
+                                overheadImage.setSource(res);
+                                overheadImage.markAsDirty();
                             } catch (Exception e) {
                                 LOGGER.log(Level.SEVERE, null, e);
                             }
@@ -2445,6 +2625,67 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             try {
                                 sideImage.setSource(res);
                                 sideImage.markAsDirty();
+                            } catch (Exception e) {
+                                LOGGER.log(Level.SEVERE, null, e);
+                            }
+                        });
+                    }
+                }
+            }
+
+            if (null != tempDir) {
+                File dirOverhead = transformGroupOverheadImageDir;
+                long max_last_modified = 0;
+                File max_last_modified_File = null;
+                if (dirOverhead.exists()) {
+                    for (File f : dirOverhead.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified < last_modified) {
+                            max_last_modified = last_modified;
+                            max_last_modified_File = f;
+                        }
+                    }
+                    for (File f : dirOverhead.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified > last_modified + 2000) {
+                            f.delete();
+                        }
+                    }
+                    if (null != max_last_modified_File) {
+                        final Resource res = new FileResource(max_last_modified_File);
+                        CrclClientUI.this.access(() -> {
+                            try {
+                                transformGroupOverheadImage.setSource(res);
+                                transformGroupOverheadImage.markAsDirty();
+                            } catch (Exception e) {
+                                LOGGER.log(Level.SEVERE, null, e);
+                            }
+                        });
+                    }
+                }
+                File dirSide = transformGroupSideImageDir;
+                max_last_modified = 0;
+                max_last_modified_File = null;
+                if (dirSide.exists()) {
+                    for (File f : dirSide.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified < last_modified) {
+                            max_last_modified = last_modified;
+                            max_last_modified_File = f;
+                        }
+                    }
+                    for (File f : dirSide.listFiles()) {
+                        long last_modified = f.lastModified();
+                        if (max_last_modified > last_modified + 2000) {
+                            f.delete();
+                        }
+                    }
+                    if (null != max_last_modified_File) {
+                        final Resource res = new FileResource(max_last_modified_File);
+                        CrclClientUI.this.access(() -> {
+                            try {
+                                transformGroupSideImage.setSource(res);
+                                transformGroupSideImage.markAsDirty();
                             } catch (Exception e) {
                                 LOGGER.log(Level.SEVERE, null, e);
                             }

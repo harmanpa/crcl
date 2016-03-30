@@ -278,30 +278,21 @@ public class SimulatedKinematicsPlausible {
         double cy = Math.cos(Math.toRadians(angle));
         double sy = Math.sin(Math.toRadians(angle));
 
-        //System.err.println("jv = " + Arrays.toString(jv));
-        //System.err.println("angle = " + angle);
-        //System.err.println("rx = " + Arrays.deepToString(rx));
-        //printRot9x9(rx);
+        
         double[][] ry
                 = {
                     {cy, 0.0, sy},
                     {0.0, 1.0, 0.0},
                     {-sy, 0.0, cy},};
-        //System.err.println("ry = " + Arrays.deepToString(ry));
-        //printRot9x9(ry);
+        
         double[][] rz
                 = {
                     {cz, sz, 0.0},
                     {-sz, cz, 0.0},
                     {0.0, 0.0, 1.0},};
-        //System.err.println("rz = " + Arrays.deepToString(rz));
-        //printRot9x9(rz);
+        
         double[][] Ryz = rot9x9mult(ry, rz);
-        //System.err.println("Rxy = " + Arrays.deepToString(Rxy));
-        //printRot9x9(Rxy);
-
-        //System.err.println("R = " + Arrays.deepToString(R));
-        //printRot9x9(R);
+        
         VectorType xunitv = pose.getXAxis();
         if (null == xunitv) {
             xunitv = new VectorType();
@@ -309,8 +300,7 @@ public class SimulatedKinematicsPlausible {
         xunitv.setI(BigDecimal.valueOf(Ryz[0][0]));
         xunitv.setJ(BigDecimal.valueOf(Ryz[0][1]));
         xunitv.setK(BigDecimal.valueOf(Ryz[0][2]));
-//        //System.out.println("xunitv = " + xunitv);
-        //System.err.println("xunitv.getK().doubleValue() = " + xunitv.getK().doubleValue());
+
         pose.setXAxis(xunitv);
         VectorType zunitv = pose.getZAxis();
         if (null == zunitv) {

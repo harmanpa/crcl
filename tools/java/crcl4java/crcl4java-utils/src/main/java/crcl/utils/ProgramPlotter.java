@@ -54,7 +54,6 @@ import rcs.posemath.PmCartesian;
  /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
-
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -102,6 +101,18 @@ public class ProgramPlotter {
 
     private Rectangle2D.Double bounds = new Rectangle2D.Double(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 
+    private static boolean isFinite(double x) {
+        return !Double.isInfinite(x) && !Double.isNaN(x);
+    }
+
+    public boolean hasFiniteBounds() {
+        return null != bounds
+                && isFinite(bounds.x)
+                && isFinite(bounds.y)
+                && isFinite(bounds.width)
+                && isFinite(bounds.height);
+    }
+
     /**
      * Get the value of bounds
      *
@@ -118,6 +129,28 @@ public class ProgramPlotter {
      */
     public void setBounds(Rectangle2D.Double bounds) {
         this.bounds = bounds;
+    }
+
+    private final double[] selectionMin = new double[]{0.0, 0.0, 0.0};
+
+    /**
+     * Get the value of selectionMin
+     *
+     * @return the value of selectionMin
+     */
+    public double[] getSelectionMin() {
+        return selectionMin;
+    }
+
+    private final double[] selectionMax = new double[]{1.0, 1.0, 1.0};
+
+    /**
+     * Get the value of selectionMax
+     *
+     * @return the value of selectionMax
+     */
+    public double[] getSelectionMax() {
+        return selectionMax;
     }
 
     public Rectangle2D.Double findBounds(CRCLProgramType program) {
@@ -153,7 +186,7 @@ public class ProgramPlotter {
         return rect;
     }
 
-    private int xMargin = 50;
+    private int xMargin = 40;
 
     /**
      * Get the value of xMargin
@@ -173,7 +206,7 @@ public class ProgramPlotter {
         this.xMargin = xMargin;
     }
 
-    private int yMargin = 50;
+    private int yMargin = 40;
 
     /**
      * Get the value of yMargin
@@ -358,8 +391,6 @@ public class ProgramPlotter {
 
     private Color currentPointColor = Color.red.darker();
 
-    ;
-
     /**
      * Get the value of currentPointColor
      *
@@ -378,6 +409,46 @@ public class ProgramPlotter {
         this.currentPointColor = currentPointColor;
     }
 
+    private Color marginColor = new Color(100, 100, 100);
+
+    /**
+     * Get the value of marginColor
+     *
+     * @return the value of marginColor
+     */
+    public Color getMarginColor() {
+        return marginColor;
+    }
+
+    /**
+     * Set the value of marginColor
+     *
+     * @param marginColor new value of marginColor
+     */
+    public void setMarginColor(Color marginColor) {
+        this.marginColor = marginColor;
+    }
+
+    private Color outerColor = new Color(100, 100, 100, 100);
+
+    /**
+     * Get the value of outerColor
+     *
+     * @return the value of outerColor
+     */
+    public Color getOuterColor() {
+        return outerColor;
+    }
+
+    /**
+     * Set the value of outerColor
+     *
+     * @param outerColor new value of outerColor
+     */
+    public void setOuterColor(Color outerColor) {
+        this.outerColor = outerColor;
+    }
+
     public void paint(CRCLProgramType program, Graphics2D g2d, int programIndex) {
         if (autoScale || null == bounds) {
             setBounds(findBounds(program));
@@ -393,13 +464,27 @@ public class ProgramPlotter {
                 (dimension.height - yMargin) / bounds.height);
         g2d.setBackground(background);
         g2d.clearRect(0, 0, dimension.width, dimension.height);
+        g2d.setColor(marginColor);
+        double fullMarginWidth = dimension.width - bounds.width * scale;
+        double fullMarginHeight = dimension.height - bounds.height * scale;
+
+        Rectangle2D.Double marginLeft = new Rectangle2D.Double(0, 0, fullMarginWidth / 2, dimension.height);
+        g2d.fill(marginLeft);
+        Rectangle2D.Double marginUpper = new Rectangle2D.Double(0, 0,
+                dimension.width, fullMarginHeight / 2);
+        g2d.fill(marginUpper);
+        Rectangle2D.Double marginRight = new Rectangle2D.Double(dimension.width - fullMarginWidth / 2,
+                0, fullMarginWidth / 2, dimension.height);
+        g2d.fill(marginRight);
+        Rectangle2D.Double marginBottom = new Rectangle2D.Double(0, dimension.height - fullMarginHeight / 2,
+                dimension.width, fullMarginHeight / 2);
+        g2d.fill(marginBottom);
+
         g2d.translate(0, dimension.height);
         g2d.scale(scale, -scale);
-        g2d.translate(-bounds.x + xMargin / (2 * scale) + widthUnder / 2.0,
-                -bounds.y + yMargin / (2 * scale) + heightUnder / 2.0);
+        g2d.translate(-bounds.x + fullMarginWidth / (2 * scale),
+                -bounds.y + fullMarginHeight / (2 * scale));
 
-//        g2d.setColor(Color.pink);
-//        g2d.draw(bounds);
         Point2D.Double lastPoint = null;
         final double pointSize = Math.max(dimension.width, dimension.height) / 30.0;
         final double halfPointSize = pointSize / 2.0;
@@ -446,6 +531,27 @@ public class ProgramPlotter {
                 } else {
                     g2d.setColor(beforeIndexPointColor);
                 }
+                if (view == View.OVERHEAD) {
+                    if (nextPoint.x > getXMax()) {
+                        continue;
+                    }
+                    if (nextPoint.x < getXMin()) {
+                        continue;
+                    }
+                    if (nextPoint.y > getYMax()) {
+                        continue;
+                    }
+                    if (nextPoint.y < getYMin()) {
+                        continue;
+                    }
+                } else {
+                    if (nextPoint.y > getZMax()) {
+                        continue;
+                    }
+                    if (nextPoint.y < getZMin()) {
+                        continue;
+                    }
+                }
                 g2d.fill(new Arc2D.Double(nextPoint.x - halfPointSize, nextPoint.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
             }
         }
@@ -472,6 +578,61 @@ public class ProgramPlotter {
             g2d.setColor(currentPointColor);
             paintCrossHairs(g2d, currentPoint2D, halfPointSize, pointSize, scale, heightUnder, widthUnder);
         }
+
+        if (view == View.OVERHEAD) {
+            g2d.setColor(outerColor);
+            Rectangle2D.Double outerleft = new Rectangle2D.Double(bounds.x, bounds.y,
+                    selectionMin[0] * bounds.width,
+                    bounds.height);
+            g2d.fill(outerleft);
+            Rectangle2D.Double outerRight = new Rectangle2D.Double(getXMax(), bounds.y,
+                    bounds.width - selectionMax[0] * bounds.width,
+                    bounds.height);
+            g2d.fill(outerRight);
+            Rectangle2D.Double outerTop = new Rectangle2D.Double(bounds.x, bounds.y,
+                    bounds.width,
+                    selectionMin[1] * bounds.height);
+            g2d.fill(outerTop);
+            Rectangle2D.Double outerBottom = new Rectangle2D.Double(bounds.x, getYMax(),
+                    bounds.width,
+                    bounds.height - selectionMax[1] * bounds.height);
+            g2d.fill(outerBottom);
+        } else {
+            g2d.setColor(outerColor);
+
+            Rectangle2D.Double outerTop = new Rectangle2D.Double(bounds.x, bounds.y,
+                    bounds.width,
+                    selectionMin[2] * bounds.height);
+            g2d.fill(outerTop);
+            Rectangle2D.Double outerBottom = new Rectangle2D.Double(bounds.x, getZMax(),
+                    bounds.width,
+                    bounds.height - selectionMax[2] * bounds.height);
+            g2d.fill(outerBottom);
+        }
+    }
+
+    public double getXMax() {
+        return bounds.x + selectionMax[0] * bounds.width;
+    }
+
+    public double getYMax() {
+        return bounds.y + bounds.height * selectionMax[1];
+    }
+
+    public double getZMax() {
+        return bounds.y + bounds.height * selectionMax[2];
+    }
+
+    public double getXMin() {
+        return bounds.x + selectionMin[0] * bounds.width;
+    }
+
+    public double getYMin() {
+        return bounds.y + bounds.height * selectionMin[1];
+    }
+
+    public double getZMin() {
+        return bounds.y + bounds.height * selectionMin[2];
     }
 
     public void paintCrossHairs(Graphics2D g2d, Point2D.Double currentPoint2D, final double halfPointSize, final double pointSize, double scale, double heightUnder, double widthUnder) {
@@ -492,11 +653,17 @@ public class ProgramPlotter {
         CRCLSocket cs = new CRCLSocket();
         CRCLProgramType program = CRCLSocket.readProgramFile("../crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
         PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
-        ppOverHead.setCurrentPoint(pt);
+        ppOverHead.getSelectionMin()[0] = 0.2;
+        ppOverHead.getSelectionMax()[0] = 0.8;
+        ppOverHead.getSelectionMin()[1] = 0.2;
+        ppOverHead.getSelectionMax()[1] = 0.8;
+//        ppOverHead.setCurrentPoint(pt);
         BufferedImage biOverhead = ppOverHead.plotProgram(program, 0);
         ImageIO.write(biOverhead, "jpg", new File("overhead.jpg"));
         ProgramPlotter ppSide = new ProgramPlotter(View.SIDE);
-        ppSide.setCurrentPoint(pt);
+//        ppSide.setCurrentPoint(pt);
+        ppSide.getSelectionMin()[2] = 0.2;
+        ppSide.getSelectionMax()[2] = 0.8;
         ppSide.setAutoScale(true);
         BufferedImage biSide = ppSide.plotProgram(program, 0);
         ImageIO.write(biSide, "jpg", new File("side.jpg"));

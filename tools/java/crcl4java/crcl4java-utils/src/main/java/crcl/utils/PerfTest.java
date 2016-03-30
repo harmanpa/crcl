@@ -58,9 +58,7 @@ import java.util.logging.Logger;
  * checks. This file can be compiled without the Checker Framework, but using
  * the framework allows potential NullPointerExceptions to be found.
  */
-
-
-/*>>>
+ /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
 public class PerfTest {
@@ -108,17 +106,7 @@ public class PerfTest {
         MinMaxAvg ff0 = runPerfTest(false, false, 200);
         MinMaxAvg ft = runPerfTest(false, true, 25000);
         MinMaxAvg ff = runPerfTest(false, false, 25000);
-//        MinMaxAvg tt0 = runPerfTest(true, true, 200);
-//        MinMaxAvg tt = runPerfTest(true, true, 25000);
-//        MinMaxAvg tf0 = runPerfTest(true, false, 200);
-//        MinMaxAvg tf = runPerfTest(true, false, 25000);
-//        System.out.println("useExi,validate,\tmin    ,\tmax    ,\tavg");
-//        if (null != tt) {
-//            System.out.println("true,  true,    " + tt.toStringCsv());
-//        }
-//        if (null != tf) {
-//            System.out.println("true,  false,   " + tf.toStringCsv());
-//        }
+
         if (null != ft) {
             System.out.println("false, true,    " + ft.toStringCsv());
         }
@@ -175,17 +163,10 @@ public class PerfTest {
             csTst.setReplaceHeader(true);
             CRCLStatusType stat0 = createStatus();
             String xmlS = csTst.statusToString(stat0, validate);
-//            System.out.println("Starting runPerfTest(" + enableEXI + ") ...");
-//            System.out.println("enableEXI = " + enableEXI);
-//            System.out.println("xmlS = " + xmlS);
-//            System.out.println("xmlS.length() = " + xmlS.length());
-//            byte ba[] = csTst.statusToEXI(stat0);
-//            System.out.println("ba.length = " + ba.length);
-//            System.out.println("ba = " + Arrays.toString(ba));
+
             final List<Socket> sockets = new ArrayList<>();
             final ExecutorService exServ = Executors.newCachedThreadPool();
             ss = new ServerSocket(44004);
-//            System.out.println("ss.getLocalPort() = " + ss.getLocalPort());
             final ServerSocket ssf = ss;
             exServ.execute(new Runnable() {
 
@@ -196,7 +177,6 @@ public class PerfTest {
                             Socket s = ssf.accept();
                             sockets.add(s);
                             final CRCLSocket cs = new CRCLSocket(s);
-//                            cs.setEXIEnabled(enableEXI);
                             final CRCLStatusType status = createStatus();
                             exServ.execute(new Runnable() {
 
@@ -213,7 +193,6 @@ public class PerfTest {
                                             cs.writeStatus(status, validate);
                                         }
                                     } catch (Exception ex) {
-//                                        Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
                                     } finally {
                                         try {
                                             cs.close();
@@ -225,7 +204,6 @@ public class PerfTest {
                             });
                         } catch (Exception ex) {
                             if (null != ssf && !ssf.isClosed()) {
-//                                Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
 
@@ -249,7 +227,6 @@ public class PerfTest {
             double sum_diff2 = 0;
             long diff_min = Long.MAX_VALUE;
             try (CRCLSocket cs = new CRCLSocket("localhost", ss.getLocalPort())) {
-//                cs.setEXIEnabled(enableEXI);
                 CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
                 GetStatusType getStatus = new GetStatusType();
                 getStatus.setCommandID(BigInteger.ONE);
@@ -258,10 +235,8 @@ public class PerfTest {
                 for (int i = 0; i < repeats; i++) {
                     long t1 = System.nanoTime();
                     getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
-//                    System.out.println("getStatus.getCommandID() = " + getStatus.getCommandID());
                     cs.writeCommand(cmdInstance, validate);
                     CRCLStatusType stat = cs.readStatus(validate);
-//                    System.out.println("stat.getCommandStatus().getCommandID() = " + stat.getCommandStatus().getCommandID());
                     if (stat.getCommandStatus().getCommandID().compareTo(getStatus.getCommandID()) != 0) {
                         throw new RuntimeException("Command ID doesn't match : "
                                 + stat.getCommandStatus().getCommandID() + " != " + getStatus.getCommandID());

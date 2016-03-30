@@ -138,13 +138,6 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
         g2d.drawImage(baseImage,0,0,null);
         bi.flush();
-//        try {
-//            File f = File.createTempFile("icon", ".png");
-//            System.out.println("f = " + f);
-//            ImageIO.write(bi, "PNG", f);
-//        } catch (IOException ex) {
-//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-//        }
         return bi;
     }
 

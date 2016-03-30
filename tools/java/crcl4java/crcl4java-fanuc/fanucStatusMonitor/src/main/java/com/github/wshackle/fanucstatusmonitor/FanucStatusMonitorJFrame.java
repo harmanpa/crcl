@@ -284,7 +284,6 @@ public class FanucStatusMonitorJFrame extends javax.swing.JFrame {
             try {
                 IVar iv = c4jo.queryInterface(IVar.class);
                 if (null != iv && iv.isInitialized()) {
-                    System.out.println(path + iv.varName() + "=" + iv.value());
                     map.put(path + iv.varName(), iv);
                 }
             } catch (Exception e) {
@@ -303,7 +302,6 @@ public class FanucStatusMonitorJFrame extends javax.swing.JFrame {
             int last_reset_count = 0;
             int num_updates = 0;
             while (!Thread.currentThread().isInterrupted()) {
-                //System.out.println("ir = " + robot)
                 if (null != robot) {
                     robot.dispose();
                     robot = null;
@@ -330,7 +328,6 @@ public class FanucStatusMonitorJFrame extends javax.swing.JFrame {
 
                     @Override
                     public void connect() {
-//                        System.out.println("robot connect");
                     }
                 });
                 robot.connect(host);
@@ -391,18 +388,9 @@ public class FanucStatusMonitorJFrame extends javax.swing.JFrame {
                         .map(a -> new Object[]{a.timeStamp(), a.errorMnemonic(), a.errorMessage(), a.causeMessage()})
                         .collect(Collectors.toList());
                 final Object[][] olddata = oldDataList.toArray(new Object[oldDataList.size()][]);
-//                IVars sysvars = robot.sysVariables();
-//                Map<String,IVar> map = flatMap("",sysvars);
-//                List<Object[]> sysvardataList = 
-//                        map.entrySet()
-//                        .stream()
-//                        .map(e -> new Object[]{e.getKey(),e.getValue().value()})
-//                        .collect(Collectors.toList());
-//                final Object[][] sysysvardata = sysvardataList.toArray(new Object[sysvardataList.size()][]);
                 java.awt.EventQueue.invokeLater(() -> {
                     jTableNewAlarms.setModel(new DefaultTableModel(data, new Object[]{"timestamp", "error", "message", "cause"}));
                     jTableOldAlarms.setModel(new DefaultTableModel(olddata, new Object[]{"timestamp", "error", "message", "cause"}));
-//                    jTableSysVars.setModel(new DefaultTableModel(sysysvardata, new Object[]{"name", "value"}));
                     jTextFieldLastReset.setText(lastResetDate.toString());
                     jTextFieldNumUpdates.setText("" + nu);
                     jTextFieldLastUpdate.setText(new Date().toString());

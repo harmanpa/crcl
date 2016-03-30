@@ -451,7 +451,16 @@ public class CRCLPosemath {
         return pt;
     }
 
+    public static interface PoseFilter {
+        public boolean test(PoseType pose);
+    }
+        
     public static CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
+        return transformProgramWithFilter(pose,programIn,null);
+    }
+    public static CRCLProgramType transformProgramWithFilter(PoseType pose, 
+            CRCLProgramType programIn,
+            PoseFilter filter) {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
@@ -472,7 +481,11 @@ public class CRCLPosemath {
                 } else {
                     moveToCmdOut.setCommandID(id);
                 }
-                moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
+                if(null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
+                    moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
+                } else {
+                    moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
+                }
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
             } else {
@@ -696,7 +709,6 @@ public class CRCLPosemath {
             Posemath.pmQuatCartMult(pout.rot, ac, ac_out);
             Posemath.pmCartCartSub(bc, ac_out, pout.tran);
             pout.tran.z = (b2.z + b1.z - a1.z - a2.z) / 2.0;
-//            System.out.println("pout = " + pout);
             return pout;
         } catch (PmException e) {
             throw new CRCLException(e);

@@ -730,16 +730,9 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public static void main(String[] args) {
-        File[] schemaFiles = findSchemaFiles();
-        System.out.println("schemaFiles = " + Arrays.toString(schemaFiles));
-    }
 
     private UnaryOperator<String> statusStringInputFilter = STRING_IDENTITY_OPERATOR;
     private UnaryOperator<String> statusStringOutputFilter = STRING_IDENTITY_OPERATOR;
-    //    public static String DEFAULT_XML_HEADER_OVERRIDE
-//            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-//    private String xmlHeader = DEFAULT_XML_HEADER_OVERRIDE;
     private boolean jaxbFragment = DEFAULT_JAXB_FRAGMENT;
     /*@Nullable*/ protected final Socket sock;
     /*@Nullable*/ private String lastStatusString = null;
@@ -1036,10 +1029,8 @@ public class CRCLSocket implements AutoCloseable {
     public void close() throws IOException {
 
         exiCommandInSaxSource = null;
-//        System.out.println("bufferedInputStream = " + bufferedInputStream);
         if (null != bufferedInputStream) {
             try {
-//                System.out.println("calling bufferedInputStream.close()");
                 bufferedInputStream.close();
             } catch (Exception e) {
             }
@@ -1154,11 +1145,6 @@ public class CRCLSocket implements AutoCloseable {
         }
 
         final String str = sb.toString();
-//        if (!str.endsWith("</" + tag + ">")) {
-//            throw new RuntimeException("!str.endsWith(\"</\" + tag + \">\") tag=" + tag + ", skipped=" + skipped + ", str=" + str);
-//        }
-//        LOGGER.log(Level.FINER,
-//                "readUntilEndTag(" + tag + ") called with skipped_str=\"" + skipped_str_f + "\"  from Thread: " + threadName);
         return str;
     }
 
@@ -1295,10 +1281,6 @@ public class CRCLSocket implements AutoCloseable {
 
     public CRCLStatusType readStatusFromStream(final InputStream is, boolean validate) throws JAXBException {
         synchronized (u_stat) {
-//            if (this.statusStringInputFilter != null) {
-//                str = this.statusStringInputFilter.apply(str);
-//            }
-//            lastStatusString = str;
             setUnmarshallerSchema(u_stat, validate ? statSchema : null);
             JAXBElement el = (JAXBElement) u_stat.unmarshal(is);
             CRCLStatusType instance
@@ -1627,7 +1609,6 @@ public class CRCLSocket implements AutoCloseable {
         }
         assert null != sock : "@AssumeAssertion(nullable)";
         OutputStream os = sock.getOutputStream();
-//        String strout = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+str;
         synchronized (os) {
             if (!appendTrailingZero) {
                 this.writePackets(os, str.getBytes());
@@ -1637,8 +1618,6 @@ public class CRCLSocket implements AutoCloseable {
                 System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
                 this.writePackets(os, bytesPlusOne);
             }
-//            os.write(zeroba);
-//            os.write(fill,len,fill.length -len-1);
             os.flush();
         }
     }
@@ -1796,9 +1775,6 @@ public class CRCLSocket implements AutoCloseable {
         if (lpindex > 0 && lpindex < cmdName.length() - 1) {
             cmdName = cmdName.substring(lpindex + 1);
         }
-//        if (null != cmd.getName() && cmd.getName().length() > 0) {
-//            cmdName = cmdName + "(" + cmd.getName() + ")";
-//        }
         String content = handler.toString();
         content = content.trim();
         if (content.length() > max_length) {
