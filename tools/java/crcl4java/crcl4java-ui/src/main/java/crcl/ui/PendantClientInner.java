@@ -1524,8 +1524,10 @@ public class PendantClientInner {
                 if (initCmd.getCommandID() == null) {
                     initCmd.setCommandID(BigInteger.ONE);
                 }
-                if (initCmd.getCommandID().compareTo(lastCommandIdSent) == 0
-                        || status.getCommandStatus().getCommandID().compareTo(initCmd.getCommandID()) == 0) {
+                if ((null != lastCommandIdSent && initCmd.getCommandID().compareTo(lastCommandIdSent) == 0)
+                        || (null != status && null != status.getCommandStatus()
+                        && null != status.getCommandStatus().getCommandID()
+                        && status.getCommandStatus().getCommandID().compareTo(initCmd.getCommandID()) == 0)) {
                     BigInteger max = CRCLPosemath.getMaxId(prog);
                     InitCanonType newInitCmd = new InitCanonType();
                     newInitCmd.setCommandID(max.add(BigInteger.ONE));
@@ -1538,7 +1540,7 @@ public class PendantClientInner {
                 if (stepMode) {
                     pause();
                 }
-                startLine =1;
+                startLine = 1;
             }
             long time_to_exec = System.currentTimeMillis() - programCommandStartTime;
             PmCartesian p1 = getPoseCart();
@@ -1548,7 +1550,7 @@ public class PendantClientInner {
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
             for (int i = startLine; i < middleCommands.size(); i++) {
                 programCommandStartTime = System.currentTimeMillis();
-                MiddleCommandType cmd = middleCommands.get(i-1);
+                MiddleCommandType cmd = middleCommands.get(i - 1);
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {

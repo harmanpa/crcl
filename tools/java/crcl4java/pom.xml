@@ -257,6 +257,12 @@
             </modules>
         </profile>
         <profile> 
+            <id>withweb</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>release</id>
             <modules>
                 <module>crcl4java-vaadin-webapp</module>
