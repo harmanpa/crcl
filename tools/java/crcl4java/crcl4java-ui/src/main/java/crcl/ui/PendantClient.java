@@ -3449,7 +3449,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     = this.internal
                     .getPoseList()
                     .stream()
-                    .filter(x -> x.getCmdId().compareTo(id) == 0)
+                    .filter(x -> x.getLastCommandIdSent().compareTo(id) == 0)
                     .collect(Collectors.toList());
             com.github.wshackle.poselist3dplot.MainJFrame
                     .showPoseList(l);

@@ -126,18 +126,21 @@ public class CRCLSocket implements AutoCloseable {
         utilSocket = newUtilSocket;
     }
 
-    public static  /*@Nullable*/ CRCLSocket getUtilSocket() {
-        return utilSocket;
+    public static CRCLSocket getUtilSocket() {
+        if (null != utilSocket) {
+            return utilSocket;
+        }
+        return (utilSocket = new CRCLSocket());
     }
 
     @Override
     public String toString() {
-        return "CRCLSocket(" +(( this.sock == null)?"null": this.sock.getRemoteSocketAddress()+")");
+        return "CRCLSocket(" + ((this.sock == null) ? "null" : this.sock.getRemoteSocketAddress() + ")");
     }
 
-    
     /**
      * Read a CRCL Program from a File with the given file.
+     *
      * @param f File to read
      * @return CRCLProgram read from file.
      * @throws CRCLException file is not valid CRCLProgram
@@ -149,6 +152,7 @@ public class CRCLSocket implements AutoCloseable {
 
     /**
      * Read a CRCL Program from a File with the given path.
+     *
      * @param p Path to file to read
      * @return CRCLProgram read from file.
      * @throws CRCLException file is not valid CRCLProgram
@@ -167,6 +171,7 @@ public class CRCLSocket implements AutoCloseable {
 
     /**
      * Read a CRCL Program from a File with the given filename.
+     *
      * @param filename name of file to read
      * @return CRCLProgram read from file.
      * @throws CRCLException file is not valid CRCLProgram
@@ -730,7 +735,6 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-
     private UnaryOperator<String> statusStringInputFilter = STRING_IDENTITY_OPERATOR;
     private UnaryOperator<String> statusStringOutputFilter = STRING_IDENTITY_OPERATOR;
     private boolean jaxbFragment = DEFAULT_JAXB_FRAGMENT;
@@ -764,18 +768,20 @@ public class CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private String last_orig_first_tag = null;
     private boolean replaceHeader;
 
-    public CRCLSocket() throws CRCLException {
+    public CRCLSocket() {
         this(null);
     }
 
-    public CRCLSocket(/*@Nullable*/Socket sock) throws CRCLException {
+    public CRCLSocket(/*@Nullable*/Socket sock) {
+        this.sock = sock;
+        Marshaller tmp_m_cmd = null;
+        Unmarshaller tmp_u_cmd = null;
+        Marshaller tmp_m_stat = null;
+        Unmarshaller tmp_u_stat = null;
+        Marshaller tmp_m_prog = null;
+        Unmarshaller tmp_u_prog = null;
         try {
-            Marshaller tmp_m_cmd = null;
-            Unmarshaller tmp_u_cmd = null;
-            Marshaller tmp_m_stat = null;
-            Unmarshaller tmp_u_stat = null;
-            Marshaller tmp_m_prog = null;
-            Unmarshaller tmp_u_prog = null;
+
             final ObjectFactory of = new crcl.base.ObjectFactory();
             ClassLoader cl = crcl.base.ObjectFactory.class.getClassLoader();
             if (null == cl) {
@@ -811,17 +817,17 @@ public class CRCLSocket implements AutoCloseable {
                 tmp_u_prog.setSchema(defaultProgramSchema);
                 tmp_m_prog.setSchema(defaultProgramSchema);
             }
-            m_cmd = tmp_m_cmd;
-            u_cmd = tmp_u_cmd;
-            m_stat = tmp_m_stat;
-            u_stat = tmp_u_stat;
-            m_prog = tmp_m_prog;
-            u_prog = tmp_u_prog;
-            this.sock = sock;
+
             bufferedInputStream = null;
         } catch (JAXBException ex) {
-            throw new CRCLException(ex);
+            LOGGER.log(Level.SEVERE, "", ex);
         }
+        m_cmd = tmp_m_cmd;
+        u_cmd = tmp_u_cmd;
+        m_stat = tmp_m_stat;
+        u_stat = tmp_u_stat;
+        m_prog = tmp_m_prog;
+        u_prog = tmp_u_prog;
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {

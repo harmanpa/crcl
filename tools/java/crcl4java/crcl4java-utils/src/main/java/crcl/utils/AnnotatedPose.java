@@ -33,24 +33,24 @@ public class AnnotatedPose extends PmPose {
     private static final Logger LOG = Logger.getLogger(AnnotatedPose.class.getName());
 
     private final long time;
-    private final BigInteger cmdId;
+    private final BigInteger lastCommandIdSent;
     private final String commandName;
     private final CRCLStatusType status;
 
     /**
      *
      * @param time the value of time
-     * @param cmdId the value of cmdId
+     * @param lastCommandIdSent the value of lastCommandIdSent
      * @param commandName the value of commandName
      * @param starttran the value of starttran
      * @param startrot the value of startrot
      * @param status the value of status
      */
     public AnnotatedPose(
-            long time, BigInteger cmdId, String commandName, PmCartesian starttran, PmQuaternion startrot, CRCLStatusType status) {
+            long time, BigInteger lastCommandIdSent, String commandName, PmCartesian starttran, PmQuaternion startrot, CRCLStatusType status) {
         super(starttran, startrot);
         this.time = time;
-        this.cmdId = cmdId;
+        this.lastCommandIdSent = lastCommandIdSent;
         this.commandName = commandName;
         this.status = status;
     }
@@ -59,8 +59,8 @@ public class AnnotatedPose extends PmPose {
         return time;
     }
 
-    public BigInteger getCmdId() {
-        return cmdId;
+    public BigInteger getLastCommandIdSent() {
+        return lastCommandIdSent;
     }
 
     public String getCommandName() {
@@ -81,7 +81,7 @@ public class AnnotatedPose extends PmPose {
 
     @Override
     public AnnotatedPose clone() {
-        return new AnnotatedPose(time, cmdId, commandName, tran, rot, status);
+        return new AnnotatedPose(time, lastCommandIdSent, commandName, tran, rot, status);
     }
 
 }

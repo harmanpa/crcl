@@ -788,7 +788,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     static private boolean acceptPose(PmCartesian min, PmCartesian max, PoseType pose) {
         PointType pt = pose.getPoint();
-        return pt.getX().doubleValue() >= min.x 
+        return pt.getX().doubleValue() >= min.x
                 && pt.getX().doubleValue() <= max.x
                 && pt.getY().doubleValue() >= min.y
                 && pt.getY().doubleValue() <= max.y
@@ -820,7 +820,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             final PmCartesian max = this.getPmPointFromTable(this.transformMaxPosTable);
             CRCLProgramType newProgram = CRCLPosemath.transformProgramWithFilter(transformPose,
                     commonInfo.getCurrentProgram(),
-                    pose -> acceptPose(min,max,pose));
+                    pose -> acceptPose(min, max, pose));
             try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
                 fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
             } catch (IOException | JAXBException ex) {
@@ -1967,37 +1967,46 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 instance.setCRCLCommand(getStatus);
                 socket.writeCommand(instance);
                 stat = socket.readStatus();
-                lastUpdateTime = System.currentTimeMillis();
-                updateStatusLabel();
-                final int program_index = commonInfo.getProgramIndex();
-                final CRCLProgramType program = commonInfo.getCurrentProgram();
-                if (running
-                        && null != program
-                        && null != stat
-                        && null != stat.getCommandStatus()
-                        && program_index < program.getMiddleCommand().size()
-                        && (skip_wait_for_done
-                        || (stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE
-                        && (program_index < 1 || program_index + 1 <= stat.getCommandStatus().getCommandID().intValue())))) {
-                    runOneProgramStep(program_index + 1);
+                if(null == stat || null == stat.getCommandStatus() ||
+                        stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
+                    running = false;
                     cmdQueue.clear();
+                    System.err.println("stat="+stat);
                 }
-                if (stat.getCommandStatus().getCommandID().compareTo(lastCmdIdSent) >= 0
-                        && stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
-                    MiddleCommandType cmd = cmdQueue.poll();
-                    if (null != cmd) {
-                        BigInteger id = lastCmdIdSent.add(BigInteger.ONE);
-                        cmd.setCommandID(id);
-                        instance.setCRCLCommand(cmd);
-                        socket.writeCommand(instance);
-                        lastCmdIdSent = id;
+                if (null != stat) {
+                    lastUpdateTime = System.currentTimeMillis();
+                    updateStatusLabel();
+                    final int program_index = commonInfo.getProgramIndex();
+                    final CRCLProgramType program = commonInfo.getCurrentProgram();
+                    if (running
+                            && null != program
+                            && null != stat
+                            && null != stat.getCommandStatus()
+                            && program_index < program.getMiddleCommand().size()
+                            && (skip_wait_for_done
+                            || (stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE
+                            && (program_index < 1 || program_index + 1 <= stat.getCommandStatus().getCommandID().intValue())))) {
+                        runOneProgramStep(program_index + 1);
+                        cmdQueue.clear();
                     }
+                    if (stat.getCommandStatus().getCommandID().compareTo(lastCmdIdSent) >= 0
+                            && stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                        MiddleCommandType cmd = cmdQueue.poll();
+                        if (null != cmd) {
+                            BigInteger id = lastCmdIdSent.add(BigInteger.ONE);
+                            cmd.setCommandID(id);
+                            instance.setCRCLCommand(cmd);
+                            socket.writeCommand(instance);
+                            lastCmdIdSent = id;
+                        }
+                    }
+                    access(() -> {
+                        updateUIComponents(stat);
+                    });
                 }
-                access(() -> {
-                    updateUIComponents(stat);
-                });
             }
         } catch (CRCLException ex) {
+            running=false;
             if (disconnectCount <= connectCount) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 updateStateLabels(CommandStateEnumType.CRCL_ERROR);

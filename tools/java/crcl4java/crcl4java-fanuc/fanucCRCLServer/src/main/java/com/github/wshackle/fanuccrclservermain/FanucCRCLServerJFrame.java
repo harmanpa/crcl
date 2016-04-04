@@ -22,20 +22,15 @@ package com.github.wshackle.fanuccrclservermain;
 
 import com.github.wshackle.fanuc.robotserver.FRECurPositionConstants;
 import com.github.wshackle.fanuc.robotserver.FREExecuteConstants;
-import com.github.wshackle.fanuc.robotserver.FREProgramTypeConstants;
 import com.github.wshackle.fanuc.robotserver.FREStepTypeConstants;
-import com.github.wshackle.fanuc.robotserver.FRETaskStatusConstants;
 import com.github.wshackle.fanuc.robotserver.FRETypeCodeConstants;
 import com.github.wshackle.fanuc.robotserver.IConfig;
 import com.github.wshackle.fanuc.robotserver.ICurGroupPosition;
 import com.github.wshackle.fanuc.robotserver.ICurPosition;
-import com.github.wshackle.fanuc.robotserver.IProgram;
 import com.github.wshackle.fanuc.robotserver.IRobot2;
 import com.github.wshackle.fanuc.robotserver.ISysPosition;
 import com.github.wshackle.fanuc.robotserver.ITPProgram;
 import com.github.wshackle.fanuc.robotserver.ITPSimpleLine;
-import com.github.wshackle.fanuc.robotserver.ITask;
-import com.github.wshackle.fanuc.robotserver.ITasks;
 import com.github.wshackle.fanuc.robotserver.IVar;
 import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
@@ -57,6 +52,7 @@ import crcl.base.SetEndPoseToleranceType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.TransSpeedAbsoluteType;
+import crcl.ui.PendantClient;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -73,8 +69,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -86,17 +80,18 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import javax.xml.parsers.ParserConfigurationException;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -303,50 +298,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                         jLabelStatus.setText("Status : Robot is NOT connected.");
                         return;
                     }
-
-                    ITasks tasks = robot.tasks();
-                    final List<Object[]> taskList = new ArrayList<>();
-                    if (null != tasks) {
-                        for (Com4jObject c4jo : tasks) {
-                            ITask tsk = null;
-                            String tskProgName = null;
-                            FREProgramTypeConstants pType = null;
-                            FRETaskStatusConstants tskStatus = null;
-                            try {
-                                tsk = c4jo.queryInterface(ITask.class);
-                                try {
-                                    pType = tsk.programType();
-                                } catch (Exception e) {
-                                }
-
-                                try {
-                                    IProgram tskProg = tsk.curProgram();
-                                    if (null != tskProg) {
-                                        tskProgName = tskProg.name();
-                                    }
-                                } catch (Exception e) {
-                                }
-
-                                try {
-                                    tskStatus = tsk.status();
-                                } catch (Exception e) {
-                                }
-                            } catch (ComException e) {
-                                e.printStackTrace();
-                                jTextAreaErrors.append(e.toString() + "\n");
-                                continue;
-                            }
-                            if (!jCheckBoxShowAborted.isSelected() && tskStatus == FRETaskStatusConstants.frStatusAborted) {
-                                continue;
-                            }
-                            if (null == tskProgName && null == pType && null == tskStatus) {
-                                continue;
-                            }
-                            taskList.add(new Object[]{
-                                tskProgName == null ? "" : tskProgName,
-                                pType == null ? "" : pType.toString(),
-                                tskStatus == null ? "" : tskStatus.toString()});
-                        }
+                    main.getTaskList(this.jCheckBoxShowAborted.isSelected()).ifPresent(taskList -> {
                         java.awt.EventQueue.invokeLater(() -> {
                             DefaultTableModel dtm = (DefaultTableModel) this.jTableTasks.getModel();
                             dtm.setRowCount(0);
@@ -354,7 +306,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                                 dtm.addRow(taskList.get(i));
                             }
                         });
-                    }
+                    });
+
 
                     ICurPosition curPos = robot.curPosition();
                     if (curPos == null) {
@@ -929,6 +882,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jMenuRunProgram = new javax.swing.JMenu();
         jMenuConvertProgram = new javax.swing.JMenu();
+        jMenuTools = new javax.swing.JMenu();
+        jMenuItemLaunchClient = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Fanuc CRCL Server");
@@ -1134,6 +1089,18 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jMenuConvertProgram.setText("Convert Program");
         jMenuBar1.add(jMenuConvertProgram);
 
+        jMenuTools.setText("Tools");
+
+        jMenuItemLaunchClient.setText("Launch Client");
+        jMenuItemLaunchClient.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLaunchClientActionPerformed(evt);
+            }
+        });
+        jMenuTools.add(jMenuItemLaunchClient);
+
+        jMenuBar1.add(jMenuTools);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1305,6 +1272,16 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jCheckBoxEditJointLimitsActionPerformed
 
+    private void jMenuItemLaunchClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLaunchClientActionPerformed
+        try {
+            PendantClient client = new PendantClient();
+            client.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            client.setVisible(true);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jMenuItemLaunchClientActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1363,9 +1340,11 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuConvertProgram;
+    private javax.swing.JMenuItem jMenuItemLaunchClient;
     private javax.swing.JMenuItem jMenuItemReconnectRobot;
     private javax.swing.JMenuItem jMenuItemResetAlarms;
     private javax.swing.JMenu jMenuRunProgram;
+    private javax.swing.JMenu jMenuTools;
     private javax.swing.JRadioButton jRadioButtonUseDirectIP;
     private javax.swing.JRadioButton jRadioButtonUseRobotNeighborhood;
     private javax.swing.JScrollPane jScrollPane1;

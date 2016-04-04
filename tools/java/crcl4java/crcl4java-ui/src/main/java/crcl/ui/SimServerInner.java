@@ -226,8 +226,8 @@ public class SimServerInner {
     private boolean executingMoveCommand = false;
     long debugUpdateStatusTime = 0;
     private int currentWaypoint;
-    private final boolean enableGetStatusIDCheck
-            = Boolean.valueOf(System.getProperty("crcl4java.simserver.enableGetStatusIDCheck", "false"));
+//    private final boolean enableGetStatusIDCheck
+//            = Boolean.valueOf(System.getProperty("crcl4java.simserver.enableGetStatusIDCheck", "false"));
     private final Set<Class<? extends CRCLCommandType>> gripperCommands = new HashSet<>(
             Arrays.asList(
                     InitCanonType.class,
@@ -1314,13 +1314,13 @@ public class SimServerInner {
                             outer.showDebugMessage("SimServerInner.readCommandsRepeatedly() :  (getStatus=" + getStatus + " ID=" + getStatus.getCommandID() + ") state = " + state);
                         }
                         state.getStatusCmdId = getStatus.getCommandID();
-                        if (enableGetStatusIDCheck && null != state.cmdId
-                                && !state.getStatusCmdId.equals(state.cmdId)) {
-                            LOGGER.log(Level.SEVERE, "SimServerInner.readCommandsRepeatedly() GetStatusIDCheck failed: state.getStatusCmdId={0}, state.cmdId = {1},status={2}", new Object[]{state.getStatusCmdId, state.cmdId, CRCLSocket.statToDebugString(status)});
-                            LOGGER.setLevel(Level.OFF);
-                            new Thread(() -> closeServer()).start();
-                            return;
-                        }
+//                        if (enableGetStatusIDCheck && null != state.cmdId
+//                                && !state.getStatusCmdId.equals(state.cmdId)) {
+//                            LOGGER.log(Level.SEVERE, "SimServerInner.readCommandsRepeatedly() GetStatusIDCheck failed: state.getStatusCmdId={0}, state.cmdId = {1},status={2}", new Object[]{state.getStatusCmdId, state.cmdId, CRCLSocket.statToDebugString(status)});
+//                            LOGGER.setLevel(Level.OFF);
+//                            new Thread(() -> closeServer()).start();
+//                            return;
+//                        }
                         synchronized (status) {
                             CommandStatusType cst = status.getCommandStatus();
                             if (null == cst) {
@@ -1646,7 +1646,8 @@ public class SimServerInner {
                 if (this.getCommandState() == CommandStateEnumType.CRCL_DONE) {
                     this.setWaypoints(null);
                 }
-                if (!outer.isInitializedSelected()) {
+                if (!outer.isInitializedSelected() 
+                    && !(cmd instanceof EndCanonType)) {
                     setCommandState(CommandStateEnumType.CRCL_ERROR);
                     showMessage("Not initialized when " + cmd.getClass().getCanonicalName().substring("crcl.base.".length()) + " recieved.");
                     return;
@@ -2087,14 +2088,10 @@ public class SimServerInner {
     }
 
     public CRCLSocket getCheckerCRCLSocket() {
-        if (null == checkerCRCLSocket) {
-            try {
-                checkerCRCLSocket = new CRCLSocket();
-            } catch (CRCLException ex) {
-                Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if(null != checkerCRCLSocket) {
+            return checkerCRCLSocket;
         }
-        return checkerCRCLSocket;
+        return (checkerCRCLSocket = new CRCLSocket());
     }
 
     private static class LastStatusInfo {
