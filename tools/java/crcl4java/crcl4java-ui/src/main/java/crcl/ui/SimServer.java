@@ -40,9 +40,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.util.List;
@@ -51,10 +55,11 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -68,6 +73,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     String tempDir = "/tmp";
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
+
     /**
      * Creates new form SimServer
      *
@@ -136,7 +142,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         g2d.setColor(textColor);
         g2d.clearRect(0, 0, d.width, d.height);
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage,0,0,null);
+        g2d.drawImage(baseImage, 0, 0, null);
         bi.flush();
         return bi;
     }
@@ -150,7 +156,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
 
     private static final boolean LOG_IMAGES_DEFAULT = Boolean.getBoolean("crcl4java.simserver.logimages");
-    
+
     private boolean toolChangerOpen;
 
     /**
@@ -233,6 +239,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         jCheckBoxMenuItemReplaceXmlHeader = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemLogImages = new javax.swing.JCheckBoxMenuItem();
+        jMenuItemAbout = new javax.swing.JMenuItem();
         jMenu5 = new javax.swing.JMenu();
         jMenuItemViewCommandLogBrief = new javax.swing.JMenuItem();
         jMenuItemViewCommandLogFull = new javax.swing.JMenuItem();
@@ -279,6 +286,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         jTextAreaErrors.setColumns(20);
         jTextAreaErrors.setLineWrap(true);
         jTextAreaErrors.setRows(5);
+        jTextAreaErrors.addMouseListener(formListener);
         jScrollPane1.setViewportView(jTextAreaErrors);
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -551,6 +559,10 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         jCheckBoxMenuItemLogImages.addActionListener(formListener);
         jMenu4.add(jCheckBoxMenuItemLogImages);
 
+        jMenuItemAbout.setText("About");
+        jMenuItemAbout.addActionListener(formListener);
+        jMenu4.add(jMenuItemAbout);
+
         jMenuBar1.add(jMenu4);
 
         jMenu5.setText("Tools");
@@ -608,7 +620,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
 
     // Code for dispatching events from components to event handlers.
 
-    private class FormListener implements java.awt.event.ActionListener {
+    private class FormListener implements java.awt.event.ActionListener, java.awt.event.MouseListener {
         FormListener() {}
         public void actionPerformed(java.awt.event.ActionEvent evt) {
             if (evt.getSource() == jTextFieldPort) {
@@ -628,6 +640,9 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             }
             else if (evt.getSource() == jComboBoxRobotType) {
                 SimServer.this.jComboBoxRobotTypeActionPerformed(evt);
+            }
+            else if (evt.getSource() == jCheckBoxTeleportToGoals) {
+                SimServer.this.jCheckBoxTeleportToGoalsActionPerformed(evt);
             }
             else if (evt.getSource() == lengthUnitComboBox) {
                 SimServer.this.lengthUnitComboBoxActionPerformed(evt);
@@ -656,8 +671,32 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServer.this.jMenuItemViewCommandLogFullActionPerformed(evt);
             }
-            else if (evt.getSource() == jCheckBoxTeleportToGoals) {
-                SimServer.this.jCheckBoxTeleportToGoalsActionPerformed(evt);
+            else if (evt.getSource() == jMenuItemAbout) {
+                SimServer.this.jMenuItemAboutActionPerformed(evt);
+            }
+        }
+
+        public void mouseClicked(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextAreaErrors) {
+                SimServer.this.jTextAreaErrorsMouseClicked(evt);
+            }
+        }
+
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+        }
+
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+        }
+
+        public void mousePressed(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextAreaErrors) {
+                SimServer.this.jTextAreaErrorsMousePressed(evt);
+            }
+        }
+
+        public void mouseReleased(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextAreaErrors) {
+                SimServer.this.jTextAreaErrorsMouseReleased(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -808,7 +847,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
 
             } catch (IOException | CRCLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
-            } 
+            }
         }
     }//GEN-LAST:event_jCheckBoxMenuItemIncludeGripperStatusActionPerformed
 
@@ -856,7 +895,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         List<CRCLCommandType> l = inner.getCmdLog();
         final CRCLSocket s = this.inner.getCheckerCRCLSocket();
         String string = l.stream()
-                .map((CRCLCommandType c) -> s.commandToPrettyString(c,""))
+                .map((CRCLCommandType c) -> s.commandToPrettyString(c, ""))
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("\n"));
         this.showMessage(string);
@@ -903,14 +942,62 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     }//GEN-LAST:event_lengthUnitComboBoxActionPerformed
 
     private void jCheckBoxInitializedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxInitializedActionPerformed
-       if(this.jCheckBoxInitialized.isSelected()) {
-           this.inner.initialize();
-       }
+        if (this.jCheckBoxInitialized.isSelected()) {
+            this.inner.initialize();
+        }
     }//GEN-LAST:event_jCheckBoxInitializedActionPerformed
 
     private void jCheckBoxTeleportToGoalsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTeleportToGoalsActionPerformed
         this.inner.setTeleportToGoals(this.jCheckBoxTeleportToGoals.isSelected());
     }//GEN-LAST:event_jCheckBoxTeleportToGoalsActionPerformed
+
+    private void jTextAreaErrorsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMouseClicked
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMouseClicked
+
+    private void jTextAreaErrorsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMousePressed
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMousePressed
+
+    private void jTextAreaErrorsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMouseReleased
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMouseReleased
+
+    public String getVersion() throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("version")))) {
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while (null != (line = br.readLine())) {
+                sb.append(line);
+            }
+            return sb.toString();
+        }
+    }
+    
+    private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
+        try {
+            JOptionPane.showMessageDialog(this, getVersion());
+        } catch (IOException ex) {
+            Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jMenuItemAboutActionPerformed
+
+    private void showErrorsPopup(MouseEvent evt) {
+        JPopupMenu errorsPop = new JPopupMenu();
+        JMenuItem clearMi = new JMenuItem("Clear");
+        clearMi.addActionListener(e -> {
+            jTextAreaErrors.setText("");
+            errorsPop.setVisible(false);
+        });
+        errorsPop.add(clearMi);
+        errorsPop.show(evt.getComponent(), evt.getX(), evt.getY());
+    }
 
     @Override
     public boolean isEXISelected() {
@@ -1188,6 +1275,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemEditStatus;
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemSetSchema;

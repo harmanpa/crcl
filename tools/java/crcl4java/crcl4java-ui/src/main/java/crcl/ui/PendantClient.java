@@ -66,6 +66,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -75,6 +76,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -102,6 +104,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -122,24 +126,24 @@ import rcs.posemath.Posemath;
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
 public class PendantClient extends javax.swing.JFrame implements PendantClientOuter {
-
+    
     public PendantClient(GraphicsConfiguration gc) throws ParserConfigurationException {
         super(gc);
         this.internal = new PendantClientInner(this);
         init();
     }
-
+    
     public PendantClient(String title) throws ParserConfigurationException {
         super(title);
         this.internal = new PendantClientInner(this);
         init();
         setTitle(title);
     }
-
+    
     public PoseType getCurrentPose() {
         return CRCLPosemath.getPose(internal.getStatus());
     }
-
+    
     public MiddleCommandType getCurrentProgramCommand() {
         CRCLProgramType program = internal.getProgram();
         if (null == program) {
@@ -163,11 +167,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.internal = new PendantClientInner(this);
         init();
     }
-
+    
     private void init() {
         initComponents();
         addCommandsMenu();
-
+        
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             this.jTextFieldPort.setText(portPropertyString);
@@ -184,7 +188,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         final String programPropertyString = System.getProperty("crcl4java.program");
         if (null != programPropertyString) {
             java.awt.EventQueue.invokeLater(new Runnable() {
-
+                
                 @Override
                 public void run() {
                     openXmlProgramFile(new File(programPropertyString));
@@ -205,7 +209,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Logger.getLogger(SimServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private void updateUIFromInternal() {
         this.jTextFieldJointJogIncrement.setText(Double.toString(internal.getJogIncrement()));
         this.jTextFieldXYZJogIncrement.setText(Double.toString(internal.getXyzJogIncrement()));
@@ -214,9 +218,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jTextFieldRPYJogIncrement.setText(Double.toString(this.rpyJogIncrement));
         this.jTextFieldJogInterval.setText(Double.toString(internal.getJogInterval()));
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(internal.isQuitOnTestCommandFailure());
-
+        
     }
-
+    
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);
@@ -224,7 +228,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             return;
         }
         File fa[] = fMainDir.listFiles(new java.io.FileFilter() {
-
+            
             @Override
             public boolean accept(File pathname) {
                 return pathname.isDirectory() && pathname.canRead();
@@ -234,7 +238,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             return;
         }
         Arrays.sort(fa, new Comparator<File>() {
-
+            
             @Override
             public int compare(File o1, File o2) {
                 return o1.getName().compareTo(o2.getName());
@@ -244,14 +248,14 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             JMenu jm = new JMenu(fSubDir.getName());
             this.jMenuCommandRecent.add(jm);
             File sub_fa[] = fSubDir.listFiles(new java.io.FilenameFilter() {
-
+                
                 @Override
                 public boolean accept(File dir, String name) {
                     return name.endsWith(".xml");
                 }
             });
             Arrays.sort(sub_fa, new Comparator<File>() {
-
+                
                 @Override
                 public int compare(File o1, File o2) {
                     return Long.compare(o1.lastModified(), o2.lastModified());
@@ -261,7 +265,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 File xmlFile = sub_fa[i];
                 JMenuItem jmi = new JMenuItem(xmlFile.getName());
                 jmi.addActionListener(new ActionListener() {
-
+                    
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         try {
@@ -276,9 +280,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         }
     }
-
+    
     public static final Logger LOGGER = Logger.getLogger(PendantClient.class.getName());
-
+    
     public void openXmlProgramFile(File f) {
         try {
             this.clearProgramTimesDistances();
@@ -289,7 +293,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             showMessage(ex);
         }
     }
-
+    
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
         if (null != recordPointsProgram) {
             recordPointsProgram.getInitCanon().setCommandID(BigInteger.ONE);
@@ -302,12 +306,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         internal.saveXmlProgramFile(f);
     }
-
+    
     @Override
     public boolean isRecordPoseSelected() {
         return this.jCheckBoxMenuItemRecordPoseList.isSelected();
     }
-
+    
     private File lastOpenedProgramFile;
 
     /**
@@ -327,7 +331,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     public void setLastOpenedProgramFile(File lastOpenedProgramFile) {
         this.lastOpenedProgramFile = lastOpenedProgramFile;
     }
-
+    
     private ProgramPlotter sideProgramPlotter;
 
     /**
@@ -348,7 +352,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.sideProgramPlotter = sideProgramPlotter;
         this.programPlotterJPanelSide.setPlotter(sideProgramPlotter);
     }
-
+    
     private ProgramPlotter overheadProgramPlotter;
 
     /**
@@ -369,7 +373,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.overheadProgramPlotter = overheadProgramPlotter;
         this.programPlotterJPanelOverhead.setPlotter(overheadProgramPlotter);
     }
-
+    
     @Override
     public void finishOpenXmlProgramFile(File f,
             CRCLProgramType program, boolean saveRecent) {
@@ -397,13 +401,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private String getFirstLine(File f) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             return br.readLine();
         }
     }
-
+    
     private Set<String> getRecentPrograms() {
         File fMainDir = new File(System.getProperty("user.home"), recent_programs_dir);
         Set<String> pathSet = new TreeSet<>();
@@ -411,7 +415,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             return pathSet;
         }
         File fa[] = fMainDir.listFiles(new java.io.FileFilter() {
-
+            
             @Override
             public boolean accept(File pathname) {
                 return !pathname.isDirectory() && pathname.canRead();
@@ -421,7 +425,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             return pathSet;
         }
         Arrays.sort(fa, new Comparator<File>() {
-
+            
             @Override
             public int compare(File o1, File o2) {
                 return o1.getName().compareTo(o2.getName());
@@ -446,7 +450,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         return pathSet;
     }
-
+    
     private void readRecentPrograms() {
         Set<String> pathSet = this.getRecentPrograms();
         this.jMenuRecentProgram.removeAll();
@@ -454,7 +458,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             try {
                 JMenuItem jmi = new JMenuItem(fprogCanon);
                 jmi.addActionListener(new ActionListener() {
-
+                    
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         openXmlProgramFile(new File(fprogCanon));
@@ -466,14 +470,14 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         }
     }
-
+    
     private void addCommandsMenu() {
         try {
             List<Class> allClasses = ObjTableJPanel.getClasses();
             List<Class> cmdClasses = ObjTableJPanel.getAssignableClasses(CRCLCommandType.class,
                     allClasses);
             Collections.sort(cmdClasses, new Comparator<Class>() {
-
+                
                 @Override
                 public int compare(Class o1, Class o2) {
                     return o1.getCanonicalName().compareTo(o2.getCanonicalName());
@@ -482,7 +486,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             for (final Class c : cmdClasses) {
                 JMenuItem jmi = new JMenuItem(c.getCanonicalName());
                 jmi.addActionListener(new ActionListener() {
-
+                    
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         try {
@@ -652,6 +656,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
+        jMenuItemAbout = new javax.swing.JMenuItem();
 
         FormListener formListener = new FormListener();
 
@@ -1089,9 +1094,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
         jTableMoveToPose.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
+                {"X",  new Double(0.0)},
+                {"Y",  new Double(0.0)},
+                {"Z",  new Double(0.0)},
                 {"XI",  new Double(1.0)},
                 {"XJ",  new Double(0.0)},
                 {"XK",  new Double(0.0)},
@@ -1333,31 +1338,34 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jLabel18.setText("State Description:");
 
         jTextAreaStateDescription.setColumns(20);
-        jTextAreaStateDescription.setRows(3);
+        jTextAreaStateDescription.setRows(2);
         jScrollPane6.setViewportView(jTextAreaStateDescription);
 
         javax.swing.GroupLayout jPanelStatusLayout = new javax.swing.GroupLayout(jPanelStatus);
         jPanelStatus.setLayout(jPanelStatusLayout);
         jPanelStatusLayout.setHorizontalGroup(
             jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelStatusLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelStatusLayout.createSequentialGroup()
+            .addGroup(jPanelStatusLayout.createSequentialGroup()
+                .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelStatusLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane6)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)))
+                    .addGroup(jPanelStatusLayout.createSequentialGroup()
+                        .addGap(12, 12, 12)
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3)
                             .addComponent(jLabel6)
                             .addComponent(jLabel10)
                             .addComponent(jLabel18))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
                             .addComponent(jTextFieldStatus)
                             .addComponent(jTextFieldStatusID))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(10, 10, 10)))
                 .addContainerGap())
         );
         jPanelStatusLayout.setVerticalGroup(
@@ -1378,12 +1386,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel18)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 248, Short.MAX_VALUE)
+                .addGap(18, 18, 18))
         );
 
         jTabbedPaneRightUpper.addTab("Status", jPanelStatus);
@@ -1476,6 +1484,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jTextAreaErrors.setColumns(20);
         jTextAreaErrors.setLineWrap(true);
         jTextAreaErrors.setRows(3);
+        jTextAreaErrors.addMouseListener(formListener);
         jScrollPane1.setViewportView(jTextAreaErrors);
 
         jMenu1.setText("File");
@@ -1615,6 +1624,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jCheckBoxMenuItemQuitProgramOnTestCommandFail.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemQuitProgramOnTestCommandFail);
 
+        jMenuItemAbout.setText("About");
+        jMenuItemAbout.addActionListener(formListener);
+        jMenuOptions.add(jMenuItemAbout);
+
         jMenuBarReplaceCommandState.add(jMenuOptions);
 
         setJMenuBar(jMenuBarReplaceCommandState);
@@ -1630,9 +1643,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addComponent(jScrollPane1)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 781, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTabbedPaneLeftUpper)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 364, Short.MAX_VALUE)
+                        .addComponent(jTabbedPaneRightUpper)
                         .addGap(11, 11, 11))))
         );
         layout.setVerticalGroup(
@@ -1640,10 +1653,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPaneRightUpper)
-                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 638, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTabbedPaneLeftUpper)
+                    .addComponent(jTabbedPaneRightUpper))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1814,9 +1827,15 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jCheckBoxMenuItemQuitProgramOnTestCommandFail) {
                 PendantClient.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
             }
+            else if (evt.getSource() == jMenuItemAbout) {
+                PendantClient.this.jMenuItemAboutActionPerformed(evt);
+            }
         }
 
         public void mouseClicked(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextAreaErrors) {
+                PendantClient.this.jTextAreaErrorsMouseClicked(evt);
+            }
         }
 
         public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -1856,6 +1875,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jLabelJogMinus1) {
                 PendantClient.this.jLabelJogMinus1MousePressed(evt);
             }
+            else if (evt.getSource() == jTextAreaErrors) {
+                PendantClient.this.jTextAreaErrorsMousePressed(evt);
+            }
         }
 
         public void mouseReleased(java.awt.event.MouseEvent evt) {
@@ -1871,6 +1893,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             else if (evt.getSource() == jLabelJogMinus1) {
                 PendantClient.this.jLabelJogMinus1MouseReleased(evt);
             }
+            else if (evt.getSource() == jTextAreaErrors) {
+                PendantClient.this.jTextAreaErrorsMouseReleased(evt);
+            }
         }
 
         public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -1882,28 +1907,28 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
     private final static File statSchemasFile = new File(System.getProperty("user.home"),
             ".crcljava_pendantclient_stat_schemas.txt");
-
+    
     private final static File cmdSchemasFile = new File(System.getProperty("user.home"),
             ".crcljava_pendantclient_cmd_schemas.txt");
-
+    
     private final static File programSchemasFile = new File(System.getProperty("user.home"),
             ".crcljava_pendantclient_cmd_schemas.txt");
-
+    
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
-
+    
     @Override
     public void showMessage(final String s) {
         if (showDebugMessage(s)) {
             return;
         }
-
+        
         if (showing_message) {
             return;
         }
         showing_message = true;
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             @Override
             public void run() {
                 long t = System.currentTimeMillis();
@@ -1916,7 +1941,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         });
     }
-
+    
     @Override
     public boolean showDebugMessage(final String s) {
         final String sWithThread = "Thread:" + Thread.currentThread().getName() + " " + s;
@@ -1932,16 +1957,16 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         });
         return false;
     }
-
+    
     @Override
     public void showMessage(Throwable t) {
         this.showMessage(t.toString());
     }
-
+    
     double last_t_pos_logged = 0;
-
+    
     final Map<BigInteger, BigDecimal> last_joints = new HashMap<>();
-
+    
     private boolean jointsChanged(List<JointStatusType> jsl) {
         if (jsl.size() != last_joints.values().size()) {
             return true;
@@ -1957,18 +1982,18 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         return false;
     }
-
+    
     private void copyJointPositions(List<JointStatusType> jsl) {
         this.last_joints.clear();
         for (JointStatusType jst : jsl) {
             this.last_joints.put(jst.getJointNumber(), jst.getJointPosition());
         }
     }
-
+    
     public void setStatus(CRCLStatusType _status) {
         internal.setStatus(_status);
     }
-
+    
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
         if (null != this.xqJFrame && this.xqJFrame.isUpdateAutomaticallySelected()) {
@@ -1978,7 +2003,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         }
     }
-
+    
     @Override
     public void finishConnect() {
         this.jButtonConnect.setEnabled(false);
@@ -1992,20 +2017,20 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             this.startPollTimer();
         }
     }
-
+    
     @Override
     public void finishSetStatus() {
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             @Override
             public void run() {
                 PendantClient.this.finishSetStatusPriv();
             }
         });
     }
-
+    
     private String lastStateDescription = "";
-
+    
     private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
@@ -2013,20 +2038,20 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         g2d.setColor(textColor);
         g2d.clearRect(0, 0, d.width, d.height);
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage,0,0,null);
+        g2d.drawImage(baseImage, 0, 0, null);
         bi.flush();
         return bi;
     }
-
+    
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
     private static final Image BASE_IMAGE = getRobotImage();
     private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.white, Color.BLACK, BASE_IMAGE);
     private static final Image ERROR_IMAGE = createImage(ICON_SIZE, Color.red, Color.BLACK, BASE_IMAGE);
     private static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, BASE_IMAGE);
     private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
-
+    
     public static Image getRobotImage() {
-        Image img=null;
+        Image img = null;
         try {
             img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
         } catch (IOException ex) {
@@ -2034,6 +2059,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         return img;
     }
+
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();
@@ -2047,17 +2073,17 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     final String stateString = state.toString();
                     this.jTextFieldStatus.setText(stateString);
                     switch (state) {
-
+                        
                         case CRCL_ERROR:
                             this.jTextFieldStatus.setBackground(Color.RED);
                             this.setIconImage(ERROR_IMAGE);
                             break;
-
+                        
                         case CRCL_WORKING:
                             this.jTextFieldStatus.setBackground(Color.GREEN);
                             this.setIconImage(WORKING_IMAGE);
                             break;
-
+                        
                         case CRCL_READY:
                         case CRCL_DONE:
                         default:
@@ -2065,11 +2091,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             this.setIconImage(DONE_IMAGE);
 //                            this.setIconImage(image);
                             break;
-
+                        
                     }
-                    this.setTitle("CRCL Client:" + stateString+ 
-                            ((stateDescription != null && stateDescription.length()> 1)?" : "+stateDescription:""));
-
+                    this.setTitle("CRCL Client:" + stateString
+                            + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : ""));
+                    
                 }
                 this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
@@ -2098,7 +2124,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 //                            tm.setValueAt(Double.NaN, jn-1,1);
                             continue;
                         }
-
+                        
                         double pos = js.getJointPosition().doubleValue();
                         tm.setValueAt(jn, jn - 1, 0);
                         tm.setValueAt(pos, jn - 1, 1);
@@ -2181,11 +2207,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         this.last_t_pos_logged = t;
                     }
                 }
-
+                
             }
         }
     }
-
+    
     public static void updatePoseTable(PoseType p, JTable jTable) {
         try {
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
@@ -2217,7 +2243,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private void disconnect() {
         this.jTextFieldStatus.setBackground(Color.GRAY);
         this.setIconImage(DISCONNECTED_IMAGE);
@@ -2225,7 +2251,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         internal.disconnect();
         jogWorldSpeedsSet = false;
     }
-
+    
     @Override
     public void finishDisconnect() {
         this.jButtonConnect.setEnabled(true);
@@ -2237,18 +2263,18 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jButtonOpenGripper.setEnabled(false);
         this.stopPollTimer();
     }
-
+    
     private final PendantClientInner internal;
-
+    
     public boolean isConnected() {
         return internal.isConnected();
     }
-
+    
     public void connect(String _host, int _port) {
         internal.connect(_host, _port);
         jogWorldSpeedsSet = false;
     }
-
+    
 
     private void jMenuItemExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemExitActionPerformed
         System.exit(0);
@@ -2278,9 +2304,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 //        }
 //    }
     private javax.swing.Timer jog_timer = null;
-
+    
     private double lastJogJointPos = Double.NEGATIVE_INFINITY;
-
+    
     private void jogJointStart(final double increment) {
         if (null == internal.getCRCLSocket()
                 || null == internal.getStatus()) {
@@ -2297,9 +2323,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         lastJogJointPos = Double.NEGATIVE_INFINITY;
         jogStopFlag = false;
         ActionListener jogActionListener = new ActionListener() {
-
+            
             private int apCount = 0;
-
+            
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -2312,7 +2338,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         showMessage("Can't jog without joint position internal.getStatus() for joint " + index);
                         return;
                     }
-
+                    
                     if (internal.getStatus().getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
                         showMessage("Can't when status commandState = " + CommandStateEnumType.CRCL_ERROR);
                         jogStop();
@@ -2357,9 +2383,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jog_timer = new javax.swing.Timer(internal.getJogInterval(), jogActionListener);
         jog_timer.start();
     }
-
+    
     private double rpyJogIncrement = 3.0;
-
+    
     private boolean jogStopFlag = true;
 
     /**
@@ -2379,9 +2405,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     public void setRpyJogIncrement(double rpyJogIncrement) {
         this.rpyJogIncrement = rpyJogIncrement;
     }
-
+    
     private boolean jogWorldSpeedsSet = false;
-
+    
     private void jogWorldStart(double sign) {
         try {
             if (null == internal.getStatus()
@@ -2414,7 +2440,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 case "Z":
                     tmpinc = internal.getXyzJogIncrement() * sign;
                     break;
-
+                
                 case "Roll":
                 case "Pitch":
                 case "Yaw":
@@ -2429,7 +2455,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
             jogStopFlag = false;
             ActionListener jogActionListener = new ActionListener() {
-
+                
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
@@ -2478,27 +2504,27 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                                 case "X":
                                     moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(axisIncrement));
                                     break;
-
+                                
                                 case "Y":
                                     moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(axisIncrement));
                                     break;
-
+                                
                                 case "Z":
                                     moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(axisIncrement));
                                     break;
-
+                                
                                 case "Roll":
                                     incrementRoll(moveToCmd, inc);
                                     break;
-
+                                
                                 case "Pitch":
                                     incrementPitch(moveToCmd, inc);
                                     break;
-
+                                
                                 case "Yaw":
                                     incrementYaw(moveToCmd, inc);
                                     break;
-
+                                
                             }
                             internal.incAndSendCommand(moveToCmd);
                         } else {
@@ -2510,7 +2536,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         jogStop();
                     }
                 }
-
+                
                 private void incrementYaw(MoveToType moveToType, final double inc) throws PmException {
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(internal.getPose());
                     PmRpy rpy = Posemath.toRpy(pm);
@@ -2521,7 +2547,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
-
+                
                 private void incrementPitch(MoveToType moveToType, final double inc) throws PmException {
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(internal.getPose());
                     PmRpy rpy = Posemath.toRpy(pm);
@@ -2532,7 +2558,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
-
+                
                 private void incrementRoll(MoveToType moveToType, final double inc) throws PmException {
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(internal.getPose());
                     PmRpy rpy = Posemath.toRpy(pm);
@@ -2551,7 +2577,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, "Can not start world jog.", ex);
         }
     }
-
+    
     private void jogStop() {
         jogStopFlag = true;
         if (null != jog_timer) {
@@ -2564,14 +2590,14 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         }
     }
-
+    
     @Override
     public void checkPollSelected() {
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
         }
     }
-
+    
     private void commonJogStop() {
         this.jogStop();
         this.jLabelJogMinus.setBackground(Color.WHITE);
@@ -2595,7 +2621,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jLabelJogPlus1.repaint();
         this.jPanelJogPlus1.repaint();
     }
-
+    
     private XpathQueryJFrame xqJFrame = null;
     private void jMenuItemXPathQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemXPathQueryActionPerformed
         if (null == xqJFrame) {
@@ -2607,9 +2633,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         xqJFrame.setVisible(true);
     }//GEN-LAST:event_jMenuItemXPathQueryActionPerformed
-
+    
     diagapplet.plotter.plotterJFrame xyzPlotter = null;
-
+    
     diagapplet.plotter.plotterJFrame jointsPlotter = null;
 
     private void jMenuItemSetSchemaFilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSetSchemaFilesActionPerformed
@@ -2649,9 +2675,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             xyzPlotter.setVisible(true);
         }
     }//GEN-LAST:event_jCheckBoxMenuItemPlotXYZActionPerformed
-
+    
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
-
+    
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmd) throws JAXBException, IOException {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmd, true);
@@ -2673,9 +2699,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             fw.write(s);
         }
     }
-
+    
     private static final String recent_programs_dir = ".crcl_pendant_client_recent_programs";
-
+    
     private void saveRecentProgram(File fprog) throws JAXBException, IOException {
         Set<String> pathSet = this.getRecentPrograms();
         if (pathSet.contains(fprog.getCanonicalPath())) {
@@ -2696,13 +2722,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             fw.write(fprog.getCanonicalPath());
         }
     }
-
+    
     private void saveRecentCommand(CRCLCommandType cmd) throws JAXBException, IOException {
         CRCLCommandInstanceType instanceForSave = new CRCLCommandInstanceType();
         instanceForSave.setCRCLCommand(cmd);
         this.saveRecentCommandInstance(instanceForSave);
     }
-
+    
     private void browseOpenCommandXml() {
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -2719,7 +2745,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         }
     }
-
+    
     private void browseOpenProgramXml() {
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -2740,7 +2766,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             openXmlProgramFile(f);
         }
     }
-
+    
     @Override
     public CRCLProgramType editProgram(CRCLProgramType program) {
 //        internal.getXpu().setSchemaFiles(internal.getProgramSchemaFiles());
@@ -2750,7 +2776,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 internal.getCheckProgramValidPredicate());
         return program;
     }
-
+    
     private void openXmlInstanceFile(File f) throws CRCLException, SAXException, JAXBException, IOException, ParserConfigurationException, XPathExpressionException {
         String s = internal.getXpu().queryXml(f, "/");
         CRCLCommandInstanceType cmdInstance
@@ -2761,11 +2787,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         internal.incAndSendCommand(cmd);
         this.saveRecentCommand(cmd);
     }
-
+    
     private String tableCommandString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException, JAXBException {
         return this.internal.getTempCRCLSocket().commandToSimpleString(cmd);
     }
-
+    
     public void showProgram(CRCLProgramType program) throws JAXBException {
         try {
             DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
@@ -2810,7 +2836,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             dtm.setValueAt(tableCommandString(endCommand), 1 + middleCommands.size(), 1);
             dtm.setValueAt(-1, 1 + middleCommands.size(), 2);
             dtm.setValueAt(0.0, 1 + middleCommands.size(), 3);
-
+            
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -2827,11 +2853,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 //    javax.swing.Timer pollTimer = null;
     private Thread pollingThread = null;
     private volatile boolean statusRequested = false;
-
+    
     private long max_diff_readStatusEndTime_requestStatusStartTime = 0;
     private long maxPollStatusCycleTime = 0;
     private long cycles = 0;
-
+    
     private void pollStatus() {
         try {
             while (!Thread.currentThread().isInterrupted()
@@ -2847,21 +2873,21 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 if (max_diff_readStatusEndTime_requestStatusStartTime < diff_readStatusEndTime_requestStatusStartTime) {
                     max_diff_readStatusEndTime_requestStatusStartTime = diff_readStatusEndTime_requestStatusStartTime;
                 }
-
+                
                 Thread.sleep(internal.getPoll_ms());
                 long endCycleTime = System.currentTimeMillis();
                 long pollStatusCycleTime = endCycleTime - requestStatusStartTime;
                 if (pollStatusCycleTime > maxPollStatusCycleTime) {
                     maxPollStatusCycleTime = pollStatusCycleTime;
                 }
-
+                
             }
         } catch (InterruptedException interruptedException) {
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private void startPollTimer() {
 //        pollTimer = new javax.swing.Timer(internal.getPoll_ms(), new ActionListener() {
 //
@@ -2888,7 +2914,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         pollingThread = new Thread(this::pollStatus, "PendantClient.pollStatus");
         pollingThread.start();
     }
-
+    
     @Override
     public void stopPollTimer() {
         if (null != pollingThread) {
@@ -2910,7 +2936,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 = PropertiesJPanel.confirmPropertiesMap(this, "Test Run Properties", true, internal.getDefaultTestPropertiesMap());
         internal.startRunTestThread(testPropsMap);
     }//GEN-LAST:event_jMenuItemRunTestActionPerformed
-
+    
     private void clearProgramTimesDistances() {
         DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
         for (int i = 0; i < dtm.getRowCount(); i++) {
@@ -2920,7 +2946,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         programLineShowing = -1;
         jogWorldSpeedsSet = false;
     }
-
+    
     long pauseTime = -1;
 
     private void jMenuItemSaveProgramAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveProgramAsActionPerformed
@@ -3001,9 +3027,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private void jMenuItemShowCommandLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemShowCommandLogActionPerformed
         MultiLineStringJPanel.showText(internal.getRecordedCommandsList().stream().map(cmd -> internal.getTempCRCLSocket().commandToPrettyString(cmd, "")).collect(Collectors.joining("\n\n")));
     }//GEN-LAST:event_jMenuItemShowCommandLogActionPerformed
-
+    
     private CRCLProgramType recordPointsProgram = null;
-
+    
     public void recordPoint(PoseType pose) {
         try {
             if (recordPointsProgram == null) {
@@ -3031,14 +3057,14 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void recordCurrentPoint() {
         Optional.ofNullable(internal)
                 .map(PendantClientInner::getStatus)
                 .map(CRCLPosemath::getPose)
                 .ifPresent(this::recordPoint);
     }
-
+    
     public void clearRecordedPoints() {
         if (null != recordPointsProgram) {
             try {
@@ -3053,7 +3079,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private void jMenuItemClearRecordedPointsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemClearRecordedPointsActionPerformed
         this.clearRecordedPoints();
     }//GEN-LAST:event_jMenuItemClearRecordedPointsActionPerformed
-
+    
 
     private void jButtonRecordPointActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRecordPointActionPerformed
         this.recordCurrentPoint();
@@ -3152,9 +3178,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private void jMenu1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenu1ActionPerformed
-
+    
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
-
+    
     private void updateLengthUnit(LengthUnitEnumType newUnit) {
         LengthUnitEnumType oldUnit
                 = lengthUnit;
@@ -3165,11 +3191,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 case METER:
                     oldScale = 1.0;
                     break;
-
+                
                 case MILLIMETER:
                     oldScale = 0.001;
                     break;
-
+                
                 case INCH:
                     oldScale = 0.0254;
                     break;
@@ -3178,11 +3204,11 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 case METER:
                     newScale = 1.0;
                     break;
-
+                
                 case MILLIMETER:
                     newScale = 0.001;
                     break;
-
+                
                 case INCH:
                     newScale = 0.0254;
                     break;
@@ -3195,9 +3221,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             lengthUnit = newUnit;
         }
     }
-
+    
     private class MyPropertyChangeListener implements PropertyChangeListener {
-
+        
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             switch (evt.getPropertyName()) {
@@ -3240,16 +3266,16 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
-
+    
     public CRCLProgramType getProgram() {
         return internal.getProgram();
     }
-
+    
     public void setProgram(CRCLProgramType program) throws JAXBException {
         this.internal.setProgram(program);
         this.showProgram(program);
     }
-
+    
     public static PoseType tableToPose(JTable table) {
         PoseType p = new PoseType();
         TableModel tm = table.getModel();
@@ -3468,7 +3494,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }//GEN-LAST:event_jButtonResumeActionPerformed
 
     private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
-
+        
         this.clearProgramTimesDistances();
         int new_poll_ms = Integer.valueOf(this.jTextFieldPollTime.getText());
         internal.setPoll_ms(new_poll_ms);
@@ -3563,6 +3589,54 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jogWorldSpeedsSet = false;
     }//GEN-LAST:event_jButtonProgramPauseActionPerformed
 
+    private void jTextAreaErrorsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMouseClicked
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMouseClicked
+
+    private void jTextAreaErrorsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMousePressed
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMousePressed
+
+    private void jTextAreaErrorsMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMouseReleased
+        if (evt.isPopupTrigger()) {
+            showErrorsPopup(evt);
+        }
+    }//GEN-LAST:event_jTextAreaErrorsMouseReleased
+
+    public String getVersion() throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("version")))) {
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while (null != (line = br.readLine())) {
+                sb.append(line);
+            }
+            return sb.toString();
+        }
+    }
+    
+    private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
+        try {
+            JOptionPane.showMessageDialog(this, getVersion());
+        } catch (IOException ex) {
+            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jMenuItemAboutActionPerformed
+    
+    private void showErrorsPopup(MouseEvent evt) {
+        JPopupMenu errorsPop = new JPopupMenu();
+        JMenuItem clearMi = new JMenuItem("Clear");
+        clearMi.addActionListener(e -> {            
+            jTextAreaErrors.setText("");
+            errorsPop.setVisible(false);
+        });
+        errorsPop.add(clearMi);
+        errorsPop.show(evt.getComponent(), evt.getX(), evt.getY());
+    }
+    
     private static void scrollToVisible(JTable table, int rowIndex, int vColIndex) {
         if (!(table.getParent() instanceof JViewport)) {
             return;
@@ -3573,13 +3647,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         rect.setLocation(rect.x - pt.x, rect.y - pt.y);
         viewport.scrollRectToVisible(rect);
     }
-
+    
     public int getCurrentProgramLine() {
         return jTableProgram.getSelectionModel().getMinSelectionIndex();
     }
-
+    
     int programLineShowing = -1;
-
+    
     private void finishShowCurrentProgramLine(final int line) {
         if (line != programLineShowing) {
             final CRCLProgramType program = internal.getProgram();
@@ -3647,7 +3721,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         programLineShowing = line;
     }
-
+    
     private void showSelectedProgramCommand(String cmdString) {
         int endlineindex = cmdString.indexOf('\n');
         if (endlineindex > 0 && endlineindex < cmdString.length()) {
@@ -3669,26 +3743,26 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         this.jTextAreaSelectedProgramCommand.setText(cmdString);
         this.jTextAreaSelectedProgramCommand.setCaretPosition(0);
     }
-
+    
     @Override
     public void showCurrentProgramLine(final int line) {
         if (line >= this.jTableProgram.getRowCount() || line < 0) {
             return;
         }
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             @Override
             public void run() {
                 finishShowCurrentProgramLine(line);
             }
         });
     }
-
+    
     @Override
     public boolean isEXISelected() {
         return this.jCheckBoxMenuItemUseEXI.isSelected();
     }
-
+    
     @Override
     public boolean isUseReadStatusThreadSelected() {
         return this.jCheckBoxMenuItemUseReadStatusThread.isSelected();
@@ -3734,54 +3808,54 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             }
         });
     }
-
+    
     @Override
     public boolean validateXmlSelected() {
         return this.jCheckBoxMenuItemValidateXml.isSelected();
-
+        
     }
-
+    
     @Override
     public boolean replaceStateSelected() {
         return this.jCheckBoxMenuItemReplaceState.isSelected();
     }
-
+    
     @Override
     public String getHost() {
         return this.jTextFieldHost.getText();
     }
-
+    
     @Override
     public int getPort() {
         return Integer.valueOf(this.jTextFieldPort.getText());
     }
-
+    
     @Override
     public boolean isDebugWaitForDoneSelected() {
         return this.jCheckBoxMenuItemDebugWaitForDone.isSelected();
     }
-
+    
     private Optional<Object> safeInvokeMethod(Method m, Object o) {
         try {
             return Optional.ofNullable(m.invoke(o));
-
+            
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(PendantClient.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
         return Optional.empty();
     }
-
+    
     private void safeInvokeMethod2(Method m, Object... args) {
         try {
             m.invoke(this, args);
-
+            
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(PendantClient.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private void savePrefsFile(File f) {
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
@@ -3836,7 +3910,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             showMessage(iOException);
         }
     }
-
+    
     @SuppressWarnings("unchecked")
     static private <T> T valueOf(Class<T> clss, String s) {
         try {
@@ -3850,99 +3924,99 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     .orElse(null);
             if (null != vmethod) {
                 return (T) vmethod.invoke(null, s);
-
+                
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(PendantClient.class
                     .getName()).log(Level.SEVERE, null, ex);
-
+            
         }
         if (clss.isAssignableFrom(String.class
         )) {
             return (T) s;
-
+            
         } else if (clss.isAssignableFrom(double.class
         )) {
             return (T) Double.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(float.class
         )) {
             return (T) Float.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(long.class
         )) {
             return (T) Long.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(int.class
         )) {
             return (T) Integer.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(short.class
         )) {
             return (T) Short.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(byte.class
         )) {
             return (T) Byte.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Double.class
         )) {
             return (T) Double.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Float.class
         )) {
             return (T) Float.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Long.class
         )) {
             return (T) Long.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Integer.class
         )) {
             return (T) Integer.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Short.class
         )) {
             return (T) Short.valueOf(s);
-
+            
         } else if (clss.isAssignableFrom(Byte.class
         )) {
             return (T) Byte.valueOf(s);
         }
         return null;
     }
-
+    
     @SuppressWarnings("unchecked")
     private void setParam(String... args) {
         try {
             if (args.length < 3) {
                 return;
             }
-
+            
             Class clss = null;
-
+            
             switch (args[0]) {
                 case "boolean":
                     clss = boolean.class;
                     break;
-
+                
                 case "int":
                     clss = int.class;
                     break;
-
+                
                 case "long":
                     clss = long.class;
                     break;
-
+                
                 case "float":
                     clss = float.class;
                     break;
-
+                
                 case "double":
                     clss = double.class;
                     break;
             }
-
+            
             if (null == clss) {
 //                clss = Class.forName(args[0]);
                 return;
@@ -3954,7 +4028,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             Method m = null;
             if (args[1].startsWith("internal.")) {
                 String name = args[1].substring("internal.".length());
-
+                
                 try {
                     m = this.internal.getClass().getMethod("set" + name.substring(0, 1).toUpperCase() + name.substring(1),
                             clss);
@@ -3976,17 +4050,17 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     return;
                 }
                 m.invoke(this, o);
-
+                
             }
         } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(PendantClient.class
                     .getName()).log(Level.SEVERE, "Can not setParam with args = " + Arrays.toString(args), ex);
         }
-
+        
     }
-
+    
     private void checkSettingsRef() {
-
+        
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
             crcljavaDir.mkdirs();
@@ -3998,7 +4072,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             File prefsFile = new File(prefsFileName);
             if (prefsFile.exists() && prefsFile.canRead()) {
                 loadPrefsFile(prefsFile);
-
+                
             }
         } catch (IOException ex) {
             Logger.getLogger(PendantClient.class
@@ -4007,7 +4081,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }
     private static final String SETTINGSREF = "clientsettingsref";
     private static final String CRCLJAVA_USER_DIR = ".crcljava";
-
+    
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
@@ -4120,6 +4194,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private javax.swing.JMenuBar jMenuBarReplaceCommandState;
     private javax.swing.JMenu jMenuCmds;
     private javax.swing.JMenu jMenuCommandRecent;
+    private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemClearRecordedPoints;
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemLoadPrefs;
@@ -4192,12 +4267,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     public boolean isDebugSendCommandSelected() {
         return this.jCheckBoxMenuItemDebugSendCommand.isSelected();
     }
-
+    
     @Override
     public boolean isDebugReadStatusSelected() {
         return this.jCheckBoxMenuItemDebugReadStatus.isSelected();
     }
-
+    
     @Override
     public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result) {
         DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
@@ -4208,10 +4283,10 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             dtm.setValueAt(result, row, 4);
         }
     }
-
+    
     @Override
     public boolean checkUserText(String text) {
         return MultiLineStringJPanel.showText(text);
     }
-
+    
 }
