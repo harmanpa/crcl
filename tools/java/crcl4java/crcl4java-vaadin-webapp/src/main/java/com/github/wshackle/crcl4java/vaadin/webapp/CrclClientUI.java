@@ -453,7 +453,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             }
             final CRCLSocket tmpsocketf = tmpsocket;
             fos.write(tmpsocketf.programToPrettyDocString(recordPointsProgram, true).getBytes());
-        } catch (IOException | CRCLException | JAXBException ex) {
+        } catch (IOException | JAXBException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
         setCommonInfo(CommonInfo.withRemotePrograms(commonInfo, REMOTE_PROGRAM_DIR.list()));
@@ -590,83 +590,79 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     @SuppressWarnings("unchecked")
     public void accept(CommonInfo t) {
         CRCLSocket tmpsocket = socket;
-        try {
-            if (null == tmpsocket) {
-                tmpsocket = new CRCLSocket();
-            }
-            final CRCLSocket tmpsocketf = tmpsocket;
-            commonInfo = t;
-            final CRCLProgramType newProgram = commonInfo.getCurrentProgram();
-            String currentFileName = commonInfo.getCurrentFileName();
-            final CRCLProgramType oldProgram = prevCommonInfo.getCurrentProgram();
-            final String oldProgramFileName = prevCommonInfo.getCurrentFileName();
-            final boolean programIsNew = newProgram != oldProgram && !currentFileName.equals(oldProgramFileName);
-            if (newProgram != oldProgram) {
-                System.out.println("programIsNew = " + programIsNew);
-                System.out.println("currentFileName = " + currentFileName);
-                System.out.println("oldProgramFileName = " + oldProgramFileName);
-            }
-            String remotePrograms[] = commonInfo.getRemotePrograms();
-            final String oldRemotePrograms[] = prevCommonInfo.getRemotePrograms();
-            final boolean remoteProgramsNew = remotePrograms != null
-                    && remotePrograms != oldRemotePrograms
-                    && (oldRemotePrograms == null || remotePrograms.length != oldRemotePrograms.length);
-            final int program_index = commonInfo.getProgramIndex();
-            mySyncAccess(() -> {
-                programIndexLabel.setValue("Program Index :" + commonInfo.getProgramIndex());
-                if (programIsNew) {
-                    progTable.removeAllItems();
-                    try {
-                        for (int i = 0; i < newProgram.getMiddleCommand().size(); i++) {
-                            String tableCommandString = tmpsocketf.commandToSimpleString(newProgram.getMiddleCommand().get(i));
-                            progTable.addItem(new Object[]{i, tableCommandString}, i);
-                            Item item = progTable.getItem(i);
-                            item.<String>getItemProperty("Command").setValue(tableCommandString);
-                        }
-                    } catch (ParserConfigurationException | SAXException | IOException ex) {
-                        Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    resetTransformGroup();
-                } else {
-                    Item item = progTable.getItem(program_index);
-                    if (null != item) {
-                        programIndexLabel.setValue("Program Index :" + program_index);
-                        progTable.select(program_index);
-                        progTable.setCurrentPageFirstItemId(program_index);
-                    }
-                }
-                PoseType selectedProgramPose = getSelectedProgramPose();
-                if (selectedProgramPose != null) {
-                    loadPointToTable(selectedProgramPose.getPoint(), posProgramTable);
-                    loadPoseToRotTable(selectedProgramPose, rotProgramTable);
-                }
-                if (remoteProgramsNew) {
-                    loadRemotePrograms();
-                }
-                continueButton.setEnabled(commonInfo.getProgramIndex() > 1);
-                if (commonInfo.getTransformInfo() != prevCommonInfo.getTransformInfo()) {
-                    TransformInfo prevTransformInfo = prevCommonInfo.getTransformInfo();
-                    TransformInfo currentTransformInfo = commonInfo.getTransformInfo();
-                    if (prevTransformInfo.getA1() != currentTransformInfo.getA1()) {
-                        loadPointToTable(currentTransformInfo.getA1(), programPos1Table);
-                    }
-                    if (prevTransformInfo.getA2() != currentTransformInfo.getA2()) {
-                        loadPointToTable(currentTransformInfo.getA2(), programPos2Table);
-                    }
-                    if (prevTransformInfo.getB1() != currentTransformInfo.getB1()) {
-                        loadPointToTable(currentTransformInfo.getB1(), transformPos1Table);
-                    }
-                    if (prevTransformInfo.getB2() != currentTransformInfo.getB2()) {
-                        loadPointToTable(currentTransformInfo.getB2(), transformPos2Table);
-                    }
-                }
-                prevCommonInfo = commonInfo;
-            });
-            updateStatusLabel();
-            checkImageDirs();
-        } catch (CRCLException ex) {
-            Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+        if (null == tmpsocket) {
+            tmpsocket = new CRCLSocket();
         }
+        final CRCLSocket tmpsocketf = tmpsocket;
+        commonInfo = t;
+        final CRCLProgramType newProgram = commonInfo.getCurrentProgram();
+        String currentFileName = commonInfo.getCurrentFileName();
+        final CRCLProgramType oldProgram = prevCommonInfo.getCurrentProgram();
+        final String oldProgramFileName = prevCommonInfo.getCurrentFileName();
+        final boolean programIsNew = newProgram != oldProgram && !currentFileName.equals(oldProgramFileName);
+        if (newProgram != oldProgram) {
+            System.out.println("programIsNew = " + programIsNew);
+            System.out.println("currentFileName = " + currentFileName);
+            System.out.println("oldProgramFileName = " + oldProgramFileName);
+        }
+        String remotePrograms[] = commonInfo.getRemotePrograms();
+        final String oldRemotePrograms[] = prevCommonInfo.getRemotePrograms();
+        final boolean remoteProgramsNew = remotePrograms != null
+                && remotePrograms != oldRemotePrograms
+                && (oldRemotePrograms == null || remotePrograms.length != oldRemotePrograms.length);
+        final int program_index = commonInfo.getProgramIndex();
+        mySyncAccess(() -> {
+            programIndexLabel.setValue("Program Index :" + commonInfo.getProgramIndex());
+            if (programIsNew) {
+                progTable.removeAllItems();
+                try {
+                    for (int i = 0; i < newProgram.getMiddleCommand().size(); i++) {
+                        String tableCommandString = tmpsocketf.commandToSimpleString(newProgram.getMiddleCommand().get(i));
+                        progTable.addItem(new Object[]{i, tableCommandString}, i);
+                        Item item = progTable.getItem(i);
+                        item.<String>getItemProperty("Command").setValue(tableCommandString);
+                    }
+                } catch (ParserConfigurationException | SAXException | IOException ex) {
+                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                resetTransformGroup();
+            } else {
+                Item item = progTable.getItem(program_index);
+                if (null != item) {
+                    programIndexLabel.setValue("Program Index :" + program_index);
+                    progTable.select(program_index);
+                    progTable.setCurrentPageFirstItemId(program_index);
+                }
+            }
+            PoseType selectedProgramPose = getSelectedProgramPose();
+            if (selectedProgramPose != null) {
+                loadPointToTable(selectedProgramPose.getPoint(), posProgramTable);
+                loadPoseToRotTable(selectedProgramPose, rotProgramTable);
+            }
+            if (remoteProgramsNew) {
+                loadRemotePrograms();
+            }
+            continueButton.setEnabled(commonInfo.getProgramIndex() > 1);
+            if (commonInfo.getTransformInfo() != prevCommonInfo.getTransformInfo()) {
+                TransformInfo prevTransformInfo = prevCommonInfo.getTransformInfo();
+                TransformInfo currentTransformInfo = commonInfo.getTransformInfo();
+                if (prevTransformInfo.getA1() != currentTransformInfo.getA1()) {
+                    loadPointToTable(currentTransformInfo.getA1(), programPos1Table);
+                }
+                if (prevTransformInfo.getA2() != currentTransformInfo.getA2()) {
+                    loadPointToTable(currentTransformInfo.getA2(), programPos2Table);
+                }
+                if (prevTransformInfo.getB1() != currentTransformInfo.getB1()) {
+                    loadPointToTable(currentTransformInfo.getB1(), transformPos1Table);
+                }
+                if (prevTransformInfo.getB2() != currentTransformInfo.getB2()) {
+                    loadPointToTable(currentTransformInfo.getB2(), transformPos2Table);
+                }
+            }
+            prevCommonInfo = commonInfo;
+        });
+        updateStatusLabel();
+        checkImageDirs();
     }
 
     public class JogView extends VerticalLayout implements View {
@@ -797,70 +793,62 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     private void transformProgram() {
-        try {
-            CRCLSocket tmpsocket = socket;
-            if (null == tmpsocket) {
-                tmpsocket = new CRCLSocket();
-            }
-            final CRCLSocket tmpsocketf = tmpsocket;
-            transformPose = getPoseFromTable(transformTable);
-            if (null == transformPose || null == commonInfo.getCurrentProgram()) {
-                return;
-            }
-            String newProgName = commonInfo.getCurrentFileName();
-            if (newProgName.endsWith(".xml")) {
-                newProgName = newProgName.substring(0, newProgName.length() - 4);
-            }
-            int transformedIndex = newProgName.indexOf(".transformed");
-            if (transformedIndex > 0) {
-                newProgName = newProgName.substring(0, transformedIndex);
-            }
-            newProgName += ".transformed." + currentDateString() + ".xml";
-            final PmCartesian min = this.getPmPointFromTable(this.transformMinPosTable);
-            final PmCartesian max = this.getPmPointFromTable(this.transformMaxPosTable);
-            CRCLProgramType newProgram = CRCLPosemath.transformProgramWithFilter(transformPose,
-                    commonInfo.getCurrentProgram(),
-                    pose -> acceptPose(min, max, pose));
-            try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
-                fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
-            } catch (IOException | JAXBException ex) {
-                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
-        } catch (CRCLException ex) {
+        CRCLSocket tmpsocket = socket;
+        if (null == tmpsocket) {
+            tmpsocket = new CRCLSocket();
+        }
+        final CRCLSocket tmpsocketf = tmpsocket;
+        transformPose = getPoseFromTable(transformTable);
+        if (null == transformPose || null == commonInfo.getCurrentProgram()) {
+            return;
+        }
+        String newProgName = commonInfo.getCurrentFileName();
+        if (newProgName.endsWith(".xml")) {
+            newProgName = newProgName.substring(0, newProgName.length() - 4);
+        }
+        int transformedIndex = newProgName.indexOf(".transformed");
+        if (transformedIndex > 0) {
+            newProgName = newProgName.substring(0, transformedIndex);
+        }
+        newProgName += ".transformed." + currentDateString() + ".xml";
+        final PmCartesian min = this.getPmPointFromTable(this.transformMinPosTable);
+        final PmCartesian max = this.getPmPointFromTable(this.transformMaxPosTable);
+        CRCLProgramType newProgram = CRCLPosemath.transformProgramWithFilter(transformPose,
+                commonInfo.getCurrentProgram(),
+                pose -> acceptPose(min, max, pose));
+        try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
+            fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
+        } catch (IOException | JAXBException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
+        setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
     }
 
     private void flipXAxis() {
-        try {
-            CRCLSocket tmpsocket = socket;
-            if (null == tmpsocket) {
-                tmpsocket = new CRCLSocket();
-            }
-            final CRCLSocket tmpsocketf = tmpsocket;
-            if (null == commonInfo.getCurrentProgram()) {
-                return;
-            }
-            String newProgName = commonInfo.getCurrentFileName();
-            if (newProgName.endsWith(".xml")) {
-                newProgName = newProgName.substring(0, newProgName.length() - 4);
-            }
-            int flippedIndex = newProgName.indexOf(".flipped");
-            if (flippedIndex > 0) {
-                newProgName = newProgName.substring(0, flippedIndex);
-            }
-            newProgName += ".flipped." + currentDateString() + ".xml";
-            CRCLProgramType newProgram = CRCLPosemath.flipXAxis(commonInfo.getCurrentProgram());
-            try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
-                fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
-            } catch (IOException | JAXBException ex) {
-                Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
-        } catch (CRCLException ex) {
+        CRCLSocket tmpsocket = socket;
+        if (null == tmpsocket) {
+            tmpsocket = new CRCLSocket();
+        }
+        final CRCLSocket tmpsocketf = tmpsocket;
+        if (null == commonInfo.getCurrentProgram()) {
+            return;
+        }
+        String newProgName = commonInfo.getCurrentFileName();
+        if (newProgName.endsWith(".xml")) {
+            newProgName = newProgName.substring(0, newProgName.length() - 4);
+        }
+        int flippedIndex = newProgName.indexOf(".flipped");
+        if (flippedIndex > 0) {
+            newProgName = newProgName.substring(0, flippedIndex);
+        }
+        newProgName += ".flipped." + currentDateString() + ".xml";
+        CRCLProgramType newProgram = CRCLPosemath.flipXAxis(commonInfo.getCurrentProgram());
+        try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, newProgName))) {
+            fos.write(tmpsocketf.programToPrettyDocString(newProgram, true).getBytes());
+        } catch (IOException | JAXBException ex) {
             Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
         }
+        setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), newProgName, newProgram));
     }
 
     public void startRun() {
