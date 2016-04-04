@@ -80,6 +80,27 @@ public class CRCLPosemath {
         // never to be called.
     }
 
+    
+    static public BigInteger getMaxId(CRCLProgramType prog) {
+        BigInteger max = BigInteger.ONE;
+        if(null != prog) {
+            InitCanonType initCmd = prog.getInitCanon();
+            if(null != initCmd && null != initCmd.getCommandID()) {
+                max = max.max(initCmd.getCommandID());
+            }
+            for(MiddleCommandType cmd : prog.getMiddleCommand()) {
+                if(null != cmd.getCommandID()) {
+                    max = max.max(cmd.getCommandID());
+                }
+            }
+            EndCanonType endCmd = prog.getEndCanon();
+            if(null != endCmd && null != endCmd.getCommandID()) {
+                max = max.max(endCmd.getCommandID());
+            }
+        }
+        return max;
+    }
+    
     /*@Nullable*/
     public static PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {

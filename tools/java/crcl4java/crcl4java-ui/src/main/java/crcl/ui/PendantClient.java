@@ -149,11 +149,12 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         if (null == program) {
             return null;
         }
-        int curRow = this.jTableProgram.getSelectedRow();
+        int selectedRows[] = this.jTableProgram.getSelectedRows();
+        int curRow = getProgramRow();
         if (curRow > program.getMiddleCommand().size() || curRow < 1) {
             return null;
         }
-        return program.getMiddleCommand().get(this.jTableProgram.getSelectedRow() - 1);
+        return program.getMiddleCommand().get(curRow - 1);
     }
 
     /**
@@ -197,7 +198,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
         checkSettingsRef();
         this.updateUIFromInternal();
-        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(this.jTableProgram.getSelectedRow()));
+        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(getProgramRow()));
         this.internal.addPropertyChangeListener(new MyPropertyChangeListener());
         this.transformJPanel1.setPendantClient(this);
         this.jTextFieldStatus.setBackground(Color.GRAY);
@@ -2942,6 +2943,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         for (int i = 0; i < dtm.getRowCount(); i++) {
             dtm.setValueAt(-1, i, 2);
             dtm.setValueAt(0.0, i, 3);
+            dtm.setValueAt(false, i, 4);
         }
         programLineShowing = -1;
         jogWorldSpeedsSet = false;
@@ -3466,8 +3468,13 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         }
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
+    public int getProgramRow() {
+        final int selectedRows[] = this.jTableProgram.getSelectedRows();
+        return (null == selectedRows || selectedRows.length < 1)?0:selectedRows[0];
+    }
+    
     private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
-        final int index = this.jTableProgram.getSelectedRow();
+        final int index = getProgramRow();
         if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
             MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
             BigInteger id = cmdOrig.getCommandID();
@@ -3499,6 +3506,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         int new_poll_ms = Integer.valueOf(this.jTextFieldPollTime.getText());
         internal.setPoll_ms(new_poll_ms);
         internal.setWaitForDoneDelay(new_poll_ms);
+        internal.setStepMode(false);
         internal.startRunProgramThread(0);
         this.jButtonResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
@@ -3506,7 +3514,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
     private void jButtonAddProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
+        int index = getProgramRow();
         if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
             try {
                 Class clss = MiddleCommandType.class;
@@ -3541,7 +3549,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
 
     private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
+        int index = getProgramRow();
         if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
             try {
                 internal.getProgram().getMiddleCommand().remove(index - 1);
@@ -3554,7 +3562,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }//GEN-LAST:event_jButtonDeletProgramItemActionPerformed
 
     private void jButtonEditProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditProgramItemActionPerformed
-        int index = this.jTableProgram.getSelectedRow();
+        int index = getProgramRow();
         if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
             try {
                 MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
@@ -3658,7 +3666,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         if (line != programLineShowing) {
             final CRCLProgramType program = internal.getProgram();
             if (null != program) {
-                if (jTableProgram.getSelectedRow() != line) {
+                if (getProgramRow() != line) {
                     jTableProgram.getSelectionModel().setSelectionInterval(line, line);
                 }
                 scrollToVisible(jTableProgram, line, 0);
@@ -4276,7 +4284,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     @Override
     public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result) {
         DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
-        final int row = this.jTableProgram.getSelectedRow();
+        final int row = getProgramRow();
         if (row >= 0 && row < dtm.getRowCount()) {
             dtm.setValueAt(millis, row, 2);
             dtm.setValueAt(dist, row, 3);

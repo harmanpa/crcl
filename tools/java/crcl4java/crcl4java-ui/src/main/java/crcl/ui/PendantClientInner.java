@@ -1500,6 +1500,7 @@ public class PendantClientInner {
     public boolean runProgram(CRCLProgramType prog, int startLine) {
         final int start_close_test_count = this.close_test_count;
         try {
+            paused = false;
             if (null == this.crclSocket) {
                 this.connect(outer.getHost(), outer.getPort());
                 if (!this.isConnected()) {
@@ -1508,7 +1509,6 @@ public class PendantClientInner {
                 }
             }
             outer.stopPollTimer();
-            outer.showCurrentProgramLine(0);
 //            this.stopStatusReaderThread();
             cmdId = BigInteger.ZERO;
             programCommandStartTime = System.currentTimeMillis();
@@ -1517,19 +1517,38 @@ public class PendantClientInner {
                 this.runStartMillis = System.currentTimeMillis();
                 this.runEndMillis = -1;
             }
-            InitCanonType initCmd = prog.getInitCanon();
-            if (!testCommand(initCmd)) {
-                return false;
+            if (startLine == 0) {
+                outer.showCurrentProgramLine(startLine);
+                InitCanonType initCmd = prog.getInitCanon();
+                BigInteger origInitCmdId = initCmd.getCommandID();
+                if (initCmd.getCommandID() == null) {
+                    initCmd.setCommandID(BigInteger.ONE);
+                }
+                if (initCmd.getCommandID().compareTo(lastCommandIdSent) == 0
+                        || status.getCommandStatus().getCommandID().compareTo(initCmd.getCommandID()) == 0) {
+                    BigInteger max = CRCLPosemath.getMaxId(prog);
+                    InitCanonType newInitCmd = new InitCanonType();
+                    newInitCmd.setCommandID(max.add(BigInteger.ONE));
+                    if (!testCommand(newInitCmd)) {
+                        return false;
+                    }
+                } else if (!testCommand(initCmd)) {
+                    return false;
+                }
+                if (stepMode) {
+                    pause();
+                }
+                startLine =1;
             }
             long time_to_exec = System.currentTimeMillis() - programCommandStartTime;
             PmCartesian p1 = getPoseCart();
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, p1.distFrom(p0), true);
             p0 = p1;
-            outer.showCurrentProgramLine(1);
+            outer.showCurrentProgramLine(startLine);
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
             for (int i = startLine; i < middleCommands.size(); i++) {
                 programCommandStartTime = System.currentTimeMillis();
-                MiddleCommandType cmd = middleCommands.get(i);
+                MiddleCommandType cmd = middleCommands.get(i-1);
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {
@@ -1543,10 +1562,10 @@ public class PendantClientInner {
                 p1 = getPoseCart();
                 outer.showLastProgramLineExecTimeMillisDists(time_to_exec, p1.distFrom(p0), result);
                 p0 = p1;
-                outer.showCurrentProgramLine(i + 2);
                 if (stepMode) {
                     pause();
                 }
+                outer.showCurrentProgramLine(i + 1);
             }
             programCommandStartTime = System.currentTimeMillis();
             EndCanonType endCmd = prog.getEndCanon();
