@@ -418,7 +418,7 @@ public class Main {
             lastRobotIsConnected = false;
             return status;
         }
-        if (!robot.isConnected()) {
+        if (!robotIsConnected) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
             if (lastRobotIsConnected) {
                 showError("Robot is NOT connected.");
@@ -441,7 +441,7 @@ public class Main {
 
     public static PoseType lastDoneMovePose = null;
     public static BigInteger lastDoneMoveCommandID = null;
-    
+
     private synchronized void readStatusFromRobotInternal() {
         try {
             if (null == robot) {
@@ -452,7 +452,7 @@ public class Main {
                 lastRobotIsConnected = false;
                 return;
             }
-            if (!robot.isConnected()) {
+            if (!robotIsConnected) {
                 setCommandState(CommandStateEnumType.CRCL_ERROR);
                 if (lastRobotIsConnected) {
                     showError("Robot is NOT connected.");
@@ -494,7 +494,7 @@ public class Main {
                                             System.out.println("rotDist = " + rotDist);
                                             System.out.println("dist = " + dist);
                                             System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
-                                            System.out.println("Move took" + (System.currentTimeMillis()-startMoveTime));
+                                            System.out.println("Move took" + (System.currentTimeMillis() - startMoveTime));
                                         } catch (CRCLException ex) {
                                             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                                         }
@@ -539,6 +539,7 @@ public class Main {
                         } else if (prevCmd instanceof DwellType) {
                             long diff = System.currentTimeMillis() - dwellEndTime;
                             if (diff > 0) {
+                                showError("dwell took:" + diff + " (ms) prevCmd="+CRCLSocket.getUtilSocket().commandToString(prevCmd,false));
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         } else if (prevCmd instanceof ActuateJointsType) {
@@ -569,7 +570,7 @@ public class Main {
 
                         }
                     } else {
-                        lastCheckAtPosition=false;
+                        lastCheckAtPosition = false;
                     }
                 } else {
                     lastCheckAtPosition = false;
@@ -726,6 +727,7 @@ public class Main {
     private final ExecutorService robotService = Executors.newSingleThreadExecutor();
 
     public void disconnectRemoteRobot() {
+        robotIsConnected = false;
         robotService.submit(this::disconnectRemoteRobotInternal);
     }
 
@@ -745,6 +747,7 @@ public class Main {
                 robot.dispose();
                 robot = null;
             }
+            robotIsConnected = false;
         } catch (Exception e) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -754,6 +757,12 @@ public class Main {
         robot.alarms().reset();
         robot.tasks().abortAll(true);
         setCommandState(CommandStateEnumType.CRCL_DONE);
+        handleCommandCount = 0;
+        updateStatusCount = 0;
+        maxHandleCommandTime = 0;
+        totalHandleCommandTime = 0;
+        maxUpdateStatusTime = 0;
+        totalUpdateStatusTime = 0;
 //        checkAlarms();
     }
 
@@ -906,7 +915,7 @@ public class Main {
 
     long expectedEndMoveToTime = -1;
     long startMoveTime = -1;
-    
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
         try {
             System.out.println("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
@@ -1395,15 +1404,15 @@ public class Main {
         try {
             CRCLStatusType status = readCachedStatusFromRobot();
             synchronized (status) {
-                if(status.getCommandStatus() == null) {
+                if (status.getCommandStatus() == null) {
                     status.setCommandStatus(new CommandStatusType());
                 }
                 CommandStatusType commandStatus = status.getCommandStatus();
-                if(null != commandStatus) {
-                    if(null == commandStatus.getCommandID()) {
+                if (null != commandStatus) {
+                    if (null == commandStatus.getCommandID()) {
                         commandStatus.setCommandID(BigInteger.ONE);
                     }
-                    if(null == commandStatus.getStatusID()) {
+                    if (null == commandStatus.getStatusID()) {
                         commandStatus.setStatusID(BigInteger.ONE);
                     }
                 }
@@ -1419,6 +1428,86 @@ public class Main {
 
     private CommandStateEnumType origState = CommandStateEnumType.CRCL_DONE;
 
+    private long totalHandleCommandTime = 0;
+    private long maxHandleCommandTime = 0;
+    private long totalUpdateStatusTime = 0;
+    private long maxUpdateStatusTime = 0;
+    private long handleCommandCount=0;
+    private long updateStatusCount =0;
+    
+    private void updatePerformance() {
+        if(handleCommandCount > 0 && updateStatusCount > 0) {
+        jframe.updatePerformanceString("Performance: Commands: "+handleCommandCount+" maxTime="+maxHandleCommandTime+" (ms), avgTime="+(totalHandleCommandTime/handleCommandCount)+"(ms)"
+        +" Status: "+ updateStatusCount+" maxTime="+maxUpdateStatusTime+"(ms), avgTime="+(totalUpdateStatusTime/updateStatusCount)+"(ms)");
+        }
+    }
+    private void handleClient(CRCLSocket cs) {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
+                    long readRetTime = System.currentTimeMillis();
+                    final CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+                    if (cmd instanceof GetStatusType) {
+                        updateStatus(cs);
+                        long updateStatusEndTime = System.currentTimeMillis();
+                        long updateStatusTimeDiff = updateStatusEndTime - readRetTime;
+                        totalUpdateStatusTime += updateStatusTimeDiff;
+                        if(updateStatusTimeDiff > maxUpdateStatusTime) {
+                            maxUpdateStatusTime = updateStatusTimeDiff;
+                        }
+                        updateStatusCount++;
+                    } else {
+                        try {
+                            if (null != this.jframe && this.jframe.getjCheckBoxLogAllCommands().isSelected()) {
+                                showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
+                                showError(cs.getLastCommandString());
+                            }
+                            CompletableFuture.runAsync(() -> handleCommand(cmd), robotService).get();
+                            long handleCommandEndTime = System.currentTimeMillis();
+                            long handleCommandTimeDiff =  handleCommandEndTime - readRetTime;
+                            totalHandleCommandTime += handleCommandTimeDiff;
+                            if(handleCommandTimeDiff > maxHandleCommandTime) {
+                                maxHandleCommandTime = handleCommandTimeDiff;
+                            }
+                            handleCommandCount++;
+                        } catch (ComException comEx) {
+                            showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
+                            disconnectRemoteRobot();
+                            connectRemoteRobot();
+                        }
+                    }
+                    updatePerformance();
+                } catch (SocketException | EOFException se) {
+                    // probably just closing the connection.
+                    break;
+                } catch (ComException comEx) {
+                    showComException(comEx);
+                    disconnectRemoteRobot();
+                    connectRemoteRobot();
+                }
+            }
+        } catch (SocketException | EOFException se) {
+            // probably just closing the connection.
+        } catch (JAXBException | SAXException | IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            showError(ex.getMessage());
+        } catch (Exception ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            showError(ex.getMessage());
+        } finally {
+            try {
+                System.out.println("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
+                clients.remove(cs);
+                cs.close();
+                System.out.println("clients = " + clients);
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
     private void startCrclServer() throws IOException {
         es = Executors.newWorkStealingPool();
         ss = new ServerSocket(localPort);
@@ -1428,67 +1517,7 @@ public class Main {
                     CRCLSocket cs = new CRCLSocket(ss.accept());
                     clients.add(cs);
                     es.submit(() -> {
-                        try {
-                            while (!Thread.currentThread().isInterrupted()) {
-                                try {
-                                    CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
-                                    final CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                                    if (cmd instanceof GetStatusType) {
-                                        updateStatus(cs);
-                                    } else {
-                                        try {
-                                            synchronized (status) {
-                                                if (null == status.getCommandStatus()) {
-                                                    status.setCommandStatus(new CommandStatusType());
-                                                    status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                                }
-                                                origState = status.getCommandStatus().getCommandState();
-                                                if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
-                                                    setCommandState(CommandStateEnumType.CRCL_WORKING);
-                                                }
-                                                status.getCommandStatus().setCommandID(cmd.getCommandID());
-                                                status.getCommandStatus().setStatusID(BigInteger.ONE);
-                                            }
-
-                                            if (null != this.jframe && this.jframe.getjCheckBoxLogAllCommands().isSelected()) {
-                                                showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
-                                                showError(cs.getLastCommandString());
-                                            }
-                                            CompletableFuture.runAsync(()->handleCommand(cmd), robotService).get();
-                                        } catch (ComException comEx) {
-                                            showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
-                                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
-                                            disconnectRemoteRobot();
-                                            connectRemoteRobot();
-                                        }
-                                    }
-                                } catch (SocketException | EOFException se) {
-                                    // probably just closing the connection.
-                                    break;
-                                } catch (ComException comEx) {
-                                    showComException(comEx);
-                                    disconnectRemoteRobot();
-                                    connectRemoteRobot();
-                                }
-                            }
-                        } catch (SocketException | EOFException se) {
-                            // probably just closing the connection.
-                        } catch (JAXBException | SAXException | IOException ex) {
-                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                            showError(ex.getMessage());
-                        } catch (Exception ex) {
-                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                            showError(ex.getMessage());
-                        } finally {
-                            try {
-                                System.out.println("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
-                                clients.remove(cs);
-                                cs.close();
-                                System.out.println("clients = " + clients);
-                            } catch (IOException ex) {
-                                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
+                        handleClient(cs);
                     });
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -1496,13 +1525,27 @@ public class Main {
                 }
             }
         });
-
     }
 
+    private boolean robotIsConnected = false;
+    
     public synchronized void handleCommand(CRCLCommandType cmd) {
         try {
-            lastCheckAtPosition=false;
-            if (null == robot || !robot.isConnected() || null == groupPos) {
+            synchronized (status) {
+                if (null == status.getCommandStatus()) {
+                    status.setCommandStatus(new CommandStatusType());
+                    status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                }
+                origState = status.getCommandStatus().getCommandState();
+                if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                    setCommandState(CommandStateEnumType.CRCL_WORKING);
+                }
+                status.getCommandStatus().setCommandID(cmd.getCommandID());
+                status.getCommandStatus().setStatusID(BigInteger.ONE);
+            }
+
+            lastCheckAtPosition = false;
+            if (null == robot || !robotIsConnected ||  null == groupPos) {
                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
                 return;
             }
@@ -1778,7 +1821,8 @@ public class Main {
                 setPreferRobotNeighborhood(false);
             }
 
-            if (!robot.isConnected()) {
+            robotIsConnected = robot.isConnected();
+            if (!robotIsConnected) {
                 System.out.println("Connecting to " + remoteRobotHost + " ...");
                 robot.connectEx(remoteRobotHost, false, 100, 100);
             }
@@ -2047,11 +2091,11 @@ public class Main {
     }
 
     private static Main main = null;
-    
+
     public static Main getMain() {
         return main;
     }
-    
+
     public static void main(String[] args) throws IOException, CRCLException {
         main = new Main();
         String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";
@@ -2065,6 +2109,6 @@ public class Main {
             System.out.println("Enter \"stop\" to quit");
         }
         main.stop();
-        main=null;
+        main = null;
     }
 }
