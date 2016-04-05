@@ -76,7 +76,6 @@ import crcl.base.TransAccelType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
-import static crcl.ui.PendantClientInner.LOGGER;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;

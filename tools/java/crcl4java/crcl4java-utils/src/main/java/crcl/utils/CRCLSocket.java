@@ -774,12 +774,6 @@ public class CRCLSocket implements AutoCloseable {
 
     public CRCLSocket(/*@Nullable*/Socket sock) {
         this.sock = sock;
-        Marshaller tmp_m_cmd = null;
-        Unmarshaller tmp_u_cmd = null;
-        Marshaller tmp_m_stat = null;
-        Unmarshaller tmp_u_stat = null;
-        Marshaller tmp_m_prog = null;
-        Unmarshaller tmp_u_prog = null;
         try {
 
             final ObjectFactory of = new crcl.base.ObjectFactory();
@@ -790,44 +784,30 @@ public class CRCLSocket implements AutoCloseable {
             final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
-            tmp_u_cmd = context.createUnmarshaller();
-            tmp_m_cmd = context.createMarshaller();
-//            tmp_m_cmd.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
-//            tmp_m_cmd.setProperty(Marshaller.JAXB_NO_NAMESPACE_SCHEMA_LOCATION, DEFAULT_COMMAND_NO_NAMESPACE_JAXB_SCHEMA_LOCATION);
-//            tmp_m_cmd.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, DEFAULT_JAXB_SCHEMA_LOCATION);
+            u_cmd = context.createUnmarshaller();
+            m_cmd = context.createMarshaller();
             if (null != defaultCmdSchema) {
-                tmp_u_cmd.setSchema(defaultCmdSchema);
-                tmp_m_cmd.setSchema(defaultCmdSchema);
+                u_cmd.setSchema(defaultCmdSchema);
+                m_cmd.setSchema(defaultCmdSchema);
             }
-            tmp_u_stat = context.createUnmarshaller();
-            tmp_m_stat = context.createMarshaller();
-//            tmp_m_stat.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
-//            tmp_m_stat.setProperty(Marshaller.JAXB_NO_NAMESPACE_SCHEMA_LOCATION, DEFAULT_STATUS_NO_NAMESPACE_JAXB_SCHEMA_LOCATION);
-//            tmp_m_stat.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, DEFAULT_JAXB_SCHEMA_LOCATION);
+            u_stat = context.createUnmarshaller();
+            m_stat = context.createMarshaller();
             if (null != defaultStatSchema) {
-                tmp_u_stat.setSchema(defaultStatSchema);
-                tmp_m_stat.setSchema(defaultStatSchema);
+                u_stat.setSchema(defaultStatSchema);
+                m_stat.setSchema(defaultStatSchema);
             }
-            tmp_u_prog = context.createUnmarshaller();
-            tmp_m_prog = context.createMarshaller();
-//            tmp_m_prog.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
-//            tmp_m_prog.setProperty(Marshaller.JAXB_NO_NAMESPACE_SCHEMA_LOCATION, DEFAULT_PROGRAM_NO_NAMESPACE_JAXB_SCHEMA_LOCATION);
-//            tmp_m_prog.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, DEFAULT_JAXB_SCHEMA_LOCATION);
+            u_prog = context.createUnmarshaller();
+            m_prog = context.createMarshaller();
             if (null != defaultProgramSchema) {
-                tmp_u_prog.setSchema(defaultProgramSchema);
-                tmp_m_prog.setSchema(defaultProgramSchema);
+                u_prog.setSchema(defaultProgramSchema);
+                m_prog.setSchema(defaultProgramSchema);
             }
 
             bufferedInputStream = null;
         } catch (JAXBException ex) {
             LOGGER.log(Level.SEVERE, "", ex);
+            throw new RuntimeException(ex);
         }
-        m_cmd = tmp_m_cmd;
-        u_cmd = tmp_u_cmd;
-        m_stat = tmp_m_stat;
-        u_stat = tmp_u_stat;
-        m_prog = tmp_m_prog;
-        u_prog = tmp_u_prog;
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {

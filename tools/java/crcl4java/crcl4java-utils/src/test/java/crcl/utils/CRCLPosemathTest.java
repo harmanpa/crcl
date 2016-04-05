@@ -25,8 +25,10 @@ import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.GripperStatusType;
+import crcl.base.InitCanonType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
+import crcl.base.MoveToType;
 import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
@@ -35,6 +37,9 @@ import crcl.base.PoseType;
 import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.pose;
+import static crcl.utils.CRCLPosemath.vector;
 import java.awt.geom.Point2D;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -1617,6 +1622,214 @@ public class CRCLPosemathTest {
         assertEquals(expResult.getStatusID(), result.getStatusID());
         assertEquals(expResult.getCommandState(), result.getCommandState());
         assertTrue(result != status);
+    }
+
+    /**
+     * Test of getMaxId method, of class CRCLPosemath.
+     */
+    @Test
+    public void testGetMaxId() {
+        System.out.println("getMaxId");
+        CRCLProgramType prog = new CRCLProgramType();
+        BigInteger expResult = BigInteger.ONE;
+        BigInteger result = CRCLPosemath.getMaxId(prog);
+        assertEquals(expResult, result);
+        
+        InitCanonType initCmd = new InitCanonType();
+        initCmd.setCommandID(BigInteger.valueOf(2));
+        prog.setInitCanon(initCmd);
+        result = CRCLPosemath.getMaxId(prog);
+        assertEquals(BigInteger.valueOf(2), result);
+        
+        MoveToType moveCmd = new MoveToType();
+        moveCmd.setCommandID(BigInteger.valueOf(3));
+        prog.getMiddleCommand().add(moveCmd);
+        result = CRCLPosemath.getMaxId(prog);
+        assertEquals(BigInteger.valueOf(3), result);
+        
+    }
+
+    /**
+     * Test of flipXAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testFlipXAxis_PoseType() {
+        System.out.println("flipXAxis");
+        PoseType pose = pose123;
+        PoseType expResult = pose(pt123,vector(-1,0,0),zvec);
+        PoseType result = CRCLPosemath.flipXAxis(pose);
+        checkEquals("pose", result,expResult);
+    }
+
+    /**
+     * Test of transformProgram method, of class CRCLPosemath.
+     */
+    @Test
+    public void testTransformProgram() {
+        System.out.println("transformProgram");
+        PoseType pose = pose321;
+        
+        // Create a program with one MoveTo command.
+        CRCLProgramType programIn = new CRCLProgramType();
+        MoveToType moveCmd = new MoveToType();
+        moveCmd.setEndPosition(pose123);
+        programIn.getMiddleCommand().add(moveCmd);
+        
+        
+        CRCLProgramType result = CRCLPosemath.transformProgram(pose, programIn);
+        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
+        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
+        
+        checkEquals("pose", transformedMoveCmd.getEndPosition(), pose(point(4,4,4),xvec,zvec));
+    }
+
+    /**
+     * Test of transformProgramWithFilter method, of class CRCLPosemath.
+     */
+    @Test
+    public void testTransformProgramWithFilter() {
+        System.out.println("transformProgramWithFilter");
+        System.out.println("transformProgram");
+        PoseType pose = pose321;
+        
+        // Create a program with two MoveTo commands one will be transformed and the other copied unchanged.
+        CRCLProgramType programIn = new CRCLProgramType();
+        MoveToType moveCmd = new MoveToType();
+        moveCmd.setEndPosition(pose123);
+        programIn.getMiddleCommand().add(moveCmd);
+        MoveToType moveCmd2 = new MoveToType();
+        moveCmd2.setEndPosition(pose321);
+        programIn.getMiddleCommand().add(moveCmd2);
+        
+        CRCLPosemath.PoseFilter filter = new CRCLPosemath.PoseFilter() {
+            @Override
+            public boolean test(PoseType pose) {
+                return pose.getPoint().getX().doubleValue() < 2;
+            }
+        };
+        CRCLProgramType result = CRCLPosemath.transformProgramWithFilter(pose, programIn,filter);
+        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
+        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
+        
+        checkEquals("pose", transformedMoveCmd.getEndPosition(), pose(point(4,4,4),xvec,zvec));
+        
+        MoveToType transformedMoveCmd2 = (MoveToType) result.getMiddleCommand().get(1);
+        
+        checkEquals("pose", transformedMoveCmd2.getEndPosition(), pose321);
+    }
+
+    /**
+     * Test of flipXAxis method, of class CRCLPosemath.
+     */
+    @Test
+    public void testFlipXAxis_CRCLProgramType() {
+        System.out.println("flipXAxis");
+        // Create a program with one MoveTo command.
+        CRCLProgramType programIn = new CRCLProgramType();
+        MoveToType moveCmd = new MoveToType();
+        moveCmd.setEndPosition(pose123);
+        programIn.getMiddleCommand().add(moveCmd);
+        
+        CRCLProgramType result = CRCLPosemath.flipXAxis(programIn);
+        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
+        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
+        
+        checkEquals("pose", transformedMoveCmd.getEndPosition(), pose(pt123,vector(-1,0,0),zvec));
+    }
+
+    /**
+     * Test of copy method, of class CRCLPosemath.
+     */
+    @Test
+    public void testCopy_CRCLProgramType() {
+        System.out.println("copy");
+        
+        // Create a program with one MoveTo command.
+        CRCLProgramType programIn = new CRCLProgramType();
+        MoveToType moveCmd = new MoveToType();
+        moveCmd.setEndPosition(pose123);
+        programIn.getMiddleCommand().add(moveCmd);
+        
+        CRCLProgramType result = CRCLPosemath.copy(programIn);
+        
+        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
+        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
+        
+        checkEquals("pose", transformedMoveCmd.getEndPosition(), moveCmd.getEndPosition());
+    }
+
+    /**
+     * Test of pose method, of class CRCLPosemath.
+     */
+    @Test
+    public void testPose() {
+        System.out.println("pose");
+        PointType pt = pt123;
+        VectorType xAxis = xvec;
+        VectorType zAxis = zvec;
+        PoseType result = CRCLPosemath.pose(pt, xAxis, zAxis);
+        assertEquals(result.getPoint(),pt);
+        assertEquals(result.getXAxis(),xAxis);
+        assertEquals(result.getZAxis(),zAxis);
+        assertTrue(result.getPoint() == pt);
+        assertTrue(result.getXAxis() == xAxis);
+        assertTrue(result.getZAxis() == zAxis);
+    }
+
+    /**
+     * Test of point method, of class CRCLPosemath.
+     */
+    @Test
+    public void testPoint_3args_1() {
+        System.out.println("point");
+        BigDecimal x = BIG_DECIMAL_1;
+        BigDecimal y = BIG_DECIMAL_2;
+        BigDecimal z = BIG_DECIMAL_3;
+        PointType expResult = pt123;
+        PointType result = CRCLPosemath.point(x, y, z);
+        checkEquals("pt", result, expResult);
+    }
+
+    /**
+     * Test of point method, of class CRCLPosemath.
+     */
+    @Test
+    public void testPoint_3args_2() {
+        System.out.println("point");
+        double x = 1.0;
+        double y = 2.0;
+        double z = 3.0;
+        PointType expResult = pt123;
+        PointType result = CRCLPosemath.point(x, y, z);
+        checkEquals("pt", result, expResult);
+    }
+
+    /**
+     * Test of vector method, of class CRCLPosemath.
+     */
+    @Test
+    public void testVector_3args_1() {
+        System.out.println("vector");
+        BigDecimal i = BigDecimal.ONE;
+        BigDecimal j = BigDecimal.ZERO;
+        BigDecimal k = BigDecimal.ZERO;
+        VectorType expResult = xvec;
+        VectorType result = CRCLPosemath.vector(i, j, k);
+        checkEquals("vector", result, expResult);
+    }
+
+    /**
+     * Test of vector method, of class CRCLPosemath.
+     */
+    @Test
+    public void testVector_3args_2() {
+        System.out.println("vector");
+        double i = 1.0;
+        double j = 0.0;
+        double k = 0.0;
+        VectorType expResult = xvec;
+        VectorType result = CRCLPosemath.vector(i, j, k);
+        checkEquals("vector", result, expResult);
     }
 
 }

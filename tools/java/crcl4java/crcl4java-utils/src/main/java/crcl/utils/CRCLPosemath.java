@@ -80,27 +80,118 @@ public class CRCLPosemath {
         // never to be called.
     }
 
-    
+    /**
+     * Create a new PoseType object set to refer the the given pt, xAxis, and
+     * zAxis.
+     *
+     * @param pt point to refer to
+     * @param xAxis x axis vector to refer to
+     * @param zAxis z axis vector to refer to
+     * @return new PoseType object.
+     */
+    static public PoseType pose(PointType pt, VectorType xAxis, VectorType zAxis) {
+        PoseType pose = new PoseType();
+        pose.setPoint(pt);
+        pose.setXAxis(xAxis);
+        pose.setZAxis(zAxis);
+        return pose;
+    }
+
+    /**
+     * Create a new PointType object with given x,y and z BigDecimal values.
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @return new PointType object.
+     */
+    static public PointType point(BigDecimal x, BigDecimal y, BigDecimal z) {
+        PointType point = new PointType();
+        point.setX(x);
+        point.setY(y);
+        point.setZ(z);
+        return point;
+    }
+
+    /**
+     * Create a new PointType object with given x,y and z double values that
+     * will be converted to BigDecimal values.
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @return new PointType object.
+     */
+    static public PointType point(double x, double y, double z) {
+        PointType point = new PointType();
+        point.setX(BigDecimal.valueOf(x));
+        point.setY(BigDecimal.valueOf(y));
+        point.setZ(BigDecimal.valueOf(z));
+        return point;
+    }
+
+    /**
+     * Create a new VectorType object from the given BigDecimal i,j,k vector
+     * components.
+     *
+     * @param i i component of vector
+     * @param j j component of vector
+     * @param k k component of vector
+     * @return new VectorType object.
+     */
+    static public VectorType vector(BigDecimal i, BigDecimal j, BigDecimal k) {
+        VectorType vector = new VectorType();
+        vector.setI(i);
+        vector.setJ(j);
+        vector.setK(k);
+        return vector;
+    }
+
+    /**
+     * Create a new VectorType object from the given double i,j,k vector
+     * components which will be converted to BigDecimal values.
+     *
+     * @param i i component of vector
+     * @param j j component of vector
+     * @param k k component of vector
+     * @return new VectorType object.
+     */
+    static public VectorType vector(double i, double j, double k) {
+        VectorType vector = new VectorType();
+        vector.setI(BigDecimal.valueOf(i));
+        vector.setJ(BigDecimal.valueOf(j));
+        vector.setK(BigDecimal.valueOf(k));
+        return vector;
+    }
+
+    /**
+     * Get the maximum commandID of any command in the program.
+     *
+     * @param prog program to check for commandID values.
+     *
+     * @return the maximum commandID of any command in the program or
+     * BigInteger.ONE if the program is empty or all commandId values are null.
+     */
     static public BigInteger getMaxId(CRCLProgramType prog) {
         BigInteger max = BigInteger.ONE;
-        if(null != prog) {
+        if (null != prog) {
             InitCanonType initCmd = prog.getInitCanon();
-            if(null != initCmd && null != initCmd.getCommandID()) {
+            if (null != initCmd && null != initCmd.getCommandID()) {
                 max = max.max(initCmd.getCommandID());
             }
-            for(MiddleCommandType cmd : prog.getMiddleCommand()) {
-                if(null != cmd.getCommandID()) {
+            for (MiddleCommandType cmd : prog.getMiddleCommand()) {
+                if (null != cmd.getCommandID()) {
                     max = max.max(cmd.getCommandID());
                 }
             }
             EndCanonType endCmd = prog.getEndCanon();
-            if(null != endCmd && null != endCmd.getCommandID()) {
+            if (null != endCmd && null != endCmd.getCommandID()) {
                 max = max.max(endCmd.getCommandID());
             }
         }
         return max;
     }
-    
+
     /*@Nullable*/
     public static PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {
@@ -119,7 +210,7 @@ public class CRCLPosemath {
      * @return PointType with same initial values as pt but can be independently
      * modified.
      */
-    public static /*@Nullable*/ PointType copy(PointType pt) {
+    public static /*@Nullable*/ PointType copy(/*@Nullable*/ PointType pt) {
         if (null == pt) {
             return null;
         }
@@ -186,7 +277,7 @@ public class CRCLPosemath {
      * @return VectorType with same initial values as vec but can be
      * independently modified.
      */
-    public static /*@Nullable*/ VectorType copy(VectorType vec) {
+    public static /*@Nullable*/ VectorType copy( /*@Nullable*/ VectorType vec) {
         if (null == vec) {
             return null;
         }
@@ -244,7 +335,7 @@ public class CRCLPosemath {
             newStatus.setCommandStatus(commandStatus);
         }
         JointStatusesType jointStatuses = copy(status.getJointStatuses());
-        if(null != jointStatuses) {
+        if (null != jointStatuses) {
             newStatus.setJointStatuses(jointStatuses);
         }
         PoseStatusType poseStatus = copy(status.getPoseStatus());
@@ -265,7 +356,7 @@ public class CRCLPosemath {
      * @return GripperStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ GripperStatusType copy(GripperStatusType status) {
+    public static /*@Nullable*/ GripperStatusType copy(/*@Nullable*/ GripperStatusType status) {
         if (null == status) {
             return null;
         }
@@ -307,7 +398,7 @@ public class CRCLPosemath {
      * @return PoseStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ PoseStatusType copy(PoseStatusType status) {
+    public static /*@Nullable*/ PoseStatusType copy(/*@Nullable*/ PoseStatusType status) {
         if (null == status) {
             return null;
         }
@@ -332,7 +423,7 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ TwistType copy(TwistType twist) {
+    public static /*@Nullable*/ TwistType copy(/*@Nullable*/ TwistType twist) {
         if (null == twist) {
             return null;
         }
@@ -356,7 +447,7 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ WrenchType copy(WrenchType wrench) {
+    public static /*@Nullable*/ WrenchType copy(/*@Nullable*/WrenchType wrench) {
         if (null == wrench) {
             return null;
         }
@@ -380,7 +471,7 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ JointStatusesType copy(JointStatusesType status) {
+    public static /*@Nullable*/ JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
         if (null == status) {
             return null;
         }
@@ -419,7 +510,7 @@ public class CRCLPosemath {
      * @return CommandStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ CommandStatusType copy(CommandStatusType status) {
+    public static /*@Nullable*/ CommandStatusType copy(/*@Nullable*/ CommandStatusType status) {
         if (null == status) {
             return null;
         }
@@ -473,26 +564,26 @@ public class CRCLPosemath {
     }
 
     public static interface PoseFilter {
+
         public boolean test(PoseType pose);
     }
-        
+
     public static CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
-        return transformProgramWithFilter(pose,programIn,null);
+        return transformProgramWithFilter(pose, programIn, null);
     }
-    public static CRCLProgramType transformProgramWithFilter(PoseType pose, 
+
+    public static CRCLProgramType transformProgramWithFilter(PoseType pose,
             CRCLProgramType programIn,
-            PoseFilter filter) {
+            /*@Nullable*/ PoseFilter filter) {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
+        BigInteger id = BigInteger.ONE;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
+            id = initCmdIn.getCommandID();
+            programOut.setInitCanon(initCmdOut);
         }
-        BigInteger id = initCmdIn.getCommandID();
-        if (null == id) {
-            id = BigInteger.ONE;
-        }
-        programOut.setInitCanon(initCmdOut);
         for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
@@ -502,7 +593,7 @@ public class CRCLPosemath {
                 } else {
                     moveToCmdOut.setCommandID(id);
                 }
-                if(null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
+                if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
                     moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 } else {
                     moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
@@ -535,14 +626,16 @@ public class CRCLPosemath {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
+        BigInteger id = BigInteger.ONE;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
+            id = initCmdIn.getCommandID();
+            if (null == id) {
+                id = BigInteger.ONE;
+            }
+            programOut.setInitCanon(initCmdOut);
         }
-        BigInteger id = initCmdIn.getCommandID();
-        if (null == id) {
-            id = BigInteger.ONE;
-        }
-        programOut.setInitCanon(initCmdOut);
+
         for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
@@ -581,14 +674,15 @@ public class CRCLPosemath {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
+        BigInteger id = BigInteger.ONE;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
+            id = initCmdIn.getCommandID();
+            if (null == id) {
+                id = BigInteger.ONE;
+            }
+            programOut.setInitCanon(initCmdOut);
         }
-        BigInteger id = initCmdIn.getCommandID();
-        if (null == id) {
-            id = BigInteger.ONE;
-        }
-        programOut.setInitCanon(initCmdOut);
         for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
