@@ -430,6 +430,20 @@ public class Main {
         return status;
     }
 
+    public boolean isConnected() {
+        return (null != robot && robotIsConnected);
+    }
+    
+    public void setConnected(boolean connected) {
+        if(connected != isConnected()) {
+            if(connected) {
+                connectRemoteRobot();
+            } else {
+                disconnectRemoteRobot();
+            }
+        }
+    }
+    
     private boolean lastMotionProgramRunning() {
         if (null == lastRunMotionProgram) {
             return false;
@@ -728,6 +742,7 @@ public class Main {
 
     public void disconnectRemoteRobot() {
         robotIsConnected = false;
+        jframe.setConnected(false);
         robotService.submit(this::disconnectRemoteRobotInternal);
     }
 
@@ -748,6 +763,7 @@ public class Main {
                 robot = null;
             }
             robotIsConnected = false;
+            jframe.setConnected(false);
         } catch (Exception e) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -1822,11 +1838,14 @@ public class Main {
             }
 
             robotIsConnected = robot.isConnected();
+            
             if (!robotIsConnected) {
                 System.out.println("Connecting to " + remoteRobotHost + " ...");
                 robot.connectEx(remoteRobotHost, false, 100, 100);
+                robotIsConnected = robot.isConnected();
+                System.out.println("robotIsConnected = " + robotIsConnected);
             }
-
+            
             IIndPosition iip = robot.createIndependentPosition(FREGroupBitMaskConstants.frGroup1BitMask);
             iip.record();
             groupPos = iip.group((short) 1);
@@ -2028,6 +2047,7 @@ public class Main {
     public void updateJFrame() {
         if (null != jframe) {
             jframe.setMain(this);
+            jframe.setConnected(robotIsConnected);
             jframe.setPrograms(tpPrograms);
             jframe.updateCartesianLimits(xMax, xMin, yMax, yMin, zMax, zMin);
             jframe.updateJointLimits(lowerJointLimits, upperJointLimits);

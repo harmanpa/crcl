@@ -113,6 +113,29 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         javax.swing.SwingUtilities.invokeLater(() -> jLabelPerformance.setText(s));
     }
 
+    public boolean isConnected() {
+        startUpdateConnecedCheckbox();
+        return main != null && main.isConnected();
+    }
+
+    private void updateConnectedCheckbox() {
+        if (null != jCheckBoxConnnected && null != main) {
+            jCheckBoxConnnected.setSelected(main.isConnected());
+        }
+    }
+
+    public void setConnected(boolean connected) {
+        main.setConnected(connected);
+        startUpdateConnecedCheckbox();
+
+    }
+
+    private void startUpdateConnecedCheckbox() {
+        if (null != jCheckBoxConnnected && null != main && jCheckBoxConnnected.isSelected() != main.isConnected()) {
+            javax.swing.SwingUtilities.invokeLater(this::updateConnectedCheckbox);
+        }
+    }
+
     private void updateCartLimits(boolean force) {
         if (force || this.jCheckBoxEditCartesianLimits.isSelected()) {
             PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
@@ -285,7 +308,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }
 
     public void updateDisplay() {
-        if (null == main) {
+        if (!isConnected()) {
             return;
         }
 
@@ -882,6 +905,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jLabelPerformance = new javax.swing.JLabel();
         jLabelStatus = new javax.swing.JLabel();
         jCheckBoxMonitorTasks = new javax.swing.JCheckBox();
+        jCheckBoxConnnected = new javax.swing.JCheckBox();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemResetAlarms = new javax.swing.JMenuItem();
@@ -1083,6 +1107,13 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 
         jCheckBoxMonitorTasks.setText("Monitor Tasks");
 
+        jCheckBoxConnnected.setText("Connected");
+        jCheckBoxConnnected.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxConnnectedActionPerformed(evt);
+            }
+        });
+
         jMenu1.setText("File");
 
         jMenuItemResetAlarms.setText("Reset Alarms");
@@ -1163,10 +1194,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                             .addComponent(jLabel3)
                             .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jRadioButtonUseDirectIP)
-                            .addComponent(jRadioButtonUseRobotNeighborhood))
+                        .addComponent(jCheckBoxConnnected)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jRadioButtonUseRobotNeighborhood)
+                            .addComponent(jRadioButtonUseDirectIP))
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE)
                             .addComponent(jTextFieldHostName)
@@ -1209,7 +1242,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldHostName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jRadioButtonUseDirectIP))
+                    .addComponent(jRadioButtonUseDirectIP)
+                    .addComponent(jCheckBoxConnnected))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1305,6 +1339,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jMenuItemLaunchClientActionPerformed
 
+    private void jCheckBoxConnnectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxConnnectedActionPerformed
+        setConnected(jCheckBoxConnnected.isSelected());
+    }//GEN-LAST:event_jCheckBoxConnnectedActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1344,6 +1382,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroupConnectType;
     private javax.swing.JButton jButtonAbortAllTasks;
     private javax.swing.JButton jButtonClearErrors;
+    private javax.swing.JCheckBox jCheckBoxConnnected;
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;
