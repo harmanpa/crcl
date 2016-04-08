@@ -50,6 +50,7 @@ import crcl.base.ConfigureJointReportsType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
+import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
 import crcl.base.JointSpeedAccelType;
@@ -58,6 +59,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
+import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseToleranceType;
 import crcl.base.PoseType;
@@ -94,12 +96,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -111,7 +116,6 @@ import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
-import rcs.posemath.Posemath;
 
 /**
  *
@@ -394,6 +398,7 @@ public class Main {
     double lastMaxJointDiff = Double.MAX_VALUE;
 
     public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
+
         if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
             CRCLStatusType status = readStatusFromRobot();
             if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
@@ -402,8 +407,7 @@ public class Main {
             lastUpdateStatusTime = System.currentTimeMillis();
             return status;
         } else {
-            CRCLStatusType status = getStatus();
-            return status;
+            return getStatus();
         }
     }
 
@@ -426,6 +430,9 @@ public class Main {
             lastRobotIsConnected = false;
             return status;
         }
+        if (null == robotService) {
+            robotService = Executors.newSingleThreadExecutor(daemonThreadFactory);
+        }
         robotService.submit(this::readStatusFromRobotInternal);
         return status;
     }
@@ -433,17 +440,17 @@ public class Main {
     public boolean isConnected() {
         return (null != robot && robotIsConnected);
     }
-    
+
     public void setConnected(boolean connected) {
-        if(connected != isConnected()) {
-            if(connected) {
+        if (connected != isConnected()) {
+            if (connected) {
                 connectRemoteRobot();
             } else {
                 disconnectRemoteRobot();
             }
         }
     }
-    
+
     private boolean lastMotionProgramRunning() {
         if (null == lastRunMotionProgram) {
             return false;
@@ -455,6 +462,46 @@ public class Main {
 
     public static PoseType lastDoneMovePose = null;
     public static BigInteger lastDoneMoveCommandID = null;
+
+    private boolean holdingObject;
+
+    /**
+     * Get the value of holdingObject
+     *
+     * @return the value of holdingObject
+     */
+    public boolean isHoldingObject() {
+        return holdingObject;
+    }
+
+    /**
+     * Set the value of holdingObject
+     *
+     * @param holdingObject new value of holdingObject
+     */
+    public void setHoldingObject(boolean holdingObject) {
+        this.holdingObject = holdingObject;
+    }
+
+    private boolean holdingObjectKnown;
+
+    /**
+     * Get the value of holdingObjectKnown
+     *
+     * @return the value of holdingObjectKnown
+     */
+    public boolean isHoldingObjectKnown() {
+        return holdingObjectKnown;
+    }
+
+    /**
+     * Set the value of holdingObjectKnown
+     *
+     * @param holdingObjectKnown new value of holdingObjectKnown
+     */
+    public void setHoldingObjectKnown(boolean holdingObjectKnown) {
+        this.holdingObjectKnown = holdingObjectKnown;
+    }
 
     private synchronized void readStatusFromRobotInternal() {
         try {
@@ -482,6 +529,26 @@ public class Main {
                 }
                 if (null == status.getCommandStatus().getCommandID()) {
                     status.getCommandStatus().setCommandID(BigInteger.ONE);
+                }
+                if (null == status.getCommandStatus().getCommandState()) {
+                    setCommandState(CommandStateEnumType.CRCL_WORKING);
+                }
+                if (holdingObjectKnown) {
+                    if (null == status.getGripperStatus()) {
+                        ParallelGripperStatusType parallelGripperStatus = new ParallelGripperStatusType();
+                        parallelGripperStatus.setGripperName("SCHUNK_MPG40");
+                        status.setGripperStatus(parallelGripperStatus);
+                    }
+                    GripperStatusType gripperStatus = status.getGripperStatus();
+                    if (null != gripperStatus) {
+                        gripperStatus.setHoldingObject(holdingObject);
+                    }
+                }
+                if(null != status.getGripperStatus()) {
+                    if(status.getGripperStatus() instanceof ParallelGripperStatusType) {
+                        ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status.getGripperStatus();
+                        parallelGripperStatus.setSeparation(BigDecimal.valueOf(gripperSeperation));
+                    }
                 }
                 status.getCommandStatus().setStatusID(BigInteger.ONE.add(status.getCommandStatus().getStatusID()));
                 CRCLPosemath.initPose(status);
@@ -553,7 +620,7 @@ public class Main {
                         } else if (prevCmd instanceof DwellType) {
                             long diff = System.currentTimeMillis() - dwellEndTime;
                             if (diff > 0) {
-                                showError("dwell took:" + diff + " (ms) prevCmd="+CRCLSocket.getUtilSocket().commandToString(prevCmd,false));
+                                showError("dwell took:" + diff + " (ms) prevCmd=" + CRCLSocket.getUtilSocket().commandToString(prevCmd, false));
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         } else if (prevCmd instanceof ActuateJointsType) {
@@ -690,6 +757,9 @@ public class Main {
     }
 
     public ExecutorService getRobotService() {
+        if (null == robotService) {
+            robotService = Executors.newSingleThreadExecutor(daemonThreadFactory);
+        }
         return robotService;
     }
 
@@ -700,8 +770,31 @@ public class Main {
     private ServerSocket ss;
     private Set<CRCLSocket> clients = new HashSet<>();
 
-    public void stop() {
+    public static void stop() {
+        if (null != main) {
+            main.stopInternal();
+        }
+        main = null;
+        System.out.println("Thread.activeCount() = " + Thread.activeCount());
+        for(StackTraceElement ste[] : Thread.getAllStackTraces().values()) {
+            System.out.println("ste = " + Arrays.toString(ste));
+        }
+        Thread ta[] = new Thread[10+Thread.activeCount()];
+        Thread.enumerate(ta);
+        for(Thread t : ta) {
+            if(null != t && !t.equals(Thread.currentThread())) {
+                System.out.println("t = " + t);
+                System.out.println("t.isAlive() = " + t.isAlive());
+                System.out.println("t.isDaemon() = " + t.isDaemon());
+                System.out.println("t.isInteruppted() = " + t.isInterrupted());
+                System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                t.interrupt();
+            }
+        }
+        System.exit(0);
+    }
 
+    private void stopInternal() {
         if (null != moveThread) {
             moveThread.interrupt();
             try {
@@ -729,6 +822,11 @@ public class Main {
         }
         if (null != es) {
             es.shutdownNow();
+            try {
+                es.awaitTermination(500, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
             es = null;
         }
         disconnectRemoteRobot();
@@ -736,14 +834,43 @@ public class Main {
             neighborhood.dispose();
             neighborhood = null;
         }
+        if (null != jframe) {
+            jframe.setVisible(false);
+            jframe.dispose();
+            jframe = null;
+        }
     }
 
-    private final ExecutorService robotService = Executors.newSingleThreadExecutor();
+    private ExecutorService robotService = null;
 
     public void disconnectRemoteRobot() {
-        robotIsConnected = false;
-        jframe.setConnected(false);
-        robotService.submit(this::disconnectRemoteRobotInternal);
+        try {
+            robotIsConnected = false;
+            jframe.setConnected(false);
+            if (null != robotService) {
+                robotService.submit(this::disconnectRemoteRobotInternal).get(500, TimeUnit.MILLISECONDS);
+                robotService.shutdownNow();
+                robotService.awaitTermination(500, TimeUnit.MILLISECONDS);
+                robotService = null;
+            } else {
+                disconnectRemoteRobotInternal();
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+            if (null != robotService) {
+                robotService.shutdownNow();
+                try {
+                    robotService.awaitTermination(500, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+                robotService = null;
+            }
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            robotIsConnected = false;
+            jframe.setConnected(false);
+            robot = null;
+        }
     }
 
     private synchronized void disconnectRemoteRobotInternal() {
@@ -753,11 +880,6 @@ public class Main {
 //                robot_ec.close();
 //                robot_ec = null;
 //            }
-            if (null != this.robotMonitorThread) {
-                robotMonitorThread.interrupt();
-                robotMonitorThread.join(100);
-                robotMonitorThread = null;
-            }
             if (null != robot) {
                 robot.dispose();
                 robot = null;
@@ -800,12 +922,34 @@ public class Main {
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
+        private double gripperSeperation = 1.0;
+
+    /**
+     * Get the value of gripperSeperation
+     *
+     * @return the value of gripperSeperation
+     */
+    public double getGripperSeperation() {
+        return gripperSeperation;
+    }
+
+    /**
+     * Set the value of gripperSeperation
+     *
+     * @param gripperSeperation new value of gripperSeperation
+     */
+    public void setGripperSeperation(double gripperSeperation) {
+        this.gripperSeperation = gripperSeperation;
+    }
+
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
         setCommandState(CommandStateEnumType.CRCL_DONE);
         if (seeCmd.getSetting().compareTo(BigDecimal.valueOf(0.5)) > 0) {
             open_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
+            setGripperSeperation(1.0);
         } else {
             close_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
+            setGripperSeperation(0.0);
         }
     }
 
@@ -817,6 +961,7 @@ public class Main {
                 status.setCommandStatus(new CommandStatusType());
                 status.getCommandStatus().setCommandID(BigInteger.ONE);
             }
+
             status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
             status.getCommandStatus().setStateDescription(error);
         }
@@ -1431,6 +1576,9 @@ public class Main {
                     if (null == commandStatus.getStatusID()) {
                         commandStatus.setStatusID(BigInteger.ONE);
                     }
+                    if (null == status.getCommandStatus().getCommandState()) {
+                        setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    }
                 }
                 if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
                     status.setJointStatuses(null);
@@ -1448,15 +1596,16 @@ public class Main {
     private long maxHandleCommandTime = 0;
     private long totalUpdateStatusTime = 0;
     private long maxUpdateStatusTime = 0;
-    private long handleCommandCount=0;
-    private long updateStatusCount =0;
-    
+    private long handleCommandCount = 0;
+    private long updateStatusCount = 0;
+
     private void updatePerformance() {
-        if(handleCommandCount > 0 && updateStatusCount > 0) {
-        jframe.updatePerformanceString("Performance: Commands: "+handleCommandCount+" maxTime="+maxHandleCommandTime+" (ms), avgTime="+(totalHandleCommandTime/handleCommandCount)+"(ms)"
-        +" Status: "+ updateStatusCount+" maxTime="+maxUpdateStatusTime+"(ms), avgTime="+(totalUpdateStatusTime/updateStatusCount)+"(ms)");
+        if (handleCommandCount > 0 && updateStatusCount > 0) {
+            jframe.updatePerformanceString("Performance: Commands: " + handleCommandCount + " maxTime=" + maxHandleCommandTime + " (ms), avgTime=" + (totalHandleCommandTime / handleCommandCount) + "(ms)"
+                    + " Status: " + updateStatusCount + " maxTime=" + maxUpdateStatusTime + "(ms), avgTime=" + (totalUpdateStatusTime / updateStatusCount) + "(ms)");
         }
     }
+
     private void handleClient(CRCLSocket cs) {
         try {
             while (!Thread.currentThread().isInterrupted()) {
@@ -1469,7 +1618,7 @@ public class Main {
                         long updateStatusEndTime = System.currentTimeMillis();
                         long updateStatusTimeDiff = updateStatusEndTime - readRetTime;
                         totalUpdateStatusTime += updateStatusTimeDiff;
-                        if(updateStatusTimeDiff > maxUpdateStatusTime) {
+                        if (updateStatusTimeDiff > maxUpdateStatusTime) {
                             maxUpdateStatusTime = updateStatusTimeDiff;
                         }
                         updateStatusCount++;
@@ -1481,9 +1630,9 @@ public class Main {
                             }
                             CompletableFuture.runAsync(() -> handleCommand(cmd), robotService).get();
                             long handleCommandEndTime = System.currentTimeMillis();
-                            long handleCommandTimeDiff =  handleCommandEndTime - readRetTime;
+                            long handleCommandTimeDiff = handleCommandEndTime - readRetTime;
                             totalHandleCommandTime += handleCommandTimeDiff;
-                            if(handleCommandTimeDiff > maxHandleCommandTime) {
+                            if (handleCommandTimeDiff > maxHandleCommandTime) {
                                 maxHandleCommandTime = handleCommandTimeDiff;
                             }
                             handleCommandCount++;
@@ -1544,7 +1693,7 @@ public class Main {
     }
 
     private boolean robotIsConnected = false;
-    
+
     public synchronized void handleCommand(CRCLCommandType cmd) {
         try {
             synchronized (status) {
@@ -1561,7 +1710,7 @@ public class Main {
             }
 
             lastCheckAtPosition = false;
-            if (null == robot || !robotIsConnected ||  null == groupPos) {
+            if (null == robot || !robotIsConnected || null == groupPos) {
                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
                 return;
             }
@@ -1645,7 +1794,6 @@ public class Main {
 
     private IRobotNeighborhood neighborhood = null;
     private String neighborhoodname = "AgilityLabLRMate200iD";
-    private Thread robotMonitorThread = null;
 
     public String getNeighborhoodname() {
         return neighborhoodname;
@@ -1803,7 +1951,19 @@ public class Main {
         applyAdditionalJointLimits(min, max);
     }
 
+    public static ThreadFactory daemonThreadFactory
+            = new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    };
+
     public void connectRemoteRobot() {
+        if (null == robotService) {
+            robotService = Executors.newSingleThreadExecutor(daemonThreadFactory);
+        }
         robotService.submit(this::connectRemoteRobotInternal);
     }
 
@@ -1838,14 +1998,25 @@ public class Main {
             }
 
             robotIsConnected = robot.isConnected();
-            
+
             if (!robotIsConnected) {
                 System.out.println("Connecting to " + remoteRobotHost + " ...");
-                robot.connectEx(remoteRobotHost, false, 100, 100);
+                int tries = 0;
+                robot.connectEx(remoteRobotHost, true, 1, 1);
+                while(!robot.isConnected() && !Thread.currentThread().isInterrupted() && tries < 10) {
+                    tries++;
+                    System.out.println("Connecting to " + remoteRobotHost + " ... : tries = " + tries+"/10");
+                    Thread.sleep(200);
+                }
                 robotIsConnected = robot.isConnected();
                 System.out.println("robotIsConnected = " + robotIsConnected);
             }
             
+            if(!robotIsConnected) {
+                showError("Failed to connect to robot: "+remoteRobotHost);
+                return;
+            }
+
             IIndPosition iip = robot.createIndependentPosition(FREGroupBitMaskConstants.frGroup1BitMask);
             iip.record();
             groupPos = iip.group((short) 1);
@@ -2123,12 +2294,12 @@ public class Main {
         int port = args.length > 2 ? Integer.valueOf(args[2]) : CRCLSocket.DEFAULT_PORT;
         boolean prefRNN = (args.length > 3) ? Boolean.valueOf(args[3]) : false;
         main.start(prefRNN, neighborhoodname, host, port);
-        System.out.println("Press enter \"stop\" to quit");
-        Scanner in = new Scanner(System.in);
-        while (!in.nextLine().equals("stop")) {
-            System.out.println("Enter \"stop\" to quit");
-        }
-        main.stop();
-        main = null;
+//        System.out.println("Press enter \"stop\" to quit");
+//        Scanner in = new Scanner(System.in);
+//        while (!in.nextLine().equals("stop")) {
+//            System.out.println("Enter \"stop\" to quit");
+//        }
+//        main.stop();
+//        main = null;
     }
 }

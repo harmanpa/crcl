@@ -226,6 +226,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Label stateDescriptionLbl = new Label("");
     private String lastDescription = "";
     private final Label statusIdLbl = new Label("Status ID :" + String.format("%10s", "0"));
+    private final Label holdingObjectLbl = new Label("HoldingObject : UNKNOWN");
     private final Table posCurrentTable = new Table("Current Position");
     private final Table rotCurrentTable = new Table("Current Rotation");
     private final Table posProgramTable = new Table("Program Position");
@@ -1015,6 +1016,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         topStatusLine.addComponent(stateLbl);
         topStatusLine.addComponent(stateDescriptionLbl);
         topStatusLine.addComponent(statusIdLbl);
+        topStatusLine.addComponent(holdingObjectLbl);
         navLayout.addComponent(topStatusLine);
         final HorizontalLayout navButtons = new HorizontalLayout();
         navButtons.setSpacing(true);
@@ -2173,6 +2175,22 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 }
                 stateDescriptionLbl.setValue(description);
                 statusIdLbl.setValue("Status ID: " + cst.getStatusID());
+            }
+            if(stat.getGripperStatus() == null || stat.getGripperStatus().isHoldingObject() == null) {
+                holdingObjectLbl.setValue("HoldingObject : UKNOWN");
+                holdingObjectLbl.removeStyleName("NOT_HOLDING_OBJECT");
+                holdingObjectLbl.removeStyleName("HOLDING_OBJECT");
+            } else {
+                if(stat.getGripperStatus().isHoldingObject()) {
+                    holdingObjectLbl.setValue("HoldingObject : TRUE");
+                    holdingObjectLbl.addStyleName("HOLDING_OBJECT");
+                    holdingObjectLbl.removeStyleName("NOT_HOLDING_OBJECT");
+                    
+                } else {
+                    holdingObjectLbl.setValue("HoldingObject : FALSE");
+                    holdingObjectLbl.removeStyleName("HOLDING_OBJECT");
+                    holdingObjectLbl.addStyleName("NOT_HOLDING_OBJECT");
+                }
             }
             PoseType pose = CRCLPosemath.getPose(stat);
             if (null != pose) {

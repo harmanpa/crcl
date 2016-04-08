@@ -1088,6 +1088,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         try {
             for (String classpathEntry : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
                 if (classpathEntry.endsWith(".jar")
+                        && !classpathEntry.contains("vaadin")
+                        && !classpathEntry.contains("google")
+                        && !classpathEntry.contains("apache")
                         && !classpathEntry.contains("commons-io")
                         && !classpathEntry.contains("commons-math")
                         && !classpathEntry.contains("xerces")

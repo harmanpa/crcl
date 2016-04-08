@@ -20,6 +20,7 @@
  */
 package com.github.wshackle.fanuccrclservermain;
 
+
 import com.github.wshackle.fanuc.robotserver.FRECurPositionConstants;
 import com.github.wshackle.fanuc.robotserver.FREExecuteConstants;
 import com.github.wshackle.fanuc.robotserver.FREStepTypeConstants;
@@ -57,6 +58,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -64,24 +66,33 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.naming.Context;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -92,6 +103,7 @@ import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.xml.parsers.ParserConfigurationException;
+
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -180,6 +192,21 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         this.jTableCartesianLimits.getModel().addTableModelListener(e -> updateCartLimits(false));
         this.jTableJointLimits.getModel().addTableModelListener(e -> updateJointLimits(false));
         setIconImage(SERVER_IMAGE);
+        readPropertiesFile();
+        if (jCheckBoxMenuItemStartClient.isSelected()) {
+            launchClient();
+        }
+        if (jCheckBoxMenuItemStartPressureServer.isSelected()) {
+            launchPressureSensorServer();
+            if (null != serverSensorJFrame) {
+                serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
+            }
+        }
+    }
+
+    @Override
+    final public void setIconImage(Image image) {
+        super.setIconImage(image);
     }
 
     private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
@@ -191,13 +218,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
         g2d.drawImage(baseImage, 0, 0, null);
         bi.flush();
-//        try {
-//            File f = File.createTempFile("icon", ".png");
-//            System.out.println("f = " + f);
-//            ImageIO.write(bi, "PNG", f);
-//        } catch (IOException ex) {
-//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-//        }
         return bi;
     }
 
@@ -212,7 +232,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
     private static final Image BASE_IMAGE = getRobotImage();
-    private static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
+    public static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
 
     IVar varToWatch = null;
 
@@ -454,6 +474,56 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             } catch (PmException ex) {
                 Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+    }
+
+    public static final File PROPERTIES_FILE = new File(System.getProperty("user.home"),
+            ".fanucCRLCProperties.txt");
+    Properties props = new Properties();
+
+    private String getProperty(String key, String defaultValue) {
+        String sysProp = System.getProperty(key);
+        if (null != sysProp) {
+            return sysProp;
+        }
+        return props.getProperty(key, defaultValue);
+    }
+
+    private boolean getBooleanProperty(String key, boolean defaultValue) {
+        String sysProp = System.getProperty(key);
+        if (null != sysProp) {
+            return Boolean.valueOf(sysProp);
+        }
+        return Optional.ofNullable(props.getProperty(key))
+                .map(Boolean::valueOf)
+                .orElse(defaultValue);
+    }
+
+    private static final String DEFAULT_FINGER_SENSOR_SERVER_COMMAND = "C:\\Program Files\\nodejs\\node.exe sensorServer.js";
+    private static final String DEFAULT_FINGER_SENSOR_SERVER_DIRECTORY = "C:\\Users\\Public\\Documents\\FingerPressureSensorNodeJS";
+    private String fingerSensorServerCmd = null;
+    private String fingerSensorServerDirectory = null;
+
+    private static final String DEFAULT_WEB_SERVER_COMMAND = "C:\\Users\\Public\\Documents\\runWebApp.bat";
+    private static final String DEFAULT_WEB_SERVER_DIRECTORY = "C:\\Users\\Public\\Documents\\";
+    private String webServerCmd = null;
+    private String webServerDirectory = null;
+
+    
+    private void readPropertiesFile() {
+        try {
+            if (PROPERTIES_FILE.exists()) {
+                props.load(new FileReader(PROPERTIES_FILE));
+            }
+            fingerSensorServerCmd = getProperty("fingerSensorServerCmd", DEFAULT_FINGER_SENSOR_SERVER_COMMAND);
+            fingerSensorServerDirectory = getProperty("fingerSensorServerDirectory", DEFAULT_FINGER_SENSOR_SERVER_DIRECTORY);
+            webServerCmd = getProperty("webServerCmd", DEFAULT_WEB_SERVER_COMMAND);
+            webServerDirectory = getProperty("webServerDirectory", DEFAULT_WEB_SERVER_DIRECTORY);
+            jCheckBoxMenuItemStartClient.setSelected(getBooleanProperty("autoStartClient", false));
+            jCheckBoxMenuItemStartPressureServer.setSelected(getBooleanProperty("autoStartPressureSensorServer", false));
+            jCheckBoxMenuItemShowPressureOutput.setSelected(getBooleanProperty("showPressureOutput", false));
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -915,9 +985,23 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         jMenuConvertProgram = new javax.swing.JMenu();
         jMenuTools = new javax.swing.JMenu();
         jMenuItemLaunchClient = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jCheckBoxMenuItemShowPressureOutput = new javax.swing.JCheckBoxMenuItem();
+        jMenuItemLaunchWeb = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        jCheckBoxMenuItemStartClient = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemStartPressureServer = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Fanuc CRCL Server");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
+            }
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jSliderOverride.setMajorTickSpacing(10);
         jSliderOverride.setMinorTickSpacing(10);
@@ -1143,7 +1227,49 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         });
         jMenuTools.add(jMenuItemLaunchClient);
 
+        jMenuItem1.setText("Launch Finger Pressure Sensor Server");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenuTools.add(jMenuItem1);
+
+        jCheckBoxMenuItemShowPressureOutput.setSelected(true);
+        jCheckBoxMenuItemShowPressureOutput.setText("Show Finger Pressure Sensor Output");
+        jCheckBoxMenuItemShowPressureOutput.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemShowPressureOutputActionPerformed(evt);
+            }
+        });
+        jMenuTools.add(jCheckBoxMenuItemShowPressureOutput);
+
+        jMenuItemLaunchWeb.setText("Launch Web Server/Application");
+        jMenuItemLaunchWeb.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLaunchWebActionPerformed(evt);
+            }
+        });
+        jMenuTools.add(jMenuItemLaunchWeb);
+
         jMenuBar1.add(jMenuTools);
+
+        jMenu3.setText("Options");
+
+        jCheckBoxMenuItemStartClient.setSelected(true);
+        jCheckBoxMenuItemStartClient.setText("Start Client on Startup");
+        jCheckBoxMenuItemStartClient.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemStartClientActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxMenuItemStartClient);
+
+        jCheckBoxMenuItemStartPressureServer.setSelected(true);
+        jCheckBoxMenuItemStartPressureServer.setText("Start Pressure Sensor Server on Startup");
+        jMenu3.add(jCheckBoxMenuItemStartPressureServer);
+
+        jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
 
@@ -1330,18 +1456,170 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jCheckBoxEditJointLimitsActionPerformed
 
     private void jMenuItemLaunchClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLaunchClientActionPerformed
+        launchClient();
+    }//GEN-LAST:event_jMenuItemLaunchClientActionPerformed
+
+    private void launchClient() {
         try {
             PendantClient client = new PendantClient();
             client.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             client.setVisible(true);
+            client.connect("localhost", CRCLSocket.DEFAULT_PORT);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jMenuItemLaunchClientActionPerformed
+    }
 
     private void jCheckBoxConnnectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxConnnectedActionPerformed
         setConnected(jCheckBoxConnnected.isSelected());
     }//GEN-LAST:event_jCheckBoxConnnectedActionPerformed
+
+    ServerSensorJFrame serverSensorJFrame = null;
+
+    public void saveProperties() {
+        try {
+            if (null == props) {
+                props = new Properties();
+            }
+            if (null != serverSensorJFrame) {
+                fingerSensorServerCmd = serverSensorJFrame.getCommandString();
+                fingerSensorServerDirectory = serverSensorJFrame.getDirectoryString();
+            }
+            if (null != webServerJFrame) {
+                webServerCmd = webServerJFrame.getCommandString();
+                webServerDirectory = webServerJFrame.getDirectoryString();
+            }
+            props.setProperty("fingerSensorServerCmd", fingerSensorServerCmd);
+            props.setProperty("fingerSensorServerDirectory", fingerSensorServerDirectory);
+            props.setProperty("webServerCmd", webServerCmd);
+            props.setProperty("webServerDirectory", webServerDirectory);
+            props.setProperty("autoStartClient", Boolean.toString(jCheckBoxMenuItemStartClient.isSelected()));
+            props.setProperty("autoStartPressureSensorServer", Boolean.toString(jCheckBoxMenuItemStartPressureServer.isSelected()));
+            props.setProperty("showPressureOutput", Boolean.toString(jCheckBoxMenuItemShowPressureOutput.isSelected()));
+            props.store(new FileWriter(PROPERTIES_FILE), "");
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void shutDown() {
+        if (null != timer) {
+            timer.stop();
+            timer = null;
+        }
+        saveProperties();
+        if (null != serverSensorJFrame) {
+            serverSensorJFrame.stop();
+            serverSensorJFrame.setVisible(false);
+            serverSensorJFrame.dispose();
+            serverSensorJFrame = null;
+        }
+        if (null != webServerJFrame) {
+            webServerJFrame.stop();
+            webServerJFrame.setVisible(false);
+            webServerJFrame.dispose();
+            webServerJFrame = null;
+        }
+        
+        Main.stop();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        shutDown();
+        super.finalize();
+    }
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        launchPressureSensorServer();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void launchPressureSensorServer() {
+        try {
+            if (null != serverSensorJFrame) {
+                fingerSensorServerCmd = serverSensorJFrame.getCommandString();
+                fingerSensorServerDirectory = serverSensorJFrame.getDirectoryString();
+                serverSensorJFrame.stop();
+                serverSensorJFrame.setVisible(false);
+                serverSensorJFrame.dispose();
+                saveProperties();
+            }
+            serverSensorJFrame = new ServerSensorJFrame();
+            serverSensorJFrame.setCommandString(fingerSensorServerCmd);
+            serverSensorJFrame.setDirectoryString(fingerSensorServerDirectory);
+            jCheckBoxMenuItemShowPressureOutput.setSelected(true);
+            serverSensorJFrame.setVisible(true);
+            serverSensorJFrame.start();
+            serverSensorJFrame.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if (evt.getPropertyName().equals(ServerSensorJFrame.PROP_DATA)) {
+                        main.setHoldingObject(serverSensorJFrame.getData().getFSR_finger_B_distal() > 10.0);
+                        main.setHoldingObjectKnown(true);
+                    }
+                }
+            });
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            main.showError(ex.toString());
+        }
+    }
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        shutDown();
+    }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        shutDown();
+    }//GEN-LAST:event_formWindowClosed
+
+    private void jCheckBoxMenuItemShowPressureOutputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
+        if (null != serverSensorJFrame) {
+            serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
+        }
+        saveProperties();
+    }//GEN-LAST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
+
+    private void jCheckBoxMenuItemStartClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemStartClientActionPerformed
+        saveProperties();
+    }//GEN-LAST:event_jCheckBoxMenuItemStartClientActionPerformed
+
+    private void jMenuItemLaunchWebActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLaunchWebActionPerformed
+        launchWebServer();
+    }//GEN-LAST:event_jMenuItemLaunchWebActionPerformed
+
+    
+    WebServerJFrame webServerJFrame= null;
+    private void launchWebServer() {
+         try {
+//            if (null != webServerJFrame) {
+//                webServerCmd = webServerJFrame.getCommandString();
+//                webServerDirectory = webServerJFrame.getDirectoryString();
+//                webServerJFrame.stop();
+//                webServerJFrame.setVisible(false);
+//                webServerJFrame.dispose();
+//                saveProperties();
+//            }
+            webServerJFrame = new WebServerJFrame();
+            webServerJFrame.setCommandString(webServerCmd);
+            webServerJFrame.setDirectoryString(webServerDirectory);
+            jCheckBoxMenuItemShowPressureOutput.setSelected(true);
+            webServerJFrame.setVisible(true);
+            webServerJFrame.start();
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            main.showError(ex.toString());
+        }
+    }
+
+    private void launchBrowser() {
+        try {
+            Desktop.getDesktop().browse(new URL("http://localhost:8081/crcl4java-vaadin-webapp/").toURI());
+        } catch (IOException | URISyntaxException ex) {
+            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 
     /**
      * @param args the command line arguments
@@ -1386,6 +1664,9 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemShowPressureOutput;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartClient;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartPressureServer;
     private javax.swing.JCheckBox jCheckBoxMonitorTasks;
     private javax.swing.JCheckBox jCheckBoxShowAborted;
     private javax.swing.JLabel jLabel1;
@@ -1402,9 +1683,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabelStatus;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenu jMenuConvertProgram;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItemLaunchClient;
+    private javax.swing.JMenuItem jMenuItemLaunchWeb;
     private javax.swing.JMenuItem jMenuItemReconnectRobot;
     private javax.swing.JMenuItem jMenuItemResetAlarms;
     private javax.swing.JMenu jMenuRunProgram;

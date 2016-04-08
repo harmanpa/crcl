@@ -308,9 +308,9 @@
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <Component id="jTabbedPaneLeftUpper" max="32767" attributes="0"/>
+                      <Component id="jTabbedPaneLeftUpper" pref="811" max="32767" attributes="0"/>
                       <EmptySpace type="unrelated" min="-2" max="-2" attributes="0"/>
-                      <Component id="jTabbedPaneRightUpper" max="32767" attributes="0"/>
+                      <Component id="jTabbedPaneRightUpper" pref="306" max="32767" attributes="0"/>
                       <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -394,7 +394,7 @@
                               <Component id="jTextFieldRunTime" max="32767" attributes="0"/>
                           </Group>
                           <Component id="jScrollPane5" alignment="0" max="32767" attributes="0"/>
-                          <Component id="jScrollPaneProgram" alignment="0" pref="741" max="32767" attributes="0"/>
+                          <Component id="jScrollPaneProgram" alignment="0" pref="780" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -639,6 +639,8 @@
                                       <Component id="jButtonOpenGripper" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="jButtonCloseGripper" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jLabelHoldingObject" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                           </Group>
@@ -671,7 +673,7 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="110" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -689,6 +691,7 @@
                               <Component id="jButtonRecordPoint" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jButtonOpenGripper" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="jButtonCloseGripper" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="jLabelHoldingObject" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
@@ -1112,6 +1115,11 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonCloseGripperActionPerformed"/>
               </Events>
             </Component>
+            <Component class="javax.swing.JLabel" name="jLabelHoldingObject">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="HoldingObject: Unknown"/>
+              </Properties>
+            </Component>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="jPanelMoveTo">
@@ -1429,7 +1437,7 @@
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="jScrollPane6" alignment="0" max="32767" attributes="0"/>
                                   <Component id="jScrollPane2" alignment="0" pref="0" max="32767" attributes="0"/>
-                                  <Component id="jScrollPane3" alignment="0" pref="318" max="32767" attributes="0"/>
+                                  <Component id="jScrollPane3" alignment="0" pref="279" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
@@ -1442,7 +1450,7 @@
                               </Group>
                               <EmptySpace min="-2" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="jTextFieldStatCmdID" pref="165" max="32767" attributes="0"/>
+                                  <Component id="jTextFieldStatCmdID" pref="177" max="32767" attributes="0"/>
                                   <Component id="jTextFieldStatus" max="32767" attributes="0"/>
                                   <Component id="jTextFieldStatusID" max="32767" attributes="0"/>
                               </Group>
@@ -1662,7 +1670,7 @@
                   <Layout>
                     <DimensionLayout dim="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="286" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="249" max="32767" attributes="0"/>
                       </Group>
                     </DimensionLayout>
                     <DimensionLayout dim="1">

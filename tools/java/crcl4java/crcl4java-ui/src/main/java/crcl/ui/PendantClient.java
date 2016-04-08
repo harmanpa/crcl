@@ -30,6 +30,7 @@ import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.EndCanonType;
+import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
@@ -579,6 +580,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jButtonRecordPoint = new javax.swing.JButton();
         jButtonOpenGripper = new javax.swing.JButton();
         jButtonCloseGripper = new javax.swing.JButton();
+        jLabelHoldingObject = new javax.swing.JLabel();
         jPanelMoveTo = new javax.swing.JPanel();
         jButtonMoveTo = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -777,7 +779,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldRunTime))
                     .addComponent(jScrollPane5)
-                    .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 741, Short.MAX_VALUE))
+                    .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanelProgramLayout.setVerticalGroup(
@@ -974,6 +976,8 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         jButtonCloseGripper.setEnabled(false);
         jButtonCloseGripper.addActionListener(formListener);
 
+        jLabelHoldingObject.setText("HoldingObject: Unknown");
+
         javax.swing.GroupLayout jPanelJoggingLayout = new javax.swing.GroupLayout(jPanelJogging);
         jPanelJogging.setLayout(jPanelJoggingLayout);
         jPanelJoggingLayout.setHorizontalGroup(
@@ -1000,7 +1004,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonOpenGripper)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonCloseGripper))))
+                                .addComponent(jButtonCloseGripper)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabelHoldingObject))))
                     .addGroup(jPanelJoggingLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1025,7 +1031,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(110, Short.MAX_VALUE))
         );
 
         jPanelJoggingLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldJogInterval, jTextFieldJointJogIncrement, jTextFieldJointJogSpeed, jTextFieldRPYJogIncrement, jTextFieldTransSpeed, jTextFieldXYZJogIncrement});
@@ -1042,7 +1048,8 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                     .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButtonRecordPoint)
                         .addComponent(jButtonOpenGripper)
-                        .addComponent(jButtonCloseGripper)))
+                        .addComponent(jButtonCloseGripper)
+                        .addComponent(jLabelHoldingObject)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jPanelJogMinus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1353,7 +1360,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane6)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 318, Short.MAX_VALUE)))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1363,7 +1370,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             .addComponent(jLabel18))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                            .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
                             .addComponent(jTextFieldStatus)
                             .addComponent(jTextFieldStatusID))
                         .addGap(10, 10, 10)))
@@ -1405,7 +1412,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 286, Short.MAX_VALUE)
+            .addGap(0, 249, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1644,9 +1651,9 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addComponent(jScrollPane1)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTabbedPaneLeftUpper)
+                        .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 811, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTabbedPaneRightUpper)
+                        .addComponent(jTabbedPaneRightUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)
                         .addGap(11, 11, 11))))
         );
         layout.setVerticalGroup(
@@ -2102,6 +2109,24 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
                     this.jTextAreaStateDescription.setText(stateDescription);
                     lastStateDescription = stateDescription;
+                }
+                GripperStatusType gripperStatus = internal.getStatus().getGripperStatus();
+                if(null == gripperStatus || null == gripperStatus.isHoldingObject()) {
+                    
+                    jLabelHoldingObject.setText("HoldingObject: UNKNOWN");
+                    jLabelHoldingObject.setOpaque(false);
+                    jLabelHoldingObject.setForeground(Color.BLACK);
+                } else {
+                    if(gripperStatus.isHoldingObject()) {
+                        jLabelHoldingObject.setText("HoldingObject: TRUE");
+                        jLabelHoldingObject.setForeground(Color.BLACK);
+                        jLabelHoldingObject.setBackground(Color.WHITE);
+                    } else {
+                        jLabelHoldingObject.setText("HoldingObject: FALSE");
+                        jLabelHoldingObject.setForeground(Color.BLACK);
+                        jLabelHoldingObject.setBackground(Color.WHITE);
+                    }
+                    jLabelHoldingObject.setOpaque(true);
                 }
             }
             JointStatusesType jsst = internal.getStatus().getJointStatuses();
@@ -4193,6 +4218,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JLabel jLabelHoldingObject;
     private javax.swing.JLabel jLabelJogMinus;
     private javax.swing.JLabel jLabelJogMinus1;
     private javax.swing.JLabel jLabelJogPlus;

@@ -199,10 +199,13 @@
         The abstract GripperStatusType is derived from DataThingType.
         An instance of GripperStatusType has the following elements:
           Name (inherited, optional)
-          GripperName.
- 
+          GripperName
+          HoldingObject.
+          
         GripperStatusType is an abstract type from which more specialized
-        types of gripper status are derived.
+        types of gripper status are derived. HoldingObject is true if the gripper 
+          is expected to be holding an object given its position and/or pressure
+          sensors on the finger tips.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -210,6 +213,9 @@
         <xs:sequence>
           <xs:element name="GripperName"
             type="xs:NMTOKEN"/>
+          <xs:element name="HoldingObject"
+            type="xs:boolean"
+            minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
