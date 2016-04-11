@@ -21,6 +21,8 @@
 package com.github.wshackle.fanuccrclservermain;
 
 
+import crcl.ui.WebServerJFrame;
+import crcl.ui.ServerSensorJFrame;
 import com.github.wshackle.fanuc.robotserver.FRECurPositionConstants;
 import com.github.wshackle.fanuc.robotserver.FREExecuteConstants;
 import com.github.wshackle.fanuc.robotserver.FREStepTypeConstants;

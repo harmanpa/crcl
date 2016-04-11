@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.github.wshackle.fanuccrclservermain;
+package crcl.ui;
+
 
 import com.google.gson.Gson;
+import static crcl.ui.IconImages.SERVER_IMAGE;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -80,7 +82,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
      */
     public ServerSensorJFrame() {
         initComponents();
-        setIconImage(FanucCRCLServerJFrame.SERVER_IMAGE);
+        setIconImage(SERVER_IMAGE);
     }
     
     @Override

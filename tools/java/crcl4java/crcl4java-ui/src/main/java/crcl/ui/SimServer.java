@@ -30,22 +30,15 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
-import static crcl.ui.PendantClient.getRobotImage;
+import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.SimRobotEnum;
 import crcl.utils.SimServerOuter;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -135,25 +128,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         this.setIconImage(SERVER_IMAGE);
     }
 
-    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
-        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
-        Graphics2D g2d = bi.createGraphics();
-        g2d.setBackground(bgColor);
-        g2d.setColor(textColor);
-        g2d.clearRect(0, 0, d.width, d.height);
-        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage, 0, 0, null);
-        bi.flush();
-        return bi;
-    }
-
-    private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image BASE_IMAGE = getRobotImage();
-    private static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
-    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.white, Color.BLACK, BASE_IMAGE);
-    private static final Image ERROR_IMAGE = createImage(ICON_SIZE, Color.red, Color.BLACK, BASE_IMAGE);
-    private static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, BASE_IMAGE);
-    private static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
+    
 
     private static final boolean LOG_IMAGES_DEFAULT = Boolean.getBoolean("crcl4java.simserver.logimages");
 

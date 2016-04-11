@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.github.wshackle.fanuccrclservermain;
+package crcl.ui;
 
-import com.google.gson.Gson;
+
+import static crcl.ui.IconImages.SERVER_IMAGE;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -14,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +80,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
      */
     public WebServerJFrame() {
         initComponents();
-        setIconImage(FanucCRCLServerJFrame.SERVER_IMAGE);
+        setIconImage(SERVER_IMAGE);
     }
     
     @Override
