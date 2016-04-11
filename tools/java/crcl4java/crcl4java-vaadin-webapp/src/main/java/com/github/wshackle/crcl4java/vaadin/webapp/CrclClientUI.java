@@ -212,7 +212,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button connectButton = new Button("Connect");
     private final Button initButton = new Button("Init/Reset");
     final Button runButton = new Button("Run from Start");
-    final Button continueButton = new Button("Continue from current");
+    final Button continueButton = new Button("Continue");
 
     private final Table remoteProgramTable = new Table("Remote Programs");
     private final Button remoteProgramLoadButton = new Button("Load Selected Remote Program");
@@ -1125,7 +1125,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         progTable.addContainerProperty("Index", Integer.class, null);
         progTable.addContainerProperty("Command", String.class, null);
-        progTable.setWidth("500px");
+        progTable.setWidth("400px");
         progTable.setHeight("460px");
         progTable.setMultiSelect(false);
         progTable.setSelectable(true);
@@ -1389,7 +1389,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         runStopLayout.addComponent(runButton);
         runStopLayout.addComponent(continueButton);
-        final Button stepButton = new Button("One Step");
+        final Button stepButton = new Button("Step");
 
         stepButton.addClickListener(new Button.ClickListener() {
 
