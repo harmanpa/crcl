@@ -53,4 +53,6 @@ public interface PendantClientOuter {
     public boolean isEXISelected();
     public boolean isUseReadStatusThreadSelected();
     public boolean checkUserText(String text);
+    public boolean isMonitoringHoldingObject();
+    public void setExpectedHoldingObject(boolean x);
 }

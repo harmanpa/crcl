@@ -5,12 +5,9 @@
  */
 package crcl.ui;
 
-
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import java.awt.Desktop;
 import java.awt.Image;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -19,6 +16,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -34,26 +35,56 @@ import javax.swing.JFileChooser;
  */
 public class WebServerJFrame extends javax.swing.JFrame {
 
+    static final private List<WebServerJFrame> allWebServers = new ArrayList<>();
+
+    private static boolean shutdownHookRegistered = false;
+
+    private static void shutdownAll() {
+        System.out.println("Starting WebServerJFrame.shutdownAll()");
+        for (int i = 0; i < allWebServers.size(); i++) {
+            try {
+                WebServerJFrame ws = allWebServers.get(i);
+                if (null != ws) {
+                    ws.stop();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("i = " + i +" / "+allWebServers.size());
+        }
+        allWebServers.clear();
+        System.out.println("Finished WebServerJFrame.shutdownAll()");
+    }
+
+    static {
+        if (!shutdownHookRegistered) {
+            synchronized (WebServerJFrame.class) {
+                Runtime.getRuntime().addShutdownHook(new Thread(WebServerJFrame::shutdownAll, "webServerShutdownThread"));
+                shutdownHookRegistered = true;
+            }
+        }
+    }
+
     /**
      * Creates new form ServerSensorJFrame
      */
     public WebServerJFrame() {
         initComponents();
-        if("Windows".equalsIgnoreCase(System.getProperty("os.name"))) {
-            setCommandString("runWebApp.bat");
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            setCommandString(System.getProperty("user.dir") + File.separator + "runWebApp.bat");
         } else {
-            setCommandString("./runWebApp.sh");
+            setCommandString(System.getProperty("user.dir") + File.separator + "runWebApp.sh");
         }
         setDirectoryString(System.getProperty("user.dir"));
         readProperties();
         setIconImage(SERVER_IMAGE);
+        allWebServers.add(this);
     }
-    
+
     @Override
     final public void setIconImage(Image image) {
         super.setIconImage(image);
     }
-
 
     public void setCommandString(String s) {
         try {
@@ -112,6 +143,9 @@ public class WebServerJFrame extends javax.swing.JFrame {
         jTextAreaConsoleOutput = new javax.swing.JTextArea();
         jButtonClearOutput = new javax.swing.JButton();
         jButtonFullLog = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jTextFieldURL = new javax.swing.JTextField();
+        jButtonView = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CRCL Web Server Control");
@@ -173,7 +207,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE)
                     .addContainerGap())
             );
 
@@ -191,6 +225,17 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 }
             });
 
+            jLabel2.setText("URL:");
+
+            jTextFieldURL.setText("http://localhost:8080/crcl4java-vaadin-webapp/");
+
+            jButtonView.setText("View");
+            jButtonView.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButtonViewActionPerformed(evt);
+                }
+            });
+
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
             getContentPane().setLayout(layout);
             layout.setHorizontalGroup(
@@ -203,17 +248,25 @@ public class WebServerJFrame extends javax.swing.JFrame {
                             .addComponent(jCheckBoxRun)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(jTextFieldCommand))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jTextFieldDirectory, javax.swing.GroupLayout.DEFAULT_SIZE, 645, Short.MAX_VALUE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButtonDirBrowse))
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                             .addGap(0, 0, Short.MAX_VALUE)
                             .addComponent(jButtonFullLog)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButtonClearOutput)))
+                            .addComponent(jButtonClearOutput))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel2)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jTextFieldURL))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jTextFieldDirectory, javax.swing.GroupLayout.DEFAULT_SIZE, 645, Short.MAX_VALUE)))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jButtonDirBrowse)
+                                .addComponent(jButtonView, javax.swing.GroupLayout.Alignment.TRAILING))))
                     .addContainerGap())
             );
             layout.setVerticalGroup(
@@ -229,6 +282,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
                         .addComponent(jTextFieldDirectory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jButtonDirBrowse))
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel2)
+                        .addComponent(jTextFieldURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButtonView))
+                    .addGap(2, 2, 2)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -241,13 +299,12 @@ public class WebServerJFrame extends javax.swing.JFrame {
         }// </editor-fold>//GEN-END:initComponents
 
     private void jTextFieldDirectoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldDirectoryActionPerformed
-       saveProperties();
+        saveProperties();
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
     private Process internalProcess;
     private Thread monitorOutputThread;
     private Thread monitorErrorThread;
-    
 
     private List<String> consoleStrings = new LinkedList<String>();
 
@@ -270,18 +327,17 @@ public class WebServerJFrame extends javax.swing.JFrame {
         this.maxLoggedStrings = maxLoggedStrings;
     }
 
-
     private PrintWriter logger = null;
     private File logFile = null;
-    
+
     private void monitorInternalProcessOutput() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()));
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
-                if(logger == null) {
-                    synchronized(this) {
+                if (logger == null) {
+                    synchronized (this) {
                         logFile = File.createTempFile("webserverlog", "txt");
                         System.out.println("logFile = " + logFile);
                         logger = new PrintWriter(new FileWriter(logFile));
@@ -319,97 +375,129 @@ public class WebServerJFrame extends javax.swing.JFrame {
             if (this.jCheckBoxRun.isSelected()) {
                 start();
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(ex.toString()));
         }
     }//GEN-LAST:event_jCheckBoxRunActionPerformed
 
-    public void start() throws IOException {
-        internalProcess = new ProcessBuilder(jTextFieldCommand.getText().split("[ \t]+"))
-                .directory(new File(jTextFieldDirectory.getText()))
-                .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                .redirectError(ProcessBuilder.Redirect.PIPE)
-                .start();
-        monitorOutputThread = new Thread(this::monitorInternalProcessOutput, "monitorFingerSensorConsole");
-        monitorOutputThread.start();
-        monitorErrorThread = new Thread(this::monitorInternalProcessError, "monitorFingerSensorError");
-        monitorErrorThread.start();
-        if (!jCheckBoxRun.isSelected()) {
-            jCheckBoxRun.setSelected(true);
+    public void start() throws Exception {
+        try {
+            internalProcess = new ProcessBuilder(jTextFieldCommand.getText().split("[ \t]+"))
+                    .directory(new File(jTextFieldDirectory.getText()))
+                    .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                    .redirectError(ProcessBuilder.Redirect.PIPE)
+                    .start();
+            monitorOutputThread = new Thread(this::monitorInternalProcessOutput, "monitorFingerSensorConsole");
+            monitorOutputThread.start();
+            monitorErrorThread = new Thread(this::monitorInternalProcessError, "monitorFingerSensorError");
+            monitorErrorThread.start();
+            if (!jCheckBoxRun.isSelected()) {
+                jCheckBoxRun.setSelected(true);
+            }
+        } catch (Exception exception) {
+            javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(exception.toString()));
+            throw new Exception(exception);
         }
     }
-    
 
     public void stop() {
         if (null != onStopRunnable) {
+            System.out.println("Starting WebServerJFrame : onStopRunnable.run()");
             onStopRunnable.run();
+            System.out.println("Finished WebServerJFrame : onStopRunnable.run()");
         }
         if (null != internalProcess) {
             try {
+                System.out.println("Starting WebServerJFrame : internalProcess.destroy()");
+                internalProcess.destroy();
+                internalProcess.waitFor(10, TimeUnit.SECONDS);
+                int exit_code = internalProcess.exitValue();
+                System.out.println("exit_code = " + exit_code);
+                System.out.println("Finished WebServerJFrame : internalProcess.destroy()");
+            } catch (InterruptedException ex) {
+                Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                System.out.println("Starting WebServerJFrame : internalProcess.destroyForcibly()");
                 internalProcess.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
+                System.out.println("Finished WebServerJFrame : internalProcess.destroyForcibly()");
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
             internalProcess = null;
         }
         if (null != monitorOutputThread) {
+            System.out.println("Starting WebServerJFrame : monitorOutputThread.join(...)");
             monitorOutputThread.interrupt();
             try {
                 monitorOutputThread.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
+            System.out.println("Finished WebServerJFrame : monitorOutputThread.join(...)");
             monitorOutputThread = null;
         }
         if (null != monitorErrorThread) {
+            System.out.println("Starting WebServerJFrame : monitorErrorThread.join(...)");
             monitorErrorThread.interrupt();
             try {
                 monitorErrorThread.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
+            System.out.println("Finished WebServerJFrame : monitorErrorThread.join(...)");
             monitorErrorThread = null;
         }
-        if(null != logger) {
+        if (null != logger) {
+            System.out.println("Starting WebServerJFrame : logger.close()");
             logger.close();
             logger = null;
+            System.out.println("Finished WebServerJFrame : logger.close()");
         }
+        System.out.println("Starting WebServerJFrame : saveProperties()");
         saveProperties();
+        System.out.println("Finished WebServerJFrame : saveProperties()");
+        
     }
 
-    private static final File PROPERTIES_FILE = new File(System.getProperty("user.home"),".crcl4java.webserver.properties.txt");
-    
+    private static final File PROPERTIES_FILE = new File(System.getProperty("user.home"), ".crcl4java.webserver.properties.txt");
+
     private void readProperties() {
-        if(PROPERTIES_FILE.exists()) {
+        if (PROPERTIES_FILE.exists()) {
             try {
                 Properties props = new Properties();
                 props.load(new FileReader(PROPERTIES_FILE));
                 String cmd = props.getProperty("webServerCmd");
-                if(null != cmd && !cmd.isEmpty()) {
+                if (null != cmd && !cmd.isEmpty()) {
                     jTextFieldCommand.setText(cmd);
                 }
                 String dir = props.getProperty("webServerDirectory");
-                if(null != dir && !dir.isEmpty()) {
+                if (null != dir && !dir.isEmpty()) {
                     jTextFieldDirectory.setText(dir);
+                }
+                String url = props.getProperty("url");
+                if (null != url && !url.isEmpty()) {
+                    jTextFieldURL.setText(url);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
-    
+
     private void saveProperties() {
         try {
             Properties props = new Properties();
             props.put("webServerCmd", jTextFieldCommand.getText());
-            props.put("webServerDirectory", jTextFieldCommand.getText());
+            props.put("webServerDirectory", jTextFieldDirectory.getText());
+            props.put("url", jTextFieldURL.getText());
             props.store(new FileWriter(PROPERTIES_FILE), "");
         } catch (IOException ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     @Override
     protected void finalize() throws Throwable {
         stop();
@@ -447,24 +535,31 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonClearOutputActionPerformed
 
     private void jButtonFullLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFullLogActionPerformed
-       synchronized(this) {
-           try {
-               logger.close();
-               Desktop.getDesktop().open(logFile);
-           } catch (IOException ex) {
-               Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-           } finally {
-               logger = null;
-               logFile=null;
-           }
-       }
+        synchronized (this) {
+            try {
+                logger.close();
+                Desktop.getDesktop().open(logFile);
+            } catch (IOException ex) {
+                Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                logger = null;
+                logFile = null;
+            }
+        }
     }//GEN-LAST:event_jButtonFullLogActionPerformed
 
     private void jTextFieldCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCommandActionPerformed
-       saveProperties();
+        saveProperties();
     }//GEN-LAST:event_jTextFieldCommandActionPerformed
 
-    
+    private void jButtonViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonViewActionPerformed
+        try {
+            Desktop.getDesktop().browse(new URL(jTextFieldURL.getText()).toURI());
+        } catch (IOException | URISyntaxException ex) {
+            Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonViewActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -481,15 +576,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(WebServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(WebServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(WebServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(WebServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+        } 
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
@@ -505,12 +596,15 @@ public class WebServerJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButtonClearOutput;
     private javax.swing.JButton jButtonDirBrowse;
     private javax.swing.JButton jButtonFullLog;
+    private javax.swing.JButton jButtonView;
     private javax.swing.JCheckBox jCheckBoxRun;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextAreaConsoleOutput;
     private javax.swing.JTextField jTextFieldCommand;
     private javax.swing.JTextField jTextFieldDirectory;
+    private javax.swing.JTextField jTextFieldURL;
     // End of variables declaration//GEN-END:variables
 }

@@ -20,7 +20,6 @@
  */
 package com.github.wshackle.fanuccrclservermain;
 
-
 import crcl.ui.WebServerJFrame;
 import crcl.ui.ServerSensorJFrame;
 import com.github.wshackle.fanuc.robotserver.FRECurPositionConstants;
@@ -86,12 +85,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.naming.Context;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -511,7 +507,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
     private String webServerCmd = null;
     private String webServerDirectory = null;
 
-    
     private void readPropertiesFile() {
         try {
             if (PROPERTIES_FILE.exists()) {
@@ -1522,7 +1517,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             webServerJFrame.dispose();
             webServerJFrame = null;
         }
-        
+
         Main.stop();
     }
 
@@ -1590,10 +1585,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         launchWebServer();
     }//GEN-LAST:event_jMenuItemLaunchWebActionPerformed
 
-    
-    WebServerJFrame webServerJFrame= null;
+    WebServerJFrame webServerJFrame = null;
+
     private void launchWebServer() {
-         try {
+        try {
 //            if (null != webServerJFrame) {
 //                webServerCmd = webServerJFrame.getCommandString();
 //                webServerDirectory = webServerJFrame.getDirectoryString();
@@ -1608,7 +1603,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             jCheckBoxMenuItemShowPressureOutput.setSelected(true);
             webServerJFrame.setVisible(true);
             webServerJFrame.start();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             main.showError(ex.toString());
         }
@@ -1621,7 +1616,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
 
     /**
      * @param args the command line arguments

@@ -58,6 +58,7 @@ import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
 import crcl.base.RotSpeedType;
 import crcl.base.SetAngleUnitsType;
+import crcl.base.SetEndEffectorType;
 import crcl.base.SetEndPoseToleranceType;
 import crcl.base.SetIntermediatePoseToleranceType;
 import crcl.base.SetLengthUnitsType;
@@ -726,7 +727,10 @@ public class PendantClientInner {
             for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
                 cjrMap.put(cjr.getJointNumber().intValue(), cjr);
             }
-        }
+        } else if(cmd instanceof SetEndEffectorType) {
+            this.setHoldingObjectExpected(false);
+            holdingErrorOccured = false;
+        } 
         boolean ret = this.sendCommandPrivate(cmd);
 
         if (!(cmd instanceof GetStatusType)) {
@@ -829,6 +833,9 @@ public class PendantClientInner {
             while (!Thread.currentThread().isInterrupted()
                     && !isDone(minCmdId)
                     && timeDiff < fullTimeout) {
+                if(holdingErrorOccured) {
+                    return false;
+                }
                 if (outer.isDebugWaitForDoneSelected()) {
                     showDebugStatus();
                     showDebugMessage("PendantClient waitForDone(" + minCmdId + ") timeDiff = " + timeDiff + " / " + timeoutMilliSeconds + " = " + ((double) timeDiff) / timeoutMilliSeconds);
@@ -1017,6 +1024,28 @@ public class PendantClientInner {
         }
     }
 
+        private boolean holdingErrorOccured;
+
+    /**
+     * Get the value of holdingErrorOccured
+     *
+     * @return the value of holdingErrorOccured
+     */
+    public boolean isHoldingErrorOccured() {
+        return holdingErrorOccured;
+    }
+
+    /**
+     * Set the value of holdingErrorOccured
+     *
+     * @param holdingErrorOccured new value of holdingErrorOccured
+     */
+    public void setHoldingErrorOccured(boolean holdingErrorOccured) {
+        this.holdingErrorOccured = holdingErrorOccured;
+    }
+
+    private int holdingErrorRepCount = 0;
+    
     public void readStatus() {
         try {
             if (outer.replaceStateSelected()) {
@@ -1034,6 +1063,18 @@ public class PendantClientInner {
                         && (null == statString || statString.length() < 1)) {
                     outer.showDebugMessage("crclSocket.statusToString(curStatus,false)="
                             + crclSocket.statusToString(curStatus, false));
+                }
+            }
+            if(outer.isMonitoringHoldingObject() && holdingObjectExpected) {
+                GripperStatusType gripperStatus = status.getGripperStatus();
+                if(null == gripperStatus || null == gripperStatus.isHoldingObject() || !gripperStatus.isHoldingObject()) {
+                    holdingErrorRepCount++;
+                    if(holdingErrorRepCount > 25 && !holdingErrorOccured) {
+                        outer.showMessage("Object dropped or missing?");
+                        holdingErrorOccured = true;
+                    }
+                } else {
+                    holdingErrorRepCount = 0;
                 }
             }
             if (curStatus == null) {
@@ -1183,6 +1224,27 @@ public class PendantClientInner {
         this.jointTol = jointTol;
     }
 
+    private boolean holdingObjectExpected;
+
+    /**
+     * Get the value of holdingObjectExpected
+     *
+     * @return the value of holdingObjectExpected
+     */
+    public boolean isHoldingObjectExpected() {
+        return holdingObjectExpected;
+    }
+
+    /**
+     * Set the value of holdingObjectExpected
+     *
+     * @param holdingObjectExpected new value of holdingObjectExpected
+     */
+    public void setHoldingObjectExpected(boolean holdingObjectExpected) {
+        this.holdingObjectExpected = holdingObjectExpected;
+        outer.setExpectedHoldingObject(holdingObjectExpected);
+    }
+
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
         if (cmd instanceof ActuateJointsType) {
             return testAcutateJointsEffect((ActuateJointsType) cmd);
@@ -1201,6 +1263,10 @@ public class PendantClientInner {
         }
         if (cmd instanceof DwellType) {
             return testDwellEffect((DwellType) cmd, cmdStartTime);
+        }
+        if (cmd instanceof SetEndEffectorType) {
+            SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
+            this.setHoldingObjectExpected(seeCmd.getSetting().doubleValue() < 0.5);
         }
         return true;
     }
@@ -1499,6 +1565,8 @@ public class PendantClientInner {
 
     public boolean runProgram(CRCLProgramType prog, int startLine) {
         final int start_close_test_count = this.close_test_count;
+        holdingErrorOccured =false;
+        holdingErrorRepCount = 0;
         try {
             paused = false;
             if (null == this.crclSocket) {

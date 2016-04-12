@@ -71,9 +71,9 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
-                <excludes>
-                    <exclude>**/*.png</exclude>
-                </excludes>
+                <includes>
+                    <include>**/*.png</include>
+                </includes>
             </resource>
         </resources>
         <plugins>

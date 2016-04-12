@@ -206,5 +206,14 @@ public class PendantClientOuterStub implements PendantClientOuter{
         return true;
     }
     private static final Logger LOG = Logger.getLogger(PendantClientOuterStub.class.getName());
+
+    @Override
+    public boolean isMonitoringHoldingObject() {
+        return false;
+    }
+
+    @Override
+    public void setExpectedHoldingObject(boolean x) {
+    }
     
 }

@@ -199,7 +199,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
             webServer.start();
             timer.setRepeats(false);
             timer.start();
-        } catch (IOException | ParserConfigurationException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.setState(Frame.ICONIFIED);
