@@ -27,10 +27,11 @@
           <Group type="102" attributes="0">
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jButtonLaunchServer" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="jButtonLaunchGripperServer" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="jButtonLaunchClient" linkSize="2" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
+                  <Component id="jButtonLaunchWebServer" linkSize="2" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
                   <Component id="jButtonLaunchAll" linkSize="2" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
+                  <Component id="jButtonLaunchClient" linkSize="2" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
+                  <Component id="jButtonLaunchGripperServer" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="jButtonLaunchServer" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -45,6 +46,8 @@
               <Component id="jButtonLaunchGripperServer" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jButtonLaunchClient" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jButtonLaunchWebServer" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jButtonLaunchAll" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
@@ -95,6 +98,17 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonLaunchAllActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="jButtonLaunchWebServer">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Cantarell" size="24" style="0"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="Launch CRCL Web Server"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonLaunchWebServerActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

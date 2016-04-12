@@ -7,16 +7,21 @@ package crcl.ui;
 
 
 import static crcl.ui.IconImages.SERVER_IMAGE;
+import java.awt.Desktop;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,57 +34,18 @@ import javax.swing.JFileChooser;
  */
 public class WebServerJFrame extends javax.swing.JFrame {
 
-    private FingerPressureSensorData data;
-
-    public static final String PROP_DATA = "data";
-
-    /**
-     * Get the value of data
-     *
-     * @return the value of data
-     */
-    public FingerPressureSensorData getData() {
-        return data;
-    }
-
-    /**
-     * Set the value of data
-     *
-     * @param data new value of data
-     */
-    public void setData(FingerPressureSensorData data) {
-        FingerPressureSensorData oldData = this.data;
-        this.data = data;
-        propertyChangeSupport.firePropertyChange(PROP_DATA, oldData, data);
-    }
-
-    private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
-
-    /**
-     * Add PropertyChangeListener.
-     *
-     * @param listener
-     */
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
-    }
-
-    /**
-     * Remove PropertyChangeListener.
-     *
-     * @param listener
-     */
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
-    }
-
     /**
      * Creates new form ServerSensorJFrame
      */
     public WebServerJFrame() {
         initComponents();
+        if("Windows".equalsIgnoreCase(System.getProperty("os.name"))) {
+            setCommandString("runWebApp.bat");
+        } else {
+            setCommandString("./runWebApp.sh");
+        }
+        setDirectoryString(System.getProperty("user.dir"));
+        readProperties();
         setIconImage(SERVER_IMAGE);
     }
     
@@ -145,6 +111,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextAreaConsoleOutput = new javax.swing.JTextArea();
         jButtonClearOutput = new javax.swing.JButton();
+        jButtonFullLog = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CRCL Web Server Control");
@@ -165,6 +132,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
         });
 
         jTextFieldCommand.setText("C:\\Users\\Public\\Documents\\runWebApp.bat");
+        jTextFieldCommand.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldCommandActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Directory:");
 
@@ -212,6 +184,13 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 }
             });
 
+            jButtonFullLog.setText("Full Log");
+            jButtonFullLog.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButtonFullLogActionPerformed(evt);
+                }
+            });
+
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
             getContentPane().setLayout(layout);
             layout.setHorizontalGroup(
@@ -232,6 +211,8 @@ public class WebServerJFrame extends javax.swing.JFrame {
                             .addComponent(jButtonDirBrowse))
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                             .addGap(0, 0, Short.MAX_VALUE)
+                            .addComponent(jButtonFullLog)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(jButtonClearOutput)))
                     .addContainerGap())
             );
@@ -250,7 +231,9 @@ public class WebServerJFrame extends javax.swing.JFrame {
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addComponent(jButtonClearOutput)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButtonClearOutput)
+                        .addComponent(jButtonFullLog))
                     .addGap(28, 28, 28))
             );
 
@@ -258,7 +241,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         }// </editor-fold>//GEN-END:initComponents
 
     private void jTextFieldDirectoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldDirectoryActionPerformed
-        // TODO add your handling code here:
+       saveProperties();
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
     private Process internalProcess;
@@ -288,12 +271,23 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
 
+    private PrintWriter logger = null;
+    private File logFile = null;
+    
     private void monitorInternalProcessOutput() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()));
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
+                if(logger == null) {
+                    synchronized(this) {
+                        logFile = File.createTempFile("webserverlog", "txt");
+                        System.out.println("logFile = " + logFile);
+                        logger = new PrintWriter(new FileWriter(logFile));
+                    }
+                }
+                logger.println(line);
                 final String s = line;
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(s + "\n"));
             }
@@ -345,6 +339,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             jCheckBoxRun.setSelected(true);
         }
     }
+    
 
     public void stop() {
         if (null != onStopRunnable) {
@@ -376,8 +371,45 @@ public class WebServerJFrame extends javax.swing.JFrame {
             }
             monitorErrorThread = null;
         }
+        if(null != logger) {
+            logger.close();
+            logger = null;
+        }
+        saveProperties();
     }
 
+    private static final File PROPERTIES_FILE = new File(System.getProperty("user.home"),".crcl4java.webserver.properties.txt");
+    
+    private void readProperties() {
+        if(PROPERTIES_FILE.exists()) {
+            try {
+                Properties props = new Properties();
+                props.load(new FileReader(PROPERTIES_FILE));
+                String cmd = props.getProperty("webServerCmd");
+                if(null != cmd && !cmd.isEmpty()) {
+                    jTextFieldCommand.setText(cmd);
+                }
+                String dir = props.getProperty("webServerDirectory");
+                if(null != dir && !dir.isEmpty()) {
+                    jTextFieldDirectory.setText(dir);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    private void saveProperties() {
+        try {
+            Properties props = new Properties();
+            props.put("webServerCmd", jTextFieldCommand.getText());
+            props.put("webServerDirectory", jTextFieldCommand.getText());
+            props.store(new FileWriter(PROPERTIES_FILE), "");
+        } catch (IOException ex) {
+            Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     @Override
     protected void finalize() throws Throwable {
         stop();
@@ -397,6 +429,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(ex.toString()));
             }
         }
+        saveProperties();
     }//GEN-LAST:event_jButtonDirBrowseActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
@@ -413,6 +446,25 @@ public class WebServerJFrame extends javax.swing.JFrame {
         this.jTextAreaConsoleOutput.setText("");
     }//GEN-LAST:event_jButtonClearOutputActionPerformed
 
+    private void jButtonFullLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFullLogActionPerformed
+       synchronized(this) {
+           try {
+               logger.close();
+               Desktop.getDesktop().open(logFile);
+           } catch (IOException ex) {
+               Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+           } finally {
+               logger = null;
+               logFile=null;
+           }
+       }
+    }//GEN-LAST:event_jButtonFullLogActionPerformed
+
+    private void jTextFieldCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCommandActionPerformed
+       saveProperties();
+    }//GEN-LAST:event_jTextFieldCommandActionPerformed
+
+    
     /**
      * @param args the command line arguments
      */
@@ -452,6 +504,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonClearOutput;
     private javax.swing.JButton jButtonDirBrowse;
+    private javax.swing.JButton jButtonFullLog;
     private javax.swing.JCheckBox jCheckBoxRun;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;

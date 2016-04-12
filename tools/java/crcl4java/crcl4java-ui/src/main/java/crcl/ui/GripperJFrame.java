@@ -21,7 +21,6 @@
 package crcl.ui;
 
 import com.github.wshackle.crcl4java.exi.CrclExiSocket;
-import com.siemens.ct.exi.exceptions.EXIException;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -34,7 +33,7 @@ import crcl.base.ParallelGripperStatusType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.VacuumGripperStatusType;
-import static crcl.ui.PendantClient.getRobotImage;
+import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import java.awt.Color;
@@ -52,8 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -72,29 +69,7 @@ public class GripperJFrame extends javax.swing.JFrame {
         this.setIconImage(SERVER_IMAGE);
     }
 
-    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
-        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
-        Graphics2D g2d = bi.createGraphics();
-        g2d.setBackground(bgColor);
-        g2d.setColor(textColor);
-        g2d.clearRect(0, 0, d.width, d.height);
-        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage,0,0,null);
-        bi.flush();
-//        try {
-//            File f = File.createTempFile("icon", ".png");
-//            System.out.println("f = " + f);
-//            ImageIO.write(bi, "PNG", f);
-//        } catch (IOException ex) {
-//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-        return bi;
-    }
-
-    private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image BASE_IMAGE = getRobotImage();
-    private static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
-    
+   
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

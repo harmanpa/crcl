@@ -20,7 +20,7 @@
  */
 package crcl.ui;
 
-import static crcl.ui.PendantClient.getRobotImage;
+import static crcl.ui.IconImages.DONE_IMAGE;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -31,7 +31,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -46,31 +45,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
     public LauncherJFrame() {
         initComponents();
         this.setIconImage(DONE_IMAGE);
-
     }
-
-    private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
-        BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
-        Graphics2D g2d = bi.createGraphics();
-        g2d.setBackground(bgColor);
-        g2d.setColor(textColor);
-        g2d.clearRect(0, 0, d.width, d.height);
-        g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage, 0, 0, null);
-        bi.flush();
-//        try {
-//            File f = File.createTempFile("icon", ".png");
-//            System.out.println("f = " + f);
-//            ImageIO.write(bi, "PNG", f);
-//        } catch (IOException ex) {
-//            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-        return bi;
-    }
-
-    private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image BASE_IMAGE = getRobotImage();
-    private static final Image DONE_IMAGE = createImage(ICON_SIZE, Color.CYAN, Color.BLACK, BASE_IMAGE);
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -85,6 +60,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
         jButtonLaunchClient = new javax.swing.JButton();
         jButtonLaunchGripperServer = new javax.swing.JButton();
         jButtonLaunchAll = new javax.swing.JButton();
+        jButtonLaunchWebServer = new javax.swing.JButton();
 
         FormListener formListener = new FormListener();
 
@@ -107,6 +83,10 @@ public class LauncherJFrame extends javax.swing.JFrame {
         jButtonLaunchAll.setText("Launch All");
         jButtonLaunchAll.addActionListener(formListener);
 
+        jButtonLaunchWebServer.setFont(new java.awt.Font("Cantarell", 0, 24)); // NOI18N
+        jButtonLaunchWebServer.setText("Launch CRCL Web Server");
+        jButtonLaunchWebServer.addActionListener(formListener);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -114,14 +94,15 @@ public class LauncherJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonLaunchServer)
-                    .addComponent(jButtonLaunchGripperServer)
+                    .addComponent(jButtonLaunchWebServer, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonLaunchAll, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButtonLaunchClient, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonLaunchAll, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonLaunchGripperServer)
+                    .addComponent(jButtonLaunchServer))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonLaunchAll, jButtonLaunchClient, jButtonLaunchGripperServer, jButtonLaunchServer});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButtonLaunchAll, jButtonLaunchClient, jButtonLaunchGripperServer, jButtonLaunchServer, jButtonLaunchWebServer});
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -132,6 +113,8 @@ public class LauncherJFrame extends javax.swing.JFrame {
                 .addComponent(jButtonLaunchGripperServer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonLaunchClient)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonLaunchWebServer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonLaunchAll)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -157,6 +140,9 @@ public class LauncherJFrame extends javax.swing.JFrame {
             else if (evt.getSource() == jButtonLaunchAll) {
                 LauncherJFrame.this.jButtonLaunchAllActionPerformed(evt);
             }
+            else if (evt.getSource() == jButtonLaunchWebServer) {
+                LauncherJFrame.this.jButtonLaunchWebServerActionPerformed(evt);
+            }
         }
     }// </editor-fold>//GEN-END:initComponents
 
@@ -165,7 +151,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
         startSimServer();
         this.setState(Frame.ICONIFIED);
     }//GEN-LAST:event_jButtonLaunchServerActionPerformed
-
+    
     public void startSimServer() {
         try {
             new SimServer().setVisible(true);
@@ -178,7 +164,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
         startPendantClient();
         this.setState(Frame.ICONIFIED);
     }//GEN-LAST:event_jButtonLaunchClientActionPerformed
-
+    
     public void startPendantClient() {
         try {
             new PendantClient().setVisible(true);
@@ -207,18 +193,26 @@ public class LauncherJFrame extends javax.swing.JFrame {
                         pendantClient.connect("localhost", simServer.inner.getPort());
                     }
             );
+            WebServerJFrame webServer = new WebServerJFrame();
+            webServer.setVisible(true);
+            webServer.setState(Frame.ICONIFIED);
+            webServer.start();
             timer.setRepeats(false);
             timer.start();
-        } catch (ParserConfigurationException parserConfigurationException) {
-            parserConfigurationException.printStackTrace();
+        } catch (IOException | ParserConfigurationException ex) {
+            Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.setState(Frame.ICONIFIED);
     }//GEN-LAST:event_jButtonLaunchAllActionPerformed
 
+    private void jButtonLaunchWebServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLaunchWebServerActionPerformed
+        new WebServerJFrame().setVisible(true);
+    }//GEN-LAST:event_jButtonLaunchWebServerActionPerformed
+    
     public void startGripperServer() {
         new GripperJFrame().setVisible(true);
     }
-
+    
     private static String args[] = null;
 
     /**
@@ -266,6 +260,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButtonLaunchClient;
     private javax.swing.JButton jButtonLaunchGripperServer;
     private javax.swing.JButton jButtonLaunchServer;
+    private javax.swing.JButton jButtonLaunchWebServer;
     // End of variables declaration//GEN-END:variables
     private static final Logger LOG = Logger.getLogger(LauncherJFrame.class.getName());
 }

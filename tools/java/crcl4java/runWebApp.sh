@@ -17,8 +17,8 @@ fi
 
 if test ! -f "${JARFILE}" ; then
     mvn -version || ( echo "Please install maven." && false)
-    mvn install
-    ( cd crcl4java-vaadin-webapp; mvn -Ptomcat_embed install ; cd ..)
+    mvn -Pskip_tests -Pwithweb install
+    ( cd crcl4java-vaadin-webapp; mvn -Pskip_tests -Ptomcat_embed install ; cd ..)
 else 
     echo "Found executable jar file already compiled. ${JARFILE}";
 fi;
