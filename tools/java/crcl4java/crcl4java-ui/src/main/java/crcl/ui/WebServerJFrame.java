@@ -12,21 +12,27 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 
 /**
@@ -65,18 +71,103 @@ public class WebServerJFrame extends javax.swing.JFrame {
         }
     }
 
+    static private Optional<File> findJarInDir(String dir) {
+        File fa[] = new File(dir).listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith("crcl4java-vaadin-webapp") && name.endsWith("war-exec.jar");
+            }
+        });
+        if(null != fa && fa.length > 0) {
+            return Optional.of(fa[0]);
+        }
+        return Optional.empty();
+    }
+    
+    static private Optional<File> findFileInDir(String dir,String filename) {
+        File fa[] = new File(dir).listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.equals(filename);
+            }
+        });
+        if(null != fa && fa.length > 0) {
+            return Optional.of(fa[0]);
+        }
+        return Optional.empty();
+    }
+    
+    private static File findJar() {
+        String userDir = System.getProperty("user.dir");
+        String parentDir = new File(userDir).getParent();
+        return Stream.of(userDir,
+                userDir+File.separator+"target",
+                userDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target",
+                parentDir,
+                parentDir+File.separator+"target",
+                parentDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target"
+                )
+                .map(WebServerJFrame::findJarInDir)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst().orElse(null);
+    }
+    
+    private static File findFile(String name) {
+        String userDir = System.getProperty("user.dir");
+        String parentDir = new File(userDir).getParent();
+        Function<String,Optional<File>> finder = (String dir) -> findFileInDir(dir, name);
+        return Stream.of(userDir,
+                userDir+File.separator+"target",
+                userDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target",
+                parentDir,
+                parentDir+File.separator+"target",
+                parentDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target"
+                )
+                .map(finder)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst().orElse(null);
+    }
+    
+    private String getDefaultCommandString() {
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            File jarFile = findJar();
+            if(null != jarFile) {
+                try {
+                    return "java -jar "+jarFile.getCanonicalPath();
+                } catch (IOException ex) {
+                    Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            File batFile = findFile("runWebApp.bat");
+            if(null != batFile) {
+                try {
+                    return batFile.getCanonicalPath();
+                } catch (IOException ex) {
+                    Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            return "";
+        } else {
+            return (System.getProperty("user.dir") + File.separator + "runWebApp.sh");
+        }
+    }
     /**
      * Creates new form ServerSensorJFrame
      */
     public WebServerJFrame() {
         initComponents();
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            setCommandString(System.getProperty("user.dir") + File.separator + "runWebApp.bat");
-        } else {
-            setCommandString(System.getProperty("user.dir") + File.separator + "runWebApp.sh");
+        try {
+            setURL("http://"+InetAddress.getLocalHost().getHostName()+":8080/crcl4java-vaadin-webapp");
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         setDirectoryString(System.getProperty("user.dir"));
         readProperties();
+        if(!commandStringSet) {
+            setCommandString(getDefaultCommandString());
+        }
         setIconImage(SERVER_IMAGE);
         allWebServers.add(this);
     }
@@ -112,6 +203,22 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     public String getCommandString() {
         return jTextFieldCommand.getText();
+    }
+    
+    public void setURL(String s) {
+        try {
+            if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+                jTextFieldURL.setText(s);
+            } else {
+                javax.swing.SwingUtilities.invokeAndWait(() -> jTextFieldURL.setText(s));
+            }
+        } catch (InterruptedException | InvocationTargetException ex) {
+            Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public String getURL() {
+        return jTextFieldURL.getText();
     }
 
     public String getDirectoryString() {
@@ -463,6 +570,8 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     private static final File PROPERTIES_FILE = new File(System.getProperty("user.home"), ".crcl4java.webserver.properties.txt");
 
+    private boolean commandStringSet = false;
+    
     private void readProperties() {
         if (PROPERTIES_FILE.exists()) {
             try {
@@ -471,6 +580,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 String cmd = props.getProperty("webServerCmd");
                 if (null != cmd && !cmd.isEmpty()) {
                     jTextFieldCommand.setText(cmd);
+                    commandStringSet = !cmd.endsWith("runWebApp.bat");
                 }
                 String dir = props.getProperty("webServerDirectory");
                 if (null != dir && !dir.isEmpty()) {
@@ -492,7 +602,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             props.put("webServerCmd", jTextFieldCommand.getText());
             props.put("webServerDirectory", jTextFieldDirectory.getText());
             props.put("url", jTextFieldURL.getText());
-            props.store(new FileWriter(PROPERTIES_FILE), "");
+            props.store(new FileWriter(PROPERTIES_FILE), "Saved automatically from "+Arrays.toString(Thread.currentThread().getStackTrace()));
         } catch (IOException ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

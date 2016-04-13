@@ -514,8 +514,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
             fingerSensorServerCmd = getProperty("fingerSensorServerCmd", DEFAULT_FINGER_SENSOR_SERVER_COMMAND);
             fingerSensorServerDirectory = getProperty("fingerSensorServerDirectory", DEFAULT_FINGER_SENSOR_SERVER_DIRECTORY);
-            webServerCmd = getProperty("webServerCmd", DEFAULT_WEB_SERVER_COMMAND);
-            webServerDirectory = getProperty("webServerDirectory", DEFAULT_WEB_SERVER_DIRECTORY);
             jCheckBoxMenuItemStartClient.setSelected(getBooleanProperty("autoStartClient", false));
             jCheckBoxMenuItemStartPressureServer.setSelected(getBooleanProperty("autoStartPressureSensorServer", false));
             jCheckBoxMenuItemShowPressureOutput.setSelected(getBooleanProperty("showPressureOutput", false));
@@ -1488,8 +1486,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
             }
             props.setProperty("fingerSensorServerCmd", fingerSensorServerCmd);
             props.setProperty("fingerSensorServerDirectory", fingerSensorServerDirectory);
-            props.setProperty("webServerCmd", webServerCmd);
-            props.setProperty("webServerDirectory", webServerDirectory);
             props.setProperty("autoStartClient", Boolean.toString(jCheckBoxMenuItemStartClient.isSelected()));
             props.setProperty("autoStartPressureSensorServer", Boolean.toString(jCheckBoxMenuItemStartPressureServer.isSelected()));
             props.setProperty("showPressureOutput", Boolean.toString(jCheckBoxMenuItemShowPressureOutput.isSelected()));
@@ -1598,9 +1594,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
 //                saveProperties();
 //            }
             webServerJFrame = new WebServerJFrame();
-            webServerJFrame.setCommandString(webServerCmd);
-            webServerJFrame.setDirectoryString(webServerDirectory);
-            jCheckBoxMenuItemShowPressureOutput.setSelected(true);
             webServerJFrame.setVisible(true);
             webServerJFrame.start();
         } catch (Exception ex) {
@@ -1609,13 +1602,6 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
     }
 
-    private void launchBrowser() {
-        try {
-            Desktop.getDesktop().browse(new URL("http://localhost:8081/crcl4java-vaadin-webapp/").toURI());
-        } catch (IOException | URISyntaxException ex) {
-            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     /**
      * @param args the command line arguments
