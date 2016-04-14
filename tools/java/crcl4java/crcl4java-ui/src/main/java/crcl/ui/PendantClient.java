@@ -771,7 +771,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldRunTime))
                     .addComponent(jScrollPane5)
-                    .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 780, Short.MAX_VALUE)
+                    .addComponent(jScrollPaneProgram)
                     .addGroup(jPanelProgramLayout.createSequentialGroup()
                         .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelProgramLayout.createSequentialGroup()
@@ -985,7 +985,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
 
         jLabel15.setText("Rotation Speed:");
 
-        jTextFieldRotationSpeed.setText("3.0");
+        jTextFieldRotationSpeed.setText("90.0");
         jTextFieldRotationSpeed.addActionListener(formListener);
 
         jLabel16.setText("degrees");

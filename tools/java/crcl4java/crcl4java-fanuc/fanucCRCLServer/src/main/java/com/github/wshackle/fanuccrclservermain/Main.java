@@ -544,8 +544,8 @@ public class Main {
                         gripperStatus.setHoldingObject(holdingObject);
                     }
                 }
-                if(null != status.getGripperStatus()) {
-                    if(status.getGripperStatus() instanceof ParallelGripperStatusType) {
+                if (null != status.getGripperStatus()) {
+                    if (status.getGripperStatus() instanceof ParallelGripperStatusType) {
                         ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status.getGripperStatus();
                         parallelGripperStatus.setSeparation(BigDecimal.valueOf(gripperSeperation));
                     }
@@ -776,13 +776,13 @@ public class Main {
         }
         main = null;
         System.out.println("Thread.activeCount() = " + Thread.activeCount());
-        for(StackTraceElement ste[] : Thread.getAllStackTraces().values()) {
+        for (StackTraceElement ste[] : Thread.getAllStackTraces().values()) {
             System.out.println("ste = " + Arrays.toString(ste));
         }
-        Thread ta[] = new Thread[10+Thread.activeCount()];
+        Thread ta[] = new Thread[10 + Thread.activeCount()];
         Thread.enumerate(ta);
-        for(Thread t : ta) {
-            if(null != t && !t.equals(Thread.currentThread())) {
+        for (Thread t : ta) {
+            if (null != t && !t.equals(Thread.currentThread())) {
                 System.out.println("t = " + t);
                 System.out.println("t.isAlive() = " + t.isAlive());
                 System.out.println("t.isDaemon() = " + t.isDaemon());
@@ -922,7 +922,7 @@ public class Main {
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
-        private double gripperSeperation = 1.0;
+    private double gripperSeperation = 1.0;
 
     /**
      * Get the value of gripperSeperation
@@ -1032,7 +1032,7 @@ public class Main {
     volatile long moveTime = 0;
     private Set<String> origProgNames;
     private double transSpeed = 200; // 200 mm/s
-    private double rotSpeed = 90; // 10 deg/s
+    private double rotSpeed = 90; // 90 deg/s
 
     private boolean posReg98Updated = false;
 
@@ -1628,7 +1628,7 @@ public class Main {
                                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
                                 showError(cs.getLastCommandString());
                             }
-                            CompletableFuture.runAsync(() -> handleCommand(cmd), robotService).get();
+                            CompletableFuture.runAsync(() -> handleCommand(cmdInstance), robotService).get();
                             long handleCommandEndTime = System.currentTimeMillis();
                             long handleCommandTimeDiff = handleCommandEndTime - readRetTime;
                             totalHandleCommandTime += handleCommandTimeDiff;
@@ -1694,19 +1694,26 @@ public class Main {
 
     private boolean robotIsConnected = false;
 
-    public synchronized void handleCommand(CRCLCommandType cmd) {
+    public synchronized void handleCommand(CRCLCommandInstanceType cmdInstance) {
+        CRCLCommandType cmd = cmdInstance.getCRCLCommand();
         try {
             synchronized (status) {
                 if (null == status.getCommandStatus()) {
                     status.setCommandStatus(new CommandStatusType());
                     status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                 }
-                origState = status.getCommandStatus().getCommandState();
-                if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
-                    setCommandState(CommandStateEnumType.CRCL_WORKING);
+                CommandStatusType cst = status.getCommandStatus();
+                if (null != cst) {
+                    origState = cst.getCommandState();
+                    if (cst.getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                        setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    }
+                    cst.setCommandID(cmd.getCommandID());
+                    cst.setStatusID(BigInteger.ONE);
+                    cst.setProgramFile(cmdInstance.getProgramFile());
+                    cst.setProgramIndex(cmdInstance.getProgramIndex());
+                    cst.setProgramLength(cmdInstance.getProgramLength());
                 }
-                status.getCommandStatus().setCommandID(cmd.getCommandID());
-                status.getCommandStatus().setStatusID(BigInteger.ONE);
             }
 
             lastCheckAtPosition = false;
@@ -2003,17 +2010,17 @@ public class Main {
                 System.out.println("Connecting to " + remoteRobotHost + " ...");
                 int tries = 0;
                 robot.connectEx(remoteRobotHost, true, 1, 1);
-                while(!robot.isConnected() && !Thread.currentThread().isInterrupted() && tries < 10) {
+                while (!robot.isConnected() && !Thread.currentThread().isInterrupted() && tries < 10) {
                     tries++;
-                    System.out.println("Connecting to " + remoteRobotHost + " ... : tries = " + tries+"/10");
+                    System.out.println("Connecting to " + remoteRobotHost + " ... : tries = " + tries + "/10");
                     Thread.sleep(200);
                 }
                 robotIsConnected = robot.isConnected();
                 System.out.println("robotIsConnected = " + robotIsConnected);
             }
-            
-            if(!robotIsConnected) {
-                showError("Failed to connect to robot: "+remoteRobotHost);
+
+            if (!robotIsConnected) {
+                showError("Failed to connect to robot: " + remoteRobotHost);
                 return;
             }
 
