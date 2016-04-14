@@ -1645,8 +1645,8 @@ public class SimServerInner {
                 if (this.getCommandState() == CommandStateEnumType.CRCL_DONE) {
                     this.setWaypoints(null);
                 }
-                if (!outer.isInitializedSelected() 
-                    && !(cmd instanceof EndCanonType)) {
+                if (!outer.isInitializedSelected()
+                        && !(cmd instanceof EndCanonType)) {
                     setCommandState(CommandStateEnumType.CRCL_ERROR);
                     showMessage("Not initialized when " + cmd.getClass().getCanonicalName().substring("crcl.base.".length()) + " recieved.");
                     return;
@@ -1884,7 +1884,13 @@ public class SimServerInner {
                 }
             }
             synchronized (status) {
-                status.getCommandStatus().setCommandID(cmd.getCommandID());
+                CommandStatusType cst = status.getCommandStatus();
+                if (null != cst) {
+                    cst.setCommandID(cmd.getCommandID());
+                    cst.setProgramFile(instance.getProgramFile());
+                    cst.setProgramIndex(instance.getProgramIndex());
+                    cst.setProgramLength(instance.getProgramLength());
+                }
             }
             if (cmdQueue.size() > cmdQueueMaxSize) {
                 cmdQueueMaxSize = cmdQueue.size();
@@ -2087,7 +2093,7 @@ public class SimServerInner {
     }
 
     public CRCLSocket getCheckerCRCLSocket() {
-        if(null != checkerCRCLSocket) {
+        if (null != checkerCRCLSocket) {
             return checkerCRCLSocket;
         }
         return (checkerCRCLSocket = new CRCLSocket());

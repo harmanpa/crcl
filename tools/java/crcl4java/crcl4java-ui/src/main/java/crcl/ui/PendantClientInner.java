@@ -592,7 +592,8 @@ public class PendantClientInner {
         logStream = new PrintStream(new FileOutputStream(logFile));
         outer.showDebugMessage("Logging to " + logFile.getCanonicalPath());
         outer.finishOpenXmlProgramFile(f, program, addRecent);
-//        cmdId = cmdId.add(BigInteger.ONE);
+        setOutgoingProgramFile(f.getName());
+//        cmdId = cmdId.add(BigInteger.ONE);f
 //        cmd.setCommandID(cmdId);
 //        this.sendCommand(cmd);
 //        this.saveRecentCommand(cmd);
@@ -656,7 +657,14 @@ public class PendantClientInner {
                 if (recordCommands) {
                     recordedCommandsQueue.offer(cmd);
                 }
-            }
+                if (null != outgoingProgramIndex) {
+                    cmdInstance.setProgramFile(outgoingProgramFile);
+                }
+                if (null != outgoingProgramFile) {
+                    cmdInstance.setProgramIndex(outgoingProgramIndex);
+                    cmdInstance.setProgramLength(outgoingProgramLength);
+                }
+            } 
             BigInteger id = cmd.getCommandID();
             crclSocket.writeCommand(cmdInstance, outer.validateXmlSelected());
             lastCommandIdSent = id;
@@ -727,10 +735,10 @@ public class PendantClientInner {
             for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
                 cjrMap.put(cjr.getJointNumber().intValue(), cjr);
             }
-        } else if(cmd instanceof SetEndEffectorType) {
+        } else if (cmd instanceof SetEndEffectorType) {
             this.setHoldingObjectExpected(false);
             holdingErrorOccured = false;
-        } 
+        }
         boolean ret = this.sendCommandPrivate(cmd);
 
         if (!(cmd instanceof GetStatusType)) {
@@ -833,7 +841,7 @@ public class PendantClientInner {
             while (!Thread.currentThread().isInterrupted()
                     && !isDone(minCmdId)
                     && timeDiff < fullTimeout) {
-                if(holdingErrorOccured) {
+                if (holdingErrorOccured) {
                     return false;
                 }
                 if (outer.isDebugWaitForDoneSelected()) {
@@ -1024,7 +1032,7 @@ public class PendantClientInner {
         }
     }
 
-        private boolean holdingErrorOccured;
+    private boolean holdingErrorOccured;
 
     /**
      * Get the value of holdingErrorOccured
@@ -1045,7 +1053,7 @@ public class PendantClientInner {
     }
 
     private int holdingErrorRepCount = 0;
-    
+
     public void readStatus() {
         try {
             if (outer.replaceStateSelected()) {
@@ -1065,11 +1073,11 @@ public class PendantClientInner {
                             + crclSocket.statusToString(curStatus, false));
                 }
             }
-            if(outer.isMonitoringHoldingObject() && holdingObjectExpected) {
+            if (outer.isMonitoringHoldingObject() && holdingObjectExpected) {
                 GripperStatusType gripperStatus = status.getGripperStatus();
-                if(null == gripperStatus || null == gripperStatus.isHoldingObject() || !gripperStatus.isHoldingObject()) {
+                if (null == gripperStatus || null == gripperStatus.isHoldingObject() || !gripperStatus.isHoldingObject()) {
                     holdingErrorRepCount++;
-                    if(holdingErrorRepCount > 25 && !holdingErrorOccured) {
+                    if (holdingErrorRepCount > 25 && !holdingErrorOccured) {
                         outer.showMessage("Object dropped or missing?");
                         holdingErrorOccured = true;
                     }
@@ -1563,11 +1571,72 @@ public class PendantClientInner {
         this.quitOnTestCommandFailure = quitOnTestCommandFailure;
     }
 
+    private String outgoingProgramFile;
+
+    /**
+     * Get the value of outgoingProgramFile
+     *
+     * @return the value of outgoingProgramFile
+     */
+    public String getOutgoingProgramFile() {
+        return outgoingProgramFile;
+    }
+
+    /**
+     * Set the value of outgoingProgramFile
+     *
+     * @param outgoingProgramFile new value of outgoingProgramFile
+     */
+    public void setOutgoingProgramFile(String outgoingProgramFile) {
+        this.outgoingProgramFile = outgoingProgramFile;
+    }
+
+    private BigInteger outgoingProgramIndex;
+
+    /**
+     * Get the value of outgoingProgramIndex
+     *
+     * @return the value of outgoingProgramIndex
+     */
+    public BigInteger getOutgoingProgramIndex() {
+        return outgoingProgramIndex;
+    }
+
+    /**
+     * Set the value of outgoingProgramIndex
+     *
+     * @param outgoingProgramIndex new value of outgoingProgramIndex
+     */
+    public void setOutgoingProgramIndex(BigInteger outgoingProgramIndex) {
+        this.outgoingProgramIndex = outgoingProgramIndex;
+    }
+
+        private BigInteger outgoingProgramLength;
+
+    /**
+     * Get the value of outgoingProgramLength
+     *
+     * @return the value of outgoingProgramLength
+     */
+    public BigInteger getOutgoingProgramLength() {
+        return outgoingProgramLength;
+    }
+
+    /**
+     * Set the value of outgoingProgramLength
+     *
+     * @param outgoingProgramLength new value of outgoingProgramLength
+     */
+    public void setOutgoingProgramLength(BigInteger outgoingProgramLength) {
+        this.outgoingProgramLength = outgoingProgramLength;
+    }
+
     public boolean runProgram(CRCLProgramType prog, int startLine) {
         final int start_close_test_count = this.close_test_count;
-        holdingErrorOccured =false;
+        holdingErrorOccured = false;
         holdingErrorRepCount = 0;
         try {
+            setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
             paused = false;
             if (null == this.crclSocket) {
                 this.connect(outer.getHost(), outer.getPort());
@@ -1586,6 +1655,7 @@ public class PendantClientInner {
                 this.runEndMillis = -1;
             }
             if (startLine == 0) {
+                setOutgoingProgramIndex(BigInteger.ZERO);
                 outer.showCurrentProgramLine(startLine);
                 InitCanonType initCmd = prog.getInitCanon();
                 BigInteger origInitCmdId = initCmd.getCommandID();
@@ -1618,6 +1688,7 @@ public class PendantClientInner {
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
             for (int i = startLine; i < middleCommands.size(); i++) {
                 programCommandStartTime = System.currentTimeMillis();
+                setOutgoingProgramIndex(BigInteger.valueOf(i));
                 MiddleCommandType cmd = middleCommands.get(i - 1);
                 boolean result = testCommand(cmd);
                 if (!result) {
@@ -1654,6 +1725,7 @@ public class PendantClientInner {
         } catch (CRCLException | IOException | PmException | JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
+            setOutgoingProgramIndex(null);
             this.runEndMillis = System.currentTimeMillis();
             outer.checkPollSelected();
         }

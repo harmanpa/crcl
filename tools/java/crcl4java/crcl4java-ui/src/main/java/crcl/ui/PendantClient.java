@@ -2065,7 +2065,33 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
     }
 
     private String lastStateDescription = "";
+    private String lastProgramFile = null;
 
+    private File findProgram(String filename) {
+        File f0 = new File(filename);
+        if(f0.exists()) {
+            return f0;
+        }
+        for (String recent : getRecentPrograms()) {
+            File f = new File(recent);
+            if (f.exists() && f.getName().equals(filename)) {
+                return f;
+            }
+        }
+        for (String recent : getRecentPrograms()) {
+            File f = new File(recent).getParentFile();
+            if (f.exists() && f.getName().equals(filename)) {
+                return f;
+            }
+        }
+        f0 = new File(System.getProperty("user.dir"),filename);
+        if(f0.exists()) {
+            return f0;
+        }
+        return null;
+    }
+
+    private int lastProgramIndex = 0;
     private void finishSetStatusPriv() {
         if (null != internal.getStatus() && null != internal.getStatus().getCommandStatus()) {
             CommandStatusType ccst = internal.getStatus().getCommandStatus();
@@ -2099,9 +2125,33 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
                             break;
 
                     }
-                    this.setTitle("CRCL Client:" + stateString
-                            + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : ""));
+                    String program = (null != ccst.getProgramFile() && null != ccst.getProgramIndex())
+                            ? " " + ccst.getProgramFile() + ":" + ccst.getProgramIndex().toString() : "";
 
+                    if (!program.isEmpty() && null != ccst.getProgramLength()) {
+                        program += "/" + ccst.getProgramLength().toString();
+                    }
+                    this.setTitle("CRCL Client:" + stateString
+                            + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
+                            + program);
+                    if (!internal.isRunningProgram()) {
+                        if (null != ccst.getProgramFile()
+                                && !ccst.getProgramFile().equals(internal.getOutgoingProgramFile())
+                                && !ccst.getProgramFile().equals(lastProgramFile)) {
+                            File f = findProgram(ccst.getProgramFile());
+                            if (null != f) {
+                                openXmlProgramFile(f);
+                            }
+                            lastProgramFile = ccst.getProgramFile();
+                        }
+                        if(null != ccst.getProgramIndex()) {
+                            int index = ccst.getProgramIndex().intValue();
+                            if(index != lastProgramIndex) {
+                                finishShowCurrentProgramLine(index);
+                                lastProgramIndex = index;
+                            }
+                        }
+                    }
                 }
                 this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {

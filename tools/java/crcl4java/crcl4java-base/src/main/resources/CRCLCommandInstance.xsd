@@ -32,8 +32,18 @@
         CRCLCommandInstanceType is derived from DataThingType.
         An instance of CRCLCommandInstanceType has the following elements:
           Name (inherited, optional)
-          CRCLCommand.
+          CRCLCommand
+          ProgramFile (optional)
+          ProgramIndex (optional)
+          ProgramLength (optional).
 
+          ProgramFile provides an optional reference if the currently executing command
+             is known to have come from a particular file. 
+          ProgramIndex provoides an optional reference to the element within a program. If the 
+             currently executing command is known to have come from a particular file. The InitCanon command will have 
+             index 0, and first MiddleCommand will have index 1.
+          ProgramLength is the number of commands in the current program if known.
+          
         CRCLCommandInstanceType contains a single CRCL command.
       </xs:documentation>
     </xs:annotation>
@@ -42,6 +52,15 @@
         <xs:sequence>
           <xs:element name="CRCLCommand"
             type="CRCLCommandType"/>
+          <xs:element name="ProgramFile"
+            type="xs:string"
+            minOccurs="0"/>
+          <xs:element name="ProgramIndex"
+            type="xs:nonNegativeInteger"
+            minOccurs="0"/>
+          <xs:element name="ProgramLength"
+            type="xs:nonNegativeInteger"
+            minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

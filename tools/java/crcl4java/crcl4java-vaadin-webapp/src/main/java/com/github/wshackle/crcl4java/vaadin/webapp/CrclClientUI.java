@@ -89,6 +89,7 @@ import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -557,8 +558,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             final CRCLSocket tmpsocketf = tmpsocket;
             String filename = this.selectedRemoteProgramFilename;
             File f = new File(REMOTE_PROGRAM_DIR, filename);
-            remoteProgramResource = new FileResource(f);
-            remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
+            setRemoteProgramResourceFile(f);
             String progContents = new String(Files.readAllBytes(f.toPath()));
             CRCLProgramType prog = tmpsocketf.stringToProgram(progContents, false);
             setCommonInfo(CommonInfo.withNewProgram(commonInfo, REMOTE_PROGRAM_DIR.list(), filename, prog));
@@ -1003,6 +1003,17 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         checkImageDirs();
     }
 
+    private void setRemoteProgramResourceFile(File f) {
+        remoteProgramResource = new FileResource(f);
+        if (null == remoteProgramDownloader) {
+            remoteProgramDownloader = new FileDownloader(remoteProgramResource);
+            remoteProgramDownloader.extend(remoteProgramDownloadButton);
+            remoteProgramDownloadButton.setEnabled(true);
+        } else {
+            remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
@@ -1433,18 +1444,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     System.out.println("f = " + f);
                     System.out.println("f.exists() = " + f.exists());
                     System.out.println("f.getCanonicalPath() = " + f.getCanonicalPath());
-                    remoteProgramResource = new FileResource(f);
-                    if (null == remoteProgramDownloader) {
-                        remoteProgramDownloader = new FileDownloader(remoteProgramResource);
-                        remoteProgramDownloader.extend(remoteProgramDownloadButton);
-                        remoteProgramDownloadButton.setEnabled(true);
-                    } else {
-                        remoteProgramDownloader.setFileDownloadResource(remoteProgramResource);
-                    }
+                    setRemoteProgramResourceFile(f);
                 } catch (IOException ex) {
                     Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+
         });
         remoteProgramsLayout.addComponent(remoteProgramTable);
         HorizontalLayout remoteButtonsLine = new HorizontalLayout();
@@ -1826,6 +1831,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
         if (null != instance && null != socket) {
             instance.setCRCLCommand(cmd);
+            if (running) {
+                instance.setProgramFile(commonInfo.getCurrentFileName());
+                instance.setProgramIndex(BigInteger.valueOf(commonInfo.getProgramIndex()));
+                instance.setProgramLength(BigInteger.valueOf(commonInfo.getCurrentProgram().getMiddleCommand().size()));
+            } else {
+                instance.setProgramFile(null);
+                instance.setProgramIndex(null);
+                instance.setProgramLength(null);
+            }
             socket.writeCommand(instance);
             lastCmdIdSent = instance.getCRCLCommand().getCommandID();
         }
@@ -1957,11 +1971,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 instance.setCRCLCommand(getStatus);
                 socket.writeCommand(instance);
                 stat = socket.readStatus();
-                if(null == stat || null == stat.getCommandStatus() ||
-                        stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
+                if (null == stat || null == stat.getCommandStatus()
+                        || stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
                     running = false;
                     cmdQueue.clear();
-                    System.err.println("stat="+stat);
+                    System.err.println("stat=" + stat);
                 }
                 if (null != stat) {
                     lastUpdateTime = System.currentTimeMillis();
@@ -1990,13 +2004,34 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             lastCmdIdSent = id;
                         }
                     }
+                    CommandStatusType cst = stat.getCommandStatus();
+                    if (null != cst) {
+                        if (!running) {
+                            if (null != cst.getProgramFile()
+                                    && !cst.getProgramFile().isEmpty()
+                                    && !cst.getProgramFile().equals(commonInfo.getCurrentFileName())
+                                    && !cst.getProgramFile().equals(lastProgramFile)
+                                    && Stream.of(commonInfo.getRemotePrograms()).anyMatch(x -> x.equals(cst.getProgramFile()))) {
+                                selectedRemoteProgramFilename = cst.getProgramFile();
+                                loadSelectedRemoteProgram();
+                                lastProgramFile = cst.getProgramFile();
+                            }
+                            if (null != cst.getProgramIndex()) {
+                                int index = cst.getProgramIndex().intValue();
+                                if (index != lastProgramIndex
+                                        && index != commonInfo.getProgramIndex()) {
+                                    setCommonInfo(CommonInfo.withProgramIndex(commonInfo, index));
+                                }
+                            }
+                        }
+                    }
                     access(() -> {
                         updateUIComponents(stat);
                     });
                 }
             }
         } catch (CRCLException ex) {
-            running=false;
+            running = false;
             if (disconnectCount <= connectCount) {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 updateStateLabels(CommandStateEnumType.CRCL_ERROR);
@@ -2152,6 +2187,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private BigDecimal jointJogSpeed = BigDecimal.valueOf(5.0);
 
+    private String lastProgramFile = null;
+    private int lastProgramIndex = -1;
+
     @SuppressWarnings("unchecked")
     private void updateUIComponents(final CRCLStatusType stat) {
         try {
@@ -2176,21 +2214,19 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 stateDescriptionLbl.setValue(description);
                 statusIdLbl.setValue("Status ID: " + cst.getStatusID());
             }
-            if(stat.getGripperStatus() == null || stat.getGripperStatus().isHoldingObject() == null) {
+            if (stat.getGripperStatus() == null || stat.getGripperStatus().isHoldingObject() == null) {
                 holdingObjectLbl.setValue("HoldingObject : UKNOWN");
                 holdingObjectLbl.removeStyleName("NOT_HOLDING_OBJECT");
                 holdingObjectLbl.removeStyleName("HOLDING_OBJECT");
+            } else if (stat.getGripperStatus().isHoldingObject()) {
+                holdingObjectLbl.setValue("HoldingObject : TRUE");
+                holdingObjectLbl.addStyleName("HOLDING_OBJECT");
+                holdingObjectLbl.removeStyleName("NOT_HOLDING_OBJECT");
+
             } else {
-                if(stat.getGripperStatus().isHoldingObject()) {
-                    holdingObjectLbl.setValue("HoldingObject : TRUE");
-                    holdingObjectLbl.addStyleName("HOLDING_OBJECT");
-                    holdingObjectLbl.removeStyleName("NOT_HOLDING_OBJECT");
-                    
-                } else {
-                    holdingObjectLbl.setValue("HoldingObject : FALSE");
-                    holdingObjectLbl.removeStyleName("HOLDING_OBJECT");
-                    holdingObjectLbl.addStyleName("NOT_HOLDING_OBJECT");
-                }
+                holdingObjectLbl.setValue("HoldingObject : FALSE");
+                holdingObjectLbl.removeStyleName("HOLDING_OBJECT");
+                holdingObjectLbl.addStyleName("NOT_HOLDING_OBJECT");
             }
             PoseType pose = CRCLPosemath.getPose(stat);
             if (null != pose) {
@@ -2725,6 +2761,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         instance.setCRCLCommand(program.getMiddleCommand().get(program_index));
         instance.getCRCLCommand().setCommandID(BigInteger.valueOf(program_index + 2));
         lastCmdIdSent = instance.getCRCLCommand().getCommandID();
+        instance.setProgramFile(commonInfo.getCurrentFileName());
+        instance.setProgramIndex(BigInteger.valueOf(commonInfo.getProgramIndex()));
+        instance.setProgramLength(BigInteger.valueOf(commonInfo.getCurrentProgram().getMiddleCommand().size()));
+
         socket.writeCommand(instance);
 
         setCommonInfo(CommonInfo.withProgramIndex(commonInfo, new_program_index));

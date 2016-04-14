@@ -4,7 +4,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  version="2014Jul2">
+  version="2016Apr13">
   <xs:include schemaLocation="DataPrimitives.xsd"/>
 
   <xs:element name="CRCLStatus"
@@ -113,7 +113,10 @@
           CommandID
           StatusID
           CommandState
-          StateDescription (optional).
+          StateDescription (optional)
+          ProgramFile (optional)
+          ProgramIndex (optional)
+          ProgramLength (optional).
 
         The CommandStatusType relates the execution status of the
         currently executing command (or the most recently executed
@@ -124,8 +127,17 @@
              message.
           StateDescription is an optional brief description of the state
           such as "Joint 3 at -171.0 less than limit -170.0" or "Waiting for Operator".
-        The combination of StatusID and CommandID must be unique
-        within a session.
+          ProgramFile provides an optional reference if the currently executing command
+             is known to have come from a particular file.
+          ProgramIndex provoides an optional reference to the element within a program. If the 
+             currently executing command is known to have come from a particular file. The InitCanon command will have 
+             index 0, and first MiddleCommand will have index 1.
+          ProgramLength is the number of commands in the current program if known.
+          
+          
+          
+          The combination of StatusID and CommandID must be unique
+            within a session.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -139,6 +151,15 @@
             type="CommandStateEnumType"/>
           <xs:element name="StateDescription"
             type="xs:string"
+            minOccurs="0"/>
+          <xs:element name="ProgramFile"
+            type="xs:string"
+            minOccurs="0"/>
+          <xs:element name="ProgramIndex"
+            type="xs:nonNegativeInteger"
+            minOccurs="0"/>
+          <xs:element name="ProgramLength"
+            type="xs:nonNegativeInteger"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -200,7 +221,7 @@
         An instance of GripperStatusType has the following elements:
           Name (inherited, optional)
           GripperName
-          HoldingObject.
+          HoldingObject (optional).
           
         GripperStatusType is an abstract type from which more specialized
         types of gripper status are derived. HoldingObject is true if the gripper 
