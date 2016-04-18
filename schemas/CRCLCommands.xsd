@@ -275,7 +275,7 @@
           ReportSettingsStatus.
 
         ConfigureStatusReportType is used to specify how the status of the
-        robot. 
+        robot should be reported. 
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>

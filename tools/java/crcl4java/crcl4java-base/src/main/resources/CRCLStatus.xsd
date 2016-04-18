@@ -126,13 +126,16 @@
           StatusID is an ID associated with this particular status
              message.
           StateDescription is an optional brief description of the state
-          such as "Joint 3 at -171.0 less than limit -170.0" or "Waiting for Operator".
-          ProgramFile provides an optional reference if the currently executing command
-             is known to have come from a particular file.
-          ProgramIndex provoides an optional reference to the element within a program. If the 
-             currently executing command is known to have come from a particular file. The InitCanon command will have 
-             index 0, and first MiddleCommand will have index 1.
-          ProgramLength is the number of commands in the current program if known.
+          such as "Joint 3 at -171.0 less than limit -170.0" or 
+          "Waiting for Operator".
+          ProgramFile provides an optional reference if the currently executing 
+             command is known to have come from a particular file.
+          ProgramIndex provoides an optional reference to the element within a 
+             program. If the currently executing command is known to have come 
+             from a particular file. The InitCanon command will have index 0, 
+             and first MiddleCommand will have index 1.
+          ProgramLength is the number of commands in the current program if 
+             known.
           
           
           
@@ -228,9 +231,9 @@
           HoldingObject (optional).
           
         GripperStatusType is an abstract type from which more specialized
-        types of gripper status are derived. HoldingObject is true if the gripper 
-          is expected to be holding an object given its position and/or pressure
-          sensors on the finger tips.
+        types of gripper status are derived. HoldingObject is true if the 
+          gripper is expected to be holding an object given its position and/or 
+          pressure sensors on the finger tips.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -411,7 +414,8 @@
         SettingsStatusType is derived from DataThingType. It provides the values
         echoed back from the appropriate command to set that parameter. It might
         also provide the initial default value read from a configuration file or
-        from a lower level controller on startup if no command has yet been given.
+        from a lower level controller on startup if no command has yet been 
+        given.
         
         An instance of SettingsStatusType has the following elements:
           Name (inherited, optional)
@@ -457,8 +461,8 @@
         ForceUnitName is a string that can be only the literals 'newton',
            'pound', or 'ounce'. This tells the robot that all further commands
            giving force values will implicitly use the named unit.
-        JointLimits represents a list of different possible limits associated with
-           each joint. These limits can not be directly set through CRCL.
+        JointLimits represents a list of different possible limits associated 
+           with each joint. These limits can not be directly set through CRCL.
         IntermediatePoseTolerance indicates to the robot the precision with
            which it must reach each intermediate waypoint.
         LengthUnitName is a string that can be only the literals 'meter',
@@ -498,8 +502,8 @@
             controlled point, in current length units per second per second.
         TransAccelRelative represents the fraction of the 
             robot's maximum translational acceleration that it should use.
-        TransSpeedAbsolute represents the translational speed for the controlled
-            point, in current length units per second.
+        TransSpeedAbsolute represents the translational speed for the 
+            controlled point, in current length units per second.
         TransSpeedRelative represents the fraction of the 
             robot's maximum translational speed that it should use.
       </xs:documentation>
