@@ -4,7 +4,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  version="2016Apr13">
+  version="2016Apr15">
   <xs:include schemaLocation="DataPrimitives.xsd"/>
 
   <xs:element name="CRCLStatus"
@@ -175,7 +175,8 @@
           CommandStatus
           JointStatuses (optional)
           PoseStatus (optional)
-          GripperStatus (optional).
+          GripperStatus (optional)
+          SettingsStatus (optional).
 
         Status is returned periodically by the controller.
 
@@ -207,6 +208,9 @@
             minOccurs="0"/>
           <xs:element name="GripperStatus"
             type="GripperStatusType"
+            minOccurs="0"/>
+          <xs:element name="SettingsStatus"
+            type="SettingsStatusType"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -300,6 +304,44 @@
     </xs:complexContent>
   </xs:complexType>
 
+<xs:complexType name="JointLimitType">
+    <xs:annotation>
+      <xs:documentation>
+        JointLimitType is derived from DataThingType.
+        JointLimitType reports the limits of one joint.
+        An instance of JointStatusType has the following elements:
+          Name (inherited, optional)
+          JointNumber
+          JointMinPosition (optional)
+          JointMaxPosition (optional)
+          JointMaxTorqueOrForce (optional)
+          JointMaxVelocity (optional).
+
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="DataThingType">
+        <xs:sequence>
+          <xs:element name="JointNumber"
+            type="xs:positiveInteger"/>
+          <xs:element name="JointMinPosition"
+            type="xs:decimal"
+            minOccurs="0"/>
+          <xs:element name="JointMaxPosition"
+            type="xs:decimal"
+            minOccurs="0"/>
+          <xs:element name="JointMaxTorqueOrForce"
+            type="xs:decimal"
+            minOccurs="0"/>
+          <xs:element name="JointMaxVelocity"
+            type="xs:decimal"
+            minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+
   <xs:complexType name="ParallelGripperStatusType">
     <xs:annotation>
       <xs:documentation>
@@ -332,12 +374,16 @@
           Name (inherited, optional)
           Pose
           Twist (optional)
-          Wrench (optional).
+          Wrench (optional)
+          Configuration (optional).
 
         PoseStatusType provides a Cartesian counterpart to
         JointStatusesType, representing the generalized
         position/orientation, velocities, and forces.
         of a reference frame.
+          
+        Configuration provides a robot specific description of the current 
+            configuration flags and turns.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -351,6 +397,182 @@
           <xs:element name="Wrench"
             type="WrenchType"
             minOccurs="0"/>
+          <xs:element name="Configuration"
+            type="xs:string"
+            minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+<xs:complexType name="SettingsStatusType">
+    <xs:annotation>
+      <xs:documentation>
+        SettingsStatusType is derived from DataThingType. It provides the values
+        echoed back from the appropriate command to set that parameter. It might
+        also provide the initial default value read from a configuration file or
+        from a lower level controller on startup if no command has yet been given.
+        
+        An instance of SettingsStatusType has the following elements:
+          Name (inherited, optional)
+          AngleUnitName (optional)
+          EndEffectorParameterSetting (optional)
+          EndEffectorSetting (optional)
+          ForceUnitName (optional)
+          IntermediatePoseTolerance (optional)
+          JointLimits (optional)
+          LengthUnitName (optional)
+          MaxCartesianLimit (optional)
+          MinCartesianLimit (optional)
+          MotionCoordinated (optional)
+          PoseTolerance (optional)
+          RobotParameterSetting (optional)
+          RotAccelAbsolute (optional)
+          RotAccelRelative (optional)
+          RotSpeedAbsolute (optional)
+          RotSpeedRelative (optional)
+          TorqueUnitName (optional)
+          TransAccelAbsolute (optional)
+          TransAccelRelative (optional)
+          TransSpeedAbsolute (optional)
+          TransSpeedRelative (optional).
+
+        AngleUnitName is a string that can be only the literals 'radian' or
+          'degree'. This tells the robot that all further commands
+           giving angle values will implicitly use the named unit.
+        EndEffectorParameterSetting is for setting parameters of end
+           effectors that have parameters. The meaning of the parameter
+           settings is not part of CRCL. It is expected that this command will
+           be used only to send parameter values that can be used by the end
+           effector currently in use.
+        EndEffectorSetting is for setting the effectivity of end effectors.
+           If an end effector has multiple control modes, the control mode
+           must be set using a SetEndEffectorParameters command, so that the
+           meaning of SetEndEffector commands is unambiguous. For end effectors
+           that have a continuously variable setting, the Setting means a 
+           fraction of maximum openness, force, torque, power, etc. For end 
+           effectors that have only two choices (powered or unpowered, open or 
+           closed, on or off), a positive Setting value means powered, open, 
+           or on, while a zero Setting value means unpowered, closed, or off.
+        ForceUnitName is a string that can be only the literals 'newton',
+           'pound', or 'ounce'. This tells the robot that all further commands
+           giving force values will implicitly use the named unit.
+        JointLimits represents a list of different possible limits associated with
+           each joint. These limits can not be directly set through CRCL.
+        IntermediatePoseTolerance indicates to the robot the precision with
+           which it must reach each intermediate waypoint.
+        LengthUnitName is a string that can be only the literals 'meter',
+           'millimeter', or 'inch'. This tells the robot that all further
+            commands giving position or length values will implicitly use the
+            named unit. 
+        MaxCartesianLimit is the point with greatest X,Y, and Z values that can 
+            be reached without violating a configured cartesian limit. It can no
+            be directly changed through CRCL.
+        MinCartesianLimit is the point with lowest X,Y, and Z values that can 
+            be reached without violating a configured cartesian limit. It can no
+            be directly changed through CRCL.
+        MotionCoordinated is a boolean. If the value is true, rotational and
+            translational motion must finish simultaneously in motion commands
+            (including each segment in a multiple segment motion command),
+            except as possibly temporarily overridden in the the motion
+            command. If the value is false, there is no such requirement.
+        PoseTolerance indicates to the robot the precision with
+           which it must reach its end location.
+        RobotParameterSetting is for setting robot parameters that
+            cannot be set by any other CRCL command. The meaning of the
+            parameter settings is not part of CRCL.
+        RotAccelAbsolute represents the target single axis
+            rotational acceleration for the robot, in current angle units per
+            second per second.
+        RotAccelRelative represents the fraction of the 
+            robot's maximum rotational acceleration that it should use.
+        RotSpeedAbsolute represents the target single axis
+            rotational speed for the robot, in current angle units per
+            second.
+        RotSpeedRelative represents the fraction of the 
+            robot's maximum rotational speed that it should use.
+        TorqueUnitName is a string that can be only the literals 'newtonMeter'
+            or 'footPound'. This tells the robot that all further commands
+            giving torque values will implicitly use the named unit.
+        TransAccelAbsolute represents the translational acceleration for the 
+            controlled point, in current length units per second per second.
+        TransAccelRelative represents the fraction of the 
+            robot's maximum translational acceleration that it should use.
+        TransSpeedAbsolute represents the translational speed for the controlled
+            point, in current length units per second.
+        TransSpeedRelative represents the fraction of the 
+            robot's maximum translational speed that it should use.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="DataThingType">
+        <xs:sequence>
+          <xs:element name="AngleUnitName"
+            type="AngleUnitEnumType"
+            minOccurs="0" />
+          <xs:element name="EndEffectorParameterSetting"
+            type="ParameterSettingType"
+            minOccurs="0" 
+            maxOccurs="unbounded"/>
+          <xs:element name="EndEffectorSetting"
+            type="FractionType"
+            minOccurs="0" />
+          <xs:element name="ForceUnitName"
+            type="ForceUnitEnumType"
+            minOccurs="0" />
+          <xs:element name="JointLimits"
+            type="JointLimitType"
+            minOccurs="0" 
+            maxOccurs="unbounded"/>
+          <xs:element name="IntermediatePoseTolerance"
+            type="PoseToleranceType"
+            minOccurs="0" />
+          <xs:element name="LengthUnitName"
+            type="LengthUnitEnumType"
+            minOccurs="0" />
+          <xs:element name="MaxCartesianLimit"
+            type="PointType"
+            minOccurs="0" />
+          <xs:element name="MinCartesianLimit"
+            type="PointType"
+            minOccurs="0" />
+          <xs:element name="MotionCoordinated"
+            type="xs:boolean"
+            minOccurs="0" />
+          <xs:element name="PoseTolerance"
+            type="PoseToleranceType"
+            minOccurs="0" />
+          <xs:element name="RobotParameterSetting"
+            type="ParameterSettingType"
+            maxOccurs="unbounded"
+            minOccurs="0" />
+          <xs:element name="RotAccelAbsolute"
+            type="RotAccelAbsoluteType"
+            minOccurs="0" />
+          <xs:element name="RotAccelRelative"
+            type="RotAccelRelativeType"
+            minOccurs="0" />
+          <xs:element name="RotSpeedAbsolute"
+            type="RotSpeedAbsoluteType"
+            minOccurs="0" />
+          <xs:element name="RotSpeedRelative"
+            type="RotSpeedRelativeType"
+            minOccurs="0" />
+          <xs:element name="TorqueUnitName"
+            type="TorqueUnitEnumType"
+            minOccurs="0" />
+          <xs:element name="TransAccelAbsolute"
+            type="TransAccelAbsoluteType"
+            minOccurs="0" />
+          <xs:element name="TransAccelRelative"
+            type="TransAccelRelativeType"
+            minOccurs="0" />
+          <xs:element name="TransSpeedAbsolute"
+            type="TransSpeedAbsoluteType"
+            minOccurs="0" />
+          <xs:element name="TransSpeedRelative"
+            type="TransSpeedRelativeType"
+            minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

@@ -36,6 +36,7 @@ import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
+import crcl.base.SettingsStatusType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.TwistType;
 import crcl.base.VacuumGripperStatusType;
@@ -346,7 +347,50 @@ public class CRCLPosemath {
         if (null != gripperStatus) {
             newStatus.setGripperStatus(gripperStatus);
         }
+        SettingsStatusType settingsStatus = copy(status.getSettingsStatus());
+        if(null != settingsStatus) {
+            newStatus.setSettingsStatus(settingsStatus);
+        }
         return newStatus;
+    }
+    
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param settings to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    public static SettingsStatusType copy(SettingsStatusType settings) {
+        if (null != settings) {
+            SettingsStatusType newSettings = new SettingsStatusType();
+            newSettings.setName(settings.getName());
+            newSettings.setAngleUnitName(settings.getAngleUnitName());
+            newSettings.setEndEffectorSetting(settings.getEndEffectorSetting());
+            newSettings.getEndEffectorParameterSetting().clear();
+            newSettings.getEndEffectorParameterSetting().addAll(settings.getEndEffectorParameterSetting());
+            newSettings.setForceUnitName(settings.getForceUnitName());
+            newSettings.setIntermediatePoseTolerance(settings.getIntermediatePoseTolerance());
+            newSettings.getJointLimits().clear();
+            newSettings.getJointLimits().addAll(settings.getJointLimits());
+            newSettings.setLengthUnitName(settings.getLengthUnitName());
+            newSettings.setMaxCartesianLimit(settings.getMaxCartesianLimit());
+            newSettings.setMinCartesianLimit(settings.getMinCartesianLimit());
+            newSettings.setPoseTolerance(settings.getPoseTolerance());
+            newSettings.getRobotParameterSetting().clear();
+            newSettings.getRobotParameterSetting().addAll(settings.getRobotParameterSetting());
+            newSettings.setRotAccelAbsolute(settings.getRotAccelAbsolute());
+            newSettings.setRotAccelRelative(settings.getRotAccelRelative());
+            newSettings.setRotSpeedAbsolute(settings.getRotSpeedAbsolute());
+            newSettings.setRotSpeedRelative(settings.getRotSpeedRelative());
+            newSettings.setTorqueUnitName(settings.getTorqueUnitName());
+            newSettings.setTransAccelAbsolute(settings.getTransAccelAbsolute());
+            newSettings.setTransAccelRelative(settings.getTransAccelRelative());
+            newSettings.setTransSpeedAbsolute(settings.getTransSpeedAbsolute());
+            newSettings.setTransSpeedRelative(settings.getTransSpeedRelative());
+            return newSettings;
+        }
+        return null;
     }
 
     /**
@@ -413,6 +457,7 @@ public class CRCLPosemath {
         if (wrench != null) {
             newStatus.setWrench(wrench);
         }
+        newStatus.setConfiguration(status.getConfiguration());
         return newStatus;
     }
 

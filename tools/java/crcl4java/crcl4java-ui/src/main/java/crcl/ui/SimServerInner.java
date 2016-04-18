@@ -32,8 +32,10 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
+import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
+import crcl.base.ForceUnitEnumType;
 import crcl.base.GetStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
@@ -51,6 +53,7 @@ import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
 import crcl.base.PointType;
 import crcl.base.PoseAndSetType;
+import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
 import crcl.base.RotAccelAbsoluteType;
@@ -69,6 +72,7 @@ import crcl.base.SetRotAccelType;
 import crcl.base.SetRotSpeedType;
 import crcl.base.SetTransAccelType;
 import crcl.base.SetTransSpeedType;
+import crcl.base.SettingsStatusType;
 import crcl.base.StopMotionType;
 import crcl.base.TransAccelAbsoluteType;
 import crcl.base.TransAccelRelativeType;
@@ -76,7 +80,7 @@ import crcl.base.TransAccelType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
-import crcl.utils.CRCLPosemath;
+import crcl.base.VectorType;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.SimRobotEnum;
@@ -139,6 +143,192 @@ public class SimServerInner {
     public static boolean testing = false;
     private static final double SCALE_FUDGE_FACTOR = 0.5;
     public static long debugCmdSendTime = 0;
+
+    private boolean reportPoseStatus = true;
+
+    public void setPoseStatus(PoseStatusType newPoseStatus) {
+        if (null != newPoseStatus) {
+            poseStatus.setName(newPoseStatus.getName());
+            setPose(newPoseStatus.getPose());
+            poseStatus.setTwist(newPoseStatus.getTwist());
+            poseStatus.setWrench(newPoseStatus.getWrench());
+        }
+    }
+
+    public void setJointStatuses(JointStatusesType newJointStatuses) {
+        if (null != newJointStatuses) {
+            jointStatuses.setName(newJointStatuses.getName());
+            jointStatuses.getJointStatus().clear();
+            jointStatuses.getJointStatus().addAll(newJointStatuses.getJointStatus());
+        }
+    }
+
+    public void setSettingsStatus(SettingsStatusType newSettingsStatus) {
+        if (null != newSettingsStatus) {
+            settingsStatus.setName(newSettingsStatus.getName());
+            settingsStatus.setAngleUnitName(newSettingsStatus.getAngleUnitName());
+            settingsStatus.setEndEffectorSetting(newSettingsStatus.getEndEffectorSetting());
+            settingsStatus.getEndEffectorParameterSetting().clear();
+            settingsStatus.getEndEffectorParameterSetting().addAll(newSettingsStatus.getEndEffectorParameterSetting());
+            settingsStatus.setForceUnitName(newSettingsStatus.getForceUnitName());
+            settingsStatus.setIntermediatePoseTolerance(newSettingsStatus.getIntermediatePoseTolerance());
+            settingsStatus.getJointLimits().clear();
+            settingsStatus.getJointLimits().addAll(newSettingsStatus.getJointLimits());
+            settingsStatus.setLengthUnitName(newSettingsStatus.getLengthUnitName());
+            settingsStatus.setMaxCartesianLimit(newSettingsStatus.getMaxCartesianLimit());
+            settingsStatus.setMinCartesianLimit(newSettingsStatus.getMinCartesianLimit());
+            settingsStatus.setPoseTolerance(newSettingsStatus.getPoseTolerance());
+            settingsStatus.getRobotParameterSetting().clear();
+            settingsStatus.getRobotParameterSetting().addAll(newSettingsStatus.getRobotParameterSetting());
+            settingsStatus.setRotAccelAbsolute(newSettingsStatus.getRotAccelAbsolute());
+            settingsStatus.setRotAccelRelative(newSettingsStatus.getRotAccelRelative());
+            settingsStatus.setRotSpeedAbsolute(newSettingsStatus.getRotSpeedAbsolute());
+            settingsStatus.setRotSpeedRelative(newSettingsStatus.getRotSpeedRelative());
+            settingsStatus.setTorqueUnitName(newSettingsStatus.getTorqueUnitName());
+            settingsStatus.setTransAccelAbsolute(newSettingsStatus.getTransAccelAbsolute());
+            settingsStatus.setTransAccelRelative(newSettingsStatus.getTransAccelRelative());
+            settingsStatus.setTransSpeedAbsolute(newSettingsStatus.getTransSpeedAbsolute());
+            settingsStatus.setTransSpeedRelative(newSettingsStatus.getTransSpeedRelative());
+        }
+    }
+    public void setStatus(CRCLStatusType newStatus) {
+        status.setName(newStatus.getName());
+        status.setCommandStatus(newStatus.getCommandStatus());
+        setPoseStatus(newStatus.getPoseStatus());
+        setJointStatuses(newStatus.getJointStatuses());
+        status.setGripperStatus(newStatus.getGripperStatus());
+        status.setSettingsStatus(newStatus.getSettingsStatus());
+        setReportGripperStatus(newStatus.getGripperStatus() != null);
+        setReportJointStatus(newStatus.getJointStatuses() != null);
+        setReportPoseStatus(newStatus.getPoseStatus() != null);
+        setReportSettingsStatus(newStatus.getSettingsStatus() != null);
+    }
+
+    /**
+     * Get the value of reportPoseStatus
+     *
+     * @return the value of reportPoseStatus
+     */
+    public boolean isReportPoseStatus() {
+        return reportPoseStatus;
+    }
+
+    /**
+     * Set the value of reportPoseStatus
+     *
+     * @param reportPoseStatus new value of reportPoseStatus
+     */
+    public void setReportPoseStatus(boolean reportPoseStatus) {
+        this.reportPoseStatus = reportPoseStatus;
+        if (reportPoseStatus) {
+            status.setPoseStatus(poseStatus);
+        } else {
+            status.setPoseStatus(null);
+        }
+    }
+
+    private boolean reportGripperStatus = false;
+
+    /**
+     * Get the value of reportGripperStatus
+     *
+     * @return the value of reportGripperStatus
+     */
+    public boolean isReportGripperStatus() {
+        return reportGripperStatus;
+    }
+
+    /**
+     * Set the value of reportGripperStatus
+     *
+     * @param reportGripperStatus new value of reportGripperStatus
+     */
+    public void setReportGripperStatus(boolean reportGripperStatus) {
+        this.reportGripperStatus = reportGripperStatus;
+    }
+
+    private boolean reportSettingsStatus;
+
+    /**
+     * Get the value of reportSettingsStatus
+     *
+     * @return the value of reportSettingsStatus
+     */
+    public boolean isReportSettingsStatus() {
+        return reportSettingsStatus;
+    }
+
+    /**
+     * Set the value of reportSettingsStatus
+     *
+     * @param reportSettingsStatus new value of reportSettingsStatus
+     */
+    public void setReportSettingsStatus(boolean reportSettingsStatus) {
+        this.reportSettingsStatus = reportSettingsStatus;
+        if (reportSettingsStatus) {
+            status.setSettingsStatus(settingsStatus);
+        } else {
+            status.setSettingsStatus(null);
+        }
+    }
+
+    private boolean reportJointStatus = true;
+
+    /**
+     * Get the value of reportJointStatus
+     *
+     * @return the value of reportJointStatus
+     */
+    public boolean isReportJointStatus() {
+        return reportJointStatus;
+    }
+
+    /**
+     * Set the value of reportJointStatus
+     *
+     * @param reportJointStatus new value of reportJointStatus
+     */
+    public void setReportJointStatus(boolean reportJointStatus) {
+        this.reportJointStatus = reportJointStatus;
+        if (reportJointStatus) {
+            status.setJointStatuses(jointStatuses);
+        } else {
+            status.setJointStatuses(null);
+        }
+    }
+
+    final private PoseStatusType poseStatus = new PoseStatusType();
+
+    /**
+     * Get the value of poseStatus
+     *
+     * @return the value of poseStatus
+     */
+    public PoseStatusType getPoseStatus() {
+        return poseStatus;
+    }
+
+    final private JointStatusesType jointStatuses = new JointStatusesType();
+
+    /**
+     * Get the value of jointStatuses
+     *
+     * @return the value of jointStatuses
+     */
+    public JointStatusesType getJointStatuses() {
+        return jointStatuses;
+    }
+
+    private final SettingsStatusType settingsStatus = new SettingsStatusType();
+
+    /**
+     * Get the value of settingsStatus
+     *
+     * @return the value of settingsStatus
+     */
+    public SettingsStatusType getSettingsStatus() {
+        return settingsStatus;
+    }
 
     private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
 
@@ -208,7 +398,7 @@ public class SimServerInner {
     private ServerSocket ssock = null;
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
-    private CRCLStatusType status;
+    final private CRCLStatusType status = new CRCLStatusType();
     private File[] statSchemaFiles = null;
     private CRCLCommandType multiStepCommand = null;
     private int moveScrewStep = 0;
@@ -265,13 +455,34 @@ public class SimServerInner {
     public SimServerInner(SimServerOuter _outer) throws ParserConfigurationException {
         this.outer = _outer;
         this.xpu = new XpathUtils();
-        this.status = new CRCLStatusType();
         this.robotType = SimRobotEnum.SIMPLE;
         this.port = CRCLSocket.DEFAULT_PORT;
         this.resetToDefaults();
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             this.port = Integer.valueOf(portPropertyString);
+        }
+    }
+
+    {
+        updateStatusReporting();
+    }
+
+    private void updateStatusReporting() {
+        if (this.isReportJointStatus()) {
+            status.setJointStatuses(jointStatuses);
+        } else {
+            status.setJointStatuses(null);
+        }
+        if (this.isReportPoseStatus()) {
+            status.setPoseStatus(poseStatus);
+        } else {
+            status.setPoseStatus(null);
+        }
+        if (this.isReportSettingsStatus()) {
+            status.setSettingsStatus(settingsStatus);
+        } else {
+            status.setSettingsStatus(null);
         }
     }
 
@@ -395,6 +606,14 @@ public class SimServerInner {
         this.teleportToGoals = teleportToGoals;
     }
 
+    public PoseType getPose() {
+        return poseStatus.getPose();
+    }
+
+    public void setPose(PoseType pose) {
+        poseStatus.setPose(pose);
+    }
+
     public void simulatedTeleportToPose(PoseType pose) {
         try {
             if (null != pose) {
@@ -404,12 +623,12 @@ public class SimServerInner {
                         case PLAUSIBLE:
                             jointPositions = skPlausible.poseToJoints(this.jointPositions, pose);
 
-                            CRCLPosemath.setPose(this.getStatus(), skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                            setPose(skPlausible.jointsToPose(jointPositions, getPose()));
                             break;
 
                         case SIMPLE:
                             jointPositions = skSimple.poseToJoints(this.jointPositions, pose);
-                            CRCLPosemath.setPose(this.getStatus(), skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                            setPose(skSimple.jointsToPose(jointPositions, getPose()));
                             break;
                     }
                     commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
@@ -466,11 +685,11 @@ public class SimServerInner {
             jointPositions = Arrays.copyOf(SimulatedKinematicsPlausible.DEFAULT_JOINTVALS, SimulatedKinematicsPlausible.DEFAULT_JOINTVALS.length);
             switch (robotType) {
                 case PLAUSIBLE:
-                    CRCLPosemath.setPose(this.getStatus(), skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                    setPose(skPlausible.jointsToPose(jointPositions, getPose()));
                     break;
 
                 case SIMPLE:
-                    CRCLPosemath.setPose(this.getStatus(), skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(this.getStatus())));
+                    setPose(skSimple.jointsToPose(jointPositions, getPose()));
                     break;
             }
             commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
@@ -520,6 +739,14 @@ public class SimServerInner {
         return maxdiff <= getJointDiffMax();
     }
 
+    public VectorType getXAxis() {
+        return getPose().getXAxis();
+    }
+
+    public VectorType getZAxis() {
+        return getPose().getZAxis();
+    }
+
     private boolean handleContinueMoveScrew(MoveScrewType moveScrew) {
         switch (moveScrewStep) {
             case 0:
@@ -534,7 +761,7 @@ public class SimServerInner {
 
             case 1:
                 if (isFinishedMove()) {
-                    if (!PoseToleranceChecker.isInTolerance(CRCLPosemath.getPose(status), goalPose,
+                    if (!PoseToleranceChecker.isInTolerance(getPose(), goalPose,
                             expectedEndPoseTolerance, angleType)) {
                         multiStepCommand = null;
                         setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -545,8 +772,8 @@ public class SimServerInner {
 
             case 2:
                 if (moveScrew.getAxialDistanceFree() != null && moveScrew.getAxialDistanceFree().compareTo(BigDecimal.ZERO) > 0) {
-                    goalPose = shift(CRCLPosemath.getPose(status),
-                            multiply(moveScrew.getAxialDistanceFree(), CRCLPosemath.getXAxis(status)));
+                    goalPose = shift(getPose(),
+                            multiply(moveScrew.getAxialDistanceFree(), getXAxis()));
                     setMoveStraight(true);
                     moveScrewStep = 3;
                 } else {
@@ -703,14 +930,18 @@ public class SimServerInner {
         return newGoal;
     }
 
+    PointType getPoint() {
+        return getPose().getPoint();
+    }
+
     public double[] getStraightMoveCommandedJointVals(PoseType curGoalPose) {
         try {
             final double JOINT_DIFF_MAX = getJointDiffMax();
             PmCartesian goalPt = toPmCartesian(curGoalPose.getPoint());
-            PmCartesian currentPt = toPmCartesian(CRCLPosemath.getPoint(status));
+            PmCartesian currentPt = toPmCartesian(getPoint());
             PmCartesian diffPt = goalPt.subtract(currentPt);
             PmRotationVector goalRotv = toPmRotationVector(curGoalPose);
-            PmRotationVector currentRotv = toPmRotationVector(CRCLPosemath.getPose(status));
+            PmRotationVector currentRotv = toPmRotationVector(getPose());
             PmRotationVector diffRotv = goalRotv.multiply(currentRotv.inv());
             PoseType newGoalPose = curGoalPose;
             goalPoseToCommandedPositions(newGoalPose);
@@ -755,10 +986,6 @@ public class SimServerInner {
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void setStatus(CRCLStatusType status) {
-        this.status = status;
     }
 
     /**
@@ -1070,7 +1297,7 @@ public class SimServerInner {
                         this.goalPose = this.waypoints.get(this.currentWaypoint);
                     }
                     if (null != goalPose) {
-                        curGoalPose = this.limitSpeedAccel(goalPose, CRCLPosemath.getPose(status));
+                        curGoalPose = this.limitSpeedAccel(goalPose, getPose());
                         if (this.moveStraight || isCoordinated(goalPose)) {
                             this.commandedJointPositions = getStraightMoveCommandedJointVals(curGoalPose);
                         } else {
@@ -1110,11 +1337,8 @@ public class SimServerInner {
                         }
                         jointVelocites[i] = ((jointPositions[i] - lastJointPositions[i]) * 1000.0) / delayMillis;
                         lastJointPositions[i] = jointPositions[i];
-                        JointStatusesType jsst = status.getJointStatuses();
-                        if (null == jsst) {
-                            jsst = new JointStatusesType();
-                            status.setJointStatuses(jsst);
-                        }
+                        JointStatusesType jsst = getJointStatuses();
+                        assert (null != jsst);
                         List<JointStatusType> jsl = jsst.getJointStatus();
                         JointStatusType js = null;
                         if (i < jsl.size()) {
@@ -1152,14 +1376,14 @@ public class SimServerInner {
                         }
                     }
                     if (jointschanged
-                            || null == CRCLPosemath.getPose(status)) {
+                            || null == getPose()) {
                         switch (robotType) {
                             case PLAUSIBLE:
-                                CRCLPosemath.setPose(status, skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(status)));
+                                setPose(skPlausible.jointsToPose(jointPositions, getPose()));
                                 break;
 
                             case SIMPLE:
-                                CRCLPosemath.setPose(status, skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(status)));
+                                setPose(skSimple.jointsToPose(jointPositions, getPose()));
                                 break;
                         }
                     }
@@ -1655,6 +1879,7 @@ public class SimServerInner {
                     SetEndEffectorType seet = (SetEndEffectorType) cmd;
                     outer.updateEndEffector(seet.getSetting().toString());
                     setCommandState(CommandStateEnumType.CRCL_DONE);
+                    settingsStatus.setEndEffectorSetting(seet.getSetting());
                 } else if (cmd instanceof CloseToolChangerType) {
                     CloseToolChangerType ctc = (CloseToolChangerType) cmd;
                     outer.updateToolChangerIsOpen(false);
@@ -1677,20 +1902,24 @@ public class SimServerInner {
                                 cjr);
                     }
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    setReportJointStatus(true);
                 } else if (cmd instanceof SetLengthUnitsType) {
                     SetLengthUnitsType slu = (SetLengthUnitsType) cmd;
                     LengthUnitEnumType lu = slu.getUnitName();
                     setLengthUnit(lu);
                     setCommandState(CommandStateEnumType.CRCL_DONE);
+                    settingsStatus.setLengthUnitName(lu);
                 } else if (cmd instanceof SetTransSpeedType) {
                     SetTransSpeedType sts = (SetTransSpeedType) cmd;
                     TransSpeedType ts = sts.getTransSpeed();
                     if (ts instanceof TransSpeedAbsoluteType) {
                         TransSpeedAbsoluteType tsa = (TransSpeedAbsoluteType) ts;
                         this.setCommandedTransSpeed(tsa.getSetting().doubleValue());
+                        settingsStatus.setTransSpeedAbsolute(tsa);
                     } else if (ts instanceof TransSpeedRelativeType) {
                         TransSpeedRelativeType tsr = (TransSpeedRelativeType) ts;
                         this.setCommandedTransSpeed(tsr.getFraction().doubleValue() * maxTransSpeed);
+                        settingsStatus.setTransSpeedRelative(tsr);
                     } else {
                         outer.showMessage("Unrecognized type of TransSpeed in SetTransSpeedType");
                         setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1703,9 +1932,11 @@ public class SimServerInner {
                     if (ts instanceof TransAccelAbsoluteType) {
                         TransAccelAbsoluteType taa = (TransAccelAbsoluteType) ts;
                         this.setCommandedTransAccel(taa.getSetting().doubleValue());
+                        settingsStatus.setTransAccelAbsolute(taa);
                     } else if (ts instanceof TransAccelRelativeType) {
                         TransAccelRelativeType tar = (TransAccelRelativeType) ts;
                         this.setCommandedTransAccel(tar.getFraction().doubleValue() * maxTransAccel);
+                        settingsStatus.setTransAccelRelative(tar);
                     } else {
                         outer.showMessage("Unrecognized type of TransAccel in SetTransAccelType");
                         setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1716,11 +1947,13 @@ public class SimServerInner {
                     SetRotSpeedType sts = (SetRotSpeedType) cmd;
                     RotSpeedType ts = sts.getRotSpeed();
                     if (ts instanceof RotSpeedAbsoluteType) {
-                        RotSpeedAbsoluteType tsa = (RotSpeedAbsoluteType) ts;
-                        this.setCommandedRotSpeed(tsa.getSetting().doubleValue());
+                        RotSpeedAbsoluteType rsa = (RotSpeedAbsoluteType) ts;
+                        this.setCommandedRotSpeed(rsa.getSetting().doubleValue());
+                        settingsStatus.setRotSpeedAbsolute(rsa);
                     } else if (ts instanceof RotSpeedRelativeType) {
-                        RotSpeedRelativeType tsr = (RotSpeedRelativeType) ts;
-                        this.setCommandedRotSpeed(tsr.getFraction().doubleValue() * maxRotSpeed);
+                        RotSpeedRelativeType rsr = (RotSpeedRelativeType) ts;
+                        this.setCommandedRotSpeed(rsr.getFraction().doubleValue() * maxRotSpeed);
+                        settingsStatus.setRotSpeedRelative(rsr);
                     } else {
                         outer.showMessage("Unrecognized type of RotSpeed in SetRotSpeedType");
                         setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1731,11 +1964,13 @@ public class SimServerInner {
                     SetRotAccelType sts = (SetRotAccelType) cmd;
                     RotAccelType ts = sts.getRotAccel();
                     if (ts instanceof RotAccelAbsoluteType) {
-                        RotAccelAbsoluteType taa = (RotAccelAbsoluteType) ts;
-                        this.setCommandedRotAccel(taa.getSetting().doubleValue());
+                        RotAccelAbsoluteType raa = (RotAccelAbsoluteType) ts;
+                        this.setCommandedRotAccel(raa.getSetting().doubleValue());
+                        settingsStatus.setRotAccelAbsolute(raa);
                     } else if (ts instanceof RotAccelRelativeType) {
-                        RotAccelRelativeType tar = (RotAccelRelativeType) ts;
-                        this.setCommandedRotAccel(tar.getFraction().doubleValue() * maxRotAccel);
+                        RotAccelRelativeType rar = (RotAccelRelativeType) ts;
+                        this.setCommandedRotAccel(rar.getFraction().doubleValue() * maxRotAccel);
+                        settingsStatus.setRotAccelRelative(rar);
                     } else {
                         outer.showMessage("Unrecognized type of RotAccel in SetRotAccelType");
                         setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1856,14 +2091,17 @@ public class SimServerInner {
                     SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
                     this.setAngleType(setAngle.getUnitName());
                     setCommandState(CommandStateEnumType.CRCL_DONE);
+                    settingsStatus.setAngleUnitName(setAngle.getUnitName());
                 } else if (cmd instanceof SetEndPoseToleranceType) {
                     SetEndPoseToleranceType endPoseTol = (SetEndPoseToleranceType) cmd;
                     this.setExpectedEndPoseTolerance(endPoseTol.getTolerance());
                     setCommandState(CommandStateEnumType.CRCL_DONE);
+                    settingsStatus.setPoseTolerance(endPoseTol.getTolerance());
                 } else if (cmd instanceof SetIntermediatePoseToleranceType) {
                     SetIntermediatePoseToleranceType intermediatePoseTol = (SetIntermediatePoseToleranceType) cmd;
                     this.setExpectedIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
                     setCommandState(CommandStateEnumType.CRCL_DONE);
+                    settingsStatus.setIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
                 } else if (cmd instanceof DwellType) {
                     DwellType dwellCmd = (DwellType) cmd;
                     double dwellTime = dwellCmd.getDwellTime().doubleValue() * 1000.0;
@@ -1878,6 +2116,13 @@ public class SimServerInner {
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                     this.multiStepCommand = moveScrew;
                     this.moveScrewStep = 0;
+                } else if (cmd instanceof ConfigureStatusReportType) {
+                    ConfigureStatusReportType csr = (ConfigureStatusReportType) cmd;
+                    setReportGripperStatus(csr.isReportGripperStatus());
+                    setReportJointStatus(csr.isReportJointStatuses());
+                    setReportPoseStatus(csr.isReportPoseStatus());
+                    setReportSettingsStatus(csr.isReportSettingsStatus());
+                    setCommandState(CommandStateEnumType.CRCL_DONE);
                 } else {
                     setCommandState(CommandStateEnumType.CRCL_DONE);
                     outer.showDebugMessage("\nIgnored type: " + cmd.getClass().getSimpleName() + "\n");
@@ -1957,11 +2202,11 @@ public class SimServerInner {
             }
             switch (robotType) {
                 case PLAUSIBLE:
-                    CRCLPosemath.setPose(status, skPlausible.jointsToPose(jointPositions, CRCLPosemath.getPose(status)));
+                    setPose(skPlausible.jointsToPose(jointPositions, getPose()));
                     break;
 
                 case SIMPLE:
-                    CRCLPosemath.setPose(status, skSimple.jointsToPose(jointPositions, CRCLPosemath.getPose(status)));
+                    setPose(skSimple.jointsToPose(jointPositions, getPose()));
                     break;
             }
             this.setCommandedTransAccel(commandedTransAccel * lengthScale / oldLengthScale);

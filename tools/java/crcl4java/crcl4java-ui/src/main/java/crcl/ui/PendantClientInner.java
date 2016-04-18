@@ -664,7 +664,7 @@ public class PendantClientInner {
                     cmdInstance.setProgramIndex(outgoingProgramIndex);
                     cmdInstance.setProgramLength(outgoingProgramLength);
                 }
-            } 
+            }
             BigInteger id = cmd.getCommandID();
             crclSocket.writeCommand(cmdInstance, outer.validateXmlSelected());
             lastCommandIdSent = id;
@@ -1255,7 +1255,7 @@ public class PendantClientInner {
 
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
         if (cmd instanceof ActuateJointsType) {
-            return testAcutateJointsEffect((ActuateJointsType) cmd);
+            return testActuateJointsEffect((ActuateJointsType) cmd);
         }
         if (cmd instanceof MoveThroughToType) {
             return testMoveThroughToEffect((MoveThroughToType) cmd);
@@ -1285,8 +1285,12 @@ public class PendantClientInner {
         return Double.valueOf(System.getProperty(propName, Double.toString(defaultVal)));
     }
 
-    private boolean testAcutateJointsEffect(ActuateJointsType ajst) {
+    private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
+        if (null == status.getJointStatuses()) {
+            showMessage("Test program failed : (null == status.getJointStatuses() ");
+            return false;
+        }
         for (ActuateJointType aj : ajl) {
             List<JointStatusType> jointListTest = status.getJointStatuses().getJointStatus();
             JointStatusType jointStatusTest = null;
@@ -1611,7 +1615,7 @@ public class PendantClientInner {
         this.outgoingProgramIndex = outgoingProgramIndex;
     }
 
-        private BigInteger outgoingProgramLength;
+    private BigInteger outgoingProgramLength;
 
     /**
      * Get the value of outgoingProgramLength
