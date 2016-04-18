@@ -47,12 +47,14 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
+import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
+import crcl.base.JointLimitType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
@@ -61,22 +63,27 @@ import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
 import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
+import crcl.base.PoseStatusType;
 import crcl.base.PoseToleranceType;
 import crcl.base.PoseType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
 import crcl.base.RotSpeedType;
+import crcl.base.SetAngleUnitsType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.SetEndPoseToleranceType;
+import crcl.base.SetForceUnitsType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetRotSpeedType;
 import crcl.base.SetTransSpeedType;
+import crcl.base.SettingsStatusType;
 import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLPosemath.point;
 import crcl.utils.CRCLSocket;
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -397,12 +404,119 @@ public class Main {
     }
     double lastMaxJointDiff = Double.MAX_VALUE;
 
+    private final PoseStatusType poseStatus = new PoseStatusType();
+
+    /**
+     * Get the value of poseStatus
+     *
+     * @return the value of poseStatus
+     */
+    public PoseStatusType getPoseStatus() {
+        return poseStatus;
+    }
+
+    private final SettingsStatusType settingsStatus = new SettingsStatusType();
+
+    /**
+     * Get the value of settingsStatus
+     *
+     * @return the value of settingsStatus
+     */
+    public SettingsStatusType getSettingsStatus() {
+        return settingsStatus;
+    }
+
+    private JointStatusesType jointStatuses = new JointStatusesType();
+
+    /**
+     * Get the value of jointStatuses
+     *
+     * @return the value of jointStatuses
+     */
+    public JointStatusesType getJointStatuses() {
+        return jointStatuses;
+    }
+
+    /**
+     * Set the value of jointStatuses
+     *
+     * @param jointStatuses new value of jointStatuses
+     */
+    public void setJointStatuses(JointStatusesType jointStatuses) {
+        this.jointStatuses = jointStatuses;
+    }
+
+    private boolean reportPoseStatus = true;
+
+    /**
+     * Get the value of reportPoseStatus
+     *
+     * @return the value of reportPoseStatus
+     */
+    public boolean isReportPoseStatus() {
+        return reportPoseStatus;
+    }
+
+    /**
+     * Set the value of reportPoseStatus
+     *
+     * @param reportPoseStatus new value of reportPoseStatus
+     */
+    public void setReportPoseStatus(boolean reportPoseStatus) {
+        this.reportPoseStatus = reportPoseStatus;
+        status.setPoseStatus(reportPoseStatus ? poseStatus : null);
+    }
+
+    private boolean reportSettingsStatus = true;
+
+    /**
+     * Get the value of reportSettingsStatus
+     *
+     * @return the value of reportSettingsStatus
+     */
+    public boolean isReportSettingsStatus() {
+        return reportSettingsStatus;
+    }
+
+    /**
+     * Set the value of reportSettingsStatus
+     *
+     * @param reportSettingsStatus new value of reportSettingsStatus
+     */
+    public void setReportSettingsStatus(boolean reportSettingsStatus) {
+        this.reportSettingsStatus = reportSettingsStatus;
+        status.setSettingsStatus(reportSettingsStatus ? settingsStatus : null);
+    }
+
+    private boolean reportJointStatus = true;
+
+    /**
+     * Get the value of reportJointStatus
+     *
+     * @return the value of reportJointStatus
+     */
+    public boolean isReportJointStatus() {
+        return reportJointStatus;
+    }
+
+    /**
+     * Set the value of reportJointStatus
+     *
+     * @param reportJointStatus new value of reportJointStatus
+     */
+    public void setReportJointStatus(boolean reportJointStatus) {
+        this.reportJointStatus = reportJointStatus;
+        status.setJointStatuses(reportJointStatus ? jointStatuses : null);
+    }
+
     public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
 
         if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
             CRCLStatusType status = readStatusFromRobot();
             if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
                 status.setJointStatuses(null);
+            } else {
+                status.setJointStatuses(reportJointStatus ? jointStatuses : null);
             }
             lastUpdateStatusTime = System.currentTimeMillis();
             return status;
@@ -503,6 +617,14 @@ public class Main {
         this.holdingObjectKnown = holdingObjectKnown;
     }
 
+    public PoseType getPose() {
+        return poseStatus.getPose();
+    }
+
+    public void setPose(PoseType newPose) {
+        poseStatus.setPose(newPose);
+    }
+
     private synchronized void readStatusFromRobotInternal() {
         try {
             if (null == robot) {
@@ -551,7 +673,6 @@ public class Main {
                     }
                 }
                 status.getCommandStatus().setStatusID(BigInteger.ONE.add(status.getCommandStatus().getStatusID()));
-                CRCLPosemath.initPose(status);
                 if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
                     if (prevCmd != null) {
                         if (prevCmd instanceof MoveToType) {
@@ -630,16 +751,14 @@ public class Main {
                                 double maxDiff = 0;
                                 for (ActuateJointType aj : actJoints.getActuateJoint()) {
                                     int num = aj.getJointNumber().intValue();
-                                    JointStatusesType jointStatuses = status.getJointStatuses();
-                                    if (null != jointStatuses) {
-                                        for (JointStatusType jst : jointStatuses.getJointStatus()) {
-                                            if (num == jst.getJointNumber().intValue()) {
-                                                double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
-                                                if (diff > maxDiff) {
-                                                    maxDiff = diff;
-                                                }
-                                                break;
+                                    assert (jointStatuses != null);
+                                    for (JointStatusType jst : jointStatuses.getJointStatus()) {
+                                        if (num == jst.getJointNumber().intValue()) {
+                                            double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
+                                            if (diff > maxDiff) {
+                                                maxDiff = diff;
                                             }
+                                            break;
                                         }
                                     }
                                 }
@@ -675,56 +794,55 @@ public class Main {
                 IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
                 PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
                 PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
-                CRCLPosemath.setPose(status, CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), CRCLPosemath.getPose(status)));
+                setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), getPose()));
                 Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
                 IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
-                if (null == status.getJointStatuses()) {
-                    status.setJointStatuses(new JointStatusesType());
-                }
-                final JointStatusesType jointStatuses = status.getJointStatuses();
-                if (null != jointStatuses) {
-                    jointStatuses.getJointStatus().clear();
-                    for (short i = 1; i <= joint_pos.count(); i++) {
-                        JointStatusType js = new JointStatusType();
-                        js.setJointNumber(BigInteger.valueOf(i));
-                        double cur_joint_pos = joint_pos.item(i);
-                        double last_joint_pos = lastJointPosArray[i];
-                        long last_joint_pos_time = lastJointPosTimeArray[i];
-                        long cur_time = System.currentTimeMillis();
-                        double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
-                        lastJointPosArray[i] = cur_joint_pos;
-                        lastJointPosTimeArray[i] = cur_time;
-                        BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
-                        js.setJointPosition(jointPosition);
-                        try {
-                            if (null != cjrMap && cjrMap.size() > 0) {
-                                js.setJointPosition(null);
-                                js.setJointVelocity(null);
-                                js.setJointTorqueOrForce(null);
-                                ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
-                                if (null != cjrt) {
-                                    if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
-                                        if (cjrt.isReportPosition()) {
-                                            js.setJointPosition(jointPosition);
-                                        }
-                                        if (cjrt.isReportVelocity()) {
-                                            js.setJointVelocity(BigDecimal.valueOf(joint_vel));
-                                        }
-                                        if (cjrt.isReportTorqueOrForce()) {
-                                            js.setJointTorqueOrForce(BigDecimal.ZERO);
-                                        }
+                assert (jointStatuses != null);
+                jointStatuses.getJointStatus().clear();
+                for (short i = 1; i <= joint_pos.count(); i++) {
+                    JointStatusType js = new JointStatusType();
+                    js.setJointNumber(BigInteger.valueOf(i));
+                    double cur_joint_pos = joint_pos.item(i);
+                    double last_joint_pos = lastJointPosArray[i];
+                    long last_joint_pos_time = lastJointPosTimeArray[i];
+                    long cur_time = System.currentTimeMillis();
+                    double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
+                    lastJointPosArray[i] = cur_joint_pos;
+                    lastJointPosTimeArray[i] = cur_time;
+                    BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
+                    js.setJointPosition(jointPosition);
+                    try {
+                        if (null != cjrMap && cjrMap.size() > 0) {
+                            js.setJointPosition(null);
+                            js.setJointVelocity(null);
+                            js.setJointTorqueOrForce(null);
+                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                            if (null != cjrt) {
+                                if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                    if (cjrt.isReportPosition()) {
+                                        js.setJointPosition(jointPosition);
+                                    }
+                                    if (cjrt.isReportVelocity()) {
+                                        js.setJointVelocity(BigDecimal.valueOf(joint_vel));
+                                    }
+                                    if (cjrt.isReportTorqueOrForce()) {
+                                        js.setJointTorqueOrForce(BigDecimal.ZERO);
                                     }
                                 }
-                                if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
-                                        && prevCmd instanceof ConfigureJointReportsType) {
-                                    this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                                }
                             }
-                        } catch (Throwable ex) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                            if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                    && prevCmd instanceof ConfigureJointReportsType) {
+                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            }
+                            if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                    && prevCmd instanceof ConfigureStatusReportType) {
+                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            }
                         }
-                        jointStatuses.getJointStatus().add(js);
+                    } catch (Throwable ex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
                     }
+                    jointStatuses.getJointStatus().add(js);
                 }
                 if (null != morSafetyStatVar) {
                     morSafetyStatVar.refresh();
@@ -951,6 +1069,17 @@ public class Main {
             close_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
             setGripperSeperation(0.0);
         }
+        settingsStatus.setEndEffectorSetting(seeCmd.getSetting());
+    }
+
+    private void handleSetAngleUnits(SetAngleUnitsType sauCmd) {
+        settingsStatus.setAngleUnitName(sauCmd.getUnitName());
+        setCommandState(CommandStateEnumType.CRCL_DONE);
+    }
+
+    private void handleSetForceUnits(SetForceUnitsType sfuCmd) {
+        settingsStatus.setForceUnitName(sfuCmd.getUnitName());
+        setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
     private String lastErrorString = null;
@@ -985,35 +1114,41 @@ public class Main {
     private void handleSetTransSpeed(SetTransSpeedType stsCmd) {
         TransSpeedType ts = stsCmd.getTransSpeed();
         if (ts instanceof TransSpeedRelativeType) {
-            transSpeed = ((TransSpeedRelativeType) ts).getFraction().doubleValue() * 200.0;
+            TransSpeedRelativeType tsRel = (TransSpeedRelativeType) ts;
+            transSpeed = tsRel.getFraction().doubleValue() * 200.0;
             int val = ((TransSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
             overrideVar.value(Integer.valueOf(val));
             if (null != jframe) {
                 jframe.getjSliderOverride().setValue(val);
             }
             setCommandState(CommandStateEnumType.CRCL_DONE);
+            settingsStatus.setTransSpeedRelative(tsRel);
         } else if (ts instanceof TransSpeedAbsoluteType) {
             TransSpeedAbsoluteType tsAbs = (TransSpeedAbsoluteType) ts;
             transSpeed = tsAbs.getSetting().doubleValue() * lengthScale;
             regNumeric98.regFloat((float) transSpeed);
 //            reg98Var.update();
             setCommandState(CommandStateEnumType.CRCL_DONE);
+            settingsStatus.setTransSpeedAbsolute(tsAbs);
         }
     }
 
     private void handleSetRotSpeed(SetRotSpeedType stsCmd) {
-        RotSpeedType ts = stsCmd.getRotSpeed();
-        if (ts instanceof RotSpeedRelativeType) {
-            int val = ((RotSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
-            overrideVar.value(Integer.valueOf(val));
+        RotSpeedType rs = stsCmd.getRotSpeed();
+        if (rs instanceof RotSpeedRelativeType) {
+            RotSpeedRelativeType rsRel = (RotSpeedRelativeType) rs;
+            int val = rsRel.getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
+            overrideVar.value(val);
             if (null != jframe) {
                 jframe.getjSliderOverride().setValue(val);
             }
             setCommandState(CommandStateEnumType.CRCL_DONE);
-        } else if (ts instanceof RotSpeedAbsoluteType) {
-            RotSpeedAbsoluteType tsAbs = (RotSpeedAbsoluteType) ts;
-            rotSpeed = tsAbs.getSetting().doubleValue() * lengthScale;
+            settingsStatus.setRotSpeedRelative(rsRel);
+        } else if (rs instanceof RotSpeedAbsoluteType) {
+            RotSpeedAbsoluteType rsAbs = (RotSpeedAbsoluteType) rs;
+            rotSpeed = rsAbs.getSetting().doubleValue() * lengthScale;
             setCommandState(CommandStateEnumType.CRCL_DONE);
+            settingsStatus.setRotSpeedAbsolute(rsAbs);
         }
     }
 
@@ -1225,7 +1360,7 @@ public class Main {
     }
 
     public double distRotFrom(PoseType pose) throws PmException {
-        PmRotationVector rotvCurrent = CRCLPosemath.toPmRotationVector(CRCLPosemath.getPose(status));
+        PmRotationVector rotvCurrent = CRCLPosemath.toPmRotationVector(getPose());
         PmRotationVector rotvArg = CRCLPosemath.toPmRotationVector(pose);
         PmRotationVector rotvDiff = rotvArg.multiply(rotvCurrent.inv());
         return Math.toDegrees(rotvDiff.s);
@@ -1324,6 +1459,7 @@ public class Main {
     private void handleSetLengthUnits(SetLengthUnitsType slu) {
         this.setLengthUnit(slu.getUnitName());
         setCommandState(CommandStateEnumType.CRCL_DONE);
+        settingsStatus.setLengthUnitName(slu.getUnitName());
     }
 
     private void handleSetEndPoseTolerance(SetEndPoseToleranceType sepCmd) {
@@ -1332,6 +1468,7 @@ public class Main {
                 Math.min(poseTol.getXPointTolerance().doubleValue(),
                         poseTol.getZPointTolerance().doubleValue()));
         setCommandState(CommandStateEnumType.CRCL_DONE);
+        settingsStatus.setPoseTolerance(sepCmd.getTolerance());
     }
 
     long dwellEndTime = 0;
@@ -1370,6 +1507,16 @@ public class Main {
             this.cjrMap.put(i,
                     cjr);
         }
+        setReportJointStatus(true);
+        setReportPoseStatus(true);
+        setReportSettingsStatus(true);
+    }
+
+    private void handleConfigureStatusReport(ConfigureStatusReportType cmd) {
+        setReportJointStatus(cmd.isReportJointStatuses());
+        setReportPoseStatus(cmd.isReportPoseStatus());
+        setReportSettingsStatus(cmd.isReportSettingsStatus());
+        setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
 
     private void handleConfigureJointReports(ConfigureJointReportsType cmd) {
@@ -1557,6 +1704,7 @@ public class Main {
     public Main() throws CRCLException {
         utilCrclSocket = new CRCLSocket();
         setDefaultJointReports();
+        poseStatus.setPose(CRCLPosemath.identityPose());
     }
 
     private long lastUpdateStatusTime = -1;
@@ -1579,9 +1727,6 @@ public class Main {
                     if (null == status.getCommandStatus().getCommandState()) {
                         setCommandState(CommandStateEnumType.CRCL_WORKING);
                     }
-                }
-                if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
-                    status.setJointStatuses(null);
                 }
                 cs.writeStatus(status, validate);
             }
@@ -1733,6 +1878,12 @@ public class Main {
                 handleMoveThroughTo((MoveThroughToType) cmd);
             } else if (cmd instanceof SetEndEffectorType) {
                 handleSetEndEffector((SetEndEffectorType) cmd);
+            } else if (cmd instanceof SetAngleUnitsType) {
+                handleSetAngleUnits((SetAngleUnitsType) cmd);
+            } else if (cmd instanceof SetForceUnitsType) {
+                handleSetForceUnits((SetForceUnitsType) cmd);
+            } else if (cmd instanceof SetEndEffectorType) {
+                handleSetEndEffector((SetEndEffectorType) cmd);
             } else if (cmd instanceof SetTransSpeedType) {
                 handleSetTransSpeed((SetTransSpeedType) cmd);
             } else if (cmd instanceof SetRotSpeedType) {
@@ -1747,6 +1898,8 @@ public class Main {
                 handleDwell((DwellType) cmd);
             } else if (cmd instanceof ConfigureJointReportsType) {
                 handleConfigureJointReports((ConfigureJointReportsType) cmd);
+            } else if (cmd instanceof ConfigureStatusReportType) {
+                handleConfigureStatusReport((ConfigureStatusReportType) cmd);
             } else {
                 showError("Unimplemented  command :" + cmd.getClass().getSimpleName());
             }
@@ -1856,6 +2009,8 @@ public class Main {
         yMin = (float) Math.max(yMin, min.y);
         zMax = (float) Math.min(zMax, max.z);
         zMin = (float) Math.max(zMin, min.z);
+        settingsStatus.setMaxCartesianLimit(point(xMax, yMax, zMax));
+        settingsStatus.setMinCartesianLimit(point(xMin, yMin, zMin));
     }
 
     public void saveCartLimits(PmCartesian min, PmCartesian max) {
@@ -1872,11 +2027,15 @@ public class Main {
     }
 
     public void applyAdditionalJointLimits(float[] min, float[] max) {
-        for (int i = 0; i < min.length && i < lowerJointLimits.length; i++) {
+        settingsStatus.getJointLimits().clear();
+        for (int i = 0; i < min.length && i < max.length && i < lowerJointLimits.length; i++) {
             lowerJointLimits[i] = Math.max(lowerJointLimits[i], min[i]);
-        }
-        for (int i = 0; i < max.length && i < lowerJointLimits.length; i++) {
             upperJointLimits[i] = Math.min(upperJointLimits[i], max[i]);
+            JointLimitType jointLimit = new JointLimitType();
+            jointLimit.setJointNumber(BigInteger.valueOf(i + 1));
+            jointLimit.setJointMaxPosition(BigDecimal.valueOf(upperJointLimits[i]));
+            jointLimit.setJointMinPosition(BigDecimal.valueOf(lowerJointLimits[i]));
+            settingsStatus.getJointLimits().add(jointLimit);
         }
     }
 
@@ -2206,6 +2365,8 @@ public class Main {
             IVar jointLowerLimVar = sysvars.item("$MRR_GRP[1].$LOWERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
             this.lowerJointLimits[i] = (Float) jointLowerLimVar.value();
         }
+        settingsStatus.setMaxCartesianLimit(point(xMax, yMax, zMax));
+        settingsStatus.setMinCartesianLimit(point(xMin, yMin, zMin));
     }
     public static final float DEFAULT_CART_SPEED = 100.0f;
 
