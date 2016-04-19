@@ -1800,9 +1800,6 @@ public class Main {
             }
         } catch (SocketException | EOFException se) {
             // probably just closing the connection.
-        } catch (JAXBException | SAXException | IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            showError(ex.getMessage());
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             showError(ex.getMessage());

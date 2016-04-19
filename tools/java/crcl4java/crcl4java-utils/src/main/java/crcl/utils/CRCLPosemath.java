@@ -818,6 +818,7 @@ public class CRCLPosemath {
      * @param b1 Point 1 on the rigid body in the B coordinate system.
      * @param b2 Point 2 on the rigid body in the B coordinate system.
      * @return Pose such that b1 = multiply(pose,a1) and b2 = multiply(pose,a2)
+     * @throws crcl.utils.CRCLException if any PoseMath exception occurs.
      */
     public static PmPose compute2DPmTransform(
             PmCartesian a1,
