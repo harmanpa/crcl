@@ -8,15 +8,14 @@
  */
 
 
-import com.siemens.ct.exi.exceptions.EXIException;
 import crcl.base.*;
-import java.io.IOException;
-import java.math.BigDecimal;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.pose;
+import static crcl.utils.CRCLPosemath.vector;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import crcl.utils.CRCLSocket;
 
 /**
@@ -41,22 +40,7 @@ public class crclclient {
             // Create and send MoveTo command.
             MoveToType moveTo = new MoveToType();
             moveTo.setCommandID(BigInteger.valueOf(8));
-            PoseType pose = new PoseType();
-            PointType pt = new PointType();
-            pt.setX(BigDecimal.valueOf(0.65));
-            pt.setY(BigDecimal.valueOf(0.05));
-            pt.setZ(BigDecimal.valueOf(0.15));
-            pose.setPoint(pt);
-            VectorType xAxis = new VectorType();
-            xAxis.setI(BigDecimal.ONE);
-            xAxis.setJ(BigDecimal.ZERO);
-            xAxis.setK(BigDecimal.ZERO);
-            pose.setXAxis(xAxis);
-            VectorType zAxis = new VectorType();
-            zAxis.setI(BigDecimal.ZERO);
-            zAxis.setJ(BigDecimal.ZERO);
-            zAxis.setK(BigDecimal.ONE);
-            pose.setZAxis(zAxis);
+            PoseType pose = pose(point(0.65,0.05,0.15),vector(1,0,0),vector(0,0,1));
             moveTo.setEndPosition(pose);
             moveTo.setMoveStraight(false);
             instance.setCRCLCommand(moveTo);
@@ -77,7 +61,7 @@ public class crclclient {
             System.out.println("Status:");
             System.out.println("CommandID = " + IDback);
             System.out.println("State = "+cmdStat.getCommandState());
-            pt = stat.getPose().getPoint();
+            PointType pt = stat.getPoseStatus().getPose().getPoint();
             System.out.println("pose = "+pt.getX()+","+pt.getY()+","+pt.getZ());
             JointStatusesType jst = stat.getJointStatuses();
             List<JointStatusType> l = jst.getJointStatus();

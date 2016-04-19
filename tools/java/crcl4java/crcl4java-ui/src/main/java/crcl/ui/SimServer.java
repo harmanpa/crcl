@@ -55,7 +55,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
 /**
  *
@@ -951,6 +954,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             while (null != (line = br.readLine())) {
                 sb.append(line);
             }
+            sb.append("\nSchema versions = ").append(CRCLSocket.getSchemaVersions().toString());
             return sb.toString();
         }
     }

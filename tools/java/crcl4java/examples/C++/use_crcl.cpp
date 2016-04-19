@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
         BigInteger IDback = cmdStat.getCommandID();
         PrintObject("Command ID=", IDback);
         PrintObject("stat=",stat);
-        pose = stat.getPose();
+        pose = stat.getPoseStatus().getPose();
         PrintObject("pose=",pose);
         pt = pose.getPoint();
         PrintObject("X:",pt.getX());

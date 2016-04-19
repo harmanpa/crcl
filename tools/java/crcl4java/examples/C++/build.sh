@@ -21,10 +21,13 @@ fi
 ./clean.sh
 
 
+wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar"
+wget "http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.2/crcl4java-utils-1.2-jar-with-dependencies.jar"
 
-wget https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/java4cpp/1.0-SNAPSHOT/java4cpp-1.0-20151030.144815-8-jar-with-dependencies.jar
+
 JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
-"${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j ../../crcl4java-utils/target/crcl4java-utils-1.0-SNAPSHOT-jar-with-dependencies.jar || exit 1;
+CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
+"${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "${CRCL4JAVA_UTILS_JAR}" || exit 1;
 
 if test "x${JVM_LIB_DIR}" = "x" ; then
     export JVM_LIB_DIR=`find "${JAVA_HOME}" -name libjvm.so | head -n 1 | sed 's#libjvm.so##g'`;

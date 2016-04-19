@@ -3722,6 +3722,7 @@ public class PendantClient extends javax.swing.JFrame implements PendantClientOu
             while (null != (line = br.readLine())) {
                 sb.append(line);
             }
+            sb.append("\nSchema versions = ").append(CRCLSocket.getSchemaVersions().toString());
             return sb.toString();
         }
     }

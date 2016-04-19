@@ -57,8 +57,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,6 +72,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -80,6 +83,9 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -131,6 +137,16 @@ public class CRCLSocket implements AutoCloseable {
             return utilSocket;
         }
         return (utilSocket = new CRCLSocket());
+    }
+
+    public static interface CRCLSocketConsumer {
+
+        public void accept(CRCLSocket socket);
+    }
+
+    public static void
+            runSimpleServer(int port, CRCLSocketConsumer consumer) {
+
     }
 
     @Override
@@ -389,6 +405,39 @@ public class CRCLSocket implements AutoCloseable {
         resourcesCopied = true;
     }
 
+    private static String getVersion(String resourceName) {
+        try {
+            InputStream is
+                    = CRCLStatusType.class.getClassLoader().getResourceAsStream(resourceName);
+            Document doc
+                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+            Element el = doc.getDocumentElement();
+            String version = el.getAttribute("version");
+            return version;
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        return "";
+    }
+
+    public static Map<String, String> getSchemaVersions(String... resourcNames) {
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < resourcNames.length; i++) {
+            String resourcName = resourcNames[i];
+            map.put(resourcName, getVersion(resourcName));
+        }
+        return map;
+    }
+
+    public static Map<String, String> getSchemaVersions() {
+        return getSchemaVersions(
+                "CRCLCommandInstance.xsd",
+                "CRCLCommands.xsd",
+                "CRCLProgramInstance.xsd",
+                "DataPrimitives.xsd",
+                "CRCLStatus.xsd");
+    }
+
     static private void copyInputStreamToFile(InputStream is, File f) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(f)) {
             while (true) {
@@ -471,6 +520,35 @@ public class CRCLSocket implements AutoCloseable {
             }
         }
         return EMPTY_FILE_ARRAY;
+    }
+
+    public static void main(String[] args) {
+        try {
+            InputStream is
+                    = CRCLStatusType.class.getClassLoader().getResourceAsStream("CRCLStatus.xsd");
+            System.out.println("is = " + is);
+//                StringBuilder sb = new StringBuilder();
+//                try(BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+//                    String line = null;
+//                    while(null != (line = br.readLine())) {
+//                        sb.append(line);
+//                    }
+//                }
+//                String input = sb.toString();
+//                System.out.println("input = " + input);
+            Document doc
+                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+            System.out.println("doc = " + doc);
+            Element el = doc.getDocumentElement();
+            System.out.println("el = " + el);
+            String version = el.getAttribute("version");
+            NamedNodeMap map = doc.getAttributes();
+            System.out.println("map = " + map);
+//                String version = map.getNamedItem("version").getTextContent();
+            System.out.println("version = " + version);
+        } catch (SAXException | ParserConfigurationException | IOException ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public static Schema filesToSchema(File fa[]) throws CRCLException {

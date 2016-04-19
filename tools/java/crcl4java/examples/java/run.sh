@@ -2,4 +2,6 @@
 
 set -x;
 
-java -cp ../../crcl4java-utils/target/crcl4java-utils-1.0-SNAPSHOT-jar-with-dependencies.jar:.  crclclient
+CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
+
+java -cp "${CRCL4JAVA_UTILS_JAR}":.  crclclient
