@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>crcl4java</artifactId>
     <groupId>com.github.wshackle</groupId>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>crcl4java-base</module>
@@ -276,6 +276,11 @@
                         <version>2.5.3</version>
                         <configuration>
                             <pushChanges>false</pushChanges>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                            <useReleaseProfile>false</useReleaseProfile>
+                            <releaseProfiles>release</releaseProfiles>
+                            <goals>deploy</goals>
+                            <localCheckout>true</localCheckout>
                         </configuration>
                     </plugin>
                     <plugin>
