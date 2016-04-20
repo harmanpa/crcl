@@ -27,6 +27,7 @@ examples/C++/crclj.h
 examples/C++/crclj_fwd.h
 examples/C++/crclj_test
 /target/
+/checkout
 /crcl4java-ui/nbproject/
 /crcl4java-vaadin-webapp/target/
 /fanucCOMJavaWrapper/target/

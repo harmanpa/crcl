@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-all_quick_prepare</actionName>
+            <displayName>all_quick_prepare</displayName>
+            <goals>
+                <goal>org.apache.maven.plugins:maven-release-plugin:2.5.3:prepare</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>all</activatedProfile>
+                <activatedProfile>skip_tests</activatedProfile>
+                <activatedProfile>tomcat_embed</activatedProfile>
+            </activatedProfiles>
+        </action>
+        <action>
+            <actionName>CUSTOM-quick_all_release_perform</actionName>
+            <displayName>quick_all_release_perform</displayName>
+            <goals>
+                <goal>org.apache.maven.plugins:maven-release-plugin:2.5.3:perform</goal>
+            </goals>
+            <properties>
+                <workingDirectory>C:\Users\shackle\Documents\NetBeansProjects\crcl\tools\java\crcl4java\checkout</workingDirectory>
+            </properties>
+            <activatedProfiles>
+                <activatedProfile>all</activatedProfile>
+                <activatedProfile>skip_tests</activatedProfile>
+                <activatedProfile>tomcat_embed</activatedProfile>
+            </activatedProfiles>
+        </action>
+    </actions>
