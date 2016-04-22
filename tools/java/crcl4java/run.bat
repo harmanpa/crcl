@@ -11,6 +11,8 @@
 SET mypath=%~dp0
 @REM cd %mypath%
 
-java -Dsimserver.logImages=true -jar %mypath%\crcl4java-ui\target\crcl4java-ui-1.0-SNAPSHOT-jar-with-dependencies.jar --startserver %*
+%mypath%/crcl4java-ui/run.bat
+
+@REM java -Dsimserver.logImages=true -jar %mypath%\crcl4java-ui\target\crcl4java-ui-1.0-SNAPSHOT-jar-with-dependencies.jar --startserver %*
 @REM chdir /d %OLDDIR% 
 @REM restore current directory

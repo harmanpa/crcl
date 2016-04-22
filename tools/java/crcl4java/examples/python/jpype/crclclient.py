@@ -5,10 +5,23 @@
 # python crclclient.py
 
 from jpype import *
+import urllib
+import os
 
-startJVM("/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/libjvm.so","-Djava.class.path=../../../crcl4java-utils/target/crcl4java-utils-1.0-SNAPSHOT-jar-with-dependencies.jar")
+jarfilename="crcl4java-utils-1.3-jar-with-dependencies.jar"
+if not os.path.isfile(jarfilename):
+    remotejarurl = "http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
+    print ("Downloading "+remotejarurl)
+    urllib.urlretrieve (remotejarurl,jarfilename )
+
+
+javahome=os.getenv('JAVA_HOME', '/usr/lib/jvm/java-7-openjdk-amd64/')
+jvmlib=os.getenv('JVM_LIB',javahome+"/jre/lib/amd64/server/libjvm.so")
+startJVM(jvmlib,
+    "-Djava.class.path=crcl4java-utils-1.3-jar-with-dependencies.jar")
 crcl = JPackage('crcl')
 CRCLSocket = JClass('crcl.utils.CRCLSocket')
+CRCLPosemath = JClass('crcl.utils.CRCLPosemath')
 BigInteger = JClass('java.math.BigInteger')
 BigDecimal = JClass('java.math.BigDecimal')
 
@@ -29,22 +42,10 @@ s.writeCommand(instance)
 print "Send MoveTo"
 moveTo = crcl.base.MoveToType()
 moveTo.setCommandID(BigInteger.valueOf(8))
-pose = crcl.base.PoseType()
-pt = crcl.base.PointType()
-pt.setX(BigDecimal.valueOf(0.6))
-pt.setY(BigDecimal.valueOf(0.1))
-pt.setZ(BigDecimal.valueOf(0.1))
-pose.setPoint(pt)
-xAxis = crcl.base.VectorType()
-xAxis.setI(BigDecimal.ONE)
-xAxis.setJ(BigDecimal.ZERO)
-xAxis.setK(BigDecimal.ZERO)
-pose.setXAxis(xAxis)
-zAxis = crcl.base.VectorType()
-zAxis.setI(BigDecimal.ZERO)
-zAxis.setJ(BigDecimal.ZERO)
-zAxis.setK(BigDecimal.ONE)
-pose.setZAxis(zAxis)
+pt = CRCLPosemath.point(0.6,0.1,0.1)
+xaxis = CRCLPosemath.vector(1.0,0.0,0.0)
+zaxis = CRCLPosemath.vector(0.0,0.0,1.0)
+pose = CRCLPosemath.pose(pt,xaxis,zaxis)
 moveTo.setEndPosition(pose)
 moveTo.setMoveStraight(False)
 instance.setCRCLCommand(moveTo)
@@ -68,7 +69,7 @@ IDback = cmdStat.getCommandID()
 print "Status:"
 print("CommandID = " + IDback.toString())
 print("State = " + cmdStat.getCommandState().toString())
-pt = stat.getPose().getPoint()
+pt = stat.getPoseStatus().getPose().getPoint()
 print("pose = " + pt.getX().toString() + "," + pt.getY().toString() + "," + pt.getZ().toString())
 jst = stat.getJointStatuses()
 l = jst.getJointStatus()
@@ -77,5 +78,5 @@ for i in range(0,l.size()):
     js = l.get(i)
     print("Num="+js.getJointNumber().toString()+" Pos="+js.getJointPosition().toString())
 
-#s.close();
+s.close();
 shutdownJVM() 

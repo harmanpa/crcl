@@ -1,5 +1,5 @@
 
-There are two indepenant ways of using crcl4java with python.
+There are two independant ways of using crcl4java with python.
 
     * JPype -- uses the regular python interpeter and loads java classes within python
     * Jython -- runs the python interpreter within the jvm

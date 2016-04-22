@@ -12,7 +12,7 @@ if test ${java_version} -lt 8 ; then
     exit 1
 fi
 
-export crcl_ui_jar=/home/shackle/usnistgov/crcl/tools/java/crcl4java/crcl4java-ui/target/crcl4java-ui-1.4-SNAPSHOT-jar-with-dependencies.jar
+export crcl_ui_jar=${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar
 
 \rm -f run[0-9]*.log run[0-9]*.err >/dev/null 2>/dev/null || true
 

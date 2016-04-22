@@ -2,11 +2,13 @@
 
 # CRCL Client Example using Java CRCL Library and Jython (http://www.jython.org) 
 # Run with:
-# env CLASSPATH=../../../crcl4java-utils/target/crcl4java-utils-1.0-SNAPSHOT-jar-with-dependencies.jar jython crclclient.py
+# env CLASSPATH=crcl4java-utils-1.3-jar-with-dependencies.jar jython crclclient.py
 
 from crcl.base import *
 from crcl.utils import CRCLSocket
-from java.math import *
+from crcl.utils import CRCLPosemath
+from java.math import BigInteger
+from java.math import BigDecimal
 import java.lang.Boolean
 
 print "Connect"
@@ -25,22 +27,10 @@ s.writeCommand(instance)
 print "Send MoveTo"
 moveTo = MoveToType()
 moveTo.setCommandID(BigInteger.valueOf(8))
-pose = PoseType()
-pt = PointType()
-pt.setX(BigDecimal.valueOf(0.6))
-pt.setY(BigDecimal.valueOf(-0.1))
-pt.setZ(BigDecimal.valueOf(0.1))
-pose.setPoint(pt)
-xAxis = VectorType()
-xAxis.setI(BigDecimal.ONE)
-xAxis.setJ(BigDecimal.ZERO)
-xAxis.setK(BigDecimal.ZERO)
-pose.setXAxis(xAxis)
-zAxis = VectorType()
-zAxis.setI(BigDecimal.ZERO)
-zAxis.setJ(BigDecimal.ZERO)
-zAxis.setK(BigDecimal.ONE)
-pose.setZAxis(zAxis)
+pt = CRCLPosemath.point(0.6,0.1,0.1)
+xaxis = CRCLPosemath.vector(1.0,0.0,0.0)
+zaxis = CRCLPosemath.vector(0.0,0.0,1.0)
+pose = CRCLPosemath.pose(pt,xaxis,zaxis)
 moveTo.setEndPosition(pose)
 moveTo.setMoveStraight(java.lang.Boolean.FALSE)
 instance.setCRCLCommand(moveTo)
@@ -64,7 +54,7 @@ IDback = cmdStat.getCommandID()
 print "Status:"
 print("CommandID = " + IDback.toString())
 print("State = " + cmdStat.getCommandState().toString())
-pt = stat.getPose().getPoint()
+pt = stat.getPoseStatus().getPose().getPoint()
 print("pose = " + pt.getX().toString() + "," + pt.getY().toString() + "," + pt.getZ().toString())
 jst = stat.getJointStatuses()
 l = jst.getJointStatus()

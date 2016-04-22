@@ -22,7 +22,7 @@ fi
 
 
 wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar"
-wget "http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.2/crcl4java-utils-1.2-jar-with-dependencies.jar"
+wget "http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
 
 
 JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;

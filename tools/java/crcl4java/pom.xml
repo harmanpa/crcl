@@ -58,7 +58,7 @@
         <connection>scm:git:https://github.com/usnistgov/crcl.git</connection>
         <developerConnection>scm:git:https://github.com/usnistgov/crcl.git</developerConnection>
         <!-- <developerConnection>scm:git:git@github.com:usnistgov/crcl.git</developerConnection> -->
-        <url>https://github.com/wshackle/crcl4java</url>
+        <url>https://github.com/usnistgov/crcl4java</url>
         <tag>HEAD</tag>
     </scm>
     <distributionManagement>

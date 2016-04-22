@@ -34,6 +34,7 @@ import crcl.base.PoseType;
 import crcl.base.VectorType;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileFilter;
@@ -121,6 +122,8 @@ public class CRCLSocket implements AutoCloseable {
         }
     };
 
+    
+    
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
     }
@@ -524,6 +527,8 @@ public class CRCLSocket implements AutoCloseable {
 
     public static void main(String[] args) {
         try {
+            String intname = int.class.getName();
+            System.out.println("intname = " + intname);
             InputStream is
                     = CRCLStatusType.class.getClassLoader().getResourceAsStream("CRCLStatus.xsd");
             System.out.println("is = " + is);
@@ -1257,6 +1262,46 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    private String unparsedCommandString = "";
+    
+    /**
+     * Parse a string that may contain multiple or partial XML CRCLCommandInstances,
+     * and return a list of those commands. Partial commands are saved and used 
+     * as a prefix to the string passed in
+     * the next call to this function.
+     * @param s String that may contain multiple XML CRCLCommandInstances
+     * @return list of CRCLCommandInstances from strings so far.
+     * @throws CRCLException if the string is invalid
+     */
+    public List<CRCLCommandInstanceType> parseMultiCommandString(String s) throws CRCLException {
+        return parseMultiCommandString(s,false);
+    }
+    
+    /**
+     * Parse a string that may contain multiple or partial XML CRCLCommandInstances,
+     * and return a list of those commands. Partial commands are saved and used 
+     * as a prefix to the string passed in
+     * the next call to this function.
+     * @param s String that may contain multiple XML CRCLCommandInstances
+     * @param validate validate each instance against the schema.
+     * @return list of CRCLCommandInstances from strings so far.
+     * @throws CRCLException if the string is invalid
+     */
+    public List<CRCLCommandInstanceType> parseMultiCommandString(String s, boolean validate) throws CRCLException {
+        unparsedCommandString += s;
+        int index = -1;
+        final String endtag = "</CRCLCommandInstance>";
+        List<CRCLCommandInstanceType>  list = new ArrayList<>();
+        while(0 < (index = unparsedCommandString.indexOf(endtag))) {
+            int endindex = index+endtag.length();
+            String s0 = unparsedCommandString.substring(0,endindex );
+            CRCLCommandInstanceType instance = stringToCommand(s0, validate);
+            unparsedCommandString = unparsedCommandString.substring(endindex);
+            list.add(instance);
+        }
+        return list;
+    }
+    
     public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLException {
         this.checkCommandSchema(validate);
 
@@ -1871,7 +1916,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private static final class IdentityUnaryOperator<T> implements UnaryOperator<T> {
-
+        
         @Override
         public T apply(T t) {
             return t;
