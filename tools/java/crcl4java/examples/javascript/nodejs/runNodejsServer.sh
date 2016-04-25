@@ -5,4 +5,4 @@ if ! test -d node_modules/java -a -f "${jarfile}" ; then
     ./setup.sh
 fi
 
-nodejs crclclient.js
+nodejs crclNodejsServer.js

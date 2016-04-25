@@ -14,7 +14,7 @@ is the server started with runJavaGuiServer.sh script.
 
 To run the client on Linux:
 
-./runClient.sh
+./runRhinoClient.sh
 
 The first time it is run a jar file will be downloaded and rhino will be 
 installed with:

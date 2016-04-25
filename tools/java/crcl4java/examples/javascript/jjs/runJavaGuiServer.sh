@@ -1,28 +1,36 @@
 #!/bin/sh
 
 # This script was tested on Ubuntu 14.04. 
-# To run the script you need jjs which is included in Java 8 and the crcl4java-utils jar file.
-# The script will try to download them if not already downloaded and then run the 
-# clclclient.js  with jjs with the jar file on the classpath.
+# It will download if necessary and run the java jar file.
+# Java 8 is required for run the server. If Java 8 is not detected it will
+# try to install it.
 
+# On platforms other than Ubuntu 14.04 or if the automatic installation fails
+# it may be easier just to manually install Java 8 from:
+# http://www.oracle.com/technetwork/java/javase/downloads/index.html
+# or 
+# http://www.java.com/
+#
 set -x;
 
-jarfile="crcl4java-utils-1.3-jar-with-dependencies.jar"
+jarfile="crcl4java-ui-1.3-jar-with-dependencies.jar"
 if ! test -f "${jarfile}" ; then
-    remotejarurl="http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar";
+    remotejarurl="http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar";
     echo "Downloading ${remotejarurl}";
     wget "${remotejarurl}"
 fi
 
 jjscmd="jjs"
+javacmd="java"
 
-#if ! which jjs >/dev/null 2>/dev/null ; then
-#    printenv JAVA_HOME
-#    if test "x${JAVA_HOME}" != "x" ; then
-#        jjscmd="${JAVA_HOME}/bin/jjs";
-#        echo jjscmd="${jjscmd}";
-#    fi
-#fi
+if ! which jjs >/dev/null 2>/dev/null ; then
+    printenv JAVA_HOME
+    if test "x${JAVA_HOME}" != "x" ; then
+        jjscmd="${JAVA_HOME}/bin/jjs";
+        echo jjscmd="${jjscmd}";
+        javacmd="${JAVA_HOME}/bin/java";
+    fi
+fi
 
 if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
     echo "jjs command not found. Would you like to try to automatically install openjdk-8-jdk including jjs(y/N)?";
@@ -48,4 +56,4 @@ if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
     exit 1;
 fi
 
-"${jjscmd}" -cp "${jarfile}":.  crclclient.js
+"${javacmd}" -jar "${jarfile}" --mode GraphicalServer

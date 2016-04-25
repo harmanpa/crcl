@@ -24,6 +24,7 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.JointStatusType;
@@ -120,10 +121,9 @@ public class CRCLSocket implements AutoCloseable {
         public String apply(String t) {
             return addCRCLToStatePriv(t);
         }
+
     };
 
-    
-    
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
     }
@@ -419,7 +419,7 @@ public class CRCLSocket implements AutoCloseable {
             return version;
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
         return "";
     }
 
@@ -527,6 +527,17 @@ public class CRCLSocket implements AutoCloseable {
 
     public static void main(String[] args) {
         try {
+            try {
+                System.out.println(CommandStateEnumType.class.getField("CRCL_WORKING").get(null));
+            } catch (NoSuchFieldException ex) {
+                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SecurityException ex) {
+                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
             String intname = int.class.getName();
             System.out.println("intname = " + intname);
             InputStream is
@@ -1263,25 +1274,27 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private String unparsedCommandString = "";
-    
+
     /**
-     * Parse a string that may contain multiple or partial XML CRCLCommandInstances,
-     * and return a list of those commands. Partial commands are saved and used 
-     * as a prefix to the string passed in
-     * the next call to this function.
+     * Parse a string that may contain multiple or partial XML
+     * CRCLCommandInstances, and return a list of those commands. Partial
+     * commands are saved and used as a prefix to the string passed in the next
+     * call to this function.
+     *
      * @param s String that may contain multiple XML CRCLCommandInstances
      * @return list of CRCLCommandInstances from strings so far.
      * @throws CRCLException if the string is invalid
      */
     public List<CRCLCommandInstanceType> parseMultiCommandString(String s) throws CRCLException {
-        return parseMultiCommandString(s,false);
+        return parseMultiCommandString(s, false);
     }
-    
+
     /**
-     * Parse a string that may contain multiple or partial XML CRCLCommandInstances,
-     * and return a list of those commands. Partial commands are saved and used 
-     * as a prefix to the string passed in
-     * the next call to this function.
+     * Parse a string that may contain multiple or partial XML
+     * CRCLCommandInstances, and return a list of those commands. Partial
+     * commands are saved and used as a prefix to the string passed in the next
+     * call to this function.
+     *
      * @param s String that may contain multiple XML CRCLCommandInstances
      * @param validate validate each instance against the schema.
      * @return list of CRCLCommandInstances from strings so far.
@@ -1291,17 +1304,17 @@ public class CRCLSocket implements AutoCloseable {
         unparsedCommandString += s;
         int index = -1;
         final String endtag = "</CRCLCommandInstance>";
-        List<CRCLCommandInstanceType>  list = new ArrayList<>();
-        while(0 < (index = unparsedCommandString.indexOf(endtag))) {
-            int endindex = index+endtag.length();
-            String s0 = unparsedCommandString.substring(0,endindex );
+        List<CRCLCommandInstanceType> list = new ArrayList<>();
+        while (0 < (index = unparsedCommandString.indexOf(endtag))) {
+            int endindex = index + endtag.length();
+            String s0 = unparsedCommandString.substring(0, endindex);
             CRCLCommandInstanceType instance = stringToCommand(s0, validate);
             unparsedCommandString = unparsedCommandString.substring(endindex);
             list.add(instance);
         }
         return list;
     }
-    
+
     public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLException {
         this.checkCommandSchema(validate);
 
@@ -1451,6 +1464,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String commandToString(CRCLCommandType cmd, boolean validate) {
         try {
+            if (null == cmd.getCommandID()) {
+                throw new IllegalArgumentException("cmd.getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
+            }
             CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
             instance.setCRCLCommand(cmd);
             String str = removeHeader(this.commandToString(instance, validate));
@@ -1506,6 +1522,12 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String commandToString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
+        if (null == cmd.getCRCLCommand()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+        }
+        if (null == cmd.getCRCLCommand().getCommandID()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
+        }
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
                 = objectFactory.createCRCLCommandInstance(cmd);
         StringWriter sw = new StringWriter();
@@ -1569,6 +1591,12 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException {
+        if (null == cmd.getCRCLCommand()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+        }
+        if (null == cmd.getCRCLCommand().getCommandID()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
+        }
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
                 = objectFactory.createCRCLCommandInstance(cmd);
         StringWriter sw = new StringWriter();
@@ -1591,6 +1619,12 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String commandInstanceToPrettyDocString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException {
+        if (null == cmd.getCRCLCommand()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+        }
+        if (null == cmd.getCRCLCommand().getCommandID()) {
+            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
+        }
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
                 = objectFactory.createCRCLCommandInstance(cmd);
         StringWriter sw = new StringWriter();
@@ -1668,6 +1702,12 @@ public class CRCLSocket implements AutoCloseable {
     public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         try {
             final CRCLCommandType cc = cmd.getCRCLCommand();
+            if (null == cc) {
+                throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+            }
+            if (null == cc.getCommandID()) {
+                throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
+            }
             final String threadName = Thread.currentThread().getName();
             final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
@@ -1759,6 +1799,16 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String statusToString(CRCLStatusType status, boolean validate) throws CRCLException {
+
+        if (status.getCommandStatus() == null) {
+            throw new IllegalArgumentException("status.getCommandStatus()  must not be null. Use setCommandStatus(...)");
+        }
+        if (status.getCommandStatus().getCommandID() == null) {
+            throw new IllegalArgumentException("status.getCommandStatus().getCommandID()  must not be null. Use getCommandStatus().setCommandID(BigInteger.valueOf(...))");
+        }
+        if (status.getCommandStatus().getStatusID() == null) {
+            throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
+        }
         JAXBElement<CRCLStatusType> jaxb_status
                 = objectFactory.createCRCLStatus(status);
         StringWriter sw = new StringWriter();
@@ -1899,6 +1949,15 @@ public class CRCLSocket implements AutoCloseable {
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
             throws CRCLException {
         try {
+            if (status.getCommandStatus() == null) {
+                throw new IllegalArgumentException("status.getCommandStatus()  must not be null. Use setCommandStatus(...)");
+            }
+            if (status.getCommandStatus().getCommandID() == null) {
+                throw new IllegalArgumentException("status.getCommandStatus().getCommandID()  must not be null. Use getCommandStatus().setCommandID(BigInteger.valueOf(...))");
+            }
+            if (status.getCommandStatus().getStatusID() == null) {
+                throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
+            }
             if (null == sock) {
                 throw new IllegalStateException("Internal socket is null.");
             }
@@ -1916,7 +1975,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private static final class IdentityUnaryOperator<T> implements UnaryOperator<T> {
-        
+
         @Override
         public T apply(T t) {
             return t;

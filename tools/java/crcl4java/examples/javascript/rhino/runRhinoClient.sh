@@ -18,4 +18,4 @@ if ! which rhino >/dev/null 2>/dev/null ; then
     sudo apt-get install rhino;
 fi
 
-rhino crclclient.js
+rhino crclClient.js
