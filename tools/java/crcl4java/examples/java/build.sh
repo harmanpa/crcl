@@ -11,5 +11,5 @@ fi
 
 CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
 
-javac -cp "${CRCL4JAVA_UTILS_JAR}" crclclient.java
+javac -cp "${CRCL4JAVA_UTILS_JAR}" CRCLClient.java CRCLServer.java
 
