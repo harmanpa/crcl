@@ -16,6 +16,22 @@ To install nodejs and the required modules on Ubuntu run:
 
 sudo privileges are required to run setup.sh.
 
+On Windows, Install Python 2.7 (which is used during the install of one of the
+    npm java dependencies ) eg:
+
+    
+    https://www.python.org/downloads/release/python-2711/
+
+    or
+
+    https://www.python.org/ftp/python/2.7.11/python-2.7.11.amd64.msi
+
+
+With NodeJs and Python 2.7 installed run:
+
+    setup.bat
+
+
 On other platforms you will need to manually download the jar files below and 
 install nodejs, and use "npm java" to install the java bindings as described
 in https://www.npmjs.com/package/java :
@@ -25,9 +41,13 @@ in https://www.npmjs.com/package/java :
     http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
 
 
-To run the server written in javascript:
+To run the server written in javascript in Linux:
 
     ./runServer.sh
+
+To run the server written in javascript in Windows:
+
+    runServer.bat
 
 The server will bind to the default port and wait for clients to send commands
 and it will send back status messages to clients that request it with
@@ -40,6 +60,11 @@ is the server started with runJavaGuiServer.sh script.
 To run the client on Linux:
 
     ./runClient.sh
+
+To run the client written in javascript in Windows:
+
+    runClient.bat
+
 
 The client connects to a CRCL server on localhost on the default port, sends a 
 couple of commands, requests status and prints the status.
