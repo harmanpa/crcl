@@ -69,3 +69,13 @@ To run the client written in javascript in Windows:
 The client connects to a CRCL server on localhost on the default port, sends a 
 couple of commands, requests status and prints the status.
 
+
+For a reference for all classes and functions available download and unzip:
+
+
+    http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar
+    http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-base/1.3/crcl4java-base-1.3-javadoc.jar
+
+Or use the scripts showDoc.sh / showDoc.bat to download and open the docs.
+The scripts will open two tabs. One for utils packages and one for the base package.
+
