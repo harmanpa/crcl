@@ -43,4 +43,5 @@ examples/C++/crclj_test
 /crcl4java-commons-math/target/
 .extract
 node_modules
-
+crcl4java-utils-javadoc
+crcl4java-base-javadoc
