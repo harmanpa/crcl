@@ -35,12 +35,16 @@ elif which xdg-open >/dev/null 2>/dev/null; then
     export BROWSER=xdg-open;
 elif which gnome-open >/dev/null 2>/dev/null; then
     export BROWSER=gnome-open;
-elif which open >/dev/null 2>/dev/null; then
-    export BROWSER=open;
+elif which sensible-browser >/dev/null 2>/dev/null; then
+    export BROWSER=sensible-browser;
 elif which firefox >/dev/null 2>/dev/null; then
     export BROWSER=firefox;
+elif which google-chrome >/dev/null 2>/dev/null; then
+    export BROWSER=google-chrome;
 elif which chromium-browser >/dev/null 2>/dev/null; then
     export BROWSER=chromium-browser;
+elif which open >/dev/null 2>/dev/null; then
+    export BROWSER=open;
 else
     echo "No Web-Browser found."
 fi
