@@ -60,17 +60,15 @@
     </dependencies>
     <build>
         <resources>
-            
                 <resource>
                     <filtering>true</filtering>
                     <directory>${basedir}/src/main/command</directory>
                     <includes>
-                        <include>run.bat</include>
-                        <include>run.sh</include>
+                        <include>*.bat</include>
+                        <include>*.sh</include>
                     </includes>                  
                     <targetPath>${basedir}</targetPath>
                 </resource>
-        
                 <resource>
                     <directory>src/main/resources</directory>
                     <filtering>true</filtering>

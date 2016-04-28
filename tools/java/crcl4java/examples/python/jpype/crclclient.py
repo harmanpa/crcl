@@ -10,7 +10,7 @@ import os
 
 jarfilename="crcl4java-utils-1.3-jar-with-dependencies.jar"
 if not os.path.isfile(jarfilename):
-    remotejarurl = "http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
+    remotejarurl = "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
     print ("Downloading "+remotejarurl)
     urllib.urlretrieve (remotejarurl,jarfilename )
 

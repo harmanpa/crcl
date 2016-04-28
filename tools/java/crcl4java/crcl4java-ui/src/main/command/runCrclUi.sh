@@ -12,8 +12,10 @@ if test ${java_version} -lt 8 ; then
     exit 1
 fi
 
-export crcl_ui_jar=${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar
+. ./setCrclUiEnvVars.sh
 
 \rm -f run[0-9]*.log run[0-9]*.err >/dev/null 2>/dev/null || true
 
-java -jar "${crcl_ui_jar}" $* > run$$.log 2> run$$.err
+java -jar "${crcl_ui_fullpath_jar}" $* > run$$.log 2> run$$.err
+
+

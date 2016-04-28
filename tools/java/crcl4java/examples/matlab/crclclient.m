@@ -18,7 +18,7 @@ if exist('CRCLSocket','class') ~= 8
         fprintf('Adding %s to javapath\n',jarfilename);
         javaaddpath(jarfilename);
     else
-        remotejarurl='http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar';
+        remotejarurl='https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar';
         fprintf('Downloading %s\n',remotejarurl);
         outfilename = websave(jarfilename,remotejarurl);
         fprintf('Adding %s to javapath\n',outfilename);

@@ -5,7 +5,7 @@ set -x;
 if ! test -f crcl4java-utils-javadoc/index.html ; then
     jarfile="crcl4java-utils-1.3-javadoc.jar"
     if ! test -f "${jarfile}" ; then
-        remotejarurl="http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar";
+        remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar";
         echo "Downloading ${remotejarurl}";
         wget "${remotejarurl}"
     fi
@@ -17,7 +17,7 @@ fi
 if ! test -f crcl4java-base-javadoc/index.html ; then
     jarfile="crcl4java-base-1.4-20160428.123047-1-javadoc.jar"
     if ! test -f "${jarfile}" ; then
-        remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.4-SNAPSHOT/crcl4java-base-1.4-20160428.123047-1-javadoc.jar";
+        remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.3/crcl4java-base-1.3-javadoc.jar";
         echo "Downloading ${remotejarurl}";
         wget "${remotejarurl}"
     fi

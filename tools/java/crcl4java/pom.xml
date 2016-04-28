@@ -267,14 +267,26 @@
             <properties>
                 <github.global.server>github</github.global.server>
             </properties>
+            
             <distributionManagement>
                 <repository>
                     <id>internal.repo</id>
                     <name>Temporary Staging Repository</name>
-                    <url>file://${project.build.directory}/mvn-repo</url>
+                    <url>file://${user.home}/crcl4java-mvn-repo</url>
                 </repository>
             </distributionManagement>
             <build>
+                <resources>
+                    <resource>
+                        <filtering>true</filtering>
+                        <directory>${basedir}/src/main/githubscripts</directory>
+                        <includes>
+                            <include>*.bat</include>
+                            <include>*.sh</include>
+                        </includes>                  
+                        <targetPath>${basedir}/githubscripts</targetPath>
+                    </resource>
+                </resources>
                 <plugins>
                    
                     <plugin>
@@ -358,6 +370,7 @@
                             </includes>
                             <repositoryName>crcl</repositoryName>      <!-- github repo name -->
                             <repositoryOwner>usnistgov</repositoryOwner>    <!-- github username  -->
+                            <merge>true</merge>
                         </configuration>
                         <executions>
                             <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->

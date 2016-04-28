@@ -7,7 +7,7 @@ REM in the control panel  (search for environment)
 REM set PATH=%PATH%;C:\Program Files\Java\jdk1.8.0_92\bin;
 
 set jarfile=crcl4java-utils-1.3-javadoc.jar
-set remotejarfile=http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar
+set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar
 if NOT exist %jarfile% (
     echo Downloading  %jarfile%
     powershell -Command "(New-Object Net.WebClient).DownloadFile('%remotejarfile%', '%jarfile%')"
@@ -20,7 +20,7 @@ if NOT exist "crcl4java-utils-javadoc" (
 start "" "file:"%~dp0"crcl4java-utils-javadoc/index.html"
 
 set jarfile=crcl4java-base-1.4-20160428.123047-1-javadoc.jar
-set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.4-SNAPSHOT/crcl4java-base-1.4-20160428.123047-1-javadoc.jar
+set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.3/crcl4java-base-1.3-javadoc.jar
 if NOT exist %jarfile% (
     echo Downloading  %jarfile%
     powershell -Command "(New-Object Net.WebClient).DownloadFile('%remotejarfile%', '%jarfile%')"

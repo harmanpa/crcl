@@ -1,6 +1,6 @@
 
 var java = require("java");
-java.classpath.push("crcl4java-utils-1.4-20160422.130648-1-jar-with-dependencies.jar");
+java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
 
 
 // By default for node-java, you have to put "Sync" after everything for the normal function 

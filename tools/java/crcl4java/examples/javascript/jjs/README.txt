@@ -5,8 +5,8 @@ engine that comes with Java 8.
 The scripts will download two jar files if needed. If downloading within the 
 script fails the jars can be downloaded manually using the following links:
 
-    http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar
-    http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
+    https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar
+    https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
 
 
 To run the server written in javascript in Linux:
@@ -41,8 +41,8 @@ couple of commands, requests status and prints the status.
 For a reference for all classes and functions available download and unzip:
 
 
-    http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar
-    https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.4-SNAPSHOT/crcl4java-base-1.4-20160428.123047-1-javadoc.jar
+    https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-javadoc.jar
+    https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.3/crcl4java-base-1.3-javadoc.jar
 
 Or use the scripts showDoc.sh / showDoc.bat to download and open the docs.
 The scripts will open two tabs. One for utils packages and one for the base package.

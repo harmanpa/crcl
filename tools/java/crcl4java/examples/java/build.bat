@@ -7,7 +7,7 @@ REM in the control panel  (search for environment)
 set PATH=%PATH%;C:\Program Files\Java\jdk1.8.0_92\bin;
 
 set jarfile=crcl4java-utils-1.3-jar-with-dependencies.jar
-set remotejarfile=http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
+set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
 
 if NOT exist %jarfile% (
     echo Downloading  %jarfile%

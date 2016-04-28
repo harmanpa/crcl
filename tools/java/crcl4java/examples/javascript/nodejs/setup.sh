@@ -28,9 +28,7 @@ sudo chown -R `whoami` node_modules
 
 jarfile="crcl4java-utils-1.3-jar-with-dependencies.jar"
 if ! test -f "${jarfile}" ; then
-    remotejarurl="http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar";
+    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar";
     echo "Downloading ${remotejarurl}";
     wget "${remotejarurl}"
 fi
-
-./getsnapshot.sh
