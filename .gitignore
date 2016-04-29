@@ -25,3 +25,10 @@ xml_parser_generator/cmake_install.cmake
 xml_parser_generator/devel/
 xml_parser_generator/gtest/
 /tools/java/crcl4java/crcl4java-fanuc/target/
+/tools/java/crcl4java/examples/javascript/nodejs/node_modules/
+/tools/java/crcl4java/examples/javascript/nodejs/build
+*.jar
+*.jar.1
+*.jar.2
+java_home
+jvm_lib_dir
