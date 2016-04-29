@@ -8,7 +8,21 @@ if test "x${JAVA_HOME}" = "x" -a -d "${JAVA_HOME_DEFAULT}"; then
     export JAVA_HOME="${JAVA_HOME_DEFAULT}";
 fi
 
-if test "x${JAVA_HOME}" = "x" ; then
+if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
+    echo "Java 8 not found. Would you like to try to automatically install Oracle java 8(y/N)?";
+    read confirm;
+    if test "${confirm}x" = "yx" ; then
+        sudo add-apt-repository ppa:webupd8team/java -y
+        sudo apt-get update
+        sudo apt-get install oracle-java8-installer
+        sudo apt-get install oracle-java8-set-default
+    fi
+    if test "x${JAVA_HOME}" = "x" -a -d "${JAVA_HOME_DEFAULT}"; then
+        export JAVA_HOME="${JAVA_HOME_DEFAULT}";
+    fi
+fi
+
+if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
     echo "Please install JDK 1.8 or higher and set JAVA_HOME to this directory";
     exit 1;
 fi
