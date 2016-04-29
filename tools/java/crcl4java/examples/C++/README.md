@@ -1,10 +1,28 @@
 
+
+
 C++ can use Java libraries through JNI or more conveniently through java4cpp.
-https://github.com/wshackle/java4cpp
+https://github.com/wshackle/java4cpp.
+
+The example can be built with the build.sh script or by following these instructions:
+
+Download 
+	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar 
+	 
+	 and
+
+	 https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
+
+into the current directory.
+
 
 Generate wrapper C++ files with:
 
-java -jar java4cpp-1.0-20150909.152549-3-jar-with-dependencies.jar -p crcl -n crclj -j ../../crcl4java-utils/target/crcl4java-utils-1.0-SNAPSHOT-jar-with-dependencies.jar;
+java -jar java4cpp-1.1-jar-with-dependencies.jar -p crcl -n crclj -j crcl4java-utils-1.3-jar-with-dependencies.jar
+
+Set the evironment variable JAVA_HOME to the location of your java installation. On 64-bit Ubuntu this should be /usr/lib/jvm/java-7-openjdk-amd64/. 
+
+Set the JVM_LIBDIR variable to the sub-directory of JAVA_HOME that contains libjvm.so. (eg /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/ )
 
 Compile with:
 
@@ -12,6 +30,10 @@ g++ -O0 -g -I "${JAVA_HOME}/include"  -I "${JAVA_HOME}/include/linux" crclj*.cpp
 
 See build.sh for details.
 
+
+Before running a client you will need to have started a server.  
+The scripts runJavaGuiServer.sh (for Linux) or runJavaGuiServer.bat (for Windows)
+provide an option for a server to start.
 
 For a reference for all classes and functions available download and unzip:
 
