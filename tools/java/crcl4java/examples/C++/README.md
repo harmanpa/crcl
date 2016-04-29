@@ -4,7 +4,11 @@
 C++ can use Java libraries through JNI or more conveniently through java4cpp.
 https://github.com/wshackle/java4cpp.
 
+
 The example can be built with the build.sh script or by following these instructions:
+
+Install Java 8 from http://java.oracle.com/.
+
 
 Download 
 	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar 
@@ -20,9 +24,9 @@ Generate wrapper C++ files with:
 
 java -jar java4cpp-1.1-jar-with-dependencies.jar -p crcl -n crclj -j crcl4java-utils-1.3-jar-with-dependencies.jar
 
-Set the evironment variable JAVA_HOME to the location of your java installation. On 64-bit Ubuntu this should be /usr/lib/jvm/java-7-openjdk-amd64/. 
+Set the environment variable JAVA_HOME to the location of your java installation.( eg /usr/lib/jvm/java-8-oracle/. 
 
-Set the JVM_LIBDIR variable to the sub-directory of JAVA_HOME that contains libjvm.so. (eg /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server/ )
+Set the JVM_LIBDIR variable to the sub-directory of JAVA_HOME that contains libjvm.so. (eg /usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/ )
 
 Compile with:
 

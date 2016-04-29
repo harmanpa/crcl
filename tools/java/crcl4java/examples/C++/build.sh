@@ -2,19 +2,19 @@
 set -x;
 
 ## This will need to be edited on most systems that do NOT already have JAVA_HOME set.
-JAVA_HOME_DEFAULT="/usr/lib/jvm/java-7-openjdk-amd64/";
+JAVA_HOME_DEFAULT="/usr/lib/jvm/java-8-oracle/";
 
 if test "x${JAVA_HOME}" = "x" -a -d "${JAVA_HOME_DEFAULT}"; then
     export JAVA_HOME="${JAVA_HOME_DEFAULT}";
 fi
 
 if test "x${JAVA_HOME}" = "x" ; then
-    echo "Please install JDK 1.7 or higher and set JAVA_HOME to this directory";
+    echo "Please install JDK 1.8 or higher and set JAVA_HOME to this directory";
     exit 1;
 fi
 
-if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.8 >/dev/null 2>/dev/null ; then
-    echo "Please install JDK 1.7 or higher and set JAVA_HOME to this directory";
+if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
+    echo "Please install JDK 1.8 or higher and set JAVA_HOME to this directory";
     exit 1;
 fi
 
