@@ -2435,7 +2435,7 @@ public class Main {
         return val + " : "
                 + ((val & MOR_SAFETY_STAT_ESTOP_SOP_FLAG) == MOR_SAFETY_STAT_ESTOP_SOP_FLAG ? " Main E-Stop | " : "")
                 + ((val & MOR_SAFETY_STAT_ESTOP_TP_FLAG) == MOR_SAFETY_STAT_ESTOP_TP_FLAG ? " Teach-Pendant E-Stop | " : "")
-                + ((val & MOR_SAFETY_STAT_TP_DEADMAN_FLAG) == MOR_SAFETY_STAT_TP_DEADMAN_FLAG ? " Teach-Pendant Deadman ( Need to set switch to Auto) | " : "")
+                + ((val & MOR_SAFETY_STAT_TP_DEADMAN_FLAG) == MOR_SAFETY_STAT_TP_DEADMAN_FLAG ? " Teach-Pendant Deadman ( Need to set switch to Auto and Turn off Pendant) | " : "")
                 + ((val & MOR_SAFETY_STAT_FENCE_OPEN_FLAG) == MOR_SAFETY_STAT_FENCE_OPEN_FLAG ? " Fence Open | " : "")
                 + ((val & MOR_SAFETY_STAT_OVER_TRAVEL_FLAG) == MOR_SAFETY_STAT_OVER_TRAVEL_FLAG ? " Over Travel | " : "")
                 //                + ((val & MOR_SAFETY_STAT_HAND_BROKEN_FLAG) == MOR_SAFETY_STAT_HAND_BROKEN_FLAG ? " Hand Broken | " : "")
