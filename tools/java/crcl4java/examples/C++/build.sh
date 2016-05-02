@@ -43,7 +43,7 @@ mkdir generated;
     cd generated;
     JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     if test "x${JAVA4CPP_JAR}" = "x" ; then
-        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.2/java4cpp-1.2-jar-with-dependencies.jar"
+        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar"
         JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     fi
     "${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "../${CRCL4JAVA_UTILS_JAR}" || exit 1;
