@@ -28,14 +28,13 @@ if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[
 fi
 
 
-./clean.sh
 
+CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`;
+if test "x${CRCL4JAVA_UTILS_JAR}" = "x" ; then 
+    wget "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
+    CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
+fi
 
-wget "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
-
-
-
-CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
 mkdir generated;
 
 ( 
@@ -43,7 +42,7 @@ mkdir generated;
     cd generated;
     JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     if test "x${JAVA4CPP_JAR}" = "x" ; then
-        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar"
+        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar"
         JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     fi
     "${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "../${CRCL4JAVA_UTILS_JAR}" || exit 1;

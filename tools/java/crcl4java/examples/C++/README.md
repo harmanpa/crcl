@@ -18,7 +18,7 @@ The example can be built with the build.sh script or by following these instruct
 
 
 Download 
-	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar 
+	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar 
 	 
 	 and
 
@@ -29,7 +29,7 @@ into the current directory.
 
 Generate wrapper C++ files with:
 
-java -jar java4cpp-1.1-jar-with-dependencies.jar -p crcl -n crclj -j crcl4java-utils-1.3-jar-with-dependencies.jar
+java -jar java4cpp-1.3-jar-with-dependencies.jar -p crcl -n crclj -j crcl4java-utils-1.3-jar-with-dependencies.jar
 
 Set the environment variable JAVA_HOME to the location of your java installation.( eg /usr/lib/jvm/java-8-oracle/. 
 
