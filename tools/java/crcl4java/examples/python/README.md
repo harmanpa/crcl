@@ -18,7 +18,16 @@ and set paths and/or use the run scripts.
 
 Before running a client you will need to have started a server.  
 The scripts runJavaGuiServer.sh (for Linux) or runJavaGuiServer.bat (for Windows)
-provide an option for a server to start.
+provide an option for a server to start. Java 8 is required for the 
+graphical Java server.
+
+To install Java SE Development Kit 8, goto  http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+If you need help or a more complete description of the options for installing 
+Java 8 on Ubuntu see: 
+
+    https://github.com/usnistgov/crcl/wiki/How-to-install-Java-8-on-Ubuntu-Linux.
+    
 
 
 For a reference for all classes and functions available download and unzip:

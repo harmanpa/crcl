@@ -8,7 +8,7 @@ if test "x${JAVA_HOME}" = "x" -a -d "${JAVA_HOME_DEFAULT}"; then
     export JAVA_HOME="${JAVA_HOME_DEFAULT}";
 fi
 
-if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
+if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[789] >/dev/null 2>/dev/null ; then
     echo "Java 8 not found. Would you like to try to automatically install Oracle java 8(y/N)?";
     read confirm;
     if test "${confirm}x" = "yx" ; then
@@ -22,15 +22,11 @@ if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[
     fi
 fi
 
-if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
+if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[789] >/dev/null 2>/dev/null ; then
     echo "Please install JDK 1.8 or higher and set JAVA_HOME to this directory";
     exit 1;
 fi
 
-if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep java | grep version | grep 1.[89] >/dev/null 2>/dev/null ; then
-    echo "Please install JDK 1.8 or higher and set JAVA_HOME to this directory";
-    exit 1;
-fi
 
 ./clean.sh
 
@@ -47,7 +43,7 @@ mkdir generated;
     cd generated;
     JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     if test "x${JAVA4CPP_JAR}" = "x" ; then
-        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.1/java4cpp-1.1-jar-with-dependencies.jar"
+        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.2/java4cpp-1.2-jar-with-dependencies.jar"
         JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     fi
     "${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "../${CRCL4JAVA_UTILS_JAR}" || exit 1;
