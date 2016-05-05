@@ -131,6 +131,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static crcl.utils.CRCLPosemath.toPmCartesian;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
 
 /**
  *

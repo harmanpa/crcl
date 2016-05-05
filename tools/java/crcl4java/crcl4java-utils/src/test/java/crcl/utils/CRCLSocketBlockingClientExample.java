@@ -20,9 +20,9 @@
  */
 package crcl.utils;
 
-
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.InitCanonType;
@@ -31,87 +31,84 @@ import crcl.base.JointStatusesType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
-import crcl.base.VectorType;
+import static crcl.utils.CRCLPosemath.pose;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
-import org.xml.sax.SAXException;
-
-
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
 
 /**
+ * Example Client using CRCLSocket and blocking on the read.
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
 @SuppressWarnings("nullness")
-public class CRCLSocketExample {
+public class CRCLSocketBlockingClientExample {
+
     public static void main(String[] args) {
         try {
             // Connect to the server
-            CRCLSocket s = new CRCLSocket("localhost",CRCLSocket.DEFAULT_PORT);
-            
+            CRCLSocket s = new CRCLSocket("localhost", CRCLSocket.DEFAULT_PORT);
+
             // Create an instance to wrap all commands.
             CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
-            
+
             // Create and send init command.
             InitCanonType init = new InitCanonType();
             init.setCommandID(BigInteger.valueOf(7));
             instance.setCRCLCommand(init);
             s.writeCommand(instance);
-            
+
             // Create and send MoveTo command.
             MoveToType moveTo = new MoveToType();
             moveTo.setCommandID(BigInteger.valueOf(8));
-            PoseType pose = new PoseType();
-            PointType pt = new PointType();
-            pt.setX(BigDecimal.valueOf(1.1));
-            pt.setY(BigDecimal.valueOf(0.0));
-            pt.setZ(BigDecimal.valueOf(0.1));
-            pose.setPoint(pt);
-            VectorType xAxis = new VectorType();
-            xAxis.setI(BigDecimal.ONE);
-            xAxis.setI(BigDecimal.ZERO);
-            xAxis.setI(BigDecimal.ZERO);
-            pose.setXAxis(xAxis);
-            VectorType zAxis = new VectorType();
-            zAxis.setI(BigDecimal.ZERO);
-            zAxis.setI(BigDecimal.ZERO);
-            zAxis.setI(BigDecimal.ONE);
-            pose.setXAxis(zAxis);
+            PoseType pose = pose(point(1.1, 0.0, 0.1), vector(1, 0, 0), vector(0, 0, 1));
             moveTo.setEndPosition(pose);
             moveTo.setMoveStraight(false);
+            instance.setCRCLCommand(moveTo);
             s.writeCommand(instance);
+
+            CommandStatusType cmdStat;
+            CommandStateEnumType state;
+            BigInteger IDback;
             
-            // Create and send getStatus request.
-            GetStatusType getStat = new GetStatusType();
-            getStat.setCommandID(BigInteger.valueOf(9));
-            instance.setCRCLCommand(getStat);
-            s.writeCommand(instance);
-            
-            // Read status from server
-            CRCLStatusType stat = s.readStatus();
-            
-            // Print out the status details.
-            CommandStatusType cmdStat = stat.getCommandStatus();
-            BigInteger IDback = cmdStat.getCommandID();
-            System.out.println("Status:");
-            System.out.println("CommandID = " + IDback);
-            System.out.println("State = "+cmdStat.getCommandState());
-            pt = CRCLPosemath.getPoint(stat);
-            System.out.println("pose = "+pt.getX()+","+pt.getY()+","+pt.getZ());
-            JointStatusesType jst = stat.getJointStatuses();
-            List<JointStatusType> l = jst.getJointStatus();
-            System.out.println("Joints:");
-            for(JointStatusType js : l) {
-                System.out.println("Num="+js.getJointNumber()+" Pos="+js.getJointPosition());
-            }
+            do {
+                // Create and send getStatus request.
+                GetStatusType getStat = new GetStatusType();
+                getStat.setCommandID(BigInteger.valueOf(9));
+                instance.setCRCLCommand(getStat);
+                s.writeCommand(instance);
+
+                // Read status from server
+                CRCLStatusType stat = s.readStatus();
+
+                // Print out the status details.
+                cmdStat = stat.getCommandStatus();
+                state = cmdStat.getCommandState();
+                IDback = cmdStat.getCommandID();
+                System.out.println("Status:");
+                System.out.println("CommandID = " + IDback);
+                System.out.println("State = " + cmdStat.getCommandState());
+                PointType pt = CRCLPosemath.getPoint(stat);
+                if (null != pt) {
+                    System.out.println("pose = " + pt.getX() + "," + pt.getY() + "," + pt.getZ());
+                }
+                JointStatusesType jst = stat.getJointStatuses();
+                if (null != jst) {
+                    List<JointStatusType> l = jst.getJointStatus();
+                    System.out.println("Joints:");
+                    for (JointStatusType js : l) {
+                        System.out.println("Num=" + js.getJointNumber() + " Pos=" + js.getJointPosition());
+                    }
+                }
+            } while(!moveTo.getCommandID().equals(IDback) || CommandStateEnumType.CRCL_WORKING.equals(state));
+        
         } catch (CRCLException | IOException ex) {
-            Logger.getLogger(CRCLSocketExample.class.getName()).log(Level.SEVERE, "Example Main failed.", ex);
-        } 
+            Logger.getLogger(CRCLSocketBlockingClientExample.class.getName()).log(Level.SEVERE, "Example Main failed.", ex);
+        }
     }
-    private static final Logger LOG = Logger.getLogger(CRCLSocketExample.class.getName());
+    private static final Logger LOG = Logger.getLogger(CRCLSocketBlockingClientExample.class.getName());
 }

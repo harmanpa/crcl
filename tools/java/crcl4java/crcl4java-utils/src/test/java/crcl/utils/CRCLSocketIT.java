@@ -5,11 +5,16 @@
  */
 package crcl.utils;
 
-
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLProgramType;
 import crcl.base.InitCanonType;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,7 +22,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
 
 public class CRCLSocketIT {
 
@@ -43,6 +47,7 @@ public class CRCLSocketIT {
 
     /**
      * Test of stringToCommand method, of class CRCLSocket.
+     *
      * @throws java.lang.Exception
      */
     @Test
@@ -64,8 +69,289 @@ public class CRCLSocketIT {
 //        fail("forced failure");
     }
 
+    private Exception serverThreadEx = null;
+    private boolean interruptingServer = false;
+    private boolean timeoutOccured = false;
+
+    private enum ExampleType {
+        BLOCKING, POLLING, CALLBACK
+    };
+
+    private void testClientServer(final String testName,
+            final ExampleType clientType,
+            final ExampleType serverType,
+            final boolean serverMultiThreaded) throws InterruptedException {
+        interruptingServer = false;
+        serverThreadEx = null;
+        timeoutOccured = false;
+        System.out.println(testName);
+        System.setProperty("CRCLServerSocket.multithreaded", Boolean.toString(serverMultiThreaded));
+        final Thread serverThread = new Thread(new Runnable() {
+            public Exception ex = null;
+
+            @Override
+            public void run() {
+                try {
+                    switch (serverType) {
+                        case BLOCKING:
+                            CRCLServerSocketBlockingExample.main(new String[]{});
+                            break;
+
+                        case POLLING:
+                            CRCLServerSocketPollingExample.main(new String[]{});
+                            break;
+                            
+                        case CALLBACK:
+                            CRCLServerSocketCallbackExample.main(new String[]{});
+                            break;
+                    }
+
+                } catch (InterruptedException ex) {
+                    if (!interruptingServer) {
+                        serverThreadEx = ex;
+                        Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } catch (Exception ex) {
+                    serverThreadEx = ex;
+                    Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.FINE, testName + " Server finished.");
+                }
+            }
+        }, testName + "ServerMain");
+
+        serverThread.start();
+        Thread.sleep(200);
+        assertTrue("this.serverThreadEx(" + this.serverThreadEx + ") == null", this.serverThreadEx == null);
+        final PrintStream out = System.out;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream newout = new PrintStream(baos);
+        final Thread clientThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.setOut(newout);
+                    switch (clientType) {
+                        case BLOCKING:
+                            CRCLSocketBlockingClientExample.main(new String[]{});
+                            break;
+
+                        case POLLING:
+                            CRCLSocketPollingClientExample.main(new String[]{});
+                            break;
+
+                        default:
+                            System.setOut(out);
+                            fail("Bad clientType" + clientType);
+                    }
+                    System.setOut(out);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.FINE, testName + " client finished.");
+                }
+            }
+        }, testName + "client");
+
+        Thread timeoutThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                    timeoutOccured = true;
+                    Map<Thread, String> allThreads = new HashMap<>();
+                    Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
+                    for (Thread thread : traces.keySet()) {
+                        allThreads.put(thread, Arrays.deepToString(traces.get(thread)) + "\n");
+                    }
+                    Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, "Timedout with Thread.getAllStackTraces()=" + allThreads);
+                    serverThread.interrupt();
+                    clientThread.interrupt();
+                } catch (InterruptedException ex) {
+                    //Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }, testName + "timeout");
+        timeoutThread.start();
+        clientThread.start();
+        clientThread.join();
+        assertFalse("timeoutOccured", timeoutOccured);
+        newout.flush();
+        String clientoutput = baos.toString();
+        System.setOut(out);
+        assertTrue("\"" + clientoutput + "\".contains(\"CommandID = 8\")", clientoutput.contains("CommandID = 8"));
+        assertTrue("\"" + clientoutput + "\".contains(\"State = CRCL_DONE\")", clientoutput.contains("State = CRCL_DONE"));
+        assertTrue("\"" + clientoutput + "\".contains(\"pose = 1.1,0.0,0.1\")", clientoutput.contains("pose = 1.1,0.0,0.1"));
+//        System.out.println("clientoutput = " + clientoutput);
+        assertTrue(this.serverThreadEx == null);
+        interruptingServer = true;
+        timeoutThread.interrupt();
+        timeoutThread.join();
+        serverThread.interrupt();
+        serverThread.join();
+        System.out.println("end " + testName);
+        this.serverThreadEx = null;
+        interruptingServer = false;
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerBlockingSingleThreaded() throws Exception {
+        testClientServer("testClientBlockingServerBlockingSingleThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.BLOCKING,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerBlockingMultiThreaded() throws Exception {
+        testClientServer("testClientBlockingServerBlockingMultiThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.BLOCKING,
+                true);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerBlockingSingleThreaded() throws Exception {
+        testClientServer("testClientPollingServerBlockingSingleThreaded",
+                ExampleType.POLLING,
+                ExampleType.BLOCKING,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerBlockingMultiThreaded() throws Exception {
+        testClientServer("testClientBlockingServerBlockingMultiThreaded",
+                ExampleType.POLLING,
+                ExampleType.BLOCKING,
+                true);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerPollingSingleThreaded() throws Exception {
+        testClientServer("testClientPollingServerPollingSingleThreaded",
+                ExampleType.POLLING,
+                ExampleType.POLLING,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerPollingMultiThreaded() throws Exception {
+        testClientServer("testClientBlockingServerBlockingMultiThreaded",
+                ExampleType.POLLING,
+                ExampleType.POLLING,
+                true);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerPollingSingleThreaded() throws Exception {
+        testClientServer("testClientBlockingServerPollingSingleThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.POLLING,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerPollingMultiThreaded() throws Exception {
+        testClientServer("testClientBlockingServerPollingMultiThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.POLLING,
+                true);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerCallbackSingleThreaded() throws Exception {
+        testClientServer("testClientPollingServerCallbackSingleThreaded",
+                ExampleType.POLLING,
+                ExampleType.CALLBACK,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientPollingServerCallbackMultiThreaded() throws Exception {
+        testClientServer("testClientPollingServerCallbackMultiThreaded",
+                ExampleType.POLLING,
+                ExampleType.CALLBACK,
+                true);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerCallbackSingleThreaded() throws Exception {
+        testClientServer("testClientBlockingServerCallbackSingleThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.CALLBACK,
+                false);
+    }
+
+    /**
+     * Test that Blocking Client works with Blocking Single-Threaded Server
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testClientBlockingServerCallbackMultiThreaded() throws Exception {
+        testClientServer("testClientBlockingServerCallbackMultiThreaded",
+                ExampleType.BLOCKING,
+                ExampleType.CALLBACK,
+                true);
+    }
     /**
      * Test of stringToProgram method, of class CRCLSocket.
+     *
      * @throws java.lang.Exception
      */
     @Test

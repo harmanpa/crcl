@@ -35,7 +35,6 @@ import crcl.base.PoseType;
 import crcl.base.VectorType;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileFilter;
@@ -52,6 +51,8 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -142,6 +143,13 @@ public class CRCLSocket implements AutoCloseable {
         return (utilSocket = new CRCLSocket());
     }
 
+    public Socket getSocket() {
+        if (null != socketChannel) {
+            return socketChannel.socket();
+        }
+        return socket;
+    }
+
     public static interface CRCLSocketConsumer {
 
         public void accept(CRCLSocket socket);
@@ -154,7 +162,8 @@ public class CRCLSocket implements AutoCloseable {
 
     @Override
     public String toString() {
-        return "CRCLSocket(" + ((this.sock == null) ? "null" : this.sock.getRemoteSocketAddress() + ")");
+        Socket socket = getSocket();
+        return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
     }
 
     /**
@@ -829,10 +838,31 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    private SocketChannel socketChannel;
+
+    /**
+     * Get the value of socketChannel
+     *
+     * @return the value of socketChannel
+     */
+    public SocketChannel getSocketChannel() {
+        return socketChannel;
+    }
+
+    /**
+     * Set the value of socketChannel
+     *
+     * @param socketChannel new value of socketChannel
+     */
+    public void setSocketChannel(SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
+    }
+
     private UnaryOperator<String> statusStringInputFilter = STRING_IDENTITY_OPERATOR;
     private UnaryOperator<String> statusStringOutputFilter = STRING_IDENTITY_OPERATOR;
     private boolean jaxbFragment = DEFAULT_JAXB_FRAGMENT;
-    /*@Nullable*/ protected final Socket sock;
+    /*@Nullable*/ private final Socket socket;
+
     /*@Nullable*/ private String lastStatusString = null;
     /*@Nullable*/ private String lastCommandString = null;
     /*@Nullable*/ private String lastProgramString = null;
@@ -863,11 +893,11 @@ public class CRCLSocket implements AutoCloseable {
     private boolean replaceHeader;
 
     public CRCLSocket() {
-        this(null);
+        this.socket = null;
     }
 
-    public CRCLSocket(/*@Nullable*/Socket sock) {
-        this.sock = sock;
+    // Instance initializer called by all constructors , but not seperately callable.
+    {
         try {
 
             final ObjectFactory of = new crcl.base.ObjectFactory();
@@ -904,49 +934,52 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    public CRCLSocket(/*@Nullable*/Socket socket) {
+        this.socket = socket;
+    }
+
+    public CRCLSocket(/*@Nullable*/SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
+        this.socket = socketChannel.socket();
+    }
+
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
         this(new Socket(hostname, port));
     }
 
     public boolean isConnected() {
-        return null != sock && sock.isConnected();
-
-    }
-
-    public int available() {
-        try {
-            if (sock == null) {
-                return 0;
-            }
-            InputStream stream = getBufferedInputStream();
-            if (null != stream) {
-                return stream.available();
-            }
-        } catch (IOException ex) {
-        }
-        return 0;
+        return getSocket().isConnected();
     }
 
     public int getLocalPort() {
-        if (null == this.sock) {
+        if (null != socketChannel) {
+            return socketChannel.socket().getLocalPort();
+        }
+        if (null == this.socket) {
             return -1;
         }
-        return this.sock.getLocalPort();
+        return this.socket.getLocalPort();
     }
 
     public int getPort() {
-        if (null == this.sock) {
+        if (null != socketChannel) {
+            return socketChannel.socket().getLocalPort();
+        }
+        if (null == this.socket) {
             return -1;
         }
-        return this.sock.getPort();
+        return this.socket.getPort();
     }
 
     /*@Nullable*/
     public InetAddress getInetAddress() {
-        if (null == this.sock) {
+        if (null != socketChannel) {
+            return socketChannel.socket().getInetAddress();
+        }
+        if (null == this.socket) {
             return null;
         }
-        return this.sock.getInetAddress();
+        return this.socket.getInetAddress();
     }
 
     /**
@@ -1116,23 +1149,26 @@ public class CRCLSocket implements AutoCloseable {
             }
             bufferedInputStream = null;
         }
+        if (null != socketChannel) {
+            socketChannel.close();
+        }
 
-        if (null == sock) {
+        if (null == socket) {
             return;
         }
 
         try {
-            sock.shutdownInput();
+            socket.shutdownInput();
         } catch (IOException iOException) {
         }
 
         try {
-            sock.shutdownOutput();
+            socket.shutdownOutput();
         } catch (IOException iOException) {
         }
 
         try {
-            sock.close();
+            socket.close();
         } catch (IOException iOException) {
         }
     }
@@ -1315,6 +1351,48 @@ public class CRCLSocket implements AutoCloseable {
         return list;
     }
 
+    private String unparsedStatusString = "";
+
+    /**
+     * Parse a string that may contain multiple or partial XML CRCLStatusTypes,
+     * and return a list of those status messages. Partial commands are saved
+     * and used as a prefix to the string passed in the next call to this
+     * function.
+     *
+     * @param s String that may contain multiple XML CRCLStatusTypes
+     * @return list of CRCLStatusTypes from strings so far.
+     * @throws CRCLException if the string is invalid
+     */
+    public List<CRCLStatusType> parseMultiStatusString(String s) throws CRCLException {
+        return parseMultiStatusString(s, false);
+    }
+
+    /**
+     * Parse a string that may contain multiple or partial XML CRCLStatusTypes,
+     * and return a list of those status messages. Partial commands are saved
+     * and used as a prefix to the string passed in the next call to this
+     * function.
+     *
+     * @param s String that may contain multiple XML CRCLStatusTypes
+     * @param validate validate each instance against the schema.
+     * @return list of CRCLStatusTypes from strings so far.
+     * @throws CRCLException if the string is invalid
+     */
+    public List<CRCLStatusType> parseMultiStatusString(String s, boolean validate) throws CRCLException {
+        unparsedStatusString += s;
+        int index = -1;
+        final String endtag = "</CRCLStatus>";
+        List<CRCLStatusType> list = new ArrayList<>();
+        while (0 < (index = unparsedStatusString.indexOf(endtag))) {
+            int endindex = index + endtag.length();
+            String s0 = unparsedStatusString.substring(0, endindex);
+            CRCLStatusType instance = stringToStatus(s0, validate);
+            unparsedStatusString = unparsedStatusString.substring(endindex);
+            list.add(instance);
+        }
+        return list;
+    }
+
     public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLException {
         this.checkCommandSchema(validate);
 
@@ -1382,6 +1460,52 @@ public class CRCLSocket implements AutoCloseable {
         return cmd;
     }
 
+    public List<CRCLCommandInstanceType> checkForCommands(boolean validate) throws CRCLException {
+        try {
+            if (null != socketChannel) {
+                ByteBuffer bb = ByteBuffer.allocate(4096);
+                int bytesread = socketChannel.read(bb);
+                String string = new String(bb.array(), 0, bytesread);
+                return parseMultiCommandString(string, validate);
+            }
+            int bytesavail = this.socket.getInputStream().available();
+            if (bytesavail > 0) {
+                byte buf[] = new byte[bytesavail];
+                int bytes_read = this.socket.getInputStream().read(buf);
+                if (bytes_read > 0) {
+                    String s = new String(buf, 0, bytes_read);
+                    return parseMultiCommandString(s, validate);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return Collections.emptyList();
+    }
+
+    public List<CRCLStatusType> checkForStatusMessages(boolean validate) throws CRCLException {
+        try {
+            if (null != socketChannel) {
+                ByteBuffer bb = ByteBuffer.allocate(4096);
+                int bytesread = socketChannel.read(bb);
+                String string = new String(bb.array(), 0, bytesread);
+                return parseMultiStatusString(string, validate);
+            }
+            int bytesavail = this.socket.getInputStream().available();
+            if (bytesavail > 0) {
+                byte buf[] = new byte[bytesavail];
+                int bytes_read = this.socket.getInputStream().read(buf);
+                if (bytes_read > 0) {
+                    String s = new String(buf, 0, bytes_read);
+                    return parseMultiStatusString(s, validate);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return Collections.emptyList();
+    }
+
     public CRCLStatusType stringToStatus(String str, boolean validate) throws CRCLException {
         this.checkStatusSchema(validate);
         synchronized (u_stat) {
@@ -1430,17 +1554,26 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     protected InputStream getBufferedInputStream() throws IOException {
+
+        
+        if(null != socketChannel) {
+            if(!socketChannel.isBlocking() && socketChannel.isRegistered()) {
+                throw new IllegalStateException("Can not use SocketChannel inputStream when set non-blocking and registered with selector. It must be deregistered with the SelectionKey's cancel method.");
+            }
+            socketChannel = (SocketChannel) socketChannel.configureBlocking(true);
+        }
         if (null != bufferedInputStream) {
             return bufferedInputStream;
         }
-        if (null == sock) {
+        Socket socket = getSocket();
+        if (null == socket) {
             throw new IllegalStateException("socket is null");
         }
-        assert null != sock : "@AssumeAssertion(nullness)";
+        assert null != socket : "@AssumeAssertion(nullness)";
         if (!useBufferedInputStream) {
-            return sock.getInputStream();
+            return socket.getInputStream();
         }
-        BufferedInputStream newBufferedInputStream = new BufferedInputStream(sock.getInputStream());
+        BufferedInputStream newBufferedInputStream = new BufferedInputStream(socket.getInputStream());
         bufferedInputStream = newBufferedInputStream;
         return newBufferedInputStream;
     }
@@ -1711,10 +1844,11 @@ public class CRCLSocket implements AutoCloseable {
             final String threadName = Thread.currentThread().getName();
             final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
-            if (null == sock) {
+            final Socket socket = getSocket();
+            if (null == socket) {
                 throw new IllegalStateException("Internal socket is null.");
             }
-            assert null != sock : "@AssumeAssertion(nullable)";
+            assert null != socket : "@AssumeAssertion(nullable)";
             final String str = commandToString(cmd, validate);
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) with str = {2} called from Thread: {3}", new Object[]{cc, cc.getCommandID(), str, threadName});
             writeWithFill(str);
@@ -1724,6 +1858,22 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    private void writePackets(SocketChannel channel, byte ba[]) throws IOException, InterruptedException {
+        if (!this.randomPacketing) {
+            int byteswritten = channel.write(ByteBuffer.wrap(ba));
+            while(byteswritten < ba.length) {
+                byteswritten += channel.write(ByteBuffer.wrap(ba,byteswritten,ba.length));
+                Thread.sleep(20);
+            }
+        } else {
+            if (null == random) {
+                random = new Random(rand_seed);
+            }
+            assert null != random : "@AssumeAssertion(nullable)";
+            writeRandomSizedPackets(ba, channel, random);
+        }
+    }
+    
     private void writePackets(OutputStream os, byte ba[]) throws IOException, InterruptedException {
         if (!this.randomPacketing) {
             os.write(ba);
@@ -1736,10 +1886,24 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    private void writeRandomSizedPackets(byte[] ba, SocketChannel channel, Random rand) throws InterruptedException, IOException {
+        int bytes_written = 0;
+        while (bytes_written < ba.length) {
+            int bytes_to_write = rand.nextInt(ba.length-1)+1;
+            if (bytes_to_write >= ba.length - bytes_written) {
+                bytes_to_write = ba.length - bytes_written;
+            }
+            int write_ret = channel.write(ByteBuffer.wrap(ba, bytes_written, bytes_to_write));
+            bytes_written += write_ret;
+            if (bytes_written < ba.length) {
+                Thread.sleep(rand.nextInt(150));
+            }
+        }
+    }
     private void writeRandomSizedPackets(byte[] ba, OutputStream os, Random rand) throws InterruptedException, IOException {
         int bytes_written = 0;
         while (bytes_written < ba.length) {
-            int bytes_to_write = rand.nextInt(ba.length);
+            int bytes_to_write = rand.nextInt(ba.length-1)+1;
             if (bytes_to_write >= ba.length - bytes_written) {
                 bytes_to_write = ba.length - bytes_written;
             }
@@ -1753,11 +1917,24 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public void writeWithFill(String str) throws IOException, InterruptedException {
-        if (null == sock) {
+        if(null != socketChannel) {
+            if (!appendTrailingZero) {
+                this.writePackets(socketChannel, str.getBytes());
+            } else {
+                int len = str.length();
+                byte bytesPlusOne[] = new byte[len + 1];
+                System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
+                this.writePackets(socketChannel, bytesPlusOne);
+            }
+            return;
+        }
+        
+        final Socket socket = getSocket();
+        if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");
         }
-        assert null != sock : "@AssumeAssertion(nullable)";
-        OutputStream os = sock.getOutputStream();
+        assert null != socket : "@AssumeAssertion(nullable)";
+        OutputStream os = socket.getOutputStream();
         synchronized (os) {
             if (!appendTrailingZero) {
                 this.writePackets(os, str.getBytes());
@@ -1958,10 +2135,11 @@ public class CRCLSocket implements AutoCloseable {
             if (status.getCommandStatus().getStatusID() == null) {
                 throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
             }
-            if (null == sock) {
+            final Socket socket = getSocket();
+            if (null == socket) {
                 throw new IllegalStateException("Internal socket is null.");
             }
-            assert null != sock : "@AssumeAssertion(nullable)";
+            assert null != socket : "@AssumeAssertion(nullable)";
             this.lastStatusString = statusToString(status, validate);
             this.writeWithFill(this.lastStatusString);
         } catch (IOException | InterruptedException ex) {
