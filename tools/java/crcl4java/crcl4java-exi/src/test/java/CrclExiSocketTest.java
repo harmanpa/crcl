@@ -825,14 +825,14 @@ public class CrclExiSocketTest {
                 LOGGER.log(Level.INFO, "i = {0}", i);
                 LOGGER.log(Level.INFO, "j = {0}", j);
                 csServer.setEXIEnabled(true);
-                LOGGER.log(Level.INFO, "csServer.available() = {0}", csServer.available());
+//                LOGGER.log(Level.INFO, "csServer.available() = {0}", csServer.available());
                 returnCmd = csServer.readCommand(true);
                 LOGGER.log(Level.INFO, "returnCmd = {0}", returnCmd);
                 CRCLCommandType c = returnCmd.getCRCLCommand();
                 LOGGER.log(Level.INFO, "c = {0}", c);
                 assertEquals(init.getCommandID(),
                         returnCmd.getCRCLCommand().getCommandID());
-                LOGGER.log(Level.INFO, "csServer.available() = {0}", csServer.available());
+//                LOGGER.log(Level.INFO, "csServer.available() = {0}", csServer.available());
                 returnCmd = csServer.readCommand(true);
                 LOGGER.log(Level.INFO, "returnCmd = {0}", returnCmd);
                 c = returnCmd.getCRCLCommand();

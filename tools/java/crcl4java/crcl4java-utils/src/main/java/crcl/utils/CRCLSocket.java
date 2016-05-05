@@ -143,7 +143,7 @@ public class CRCLSocket implements AutoCloseable {
         return (utilSocket = new CRCLSocket());
     }
 
-    public Socket getSocket() {
+    final public  Socket getSocket() {
         if (null != socketChannel) {
             return socketChannel.socket();
         }
@@ -1858,6 +1858,14 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    protected void writePackets(byte ba[]) throws IOException, InterruptedException {
+        if(null != socketChannel) {
+            writePackets(socketChannel, ba);
+        } else {
+            writePackets(getSocket().getOutputStream(), ba);
+        }
+    }
+    
     private void writePackets(SocketChannel channel, byte ba[]) throws IOException, InterruptedException {
         if (!this.randomPacketing) {
             int byteswritten = channel.write(ByteBuffer.wrap(ba));

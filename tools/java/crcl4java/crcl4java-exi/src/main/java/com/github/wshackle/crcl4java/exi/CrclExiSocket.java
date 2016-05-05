@@ -628,14 +628,15 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         final String threadName = Thread.currentThread().getName();
         final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
         LOGGER.log(loglevel, "writeCommand({0} ID={1}) with EXI = {2} called from Thread: {3}", new Object[]{cc, cc.getCommandID(), EXI, threadName});
-        if (null == sock) {
+        final Socket socket = getSocket();
+        if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");
         }
-        assert null != sock : "@AssumeAssertion(nullable)";
+        assert null != socket : "@AssumeAssertion(nullable)";
         try {
             if (this.isEXIEnabled()) {
                 if (!this.isPrefixEXISizeEnabled()) {
-                    this.writeEXICommandToStream(sock.getOutputStream(), cmd);
+                    this.writeEXICommandToStream(socket.getOutputStream(), cmd);
                 } else {
                     final byte ba[] = this.commandToEXI(cmd);
                     LOGGER.log(loglevel, "writeCommand() : ba = {0}", Arrays.toString(ba));
@@ -643,23 +644,25 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     bb.putInt(ba.length);
                     bb.put(ba);
                     byte ba2[] = bb.array();
-                    this.sock.getOutputStream().write(ba2);
-                    this.sock.getOutputStream().flush();
+                    writePackets(ba2);
+//                    socket.getOutputStream().write(ba2);
+//                    socket.getOutputStream().flush();
                 }
                 return;
             }
-        } catch ( IOException ex) {
+        } catch ( IOException | InterruptedException ex) {
             throw new CRCLException(ex);
-        }
+        } 
         super.writeCommand(cmd, validate);
     }
 
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
             throws CRCLException {
-        if (null == sock) {
+        final Socket socket = getSocket();
+        if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");
         }
-        assert null != sock : "@AssumeAssertion(nullable)";
+        assert null != socket : "@AssumeAssertion(nullable)";
         try {
             if (this.isEXIEnabled()) {
                 if (this.isPrefixEXISizeEnabled()) {
@@ -672,14 +675,15 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                     byte ba2[] = bb.array();
 //                LOGGER.log(Level.FINEST,() ->"writeStatus: ba2.length = " + ba2.length);
 //                LOGGER.log(Level.FINEST,() ->"writeStatus: ba2 = " + Arrays.toString(ba2));
-                    this.sock.getOutputStream().write(ba2);
-                    this.sock.getOutputStream().flush();
+                    writePackets(ba2);
+//                    this.sock.getOutputStream().write(ba2);
+//                    this.sock.getOutputStream().flush();
                 } else {
-                    this.writeEXIStatusToStream(sock.getOutputStream(), status);
+                    this.writeEXIStatusToStream(socket.getOutputStream(), status);
                 }
                 return;
             }
-        } catch (IOException | JAXBException | EXIException ex) {
+        } catch (IOException | JAXBException | EXIException | InterruptedException ex) {
             throw new CRCLException(ex);
         } 
         super.writeStatus(status, validate);
