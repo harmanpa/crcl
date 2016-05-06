@@ -31,7 +31,8 @@ fi
 
 CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`;
 if test "x${CRCL4JAVA_UTILS_JAR}" = "x" ; then 
-    wget "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
+    #wget "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
+    wget "https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.4-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar"
     CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
 fi
 
@@ -42,7 +43,8 @@ mkdir generated;
     cd generated;
     JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     if test "x${JAVA4CPP_JAR}" = "x" ; then
-        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar"
+        #wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar"
+        wget "https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/java4cpp/1.4-SNAPSHOT/java4cpp-1.4-20160506.125624-2-jar-with-dependencies.jar"
         JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     fi
     "${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "../${CRCL4JAVA_UTILS_JAR}" || exit 1;
@@ -53,7 +55,12 @@ if test "x${JVM_LIB_DIR}" = "x" ; then
     export JVM_LIB_DIR=`find "${JAVA_HOME}" -name libjvm.so | head -n 1 | sed 's#libjvm.so##g'`;
 fi
 
+rm jvm_lib_dir
+rm java_home
+
 ln -s "${JVM_LIB_DIR}" jvm_lib_dir
 ln -s "${JAVA_HOME}" java_home
 
-g++ -O0 -g -I "${JAVA_HOME}/include"  -I ./generated -I "${JAVA_HOME}/include/linux" generated/crclj*.cpp use_crcl.cpp  -L "${JVM_LIB_DIR}" -Wl,--rpath "${JVM_LIB_DIR}" -ljvm -o crclj_test
+g++ -O0 -g -fPIC -shared -I "${JAVA_HOME}/include"  -I ./generated -I "${JAVA_HOME}/include/linux" generated/crclj*.cpp -L "${JVM_LIB_DIR}" -Wl,--rpath "${JVM_LIB_DIR}" -ljvm -o libcrclGenerated.so
+g++ -O0 -g -I "${JAVA_HOME}/include"  -I ./generated -I "${JAVA_HOME}/include/linux" crclClient.cpp  -L `pwd` -Wl,--rpath `pwd`  -L "${JVM_LIB_DIR}" -Wl,--rpath "${JVM_LIB_DIR}" -ljvm  -lcrclGenerated -o crclClient
+g++ -O0 -g -I "${JAVA_HOME}/include"  -I ./generated -I "${JAVA_HOME}/include/linux" crclServer.cpp  -L `pwd` -Wl,--rpath `pwd`  -L "${JVM_LIB_DIR}" -Wl,--rpath "${JVM_LIB_DIR}" -ljvm  -lcrclGenerated -o crclServer
