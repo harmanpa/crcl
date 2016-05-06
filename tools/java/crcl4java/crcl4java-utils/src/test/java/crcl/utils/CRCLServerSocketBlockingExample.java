@@ -44,6 +44,7 @@ public class CRCLServerSocketBlockingExample {
 
     public static void main(String[] args) throws IOException, CRCLException, InterruptedException, Exception {
 
+        // Create a status message for sending to clients.
         final CRCLStatusType status = new CRCLStatusType();
         final CommandStatusType cmdStatus = new CommandStatusType();
         cmdStatus.setCommandID(BigInteger.ONE);
@@ -51,19 +52,40 @@ public class CRCLServerSocketBlockingExample {
         status.setCommandStatus(cmdStatus);
         final PoseStatusType poseStatus = new PoseStatusType();
 
+        // Create as Server Socket object bound to the default port.
         try (final CRCLServerSocket serverSocket = new CRCLServerSocket(CRCLSocket.DEFAULT_PORT)) {
+
+            // Enable queuing of events so we don't need a callback.
             serverSocket.setQueueEvents(true);
+
+            // Start a background thread to listen and accept connections.
             serverSocket.start();
+
             int requestCount = 1;
 
+            // Process events until someone interrupts us.
             while (!Thread.currentThread().isInterrupted()) {
+
+                // Wait for the next event.
                 CRCLServerSocketEvent e = serverSocket.waitForEvent();
 
+                // Get an object representing a connection back to the 
+                // client responsible for this event.
                 CRCLSocket crclSocket = e.getSource();
+
+                // Check if this event has a Command instance attached.
                 CRCLCommandInstanceType instance = e.getInstance();
                 if (null != instance) {
+
+                    //Get the command from the instance.
                     CRCLCommandType cmd = instance.getCRCLCommand();
                     if (cmd instanceof GetStatusType) {
+
+                        // In this simple simulated example all commands are
+                        // DONE after 3 get status requests. 
+                        // In a more realistic system, some commands like move a long
+                        // distance would take a long time and some commands that
+                        // just change a setting will immediately be done.
                         requestCount++;
                         if (requestCount > 3) {
                             cmdStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
@@ -75,63 +97,23 @@ public class CRCLServerSocketBlockingExample {
                         cmdStatus.setCommandID(cmd.getCommandID());
                         cmdStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
                         if (cmd instanceof MoveToType) {
+
+                            // Simulates a system where the goal endPosition is immediately
+                            // reached.
                             poseStatus.setPose(((MoveToType) cmd).getEndPosition());
                             status.setPoseStatus(poseStatus);
                         }
                     }
                 }
+
+                // Events could also have an exception attached that could be
+                // handled here.
                 Exception exception = e.getException();
                 if (null != exception) {
                     Logger.getLogger(CRCLServerSocketBlockingExample.class.getName()).log(Level.SEVERE, null, exception);
                 }
             }
         }
-        
 
     }
-//        final ExecutorService execService = Executors.newCachedThreadPool();
-//        execService.submit(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    try {
-//                        final Socket socket = serverSocket.accept();
-//                        execService.submit(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                try {
-//                                    CRCLSocket crclSocket = new CRCLSocket(socket);
-//                                    CRCLCommandInstanceType instance = null;
-//                                    int requestCount = 1;
-//                                    while (null != (instance = crclSocket.readCommand(true))) {
-//                                        CRCLCommandType cmd = instance.getCRCLCommand();
-//                                        if (cmd instanceof GetStatusType) {
-//                                            requestCount++;
-//                                            if (requestCount > 3) {
-//                                                cmdStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
-//                                            }
-//                                            cmdStatus.setStatusID(BigInteger.valueOf(requestCount));
-//                                            crclSocket.writeStatus(status, true);
-//                                        } else {
-//                                            cmdStatus.setCommandID(cmd.getCommandID());
-//                                            cmdStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
-//                                            if (cmd instanceof MoveToType) {
-//                                                poseStatus.setPose(((MoveToType) cmd).getEndPosition());
-//                                                status.setPoseStatus(poseStatus);
-//                                            }
-//                                        }
-//                                    }
-//                                } catch (CRCLException | IOException ex) {
-//                                    Logger.getLogger(CRCLServerSocketNonBlockingExample.class.getName()).log(Level.SEVERE, null, ex);
-//                                }
-//                            }
-//                        });
-//                    } catch (IOException ex) {
-//                        Logger.getLogger(CRCLServerSocketNonBlockingExample.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                }
-//
-//            }
-//        });
 }

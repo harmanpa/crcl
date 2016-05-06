@@ -148,28 +148,6 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
 
     private ServerSocketChannel serverSocketChannel;
 
-    /**
-     * Get the value of serverSocketChannel
-     *
-     * @return the value of serverSocketChannel
-     */
-    public ServerSocketChannel getServerSocketChannel() {
-        return serverSocketChannel;
-    }
-
-    /**
-     * Set the value of serverSocketChannel
-     *
-     * @param serverSocketChannel new value of serverSocketChannel
-     */
-    public void setServerSocketChannel(ServerSocketChannel serverSocketChannel) throws InterruptedException, IOException {
-        if (isRunning()) {
-            throw new IllegalStateException("Can not set field when server is running.");
-        }
-        this.serverSocketChannel = serverSocketChannel;
-        this.setMultithreaded(false);
-    }
-
     private boolean closing = false;
 
     @Override
@@ -251,28 +229,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
 
     private ServerSocket serverSocket;
 
-    /**
-     * Get the value of serverSocket
-     *
-     * @return the value of serverSocket
-     */
-    public ServerSocket getServerSocket() {
-        return serverSocket;
-    }
-
-    /**
-     * Set the value of serverSocket
-     *
-     * @param serverSocket new value of serverSocket
-     */
-    public void setServerSocket(ServerSocket serverSocket) throws IOException, InterruptedException {
-        if (isRunning()) {
-            throw new IllegalStateException("Can not set field when server is running.");
-        }
-        this.serverSocket = serverSocket;
-        this.setMultithreaded(true);
-    }
-
+    
     final List<CRCLServerSocketEventListener> listeners = new ArrayList<>();
 
     public synchronized void addListener(CRCLServerSocketEventListener l) {
