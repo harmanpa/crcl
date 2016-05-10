@@ -30,11 +30,11 @@ int main(int argc, const char **argv) {
         moveTo.setCommandID(BigInteger::valueOf(8));
         PoseType pose;
         PointType pt;
-        pt.setX(BigDecimal::valueOf1(0.6));
-        pt.setY(BigDecimal::valueOf1(0.1));
-        pt.setZ(BigDecimal::valueOf1(0.1));
-        //        PrintObject("pt.getX()=",pt.getX());
-        //        PrintObject("BigDecimal::valueOf1(0.6)=",BigDecimal::valueOf1(0.6));
+        pt.setX(BigDecimal::valueOf(0.6));
+        pt.setY(BigDecimal::valueOf(0.1));
+        pt.setZ(BigDecimal::valueOf(0.1));
+        PrintObject("pt.getX()=",pt.getX());
+        PrintObject("BigDecimal::valueOf(0.6)=",BigDecimal::valueOf(0.6));
         pose.setPoint(pt);
         VectorType xAxis;
         xAxis.setI(BigDecimal::getONE());
