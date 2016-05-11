@@ -1,6 +1,7 @@
 
 #include "crclj.h"
 #include <iostream>
+#include <stdlib.h>
 
 using namespace crclj;
 using namespace crclj::crcl::base;
@@ -86,5 +87,6 @@ int main(int argc, const char **argv) {
         cout << " End of C++ main() reached. " << endl;
     } catch (jthrowable t) {
         PrintJThrowable("Exception Thrown : ", t);
+        exit(1);
     }
 }

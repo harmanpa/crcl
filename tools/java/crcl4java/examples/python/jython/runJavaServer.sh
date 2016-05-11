@@ -64,4 +64,4 @@ if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
     exit 1;
 fi
 
-"${javacmd}" -jar "${jarfile}" --mode GraphicalServer
+"${javacmd}" -jar "${jarfile}" --mode CmdLineServer

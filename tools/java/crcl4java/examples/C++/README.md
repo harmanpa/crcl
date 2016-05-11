@@ -16,7 +16,7 @@ Java 8 on Ubuntu see:
 The example can be built with the build.sh script or by following these instructions:
 
 Download 
-	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar 
+	 http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.4/java4cpp-1.4-jar-with-dependencies.jar
 	 
 	 and
 

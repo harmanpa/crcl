@@ -19,8 +19,8 @@ if NOT exist %crcljarfile% (
     powershell -Command "(New-Object Net.WebClient).DownloadFile('%remotecrcljarfile%', '%crcljarfile%')"
 )
 
-set java4cppjarfile=java4cpp-1.4-20160510.151536-5-jar-with-dependencies.jar
-set java4cppremotejarfile=https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/java4cpp/1.4-SNAPSHOT/java4cpp-1.4-20160510.151536-5-jar-with-dependencies.jar
+set java4cppjarfile=java4cpp-1.4-jar-with-dependencies.jar
+set java4cppremotejarfile=http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.4/java4cpp-1.4-jar-with-dependencies.jar
 if NOT exist %java4cppjarfile% (
     echo Downloading  %java4cppjarfile%
     powershell -Command "(New-Object Net.WebClient).DownloadFile('%java4cppremotejarfile%', '%java4cppjarfile%')"

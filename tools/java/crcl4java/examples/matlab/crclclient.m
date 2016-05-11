@@ -36,7 +36,7 @@ end
 %  directory to start server. If you get 
 %  "java.net.ConnectException: Connection refused" error, then most likely
 %  the server is not running.) 
-s = CRCLSocket('localhost',CRCLSocket.DEFAULT_PORT);
+s = CRCLSocket('localhost',64444);
 
 % Create an instance which is just a container for a single command.
 instance = CRCLCommandInstanceType();

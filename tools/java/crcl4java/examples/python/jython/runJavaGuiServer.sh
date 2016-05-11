@@ -13,6 +13,14 @@
 #
 set -x;
 
+# Change to the directory this script is stored in. 
+DIR=$(dirname $0 )
+if test "x${DIR}" != "x" ; then
+    if test -d "${DIR}" ; then
+        cd "$DIR";
+    fi
+fi
+
 jarfile="crcl4java-ui-1.3-jar-with-dependencies.jar"
 if ! test -f "${jarfile}" ; then
     remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar";
