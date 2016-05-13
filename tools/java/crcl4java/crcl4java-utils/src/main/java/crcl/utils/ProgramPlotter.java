@@ -650,9 +650,8 @@ public class ProgramPlotter {
     public static void main(String[] args) throws CRCLException, IOException {
         ProgramPlotter ppOverHead = new ProgramPlotter(View.OVERHEAD);
         ppOverHead.setAutoScale(true);
-        CRCLSocket cs = new CRCLSocket();
         CRCLProgramType program = CRCLSocket.readProgramFile("../crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
-        PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
+//        PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
         ppOverHead.getSelectionMin()[0] = 0.2;
         ppOverHead.getSelectionMax()[0] = 0.8;
         ppOverHead.getSelectionMin()[1] = 0.2;

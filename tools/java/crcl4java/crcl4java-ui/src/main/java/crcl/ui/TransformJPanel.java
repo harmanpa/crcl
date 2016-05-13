@@ -124,7 +124,7 @@ public class TransformJPanel extends javax.swing.JPanel {
         return pt;
     }
 
-    private PointType origPoint1 = CRCLPosemath.newZeroedPoint();
+    transient private PointType origPoint1 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of origPoint1
@@ -158,7 +158,7 @@ public class TransformJPanel extends javax.swing.JPanel {
         ignoreModelUpdates = false;
     }
 
-    private PoseType transform = CRCLPosemath.identityPose();
+    transient private PoseType transform = CRCLPosemath.identityPose();
 
     /**
      * Get the value of transform
@@ -245,7 +245,7 @@ public class TransformJPanel extends javax.swing.JPanel {
         }
     }
     
-    private PointType origPoint2 = CRCLPosemath.newZeroedPoint();
+    transient private PointType origPoint2 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of origPoint2
@@ -268,7 +268,7 @@ public class TransformJPanel extends javax.swing.JPanel {
         }
     }
 
-    private PointType newPoint1 = CRCLPosemath.newZeroedPoint();
+    transient private PointType newPoint1 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of newPoint1
@@ -291,7 +291,7 @@ public class TransformJPanel extends javax.swing.JPanel {
         }
     }
 
-    private PointType newPoint2 = CRCLPosemath.newZeroedPoint();
+    transient private PointType newPoint2 = CRCLPosemath.newZeroedPoint();
 
     /**
      * Get the value of newPoint2

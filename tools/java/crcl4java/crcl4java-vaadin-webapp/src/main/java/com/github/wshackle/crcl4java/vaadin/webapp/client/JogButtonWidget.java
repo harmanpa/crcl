@@ -1,14 +1,15 @@
 package com.github.wshackle.crcl4java.vaadin.webapp.client;
 
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Button;
 
-public class JogButtonWidget extends Label {
+public class JogButtonWidget extends Button {
     
     public static final String CLASSNAME = "jogbutton";
     
     public JogButtonWidget() {
         // setText("JogButtonWidget sets the text via JogButtonConnector using JogButtonState");
-        setStyleName(CLASSNAME);
+//        setStyleName(CLASSNAME);
+        addStyleName(CLASSNAME);
     }
     
 }

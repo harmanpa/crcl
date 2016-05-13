@@ -38,6 +38,7 @@ import crcl.utils.CRCLSocket;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,16 +67,14 @@ import org.xml.sax.XMLReader;
  * checks. This file can be compiled without the Checker Framework, but using
  * the framework allows potential NullPointerExceptions to be found.
  */
-
-
-/*>>>
+ /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov> }
  */
-public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
+public class CrclExiSocket extends CRCLSocket {
 
     private boolean EXIEnabled = Boolean.valueOf(System.getProperty("crcl.EXIEnabled", "false"));
     private boolean prefixEXISizeEnabled = Boolean.valueOf(System.getProperty("crcl.prefixEXISizeEnabled", "false"));
@@ -87,10 +86,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private SAXSource exiStatusInSaxSource = null;
     private final ObjectFactory objectFactory
             = new ObjectFactory();
-    public boolean appendTrailingZero = DEFAULT_APPEND_TRAILING_ZERO;
-    public boolean randomPacketing = DEFAULT_RANDOM_PACKETING;
     /*@Nullable*/ private Random random = null;
-    public int rand_seed = 12345;
     /*@Nullable*/ private String last_xml_version_header = null;
     /*@Nullable*/ private String last_orig_first_tag = null;
     private boolean replaceHeader;
@@ -112,7 +108,6 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
     @Override
     public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
-        final boolean EXI = this.isEXIEnabled();
         if (this.isEXIEnabled()) {
             if (!this.isPrefixEXISizeEnabled()) {
                 try {
@@ -127,11 +122,12 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
             } else {
                 try {
                     byte sizeba[] = new byte[4];
-                    int r1 = getBufferedInputStream().read(sizeba);
+                    DataInputStream dis = new DataInputStream(getBufferedInputStream());
+                    dis.readFully(sizeba);
                     ByteBuffer bb = ByteBuffer.wrap(sizeba);
                     int size = bb.getInt();
                     byte ba[] = new byte[size];
-                    int r2 = getBufferedInputStream().read(ba);
+                    dis.readFully(ba);
                     final CRCLCommandInstanceType c = exiToCommand(ba);
                     final CRCLCommandType cc = c.getCRCLCommand();
                     final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
@@ -172,12 +168,12 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         this.prefixEXISizeEnabled = prefixEXISizeEnabled;
     }
 
-    static private <T> /*@NonNull*/ T ToNonNull(/*@Nullable*/T t, String msg) {
-        if (t == null) {
+    static private <T> /*@NonNull*/ T toNonNull(/*@Nullable*/T t, String msg) {
+        if (t != null) {
+            return (/*@NonNull*/T) t;
+        } else {
             throw new RuntimeException(msg);
         }
-        assert t != null : "@AssumeAssertion(nullness)";
-        return (/*@NonNull*/T) t;
     }
 
     private EXIFactory getExiStatusFactory() throws EXIException, IOException {
@@ -186,14 +182,14 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         }
         copySchemaResources();
         final EXIFactory newExiStatusFactory
-                = ToNonNull(DefaultEXIFactory.newInstance(),
+                = toNonNull(DefaultEXIFactory.newInstance(),
                         "DefaultEXIFactory.newInstance() returned null");
         GrammarFactory grammarFactory
-                = ToNonNull(GrammarFactory.newInstance(),
+                = toNonNull(GrammarFactory.newInstance(),
                         "GrammarFactory.newInstance() returned null");
         String xsdLocation = getCrclSchemaDirFile().getCanonicalPath() + File.separator + "CRCLStatus.xsd";
         Grammars grammers
-                = ToNonNull(grammarFactory.createGrammars(xsdLocation),
+                = toNonNull(grammarFactory.createGrammars(xsdLocation),
                         "grammarFactory.createGrammars(\"" + xsdLocation + "\") returned null");
         newExiStatusFactory.setGrammars(grammers);
         exiStatusFactory = newExiStatusFactory;
@@ -206,14 +202,14 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         }
         copySchemaResources();
         final EXIFactory newExiCommandFactory
-                = ToNonNull(DefaultEXIFactory.newInstance(),
+                = toNonNull(DefaultEXIFactory.newInstance(),
                         "DefaultEXIFactory.newInstance() returned null");
         GrammarFactory grammarFactory
-                = ToNonNull(GrammarFactory.newInstance(),
+                = toNonNull(GrammarFactory.newInstance(),
                         "GrammarFactory.newInstance() returned null");
         String xsdLocation = getCrclSchemaDirFile().getCanonicalPath() + File.separator + "CRCLCommandInstance.xsd";
         Grammars grammers
-                = ToNonNull(grammarFactory.createGrammars(xsdLocation),
+                = toNonNull(grammarFactory.createGrammars(xsdLocation),
                         "grammarFactory.createGrammars(\"" + xsdLocation + "\") returned null");
         newExiCommandFactory.setGrammars(grammers);
         exiCommandFactory = newExiCommandFactory;
@@ -224,7 +220,8 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
      * Set the value of EXIEnabled
      *
      * @param EXIEnabled new value of EXIEnabled
-     * @throws crcl.utils.CRCLException wrapper for potential internal exceptions
+     * @throws crcl.utils.CRCLException wrapper for potential internal
+     * exceptions
      */
     public void setEXIEnabled(boolean EXIEnabled) throws CRCLException {
         this.EXIEnabled = EXIEnabled;
@@ -266,6 +263,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 try {
                     exiOS.close();
                 } catch (Exception exx) {
+                    LOGGER.log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }
@@ -282,6 +280,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 try {
                     exiOS.close();
                 } catch (Exception exx) {
+                    LOGGER.log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }
@@ -304,36 +303,8 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         final ContentHandler handler = exiResult.getHandler();
         JAXBElement<CRCLStatusType> jaxb_status
                 = objectFactory.createCRCLStatus(status);
-        final String threadName = Thread.currentThread().getName();
         synchronized (m_stat) {
-//            try {
             m_stat.marshal(jaxb_status, handler);
-//            } catch (Throwable t) {
-//                LOGGER.log(Level.SEVERE,
-//                        "First Exception Thread=" + threadName + ", jaxb_status=" + jaxb_status + ", status=" + statToDebugString(status),
-//                        t);
-//                final Level origLevel = LOGGER.getLevel();
-//                final Logger xmlInternalLogger = Logger.getLogger("com.sun.xml.internal.bind");
-//                final Level origXmlInternalLogLevel = xmlInternalLogger.getLevel();
-//                try {
-//                    final EXIResult exiResultNew = new EXIResult(getExiStatusFactory());
-//                    exiResultNew.setOutputStream(outStream);
-//                    final ContentHandler handlerNew = exiResultNew.getHandler();
-//                    JAXBElement<CRCLStatusType> jaxb_statusNew
-//                            = objectFactory.createCRCLStatus(status);
-//                    xmlInternalLogger.setLevel(Level.ALL);
-//                    LOGGER.setLevel(Level.ALL);
-//                    m_stat.marshal(jaxb_statusNew, handlerNew);
-//                    LOGGER.log(Level.SEVERE, "Data marshalled on second attempt.");
-//                } catch (Exception ex2) {
-//                    LOGGER.log(Level.SEVERE,
-//                            "Second Exception Thread=" + threadName,
-//                            ex2);
-//                } finally {
-//                    LOGGER.setLevel(origLevel);
-//                    xmlInternalLogger.setLevel(origXmlInternalLogLevel);
-//                }
-//            }
         }
     }
 
@@ -369,7 +340,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                         LOGGER.log(Level.SEVERE,
                                 "Second NPE Thread=" + threadName,
                                 nullPointerException);
-                    } 
+                    }
                 } catch (JAXBException ex) {
                     Logger.getLogger(CrclExiSocket.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -389,6 +360,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 try {
                     inputStream.close();
                 } catch (Exception exx) {
+                    LOGGER.log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }
@@ -405,6 +377,7 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 try {
                     inputStream.close();
                 } catch (Exception exx) {
+                    LOGGER.log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }
@@ -600,11 +573,12 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
                 try {
                     int size = 0;
                     byte sizeba[] = new byte[4];
-                    int r1 = getBufferedInputStream().read(sizeba);
+                    DataInputStream dis = new DataInputStream(getBufferedInputStream());
+                    dis.readFully(sizeba);
                     ByteBuffer bb = ByteBuffer.wrap(sizeba);
                     size = bb.getInt();
                     byte ba[] = new byte[size];
-                    int r2 = getBufferedInputStream().read(ba);
+                    dis.readFully(ba);
                     return exiToStatus(ba);
                 } catch (IOException | EXIException | JAXBException ex) {
                     throw new CRCLException(ex);
@@ -620,7 +594,6 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         return super.readStatus(validate);
     }
 
-
     @Override
     public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         final CRCLCommandType cc = cmd.getCRCLCommand();
@@ -631,29 +604,30 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         final Socket socket = getSocket();
         if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");
-        }
-        assert null != socket : "@AssumeAssertion(nullable)";
-        try {
-            if (this.isEXIEnabled()) {
-                if (!this.isPrefixEXISizeEnabled()) {
-                    this.writeEXICommandToStream(socket.getOutputStream(), cmd);
-                } else {
-                    final byte ba[] = this.commandToEXI(cmd);
-                    LOGGER.log(loglevel, "writeCommand() : ba = {0}", Arrays.toString(ba));
-                    ByteBuffer bb = ByteBuffer.allocate(ba.length + 4);
-                    bb.putInt(ba.length);
-                    bb.put(ba);
-                    byte ba2[] = bb.array();
-                    writePackets(ba2);
+        } else {
+
+            try {
+                if (this.isEXIEnabled()) {
+                    if (!this.isPrefixEXISizeEnabled()) {
+                        this.writeEXICommandToStream(socket.getOutputStream(), cmd);
+                    } else {
+                        final byte ba[] = this.commandToEXI(cmd);
+                        LOGGER.log(loglevel, "writeCommand() : ba = {0}", Arrays.toString(ba));
+                        ByteBuffer bb = ByteBuffer.allocate(ba.length + 4);
+                        bb.putInt(ba.length);
+                        bb.put(ba);
+                        byte ba2[] = bb.array();
+                        writePackets(ba2);
 //                    socket.getOutputStream().write(ba2);
 //                    socket.getOutputStream().flush();
+                    }
+                    return;
                 }
-                return;
+            } catch (IOException | InterruptedException ex) {
+                throw new CRCLException(ex);
             }
-        } catch ( IOException | InterruptedException ex) {
-            throw new CRCLException(ex);
-        } 
-        super.writeCommand(cmd, validate);
+            super.writeCommand(cmd, validate);
+        }
     }
 
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
@@ -661,32 +635,32 @@ public class CrclExiSocket extends CRCLSocket implements AutoCloseable {
         final Socket socket = getSocket();
         if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");
-        }
-        assert null != socket : "@AssumeAssertion(nullable)";
-        try {
-            if (this.isEXIEnabled()) {
-                if (this.isPrefixEXISizeEnabled()) {
-                    byte ba[] = this.statusToEXI(status);
+        } else {
+            try {
+                if (this.isEXIEnabled()) {
+                    if (this.isPrefixEXISizeEnabled()) {
+                        byte ba[] = this.statusToEXI(status);
 //                LOGGER.log(Level.FINEST,() ->"writeStatus() : ba = " + Arrays.toString(ba));
-                    ByteBuffer bb = ByteBuffer.allocate(ba.length + 4);
-                    bb.putInt(ba.length);
+                        ByteBuffer bb = ByteBuffer.allocate(ba.length + 4);
+                        bb.putInt(ba.length);
 //                LOGGER.log(Level.FINEST,() ->"writeStatus: ba.length = " + ba.length);
-                    bb.put(ba);
-                    byte ba2[] = bb.array();
+                        bb.put(ba);
+                        byte ba2[] = bb.array();
 //                LOGGER.log(Level.FINEST,() ->"writeStatus: ba2.length = " + ba2.length);
 //                LOGGER.log(Level.FINEST,() ->"writeStatus: ba2 = " + Arrays.toString(ba2));
-                    writePackets(ba2);
+                        writePackets(ba2);
 //                    this.sock.getOutputStream().write(ba2);
 //                    this.sock.getOutputStream().flush();
-                } else {
-                    this.writeEXIStatusToStream(socket.getOutputStream(), status);
+                    } else {
+                        this.writeEXIStatusToStream(socket.getOutputStream(), status);
+                    }
+                    return;
                 }
-                return;
+            } catch (IOException | JAXBException | EXIException | InterruptedException ex) {
+                throw new CRCLException(ex);
             }
-        } catch (IOException | JAXBException | EXIException | InterruptedException ex) {
-            throw new CRCLException(ex);
-        } 
-        super.writeStatus(status, validate);
+            super.writeStatus(status, validate);
+        }
     }
 
 }

@@ -34,7 +34,7 @@ import javax.swing.JPanel;
  */
 public class ProgramPlotterJPanel extends JPanel {
 
-    private ProgramPlotter plotter;
+    transient private ProgramPlotter plotter;
 
     /**
      * Get the value of plotter
@@ -54,7 +54,7 @@ public class ProgramPlotterJPanel extends JPanel {
         this.plotter = plotter;
     }
 
-    private CRCLProgramType program;
+    transient private CRCLProgramType program;
 
     /**
      * Get the value of program

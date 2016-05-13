@@ -34,6 +34,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -85,14 +86,6 @@ public class SideViewJPanel extends JPanel {
 
     private double[] jointvals;
 
-    /**
-     * Get the value of jointvals
-     *
-     * @return the value of jointvals
-     */
-    public double[] getJointvals() {
-        return jointvals;
-    }
 
     /**
      * Set the value of jointvals
@@ -100,7 +93,7 @@ public class SideViewJPanel extends JPanel {
      * @param jointvals new value of jointvals
      */
     public void setJointvals(double[] jointvals) {
-        this.jointvals = jointvals;
+        this.jointvals = Arrays.copyOf(jointvals, jointvals.length);
         try {
             if (logImages) {
                 logImage();
@@ -120,7 +113,8 @@ public class SideViewJPanel extends JPanel {
         g2d.setColor(this.getForeground());
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/side");
-        dir.mkdirs();
+        boolean made_dir = dir.mkdirs();
+        Logger.getLogger(SideViewJPanel.class.getName()).finest(() -> "mkdir " + dir + " returned " + made_dir);
         ImageIO.write(bi, "jpg", new File(dir, "side_" + System.currentTimeMillis() + ".jpg"));
     }
     private boolean logImages = false;
@@ -145,25 +139,17 @@ public class SideViewJPanel extends JPanel {
 
     private double[] seglengths = SimulatedKinematicsPlausible.DEFAULT_SEGLENGTHS;
 
-    /**
-     * Get the value of seglengths
-     *
-     * @return the value of seglengths
-     */
-    public double[] getSeglengths() {
-        return seglengths;
-    }
-
+    
     /**
      * Set the value of seglengths
      *
      * @param seglengths new value of seglengths
      */
     public void setSeglengths(double[] seglengths) {
-        this.seglengths = seglengths;
         if (null == seglengths || seglengths.length < 1) {
             return;
         }
+        this.seglengths = Arrays.copyOf(seglengths,seglengths.length);
         l0rect.width = seglengths[0];
         if (seglengths.length < 2) {
             return;
@@ -209,8 +195,7 @@ public class SideViewJPanel extends JPanel {
         try {
             Graphics2D g2d = (Graphics2D) g;
             Dimension d = this.getSize();
-            if (paintImage(g2d, d)) {
-            }
+            paintImage(g2d, d);
         } catch (Exception e) {
             e.printStackTrace();
         }

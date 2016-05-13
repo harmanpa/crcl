@@ -31,7 +31,7 @@ import javax.swing.JFileChooser;
  */
 public class ServerSensorJFrame extends javax.swing.JFrame {
 
-    private FingerPressureSensorData data;
+    transient private FingerPressureSensorData data;
 
     public static final String PROP_DATA = "data";
 
@@ -55,7 +55,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         propertyChangeSupport.firePropertyChange(PROP_DATA, oldData, data);
     }
 
-    private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     /**
      * Add PropertyChangeListener.
@@ -123,7 +123,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    private Runnable onStopRunnable = null;
+    transient private Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -322,10 +322,10 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    private Process internalProcess;
-    private Thread monitorOutputThread;
-    private Thread monitorErrorThread;
-    private Thread readSocketThread;
+    transient private Process internalProcess;
+    transient private Thread monitorOutputThread;
+    transient private Thread monitorErrorThread;
+    transient private Thread readSocketThread;
 
     private final int SERVER_PORT_NUM = 4567;
 
@@ -335,8 +335,6 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         } catch (InterruptedException ex) {
             Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Gson gson = new Gson();
-
         try (Socket s = new Socket("localhost", SERVER_PORT_NUM);
                 BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
             String line = null;
@@ -394,8 +392,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessOutput() {
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
@@ -413,8 +410,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessError() {
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);

@@ -84,7 +84,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         java.awt.EventQueue.invokeLater(() -> this.updatePanelsPrivate());
         this.lengthUnitComboBox.setSelectedItem(LengthUnitEnumType.MILLIMETER);
         for (SimRobotEnum srType : SimRobotEnum.values()) {
-            this.setRobotType(SimRobotEnum.PLAUSIBLE);
+            this.setRobotType(srType);
             inner.setLengthUnit(LengthUnitEnumType.MILLIMETER);
         }
         this.jComboBoxRobotType.setModel(new DefaultComboBoxModel<>(SimRobotEnum.values()));
@@ -94,7 +94,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(SimServer.cmdSchemasFile));
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
-            inner.setPort(Integer.valueOf(portPropertyString));
+            inner.setPort(Integer.parseInt(portPropertyString));
             this.jTextFieldPort.setText(portPropertyString);
         } else {
             this.jTextFieldPort.setText(Integer.toString(inner.getPort()));
@@ -643,14 +643,14 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             else if (evt.getSource() == jCheckBoxMenuItemLogImages) {
                 SimServer.this.jCheckBoxMenuItemLogImagesActionPerformed(evt);
             }
+            else if (evt.getSource() == jMenuItemAbout) {
+                SimServer.this.jMenuItemAboutActionPerformed(evt);
+            }
             else if (evt.getSource() == jMenuItemViewCommandLogBrief) {
                 SimServer.this.jMenuItemViewCommandLogBriefActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServer.this.jMenuItemViewCommandLogFullActionPerformed(evt);
-            }
-            else if (evt.getSource() == jMenuItemAbout) {
-                SimServer.this.jMenuItemAboutActionPerformed(evt);
             }
         }
 
@@ -684,7 +684,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
 //    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
 //        return xpu.queryXml(statSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
 //    }
-    final SimServerInner inner;
+    transient final SimServerInner inner;
 
     @Override
     public boolean isValidateXMLSelected() {
@@ -747,12 +747,8 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         }
     }//GEN-LAST:event_jMenuItemSetSchemaActionPerformed
 
-    private void sideViewJPanel1ComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_sideViewJPanel1ComponentResized
-        this.updatePanels(true);
-    }//GEN-LAST:event_sideViewJPanel1ComponentResized
-
-    private CrclExiSocket gripperSocket = null;
-    private Thread gripperReadThread = null;
+    transient private CrclExiSocket gripperSocket = null;
+    transient private Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
     private boolean sendGripperStatusRequests = true;
@@ -784,9 +780,9 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
             try {
                 this.closeGripperSocket();
                 String gripperPortString = JOptionPane.showInputDialog(this, "Gripper Server Port?", this.gripperPort);
-                gripperPort = Integer.valueOf(gripperPortString);
-                String gripperHostString = JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
-                gripperPort = Integer.valueOf(gripperPortString);
+                gripperPort = Integer.parseInt(gripperPortString);
+                gripperHost= JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
+                gripperPort = Integer.parseInt(gripperPortString);
                 sendGripperStatusRequests = (JOptionPane.showConfirmDialog(this, "Send status requests?") == JOptionPane.YES_OPTION);
                 this.gripperSocket = new CrclExiSocket(gripperHost, gripperPort);
                 this.gripperReadThread = new Thread(new Runnable() {
@@ -890,7 +886,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     }//GEN-LAST:event_jComboBoxRobotTypeActionPerformed
 
     private void jButtonRestartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRestartServerActionPerformed
-        int new_port = Integer.valueOf(this.jTextFieldPort.getText());
+        int new_port = Integer.parseInt(this.jTextFieldPort.getText());
         new Thread(() -> {
             inner.setPort(new_port);
             inner.restartServer();
@@ -903,12 +899,12 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
     }//GEN-LAST:event_jButtonResetActionPerformed
 
     private void jTextFieldCycleTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCycleTimeActionPerformed
-        long newDelayMillis = Long.valueOf(this.jTextFieldCycleTime.getText());
+        long newDelayMillis = Long.parseLong(this.jTextFieldCycleTime.getText());
         inner.setDelayMillis(newDelayMillis);
     }//GEN-LAST:event_jTextFieldCycleTimeActionPerformed
 
     private void jTextFieldPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPortActionPerformed
-        int new_port = Integer.valueOf(this.jTextFieldPort.getText());
+        int new_port = Integer.parseInt(this.jTextFieldPort.getText());
         inner.setPort(new_port);
         inner.restartServer();
     }//GEN-LAST:event_jTextFieldPortActionPerformed
@@ -1059,7 +1055,7 @@ public class SimServer extends javax.swing.JFrame implements SimServerOuter {
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    private final Predicate<CRCLStatusType> checkStatusValidPredicate = new Predicate<CRCLStatusType>() {
+    transient private final Predicate<CRCLStatusType> checkStatusValidPredicate = new Predicate<CRCLStatusType>() {
         @Override
         public boolean test(CRCLStatusType t) {
             return checkStatusValid(t);

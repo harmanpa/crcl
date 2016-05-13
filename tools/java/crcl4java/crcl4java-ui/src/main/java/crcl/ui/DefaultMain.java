@@ -38,7 +38,7 @@ public class DefaultMain {
             if (i < args.length - 1) {
                 if (args[i].compareTo("--port") == 0 || args[i].compareTo("-p") == 0) {
                     try {
-                        int porti = Integer.valueOf(args[i + 1]);
+                        int porti = Integer.parseInt(args[i + 1]);
                         if(porti < 1) {
                             System.err.println("port ("+porti+") must be positive.");
                         }

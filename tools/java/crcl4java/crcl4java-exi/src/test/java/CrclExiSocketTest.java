@@ -21,7 +21,6 @@
  * 
  */
 
-
 import com.github.wshackle.crcl4java.exi.CrclExiSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
@@ -770,12 +769,13 @@ public class CrclExiSocketTest {
                 try {
                     inputStream.close();
                 } catch (Exception exx) {
+                    Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }
         LOGGER.log(Level.INFO, "");
         LOGGER.log(Level.INFO, "Start socket over TCP tests");
-    
+
         System.setProperty("crcl.prefixEXISizeEnabled", "false");
         final ServerSocket ss = new ServerSocket(0);
         ExecutorService serv = Executors.newCachedThreadPool();
@@ -810,6 +810,7 @@ public class CrclExiSocketTest {
                                 try {
                                     Thread.sleep(rand.nextInt(50));
                                 } catch (Exception e) {
+                                    Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
                                 }
                             }
                             LOGGER.log(Level.INFO, "j = {0}", j);
@@ -843,19 +844,23 @@ public class CrclExiSocketTest {
             try {
                 csServer.close();
             } catch (Exception e) {
+                Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.SEVERE, "exception normally ignored", e);
             }
             try {
                 csClient.close();
             } catch (Exception e) {
+                Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
             }
         }
         try {
             ss.close();
         } catch (Exception e) {
+            Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
         }
         try {
             serv.shutdownNow();
         } catch (Exception e) {
+            Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
         }
         ByteArrayOutputStream outputStream = null;
         try {
@@ -874,6 +879,7 @@ public class CrclExiSocketTest {
                 try {
                     outputStream.close();
                 } catch (Exception exx) {
+                    Logger.getLogger(CrclExiSocketTest.class.getName()).log(Level.FINEST, "exception normally ignored", exx);
                 }
             }
         }

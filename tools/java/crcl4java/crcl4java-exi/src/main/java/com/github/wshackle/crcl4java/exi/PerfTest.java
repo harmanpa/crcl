@@ -22,8 +22,6 @@ package com.github.wshackle.crcl4java.exi;
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-
-
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -63,9 +61,7 @@ import java.util.logging.Logger;
  * checks. This file can be compiled without the Checker Framework, but using
  * the framework allows potential NullPointerExceptions to be found.
  */
-
-
-/*>>>
+ /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
 public class PerfTest {
@@ -109,13 +105,13 @@ public class PerfTest {
     }
 
     public static void main(String[] args) {
-        MinMaxAvg ft0 = runPerfTest(false, true, 200);
-        MinMaxAvg ff0 = runPerfTest(false, false, 200);
+        runPerfTest(false, true, 200);
+        runPerfTest(false, false, 200);
         MinMaxAvg ft = runPerfTest(false, true, 25000);
         MinMaxAvg ff = runPerfTest(false, false, 25000);
-        MinMaxAvg tt0 = runPerfTest(true, true, 200);
+        runPerfTest(true, true, 200);
         MinMaxAvg tt = runPerfTest(true, true, 25000);
-        MinMaxAvg tf0 = runPerfTest(true, false, 200);
+        runPerfTest(true, false, 200);
         MinMaxAvg tf = runPerfTest(true, false, 25000);
         System.out.println("useExi,validate,\tmin    ,\tmax    ,\tavg");
         if (null != tt) {
@@ -175,6 +171,7 @@ public class PerfTest {
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
+                Logger.getLogger(PerfTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
             }
             CrclExiSocket csTst = new CrclExiSocket();
             csTst.setReplaceHeader(true);
@@ -218,7 +215,7 @@ public class PerfTest {
                                             cs.writeStatus(status, validate);
                                         }
                                     } catch (Exception ex) {
-//                                        Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
+                                        Logger.getLogger(PerfTest.class.getName()).log(Level.FINEST, "exception normally ignored", ex);
                                     } finally {
                                         try {
                                             cs.close();
@@ -229,11 +226,8 @@ public class PerfTest {
                                 }
                             });
                         } catch (Exception ex) {
-                            if (null != ssf && !ssf.isClosed()) {
-//                                Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
-                            }
+                            Logger.getLogger(PerfTest.class.getName()).log(Level.FINEST, "exception normally ignored", ex);
                         }
-
                     }
                     for (int i = 0; i < sockets.size(); i++) {
                         Socket s = sockets.get(i);
@@ -241,7 +235,7 @@ public class PerfTest {
                             try {
                                 s.close();
                             } catch (Exception e) {
-
+                                Logger.getLogger(PerfTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
                             }
                         }
 
@@ -293,21 +287,21 @@ public class PerfTest {
                     try {
                         s.close();
                     } catch (Exception e) {
-
+                        Logger.getLogger(PerfTest.class.getName()).log(Level.FINEST, "exception normally ignored", e);
                     }
                 }
             }
             exServ.awaitTermination(5, TimeUnit.SECONDS);
             exServ.shutdownNow();
             sockets.clear();
-            double avg = (end - start) * 1e-6 / repeats;
-            double dev = Math.sqrt(sum_diff2 / repeats - avg * avg);
+//            double avg = (end - start) * 1e-6 / repeats;
+//            double dev = Math.sqrt(sum_diff2 / repeats - avg * avg);
             return new MinMaxAvg(
                     diff_min * 1e-6,
                     diff_max * 1e-6,
                     (end - start) * 1e-6 / repeats
             );
-        }catch (CRCLException | IOException | InterruptedException ex) {
+        } catch (CRCLException | IOException | InterruptedException ex) {
             Logger.getLogger(PerfTest.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (null != ss) {

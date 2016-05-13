@@ -109,6 +109,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -137,7 +138,7 @@ public class PendantClientInner {
     public static final String PROP_LENGTHUNIT = "lengthUnit";
 
     private static long getLongProperty(String propName, long defaultLong) {
-        return Long.valueOf(System.getProperty(propName, Long.toString(defaultLong)));
+        return Long.parseLong(System.getProperty(propName, Long.toString(defaultLong)));
     }
 
     public static <T> Optional<T> tryGet(TrySupplier<T> ts) {
@@ -178,16 +179,19 @@ public class PendantClientInner {
     private CrclExiSocket crclSocket = null;
 
     private final PendantClientOuter outer;
-    private double jogIncrement = 3.0;
+    private static final double JOG_INCREMENT_DEFAULT = 3.0;
+    private double jogIncrement = JOG_INCREMENT_DEFAULT;
     private CRCLProgramType program;
 
     private PoseToleranceType expectedEndPoseTolerance = new PoseToleranceType();
     private PoseToleranceType expectedIntermediatePoseTolerance;
-    private volatile int close_test_count = 0;
+    private volatile AtomicInteger close_test_count = new AtomicInteger(0);
     int request_status_count = 0;
     private final GetStatusType getStatusMsg = new GetStatusType();
-    private int jogInterval = 50;
-    private double xyzJogIncrement = 3.0;
+    private static final int JOG_INTERVAL_DEFAULT=50;
+    private int jogInterval = JOG_INTERVAL_DEFAULT;
+    private static final double XYZ_JOG_INCREMENT_DEFAULT=3.0;
+    private double xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
     private int poll_ms = jogInterval;
     private BigInteger cmdId = BigInteger.ONE;
     private final XpathUtils xpu;
@@ -197,14 +201,15 @@ public class PendantClientInner {
             = this::checkProgramValid;
     private final Predicate<CRCLCommandType> checkCommandValidPredicate
             = this::checkCommandValid;
-    private File[] cmdSchemaFiles = null;
-    private File[] programSchemaFiles = null;
+//    private File[] cmdSchemaFiles = null;
+//    private File[] programSchemaFiles = null;
     private CRCLCommandType lastCommandSent = null;
     private CRCLCommandType prevLastCommandSent = null;
     private boolean recordCommands = true;
     final private Queue<CRCLCommandType> recordedCommandsQueue
             = new ConcurrentLinkedQueue<>();
-    private List<CRCLCommandType> recordedCommandsList = null;
+    private final List<CRCLCommandType> recordedCommandsList = new ArrayList<>();
+    ;
     private long waitForDoneDelay = getLongProperty("PendantClient.waitForDoneDelay", 100);
     Thread readerThread = null;
     private String lastDescription;
@@ -219,8 +224,8 @@ public class PendantClientInner {
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
     private volatile BlockingQueue<Object> pauseQueue = new ArrayBlockingQueue<>(1);
     private volatile boolean paused = false;
-    private volatile int waiting_for_pause_queue = 0;
-    private volatile int pause_count = 0;
+    private volatile AtomicInteger waiting_for_pause_queue = new AtomicInteger(0);
+    private volatile AtomicInteger pause_count = new AtomicInteger(0);
     long programCommandStartTime;
     private volatile boolean stepMode = false;
     private boolean quitOnTestCommandFailure = !Boolean.getBoolean("crcl4java.client.continueOnTestCommandFailure");
@@ -253,7 +258,9 @@ public class PendantClientInner {
         this.jogRotSpeed = jogRotSpeed;
     }
 
-    private double jogTransSpeed = 100.0;
+    private static final double JOG_TRANS_SPEED_DEFAULT=100.0;
+    
+    private double jogTransSpeed = JOG_TRANS_SPEED_DEFAULT;
 
     /**
      * Get the value of jogTransSpeed
@@ -351,7 +358,7 @@ public class PendantClientInner {
     }
 
     public void closeTestProgramThread() {
-        close_test_count++;
+        close_test_count.incrementAndGet();
         if (null != runTestProgramThread) {
             if (runTestProgramThread.equals(Thread.currentThread())) {
                 return;
@@ -497,10 +504,9 @@ public class PendantClientInner {
 
     public synchronized void setStatSchema(File[] fa) {
         try {
-            fa = CRCLSocket.reorderStatSchemaFiles(fa);
-            CRCLSocket.defaultStatSchema = CRCLSocket.filesToSchema(fa);
+            CRCLSocket.filesToDefaultStatSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setStatSchema(CRCLSocket.defaultStatSchema);
+                this.crclSocket.setStatSchema(CRCLSocket.getDefaultStatSchema());
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -510,14 +516,13 @@ public class PendantClientInner {
 //    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
 //        return xpu.queryXml(cmdSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
 //    }
-    public synchronized void setCmdSchema(File[] fa) {
+    public void setCmdSchema(File[] fa) {
         try {
-            fa = CRCLSocket.reorderCommandSchemaFiles(fa);
-            CRCLSocket.defaultCmdSchema = CRCLSocket.filesToSchema(fa);
+            CRCLSocket.filesToDefaultCmdSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setCmdSchema(CRCLSocket.defaultCmdSchema);
+                this.crclSocket.setStatSchema(CRCLSocket.getDefaultCmdSchema());
             }
-            cmdSchemaFiles = fa;
+//            cmdSchemaFiles = fa;
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -525,24 +530,21 @@ public class PendantClientInner {
 
     public synchronized void setProgramSchema(File[] fa) {
         try {
-            fa = CRCLSocket.reorderProgramSchemaFiles(fa);
-            CRCLSocket.defaultProgramSchema = CRCLSocket.filesToSchema(fa);
+            CRCLSocket.filesToDefaultProgramSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setProgramSchema(CRCLSocket.defaultProgramSchema);
+                this.crclSocket.setProgramSchema(CRCLSocket.getDefaultProgramSchema());
             }
-            programSchemaFiles = fa;
-//            xpu.setSchemaFiles(cmdSchemaFiles);
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
     public File[] getCmdSchemaFiles() {
-        return cmdSchemaFiles;
+        return CRCLSocket.getDefaultCmdSchemaFiles();
     }
 
     public File[] getProgramSchemaFiles() {
-        return programSchemaFiles;
+        return CRCLSocket.getDefaultProgramSchemaFiles();
     }
 
     private File logFile = null;
@@ -573,6 +575,7 @@ public class PendantClientInner {
                 logStream.flush();
                 logStream.close();
             } catch (Exception e) {
+                Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
             }
             logStream = null;
         }
@@ -628,9 +631,6 @@ public class PendantClientInner {
     }
 
     public List<CRCLCommandType> getRecordedCommandsList() {
-        if (null == recordedCommandsList) {
-            recordedCommandsList = new ArrayList<>();
-        }
         synchronized (recordedCommandsList) {
             CRCLCommandType cmd = null;
             while (null != (cmd = recordedCommandsQueue.poll())) {
@@ -642,7 +642,7 @@ public class PendantClientInner {
 
     private BigInteger lastCommandIdSent = null;
 
-    private synchronized boolean sendCommandPrivate(CRCLCommandType cmd) {
+    private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
             if (null == crclSocket) {
                 showMessage("Can not send command when not connected.");
@@ -655,7 +655,7 @@ public class PendantClientInner {
                 prevLastCommandSent = lastCommandSent;
                 lastCommandSent = cmdInstance.getCRCLCommand();
                 if (recordCommands) {
-                    recordedCommandsQueue.offer(cmd);
+                    recordedCommandsQueue.add(cmd);
                 }
                 if (null != outgoingProgramIndex) {
                     cmdInstance.setProgramFile(outgoingProgramFile);
@@ -796,7 +796,7 @@ public class PendantClientInner {
 
     public boolean waitForStatus(long timeoutMilliSeconds, long delay) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
-        int old_pause_count = this.pause_count;
+        int old_pause_count = this.pause_count.get();
         while (null == this.getStatus() && !Thread.currentThread().isInterrupted()) {
             if (timeoutMilliSeconds >= 0
                     && System.currentTimeMillis() - start > timeoutMilliSeconds) {
@@ -811,7 +811,7 @@ public class PendantClientInner {
             if (null == readerThread) {
                 readStatus();
             }
-            if (this.pause_count != old_pause_count || this.paused) {
+            if (this.pause_count.get() != old_pause_count || this.paused) {
                 return false;
             }
         }
@@ -835,7 +835,7 @@ public class PendantClientInner {
             }
             long start = System.currentTimeMillis();
             long timeDiff = System.currentTimeMillis() - start;
-            int old_pause_count = this.pause_count;
+            int old_pause_count = this.pause_count.get();
             final long fullTimeout = timeoutMilliSeconds
                     + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0);
             while (!Thread.currentThread().isInterrupted()
@@ -857,7 +857,7 @@ public class PendantClientInner {
                 if (null == readerThread) {
                     readStatus();
                 }
-                if (this.pause_count != old_pause_count || this.paused) {
+                if (this.pause_count.get() != old_pause_count || this.paused) {
                     return false;
                 }
                 timeDiff = System.currentTimeMillis() - start;
@@ -1103,7 +1103,7 @@ public class PendantClientInner {
                                     pmPose.tran, pmPose.rot,
                                     CRCLPosemath.copy(curStatus)
                             );
-                    poseQueue.offer(annotatedPose);
+                    poseQueue.add(annotatedPose);
                 }
             }
             this.setStatus(curStatus);
@@ -1122,7 +1122,7 @@ public class PendantClientInner {
                         try {
                             PendantClientInner.this.disconnect();
                         } catch (Exception e) {
-                            // ignore
+                            Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
                         }
                     }
                 });
@@ -1140,7 +1140,7 @@ public class PendantClientInner {
                         try {
                             disconnect();
                         } catch (Exception e) {
-                            // ignore
+                            Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
                         }
                     }
                 });
@@ -1517,7 +1517,7 @@ public class PendantClientInner {
 
     public void pause() {
         try {
-            pause_count++;
+            pause_count.incrementAndGet();
             pauseQueue.clear();
             paused = true;
             stopMotion(StopConditionEnumType.NORMAL);
@@ -1528,15 +1528,15 @@ public class PendantClientInner {
 
     public void waitForPause() throws InterruptedException {
         while (paused) {
-            waiting_for_pause_queue++;
+            waiting_for_pause_queue.incrementAndGet();
             pauseQueue.take();
-            waiting_for_pause_queue--;
+            waiting_for_pause_queue.decrementAndGet();
         }
     }
 
     public void unpause() {
         paused = false;
-        for (int i = 0; i < waiting_for_pause_queue + 1; i++) {
+        for (int i = 0; i < waiting_for_pause_queue.get() + 1; i++) {
             try {
                 if (pauseQueue.isEmpty()) {
                     pauseQueue.put(this);
@@ -1636,7 +1636,7 @@ public class PendantClientInner {
     }
 
     public boolean runProgram(CRCLProgramType prog, int startLine) {
-        final int start_close_test_count = this.close_test_count;
+        final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
         try {
@@ -1662,7 +1662,6 @@ public class PendantClientInner {
                 setOutgoingProgramIndex(BigInteger.ZERO);
                 outer.showCurrentProgramLine(startLine);
                 InitCanonType initCmd = prog.getInitCanon();
-                BigInteger origInitCmdId = initCmd.getCommandID();
                 if (initCmd.getCommandID() == null) {
                     initCmd.setCommandID(BigInteger.ONE);
                 }
@@ -1723,7 +1722,7 @@ public class PendantClientInner {
             outer.showDebugMessage("testProgram() succeeded");
             return true;
         } catch (InterruptedException ex) {
-            if (close_test_count <= start_close_test_count) {
+            if (close_test_count.get() <= start_close_test_count) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         } catch (CRCLException | IOException | PmException | JAXBException ex) {
@@ -1801,7 +1800,8 @@ public class PendantClientInner {
         return jointMoveSpeed;
     }
 
-    private double jogJointSpeed = 20;
+    private static final double JOG_JOINT_SPEED_DEFAULT = 20;
+    private double jogJointSpeed = JOG_JOINT_SPEED_DEFAULT;
 
     /**
      * Get the value of jogJointSpeed
@@ -2297,7 +2297,9 @@ public class PendantClientInner {
             newRotAccelRel.setFraction(oldRotAccelRel.getFraction());
             newRotAccel = newRotAccelRel;
         }
-        newRotAccel.setName(oldRotAccel.getName());
+        if (null != newRotAccel) {
+            newRotAccel.setName(oldRotAccel.getName());
+        }
         return newRotAccel;
     }
 
@@ -2317,7 +2319,9 @@ public class PendantClientInner {
             newRotSpeedRel.setFraction(oldRotSpeedRel.getFraction());
             newRotSpeed = newRotSpeedRel;
         }
-        newRotSpeed.setName(oldRotSpeed.getName());
+        if (null != newRotSpeed) {
+            newRotSpeed.setName(oldRotSpeed.getName());
+        }
         return newRotSpeed;
     }
 
@@ -2337,7 +2341,9 @@ public class PendantClientInner {
             newTransAccelRel.setFraction(oldTransAccelRel.getFraction());
             newTransAccel = newTransAccelRel;
         }
-        newTransAccel.setName(oldTransAccel.getName());
+        if (null != newTransAccel) {
+            newTransAccel.setName(oldTransAccel.getName());
+        }
         return newTransAccel;
     }
 
@@ -2357,7 +2363,9 @@ public class PendantClientInner {
             newTransSpeedRel.setFraction(oldTransSpeedRel.getFraction());
             newTransSpeed = newTransSpeedRel;
         }
-        newTransSpeed.setName(oldTransSpeed.getName());
+        if (null != newTransSpeed) {
+            newTransSpeed.setName(oldTransSpeed.getName());
+        }
         return newTransSpeed;
     }
 
@@ -2453,9 +2461,9 @@ public class PendantClientInner {
      * @return false for failure or true for success
      * @throws InterruptedException
      */
-    private boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+    private synchronized boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
-        int pause_count_start = this.pause_count;
+        int pause_count_start = this.pause_count.get();
         long testCommandStartTime = System.currentTimeMillis();
         final String cmdString = cmdString(cmd);
         long sendCommandTime = testCommandStartTime;
@@ -2470,7 +2478,7 @@ public class PendantClientInner {
                 return true;
             }
             this.waitForPause();
-            pause_count_start = this.pause_count;
+            pause_count_start = this.pause_count.get();
             if (null == this.getStatus()) {
                 waitForStatus(2000, 200);
             }
@@ -2515,7 +2523,7 @@ public class PendantClientInner {
 //                return false;
 //            }
             if (!incAndSendCommand(cmd)) {
-                if (pause_count_start != this.pause_count) {
+                if (pause_count_start != this.pause_count.get()) {
                     continue;
                 }
                 showMessage("Can not send " + cmdString + ".");
@@ -2524,7 +2532,7 @@ public class PendantClientInner {
 
             sendCommandTime = System.currentTimeMillis();
             if (!waitForDone(cmd.getCommandID(), timeout)) {
-                if (pause_count_start != this.pause_count) {
+                if (pause_count_start != this.pause_count.get()) {
                     continue;
                 }
                 curTime = System.currentTimeMillis();
@@ -2558,7 +2566,7 @@ public class PendantClientInner {
                 });
                 return false;
             }
-        } while (pause_count_start != this.pause_count);
+        } while (pause_count_start != this.pause_count.get());
 
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
@@ -2619,7 +2627,7 @@ public class PendantClientInner {
         return cmdId;
     }
 
-    public synchronized void setCmdId(BigInteger cmdId) {
+    public void setCmdId(BigInteger cmdId) {
         this.cmdId = cmdId;
     }
 
@@ -2631,6 +2639,13 @@ public class PendantClientInner {
         this.jogIncrement = jogIncrement;
     }
 
+    public void resetPrefs() {
+        jogIncrement = JOG_INCREMENT_DEFAULT;
+        xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
+        jogJointSpeed = JOG_JOINT_SPEED_DEFAULT;
+        jogTransSpeed = JOG_TRANS_SPEED_DEFAULT;
+        jogInterval = JOG_INTERVAL_DEFAULT;
+    }
     public double getXyzJogIncrement() {
         return xyzJogIncrement;
     }

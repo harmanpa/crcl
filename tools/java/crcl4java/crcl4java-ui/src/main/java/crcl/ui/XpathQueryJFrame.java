@@ -247,7 +247,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
 
     String failedQuery = null;
 
-    public void Message(String s) {
+    public void message(String s) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             @Override
@@ -257,7 +257,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
         });
     }
 
-    final XpathUtils xpu;
+    transient final XpathUtils xpu;
 
     boolean isUpdateAutomaticallySelected() {
         return this.jCheckBoxUpdateAutomatically.isSelected();
@@ -272,7 +272,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
             resultString = xpu.queryXmlString(status, query);
         } catch (Exception ex) {
             Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
-            Message("Query :" + query + " of " + status + " failed");
+            message("Query :" + query + " of " + status + " failed");
             failedQuery = query;
         }
         this.setResult(resultString);

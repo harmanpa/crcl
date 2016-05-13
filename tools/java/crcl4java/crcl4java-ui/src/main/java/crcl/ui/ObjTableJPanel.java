@@ -87,7 +87,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         setupTableSelection();
     }
 
-    private XpathUtils xpu = null;
+    transient private XpathUtils xpu = null;
     private File[] schemaFiles = null;
     private String defaultDocumentation = null;
 
@@ -435,7 +435,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     private void updateObjFromTable() {
         DefaultTableModel tm = (DefaultTableModel) this.jTable1.getModel();
         final int row_count = tm.getRowCount();
-        Class clss = obj.getClass();
         for (int i = 0; i < row_count; i++) {
             try {
                 String type = (String) tm.getValueAt(i, 0);
@@ -443,9 +442,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 Object o = tm.getValueAt(i, 2);
                 this.setObjectForName(type, name, o);
 
-            } catch (SecurityException ex) {
-                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
+            } catch (SecurityException | IllegalArgumentException ex) {
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -495,6 +492,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         try {
             f = clss.getField(name);
         } catch (Exception ex) {
+            Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", ex);
         }
         if (null != f) {
             return f;
@@ -502,6 +500,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         try {
             f = clss.getDeclaredField(name);
         } catch (Exception ex) {
+            Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", ex);
         }
         if (null != f) {
             return f;
@@ -536,6 +535,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     map.put(mname, m);
                 }
             } catch (Exception e) {
+                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", e);
             }
             try {
                 if (m.getName().startsWith("is") && m.getParameterCount() == 0) {
@@ -547,6 +547,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     map.put(mname, m);
                 }
             } catch (Exception e) {
+                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", e);
             }
         }
         for (String name : names) {
@@ -611,8 +612,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 if (mclss.equals(boolean.class)) {
                     if (mo == null) {
                         mo = Boolean.FALSE;
-                    } else {
-                        mo = (boolean) mo;
                     }
                     final JCheckBox jc = new JCheckBox("false");
                     jc.setBackground(Color.LIGHT_GRAY);
@@ -748,7 +747,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     private JDialog dialog = null;
     private boolean cancelled = false;
-    private Predicate<T> isValid = null;
+    transient private Predicate<T> isValid = null;
 
     private static <T> T editObjectPriv(JDialog _dialog, T _obj,
             XpathUtils xpu,
@@ -1171,7 +1170,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         if (pobj instanceof List) {
             List l = (List) pobj;
             String indexString = name.substring(name.lastIndexOf('(') + 1, name.lastIndexOf(')'));
-            return l.get(Integer.valueOf(indexString));
+            return l.get(Integer.parseInt(indexString));
         }
         Method mget = null;
         try {
@@ -1384,7 +1383,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             int index1 = name.lastIndexOf(".get(");
             int index2 = name.lastIndexOf(')');
             String indexString = name.substring(index1 + 5, index2);
-            int index = Integer.valueOf(indexString);
+            int index = Integer.parseInt(indexString);
             l.remove(index);
         } catch (SecurityException ex) {
             Logger.getLogger(ObjTableJPanel.class

@@ -180,6 +180,8 @@ public class SimulatedKinematicsSimpleTest {
                 }
                 break;
                 
+                default:
+                    assert false; // This should never happen.
             }
 
             jtest = sk.poseToJoints(jtest, pose);

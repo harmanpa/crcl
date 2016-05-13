@@ -9,8 +9,6 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.FileResource;
@@ -38,6 +36,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
+
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
 import crcl.base.CRCLCommandInstanceType;
@@ -87,6 +86,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -120,7 +120,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private final static File REMOTE_PROGRAM_DIR = new File(System.getProperty("user.home"), ".crcl4java.programs");
 
-    private static CommonInfo commonInfo = CommonInfo.Default(REMOTE_PROGRAM_DIR.list());
+    private static CommonInfo commonInfo = CommonInfo.defaultWithRemotePrograms(REMOTE_PROGRAM_DIR.list());
 
     public static void setCommonInfo(CommonInfo newCommonInfo) {
         updateImages(newCommonInfo, commonInfo);
@@ -191,12 +191,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-    private CRCLSocket socket;
-    private Thread updateThread;
-    private Thread monitorThread;
-    private long lastUpdateTime = 0;
+    transient private CRCLSocket socket;
+    transient private Thread updateThread;
+    transient private Thread monitorThread;
+    transient private long lastUpdateTime = 0;
 
-    private ByteArrayOutputStream recieverOutputStream;
+    transient private ByteArrayOutputStream recieverOutputStream;
     private static Map<String, Resource> browserMap;
 //    private static final Resource defaultBrowserResource
 //            = new ExternalResource("https://github.com/usnistgov/crcl");
@@ -314,7 +314,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         new Label("Joint5 : " + String.format("%+6.1f ", 0.0)),
         new Label("Joint6 : " + String.format("%+6.1f ", 0.0)),};
     private final HorizontalLayout jogJointLines[] = new HorizontalLayout[6];
-    private final CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+    transient private final CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
     private final Table transformPos1Table = new Table("First Live Position");
     private final Button setPos1CurrentButton = new Button("Set First Live Postion to Current Live Position");
     private final Table transformPos2Table = new Table("Second Live Position");
@@ -333,7 +333,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button transformProgramButton = new Button("Apply Transform To Program");
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
-    private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
+    transient private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
     private final Slider minXSlider = new Slider("Min X");
     private final Slider maxXSlider = new Slider("Max X");
     private final Slider minYSlider = new Slider("Min Y");
@@ -349,8 +349,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     private final Table transformMinPosTable = new Table("Minimum");
     private final Table transformMaxPosTable = new Table("Maximum");
-    
-    
+
     static {
         String tempDirProp = System.getProperty("temp.dir");
         if (tempDirProp != null && tempDirProp.length() > 0) {
@@ -370,42 +369,64 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        System.out.println("tempDir = " + tempDir);
+        info(()->"tempDir = " + tempDir);
         sideImageDir = new File(tempDir, "simserver/side");
-        sideImageDir.mkdirs();
-        System.out.println("sideImageDir = " + sideImageDir);
+        boolean made_side_dir = sideImageDir.mkdirs();
+        Logger.getLogger(CrclClientUI.class.getName()).finest(() -> sideImageDir + "mkdirs() returned " + made_side_dir);
+        info(()->"sideImageDir = " + sideImageDir);
         for (File f : sideImageDir.listFiles()) {
-            System.out.println("f = " + f);
-            f.delete();
+            info(()->"f = " + f);
+            boolean deleted = f.delete();
+            if (!deleted) {
+                warning(() -> f + " not deleted");
+            }
         }
         overheadImageDir = new File(tempDir, "simserver/overhead");
-        overheadImageDir.mkdirs();
-        System.out.println("overheadImageDir = " + overheadImageDir);
+        boolean made_overhead_dir = overheadImageDir.mkdirs();
+        Logger.getLogger(CrclClientUI.class.getName()).finest(() -> overheadImageDir + "mkdirs() returned " + made_overhead_dir);
+        info(()->"overheadImageDir = " + overheadImageDir);
         for (File f : overheadImageDir.listFiles()) {
-            System.out.println("f = " + f);
-            f.delete();
+            info(()->"f = " + f);
+            boolean deleted = f.delete();
+            if (!deleted) {
+                warning(() -> f + " not deleted");
+            }
         }
         transformGroupSideImageDir = new File(tempDir, "transformGroup/side");
-        transformGroupSideImageDir.mkdirs();
-        System.out.println("sideImageDir = " + transformGroupSideImageDir);
+        boolean made_tg_dir = transformGroupSideImageDir.mkdirs();
+        Logger.getLogger(CrclClientUI.class.getName()).finest(() -> transformGroupSideImageDir + "mkdirs() returned " + made_tg_dir);
+        info(()->"sideImageDir = " + transformGroupSideImageDir);
         for (File f : transformGroupSideImageDir.listFiles()) {
-            System.out.println("f = " + f);
-            f.delete();
+            info(()->"f = " + f);
+            boolean deleted = f.delete();
+            if (!deleted) {
+                warning(() -> f + " not deleted");
+            }
         }
         transformGroupOverheadImageDir = new File(tempDir, "transformGroup/overhead");
-        transformGroupOverheadImageDir.mkdirs();
-        System.out.println("overheadImageDir = " + transformGroupSideImageDir);
+        boolean made_tg_overhead_dir = transformGroupOverheadImageDir.mkdirs();
+        Logger.getLogger(CrclClientUI.class.getName()).finest(() -> transformGroupOverheadImageDir + "mkdirs() returned " + made_tg_overhead_dir);
         for (File f : transformGroupSideImageDir.listFiles()) {
-            System.out.println("f = " + f);
-            f.delete();
+            boolean deleted = f.delete();
+            if (!deleted) {
+                warning(() -> f + " not deleted");
+            }
         }
         transformGroupOverheadPlotter.setDimension(new Dimension(400, 400));
         transformGroupSidePlotter.setDimension(new Dimension(400, 400));
         browserMap = new HashMap<>();
     }
 
+    private static void info(Supplier<String> messageSupplier) {
+        Logger.getLogger(CrclClientUI.class.getName()).info(messageSupplier);
+    }
+    
+    private static void warning(Supplier<String> messageSupplier) {
+        Logger.getLogger(CrclClientUI.class.getName()).warning(messageSupplier);
+    }
+    
     private String recordPointsProgramName = null;
-    private CRCLProgramType recordPointsProgram = null;
+    transient private CRCLProgramType recordPointsProgram = null;
 
     public void recordCurrentPoint() {
         if (null == recordPointsProgram) {
@@ -586,7 +607,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-    private CommonInfo prevCommonInfo = CommonInfo.Default(REMOTE_PROGRAM_DIR.list());
+    transient private CommonInfo prevCommonInfo = CommonInfo.defaultWithRemotePrograms(REMOTE_PROGRAM_DIR.list());
 
     @Override
     @SuppressWarnings("unchecked")
@@ -602,11 +623,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         final CRCLProgramType oldProgram = prevCommonInfo.getCurrentProgram();
         final String oldProgramFileName = prevCommonInfo.getCurrentFileName();
         final boolean programIsNew = newProgram != oldProgram && !currentFileName.equals(oldProgramFileName);
-        if (newProgram != oldProgram) {
-            System.out.println("programIsNew = " + programIsNew);
-            System.out.println("currentFileName = " + currentFileName);
-            System.out.println("oldProgramFileName = " + oldProgramFileName);
-        }
+//        if (newProgram != oldProgram) {
+//            info(()->"programIsNew = " + programIsNew);
+//            info(()->"currentFileName = " + currentFileName);
+//            info(()->"oldProgramFileName = " + oldProgramFileName);
+//        }
         String remotePrograms[] = commonInfo.getRemotePrograms();
         final String oldRemotePrograms[] = prevCommonInfo.getRemotePrograms();
         final boolean remoteProgramsNew = remotePrograms != null
@@ -667,22 +688,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         checkImageDirs();
     }
 
-    public class JogView extends VerticalLayout implements View {
-
-        @Override
-        public void enter(ViewChangeListener.ViewChangeEvent event) {
-        }
-
-    }
-
-    public class MainView extends HorizontalLayout implements View {
-
-        @Override
-        public void enter(ViewChangeListener.ViewChangeEvent event) {
-        }
-
-    }
-
     private PmCartesian getPmPointFromTable(Table tbl) {
         PmCartesian pt = new PmCartesian();
         Item xItem = tbl.getItem(0);
@@ -698,8 +703,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     public static final String VALUE_ITEM_PROPERTY = "Value";
-    PmPose transformPm = null;
-    PoseType transformPose = null;
+    transient PmPose transformPm = null;
+    transient PoseType transformPose = null;
 
     private void compute2PointTransform() {
         try {
@@ -1018,7 +1023,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     @Override
     @SuppressWarnings("unchecked")
     protected void init(VaadinRequest vaadinRequest) {
-        System.out.println("init(" + vaadinRequest + ")");
         addProgramInfoListener(this);
         final VerticalLayout navLayout = new VerticalLayout();
         navLayout.setSpacing(true);
@@ -1045,7 +1049,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         navLayout.addComponent(navButtons);
         Panel panel = new Panel();
         navLayout.addComponent(panel);
-        final MainView mainLayout = new MainView();
+        final HorizontalLayout mainLayout = new HorizontalLayout();
         final HorizontalLayout jogJointLayout = new HorizontalLayout();
         final HorizontalLayout jogWorldLayout = new HorizontalLayout();
         final VerticalLayout jogWorldLeftLayout = new VerticalLayout();
@@ -1354,7 +1358,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     String string = recieverOutputStream.toString();
                     if (null != string && string.length() > 0) {
                         try {
-                            REMOTE_PROGRAM_DIR.mkdirs();
+                            boolean made_directory = REMOTE_PROGRAM_DIR.mkdirs();
+                            Logger.getLogger(CrclClientUI.class.getName()).finest(() -> REMOTE_PROGRAM_DIR + "mkdirs() returned " + made_directory);
                             try (FileOutputStream fos = new FileOutputStream(new File(REMOTE_PROGRAM_DIR, event.getFilename()))) {
                                 fos.write(string.getBytes());
                             } catch (IOException ex) {
@@ -1437,18 +1442,14 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         remoteProgramTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
             @Override
             public void itemClick(ItemClickEvent event) {
-                try {
-                    Item selectedItem = event.getItem();
-                    CrclClientUI.this.selectedRemoteProgramFilename = selectedItem.getItemProperty("File").getValue().toString();
-                    String filename = CrclClientUI.this.selectedRemoteProgramFilename;
-                    File f = new File(REMOTE_PROGRAM_DIR, filename);
-                    System.out.println("f = " + f);
-                    System.out.println("f.exists() = " + f.exists());
-                    System.out.println("f.getCanonicalPath() = " + f.getCanonicalPath());
-                    setRemoteProgramResourceFile(f);
-                } catch (IOException ex) {
-                    Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                Item selectedItem = event.getItem();
+                CrclClientUI.this.selectedRemoteProgramFilename = selectedItem.getItemProperty("File").getValue().toString();
+                String filename = CrclClientUI.this.selectedRemoteProgramFilename;
+                File f = new File(REMOTE_PROGRAM_DIR, filename);
+//                    info(()->"f = " + f);
+//                    info(()->"f.exists() = " + f.exists());
+//                    info(()->"f.getCanonicalPath() = " + f.getCanonicalPath());
+                setRemoteProgramResourceFile(f);
             }
 
         });
@@ -1747,7 +1748,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     public void disconnect() {
         try {
-            System.out.println("disconnect() called. " + disconnectCount);
             disconnectCount++;
             if (null != updateThread) {
                 updateThread.interrupt();
@@ -1849,18 +1849,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     @Override
     public void close() {
         try {
-            System.out.println("close() called.");
             running = false;
-            prevCommonInfo = CommonInfo.Default(new String[]{});
+            prevCommonInfo = CommonInfo.defaultWithRemotePrograms(new String[]{});
             disconnect();
         } finally {
-            System.out.println("super.close() called.");
             super.close();
-            System.out.println("close() returning.");
         }
     }
 
-    public static double speedFraction = 0.1;
+    private static double speedFraction = 0.1;
 
     public void sendSetSpeed(double fraction) {
         try {
@@ -1884,7 +1881,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     @SuppressWarnings("unchecked")
     private void connect() {
         try {
-            System.out.println("connect() called. " + connectCount);
             connectCount = disconnectCount;
             if (null != socket) {
                 socket.close();
@@ -1897,7 +1893,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
             }
-            socket = new CRCLSocket(hostField.getValue(), Integer.valueOf(portField.getValue()));
+            socket = new CRCLSocket(hostField.getValue(), Integer.parseInt(portField.getValue()));
             mySyncAccess(() -> {
                 connectButton.setEnabled(false);
                 disconnectButton.setEnabled(true);
@@ -1943,7 +1939,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private int jogJointNumber = -1;
     private JogState curJogState = JogState.NONE;
     private JogState prevJogState = JogState.NONE;
-    private CRCLStatusType stat = null;
+    transient private CRCLStatusType stat = null;
 
     private void monitorConnection() {
         try {
@@ -2054,7 +2050,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         super.refresh(request);
     }
 
-    private PointType currentPoint = null;
+    transient private PointType currentPoint = null;
 
     @SuppressWarnings("unchecked")
     private void loadPointToTable(PointType pt, Table tbl) {
@@ -2183,7 +2179,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         return (float) (Math.abs(inc.doubleValue() - Math.abs(goal.doubleValue() - current.doubleValue())) / inc.doubleValue());
     }
 
-    private PoseType currentPose = null;
+    transient private PoseType currentPose = null;
     private static PoseType globalCurrentPose = null;
 
     private BigDecimal jointJogSpeed = BigDecimal.valueOf(5.0);
@@ -2501,6 +2497,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     }
                                 }
                                 break;
+
+                            default:
+                                assert false : "prevJogState=" + prevJogState;
+                            // this should nev
                         }
                     }
                     if (null != pt.getX()) {
@@ -2639,7 +2639,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     for (File f : dirOverhead.listFiles()) {
                         long last_modified = f.lastModified();
                         if (max_last_modified > last_modified + 2000) {
-                            f.delete();
+                            boolean deleted = f.delete();
+                            if (!deleted) {
+                                LOGGER.warning(() -> f + " not deleted");
+                            }
                         }
                     }
                     if (null != max_last_modified_File) {
@@ -2668,7 +2671,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     for (File f : dirSide.listFiles()) {
                         long last_modified = f.lastModified();
                         if (max_last_modified > last_modified + 2000) {
-                            f.delete();
+                            boolean deleted = f.delete();
+                            if (!deleted) {
+                                warning(() -> f + " not deleted");
+                            }
                         }
                     }
                     if (null != max_last_modified_File) {
@@ -2700,7 +2706,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     for (File f : dirOverhead.listFiles()) {
                         long last_modified = f.lastModified();
                         if (max_last_modified > last_modified + 2000) {
-                            f.delete();
+                            boolean deleted = f.delete();
+                            if (!deleted) {
+                                warning(() -> f + " not deleted");
+                            }
                         }
                     }
                     if (null != max_last_modified_File) {
@@ -2749,11 +2758,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             LOGGER.log(Level.SEVERE, null, e);
         }
     }
-    public static double worldAngleIncrementRad = Math.toRadians(30.0);
+    private static double worldAngleIncrementRad = Math.toRadians(30.0);
 
-    private MoveToType prevMoveTo = null;
-    private ActuateJointsType prevActuateJoints = null;
-    private BigInteger lastCmdIdSent = BigInteger.ONE;
+    transient private MoveToType prevMoveTo = null;
+    transient private ActuateJointsType prevActuateJoints = null;
+    transient private BigInteger lastCmdIdSent = BigInteger.ONE;
 
     @SuppressWarnings("unchecked")
     private void runOneProgramStep(final int new_program_index) throws CRCLException {
@@ -2803,7 +2812,6 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     @Override
     public void detach() {
-        System.out.println("detach() called.");
         removeProgramInfoListener(this);
         disconnect();
         super.detach();

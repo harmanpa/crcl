@@ -56,7 +56,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println("i = " + i +" / "+allWebServers.size());
+            System.out.println("i = " + i + " / " + allWebServers.size());
         }
         allWebServers.clear();
         System.out.println("Finished WebServerJFrame.shutdownAll()");
@@ -78,70 +78,70 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 return name.startsWith("crcl4java-vaadin-webapp") && name.endsWith("war-exec.jar");
             }
         });
-        if(null != fa && fa.length > 0) {
+        if (null != fa && fa.length > 0) {
             return Optional.of(fa[0]);
         }
         return Optional.empty();
     }
-    
-    static private Optional<File> findFileInDir(String dir,String filename) {
+
+    static private Optional<File> findFileInDir(String dir, String filename) {
         File fa[] = new File(dir).listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.equals(filename);
             }
         });
-        if(null != fa && fa.length > 0) {
+        if (null != fa && fa.length > 0) {
             return Optional.of(fa[0]);
         }
         return Optional.empty();
     }
-    
+
     private static File findJar() {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
         return Stream.of(userDir,
-                userDir+File.separator+"target",
-                userDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target",
+                userDir + File.separator + "target",
+                userDir + File.separator + "crcl4java-vaadin-webapp" + File.separator + "target",
                 parentDir,
-                parentDir+File.separator+"target",
-                parentDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target"
-                )
+                parentDir + File.separator + "target",
+                parentDir + File.separator + "crcl4java-vaadin-webapp" + File.separator + "target"
+        )
                 .map(WebServerJFrame::findJarInDir)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findFirst().orElse(null);
     }
-    
+
     private static File findFile(String name) {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
-        Function<String,Optional<File>> finder = (String dir) -> findFileInDir(dir, name);
+        Function<String, Optional<File>> finder = (String dir) -> findFileInDir(dir, name);
         return Stream.of(userDir,
-                userDir+File.separator+"target",
-                userDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target",
+                userDir + File.separator + "target",
+                userDir + File.separator + "crcl4java-vaadin-webapp" + File.separator + "target",
                 parentDir,
-                parentDir+File.separator+"target",
-                parentDir+File.separator+"crcl4java-vaadin-webapp"+File.separator+"target"
-                )
+                parentDir + File.separator + "target",
+                parentDir + File.separator + "crcl4java-vaadin-webapp" + File.separator + "target"
+        )
                 .map(finder)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findFirst().orElse(null);
     }
-    
+
     private String getDefaultCommandString() {
         if (System.getProperty("os.name").startsWith("Windows")) {
             File jarFile = findJar();
-            if(null != jarFile) {
+            if (null != jarFile) {
                 try {
-                    return "java -jar "+jarFile.getCanonicalPath();
+                    return "java -jar " + jarFile.getCanonicalPath();
                 } catch (IOException ex) {
                     Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             File batFile = findFile("runWebApp.bat");
-            if(null != batFile) {
+            if (null != batFile) {
                 try {
                     return batFile.getCanonicalPath();
                 } catch (IOException ex) {
@@ -153,19 +153,20 @@ public class WebServerJFrame extends javax.swing.JFrame {
             return (System.getProperty("user.dir") + File.separator + "runWebApp.sh");
         }
     }
+
     /**
      * Creates new form ServerSensorJFrame
      */
     public WebServerJFrame() {
         initComponents();
         try {
-            setURL("http://"+InetAddress.getLocalHost().getHostName()+":8080/crcl4java-vaadin-webapp");
+            setURL("http://" + InetAddress.getLocalHost().getHostName() + ":8080/crcl4java-vaadin-webapp");
         } catch (UnknownHostException ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
         setDirectoryString(System.getProperty("user.dir"));
         readProperties();
-        if(!commandStringSet) {
+        if (!commandStringSet) {
             setCommandString(getDefaultCommandString());
         }
         setIconImage(SERVER_IMAGE);
@@ -204,7 +205,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
     public String getCommandString() {
         return jTextFieldCommand.getText();
     }
-    
+
     public void setURL(String s) {
         try {
             if (javax.swing.SwingUtilities.isEventDispatchThread()) {
@@ -225,7 +226,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    private Runnable onStopRunnable = null;
+    transient private Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -409,9 +410,9 @@ public class WebServerJFrame extends javax.swing.JFrame {
         saveProperties();
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    private Process internalProcess;
-    private Thread monitorOutputThread;
-    private Thread monitorErrorThread;
+    transient private Process internalProcess;
+    transient private Thread monitorOutputThread;
+    transient private Thread monitorErrorThread;
 
     private List<String> consoleStrings = new LinkedList<String>();
 
@@ -434,23 +435,24 @@ public class WebServerJFrame extends javax.swing.JFrame {
         this.maxLoggedStrings = maxLoggedStrings;
     }
 
-    private PrintWriter logger = null;
+    transient volatile private PrintWriter logger = null;
     private File logFile = null;
 
+    private synchronized PrintWriter getLogger() throws IOException {
+        if (logger == null) {
+            logFile = File.createTempFile("webserverlog", "txt");
+            System.out.println("logFile = " + logFile);
+            logger = new PrintWriter(new FileWriter(logFile));
+        }
+        return logger;
+    }
+
     private void monitorInternalProcessOutput() {
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
-                if (logger == null) {
-                    synchronized (this) {
-                        logFile = File.createTempFile("webserverlog", "txt");
-                        System.out.println("logFile = " + logFile);
-                        logger = new PrintWriter(new FileWriter(logFile));
-                    }
-                }
-                logger.println(line);
+                getLogger().println(line);
                 final String s = line;
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(s + "\n"));
             }
@@ -461,8 +463,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessError() {
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()));
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);
@@ -505,6 +506,13 @@ public class WebServerJFrame extends javax.swing.JFrame {
         } catch (Exception exception) {
             javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(exception.toString()));
             throw new Exception(exception);
+        }
+    }
+
+    private synchronized void closeLogger() {
+        if (null != logger) {
+            logger.close();
+            logger = null;
         }
     }
 
@@ -556,27 +564,22 @@ public class WebServerJFrame extends javax.swing.JFrame {
             System.out.println("Finished WebServerJFrame : monitorErrorThread.join(...)");
             monitorErrorThread = null;
         }
-        if (null != logger) {
-            System.out.println("Starting WebServerJFrame : logger.close()");
-            logger.close();
-            logger = null;
-            System.out.println("Finished WebServerJFrame : logger.close()");
-        }
+        closeLogger();
         System.out.println("Starting WebServerJFrame : saveProperties()");
         saveProperties();
         System.out.println("Finished WebServerJFrame : saveProperties()");
-        
+
     }
 
     private static final File PROPERTIES_FILE = new File(System.getProperty("user.home"), ".crcl4java.webserver.properties.txt");
 
     private boolean commandStringSet = false;
-    
+
     private void readProperties() {
         if (PROPERTIES_FILE.exists()) {
-            try {
-                Properties props = new Properties();
-                props.load(new FileReader(PROPERTIES_FILE));
+            Properties props = new Properties();
+            try (FileReader fileReader = new FileReader(PROPERTIES_FILE)) {
+                props.load(fileReader);
                 String cmd = props.getProperty("webServerCmd");
                 if (null != cmd && !cmd.isEmpty()) {
                     jTextFieldCommand.setText(cmd);
@@ -597,12 +600,12 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     private void saveProperties() {
-        try {
+        try (FileWriter fileWriter = new FileWriter(PROPERTIES_FILE)) {
             Properties props = new Properties();
             props.put("webServerCmd", jTextFieldCommand.getText());
             props.put("webServerDirectory", jTextFieldDirectory.getText());
             props.put("url", jTextFieldURL.getText());
-            props.store(new FileWriter(PROPERTIES_FILE), "Saved automatically from "+Arrays.toString(Thread.currentThread().getStackTrace()));
+            props.store(fileWriter, "Saved automatically from " + Arrays.toString(Thread.currentThread().getStackTrace()));
         } catch (IOException ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -645,19 +648,20 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonClearOutputActionPerformed
 
     private void jButtonFullLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFullLogActionPerformed
-        synchronized (this) {
+        showLogFile();
+    }//GEN-LAST:event_jButtonFullLogActionPerformed
+
+    private synchronized  void showLogFile() {
+        closeLogger();
+        if(null != logFile && logFile.exists()) {
             try {
-                logger.close();
                 Desktop.getDesktop().open(logFile);
             } catch (IOException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                logger = null;
-                logFile = null;
             }
         }
-    }//GEN-LAST:event_jButtonFullLogActionPerformed
-
+    }
+    
     private void jTextFieldCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCommandActionPerformed
         saveProperties();
     }//GEN-LAST:event_jTextFieldCommandActionPerformed
@@ -688,7 +692,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(WebServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } 
+        }
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>

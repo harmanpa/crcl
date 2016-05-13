@@ -48,6 +48,7 @@ import static java.lang.Math.atan2;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.util.Objects;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmEulerZyx;
@@ -976,19 +977,6 @@ public class CRCLPosemath {
         }
     }
 
-    private static String toString(BigInteger bi) {
-        if (null == bi) {
-            return "null";
-        }
-        return bi.toString();
-    }
-
-    private static String toString(BigDecimal bd) {
-        if (null == bd) {
-            return "null";
-        }
-        return bd.toString();
-    }
 
     private static String dataTypeThingToStartString(DataThingType dtt) {
         return "{"
@@ -1000,9 +988,9 @@ public class CRCLPosemath {
             return "null";
         }
         return dataTypeThingToStartString(pt)
-                + "x=" + toString(pt.getX()) + ","
-                + "y=" + toString(pt.getY()) + ","
-                + "z=" + toString(pt.getZ())
+                + "x=" + Objects.toString(pt.getX()) + ","
+                + "y=" + Objects.toString(pt.getY()) + ","
+                + "z=" + Objects.toString(pt.getZ())
                 + "}";
     }
 
@@ -1011,9 +999,9 @@ public class CRCLPosemath {
             return "null";
         }
         return dataTypeThingToStartString(v)
-                + "i=" + toString(v.getI()) + ","
-                + "j=" + toString(v.getJ()) + ","
-                + "k=" + toString(v.getK())
+                + "i=" + Objects.toString(v.getI()) + ","
+                + "j=" + Objects.toString(v.getJ()) + ","
+                + "k=" + Objects.toString(v.getK())
                 + "}";
     }
 
@@ -1033,11 +1021,11 @@ public class CRCLPosemath {
             return "null";
         }
         return dataTypeThingToStartString(posetol)
-                + "XPointTolerance=" + toString(posetol.getXPointTolerance()) + ","
-                + "YPointTolerance=" + toString(posetol.getYPointTolerance()) + ","
-                + "ZPointTolerance=" + toString(posetol.getZPointTolerance()) + ","
-                + "XAxisTolerance=" + toString(posetol.getXAxisTolerance()) + ","
-                + "ZAxisTolerance=" + toString(posetol.getZAxisTolerance()) + ","
+                + "XPointTolerance=" + Objects.toString(posetol.getXPointTolerance()) + ","
+                + "YPointTolerance=" + Objects.toString(posetol.getYPointTolerance()) + ","
+                + "ZPointTolerance=" + Objects.toString(posetol.getZPointTolerance()) + ","
+                + "XAxisTolerance=" + Objects.toString(posetol.getXAxisTolerance()) + ","
+                + "ZAxisTolerance=" + Objects.toString(posetol.getZAxisTolerance()) + ","
                 + "}";
     }
 
@@ -1078,7 +1066,7 @@ public class CRCLPosemath {
         try {
             PmRotationMatrix rmat = toPmRotationMatrix(pose);
             PmCartesian cart = toPmCartesian(pose.getPoint());
-            return String.format("{\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g},\n{%.3g,%.3g,%.3g,%.3g}\n}",
+            return String.format("{%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g}%n}",
                     rmat.x.x, rmat.x.y, rmat.x.z, cart.x,
                     rmat.y.x, rmat.y.y, rmat.y.z, cart.y,
                     rmat.z.x, rmat.z.y, rmat.z.z, cart.z,
@@ -1325,7 +1313,6 @@ public class CRCLPosemath {
     public static PoseType multiply(PoseType p1, PoseType p2) {
         PoseType poseOut = new PoseType();
         VectorType yAxis1 = cross(p1.getZAxis(), p1.getXAxis());
-        VectorType yAxis2 = cross(p2.getZAxis(), p2.getXAxis());
         VectorType xAxisOut = new VectorType();
         VectorType zAxisOut = new VectorType();
         PointType pt2 = p2.getPoint();

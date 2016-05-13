@@ -132,6 +132,9 @@ public class SimulatedKinematicsPlausibleTest {
                         pose = CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy);
                     }
                     break;
+                    
+                    default:
+                        assert false;
                 }
 
                 jtest = sk.poseToJoints(jtest, pose);

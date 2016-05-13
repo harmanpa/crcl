@@ -21,14 +21,7 @@
 package crcl.ui;
 
 import static crcl.ui.IconImages.DONE_IMAGE;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Frame;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -213,8 +206,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
         new GripperJFrame().setVisible(true);
     }
     
-    private static String args[] = null;
-
+    
     /**
      * @param args the command line arguments
      */
@@ -242,8 +234,6 @@ public class LauncherJFrame extends javax.swing.JFrame {
         }
         //</editor-fold>
         //</editor-fold>
-
-        LauncherJFrame.args = args;
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {

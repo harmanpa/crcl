@@ -1,9 +1,7 @@
 package com.github.wshackle.crcl4java.vaadin.webapp;
 
-import com.github.wshackle.crcl4java.vaadin.webapp.client.JogButtonClientRpc;
 import com.github.wshackle.crcl4java.vaadin.webapp.client.JogButtonServerRpc;
 import com.github.wshackle.crcl4java.vaadin.webapp.client.JogButtonState;
-import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.ui.AbstractComponent;
 import java.util.HashSet;
 import java.util.Set;

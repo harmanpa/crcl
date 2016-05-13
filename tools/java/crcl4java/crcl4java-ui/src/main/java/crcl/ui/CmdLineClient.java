@@ -79,6 +79,10 @@ public class CmdLineClient {
                         autoRunTest = Boolean.valueOf(args[i + 1]);
                         i++;
                         break;
+                        
+                    default:
+                        System.err.println("Unrecognized argument: "+ args[i]);
+                        break;
                 }
             }
             programSucceeded = false;

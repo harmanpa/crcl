@@ -69,7 +69,6 @@ public class GripperJFrame extends javax.swing.JFrame {
         this.setIconImage(SERVER_IMAGE);
     }
 
-   
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -336,12 +335,12 @@ public class GripperJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jTextFieldPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPortActionPerformed
-        this.setPort(Integer.valueOf(this.jTextFieldPort.getText()));
+        this.setPort(Integer.parseInt(this.jTextFieldPort.getText()));
         this.restartServer();
     }//GEN-LAST:event_jTextFieldPortActionPerformed
 
     private void jTextFieldCycleTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCycleTimeActionPerformed
-        this.setDelayMillis(Integer.valueOf(this.jTextFieldCycleTime.getText()));
+        this.setDelayMillis(Integer.parseInt(this.jTextFieldCycleTime.getText()));
         this.restartServer();
     }//GEN-LAST:event_jTextFieldCycleTimeActionPerformed
 
@@ -389,14 +388,14 @@ public class GripperJFrame extends javax.swing.JFrame {
         this.delayMillis = delayMillis;
     }
 
-    private ServerSocket serverSocket = null;
-    private Thread acceptThread = null;
-    private Thread updateThread = null;
-    private List<CRCLSocket> clients = null;
-    private List<Thread> clientThreads = null;
-    private final java.util.concurrent.LinkedBlockingQueue<CRCLCommandType> cmdQueue
+    transient private ServerSocket serverSocket = null;
+    transient private Thread acceptThread = null;
+    transient private Thread updateThread = null;
+    transient private List<CRCLSocket> clients = null;
+    transient private List<Thread> clientThreads = null;
+    transient private final java.util.concurrent.LinkedBlockingQueue<CRCLCommandType> cmdQueue
             = new java.util.concurrent.LinkedBlockingQueue<>();
-    private final CRCLStatusType status = new CRCLStatusType();
+    transient private final CRCLStatusType status = new CRCLStatusType();
 
     private void close() {
         if (null != clients) {
@@ -442,9 +441,9 @@ public class GripperJFrame extends javax.swing.JFrame {
         }
     }
 
-    private ThreeFingerGripperStatusType threeFingerGripperStatus = null;
-    private VacuumGripperStatusType vacuumGripperStatus = null;
-    private ParallelGripperStatusType parallelGripperStatus = null;
+    transient private ThreeFingerGripperStatusType threeFingerGripperStatus = null;
+    transient private VacuumGripperStatusType vacuumGripperStatus = null;
+    transient private ParallelGripperStatusType parallelGripperStatus = null;
 
     private void checkCommandQueue() {
         CRCLCommandType cmd = this.cmdQueue.poll();
@@ -490,6 +489,10 @@ public class GripperJFrame extends javax.swing.JFrame {
                             }
                             parallelGripperStatus.setSeparation(seeCmd.getSetting());
                             this.jTextFieldParallelSeperation.setText(seeCmd.getSetting().toString());
+                            break;
+
+                        default:
+                            System.err.println("Invalid selected component name: " + this.jTabbedPane1.getSelectedComponent().getName());
                             break;
                     }
 
@@ -564,6 +567,10 @@ public class GripperJFrame extends javax.swing.JFrame {
                 }
                 this.status.setGripperStatus(parallelGripperStatus);
                 break;
+
+            default:
+                System.err.println("Invalid selected component name: " + this.jTabbedPane1.getSelectedComponent().getName());
+                break;
         }
         this.status.getGripperStatus().setGripperName(this.jTabbedPane1.getSelectedComponent().getName());
 
@@ -621,35 +628,31 @@ public class GripperJFrame extends javax.swing.JFrame {
                 clients = new ArrayList<>();
             }
             clients.add(cs);
-            Thread t = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    while (!Thread.currentThread().isInterrupted() && cs.isConnected()) {
-                        try {
-                            CRCLCommandInstanceType cmdInstance = cs.readCommand(false);
-                            if (null == cmdInstance) {
-                                continue;
-                            }
-                            CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                            if (cmd instanceof GetStatusType) {
-                                prepStatus();
-                                if (jCheckBoxMenuItemReplaceState.isSelected()) {
-                                    cs.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
-                                }
-                                cs.writeStatus(status, false);
-                            } else {
-                                cmdQueue.put(cmd);
-                            }
-                        } catch (CRCLException ex) {
-                            Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IOException | InterruptedException iex) {
-                            try {
-                                cs.close();
-                            } catch (Exception cse) {
-                            }
-                            return;
+            Thread t = new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted() && cs.isConnected()) {
+                    try {
+                        CRCLCommandInstanceType cmdInstance = cs.readCommand(false);
+                        if (null == cmdInstance) {
+                            continue;
                         }
+                        CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+                        if (cmd instanceof GetStatusType) {
+                            prepStatus();
+                            if (jCheckBoxMenuItemReplaceState.isSelected()) {
+                                cs.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
+                            }
+                            cs.writeStatus(status, false);
+                        } else {
+                            cmdQueue.put(cmd);
+                        }
+                    } catch (CRCLException ex) {
+                        Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException | InterruptedException iex) {
+                        try {
+                            cs.close();
+                        } catch (Exception cse) {
+                        }
+                        return;
                     }
                 }
             }, "gripperClientThread" + clients.size());
@@ -668,12 +671,12 @@ public class GripperJFrame extends javax.swing.JFrame {
             this.close();
 
             try {
-                int new_port = Integer.valueOf(this.jTextFieldPort.getText());
+                int new_port = Integer.parseInt(this.jTextFieldPort.getText());
                 this.setPort(new_port);
             } catch (NumberFormatException numberFormatException) {
             }
             try {
-                int new_delay_millis = Integer.valueOf(this.jTextFieldCycleTime.getText());
+                int new_delay_millis = Integer.parseInt(this.jTextFieldCycleTime.getText());
                 this.setDelayMillis(new_delay_millis);
             } catch (NumberFormatException numberFormatException) {
             }

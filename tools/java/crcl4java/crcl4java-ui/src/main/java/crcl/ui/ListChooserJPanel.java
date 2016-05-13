@@ -133,7 +133,7 @@ public class ListChooserJPanel<TT> extends javax.swing.JPanel {
         return selectedChoice;
     }
     
-    public static <T> T Choose(Frame owner, String title, T[] choices, T defaultChoice ) {
+    public static <T> T choose(Frame owner, String title, T[] choices, T defaultChoice ) {
         JDialog dialog = new JDialog(owner, title,true);
         ListChooserJPanel<T> panel = new ListChooserJPanel<>(dialog,choices,defaultChoice);
         dialog.setVisible(true);

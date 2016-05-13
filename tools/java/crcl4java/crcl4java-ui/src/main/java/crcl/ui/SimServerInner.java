@@ -133,6 +133,11 @@ import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
+import java.util.Objects;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
 
 /**
  *
@@ -142,9 +147,13 @@ public class SimServerInner {
 
     private final static Set<SimServerInner> runningServers = new HashSet<>();
     private static final Logger LOGGER = Logger.getLogger(SimServerInner.class.getName());
-    public static boolean testing = false;
+    private static boolean testing = false;
     private static final double SCALE_FUDGE_FACTOR = 0.5;
     public static long debugCmdSendTime = 0;
+
+    public static void setTesting(boolean _testing) {
+        testing = _testing;
+    }
 
     private boolean reportPoseStatus = true;
 
@@ -193,6 +202,7 @@ public class SimServerInner {
             settingsStatus.setTransSpeedRelative(newSettingsStatus.getTransSpeedRelative());
         }
     }
+
     public void setStatus(CRCLStatusType newStatus) {
         status.setName(newStatus.getName());
         status.setCommandStatus(newStatus.getCommandStatus());
@@ -401,7 +411,6 @@ public class SimServerInner {
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
     final private CRCLStatusType status = new CRCLStatusType();
-    private File[] statSchemaFiles = null;
     private CRCLCommandType multiStepCommand = null;
     private int moveScrewStep = 0;
     private BigDecimal moveScriptTurnComplete = BigDecimal.ZERO;
@@ -462,7 +471,7 @@ public class SimServerInner {
         this.resetToDefaults();
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
-            this.port = Integer.valueOf(portPropertyString);
+            this.port = Integer.parseInt(portPropertyString);
         }
     }
 
@@ -967,10 +976,9 @@ public class SimServerInner {
 
     public void setCmdSchema(File[] fa) {
         try {
-            fa = CRCLSocket.reorderCommandSchemaFiles(fa);
-            CRCLSocket.defaultCmdSchema = CRCLSocket.filesToSchema(fa);
+            CRCLSocket.filesToDefaultCmdSchema(fa);
             for (ClientState state : this.clientStates) {
-                state.getCs().setCmdSchema(CRCLSocket.defaultCmdSchema);
+                state.getCs().setCmdSchema(CRCLSocket.getDefaultCmdSchema());
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -979,12 +987,10 @@ public class SimServerInner {
 
     public void setStatSchema(File[] fa) {
         try {
-            fa = CRCLSocket.reorderStatSchemaFiles(fa);
-            CRCLSocket.defaultStatSchema = CRCLSocket.filesToSchema(fa);
+            CRCLSocket.filesToDefaultStatSchema(fa);
             for (ClientState state : this.clientStates) {
-                state.getCs().setStatSchema(CRCLSocket.defaultStatSchema);
+                state.getCs().setStatSchema(CRCLSocket.getDefaultStatSchema());
             }
-            this.statSchemaFiles = fa;
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -1100,7 +1106,6 @@ public class SimServerInner {
                 if (cid == null) {
                     cst.setCommandID(BigInteger.ONE);
                 }
-//            outer.showDebugMessage("status="+CRCLSocket.statToDebugString(status));
                 if (null != socket) {
                     try {
                         socket.appendTrailingZero = outer.isAppendZeroSelected();
@@ -1152,8 +1157,12 @@ public class SimServerInner {
                         } catch (IOException ex1) {
                             LOGGER.log(Level.SEVERE, null, ex1);
                         }
-                        this.clientStates.remove(socket);
-//                    showMessage(ex);
+                        for (int i = 0; i < clientStates.size(); i++) {
+                            ClientState cs = clientStates.get(i);
+                            if (Objects.equals(cs.getCs(), socket)) {
+                                clientStates.remove(cs);
+                            }
+                        }
                     }
                     return;
                 }
@@ -1173,7 +1182,7 @@ public class SimServerInner {
                             || !lsi.lastSentState.equals(status.getCommandStatus().getCommandState()));
                 }
                 if (outer.isDebugSendStatusSelected() && new_state) {
-                    outer.showDebugMessage("Status sent to " + socket.getInetAddress() + ":" + socket.getPort()
+                    outer.showDebugMessage("Status sent to " + socket
                             + " CommandId="
                             + status.getCommandStatus().getCommandID()
                             + " StatusId="
@@ -1559,7 +1568,6 @@ public class SimServerInner {
                         }
                         continue;
                     }
-                    state.lastCmdInstance = cmdInstance;
                     debug_this_command = false;
                     if (debugCmdSendTime > 0) {
                         long debugCmdRecvTime = System.currentTimeMillis();
@@ -1578,14 +1586,14 @@ public class SimServerInner {
                                 + " cmdInstance.getCRCLCommand().getCommandID() = " + cmdInstance.getCRCLCommand().getCommandID() + ", state=" + state);
                     }
                     cmdQueuePutTime = System.currentTimeMillis();
-                    SimServerInner.this.cmdQueue.offer(cmdInstance);
+                    SimServerInner.this.cmdQueue.add(cmdInstance);
                     cmdQueueCmdsOffered++;
                     if (cmdQueueMaxSize < cmdQueue.size()) {
                         cmdQueueMaxSize = cmdQueue.size();
                     }
                     if (isGripperCommand(cmdInstance)) {
                         if (null != gripperSocket && gripperSocket.isConnected()) {
-                            gripperCmdQueue.offer(cmdInstance);
+                            gripperCmdQueue.add(cmdInstance);
                         }
                     }
                 }
@@ -1994,25 +2002,26 @@ public class SimServerInner {
                     if (numpositions < 2) {
                         throw new RuntimeException("MoveThroughToType must set NumPositions to at-least 2 but NumPositions=" + numpositions + ".");
                     }
-                    if (wpts.size() < 2) {
-                        throw new RuntimeException("MoveThroughToType must have at-least two waypoints but " + wpts.size() + " were given.");
-                    }
-                    if (wpts.size() != numpositions) {
-                        throw new RuntimeException("MoveThroughToType has NumPositions=" + numpositions + " but " + wpts.size() + " waypoints.");
-                    }
-                    this.setWaypoints(wpts);
                     if (null != wpts) {
+                        if (wpts.size() < 2) {
+                            throw new RuntimeException("MoveThroughToType must have at-least two waypoints but " + wpts.size() + " were given.");
+                        }
+                        if (wpts.size() != numpositions) {
+                            throw new RuntimeException("MoveThroughToType has NumPositions=" + numpositions + " but " + wpts.size() + " waypoints.");
+                        }
+                        this.setWaypoints(wpts);
+
                         for (PoseType pose : wpts) {
                             checkPose(pose);
                         }
-                    }
-                    this.setCommandState(CommandStateEnumType.CRCL_WORKING);
-                    this.setCurrentWaypoint(0);
-                    this.setGoalPose(wpts.get(0));
+                        this.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                        this.setCurrentWaypoint(0);
+                        this.setGoalPose(wpts.get(0));
 
-                    if (teleportToGoals) {
-                        setCurrentWaypoint(wpts.size() - 1);
-                        setGoalPose(wpts.get(wpts.size() - 1));
+                        if (teleportToGoals) {
+                            setCurrentWaypoint(wpts.size() - 1);
+                            setGoalPose(wpts.get(wpts.size() - 1));
+                        }
                     }
                     this.commandedJointAccellerations = null;
                     this.commandedJointVelocities = null;
@@ -2361,7 +2370,6 @@ public class SimServerInner {
         public long lastStatRequestTime = 0;
         BigInteger getStatusCmdId = null;
         BigInteger cmdId = null;
-        CRCLCommandInstanceType lastCmdInstance;
 
         ClientState(CRCLSocket cs) {
             this.cs = cs;

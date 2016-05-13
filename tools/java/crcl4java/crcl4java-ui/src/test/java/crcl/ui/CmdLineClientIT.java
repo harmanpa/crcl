@@ -35,6 +35,7 @@ import static org.junit.Assert.*;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CmdLineClientIT {
+
     private static final Logger LOGGER = Logger.getLogger(CmdLineClientIT.class.getName());
     private static final String DELAY_STRING = "0";
 
@@ -48,18 +49,18 @@ public class CmdLineClientIT {
     @Test
     public void testMain() {
         try {
-            SimServerInner.testing = true;
+            SimServerInner.setTesting(true);
             System.err.println("");
             System.err.flush();
             LOGGER.log(Level.INFO, "");
             LOGGER.log(Level.INFO, "Begin CmdLineClientIT.testMain");
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
-            URL programURL = getClass().getResource("/main/programAll.xml");
+            URL programURL = CmdLineClientIT.class.getResource("/main/programAll.xml");
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = getClass().getResource("/main/initPose.csv");
+            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
@@ -83,7 +84,7 @@ public class CmdLineClientIT {
             System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
             System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
-            System.setProperty("crcl4java.maxdwell","0.01");
+            System.setProperty("crcl4java.maxdwell", "0.01");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
                 "--delayMillis", "10",
@@ -94,7 +95,7 @@ public class CmdLineClientIT {
             });
             CmdLineClient.main(new String[]{"--waitForDoneDelay", DELAY_STRING});
             if (!CmdLineClient.getProgramSucceeded()) {
-                LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.simServerInner.getStatusXmlString());
+                LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
 //                    System.err.println("Thread:" + x.getKey().getName());
 //                    Arrays.stream(x.getValue()).forEach((xx) -> {
@@ -108,10 +109,7 @@ public class CmdLineClientIT {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown");
         }
-        if (null != CmdLineSimServer.simServerInner) {
-            CmdLineSimServer.simServerInner.closeServer();
-            CmdLineSimServer.simServerInner = null;
-        }
+        CmdLineSimServer.closeServer();
         LOGGER.log(Level.INFO, "End CmdLineClientIT.testMain");
         System.err.println("");
         System.out.flush();
@@ -125,7 +123,7 @@ public class CmdLineClientIT {
     @Test
     public void testAutoRunTest() {
         try {
-            SimServerInner.testing = true;
+            SimServerInner.setTesting(true);
             System.err.println("");
             System.err.flush();
             LOGGER.log(Level.INFO, "");
@@ -133,7 +131,7 @@ public class CmdLineClientIT {
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = getClass().getResource("/main/initPose.csv");
+            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.port", "0");
 
@@ -156,7 +154,7 @@ public class CmdLineClientIT {
             System.setProperty("crcl4java.client.exiSelected", "false");// exiSelected
             System.setProperty("crcl4java.client.useReadStatusThreadSelected", "false");
             System.setProperty("crcl4java.simserver.teleportToGoals", "true");
-            System.setProperty("crcl4java.maxdwell","0.01");
+            System.setProperty("crcl4java.maxdwell", "0.01");
 //          System.setProperty("crcl.utils.SimServerInner.enableGetStatusIDCheck", "true");
 //            System.setProperty("crcl.prefixEXISizeEnabled", "true");
             CmdLineSimServer.main(new String[]{
@@ -169,7 +167,7 @@ public class CmdLineClientIT {
                 "--waitForDoneDelay", DELAY_STRING,
                 "--autoRunTest", "true",});
             if (!CmdLineClient.getProgramSucceeded()) {
-                LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.simServerInner.getStatusXmlString());
+                LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
 //                    System.err.println("Thread:" + x.getKey().getName());
 //                    Arrays.stream(x.getValue()).forEach((xx) -> {
@@ -184,10 +182,7 @@ public class CmdLineClientIT {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown");
         }
-        if (null != CmdLineSimServer.simServerInner) {
-            CmdLineSimServer.simServerInner.closeServer();
-            CmdLineSimServer.simServerInner = null;
-        }
+        CmdLineSimServer.closeServer();
         LOGGER.log(Level.INFO, "End CmdLineClientIT.testMain");
         System.err.println("");
         System.out.flush();
@@ -195,28 +190,24 @@ public class CmdLineClientIT {
         LOGGER.log(Level.INFO, "");
     }
 
-
     /**
      * Test of main method, of class CmdLineClient.
      */
     @Test
     public void testMainEXI() {
         try {
-            if (null != CmdLineSimServer.simServerInner) {
-                CmdLineSimServer.simServerInner.closeServer();
-                CmdLineSimServer.simServerInner = null;
-            }
+            CmdLineSimServer.closeServer();
             System.err.println("");
             System.err.flush();
             LOGGER.log(Level.INFO, "");
             LOGGER.log(Level.INFO, "Begin CmdLineClientIT.testMainEXI");
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
-            URL programURL = getClass().getResource("/main/programAll.xml");
+            URL programURL = CmdLineClientIT.class.getResource("/main/programAll.xml");
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = getClass().getResource("/main/initPose.csv");
+            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
@@ -232,8 +223,7 @@ public class CmdLineClientIT {
             System.setProperty("crcl4java.simserver.debugSendStatus", "true");// debugSendStatus
             System.setProperty("crcl4java.simserver.exiSelected", "true");// exiSelected
             System.setProperty("crcl4java.simserver.enableGetStatusIDCheck", "true");
-            
-            
+
             System.setProperty("crcl4java.client.validateXML", "false");// validateXML
             System.setProperty("crcl4java.client.replaceState", "false");// validateXML
             System.setProperty("crcl4java.client.debugWaitForDone", "false");// debugWaitForDone
@@ -253,7 +243,7 @@ public class CmdLineClientIT {
             CmdLineClient.main(new String[]{"--waitForDoneDelay", DELAY_STRING});
             if (!CmdLineClient.getProgramSucceeded()) {
                 System.err.println("CmdLineSimServer.simServerInner.getStatus = "
-                        + CmdLineSimServer.simServerInner.getStatusXmlString());
+                        + CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
 //                    System.err.println("Thread:" + x.getKey().getName());
 //                    Arrays.stream(x.getValue()).forEach((xx) -> {
@@ -268,10 +258,7 @@ public class CmdLineClientIT {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown: " + ex);
         }
-        if (null != CmdLineSimServer.simServerInner) {
-            CmdLineSimServer.simServerInner.closeServer();
-            CmdLineSimServer.simServerInner = null;
-        }
+        CmdLineSimServer.closeServer();
         LOGGER.log(Level.INFO, "End CmdLineClientIT.testMainEXI");
         System.err.println("");
         System.out.flush();

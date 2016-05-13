@@ -953,7 +953,7 @@ public class CRCLPosemathTest {
             PmCartesian cartOut = new PmCartesian();
             Posemath.pmPoseCartMult(pmPose, CRCLPosemath.toPmCartesian(a1), cartOut);
 //            System.out.println("cartOut = " + cartOut);
-            PointType b1AltRecompute = CRCLPosemath.toPointType(cartOut);
+//            PointType b1AltRecompute = CRCLPosemath.toPointType(cartOut);
 //            System.out.println("b1AltRecompute = " + CRCLPosemath.toPmCartesian(b1AltRecompute));
             PointType b1Recompute = CRCLPosemath.multiply(pose, a1);
 //            System.out.println("b1Recompute = " + CRCLPosemath.toPmCartesian(b1Recompute));
@@ -1220,7 +1220,7 @@ public class CRCLPosemathTest {
         System.out.println("toPmPose");
         CRCLStatusType stat = new CRCLStatusType();
         CRCLPosemath.setPose(stat, pose321rot90);
-        PoseType p = pose321rot90;
+//        PoseType p = pose321rot90;
         PmPose expResult = new PmPose(cart321,
                 new PmQuaternion(new PmRotationVector(Math.PI / 2, 0, 0, 1)));
 
@@ -1506,7 +1506,7 @@ public class CRCLPosemathTest {
         System.out.println("copy(GripperStatusType)");
         ParallelGripperStatusType status = new ParallelGripperStatusType();
         status.setSeparation(BIG_DECIMAL_1);
-        GripperStatusType expResult = status;
+//        GripperStatusType expResult = status;
         GripperStatusType result = CRCLPosemath.copy(status);
         checkEquals("seperation", ((ParallelGripperStatusType) result).getSeparation(), 
                 status.getSeparation());

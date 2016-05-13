@@ -39,6 +39,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
 
 /**
  * Example Client using CRCLSocket and blocking on the read.

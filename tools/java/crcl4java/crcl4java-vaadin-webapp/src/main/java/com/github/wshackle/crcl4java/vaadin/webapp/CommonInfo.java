@@ -105,8 +105,8 @@ public class CommonInfo {
         this.transformInfo = transformInfo;
     }
 
-    static public CommonInfo Default(final String[] remotePrograms) {
-        return new CommonInfo(remotePrograms,"",new CRCLProgramType(), 0, TransformInfo.Default());
+    static public CommonInfo defaultWithRemotePrograms(final String[] remotePrograms) {
+        return new CommonInfo(remotePrograms,"",new CRCLProgramType(), 0, TransformInfo.fromTwoPairsOfPoints());
     }
     
     static public CommonInfo withNewProgram(CommonInfo orig,String[] remotePrograms, String currentFileName, CRCLProgramType currentProgram) {

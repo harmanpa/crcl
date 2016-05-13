@@ -21,8 +21,10 @@ package crcl.ui;
 
 import crcl.utils.CRCLPosemath;
 import crcl.utils.SimServerOuterStub;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import rcs.posemath.Posemath;
 
@@ -31,9 +33,27 @@ import rcs.posemath.Posemath;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CmdLineSimServer {
+
+    private static SimServerInner simServerInner = null;
+
+    public static synchronized SimServerInner getSimServerInner() {
+        return simServerInner;
+    }
     
-    public static SimServerInner simServerInner = null;
+    public static synchronized  String getStatusXmlString() throws JAXBException {
+        if(null == simServerInner) {
+            return "null";
+        }
+        return simServerInner.getStatusXmlString();
+    }
     
+    public static synchronized void closeServer() {
+        if (null != simServerInner) {
+            simServerInner.closeServer();
+            simServerInner = null;
+        }
+    }
+
     public static void main(String[] args) {
         try {
             double initPose[][] = null;
@@ -43,24 +63,29 @@ public class CmdLineSimServer {
                         System.setProperty("SimServer.delayMillis", args[i + 1]);
                         i++;
                         break;
-                    
+
                     case "--jointSpeedMax":
                         System.setProperty("SimServer.jointSpeedMax", args[i + 1]);
                         i++;
                         break;
-                        
+
                     case "--maxTransSpeed":
-                         System.setProperty("SimServer.maxTransSpeed", args[i + 1]);
+                        System.setProperty("SimServer.maxTransSpeed", args[i + 1]);
                         i++;
                         break;
-                        
+
                     case "--maxTransAccel":
-                         System.setProperty("SimServer.maxTransAccel", args[i + 1]);
+                        System.setProperty("SimServer.maxTransAccel", args[i + 1]);
                         i++;
                         break;
-                        
+
                     case "--initPose":
                         initPose = Posemath.csvToHomMats(args[i + 1], 0, 1, 2, 3, 4, 5);
+                        i++;
+                        break;
+
+                    default:
+                        System.err.println("Unrecognized argument: " + args[i]);
                         break;
                 }
             }

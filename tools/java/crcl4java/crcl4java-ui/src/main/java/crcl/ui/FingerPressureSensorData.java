@@ -6,6 +6,7 @@
 package crcl.ui;
 
 import com.google.gson.Gson;
+import java.util.Arrays;
 
 /**
  *
@@ -37,24 +38,6 @@ public class FingerPressureSensorData {
     }
 
     private DataItem[] sensor_values;
-
-    /**
-     * Get the value of sensor_values
-     *
-     * @return the value of sensor_values
-     */
-    public DataItem[] getSensor_values() {
-        return sensor_values;
-    }
-
-    /**
-     * Set the value of sensor_values
-     *
-     * @param sensor_values new value of sensor_values
-     */
-    public void setSensor_values(DataItem[] sensor_values) {
-        this.sensor_values = sensor_values;
-    }
 
     public int getFSR_finger_A_distal() {
         if (null != sensor_values) {

@@ -143,7 +143,7 @@ public class CRCLSocket implements AutoCloseable {
         return (utilSocket = new CRCLSocket());
     }
 
-    final public  Socket getSocket() {
+    final public Socket getSocket() {
         if (null != socketChannel) {
             return socketChannel.socket();
         }
@@ -216,31 +216,86 @@ public class CRCLSocket implements AutoCloseable {
             return removeCRCLFromStatePriv(t);
         }
     };
-    public static String statusHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    final public static String statusHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLStatus\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLStatus.xsd\">";
-    public static String cmdHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    final public static String cmdHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLCommandInstance\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLCommandInstance.xsd\">";
-    public static String progHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    final public static String progHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLProgram\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLProgramInstance.xsd\">";
-    public static boolean DEFAULT_JAXB_FRAGMENT = true;
+    final public static boolean DEFAULT_JAXB_FRAGMENT = true;
 
     /*@Nullable*/
-    public static Schema defaultCmdSchema = null;
+    private static Schema defaultCmdSchema = null;
+    private static File defaultCmdSchemaFiles[] = null;
+    private static File defaultProgramSchemaFiles[] = null;
+
+    public static synchronized void filesToDefaultCmdSchema(File fa[]) throws CRCLException {
+        if (null != fa) {
+            fa = reorderCommandSchemaFiles(Arrays.copyOf(fa, fa.length));
+            defaultCmdSchema = filesToSchema(fa);
+            defaultCmdSchemaFiles = fa;
+        }
+    }
+
+    public static synchronized Schema getDefaultCmdSchema() {
+        return defaultCmdSchema;
+    }
+
+    public static synchronized File[] getDefaultCmdSchemaFiles() {
+        if (null == defaultCmdSchemaFiles || defaultCmdSchemaFiles.length < 1) {
+            return new File[0];
+        }
+        return Arrays.copyOf(defaultCmdSchemaFiles, defaultCmdSchemaFiles.length);
+    }
+
+    public static synchronized File[] getDefaultProgramSchemaFiles() {
+        if (null == defaultProgramSchemaFiles || defaultProgramSchemaFiles.length < 1) {
+            return new File[0];
+        }
+        return Arrays.copyOf(defaultProgramSchemaFiles, defaultProgramSchemaFiles.length);
+    }
 
     /*@Nullable*/
-    public static Schema defaultProgramSchema = null;
+    private static Schema defaultProgramSchema = null;
+
+    public static synchronized void filesToDefaultStatSchema(File fa[]) throws CRCLException {
+        if (null != fa) {
+            fa = reorderStatSchemaFiles(Arrays.copyOf(fa, fa.length));
+            defaultStatSchema = filesToSchema(fa);
+        }
+    }
+
+    public static synchronized Schema getDefaultStatSchema() {
+        return defaultStatSchema;
+    }
+
+    public static synchronized void filesToDefaultProgramSchema(File fa[]) throws CRCLException {
+        if (null != fa) {
+            fa = reorderProgramSchemaFiles(Arrays.copyOf(fa, fa.length));
+            defaultProgramSchema = filesToSchema(fa);
+            defaultProgramSchemaFiles = fa;
+        }
+    }
+
+    public static synchronized Schema getDefaultProgramSchema() {
+        return defaultProgramSchema;
+    }
 
     /*@Nullable*/
-    public static Schema defaultStatSchema = null;
+    private static Schema defaultStatSchema = null;
 
     /*@Nullable*/
-    public static File commandXsdFile = null;
+    private static File commandXsdFile = null;
+
+    public static File getCommandXsdFile() {
+        return commandXsdFile;
+    }
 
     private static final Logger LOGGER = Logger.getLogger(CRCLSocket.class.getName());
     private final static File statSchemasFile = new File(System.getProperty("user.home"),
@@ -249,8 +304,8 @@ public class CRCLSocket implements AutoCloseable {
             ".crcljava_cmd_schemas.txt");
     private final static File programSchemasFile = new File(System.getProperty("user.home"),
             ".crcljava_program_schemas.txt");
-    static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
-    static public boolean DEFAULT_RANDOM_PACKETING = false;
+    final static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
+    final static public boolean DEFAULT_RANDOM_PACKETING = false;
     private static final File crclSchemaDirFile;
     private static boolean resourcesCopied = false;
 
@@ -373,16 +428,28 @@ public class CRCLSocket implements AutoCloseable {
 
     public static void clearSchemas() {
         if (null != programSchemasFile && programSchemasFile.exists()) {
-            programSchemasFile.delete();
+            boolean deleted = programSchemasFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(programSchemasFile + " not deleted");
+            }
         }
         if (null != cmdSchemasFile && cmdSchemasFile.exists()) {
-            cmdSchemasFile.delete();
+            boolean deleted = cmdSchemasFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(cmdSchemasFile + " not deleted");
+            }
         }
         if (null != statSchemasFile && statSchemasFile.exists()) {
-            statSchemasFile.delete();
+            boolean deleted = statSchemasFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(statSchemasFile + " not deleted");
+            }
         }
         if (null != crclSchemaDirFile && crclSchemaDirFile.exists()) {
-            crclSchemaDirFile.delete();
+            boolean deleted = crclSchemaDirFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(crclSchemaDirFile + " not deleted");
+            }
         }
     }
 
@@ -407,7 +474,8 @@ public class CRCLSocket implements AutoCloseable {
         if (resourcesCopied) {
             return;
         }
-        crclSchemaDirFile.mkdirs();
+        boolean made_directory = crclSchemaDirFile.mkdirs();
+        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, crclSchemaDirFile+ "mkdirs() returned"+made_directory);
         copyResourcesToFiles(crclSchemaDirFile,
                 "CRCLCommandInstance.xsd",
                 "CRCLCommands.xsd",
@@ -469,7 +537,8 @@ public class CRCLSocket implements AutoCloseable {
      * @param names the value of names
      */
     private static void copyResourcesToFiles(File dirFile, String... names) {
-        dirFile.mkdirs();
+        boolean made_directory = dirFile.mkdirs();
+        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, dirFile+ "mkdirs() returned"+made_directory);
         ClassLoader classLoader = CRCLStatusType.class.getClassLoader();
         if (null != classLoader) {
             for (String name : names) {
@@ -592,7 +661,10 @@ public class CRCLSocket implements AutoCloseable {
 
     public static File[] readStatSchemaFiles(File schemaListFile) {
         if (schemaListFile.exists() && System.currentTimeMillis() - schemaListFile.lastModified() > 60000) {
-            schemaListFile.delete();
+            boolean deleted = schemaListFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
+            }
             saveStatSchemaFiles(schemaListFile, findSchemaFiles());
         } else if (!schemaListFile.exists()) {
             saveStatSchemaFiles(schemaListFile, findSchemaFiles());
@@ -753,7 +825,10 @@ public class CRCLSocket implements AutoCloseable {
 
     public static File[] readCmdSchemaFiles(File schemasListFile) {
         if (schemasListFile.exists() && System.currentTimeMillis() - schemasListFile.lastModified() > 60000) {
-            schemasListFile.delete();
+            boolean deleted = schemasListFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(schemasListFile + " not deleted");
+            }
             saveCmdSchemaFiles(schemasListFile, findSchemaFiles());
         } else if (!schemasListFile.exists()) {
             saveCmdSchemaFiles(schemasListFile, findSchemaFiles());
@@ -899,8 +974,6 @@ public class CRCLSocket implements AutoCloseable {
     // Instance initializer called by all constructors , but not seperately callable.
     {
         try {
-
-            final ObjectFactory of = new crcl.base.ObjectFactory();
             ClassLoader cl = crcl.base.ObjectFactory.class.getClassLoader();
             if (null == cl) {
                 throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
@@ -1143,10 +1216,7 @@ public class CRCLSocket implements AutoCloseable {
 
         exiCommandInSaxSource = null;
         if (null != bufferedInputStream) {
-            try {
-                bufferedInputStream.close();
-            } catch (Exception e) {
-            }
+            bufferedInputStream.close();
             bufferedInputStream = null;
         }
         if (null != socketChannel) {
@@ -1183,62 +1253,66 @@ public class CRCLSocket implements AutoCloseable {
         return this.readInProgressString;
     }
 
-    public String readUntilEndTagOld(final String tag, final InputStream is) throws IOException {
-        byte ba1[] = new byte[1];
-        String rips = "";
-        final String endTagStartString = "</" + tag;
-        final String startTag = "<" + tag;
-        boolean insideStartTag = false;
-        boolean startTag_found = false;
-        boolean endTag_started = false;
-        String str = "";
-        String skipped_str = "";
-        StringBuilder sb = new StringBuilder();
-        synchronized (is) {
-            while (ba1[0] != '>' || !endTag_started && !Thread.currentThread().isInterrupted()) {
-                int bytes_read = is.read(ba1);
-                if (bytes_read != 1) {
-                    Level lvl = rips.length() > 0 ? Level.SEVERE : Level.FINE;
-                    final int brF = bytes_read;
-                    final String ripsF = rips;
-                    LOGGER.log(lvl, "CRCLSocket.readUntilEndTag({0}): read returned {1} before end of tag was found. str = {2}", new Object[]{tag, brF, ripsF});
-                    throw new SocketException("socket closed after read returned:" + bytes_read);
-                }
-                if (ba1[0] == 0) {
-                    continue;
-                }
-                rips += new String(ba1);
-                if (ba1[0] == '>' && !endTag_started && insideStartTag) {
-                    if (rips.endsWith("/>")) {
-                        break;
-                    }
-                    insideStartTag = false;
-                }
-                this.readInProgressString = rips;
-                if (!startTag_found) {
-                    while (rips.length() > 0
-                            && !rips.startsWith(startTag.substring(0, Math.min(rips.length(), startTag.length())))) {
-                        skipped_str += rips.substring(0, 1);
-                        rips = rips.substring(1);
-                        this.readInProgressString = rips;
-                    }
-                    if (rips.startsWith(startTag)) {
-                        startTag_found = true;
-                        insideStartTag = true;
-                    }
-                } else if (!endTag_started) {
-                    endTag_started = rips.endsWith(endTagStartString);
-                }
-            }
-            str = rips;
-            rips = "";
-            this.readInProgressString = rips;
-        }
-        final String threadName = Thread.currentThread().getName();
-        final String skipped_str_f = skipped_str;
-        LOGGER.log(Level.FINER, "readUntilEndTag({0}) called with skipped_str=\"{1}\"  from Thread: {2}", new Object[]{tag, skipped_str_f, threadName});
-        return str;
-    }
+//    public String readUntilEndTagOld(final String tag, final InputStream is) throws IOException {
+//        byte ba1[] = new byte[1];
+//        String rips = "";
+//        final String endTagStartString = "</" + tag;
+//        final String startTag = "<" + tag;
+//        boolean insideStartTag = false;
+//        boolean startTag_found = false;
+//        boolean endTag_started = false;
+//        String str = "";
+//        String skipped_str = "";
+//        StringBuilder skipped_str_sb = new StringBuilder();
+//        synchronized (is) {
+//            while (ba1[0] != '>' || !endTag_started && !Thread.currentThread().isInterrupted()) {
+//                int bytes_read = is.read(ba1);
+//                if (bytes_read != 1) {
+//                    Level lvl = rips.length() > 0 ? Level.SEVERE : Level.FINE;
+//                    final int brF = bytes_read;
+//                    final String ripsF = rips;
+//                    LOGGER.log(lvl, "CRCLSocket.readUntilEndTag({0}): read returned {1} before end of tag was found. str = {2}", new Object[]{tag, brF, ripsF});
+//                    throw new SocketException("socket closed after read returned:" + bytes_read);
+//                }
+//                if (ba1[0] == 0) {
+//                    continue;
+//                }
+//                rips += new String(ba1);
+//                if (ba1[0] == '>' && !endTag_started && insideStartTag) {
+//                    if (rips.endsWith("/>")) {
+//                        break;
+//                    }
+//                    insideStartTag = false;
+//                }
+//                this.readInProgressString = rips;
+//                if (!startTag_found) {
+//                    while (rips.length() > 0
+//                            && !rips.startsWith(startTag.substring(0, Math.min(rips.length(), startTag.length())))) {
+////                        skipped_str += rips.substring(0, 1);
+//                        if(LOGGER.isLoggable(Level.FINER)) {
+//                            skipped_str_sb.append(rips.substring(0, 1));
+//                        }
+//                        rips = rips.substring(1);
+//                        this.readInProgressString = rips;
+//                    }
+//                    if (rips.startsWith(startTag)) {
+//                        startTag_found = true;
+//                        insideStartTag = true;
+//                    }
+//                } else if (!endTag_started) {
+//                    endTag_started = rips.endsWith(endTagStartString);
+//                }
+//            }
+//            str = rips;
+//            rips = "";
+//            this.readInProgressString = rips;
+//        }
+//        final String threadName = Thread.currentThread().getName();
+//        skipped_str = skipped_str_sb.toString();
+//        final String skipped_str_f = skipped_str;
+//        LOGGER.log(Level.FINER, "readUntilEndTag({0}) called with skipped_str=\"{1}\"  from Thread: {2}", new Object[]{tag, skipped_str_f, threadName});
+//        return str;
+//    }
 
     public String readUntilEndTag(final String tag, final InputStream is) throws IOException {
         String rips = "";
@@ -1253,9 +1327,9 @@ public class CRCLSocket implements AutoCloseable {
             lastbyte = readUntilMatch(">", is, sb);
             sb.append(">");
             if (lastbyte != '/') {
-                lastbyte = readUntilMatch(endTagStartString, is, sb);
+                readUntilMatch(endTagStartString, is, sb);
                 sb.append(endTagStartString);
-                lastbyte = readUntilMatch(">", is, sb);
+                readUntilMatch(">", is, sb);
                 sb.append(">");
             }
         }
@@ -1535,13 +1609,13 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    static private <T> /*@NonNull*/ T ToNonNull(/*@Nullable*/T t, String msg) {
-        if (t == null) {
-            throw new RuntimeException(msg);
-        }
-        assert t != null : "@AssumeAssertion(nullness)";
-        return (/*@NonNull*/T) t;
-    }
+//    static private <T> /*@NonNull*/ T ToNonNull(/*@Nullable*/T t, String msg) {
+//        if (t == null) {
+//            throw new RuntimeException(msg);
+//        }
+//        assert t != null : "@AssumeAssertion(nullness)";
+//        return (/*@NonNull*/T) t;
+//    }
 
     public CRCLStatusType
             readStatusFromSaxSource(SAXSource saxSource) throws JAXBException {
@@ -1555,9 +1629,8 @@ public class CRCLSocket implements AutoCloseable {
 
     protected InputStream getBufferedInputStream() throws IOException {
 
-        
-        if(null != socketChannel) {
-            if(!socketChannel.isBlocking() && socketChannel.isRegistered()) {
+        if (null != socketChannel) {
+            if (!socketChannel.isBlocking() && socketChannel.isRegistered()) {
                 throw new IllegalStateException("Can not use SocketChannel inputStream when set non-blocking and registered with selector. It must be deregistered with the SelectionKey's cancel method.");
             }
             socketChannel = (SocketChannel) socketChannel.configureBlocking(true);
@@ -1859,18 +1932,18 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     protected void writePackets(byte ba[]) throws IOException, InterruptedException {
-        if(null != socketChannel) {
+        if (null != socketChannel) {
             writePackets(socketChannel, ba);
         } else {
             writePackets(getSocket().getOutputStream(), ba);
         }
     }
-    
+
     private void writePackets(SocketChannel channel, byte ba[]) throws IOException, InterruptedException {
         if (!this.randomPacketing) {
             int byteswritten = channel.write(ByteBuffer.wrap(ba));
-            while(byteswritten < ba.length) {
-                byteswritten += channel.write(ByteBuffer.wrap(ba,byteswritten,ba.length));
+            while (byteswritten < ba.length) {
+                byteswritten += channel.write(ByteBuffer.wrap(ba, byteswritten, ba.length));
                 Thread.sleep(20);
             }
         } else {
@@ -1881,7 +1954,7 @@ public class CRCLSocket implements AutoCloseable {
             writeRandomSizedPackets(ba, channel, random);
         }
     }
-    
+
     private void writePackets(OutputStream os, byte ba[]) throws IOException, InterruptedException {
         if (!this.randomPacketing) {
             os.write(ba);
@@ -1897,7 +1970,7 @@ public class CRCLSocket implements AutoCloseable {
     private void writeRandomSizedPackets(byte[] ba, SocketChannel channel, Random rand) throws InterruptedException, IOException {
         int bytes_written = 0;
         while (bytes_written < ba.length) {
-            int bytes_to_write = rand.nextInt(ba.length-1)+1;
+            int bytes_to_write = rand.nextInt(ba.length - 1) + 1;
             if (bytes_to_write >= ba.length - bytes_written) {
                 bytes_to_write = ba.length - bytes_written;
             }
@@ -1908,10 +1981,11 @@ public class CRCLSocket implements AutoCloseable {
             }
         }
     }
+
     private void writeRandomSizedPackets(byte[] ba, OutputStream os, Random rand) throws InterruptedException, IOException {
         int bytes_written = 0;
         while (bytes_written < ba.length) {
-            int bytes_to_write = rand.nextInt(ba.length-1)+1;
+            int bytes_to_write = rand.nextInt(ba.length - 1) + 1;
             if (bytes_to_write >= ba.length - bytes_written) {
                 bytes_to_write = ba.length - bytes_written;
             }
@@ -1925,7 +1999,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public void writeWithFill(String str) throws IOException, InterruptedException {
-        if(null != socketChannel) {
+        if (null != socketChannel) {
             if (!appendTrailingZero) {
                 this.writePackets(socketChannel, str.getBytes());
             } else {
@@ -1936,7 +2010,7 @@ public class CRCLSocket implements AutoCloseable {
             }
             return;
         }
-        
+
         final Socket socket = getSocket();
         if (null == socket) {
             throw new IllegalStateException("Internal socket is null.");

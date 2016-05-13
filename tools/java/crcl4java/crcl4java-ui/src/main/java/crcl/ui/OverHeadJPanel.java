@@ -34,6 +34,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -106,21 +107,12 @@ public class OverHeadJPanel extends JPanel {
     private double[] jointvals;
 
     /**
-     * Get the value of jointvals
-     *
-     * @return the value of jointvals
-     */
-    public double[] getJointvals() {
-        return jointvals;
-    }
-
-    /**
      * Set the value of jointvals
      *
      * @param jointvals new value of jointvals
      */
     public void setJointvals(double[] jointvals) {
-        this.jointvals = jointvals;
+        this.jointvals = Arrays.copyOf(jointvals, jointvals.length);
         try {
             if (logImages) {
                 logImage();
@@ -140,8 +132,8 @@ public class OverHeadJPanel extends JPanel {
      * @param seglengths new value of seglengths
      */
     public void setSeglengths(double[] seglengths) {
-        this.seglengths = seglengths;
-        if (null == seglengths || seglengths.length < 1) {
+        this.seglengths = Arrays.copyOf(seglengths,seglengths.length);
+        if (seglengths.length < 1) {
             return;
         }
         l0rect.width = seglengths[0];
@@ -190,8 +182,7 @@ public class OverHeadJPanel extends JPanel {
         try {
             Graphics2D g2d = (Graphics2D) g;
             Dimension d = this.getSize();
-            if (paintImage(g2d, d)) {
-            }
+            paintImage(g2d, d);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -223,7 +214,8 @@ public class OverHeadJPanel extends JPanel {
         g2d.setColor(this.getForeground());
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/overhead");
-        dir.mkdirs();
+        boolean made_dir = dir.mkdirs();
+        Logger.getLogger(OverHeadJPanel.class.getName()).finest(() -> "mkdir "+dir+" returned "+made_dir);
         ImageIO.write(bi, "jpg", new File(dir, "overhead_" + System.currentTimeMillis() + ".jpg"));
     }
     private double maxSimpleJv0 = 0;

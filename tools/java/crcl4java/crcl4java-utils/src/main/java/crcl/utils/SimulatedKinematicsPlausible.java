@@ -135,11 +135,11 @@ public class SimulatedKinematicsPlausible {
         Point2D.Double endPtXY = new Point2D.Double(
                 pt.getX().doubleValue(),
                 pt.getY().doubleValue());
-        double r = Math.sqrt(
-                endPtXY.x * endPtXY.x
-                + endPtXY.y * endPtXY.y
-        );
-        double z = pt.getZ().doubleValue();
+//        double r = Math.sqrt(
+//                endPtXY.x * endPtXY.x
+//                + endPtXY.y * endPtXY.y
+//        );
+//        double z = pt.getZ().doubleValue();
         VectorType xv = pose.getXAxis();
         double xvi = xv.getI().doubleValue();
         double xvj = xv.getJ().doubleValue();
@@ -164,11 +164,11 @@ public class SimulatedKinematicsPlausible {
             Logger.getLogger(SimulatedKinematicsPlausible.class.getName()).log(Level.SEVERE, "invalid pose", ex);
         }
 
-        r = Math.sqrt(
+        double r = Math.sqrt(
                 j4PointXY.x * j4PointXY.x
                 + j4PointXY.y * j4PointXY.y
         );
-        z = j4z;
+        double z = j4z;
         //System.err.println("r,z,angle 2 = " + r+","+z+","+Math.toDegrees(a2));
         r -= sl[2] * Math.cos(a2);
         z -= sl[2] * Math.sin(a2);
@@ -176,7 +176,7 @@ public class SimulatedKinematicsPlausible {
         double mag1 = Math.sqrt(r * r + z * z);
         //System.err.println("mag1 = " + mag1);
         double s12_sum2 = sl[0] * sl[0] + sl[1] * sl[1];
-        double s12_sum2_sqrt = Math.sqrt(s12_sum2);
+//        double s12_sum2_sqrt = Math.sqrt(s12_sum2);
         double sum = (sl[0] + sl[1]);
         if (mag1 > sum) {
             throw new IllegalArgumentException(
@@ -201,7 +201,7 @@ public class SimulatedKinematicsPlausible {
         //System.err.println("Math.toDegrees(a4) = " + Math.toDegrees(a4));
         double z2 = z + Math.cos(a4);
         double mag2 = mag1 - Math.sin(a4);
-        double a5 = Math.atan2(z2, mag2);
+//        double a5 = Math.atan2(z2, mag2);
         jv[1] = Math.toDegrees(a4);
         jv[3] = Math.toDegrees(a2) - jv[2] - jv[1];
         //System.err.println("poseToJoints("+Arrays.toString(_jv)+","+pose+") returning:"+ Arrays.toString(jv));
@@ -262,7 +262,7 @@ public class SimulatedKinematicsPlausible {
         double y = r * Math.sin(Math.toRadians(jv[0])) + sl[3] * Math.sin(Math.toRadians(jv[4] + jv[0])) * Math.cos(Math.toRadians(angle));
         //System.err.println("y = " + y);
         //System.err.println("Math.sqrt(x*x+y*y)="+Math.sqrt(x*x+y*y));
-        r += sl[3] * Math.cos(Math.toRadians(angle)) * Math.cos(Math.toRadians(jv[4]));
+//        r += sl[3] * Math.cos(Math.toRadians(angle)) * Math.cos(Math.toRadians(jv[4]));
         z += sl[3] * Math.sin(Math.toRadians(angle));
         //System.err.println("r,z,angle 3 = " + r+","+z+","+angle);
         PointType p = pose.getPoint();

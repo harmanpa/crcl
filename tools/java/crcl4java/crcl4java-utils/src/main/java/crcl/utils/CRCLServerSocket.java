@@ -41,11 +41,14 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -58,15 +61,46 @@ import java.util.logging.Logger;
  */
 public class CRCLServerSocket implements AutoCloseable, Runnable {
 
-    private final List<CRCLSocket> clients = new ArrayList<>();
+    private final List<CRCLServerClientInfo> clients = new ArrayList<>();
 
+    public static class CRCLServerClientInfo implements AutoCloseable {
+        private final CRCLSocket socket;
+        private final Future<?> future;
+
+        public CRCLSocket getSocket() {
+            return socket;
+        }
+
+        public Future<?> getFuture() {
+            return future;
+        }
+
+        public CRCLServerClientInfo(CRCLSocket socket, Future<?> future) {
+            this.socket = socket;
+            this.future = future;
+        }
+        
+        @Override
+        public void close() {
+            try {
+                if(null != socket) {
+                    this.socket.close();
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if(null != future) {
+                this.future.cancel(true);
+            }
+        }
+    }
     /**
      * Get the value of clients
      *
      * @return the value of clients
      */
-    public List<CRCLSocket> getClients() {
-        return clients;
+    public List<CRCLServerClientInfo> getClients() {
+        return Collections.unmodifiableList(clients);
     }
 
     private int port = CRCLSocket.DEFAULT_PORT;
@@ -179,7 +213,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         }
         for (int i = 0; i < clients.size(); i++) {
             try {
-                CRCLSocket client = clients.get(i);
+                CRCLServerClientInfo client = clients.get(i);
                 client.close();
             } catch (Exception exception) {
                 exception.printStackTrace();
@@ -299,7 +333,12 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
             } catch (IOException ex) {
                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
-            clients.remove(event.getSource());
+            for (int i = 0; i < clients.size(); i++) {
+                CRCLServerClientInfo c = clients.get(i);
+                if(Objects.equals(c.getSocket(), event.getSource())) {
+                    clients.remove(c);
+                }
+            }
             throw new InterruptedException("Closing socket due to " + event.getException());
         }
     }
@@ -424,7 +463,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                 return;
             }
             runcount++;
-            for (CRCLSocket crclSocket : clients) {
+            for (CRCLServerClientInfo crclSocket : clients) {
                 crclSocket.close();
             }
             clients.clear();
@@ -482,7 +521,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                         clientSocketChannel
                                 = (SocketChannel) clientSocketChannel.configureBlocking(false);
                         CRCLSocket crclSocket = new CRCLSocket(clientSocketChannel);
-                        clients.add(crclSocket);
+                        clients.add(new CRCLServerClientInfo(crclSocket,null));
                         SelectionKey newKey
                                 = clientSocketChannel.register(selector, SelectionKey.OP_READ, crclSocket);
                     }
@@ -587,8 +626,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                 return;
             }
             final CRCLSocket crclSocket = new CRCLSocket(socket);
-            clients.add(crclSocket);
-            executorService.submit(new Runnable() {
+            Future<?> future = executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -607,6 +645,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                     }
                 }
             });
+            clients.add(new CRCLServerClientInfo(crclSocket,future));
         }
     }
 
@@ -655,11 +694,11 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         }
     }
 
-    public void start() {
+    public Future<?> start() {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }
         initExecutorService();
-        executorService.submit(this);
+        return executorService.submit(this);
     }
 }

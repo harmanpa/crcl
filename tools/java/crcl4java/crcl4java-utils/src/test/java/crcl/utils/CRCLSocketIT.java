@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -87,8 +88,7 @@ public class CRCLSocketIT {
         System.out.println(testName);
         System.setProperty("CRCLServerSocket.multithreaded", Boolean.toString(serverMultiThreaded));
         final Thread serverThread = new Thread(new Runnable() {
-            public Exception ex = null;
-
+            
             @Override
             public void run() {
                 try {
@@ -161,8 +161,8 @@ public class CRCLSocketIT {
                     timeoutOccured = true;
                     Map<Thread, String> allThreads = new HashMap<>();
                     Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
-                    for (Thread thread : traces.keySet()) {
-                        allThreads.put(thread, Arrays.deepToString(traces.get(thread)) + "\n");
+                    for (Entry<Thread, StackTraceElement[]> entry : traces.entrySet()) {
+                        allThreads.put(entry.getKey(), Arrays.deepToString(entry.getValue()) + "\n");
                     }
                     Logger.getLogger(CRCLSocketIT.class.getName()).log(Level.SEVERE, "Timedout with Thread.getAllStackTraces()=" + allThreads);
                     serverThread.interrupt();

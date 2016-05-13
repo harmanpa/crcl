@@ -84,7 +84,7 @@ public class TransformInfo {
         this.b2 = b2;
     }
     
-    public static TransformInfo Default() {
+    public static TransformInfo fromTwoPairsOfPoints() {
         return new TransformInfo(new PointType(), new PointType(), new PointType(), new PointType());
     }
     
