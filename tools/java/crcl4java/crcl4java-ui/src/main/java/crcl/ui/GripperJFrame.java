@@ -20,7 +20,6 @@
  */
 package crcl.ui;
 
-import com.github.wshackle.crcl4java.exi.CrclExiSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -33,15 +32,10 @@ import crcl.base.ParallelGripperStatusType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.VacuumGripperStatusType;
+import crcl.exi.CrclExiSocket;
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;

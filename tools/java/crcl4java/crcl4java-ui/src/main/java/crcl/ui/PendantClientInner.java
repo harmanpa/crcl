@@ -19,7 +19,6 @@
  */
 package crcl.ui;
 
-import com.github.wshackle.crcl4java.exi.CrclExiSocket;
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
 import crcl.base.AngleUnitEnumType;
@@ -74,6 +73,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import crcl.exi.CrclExiSocket;
 import crcl.utils.AnnotatedPose;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -99,7 +99,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

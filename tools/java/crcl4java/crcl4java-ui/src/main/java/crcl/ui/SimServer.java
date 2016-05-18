@@ -20,7 +20,6 @@
  */
 package crcl.ui;
 
-import com.github.wshackle.crcl4java.exi.CrclExiSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -30,6 +29,7 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
+import crcl.exi.CrclExiSocket;
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
@@ -55,10 +55,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
 /**
  *

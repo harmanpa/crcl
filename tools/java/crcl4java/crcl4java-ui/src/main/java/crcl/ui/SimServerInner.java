@@ -20,7 +20,6 @@
  */
 package crcl.ui;
 
-import com.github.wshackle.crcl4java.exi.CrclExiSocket;
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
 import crcl.base.AngleUnitEnumType;
@@ -35,7 +34,6 @@ import crcl.base.ConfigureJointReportsType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
-import crcl.base.ForceUnitEnumType;
 import crcl.base.GetStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
@@ -81,6 +79,7 @@ import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VectorType;
+import crcl.exi.CrclExiSocket;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.SimRobotEnum;
@@ -129,13 +128,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import static crcl.utils.CRCLPosemath.toPmCartesian;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import java.util.Objects;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 

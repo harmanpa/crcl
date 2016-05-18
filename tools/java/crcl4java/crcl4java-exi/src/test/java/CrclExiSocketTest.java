@@ -21,7 +21,7 @@
  * 
  */
 
-import com.github.wshackle.crcl4java.exi.CrclExiSocket;
+import crcl.exi.CrclExiSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
