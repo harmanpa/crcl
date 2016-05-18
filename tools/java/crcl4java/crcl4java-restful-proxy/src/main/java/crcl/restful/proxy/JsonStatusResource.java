@@ -27,12 +27,13 @@ import crcl.utils.CRCLException;
 import java.io.IOException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -46,6 +47,8 @@ public class JsonStatusResource {
 
     @Context
     private UriInfo context;
+
+    private static final QName STATUS_QNAME = new QName("CRCLStatus");
 
     /**
      * Creates a new instance of JsonStatusResource
@@ -62,10 +65,18 @@ public class JsonStatusResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public JAXBElement<CRCLStatusType> getJson() throws CRCLException, IOException {
-        return new JAXBElement<>(new QName("CRCLSocket"),
+    public Response getJson() throws CRCLException, IOException {
+        JAXBElement<CRCLStatusType> content =
+                new JAXBElement<>(STATUS_QNAME,
                 CRCLStatusType.class,
                 ProxyCommon.getTheCommonProxy().getStatus());
+        CacheControl cc = new CacheControl();
+        cc.setNoCache(true);
+        cc.setNoStore(true);
+        GenericEntity<JAXBElement<CRCLStatusType>> entity = new GenericEntity<JAXBElement<CRCLStatusType>>(content) {};
+        Response.ResponseBuilder builder = Response.ok(entity);
+        builder.cacheControl(cc);
+        return builder.build();
     }
 
 }

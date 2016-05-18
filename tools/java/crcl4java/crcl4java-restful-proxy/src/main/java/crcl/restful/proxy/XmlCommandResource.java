@@ -33,7 +33,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -55,22 +58,33 @@ public class XmlCommandResource {
     }
 
     private static final QName COMMAND_QNAME = new QName("CRCLCommand");
-    
+
     /**
      * Retrieves representation of the last command sent through this server.
-     * 
-     * @return A JAXBElement<CRCLCommandInstanceType> created from the last command.
+     *
+     * @return A JAXBElement<CRCLCommandInstanceType> created from the last
+     * command.
      */
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public JAXBElement<CRCLCommandInstanceType> getXml() {
-        return new JAXBElement<>(COMMAND_QNAME,
-                CRCLCommandInstanceType.class,
-                ProxyCommon.getTheCommonProxy().getCmdInstance());
+    public Response getXml() {
+        JAXBElement<CRCLCommandInstanceType> content
+                = new JAXBElement<>(COMMAND_QNAME,
+                        CRCLCommandInstanceType.class,
+                        ProxyCommon.getTheCommonProxy().getCmdInstance());
+        CacheControl cc = new CacheControl();
+        cc.setNoCache(true);
+        cc.setNoStore(true);
+
+        GenericEntity<JAXBElement<CRCLCommandInstanceType>> entity = new GenericEntity<JAXBElement<CRCLCommandInstanceType>>(content) {};
+        Response.ResponseBuilder builder = Response.ok(entity);
+        builder.cacheControl(cc);
+        return builder.build();
     }
 
     /**
      * PUT method sends a command to the Robot to be executed.
+     *
      * @param content representation for the resource
      * @throws crcl.utils.CRCLException XML is invalid.
      * @throws java.io.IOException Network connection to robot failed.

@@ -30,7 +30,10 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -44,6 +47,8 @@ public class XmlStatusResource {
 
     @Context
     private UriInfo context;
+
+    private static final QName STATUS_QNAME = new QName("CRCLCommand");
 
     /**
      * Creates a new instance of XmlStatusResource
@@ -60,10 +65,19 @@ public class XmlStatusResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public JAXBElement<CRCLStatusType>  getXml() throws CRCLException, IOException {
-        return new JAXBElement<>(new QName("CRCLSocket"),
+    public Response  getXml() throws CRCLException, IOException {
+        JAXBElement<CRCLStatusType> content =
+                new JAXBElement<>(STATUS_QNAME,
                 CRCLStatusType.class,
                 ProxyCommon.getTheCommonProxy().getStatus());
+        CacheControl cc = new CacheControl();
+        cc.setNoCache(true);
+        cc.setNoStore(true);
+
+        GenericEntity<JAXBElement<CRCLStatusType>> entity = new GenericEntity<JAXBElement<CRCLStatusType>>(content) {};
+        Response.ResponseBuilder builder = Response.ok(entity);
+        builder.cacheControl(cc);
+        return builder.build();
     }
 
 }
