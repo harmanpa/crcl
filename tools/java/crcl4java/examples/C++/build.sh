@@ -1,6 +1,15 @@
 #!/bin/sh
 set -x;
 
+# Change to the directory this script is stored in. 
+DIR=$(dirname $0 )
+if test "x${DIR}" != "x" ; then
+    if test -d "${DIR}" ; then
+        cd "$DIR";
+    fi
+fi
+
+
 ## This will need to be edited on most systems that do NOT already have JAVA_HOME set.
 JAVA_HOME_DEFAULT="/usr/lib/jvm/java-8-oracle/";
 
@@ -43,8 +52,7 @@ mkdir generated;
     cd generated;
     JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     if test "x${JAVA4CPP_JAR}" = "x" ; then
-        #wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.3/java4cpp-1.3-jar-with-dependencies.jar"
-        wget "https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/java4cpp/1.4-SNAPSHOT/java4cpp-1.4-20160506.125624-2-jar-with-dependencies.jar"
+        wget "http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.4/java4cpp-1.4-jar-with-dependencies.jar"
         JAVA4CPP_JAR=`ls -1t java4cpp*.jar | head -n 1`;
     fi
     "${JAVA_HOME}/bin/java" -jar "${JAVA4CPP_JAR}" -p crcl -n crclj -j "../${CRCL4JAVA_UTILS_JAR}" || exit 1;
