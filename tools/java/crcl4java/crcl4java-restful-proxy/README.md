@@ -7,6 +7,10 @@ This module provides a proxy which allows clients to connect to a RESTful interf
 Commands are forwarded over simple TCP connection. Status is obtained over the simple
 TCP connection and made available via the RESTful interface.
 
+The RESTful proxy will also convert from XML to/from JSON as required if the 
+JSON resources are accessed.
+
+
 
 Build
 -----
