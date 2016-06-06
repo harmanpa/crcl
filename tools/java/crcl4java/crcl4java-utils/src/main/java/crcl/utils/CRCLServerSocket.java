@@ -186,6 +186,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
 
     @Override
     public void close() throws Exception {
+        started = false;
         closing = true;
         if (queueEvents) {
             queue.offer(new CRCLServerSocketEvent(null, null, null), 1, TimeUnit.SECONDS);
@@ -344,6 +345,13 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     }
 
     public CRCLServerSocketEvent waitForEvent() throws InterruptedException {
+        if(!started && !isRunning()) {
+            throw new IllegalStateException("CRCLServerSocket must be running/started before call to waitForEvent.");
+        }
+        if(!queueEvents) {
+             throw new IllegalStateException("queueEvents should be set before call to waitForEvent.");
+           
+        }
         return queue.take();
     }
 
@@ -694,11 +702,14 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         }
     }
 
+    private boolean started = false;
+    
     public Future<?> start() {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }
         initExecutorService();
+        started = true;
         return executorService.submit(this);
     }
 }

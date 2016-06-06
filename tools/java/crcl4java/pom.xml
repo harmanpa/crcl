@@ -11,7 +11,7 @@
         <module>crcl4java-ui</module>
         <module>crcl4java-exi</module>
         <module>crcl4java-commons-math</module>
-  </modules>
+    </modules>
     <url>
         https://github.com/usnistgov/crcl
     </url>
@@ -255,6 +255,7 @@
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-fanuc</module>
+                <module>crcl4java-zeroc-ice</module>
             </modules>
         </profile>
         <profile> 
@@ -262,6 +263,12 @@
             <modules>
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
+            </modules>
+        </profile>
+        <profile> 
+            <id>withice</id>
+            <modules>
+                <module>crcl4java-zeroc-ice</module>
             </modules>
         </profile>
         <profile>
