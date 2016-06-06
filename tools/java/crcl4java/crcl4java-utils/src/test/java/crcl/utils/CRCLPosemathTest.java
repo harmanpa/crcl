@@ -410,7 +410,7 @@ public class CRCLPosemathTest {
                 + "{0.00,0.00,1.00,1.00},\n"
                 + "{0.00,0.00,0.00,1.00}\n"
                 + "}";
-        String result = CRCLPosemath.poseToString(pose);
+        String result = CRCLPosemath.poseToString(pose).replace("\r", "");
         assertEquals(expResult, result);
     }
 
