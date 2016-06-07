@@ -44,13 +44,11 @@ public class ClientMain extends Ice.Application {
         try (CRCLServerSocket svrSocket = new CRCLServerSocket(CRCLSocket.DEFAULT_PORT + 1)) {
             svrSocket.setQueueEvents(true);
             svrSocket.start();
-
             while (!Thread.currentThread().isInterrupted()) {
                 CRCLServerSocketEvent event = svrSocket.waitForEvent();
                 CRCLCommandInstanceType cmdInstance = event.getInstance();
                 if (null != cmdInstance) {
                     CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                    System.out.println("cmd = " + cmd);
                     if (cmd instanceof GetStatusType) {
                         try {
                             CRCLStatusTypeIce statusIce = wrapper.readStatus();
@@ -71,7 +69,6 @@ public class ClientMain extends Ice.Application {
         } catch (Exception ex) {
             Logger.getLogger(ClientMain.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Returning from run");
         return 0;
     }
 

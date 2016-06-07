@@ -46,7 +46,6 @@ public class CRCLSocketWrapper extends _CRCLSocketWrapperDisp {
     @Override
     public void writeCommand(CRCLCommandInstanceTypeIce cmd, Current __current) {
         try {
-            System.out.println("cmd = " + cmd);
             CRCLCommandInstanceType cmdToSend = fromIce(cmd);
             crclSocket.writeCommand(cmdToSend);
         } catch (CRCLException ex) {
@@ -67,11 +66,9 @@ public class CRCLSocketWrapper extends _CRCLSocketWrapperDisp {
     @Override
     public CRCLStatusTypeIce readStatus(Current __current) {
         try {
-            System.out.println("Checking status ...");
             getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
             crclSocket.writeCommand(getStatusInstance);
             CRCLStatusType status = crclSocket.readStatus();
-            System.out.println("status = " + status);
             CRCLStatusTypeIce iceStatus = toIce(status);
             return iceStatus;
         } catch (CRCLException ex) {

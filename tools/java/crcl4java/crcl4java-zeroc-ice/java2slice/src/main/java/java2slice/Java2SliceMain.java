@@ -225,7 +225,7 @@ public class Java2SliceMain {
                     info("zip = " + zip);
                 }
                 for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
-                    
+
                     if (verbose) {
                         final ZipEntry entryToPrint = entry;
                         info("entry = " + entryToPrint);
@@ -246,7 +246,7 @@ public class Java2SliceMain {
                     }
                     String fullClassName
                             = entryName.substring(0, entryName.length() - ".class".length())
-                                    .replace("/", ".");
+                            .replace("/", ".");
                     if (verbose) {
                         info("clssName=" + fullClassName);
                     }
@@ -271,7 +271,7 @@ public class Java2SliceMain {
         }
         List<Class> newOrderClasses = new ArrayList<>();
         for (Class clss : classes) {
-            if(Enum.class.equals(clss)) {
+            if (Enum.class.equals(clss)) {
                 continue;
             }
             if (newOrderClasses.contains(clss)) {
@@ -361,7 +361,7 @@ public class Java2SliceMain {
 
             for (int i = 0; i < classes.size(); i++) {
                 Class clss = classes.get(i);
-                if(Enum.class.equals(clss)) {
+                if (Enum.class.equals(clss)) {
                     continue;
                 }
                 if (clss.isEnum()) {
@@ -392,7 +392,8 @@ public class Java2SliceMain {
                 }
                 tabs += "\t";
                 for (Entry<String, ClassInfo> e : propsMap.entrySet()) {
-                    if (List.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                    Class propClass = e.getValue().getPropertyClass();
+                    if (List.class.isAssignableFrom(propClass)) {
                         Method ma[] = clss.getMethods();
                         for (int j = 0; j < ma.length; j++) {
                             Method method = ma[j];
@@ -405,17 +406,13 @@ public class Java2SliceMain {
                             }
                         }
                     }
+                    if (isRefToPrimitive(propClass)) {
+                        slicePw.println(tabs + "bool" + " " + e.getKey() + "IsNull;");
+                    }
                     slicePw.println(tabs + classToIceType(e.getValue()) + " " + e.getKey() + ";");
                 }
                 tabs = tabs.substring(1);
                 slicePw.println(tabs + "};");
-//                            pw.println(tabs + "interface " + clssName + "Supplier {");
-//                            pw.println(tabs + "\t" + clssName + "Ice get();");
-//                            pw.println(tabs + " };");
-//                            pw.println(tabs + "interface " + clssName + "Consumer {");
-//                            pw.println(tabs + "\tvoid accept(" + clssName + "Ice t);");
-//                            pw.println(tabs + " };");
-
                 for (int j = 0; j < pkgs.length - 1; j++) {
                     tabs = tabs.substring(1);
                     slicePw.println(tabs + "};");
@@ -490,19 +487,22 @@ public class Java2SliceMain {
                     info("propsMap = " + propsMap);
                 }
                 String clssName = splitClassName(clss);
-                if(clssName.contains("CRCLStatus")) {
+                if (clssName.contains("CRCLStatus")) {
                     System.out.println("found it");
                 }
                 String toFileTabs = "\t\t";
                 toFilePw.println();
 
                 toFilePw.println("\tpublic static " + clssName + "Ice toIce(" + clssName + " in) {");
+                toFilePw.println(toFileTabs + "if(null == in) {");
+                toFilePw.println(toFileTabs + "\t return null;");
+                toFilePw.println(toFileTabs + "}");
                 if (clss.isEnum()) {
                     toFilePw.println(toFileTabs + "return " + clssName + "Ice.valueOf(in.ordinal());");
                 } else {
                     List<Class> derivedClasses = getDerivedClasses(clss, classes);
                     if (derivedClasses.size() < 2 && !Modifier.isAbstract(clss.getModifiers())) {
-                        toFilePw.println(toFileTabs + "return toIce(in, new " + clssName + "Ice());");
+                        toFilePw.println(toFileTabs + "return ((in!=null)?toIce(in, new " + clssName + "Ice()):null);");
                     } else {
                         boolean addelse = false;
                         for (Class dc : derivedClasses) {
@@ -521,6 +521,10 @@ public class Java2SliceMain {
                     toFilePw.println();
                     toFilePw.println("\tpublic static " + clssName + "Ice toIce(" + clssName + " in," + clssName + "Ice out) {");
 
+                    toFilePw.println(toFileTabs + "if(null == in) {");
+                    toFilePw.println(toFileTabs + "\t return null;");
+                    toFilePw.println(toFileTabs + "}");
+
                     toFilePw.println(toFileTabs + "if(null == out) {");
                     toFilePw.println(toFileTabs + "\t return toIce(in);");
                     toFilePw.println(toFileTabs + "}");
@@ -535,34 +539,55 @@ public class Java2SliceMain {
                     }
                     for (Entry<String, ClassInfo> e : propsMap.entrySet()) {
                         String propname = e.getKey().substring(0, 1).toUpperCase() + e.getKey().substring(1);
-                        if (BigInteger.class.isAssignableFrom(e.getValue().getPropertyClass())) {
-                            toFilePw.println(toFileTabs + "if(null != in.get" + propname + "()) {");
-                            toFilePw.println(toFileTabs + "\tout." + e.getKey() + " =  in.get" + propname + "().longValue();");
-                            toFilePw.println(toFileTabs + "}");
-                            } else if (BigDecimal.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        Class propClass = e.getValue().getPropertyClass();
+                        boolean checkNull = isRefToPrimitive(propClass);
+                        if (checkNull) {
+                            if (Boolean.class.isAssignableFrom(propClass)) {
+                                toFilePw.println(toFileTabs + "out." + e.getKey() + "IsNull = (null == in.is" + propname + "());");
+                            } else {
+                                toFilePw.println(toFileTabs + "out." + e.getKey() + "IsNull = (null == in.get" + propname + "());");
+                            }
+                            toFilePw.println(toFileTabs + "if(!out." + e.getKey() + "IsNull) {");
+                            toFileTabs += "\t";
+                        }
+                        if (BigInteger.class.isAssignableFrom(propClass)) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "().longValue();");
+                        } else if (BigDecimal.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "().doubleValue();");
-                        } else if (Boolean.class.isAssignableFrom(e.getValue().getPropertyClass())) {
-                            toFilePw.println(toFileTabs + "if(null !=  in.is" + propname + "()) {");
-                            toFilePw.println(toFileTabs + "\tout." + e.getKey() + " =  in.is" + propname + "().booleanValue();");
-                            toFilePw.println(toFileTabs + "}");
-                        } else if (boolean.class.isAssignableFrom(e.getValue().getPropertyClass())) {
-                            toFilePw.println(toFileTabs + "\tout." + e.getKey() + " =  in.is" + propname + "();");
-                        } else if (e.getValue().getPropertyClass().isPrimitive() || String.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        } else if (Boolean.class.isAssignableFrom(propClass)) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.is" + propname + "().booleanValue();");
+                        } else if (boolean.class.isAssignableFrom(propClass)) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.is" + propname + "();");
+                        } else if (String.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "();");
-                        } else if (List.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        } else if (List.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  listOf" + splitClassName((Class) e.getValue().getGenericParamClasses().get(0)) + "ToIce(in.get" + propname + "());");
+                        } else if (propClass.isEnum()) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  toIce(in.get" + propname + "());");
+                        } else if (propClass.isPrimitive()) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "();");
                         } else {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  toIce(in.get" + propname + "());");
+                        }
+                        if (checkNull) {
+                            toFileTabs = toFileTabs.substring(1);
+                            toFilePw.println(toFileTabs + "}");
                         }
                     }
                     toFilePw.println(toFileTabs + "return out;");
                 }
                 toFileTabs = toFileTabs.substring(1);
                 toFilePw.println(toFileTabs + "}");
-
             }
             toFilePw.println("}");
         }
+    }
+
+    private static boolean isRefToPrimitive(Class c) {
+        return BigDecimal.class.isAssignableFrom(c)
+                || BigInteger.class.isAssignableFrom(c)
+                || Boolean.class.equals(c)
+                || String.class.isAssignableFrom(c);
     }
 
     private static void writeFromIceConverters(File fromFile, List<Class> classes, ClassInspector inspector) throws ClassNotFoundException, FileNotFoundException {
@@ -576,7 +601,7 @@ public class Java2SliceMain {
 
             for (int i = 0; i < classes.size(); i++) {
                 Class clss = classes.get(i);
-                if(Enum.class.equals(clss)) {
+                if (Enum.class.equals(clss)) {
                     continue;
                 }
                 Map<String, ClassInfo> propsMap = inspector.getProperties(clss);
@@ -633,7 +658,7 @@ public class Java2SliceMain {
                     fromFilePw.println("\tpublic static " + clssName + " fromIce(" + clssName + "Ice in) {");
                     List<Class> derivedClasses = getDerivedClasses(clss, classes);
                     if (derivedClasses.size() < 2 && !Modifier.isAbstract(clss.getModifiers())) {
-                        fromFilePw.println(fromFileTabs + "return fromIce(in, new " + clssName + "());");
+                        fromFilePw.println(fromFileTabs + "return ((in !=null)?fromIce(in, new " + clssName + "()):null);");
                     } else {
                         boolean addelse = false;
                         for (Class dc : derivedClasses) {
@@ -651,6 +676,9 @@ public class Java2SliceMain {
                     fromFilePw.println("\t}");
                     fromFilePw.println();
                     fromFilePw.println("\tpublic static " + clssName + " fromIce(" + clssName + "Ice in," + clssName + " out) {");
+                    fromFilePw.println(fromFileTabs + "if(in == null) {");
+                    fromFilePw.println(fromFileTabs + "\treturn null;");
+                    fromFilePw.println(fromFileTabs + "}");
                     fromFilePw.println(fromFileTabs + "if(out == null) {");
                     fromFilePw.println(fromFileTabs + "\treturn fromIce(in);");
                     fromFilePw.println(fromFileTabs + "}");
@@ -664,23 +692,35 @@ public class Java2SliceMain {
                     }
                     for (Entry<String, ClassInfo> e : propsMap.entrySet()) {
                         String propname = e.getKey().substring(0, 1).toUpperCase() + e.getKey().substring(1);
-                        if (BigInteger.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        Class propClass = e.getValue().getPropertyClass();
+                        boolean checkNull = isRefToPrimitive(propClass);
+                        if (checkNull) {
+                            fromFilePw.println(fromFileTabs + "if(in." + e.getKey() + "IsNull) {");
+                            fromFilePw.println(fromFileTabs + "\tout.set" + propname + "(null);");
+                            fromFilePw.println(fromFileTabs + "} else {");
+                            fromFileTabs += "\t";
+                        }
+                        if (BigInteger.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(BigInteger.valueOf(in." + e.getKey() + "));");
-                        } else if (BigDecimal.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        } else if (BigDecimal.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(BigDecimal.valueOf(in." + e.getKey() + "));");
-                        } else if (Boolean.class.isAssignableFrom(e.getValue().getPropertyClass())) {
+                        } else if (Boolean.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(in." + e.getKey() + ");");
-                        } else if (e.getValue().getPropertyClass().isPrimitive() || String.class.isAssignableFrom(e.getValue().getPropertyClass())) {
-                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(in." + e.getKey() + ");");
-                        } else if (e.getValue().getPropertyClass().isEnum()) {
-                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(fromIce(in." + e.getKey() + "));");
-                        } else if (List.class.isAssignableFrom(e.getValue().getPropertyClass())) {
-                            fromFilePw.println(fromFileTabs + "if(null != out.get" + propname + "()) {");
-                            fromFilePw.println(fromFileTabs + "\tout.get" + propname + "().clear();");
-                            fromFilePw.println(fromFileTabs + "}");
+                        } else if (List.class.isAssignableFrom(propClass)) {
+                            fromFilePw.println(fromFileTabs + "out.get" + propname + "().clear();");
                             fromFilePw.println(fromFileTabs + "out.get" + propname + "().addAll(fromIce(in." + e.getKey() + "));");
+                        } else if (String.class.isAssignableFrom(propClass)) {
+                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(in." + e.getKey() + ");");
+                        } else if (propClass.isEnum()) {
+                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(fromIce(in." + e.getKey() + "));");
+                        } else if (propClass.isPrimitive()) {
+                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(in." + e.getKey() + ");");
                         } else {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(fromIce(in." + e.getKey() + ",out.get" + propname + "()));");
+                        }
+                        if (checkNull) {
+                            fromFileTabs = fromFileTabs.substring(1);
+                            fromFilePw.println(fromFileTabs + "}");
                         }
                     }
                     fromFilePw.println(fromFileTabs + "return out;");

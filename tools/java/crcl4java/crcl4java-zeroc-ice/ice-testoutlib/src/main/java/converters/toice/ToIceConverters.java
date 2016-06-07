@@ -169,36 +169,8 @@ public class ToIceConverters {
 		}
 		return  newArray;
 	}
-	public static MiddleCommandTypeIce[] listOfMiddleCommandTypeToIce(List<MiddleCommandType> in) {
-		MiddleCommandTypeIce newArray[]= new MiddleCommandTypeIce[in.size()];
-		for(int i = 0; i < in.size(); i++) {
-			newArray[i] = toIce(in.get(i));
-		}
-		return  newArray;
-	}
-	public static ConfigureJointReportTypeIce[] listOfConfigureJointReportTypeToIce(List<ConfigureJointReportType> in) {
-		ConfigureJointReportTypeIce newArray[]= new ConfigureJointReportTypeIce[in.size()];
-		for(int i = 0; i < in.size(); i++) {
-			newArray[i] = toIce(in.get(i));
-		}
-		return  newArray;
-	}
-	public static JointLimitTypeIce[] listOfJointLimitTypeToIce(List<JointLimitType> in) {
-		JointLimitTypeIce newArray[]= new JointLimitTypeIce[in.size()];
-		for(int i = 0; i < in.size(); i++) {
-			newArray[i] = toIce(in.get(i));
-		}
-		return  newArray;
-	}
 	public static JointStatusTypeIce[] listOfJointStatusTypeToIce(List<JointStatusType> in) {
 		JointStatusTypeIce newArray[]= new JointStatusTypeIce[in.size()];
-		for(int i = 0; i < in.size(); i++) {
-			newArray[i] = toIce(in.get(i));
-		}
-		return  newArray;
-	}
-	public static ActuateJointTypeIce[] listOfActuateJointTypeToIce(List<ActuateJointType> in) {
-		ActuateJointTypeIce newArray[]= new ActuateJointTypeIce[in.size()];
 		for(int i = 0; i < in.size(); i++) {
 			newArray[i] = toIce(in.get(i));
 		}
@@ -211,20 +183,60 @@ public class ToIceConverters {
 		}
 		return  newArray;
 	}
+	public static ActuateJointTypeIce[] listOfActuateJointTypeToIce(List<ActuateJointType> in) {
+		ActuateJointTypeIce newArray[]= new ActuateJointTypeIce[in.size()];
+		for(int i = 0; i < in.size(); i++) {
+			newArray[i] = toIce(in.get(i));
+		}
+		return  newArray;
+	}
+	public static ConfigureJointReportTypeIce[] listOfConfigureJointReportTypeToIce(List<ConfigureJointReportType> in) {
+		ConfigureJointReportTypeIce newArray[]= new ConfigureJointReportTypeIce[in.size()];
+		for(int i = 0; i < in.size(); i++) {
+			newArray[i] = toIce(in.get(i));
+		}
+		return  newArray;
+	}
+	public static MiddleCommandTypeIce[] listOfMiddleCommandTypeToIce(List<MiddleCommandType> in) {
+		MiddleCommandTypeIce newArray[]= new MiddleCommandTypeIce[in.size()];
+		for(int i = 0; i < in.size(); i++) {
+			newArray[i] = toIce(in.get(i));
+		}
+		return  newArray;
+	}
+	public static JointLimitTypeIce[] listOfJointLimitTypeToIce(List<JointLimitType> in) {
+		JointLimitTypeIce newArray[]= new JointLimitTypeIce[in.size()];
+		for(int i = 0; i < in.size(); i++) {
+			newArray[i] = toIce(in.get(i));
+		}
+		return  newArray;
+	}
 
 	public static TestClassIce toIce(TestClass in) {
-		return toIce(in, new TestClassIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TestClassIce()):null);
 	}
 
 	public static TestClassIce toIce(TestClass in,TestClassIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
-		out.name =  in.getName();
+		out.nameIsNull = (null == in.getName());
+		if(!out.nameIsNull) {
+			out.name =  in.getName();
+		}
 		return out;
 	}
 
 	public static DataThingTypeIce toIce(DataThingType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof PointType) {
 			return toIce((PointType)in, new PointTypeIce());
 		}
@@ -412,18 +424,30 @@ public class ToIceConverters {
 	}
 
 	public static DataThingTypeIce toIce(DataThingType in,DataThingTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
-		out.name =  in.getName();
+		out.nameIsNull = (null == in.getName());
+		if(!out.nameIsNull) {
+			out.name =  in.getName();
+		}
 		return out;
 	}
 
 	public static CRCLProgramTypeIce toIce(CRCLProgramType in) {
-		return toIce(in, new CRCLProgramTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new CRCLProgramTypeIce()):null);
 	}
 
 	public static CRCLProgramTypeIce toIce(CRCLProgramType in,CRCLProgramTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -435,6 +459,9 @@ public class ToIceConverters {
 	}
 
 	public static RotSpeedTypeIce toIce(RotSpeedType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof RotSpeedAbsoluteType) {
 			return toIce((RotSpeedAbsoluteType)in, new RotSpeedAbsoluteTypeIce());
 		}
@@ -445,6 +472,9 @@ public class ToIceConverters {
 	}
 
 	public static RotSpeedTypeIce toIce(RotSpeedType in,RotSpeedTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -453,6 +483,9 @@ public class ToIceConverters {
 	}
 
 	public static RotAccelTypeIce toIce(RotAccelType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof RotAccelAbsoluteType) {
 			return toIce((RotAccelAbsoluteType)in, new RotAccelAbsoluteTypeIce());
 		}
@@ -463,6 +496,9 @@ public class ToIceConverters {
 	}
 
 	public static RotAccelTypeIce toIce(RotAccelType in,RotAccelTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -471,6 +507,9 @@ public class ToIceConverters {
 	}
 
 	public static CRCLCommandTypeIce toIce(CRCLCommandType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof SetTransAccelType) {
 			return toIce((SetTransAccelType)in, new SetTransAccelTypeIce());
 		}
@@ -562,17 +601,24 @@ public class ToIceConverters {
 	}
 
 	public static CRCLCommandTypeIce toIce(CRCLCommandType in,CRCLCommandTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (CRCLCommandTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		if(null != in.getCommandID()) {
+		out.commandIDIsNull = (null == in.getCommandID());
+		if(!out.commandIDIsNull) {
 			out.commandID =  in.getCommandID().longValue();
 		}
 		return out;
 	}
 
 	public static MiddleCommandTypeIce toIce(MiddleCommandType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof SetTransAccelType) {
 			return toIce((SetTransAccelType)in, new SetTransAccelTypeIce());
 		}
@@ -658,6 +704,9 @@ public class ToIceConverters {
 	}
 
 	public static MiddleCommandTypeIce toIce(MiddleCommandType in,MiddleCommandTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -666,10 +715,16 @@ public class ToIceConverters {
 	}
 
 	public static ActuateJointsTypeIce toIce(ActuateJointsType in) {
-		return toIce(in, new ActuateJointsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ActuateJointsTypeIce()):null);
 	}
 
 	public static ActuateJointsTypeIce toIce(ActuateJointsType in,ActuateJointsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -679,6 +734,9 @@ public class ToIceConverters {
 	}
 
 	public static PoseTypeIce toIce(PoseType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof PoseAndSetType) {
 			return toIce((PoseAndSetType)in, new PoseAndSetTypeIce());
 		}
@@ -689,6 +747,9 @@ public class ToIceConverters {
 	}
 
 	public static PoseTypeIce toIce(PoseType in,PoseTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -700,6 +761,9 @@ public class ToIceConverters {
 	}
 
 	public static JointDetailsTypeIce toIce(JointDetailsType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof JointForceTorqueType) {
 			return toIce((JointForceTorqueType)in, new JointForceTorqueTypeIce());
 		}
@@ -710,6 +774,9 @@ public class ToIceConverters {
 	}
 
 	public static JointDetailsTypeIce toIce(JointDetailsType in,JointDetailsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -718,20 +785,35 @@ public class ToIceConverters {
 	}
 
 	public static JointSpeedAccelTypeIce toIce(JointSpeedAccelType in) {
-		return toIce(in, new JointSpeedAccelTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new JointSpeedAccelTypeIce()):null);
 	}
 
 	public static JointSpeedAccelTypeIce toIce(JointSpeedAccelType in,JointSpeedAccelTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (JointSpeedAccelTypeIce) toIce((JointDetailsType)in,(JointDetailsTypeIce)out);
-		out.jointAccel =  in.getJointAccel().doubleValue();
-		out.jointSpeed =  in.getJointSpeed().doubleValue();
+		out.jointAccelIsNull = (null == in.getJointAccel());
+		if(!out.jointAccelIsNull) {
+			out.jointAccel =  in.getJointAccel().doubleValue();
+		}
+		out.jointSpeedIsNull = (null == in.getJointSpeed());
+		if(!out.jointSpeedIsNull) {
+			out.jointSpeed =  in.getJointSpeed().doubleValue();
+		}
 		return out;
 	}
 
 	public static TransSpeedTypeIce toIce(TransSpeedType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof TransSpeedRelativeType) {
 			return toIce((TransSpeedRelativeType)in, new TransSpeedRelativeTypeIce());
 		}
@@ -742,6 +824,9 @@ public class ToIceConverters {
 	}
 
 	public static TransSpeedTypeIce toIce(TransSpeedType in,TransSpeedTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -750,36 +835,69 @@ public class ToIceConverters {
 	}
 
 	public static TransSpeedAbsoluteTypeIce toIce(TransSpeedAbsoluteType in) {
-		return toIce(in, new TransSpeedAbsoluteTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TransSpeedAbsoluteTypeIce()):null);
 	}
 
 	public static TransSpeedAbsoluteTypeIce toIce(TransSpeedAbsoluteType in,TransSpeedAbsoluteTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (TransSpeedAbsoluteTypeIce) toIce((TransSpeedType)in,(TransSpeedTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
 		return out;
 	}
 
 	public static PoseToleranceTypeIce toIce(PoseToleranceType in) {
-		return toIce(in, new PoseToleranceTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new PoseToleranceTypeIce()):null);
 	}
 
 	public static PoseToleranceTypeIce toIce(PoseToleranceType in,PoseToleranceTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (PoseToleranceTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.yPointTolerance =  in.getYPointTolerance().doubleValue();
-		out.xAxisTolerance =  in.getXAxisTolerance().doubleValue();
-		out.zPointTolerance =  in.getZPointTolerance().doubleValue();
-		out.xPointTolerance =  in.getXPointTolerance().doubleValue();
-		out.zAxisTolerance =  in.getZAxisTolerance().doubleValue();
+		out.yPointToleranceIsNull = (null == in.getYPointTolerance());
+		if(!out.yPointToleranceIsNull) {
+			out.yPointTolerance =  in.getYPointTolerance().doubleValue();
+		}
+		out.xAxisToleranceIsNull = (null == in.getXAxisTolerance());
+		if(!out.xAxisToleranceIsNull) {
+			out.xAxisTolerance =  in.getXAxisTolerance().doubleValue();
+		}
+		out.zPointToleranceIsNull = (null == in.getZPointTolerance());
+		if(!out.zPointToleranceIsNull) {
+			out.zPointTolerance =  in.getZPointTolerance().doubleValue();
+		}
+		out.xPointToleranceIsNull = (null == in.getXPointTolerance());
+		if(!out.xPointToleranceIsNull) {
+			out.xPointTolerance =  in.getXPointTolerance().doubleValue();
+		}
+		out.zAxisToleranceIsNull = (null == in.getZAxisTolerance());
+		if(!out.zAxisToleranceIsNull) {
+			out.zAxisTolerance =  in.getZAxisTolerance().doubleValue();
+		}
 		return out;
 	}
 
 	public static TransAccelTypeIce toIce(TransAccelType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof TransAccelRelativeType) {
 			return toIce((TransAccelRelativeType)in, new TransAccelRelativeTypeIce());
 		}
@@ -790,6 +908,9 @@ public class ToIceConverters {
 	}
 
 	public static TransAccelTypeIce toIce(TransAccelType in,TransAccelTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -798,10 +919,16 @@ public class ToIceConverters {
 	}
 
 	public static WrenchTypeIce toIce(WrenchType in) {
-		return toIce(in, new WrenchTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new WrenchTypeIce()):null);
 	}
 
 	public static WrenchTypeIce toIce(WrenchType in,WrenchTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -812,6 +939,9 @@ public class ToIceConverters {
 	}
 
 	public static GripperStatusTypeIce toIce(GripperStatusType in) {
+		if(null == in) {
+			 return null;
+		}
 		if(in instanceof ThreeFingerGripperStatusType) {
 			return toIce((ThreeFingerGripperStatusType)in, new ThreeFingerGripperStatusTypeIce());
 		}
@@ -825,22 +955,35 @@ public class ToIceConverters {
 	}
 
 	public static GripperStatusTypeIce toIce(GripperStatusType in,GripperStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (GripperStatusTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		if(null !=  in.isHoldingObject()) {
+		out.holdingObjectIsNull = (null == in.isHoldingObject());
+		if(!out.holdingObjectIsNull) {
 			out.holdingObject =  in.isHoldingObject().booleanValue();
 		}
-		out.gripperName =  in.getGripperName();
+		out.gripperNameIsNull = (null == in.getGripperName());
+		if(!out.gripperNameIsNull) {
+			out.gripperName =  in.getGripperName();
+		}
 		return out;
 	}
 
 	public static InitCanonTypeIce toIce(InitCanonType in) {
-		return toIce(in, new InitCanonTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new InitCanonTypeIce()):null);
 	}
 
 	public static InitCanonTypeIce toIce(InitCanonType in,InitCanonTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -849,27 +992,45 @@ public class ToIceConverters {
 	}
 
 	public static MessageTypeIce toIce(MessageType in) {
-		return toIce(in, new MessageTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new MessageTypeIce()):null);
 	}
 
 	public static MessageTypeIce toIce(MessageType in,MessageTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (MessageTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-		out.message =  in.getMessage();
+		out.messageIsNull = (null == in.getMessage());
+		if(!out.messageIsNull) {
+			out.message =  in.getMessage();
+		}
 		return out;
 	}
 
 	public static AngleUnitEnumTypeIce toIce(AngleUnitEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return AngleUnitEnumTypeIce.valueOf(in.ordinal());
 	}
 
 	public static SetIntermediatePoseToleranceTypeIce toIce(SetIntermediatePoseToleranceType in) {
-		return toIce(in, new SetIntermediatePoseToleranceTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetIntermediatePoseToleranceTypeIce()):null);
 	}
 
 	public static SetIntermediatePoseToleranceTypeIce toIce(SetIntermediatePoseToleranceType in,SetIntermediatePoseToleranceTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -879,23 +1040,38 @@ public class ToIceConverters {
 	}
 
 	public static TransAccelAbsoluteTypeIce toIce(TransAccelAbsoluteType in) {
-		return toIce(in, new TransAccelAbsoluteTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TransAccelAbsoluteTypeIce()):null);
 	}
 
 	public static TransAccelAbsoluteTypeIce toIce(TransAccelAbsoluteType in,TransAccelAbsoluteTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (TransAccelAbsoluteTypeIce) toIce((TransAccelType)in,(TransAccelTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
 		return out;
 	}
 
 	public static StopMotionTypeIce toIce(StopMotionType in) {
-		return toIce(in, new StopMotionTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new StopMotionTypeIce()):null);
 	}
 
 	public static StopMotionTypeIce toIce(StopMotionType in,StopMotionTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -905,38 +1081,68 @@ public class ToIceConverters {
 	}
 
 	public static VectorTypeIce toIce(VectorType in) {
-		return toIce(in, new VectorTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new VectorTypeIce()):null);
 	}
 
 	public static VectorTypeIce toIce(VectorType in,VectorTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (VectorTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.j =  in.getJ().doubleValue();
-		out.k =  in.getK().doubleValue();
-		out.i =  in.getI().doubleValue();
+		out.jIsNull = (null == in.getJ());
+		if(!out.jIsNull) {
+			out.j =  in.getJ().doubleValue();
+		}
+		out.kIsNull = (null == in.getK());
+		if(!out.kIsNull) {
+			out.k =  in.getK().doubleValue();
+		}
+		out.iIsNull = (null == in.getI());
+		if(!out.iIsNull) {
+			out.i =  in.getI().doubleValue();
+		}
 		return out;
 	}
 
 	public static SetEndEffectorTypeIce toIce(SetEndEffectorType in) {
-		return toIce(in, new SetEndEffectorTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetEndEffectorTypeIce()):null);
 	}
 
 	public static SetEndEffectorTypeIce toIce(SetEndEffectorType in,SetEndEffectorTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (SetEndEffectorTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
 		return out;
 	}
 
 	public static CloseToolChangerTypeIce toIce(CloseToolChangerType in) {
-		return toIce(in, new CloseToolChangerTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new CloseToolChangerTypeIce()):null);
 	}
 
 	public static CloseToolChangerTypeIce toIce(CloseToolChangerType in,CloseToolChangerTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -945,52 +1151,81 @@ public class ToIceConverters {
 	}
 
 	public static ForceUnitEnumTypeIce toIce(ForceUnitEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return ForceUnitEnumTypeIce.valueOf(in.ordinal());
 	}
 
 	public static TorqueUnitEnumTypeIce toIce(TorqueUnitEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return TorqueUnitEnumTypeIce.valueOf(in.ordinal());
 	}
 
 	public static ConfigureJointReportsTypeIce toIce(ConfigureJointReportsType in) {
-		return toIce(in, new ConfigureJointReportsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ConfigureJointReportsTypeIce()):null);
 	}
 
 	public static ConfigureJointReportsTypeIce toIce(ConfigureJointReportsType in,ConfigureJointReportsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ConfigureJointReportsTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-			out.resetAll =  in.isResetAll();
+		out.resetAll =  in.isResetAll();
 		out.configureJointReport =  listOfConfigureJointReportTypeToIce(in.getConfigureJointReport());
 		return out;
 	}
 
 	public static CRCLCommandInstanceTypeIce toIce(CRCLCommandInstanceType in) {
-		return toIce(in, new CRCLCommandInstanceTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new CRCLCommandInstanceTypeIce()):null);
 	}
 
 	public static CRCLCommandInstanceTypeIce toIce(CRCLCommandInstanceType in,CRCLCommandInstanceTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (CRCLCommandInstanceTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
 		out.cRCLCommand =  toIce(in.getCRCLCommand());
-		if(null != in.getProgramIndex()) {
+		out.programIndexIsNull = (null == in.getProgramIndex());
+		if(!out.programIndexIsNull) {
 			out.programIndex =  in.getProgramIndex().longValue();
 		}
-		if(null != in.getProgramLength()) {
+		out.programLengthIsNull = (null == in.getProgramLength());
+		if(!out.programLengthIsNull) {
 			out.programLength =  in.getProgramLength().longValue();
 		}
-		out.programFile =  in.getProgramFile();
+		out.programFileIsNull = (null == in.getProgramFile());
+		if(!out.programFileIsNull) {
+			out.programFile =  in.getProgramFile();
+		}
 		return out;
 	}
 
 	public static SetRotSpeedTypeIce toIce(SetRotSpeedType in) {
-		return toIce(in, new SetRotSpeedTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetRotSpeedTypeIce()):null);
 	}
 
 	public static SetRotSpeedTypeIce toIce(SetRotSpeedType in,SetRotSpeedTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1000,26 +1235,38 @@ public class ToIceConverters {
 	}
 
 	public static ConfigureStatusReportTypeIce toIce(ConfigureStatusReportType in) {
-		return toIce(in, new ConfigureStatusReportTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ConfigureStatusReportTypeIce()):null);
 	}
 
 	public static ConfigureStatusReportTypeIce toIce(ConfigureStatusReportType in,ConfigureStatusReportTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ConfigureStatusReportTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-			out.reportPoseStatus =  in.isReportPoseStatus();
-			out.reportSettingsStatus =  in.isReportSettingsStatus();
-			out.reportJointStatuses =  in.isReportJointStatuses();
-			out.reportGripperStatus =  in.isReportGripperStatus();
+		out.reportPoseStatus =  in.isReportPoseStatus();
+		out.reportSettingsStatus =  in.isReportSettingsStatus();
+		out.reportJointStatuses =  in.isReportJointStatuses();
+		out.reportGripperStatus =  in.isReportGripperStatus();
 		return out;
 	}
 
 	public static SetTorqueUnitsTypeIce toIce(SetTorqueUnitsType in) {
-		return toIce(in, new SetTorqueUnitsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetTorqueUnitsTypeIce()):null);
 	}
 
 	public static SetTorqueUnitsTypeIce toIce(SetTorqueUnitsType in,SetTorqueUnitsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1029,47 +1276,79 @@ public class ToIceConverters {
 	}
 
 	public static JointLimitTypeIce toIce(JointLimitType in) {
-		return toIce(in, new JointLimitTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new JointLimitTypeIce()):null);
 	}
 
 	public static JointLimitTypeIce toIce(JointLimitType in,JointLimitTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (JointLimitTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		if(null != in.getJointNumber()) {
+		out.jointNumberIsNull = (null == in.getJointNumber());
+		if(!out.jointNumberIsNull) {
 			out.jointNumber =  in.getJointNumber().longValue();
 		}
-		out.jointMaxTorqueOrForce =  in.getJointMaxTorqueOrForce().doubleValue();
-		out.jointMaxVelocity =  in.getJointMaxVelocity().doubleValue();
-		out.jointMaxPosition =  in.getJointMaxPosition().doubleValue();
-		out.jointMinPosition =  in.getJointMinPosition().doubleValue();
+		out.jointMaxTorqueOrForceIsNull = (null == in.getJointMaxTorqueOrForce());
+		if(!out.jointMaxTorqueOrForceIsNull) {
+			out.jointMaxTorqueOrForce =  in.getJointMaxTorqueOrForce().doubleValue();
+		}
+		out.jointMaxVelocityIsNull = (null == in.getJointMaxVelocity());
+		if(!out.jointMaxVelocityIsNull) {
+			out.jointMaxVelocity =  in.getJointMaxVelocity().doubleValue();
+		}
+		out.jointMaxPositionIsNull = (null == in.getJointMaxPosition());
+		if(!out.jointMaxPositionIsNull) {
+			out.jointMaxPosition =  in.getJointMaxPosition().doubleValue();
+		}
+		out.jointMinPositionIsNull = (null == in.getJointMinPosition());
+		if(!out.jointMinPositionIsNull) {
+			out.jointMinPosition =  in.getJointMinPosition().doubleValue();
+		}
 		return out;
 	}
 
 	public static ConfigureJointReportTypeIce toIce(ConfigureJointReportType in) {
-		return toIce(in, new ConfigureJointReportTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ConfigureJointReportTypeIce()):null);
 	}
 
 	public static ConfigureJointReportTypeIce toIce(ConfigureJointReportType in,ConfigureJointReportTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ConfigureJointReportTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		if(null != in.getJointNumber()) {
+		out.jointNumberIsNull = (null == in.getJointNumber());
+		if(!out.jointNumberIsNull) {
 			out.jointNumber =  in.getJointNumber().longValue();
 		}
-			out.reportPosition =  in.isReportPosition();
-			out.reportVelocity =  in.isReportVelocity();
-			out.reportTorqueOrForce =  in.isReportTorqueOrForce();
+		out.reportPosition =  in.isReportPosition();
+		out.reportVelocity =  in.isReportVelocity();
+		out.reportTorqueOrForce =  in.isReportTorqueOrForce();
 		return out;
 	}
 
 	public static SetEndPoseToleranceTypeIce toIce(SetEndPoseToleranceType in) {
-		return toIce(in, new SetEndPoseToleranceTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetEndPoseToleranceTypeIce()):null);
 	}
 
 	public static SetEndPoseToleranceTypeIce toIce(SetEndPoseToleranceType in,SetEndPoseToleranceTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1079,24 +1358,42 @@ public class ToIceConverters {
 	}
 
 	public static ParameterSettingTypeIce toIce(ParameterSettingType in) {
-		return toIce(in, new ParameterSettingTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ParameterSettingTypeIce()):null);
 	}
 
 	public static ParameterSettingTypeIce toIce(ParameterSettingType in,ParameterSettingTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ParameterSettingTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.parameterValue =  in.getParameterValue();
-		out.parameterName =  in.getParameterName();
+		out.parameterValueIsNull = (null == in.getParameterValue());
+		if(!out.parameterValueIsNull) {
+			out.parameterValue =  in.getParameterValue();
+		}
+		out.parameterNameIsNull = (null == in.getParameterName());
+		if(!out.parameterNameIsNull) {
+			out.parameterName =  in.getParameterName();
+		}
 		return out;
 	}
 
 	public static SetTransSpeedTypeIce toIce(SetTransSpeedType in) {
-		return toIce(in, new SetTransSpeedTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetTransSpeedTypeIce()):null);
 	}
 
 	public static SetTransSpeedTypeIce toIce(SetTransSpeedType in,SetTransSpeedTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1106,10 +1403,16 @@ public class ToIceConverters {
 	}
 
 	public static JointStatusesTypeIce toIce(JointStatusesType in) {
-		return toIce(in, new JointStatusesTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new JointStatusesTypeIce()):null);
 	}
 
 	public static JointStatusesTypeIce toIce(JointStatusesType in,JointStatusesTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1119,27 +1422,45 @@ public class ToIceConverters {
 	}
 
 	public static ParallelGripperStatusTypeIce toIce(ParallelGripperStatusType in) {
-		return toIce(in, new ParallelGripperStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ParallelGripperStatusTypeIce()):null);
 	}
 
 	public static ParallelGripperStatusTypeIce toIce(ParallelGripperStatusType in,ParallelGripperStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ParallelGripperStatusTypeIce) toIce((GripperStatusType)in,(GripperStatusTypeIce)out);
-		out.separation =  in.getSeparation().doubleValue();
+		out.separationIsNull = (null == in.getSeparation());
+		if(!out.separationIsNull) {
+			out.separation =  in.getSeparation().doubleValue();
+		}
 		return out;
 	}
 
 	public static LengthUnitEnumTypeIce toIce(LengthUnitEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return LengthUnitEnumTypeIce.valueOf(in.ordinal());
 	}
 
 	public static SetRotAccelTypeIce toIce(SetRotAccelType in) {
-		return toIce(in, new SetRotAccelTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetRotAccelTypeIce()):null);
 	}
 
 	public static SetRotAccelTypeIce toIce(SetRotAccelType in,SetRotAccelTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1149,10 +1470,16 @@ public class ToIceConverters {
 	}
 
 	public static SetAngleUnitsTypeIce toIce(SetAngleUnitsType in) {
-		return toIce(in, new SetAngleUnitsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetAngleUnitsTypeIce()):null);
 	}
 
 	public static SetAngleUnitsTypeIce toIce(SetAngleUnitsType in,SetAngleUnitsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1162,66 +1489,106 @@ public class ToIceConverters {
 	}
 
 	public static CommandStatusTypeIce toIce(CommandStatusType in) {
-		return toIce(in, new CommandStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new CommandStatusTypeIce()):null);
 	}
 
 	public static CommandStatusTypeIce toIce(CommandStatusType in,CommandStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (CommandStatusTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		if(null != in.getProgramIndex()) {
+		out.programIndexIsNull = (null == in.getProgramIndex());
+		if(!out.programIndexIsNull) {
 			out.programIndex =  in.getProgramIndex().longValue();
 		}
-		if(null != in.getStatusID()) {
+		out.statusIDIsNull = (null == in.getStatusID());
+		if(!out.statusIDIsNull) {
 			out.statusID =  in.getStatusID().longValue();
 		}
-		out.stateDescription =  in.getStateDescription();
-		if(null != in.getCommandID()) {
+		out.stateDescriptionIsNull = (null == in.getStateDescription());
+		if(!out.stateDescriptionIsNull) {
+			out.stateDescription =  in.getStateDescription();
+		}
+		out.commandIDIsNull = (null == in.getCommandID());
+		if(!out.commandIDIsNull) {
 			out.commandID =  in.getCommandID().longValue();
 		}
-		if(null != in.getProgramLength()) {
+		out.programLengthIsNull = (null == in.getProgramLength());
+		if(!out.programLengthIsNull) {
 			out.programLength =  in.getProgramLength().longValue();
 		}
 		out.commandState =  toIce(in.getCommandState());
-		out.programFile =  in.getProgramFile();
+		out.programFileIsNull = (null == in.getProgramFile());
+		if(!out.programFileIsNull) {
+			out.programFile =  in.getProgramFile();
+		}
 		return out;
 	}
 
 	public static PoseStatusTypeIce toIce(PoseStatusType in) {
-		return toIce(in, new PoseStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new PoseStatusTypeIce()):null);
 	}
 
 	public static PoseStatusTypeIce toIce(PoseStatusType in,PoseStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (PoseStatusTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
 		out.pose =  toIce(in.getPose());
 		out.twist =  toIce(in.getTwist());
-		out.configuration =  in.getConfiguration();
+		out.configurationIsNull = (null == in.getConfiguration());
+		if(!out.configurationIsNull) {
+			out.configuration =  in.getConfiguration();
+		}
 		out.wrench =  toIce(in.getWrench());
 		return out;
 	}
 
 	public static TransSpeedRelativeTypeIce toIce(TransSpeedRelativeType in) {
-		return toIce(in, new TransSpeedRelativeTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TransSpeedRelativeTypeIce()):null);
 	}
 
 	public static TransSpeedRelativeTypeIce toIce(TransSpeedRelativeType in,TransSpeedRelativeTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (TransSpeedRelativeTypeIce) toIce((TransSpeedType)in,(TransSpeedTypeIce)out);
-		out.fraction =  in.getFraction().doubleValue();
+		out.fractionIsNull = (null == in.getFraction());
+		if(!out.fractionIsNull) {
+			out.fraction =  in.getFraction().doubleValue();
+		}
 		return out;
 	}
 
 	public static SetForceUnitsTypeIce toIce(SetForceUnitsType in) {
-		return toIce(in, new SetForceUnitsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetForceUnitsTypeIce()):null);
 	}
 
 	public static SetForceUnitsTypeIce toIce(SetForceUnitsType in,SetForceUnitsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1231,41 +1598,69 @@ public class ToIceConverters {
 	}
 
 	public static JointStatusTypeIce toIce(JointStatusType in) {
-		return toIce(in, new JointStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new JointStatusTypeIce()):null);
 	}
 
 	public static JointStatusTypeIce toIce(JointStatusType in,JointStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (JointStatusTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.jointPosition =  in.getJointPosition().doubleValue();
-		out.jointVelocity =  in.getJointVelocity().doubleValue();
-		if(null != in.getJointNumber()) {
+		out.jointPositionIsNull = (null == in.getJointPosition());
+		if(!out.jointPositionIsNull) {
+			out.jointPosition =  in.getJointPosition().doubleValue();
+		}
+		out.jointVelocityIsNull = (null == in.getJointVelocity());
+		if(!out.jointVelocityIsNull) {
+			out.jointVelocity =  in.getJointVelocity().doubleValue();
+		}
+		out.jointNumberIsNull = (null == in.getJointNumber());
+		if(!out.jointNumberIsNull) {
 			out.jointNumber =  in.getJointNumber().longValue();
 		}
-		out.jointTorqueOrForce =  in.getJointTorqueOrForce().doubleValue();
+		out.jointTorqueOrForceIsNull = (null == in.getJointTorqueOrForce());
+		if(!out.jointTorqueOrForceIsNull) {
+			out.jointTorqueOrForce =  in.getJointTorqueOrForce().doubleValue();
+		}
 		return out;
 	}
 
 	public static VacuumGripperStatusTypeIce toIce(VacuumGripperStatusType in) {
-		return toIce(in, new VacuumGripperStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new VacuumGripperStatusTypeIce()):null);
 	}
 
 	public static VacuumGripperStatusTypeIce toIce(VacuumGripperStatusType in,VacuumGripperStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (VacuumGripperStatusTypeIce) toIce((GripperStatusType)in,(GripperStatusTypeIce)out);
-			out.isPowered =  in.isIsPowered();
+		out.isPowered =  in.isIsPowered();
 		return out;
 	}
 
 	public static SetEndEffectorParametersTypeIce toIce(SetEndEffectorParametersType in) {
-		return toIce(in, new SetEndEffectorParametersTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetEndEffectorParametersTypeIce()):null);
 	}
 
 	public static SetEndEffectorParametersTypeIce toIce(SetEndEffectorParametersType in,SetEndEffectorParametersTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1275,10 +1670,16 @@ public class ToIceConverters {
 	}
 
 	public static EndCanonTypeIce toIce(EndCanonType in) {
-		return toIce(in, new EndCanonTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new EndCanonTypeIce()):null);
 	}
 
 	public static EndCanonTypeIce toIce(EndCanonType in,EndCanonTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1287,10 +1688,16 @@ public class ToIceConverters {
 	}
 
 	public static CRCLStatusTypeIce toIce(CRCLStatusType in) {
-		return toIce(in, new CRCLStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new CRCLStatusTypeIce()):null);
 	}
 
 	public static CRCLStatusTypeIce toIce(CRCLStatusType in,CRCLStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1304,66 +1711,106 @@ public class ToIceConverters {
 	}
 
 	public static RotSpeedRelativeTypeIce toIce(RotSpeedRelativeType in) {
-		return toIce(in, new RotSpeedRelativeTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new RotSpeedRelativeTypeIce()):null);
 	}
 
 	public static RotSpeedRelativeTypeIce toIce(RotSpeedRelativeType in,RotSpeedRelativeTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (RotSpeedRelativeTypeIce) toIce((RotSpeedType)in,(RotSpeedTypeIce)out);
-		out.fraction =  in.getFraction().doubleValue();
+		out.fractionIsNull = (null == in.getFraction());
+		if(!out.fractionIsNull) {
+			out.fraction =  in.getFraction().doubleValue();
+		}
 		return out;
 	}
 
 	public static RunProgramTypeIce toIce(RunProgramType in) {
-		return toIce(in, new RunProgramTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new RunProgramTypeIce()):null);
 	}
 
 	public static RunProgramTypeIce toIce(RunProgramType in,RunProgramTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (RunProgramTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-		out.programText =  in.getProgramText();
+		out.programTextIsNull = (null == in.getProgramText());
+		if(!out.programTextIsNull) {
+			out.programText =  in.getProgramText();
+		}
 		return out;
 	}
 
 	public static RotAccelRelativeTypeIce toIce(RotAccelRelativeType in) {
-		return toIce(in, new RotAccelRelativeTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new RotAccelRelativeTypeIce()):null);
 	}
 
 	public static RotAccelRelativeTypeIce toIce(RotAccelRelativeType in,RotAccelRelativeTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (RotAccelRelativeTypeIce) toIce((RotAccelType)in,(RotAccelTypeIce)out);
-		out.fraction =  in.getFraction().doubleValue();
+		out.fractionIsNull = (null == in.getFraction());
+		if(!out.fractionIsNull) {
+			out.fraction =  in.getFraction().doubleValue();
+		}
 		return out;
 	}
 
 	public static MoveThroughToTypeIce toIce(MoveThroughToType in) {
-		return toIce(in, new MoveThroughToTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new MoveThroughToTypeIce()):null);
 	}
 
 	public static MoveThroughToTypeIce toIce(MoveThroughToType in,MoveThroughToTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (MoveThroughToTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-			out.moveStraight =  in.isMoveStraight();
+		out.moveStraight =  in.isMoveStraight();
 		out.waypoint =  listOfPoseTypeToIce(in.getWaypoint());
-		if(null != in.getNumPositions()) {
+		out.numPositionsIsNull = (null == in.getNumPositions());
+		if(!out.numPositionsIsNull) {
 			out.numPositions =  in.getNumPositions().longValue();
 		}
 		return out;
 	}
 
 	public static GetStatusTypeIce toIce(GetStatusType in) {
-		return toIce(in, new GetStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new GetStatusTypeIce()):null);
 	}
 
 	public static GetStatusTypeIce toIce(GetStatusType in,GetStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1372,10 +1819,16 @@ public class ToIceConverters {
 	}
 
 	public static TwistTypeIce toIce(TwistType in) {
-		return toIce(in, new TwistTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TwistTypeIce()):null);
 	}
 
 	public static TwistTypeIce toIce(TwistType in,TwistTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1386,59 +1839,99 @@ public class ToIceConverters {
 	}
 
 	public static MoveScrewTypeIce toIce(MoveScrewType in) {
-		return toIce(in, new MoveScrewTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new MoveScrewTypeIce()):null);
 	}
 
 	public static MoveScrewTypeIce toIce(MoveScrewType in,MoveScrewTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (MoveScrewTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-		out.turn =  in.getTurn().doubleValue();
-		out.axialDistanceFree =  in.getAxialDistanceFree().doubleValue();
-		out.axialDistanceScrew =  in.getAxialDistanceScrew().doubleValue();
+		out.turnIsNull = (null == in.getTurn());
+		if(!out.turnIsNull) {
+			out.turn =  in.getTurn().doubleValue();
+		}
+		out.axialDistanceFreeIsNull = (null == in.getAxialDistanceFree());
+		if(!out.axialDistanceFreeIsNull) {
+			out.axialDistanceFree =  in.getAxialDistanceFree().doubleValue();
+		}
+		out.axialDistanceScrewIsNull = (null == in.getAxialDistanceScrew());
+		if(!out.axialDistanceScrewIsNull) {
+			out.axialDistanceScrew =  in.getAxialDistanceScrew().doubleValue();
+		}
 		out.axisPoint =  toIce(in.getAxisPoint());
 		out.startPosition =  toIce(in.getStartPosition());
 		return out;
 	}
 
 	public static RotAccelAbsoluteTypeIce toIce(RotAccelAbsoluteType in) {
-		return toIce(in, new RotAccelAbsoluteTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new RotAccelAbsoluteTypeIce()):null);
 	}
 
 	public static RotAccelAbsoluteTypeIce toIce(RotAccelAbsoluteType in,RotAccelAbsoluteTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (RotAccelAbsoluteTypeIce) toIce((RotAccelType)in,(RotAccelTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
 		return out;
 	}
 
 	public static SetMotionCoordinationTypeIce toIce(SetMotionCoordinationType in) {
-		return toIce(in, new SetMotionCoordinationTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetMotionCoordinationTypeIce()):null);
 	}
 
 	public static SetMotionCoordinationTypeIce toIce(SetMotionCoordinationType in,SetMotionCoordinationTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (SetMotionCoordinationTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-			out.coordinated =  in.isCoordinated();
+		out.coordinated =  in.isCoordinated();
 		return out;
 	}
 
 	public static ActuateJointTypeIce toIce(ActuateJointType in) {
-		return toIce(in, new ActuateJointTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ActuateJointTypeIce()):null);
 	}
 
 	public static ActuateJointTypeIce toIce(ActuateJointType in,ActuateJointTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ActuateJointTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.jointPosition =  in.getJointPosition().doubleValue();
-		if(null != in.getJointNumber()) {
+		out.jointPositionIsNull = (null == in.getJointPosition());
+		if(!out.jointPositionIsNull) {
+			out.jointPosition =  in.getJointPosition().doubleValue();
+		}
+		out.jointNumberIsNull = (null == in.getJointNumber());
+		if(!out.jointNumberIsNull) {
 			out.jointNumber =  in.getJointNumber().longValue();
 		}
 		out.jointDetails =  toIce(in.getJointDetails());
@@ -1446,45 +1939,87 @@ public class ToIceConverters {
 	}
 
 	public static StopConditionEnumTypeIce toIce(StopConditionEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return StopConditionEnumTypeIce.valueOf(in.ordinal());
 	}
 
 	public static RotSpeedAbsoluteTypeIce toIce(RotSpeedAbsoluteType in) {
-		return toIce(in, new RotSpeedAbsoluteTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new RotSpeedAbsoluteTypeIce()):null);
 	}
 
 	public static RotSpeedAbsoluteTypeIce toIce(RotSpeedAbsoluteType in,RotSpeedAbsoluteTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (RotSpeedAbsoluteTypeIce) toIce((RotSpeedType)in,(RotSpeedTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
 		return out;
 	}
 
 	public static ThreeFingerGripperStatusTypeIce toIce(ThreeFingerGripperStatusType in) {
-		return toIce(in, new ThreeFingerGripperStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ThreeFingerGripperStatusTypeIce()):null);
 	}
 
 	public static ThreeFingerGripperStatusTypeIce toIce(ThreeFingerGripperStatusType in,ThreeFingerGripperStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (ThreeFingerGripperStatusTypeIce) toIce((GripperStatusType)in,(GripperStatusTypeIce)out);
-		out.finger1Position =  in.getFinger1Position().doubleValue();
-		out.finger2Position =  in.getFinger2Position().doubleValue();
-		out.finger2Force =  in.getFinger2Force().doubleValue();
-		out.finger1Force =  in.getFinger1Force().doubleValue();
-		out.finger3Force =  in.getFinger3Force().doubleValue();
-		out.finger3Position =  in.getFinger3Position().doubleValue();
+		out.finger1PositionIsNull = (null == in.getFinger1Position());
+		if(!out.finger1PositionIsNull) {
+			out.finger1Position =  in.getFinger1Position().doubleValue();
+		}
+		out.finger2PositionIsNull = (null == in.getFinger2Position());
+		if(!out.finger2PositionIsNull) {
+			out.finger2Position =  in.getFinger2Position().doubleValue();
+		}
+		out.finger2ForceIsNull = (null == in.getFinger2Force());
+		if(!out.finger2ForceIsNull) {
+			out.finger2Force =  in.getFinger2Force().doubleValue();
+		}
+		out.finger1ForceIsNull = (null == in.getFinger1Force());
+		if(!out.finger1ForceIsNull) {
+			out.finger1Force =  in.getFinger1Force().doubleValue();
+		}
+		out.finger3ForceIsNull = (null == in.getFinger3Force());
+		if(!out.finger3ForceIsNull) {
+			out.finger3Force =  in.getFinger3Force().doubleValue();
+		}
+		out.finger3PositionIsNull = (null == in.getFinger3Position());
+		if(!out.finger3PositionIsNull) {
+			out.finger3Position =  in.getFinger3Position().doubleValue();
+		}
 		return out;
 	}
 
 	public static SetRobotParametersTypeIce toIce(SetRobotParametersType in) {
-		return toIce(in, new SetRobotParametersTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetRobotParametersTypeIce()):null);
 	}
 
 	public static SetRobotParametersTypeIce toIce(SetRobotParametersType in,SetRobotParametersTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1494,24 +2029,36 @@ public class ToIceConverters {
 	}
 
 	public static MoveToTypeIce toIce(MoveToType in) {
-		return toIce(in, new MoveToTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new MoveToTypeIce()):null);
 	}
 
 	public static MoveToTypeIce toIce(MoveToType in,MoveToTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (MoveToTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-			out.moveStraight =  in.isMoveStraight();
+		out.moveStraight =  in.isMoveStraight();
 		out.endPosition =  toIce(in.getEndPosition());
 		return out;
 	}
 
 	public static ObjectFactoryIce toIce(ObjectFactory in) {
-		return toIce(in, new ObjectFactoryIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new ObjectFactoryIce()):null);
 	}
 
 	public static ObjectFactoryIce toIce(ObjectFactory in,ObjectFactoryIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1519,10 +2066,16 @@ public class ToIceConverters {
 	}
 
 	public static PoseAndSetTypeIce toIce(PoseAndSetType in) {
-		return toIce(in, new PoseAndSetTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new PoseAndSetTypeIce()):null);
 	}
 
 	public static PoseAndSetTypeIce toIce(PoseAndSetType in,PoseAndSetTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1530,17 +2083,23 @@ public class ToIceConverters {
 		out.transSpeed =  toIce(in.getTransSpeed());
 		out.rotAccel =  toIce(in.getRotAccel());
 		out.tolerance =  toIce(in.getTolerance());
-			out.coordinated =  in.isCoordinated();
+		out.coordinated =  in.isCoordinated();
 		out.rotSpeed =  toIce(in.getRotSpeed());
 		out.transAccel =  toIce(in.getTransAccel());
 		return out;
 	}
 
 	public static SettingsStatusTypeIce toIce(SettingsStatusType in) {
-		return toIce(in, new SettingsStatusTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SettingsStatusTypeIce()):null);
 	}
 
 	public static SettingsStatusTypeIce toIce(SettingsStatusType in,SettingsStatusTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1550,11 +2109,15 @@ public class ToIceConverters {
 		out.transAccelAbsolute =  toIce(in.getTransAccelAbsolute());
 		out.endEffectorParameterSetting =  listOfParameterSettingTypeToIce(in.getEndEffectorParameterSetting());
 		out.torqueUnitName =  toIce(in.getTorqueUnitName());
-		out.endEffectorSetting =  in.getEndEffectorSetting().doubleValue();
+		out.endEffectorSettingIsNull = (null == in.getEndEffectorSetting());
+		if(!out.endEffectorSettingIsNull) {
+			out.endEffectorSetting =  in.getEndEffectorSetting().doubleValue();
+		}
 		out.rotAccelRelative =  toIce(in.getRotAccelRelative());
 		out.jointLimits =  listOfJointLimitTypeToIce(in.getJointLimits());
 		out.intermediatePoseTolerance =  toIce(in.getIntermediatePoseTolerance());
-		if(null !=  in.isMotionCoordinated()) {
+		out.motionCoordinatedIsNull = (null == in.isMotionCoordinated());
+		if(!out.motionCoordinatedIsNull) {
 			out.motionCoordinated =  in.isMotionCoordinated().booleanValue();
 		}
 		out.minCartesianLimit =  toIce(in.getMinCartesianLimit());
@@ -1572,36 +2135,60 @@ public class ToIceConverters {
 	}
 
 	public static TransAccelRelativeTypeIce toIce(TransAccelRelativeType in) {
-		return toIce(in, new TransAccelRelativeTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new TransAccelRelativeTypeIce()):null);
 	}
 
 	public static TransAccelRelativeTypeIce toIce(TransAccelRelativeType in,TransAccelRelativeTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (TransAccelRelativeTypeIce) toIce((TransAccelType)in,(TransAccelTypeIce)out);
-		out.fraction =  in.getFraction().doubleValue();
+		out.fractionIsNull = (null == in.getFraction());
+		if(!out.fractionIsNull) {
+			out.fraction =  in.getFraction().doubleValue();
+		}
 		return out;
 	}
 
 	public static DwellTypeIce toIce(DwellType in) {
-		return toIce(in, new DwellTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new DwellTypeIce()):null);
 	}
 
 	public static DwellTypeIce toIce(DwellType in,DwellTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (DwellTypeIce) toIce((MiddleCommandType)in,(MiddleCommandTypeIce)out);
-		out.dwellTime =  in.getDwellTime().doubleValue();
+		out.dwellTimeIsNull = (null == in.getDwellTime());
+		if(!out.dwellTimeIsNull) {
+			out.dwellTime =  in.getDwellTime().doubleValue();
+		}
 		return out;
 	}
 
 	public static SetLengthUnitsTypeIce toIce(SetLengthUnitsType in) {
-		return toIce(in, new SetLengthUnitsTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetLengthUnitsTypeIce()):null);
 	}
 
 	public static SetLengthUnitsTypeIce toIce(SetLengthUnitsType in,SetLengthUnitsTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1611,10 +2198,16 @@ public class ToIceConverters {
 	}
 
 	public static OpenToolChangerTypeIce toIce(OpenToolChangerType in) {
-		return toIce(in, new OpenToolChangerTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new OpenToolChangerTypeIce()):null);
 	}
 
 	public static OpenToolChangerTypeIce toIce(OpenToolChangerType in,OpenToolChangerTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1623,10 +2216,16 @@ public class ToIceConverters {
 	}
 
 	public static SetTransAccelTypeIce toIce(SetTransAccelType in) {
-		return toIce(in, new SetTransAccelTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new SetTransAccelTypeIce()):null);
 	}
 
 	public static SetTransAccelTypeIce toIce(SetTransAccelType in,SetTransAccelTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
@@ -1636,35 +2235,65 @@ public class ToIceConverters {
 	}
 
 	public static JointForceTorqueTypeIce toIce(JointForceTorqueType in) {
-		return toIce(in, new JointForceTorqueTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new JointForceTorqueTypeIce()):null);
 	}
 
 	public static JointForceTorqueTypeIce toIce(JointForceTorqueType in,JointForceTorqueTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (JointForceTorqueTypeIce) toIce((JointDetailsType)in,(JointDetailsTypeIce)out);
-		out.setting =  in.getSetting().doubleValue();
-		out.changeRate =  in.getChangeRate().doubleValue();
+		out.settingIsNull = (null == in.getSetting());
+		if(!out.settingIsNull) {
+			out.setting =  in.getSetting().doubleValue();
+		}
+		out.changeRateIsNull = (null == in.getChangeRate());
+		if(!out.changeRateIsNull) {
+			out.changeRate =  in.getChangeRate().doubleValue();
+		}
 		return out;
 	}
 
 	public static PointTypeIce toIce(PointType in) {
-		return toIce(in, new PointTypeIce());
+		if(null == in) {
+			 return null;
+		}
+		return ((in!=null)?toIce(in, new PointTypeIce()):null);
 	}
 
 	public static PointTypeIce toIce(PointType in,PointTypeIce out) {
+		if(null == in) {
+			 return null;
+		}
 		if(null == out) {
 			 return toIce(in);
 		}
 		out = (PointTypeIce) toIce((DataThingType)in,(DataThingTypeIce)out);
-		out.z =  in.getZ().doubleValue();
-		out.y =  in.getY().doubleValue();
-		out.x =  in.getX().doubleValue();
+		out.zIsNull = (null == in.getZ());
+		if(!out.zIsNull) {
+			out.z =  in.getZ().doubleValue();
+		}
+		out.yIsNull = (null == in.getY());
+		if(!out.yIsNull) {
+			out.y =  in.getY().doubleValue();
+		}
+		out.xIsNull = (null == in.getX());
+		if(!out.xIsNull) {
+			out.x =  in.getX().doubleValue();
+		}
 		return out;
 	}
 
 	public static CommandStateEnumTypeIce toIce(CommandStateEnumType in) {
+		if(null == in) {
+			 return null;
+		}
 		return CommandStateEnumTypeIce.valueOf(in.ordinal());
 	}
 }

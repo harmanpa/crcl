@@ -419,12 +419,14 @@ module java2slice {
 	};
 	module testinlib {
 		class TestClassIce {
+			bool nameIsNull;
 			string name;
 		};
 	};
 	module crcl {
 		module base {
 			class DataThingTypeIce {
+				bool nameIsNull;
 				string name;
 			};
 		};
@@ -453,6 +455,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class CRCLCommandTypeIce  extends crcl::base::DataThingTypeIce {
+				bool commandIDIsNull;
 				long commandID;
 			};
 		};
@@ -488,7 +491,9 @@ module java2slice {
 	module crcl {
 		module base {
 			class JointSpeedAccelTypeIce  extends crcl::base::JointDetailsTypeIce {
+				bool jointAccelIsNull;
 				double jointAccel;
+				bool jointSpeedIsNull;
 				double jointSpeed;
 			};
 		};
@@ -502,6 +507,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class TransSpeedAbsoluteTypeIce  extends crcl::base::TransSpeedTypeIce {
+				bool settingIsNull;
 				double setting;
 			};
 		};
@@ -509,10 +515,15 @@ module java2slice {
 	module crcl {
 		module base {
 			class PoseToleranceTypeIce  extends crcl::base::DataThingTypeIce {
+				bool yPointToleranceIsNull;
 				double yPointTolerance;
+				bool xAxisToleranceIsNull;
 				double xAxisTolerance;
+				bool zPointToleranceIsNull;
 				double zPointTolerance;
+				bool xPointToleranceIsNull;
 				double xPointTolerance;
+				bool zAxisToleranceIsNull;
 				double zAxisTolerance;
 			};
 		};
@@ -534,7 +545,9 @@ module java2slice {
 	module crcl {
 		module base {
 			class GripperStatusTypeIce  extends crcl::base::DataThingTypeIce {
+				bool holdingObjectIsNull;
 				bool holdingObject;
+				bool gripperNameIsNull;
 				string gripperName;
 			};
 		};
@@ -548,6 +561,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class MessageTypeIce  extends crcl::base::MiddleCommandTypeIce {
+				bool messageIsNull;
 				string message;
 			};
 		};
@@ -562,6 +576,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class TransAccelAbsoluteTypeIce  extends crcl::base::TransAccelTypeIce {
+				bool settingIsNull;
 				double setting;
 			};
 		};
@@ -576,8 +591,11 @@ module java2slice {
 	module crcl {
 		module base {
 			class VectorTypeIce  extends crcl::base::DataThingTypeIce {
+				bool jIsNull;
 				double j;
+				bool kIsNull;
 				double k;
+				bool iIsNull;
 				double i;
 			};
 		};
@@ -585,6 +603,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class SetEndEffectorTypeIce  extends crcl::base::MiddleCommandTypeIce {
+				bool settingIsNull;
 				double setting;
 			};
 		};
@@ -607,8 +626,11 @@ module java2slice {
 		module base {
 			class CRCLCommandInstanceTypeIce  extends crcl::base::DataThingTypeIce {
 				crcl::base::CRCLCommandTypeIce cRCLCommand;
+				bool programIndexIsNull;
 				long programIndex;
+				bool programLengthIsNull;
 				long programLength;
+				bool programFileIsNull;
 				string programFile;
 			};
 		};
@@ -640,10 +662,15 @@ module java2slice {
 	module crcl {
 		module base {
 			class JointLimitTypeIce  extends crcl::base::DataThingTypeIce {
+				bool jointNumberIsNull;
 				long jointNumber;
+				bool jointMaxTorqueOrForceIsNull;
 				double jointMaxTorqueOrForce;
+				bool jointMaxVelocityIsNull;
 				double jointMaxVelocity;
+				bool jointMaxPositionIsNull;
 				double jointMaxPosition;
+				bool jointMinPositionIsNull;
 				double jointMinPosition;
 			};
 		};
@@ -651,6 +678,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class ConfigureJointReportTypeIce  extends crcl::base::DataThingTypeIce {
+				bool jointNumberIsNull;
 				long jointNumber;
 				bool reportPosition;
 				bool reportVelocity;
@@ -668,7 +696,9 @@ module java2slice {
 	module crcl {
 		module base {
 			class ParameterSettingTypeIce  extends crcl::base::DataThingTypeIce {
+				bool parameterValueIsNull;
 				string parameterValue;
+				bool parameterNameIsNull;
 				string parameterName;
 			};
 		};
@@ -690,6 +720,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class ParallelGripperStatusTypeIce  extends crcl::base::GripperStatusTypeIce {
+				bool separationIsNull;
 				double separation;
 			};
 		};
@@ -711,12 +742,18 @@ module java2slice {
 	module crcl {
 		module base {
 			class CommandStatusTypeIce  extends crcl::base::DataThingTypeIce {
+				bool programIndexIsNull;
 				long programIndex;
+				bool statusIDIsNull;
 				long statusID;
+				bool stateDescriptionIsNull;
 				string stateDescription;
+				bool commandIDIsNull;
 				long commandID;
+				bool programLengthIsNull;
 				long programLength;
 				crcl::base::CommandStateEnumTypeIce commandState;
+				bool programFileIsNull;
 				string programFile;
 			};
 		};
@@ -726,6 +763,7 @@ module java2slice {
 			class PoseStatusTypeIce  extends crcl::base::DataThingTypeIce {
 				crcl::base::PoseTypeIce pose;
 				crcl::base::TwistTypeIce twist;
+				bool configurationIsNull;
 				string configuration;
 				crcl::base::WrenchTypeIce wrench;
 			};
@@ -734,6 +772,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class TransSpeedRelativeTypeIce  extends crcl::base::TransSpeedTypeIce {
+				bool fractionIsNull;
 				double fraction;
 			};
 		};
@@ -748,9 +787,13 @@ module java2slice {
 	module crcl {
 		module base {
 			class JointStatusTypeIce  extends crcl::base::DataThingTypeIce {
+				bool jointPositionIsNull;
 				double jointPosition;
+				bool jointVelocityIsNull;
 				double jointVelocity;
+				bool jointNumberIsNull;
 				long jointNumber;
+				bool jointTorqueOrForceIsNull;
 				double jointTorqueOrForce;
 			};
 		};
@@ -789,6 +832,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class RotSpeedRelativeTypeIce  extends crcl::base::RotSpeedTypeIce {
+				bool fractionIsNull;
 				double fraction;
 			};
 		};
@@ -796,6 +840,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class RunProgramTypeIce  extends crcl::base::MiddleCommandTypeIce {
+				bool programTextIsNull;
 				string programText;
 			};
 		};
@@ -803,6 +848,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class RotAccelRelativeTypeIce  extends crcl::base::RotAccelTypeIce {
+				bool fractionIsNull;
 				double fraction;
 			};
 		};
@@ -812,6 +858,7 @@ module java2slice {
 			class MoveThroughToTypeIce  extends crcl::base::MiddleCommandTypeIce {
 				bool moveStraight;
 				crcl::base::PoseTypeIceSequence waypoint;
+				bool numPositionsIsNull;
 				long numPositions;
 			};
 		};
@@ -833,8 +880,11 @@ module java2slice {
 	module crcl {
 		module base {
 			class MoveScrewTypeIce  extends crcl::base::MiddleCommandTypeIce {
+				bool turnIsNull;
 				double turn;
+				bool axialDistanceFreeIsNull;
 				double axialDistanceFree;
+				bool axialDistanceScrewIsNull;
 				double axialDistanceScrew;
 				crcl::base::PointTypeIce axisPoint;
 				crcl::base::PoseTypeIce startPosition;
@@ -844,6 +894,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class RotAccelAbsoluteTypeIce  extends crcl::base::RotAccelTypeIce {
+				bool settingIsNull;
 				double setting;
 			};
 		};
@@ -858,7 +909,9 @@ module java2slice {
 	module crcl {
 		module base {
 			class ActuateJointTypeIce  extends crcl::base::DataThingTypeIce {
+				bool jointPositionIsNull;
 				double jointPosition;
+				bool jointNumberIsNull;
 				long jointNumber;
 				crcl::base::JointDetailsTypeIce jointDetails;
 			};
@@ -867,6 +920,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class RotSpeedAbsoluteTypeIce  extends crcl::base::RotSpeedTypeIce {
+				bool settingIsNull;
 				double setting;
 			};
 		};
@@ -874,11 +928,17 @@ module java2slice {
 	module crcl {
 		module base {
 			class ThreeFingerGripperStatusTypeIce  extends crcl::base::GripperStatusTypeIce {
+				bool finger1PositionIsNull;
 				double finger1Position;
+				bool finger2PositionIsNull;
 				double finger2Position;
+				bool finger2ForceIsNull;
 				double finger2Force;
+				bool finger1ForceIsNull;
 				double finger1Force;
+				bool finger3ForceIsNull;
 				double finger3Force;
+				bool finger3PositionIsNull;
 				double finger3Position;
 			};
 		};
@@ -924,10 +984,12 @@ module java2slice {
 				crcl::base::TransAccelAbsoluteTypeIce transAccelAbsolute;
 				crcl::base::ParameterSettingTypeIceSequence endEffectorParameterSetting;
 				crcl::base::TorqueUnitEnumTypeIce torqueUnitName;
+				bool endEffectorSettingIsNull;
 				double endEffectorSetting;
 				crcl::base::RotAccelRelativeTypeIce rotAccelRelative;
 				crcl::base::JointLimitTypeIceSequence jointLimits;
 				crcl::base::PoseToleranceTypeIce intermediatePoseTolerance;
+				bool motionCoordinatedIsNull;
 				bool motionCoordinated;
 				crcl::base::PointTypeIce minCartesianLimit;
 				crcl::base::RotSpeedAbsoluteTypeIce rotSpeedAbsolute;
@@ -946,6 +1008,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class TransAccelRelativeTypeIce  extends crcl::base::TransAccelTypeIce {
+				bool fractionIsNull;
 				double fraction;
 			};
 		};
@@ -953,6 +1016,7 @@ module java2slice {
 	module crcl {
 		module base {
 			class DwellTypeIce  extends crcl::base::MiddleCommandTypeIce {
+				bool dwellTimeIsNull;
 				double dwellTime;
 			};
 		};
@@ -980,7 +1044,9 @@ module java2slice {
 	module crcl {
 		module base {
 			class JointForceTorqueTypeIce  extends crcl::base::JointDetailsTypeIce {
+				bool settingIsNull;
 				double setting;
+				bool changeRateIsNull;
 				double changeRate;
 			};
 		};
@@ -988,8 +1054,11 @@ module java2slice {
 	module crcl {
 		module base {
 			class PointTypeIce  extends crcl::base::DataThingTypeIce {
+				bool zIsNull;
 				double z;
+				bool yIsNull;
 				double y;
+				bool xIsNull;
 				double x;
 			};
 		};
