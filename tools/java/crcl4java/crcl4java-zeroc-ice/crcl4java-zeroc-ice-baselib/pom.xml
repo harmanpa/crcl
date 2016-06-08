@@ -12,7 +12,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <ice.include.path></ice.include.path>
-        <slice2java.path>/usr/bin/slice2java</slice2java.path>
     </properties>
     <build>
         <plugins>
@@ -123,4 +122,63 @@
             <version>3.6.2</version>
         </dependency>
     </dependencies>
+    <profiles>
+        <!--
+        Set the location where slice2java is installed.
+        
+        Go to 
+        
+        https://zeroc.com/distributions/ice
+        
+        To install Ice.
+        
+        If the path needs to be changed one can either override on the command line. eg
+        
+        mvn "-Dslice2java.path=C:\Program Files (x86)\ZeroC\Ice-3.6.2\bin\slice2java.exe" install
+        
+        or by placing an activebydefault profile in settings.xml of the .m2 subdirectory of your 
+        home directory.
+        
+        eg
+        
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <profiles>
+               <profile>
+                   <id>defaultproperties</id>
+                   <activation>
+                       <activeByDefault>true</activeByDefault>
+                   </activation>
+                   <properties>
+                       <slice2java.path>C:\Program Files (x86)\ZeroC\Ice-3.6.2\bin\slice2java.exe</slice2java.path>
+                   </properties>
+               </profile>
+            </profiles>
+        </settings>
+        -->
+        <profile>
+            <id>windows_default_slice2java</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <slice2java.path>C:\Program Files (x86)\ZeroC\Ice-3.6.1\bin\slice2java.exe</slice2java.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>default_slice2java</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                </os>
+            </activation>
+            <properties>
+                <slice2java.path>/usr/bin/slice2java</slice2java.path>
+            </properties>
+        </profile>
+    </profiles> 
 </project>
