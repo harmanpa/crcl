@@ -41,7 +41,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
      *
      * @param parent new value of parent
      */
-    public void setPendantClient(PendantClient parent) {
+    public void setPendantClient(PendantClientJFrame parent) {
         transformJPanel1.setPendantClient(parent);
     }
 

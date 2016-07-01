@@ -21,38 +21,62 @@
 package crcl.utils;
 
 import crcl.base.CRCLProgramType;
+import crcl.base.MiddleCommandType;
+import crcl.base.PoseType;
 import java.io.File;
+import javax.xml.bind.JAXBException;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface PendantClientOuter {
-    
+public interface PendantClientOuter extends PendantClientMenuOuter {
+
     public void showMessage(String s);
+
     public void showMessage(Throwable t);
+
     public boolean showDebugMessage(String s);
-    public boolean validateXmlSelected();
-    public boolean replaceStateSelected();
+
     public String getHost();
+
     public int getPort();
+
     public void finishDisconnect();
+
     public void finishConnect();
+
     public void finishSetStatus();
+
     public void checkXmlQuery(CRCLSocket crclSocket);
+
     public void stopPollTimer();
+
     public void checkPollSelected();
-    public boolean isDebugWaitForDoneSelected();
-    public boolean isDebugSendCommandSelected();
-    public boolean isDebugReadStatusSelected();
+
     public void showCurrentProgramLine(int line);
-    public void showLastProgramLineExecTimeMillisDists(long millis, double dist,boolean result);
+
+    public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result);
+
     public void finishOpenXmlProgramFile(File f, CRCLProgramType program, boolean addRecent);
+
     public CRCLProgramType editProgram(CRCLProgramType program);
-    public boolean isRecordPoseSelected();
-    public boolean isEXISelected();
-    public boolean isUseReadStatusThreadSelected();
+
     public boolean checkUserText(String text);
+
     public boolean isMonitoringHoldingObject();
+
     public void setExpectedHoldingObject(boolean x);
+
+    public MiddleCommandType getCurrentProgramCommand();
+
+    public PoseType getCurrentPose();
+
+    public CRCLProgramType getProgram();
+
+    public File getLastOpenedProgramFile();
+
+    public void setProgram(CRCLProgramType program) throws JAXBException;
+
+    public void saveXmlProgramFile(File f) throws JAXBException, CRCLException;
 }

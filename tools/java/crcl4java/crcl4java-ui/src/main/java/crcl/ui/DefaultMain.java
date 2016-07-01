@@ -119,7 +119,7 @@ public class DefaultMain {
                 break;
 
             case "GraphicalClient":
-                PendantClient.main(args);
+                PendantClientJFrame.main(args);
                 break;
                 
             default:

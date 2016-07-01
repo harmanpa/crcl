@@ -160,7 +160,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
     
     public void startPendantClient() {
         try {
-            new PendantClient().setVisible(true);
+            new PendantClientJFrame().setVisible(true);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -179,7 +179,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
             GripperJFrame gripperJFrame = new GripperJFrame();
             gripperJFrame.setVisible(true);
             gripperJFrame.setState(Frame.ICONIFIED);
-            PendantClient pendantClient = new PendantClient();
+            PendantClientJFrame pendantClient = new PendantClientJFrame();
             pendantClient.setVisible(true);
             javax.swing.Timer timer = new javax.swing.Timer(500,
                     e -> {

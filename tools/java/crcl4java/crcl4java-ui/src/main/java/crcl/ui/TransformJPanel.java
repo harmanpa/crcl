@@ -29,6 +29,7 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
+import crcl.utils.PendantClientOuter;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -49,14 +50,14 @@ import javax.xml.bind.JAXBException;
  */
 public class TransformJPanel extends javax.swing.JPanel {
 
-    private PendantClient pendantClient;
+    private PendantClientOuter pendantClient;
 
     /**
      * Set the value of pendantClient
      *
      * @param pendantClient new value of pendantClient
      */
-    public void setPendantClient(PendantClient pendantClient) {
+    public void setPendantClient(PendantClientOuter pendantClient) {
         this.pendantClient = pendantClient;
     }
 
@@ -176,7 +177,7 @@ public class TransformJPanel extends javax.swing.JPanel {
      */
     public void setTransform(PoseType transform) {
         this.transform = transform;
-        PendantClient.updatePoseTable(transform, jTablePose);
+        PendantClientJPanel.updatePoseTable(transform, jTablePose);
     }
 
     private void updateTransformBothPoints() {
@@ -936,7 +937,7 @@ public class TransformJPanel extends javax.swing.JPanel {
     }
     private void jButtonTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTransformProgramActionPerformed
         try {
-            PoseType transform = PendantClient.tableToPose(jTablePose);
+            PoseType transform = PendantClientJPanel.tableToPose(jTablePose);
             CRCLProgramType inProgram = pendantClient.getProgram();
             if (null != inProgram) {
                 CRCLProgramType newProgram = CRCLPosemath.transformProgram(transform, inProgram);

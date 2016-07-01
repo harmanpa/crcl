@@ -20,18 +20,19 @@
  */
 package crcl.utils;
 
-
 import crcl.base.CRCLProgramType;
+import crcl.base.MiddleCommandType;
+import crcl.base.PoseType;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBException;
 
-
-public class PendantClientOuterStub implements PendantClientOuter{
+public class PendantClientOuterStub implements PendantClientOuter {
 
     @Override
     public void showMessage(String s) {
-        final String sWithThread = "Thread:" + Thread.currentThread().getName()+" "+s;
+        final String sWithThread = "Thread:" + Thread.currentThread().getName() + " " + s;
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, sWithThread);
     }
 
@@ -47,27 +48,28 @@ public class PendantClientOuterStub implements PendantClientOuter{
     }
 
     private final boolean validateXml;
-    
+
     @Override
     public boolean validateXmlSelected() {
         return this.validateXml;
     }
 
     private final boolean replaceState;
-    
+
     @Override
     public boolean replaceStateSelected() {
         return this.replaceState;
     }
 
     private final String host;
-    
+
     @Override
     public String getHost() {
         return this.host;
     }
 
     private final int port;
+
     @Override
     public int getPort() {
         return this.port;
@@ -98,27 +100,26 @@ public class PendantClientOuterStub implements PendantClientOuter{
     }
 
     private final boolean debugWaitForDone;
-    
+
     @Override
     public boolean isDebugWaitForDoneSelected() {
         return this.debugWaitForDone;
     }
 
     private final boolean debugSendCommand;
-    
+
     @Override
     public boolean isDebugSendCommandSelected() {
         return this.debugSendCommand;
     }
 
     private final boolean debugReadStatus;
-    
+
     @Override
     public boolean isDebugReadStatusSelected() {
         return this.debugReadStatus;
     }
 
-    
     @Override
     public void showCurrentProgramLine(int line) {
     }
@@ -137,63 +138,62 @@ public class PendantClientOuterStub implements PendantClientOuter{
     }
 
     private final boolean recordPose;
+
     @Override
     public boolean isRecordPoseSelected() {
         return this.recordPose;
     }
 
     private static boolean prop(String propName, boolean defaultVal) {
-        return Boolean.valueOf(System.getProperty(propName,Boolean.toString(defaultVal)));
+        return Boolean.valueOf(System.getProperty(propName, Boolean.toString(defaultVal)));
     }
-    
+
     public PendantClientOuterStub() {
         this(
-                prop("crcjava.PendandClient.validateXML",false),// validateXML
-                prop("crcjava.PendandClient.replaceState",false),// validateXML
-                System.getProperty("crcl4java.host","localhost"), //host
+                prop("crcjava.PendandClient.validateXML", false),// validateXML
+                prop("crcjava.PendandClient.replaceState", false),// validateXML
+                System.getProperty("crcl4java.host", "localhost"), //host
                 Integer.parseInt(System.getProperty("crcl4java.port",
                         Integer.toString(CRCLSocket.DEFAULT_PORT))), //port
-                prop("crcjava.PendandClient.debugWaitForDone",false),// debugWaitForDone
-                prop("crcjava.PendandClient.debugSendCommand",false),// debugSendCommand
-                prop("crcjava.PendandClient.debugReadStatus",false),// debugReadStatus
-                prop("crcjava.PendandClient.recordPose",false),// recordPose
-                prop("crcjava.PendandClient.exiSelected",false),// exiSelected
-                prop("crcjava.PendandClient.useReadStatusThreadSelected",true)// exiSelected
+                prop("crcjava.PendandClient.debugWaitForDone", false),// debugWaitForDone
+                prop("crcjava.PendandClient.debugSendCommand", false),// debugSendCommand
+                prop("crcjava.PendandClient.debugReadStatus", false),// debugReadStatus
+                prop("crcjava.PendandClient.recordPose", false),// recordPose
+                prop("crcjava.PendandClient.exiSelected", false),// exiSelected
+                prop("crcjava.PendandClient.useReadStatusThreadSelected", true)// exiSelected
         );
     }
-    
-    public PendantClientOuterStub
-        (
-                boolean validateXml,
-                boolean replaceState, 
-                String host, 
-                int port, 
-                boolean debugWaitForDone, 
-                boolean debugSendCommand, 
-                boolean debugReadStatus,
-                boolean recordPose,
-                boolean exiSelected,
-                boolean useReadStatusThreadSelected) {
+
+    public PendantClientOuterStub(
+            boolean validateXml,
+            boolean replaceState,
+            String host,
+            int port,
+            boolean debugWaitForDone,
+            boolean debugSendCommand,
+            boolean debugReadStatus,
+            boolean recordPose,
+            boolean exiSelected,
+            boolean useReadStatusThreadSelected) {
         this.validateXml = validateXml;
         this.replaceState = replaceState;
         this.host = host;
         this.port = port;
         this.debugWaitForDone = debugWaitForDone;
         this.debugSendCommand = debugSendCommand;
-        this.debugReadStatus  = debugReadStatus;
+        this.debugReadStatus = debugReadStatus;
         this.recordPose = recordPose;
         this.exiSelected = exiSelected;
         this.useReadStatusThreadSelected = useReadStatusThreadSelected;
     }
-    
-    
+
     private final boolean exiSelected;
 
     @Override
     public boolean isEXISelected() {
         return this.exiSelected;
     }
-    
+
     private final boolean useReadStatusThreadSelected;
 
     @Override
@@ -215,5 +215,43 @@ public class PendantClientOuterStub implements PendantClientOuter{
     @Override
     public void setExpectedHoldingObject(boolean x) {
     }
-    
+
+    @Override
+    public MiddleCommandType getCurrentProgramCommand() {
+        return null;
+    }
+
+    @Override
+    public PoseType getCurrentPose() {
+        return null;
+    }
+
+    @Override
+    public CRCLProgramType getProgram() {
+        return null;
+    }
+
+    @Override
+    public File getLastOpenedProgramFile() {
+        return null;
+    }
+
+    @Override
+    public void setProgram(CRCLProgramType program) throws JAXBException {
+    }
+
+    @Override
+    public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
+    }
+
+    @Override
+    public boolean isPlotJointsSelected() {
+        return false;
+    }
+
+    @Override
+    public boolean isPlotXyzSelected() {
+        return false;
+    }
+
 }

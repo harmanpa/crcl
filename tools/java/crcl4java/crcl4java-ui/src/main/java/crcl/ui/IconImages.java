@@ -59,7 +59,7 @@ public class IconImages {
                     robotImage = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
                 }
             } catch (IOException ex) {
-                Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(PendantClientJFrame.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 return robotImage;
             }

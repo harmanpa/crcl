@@ -271,7 +271,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
             }
             resultString = xpu.queryXmlString(status, query);
         } catch (Exception ex) {
-            Logger.getLogger(PendantClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClientJFrame.class.getName()).log(Level.SEVERE, null, ex);
             message("Query :" + query + " of " + status + " failed");
             failedQuery = query;
         }
