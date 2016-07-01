@@ -11,8 +11,6 @@
         <module>crcl4java-ui</module>
         <module>crcl4java-exi</module>
         <module>crcl4java-commons-math</module>
-        <module>jffitest</module>
-        <module>jnatest</module>
     </modules>
     
     <url>
