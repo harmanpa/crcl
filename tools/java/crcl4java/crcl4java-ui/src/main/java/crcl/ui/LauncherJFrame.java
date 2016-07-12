@@ -20,6 +20,10 @@
  */
 package crcl.ui;
 
+import crcl.ui.misc.WebServerJFrame;
+import crcl.ui.server.GripperJFrame;
+import crcl.ui.server.SimServerJFrame;
+import crcl.ui.client.PendantClientJFrame;
 import static crcl.ui.IconImages.DONE_IMAGE;
 import java.awt.Frame;
 import java.util.logging.Level;
@@ -147,7 +151,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
     
     public void startSimServer() {
         try {
-            new SimServer().setVisible(true);
+            new SimServerJFrame().setVisible(true);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -173,7 +177,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
 
     private void jButtonLaunchAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLaunchAllActionPerformed
         try {
-            SimServer simServer = new SimServer();
+            SimServerJFrame simServer = new SimServerJFrame();
             simServer.setVisible(true);
             simServer.setState(Frame.ICONIFIED);
             GripperJFrame gripperJFrame = new GripperJFrame();
@@ -183,7 +187,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
             pendantClient.setVisible(true);
             javax.swing.Timer timer = new javax.swing.Timer(500,
                     e -> {
-                        pendantClient.connect("localhost", simServer.inner.getPort());
+                        pendantClient.connect("localhost", simServer.getPort());
                     }
             );
             WebServerJFrame webServer = new WebServerJFrame();

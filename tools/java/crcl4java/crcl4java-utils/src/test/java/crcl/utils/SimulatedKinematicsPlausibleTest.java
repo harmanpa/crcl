@@ -5,6 +5,7 @@
  */
 package crcl.utils;
 
+import crcl.utils.kinematics.SimulatedKinematicsPlausible;
 import crcl.base.PointType;
 import crcl.base.PoseType;
 import java.math.BigDecimal;

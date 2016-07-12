@@ -22,6 +22,10 @@
  */
 package crcl.ui;
 
+import crcl.ui.server.CmdLineSimServer;
+import crcl.ui.server.SimServerJFrame;
+import crcl.ui.client.PendantClientJFrame;
+import crcl.ui.client.CmdLineClient;
 import crcl.utils.SimRobotEnum;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -115,7 +119,7 @@ public class DefaultMain {
                 break;
 
             case "GraphicalServer":
-                SimServer.main(args);
+                SimServerJFrame.main(args);
                 break;
 
             case "GraphicalClient":

@@ -20,6 +20,9 @@
  */
 package crcl.ui;
 
+import crcl.ui.server.CmdLineSimServer;
+import crcl.ui.server.SimServerInner;
+import crcl.ui.client.CmdLineClient;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
