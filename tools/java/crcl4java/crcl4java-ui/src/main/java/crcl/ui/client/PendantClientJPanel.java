@@ -1832,9 +1832,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         if (jogStopFlag) {
                             return;
                         }
-                        if (internal.getStatus().getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
-                            showMessage("Can not jog when status is " + CommandStateEnumType.CRCL_ERROR);
+                        final CRCLStatusType status = internal.getStatus();
+                        if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
                             jogStop();
+                            final String statusString = CRCLSocket.getUtilSocket().statusToString(status, false);
+                            javax.swing.SwingUtilities.invokeLater(() -> showMessage("Can not jog when status is " + CommandStateEnumType.CRCL_ERROR +" : "+
+                                   statusString));
                         }
                         if (internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_DONE) {
                             if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()

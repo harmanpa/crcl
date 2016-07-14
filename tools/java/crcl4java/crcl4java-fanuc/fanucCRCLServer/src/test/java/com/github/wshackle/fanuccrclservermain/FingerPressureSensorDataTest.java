@@ -5,7 +5,8 @@
  */
 package com.github.wshackle.fanuccrclservermain;
 
-import crcl.ui.FingerPressureSensorData;
+
+import crcl.ui.misc.FingerPressureSensorData;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

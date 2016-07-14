@@ -117,6 +117,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.xml.bind.JAXBException;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
@@ -141,6 +142,7 @@ public class Main {
         return remoteRobotHost;
     }
 
+    
     /**
      * Set the value of remoteRobotHost
      *
