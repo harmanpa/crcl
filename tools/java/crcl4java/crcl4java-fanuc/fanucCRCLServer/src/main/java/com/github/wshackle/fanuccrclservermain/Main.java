@@ -224,29 +224,29 @@ public class Main {
 
         if (cart.x > xMaxEffective) {
             posXyzWpr.x(xMaxEffective);
-            showError("X move of " + cart.x + " limited to max = " + xMaxEffective);
+            showWarning("X move of " + cart.x + " limited to max = " + xMaxEffective);
             changed = true;
         } else if (cart.x < xMinEffective) {
             posXyzWpr.x(xMinEffective);
-            showError("X move of " + cart.x + " limited to min= " + xMinEffective);
+            showWarning("X move of " + cart.x + " limited to min= " + xMinEffective);
             changed = true;
         }
         if (cart.y > yMaxEffective) {
             posXyzWpr.y(yMaxEffective);
-            showError("Y move of " + cart.y + " limited to max = " + yMaxEffective);
+            showWarning("Y move of " + cart.y + " limited to max = " + yMaxEffective);
             changed = true;
         } else if (cart.y < yMinEffective) {
             posXyzWpr.y(yMinEffective);
-            showError("Y move of " + cart.y + " limited to min = " + yMinEffective);
+            showWarning("Y move of " + cart.y + " limited to min = " + yMinEffective);
             changed = true;
         }
         if (cart.z > zMaxEffective) {
             posXyzWpr.z(zMaxEffective);
-            showError("Z move of " + cart.z + " limited to max = " + zMaxEffective);
+            showWarning("Z move of " + cart.z + " limited to max = " + zMaxEffective);
             changed = true;
         } else if (cart.z < zMinEffective) {
             posXyzWpr.z(zMinEffective);
-            showError("Z move of " + cart.z + " limited to min = " + zMinEffective);
+            showWarning("Z move of " + cart.z + " limited to min = " + zMinEffective);
             changed = true;
         }
 
@@ -1105,6 +1105,25 @@ public class Main {
         }
     }
 
+    public void showWarning(String warningString) {
+        if (null != status) {
+            if (null == status.getCommandStatus()) {
+                status.setCommandStatus(new CommandStatusType());
+                status.getCommandStatus().setCommandID(BigInteger.ONE);
+            }
+
+//            status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            status.getCommandStatus().setStateDescription(warningString);
+        }
+        if (null != warningString && !warningString.equals(lastErrorString)) {
+            System.err.println(warningString);
+            if (null != jframe) {
+                jframe.getjTextAreaErrors().append(warningString + "\n");
+            }
+            lastErrorString = warningString;
+        }
+    }
+    
     private void showInfo(String info) {
         if (null != jframe) {
             jframe.getjTextAreaErrors().append(info + "\n");
@@ -1314,7 +1333,7 @@ public class Main {
         long start = System.currentTimeMillis();
         CommandStateEnumType state = origState;
         while (lastMotionProgramRunning()) {
-            System.err.println("waiting for lastMotionProgramRunning");
+//            System.err.println("waiting for lastMotionProgramRunning");
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
