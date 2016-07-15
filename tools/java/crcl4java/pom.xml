@@ -260,6 +260,14 @@
             </modules>
         </profile>
         <profile> 
+            <id>allexceptice</id>
+            <modules>
+                <module>crcl4java-restful-proxy</module>
+                <module>crcl4java-vaadin-webapp</module>
+                <module>crcl4java-fanuc</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>withweb</id>
             <modules>
                 <module>crcl4java-restful-proxy</module>
@@ -504,7 +512,7 @@
                         </executions>
                         <configuration>
                             <executable>
-                                gpg2.exe
+                                C:\Program Files (x86)\GNU\GnuPG\gpg2.exe
                             </executable>
                         </configuration>
                     </plugin>
