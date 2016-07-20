@@ -92,6 +92,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -248,6 +249,29 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     int programLineShowing = -1;
 
+    public static interface ProgramLineListener {
+
+        public void accept(PendantClientJPanel panel, int line);
+    }
+
+    private final List<ProgramLineListener> programLineListeners = new ArrayList<>();
+
+    public void addProgramLineListener(ProgramLineListener l) {
+        synchronized (programLineListeners) {
+            if (!programLineListeners.contains(l)) {
+                programLineListeners.add(l);
+            }
+        }
+    }
+
+    public void removeProgramLineListener(ProgramLineListener l) {
+        programLineListeners.remove(l);
+    }
+
+    public CRCLStatusType getStatus() {
+        return internal.getStatus();
+    }
+
     private void finishShowCurrentProgramLine(final int line) {
         if (line != programLineShowing) {
             final CRCLProgramType program = internal.getProgram();
@@ -309,9 +333,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 programPlotterJPanelSide.setIndex(line);
                 programPlotterJPanelOverhead.repaint();
                 programPlotterJPanelSide.repaint();
+
             } else {
                 showSelectedProgramCommand("No Program loaded.");
             }
+        }
+        for (int i = 0; i < programLineListeners.size(); i++) {
+            ProgramLineListener l = programLineListeners.get(i);
+            l.accept(this, line);
         }
         programLineShowing = line;
     }
@@ -1836,8 +1865,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
                             jogStop();
                             final String statusString = status.getCommandStatus().getStateDescription();
-                            javax.swing.SwingUtilities.invokeLater(() -> showMessage("Can not jog when status is " + CommandStateEnumType.CRCL_ERROR +" : "+
-                                   statusString));
+                            javax.swing.SwingUtilities.invokeLater(() -> showMessage("Can not jog when status is " + CommandStateEnumType.CRCL_ERROR + " : "
+                                    + statusString));
                         }
                         if (internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_DONE) {
                             if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
@@ -3519,7 +3548,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
 
     private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
-        
+
         runCurrentProgram();
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 

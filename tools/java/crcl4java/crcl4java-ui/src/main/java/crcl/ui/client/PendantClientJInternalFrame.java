@@ -119,6 +119,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
+    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+        pendantClientJPanel1.addProgramLineListener(l);
+    }
+    
+    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+        pendantClientJPanel1.removeProgramLineListener(l);
+    }
+    
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);

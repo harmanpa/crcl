@@ -692,6 +692,14 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return this.jCheckBoxMenuItemUseReadStatusThread.isSelected();
     }
 
+    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+        pendantClientJPanel1.addProgramLineListener(l);
+    }
+    
+    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+        pendantClientJPanel1.removeProgramLineListener(l);
+    }
+    
     /**
      * @param args the command line arguments
      */

@@ -142,7 +142,6 @@ public class Main {
         return remoteRobotHost;
     }
 
-    
     /**
      * Set the value of remoteRobotHost
      *
@@ -515,10 +514,10 @@ public class Main {
 
         if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
             CRCLStatusType status = readStatusFromRobot();
-            if (status.getJointStatuses() != null && status.getJointStatuses().getJointStatus().size() < 1) {
+            if (null == jointStatuses || jointStatuses.getJointStatus().size() < 1 || !reportJointStatus) {
                 status.setJointStatuses(null);
             } else {
-                status.setJointStatuses(reportJointStatus ? jointStatuses : null);
+                status.setJointStatuses(jointStatuses);
             }
             lastUpdateStatusTime = System.currentTimeMillis();
             return status;
@@ -1123,7 +1122,7 @@ public class Main {
             lastErrorString = warningString;
         }
     }
-    
+
     private void showInfo(String info) {
         if (null != jframe) {
             jframe.getjTextAreaErrors().append(info + "\n");
