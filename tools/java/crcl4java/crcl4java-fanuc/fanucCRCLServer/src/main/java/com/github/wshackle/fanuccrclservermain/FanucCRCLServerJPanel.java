@@ -366,10 +366,10 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                                 Object val = moveGroup1ServoReadyVar.value();
                                 if (val instanceof Boolean) {
                                     boolean servoReady = (boolean) val;
-                                    updateStatus("Status : " + Main.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
+                                    updateStatus("Status : " + FanucCRCLMain.morSafetyStatToString(safety_stat) + (servoReady ? " SERVO_READY " : " SERVO_NOT_READY (Need to Reset Fault)"));
                                 }
                             } else {
-                                updateStatus("Status : " + Main.morSafetyStatToString(safety_stat));
+                                updateStatus("Status : " + FanucCRCLMain.morSafetyStatToString(safety_stat));
                             }
                         }
                     }
@@ -646,14 +646,14 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 //        this.robot = robot;
 //        updateWatchVar(robot);
 //    }
-    private Main main;
+    private FanucCRCLMain main;
 
     /**
      * Get the value of main
      *
      * @return the value of main
      */
-    public Main getMain() {
+    public FanucCRCLMain getMain() {
         return main;
     }
 
@@ -662,7 +662,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
      *
      * @param main new value of main
      */
-    public void setMain(Main main) {
+    public void setMain(FanucCRCLMain main) {
         this.main = main;
     }
 
@@ -898,7 +898,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             webServerJFrame = null;
         }
 
-        Main.stop();
+        FanucCRCLMain.stop();
     }
 
     @Override

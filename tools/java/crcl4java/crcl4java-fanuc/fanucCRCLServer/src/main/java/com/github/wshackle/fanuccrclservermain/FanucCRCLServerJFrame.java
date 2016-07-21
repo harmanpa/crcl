@@ -52,7 +52,7 @@ import javax.swing.JTextField;
  *
  * @author shackle
  */
-public class FanucCRCLServerJFrame extends javax.swing.JFrame {
+public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCRCLServerDisplayInterface {
 
     /**
      * Creates new form FanucCRCLServerJFrame
@@ -362,7 +362,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame {
         }
     }
 
-    public void setMain(Main _main) {
+    public void setMain(FanucCRCLMain _main) {
         fanucCRCLServerJPanel1.setMain(_main);
     }
 

@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <main.class>com.github.wshackle.fanuccrclservermain.Main</main.class>
+        <main.class>com.github.wshackle.fanuccrclservermain.FanucCRCLMain</main.class>
     </properties>
     <dependencies>
         <dependency>
