@@ -689,7 +689,7 @@ public class PendantClientInner {
         return false;
     }
 
-    private synchronized void incCommandID(CRCLCommandType cmd) {
+    private void incCommandID(CRCLCommandType cmd) {
         if (null == cmdId) {
             cmdId = BigInteger.ONE;
         }
@@ -717,7 +717,7 @@ public class PendantClientInner {
         return sendCommand(cmd);
     }
 
-    public synchronized boolean sendCommand(CRCLCommandType cmd) throws JAXBException {
+    public boolean sendCommand(CRCLCommandType cmd) throws JAXBException {
         if (null == cmd) {
             throw new IllegalArgumentException("cmd can not be null");
         }
@@ -2474,7 +2474,7 @@ public class PendantClientInner {
      * @return false for failure or true for success
      * @throws InterruptedException
      */
-    private synchronized boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+    private boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
         int pause_count_start = this.pause_count.get();
         long testCommandStartTime = System.currentTimeMillis();
