@@ -1449,9 +1449,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         program += "/" + ccst.getProgramLength().toString();
                     }
                     if (null != frame) {
-                        frame.setTitle("CRCL Client:" + stateString
+                        String lastMessage = internal.getLastMessage();
+                        frame.setTitle(frame.getClass().getSimpleName()+" " + stateString
                                 + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                                + program);
+                                + program+" : "+lastMessage);
                     }
                     if (!internal.isRunningProgram()) {
                         if (null != ccst.getProgramFile()

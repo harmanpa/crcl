@@ -40,6 +40,7 @@ import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
+import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveScrewType;
 import crcl.base.MoveThroughToType;
@@ -1266,7 +1267,32 @@ public class PendantClientInner {
         outer.setExpectedHoldingObject(holdingObjectExpected);
     }
 
+        private String lastMessage;
+
+    /**
+     * Get the value of lastMessage
+     *
+     * @return the value of lastMessage
+     */
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    /**
+     * Set the value of lastMessage
+     *
+     * @param lastMessage new value of lastMessage
+     */
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
+    
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
+        if (cmd instanceof MessageType) {
+            setLastMessage(((MessageType)cmd).getMessage());
+            return true;
+        }
         if (cmd instanceof ActuateJointsType) {
             return testActuateJointsEffect((ActuateJointsType) cmd);
         }
