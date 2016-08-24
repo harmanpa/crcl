@@ -164,6 +164,9 @@
           <xs:element name="ProgramLength"
             type="xs:nonNegativeInteger"
             minOccurs="0"/>
+          <xs:element name="NewVar"
+            type="xs:nonNegativeInteger"
+            minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

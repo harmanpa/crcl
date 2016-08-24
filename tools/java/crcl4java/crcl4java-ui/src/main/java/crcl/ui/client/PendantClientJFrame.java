@@ -94,7 +94,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         readRecentCommandFiles();
         readRecentPrograms();
         this.setIconImage(DISCONNECTED_IMAGE);
-        this.setTitle("CRCL Client: Disconnected?");
+        this.setTitle("CRCL Client: Disconnected");
         try {
             this.setIconImage(IconImages.BASE_IMAGE);
         } catch (Exception ex) {

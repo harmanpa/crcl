@@ -22,7 +22,8 @@
  */
 package crcl.ui.misc;
 
-import java.awt.Frame;
+import java.awt.Dialog;
+import java.awt.Window;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JDialog;
@@ -131,8 +132,8 @@ public class ListChooserJPanel<TT> extends javax.swing.JPanel {
         return selectedChoice;
     }
     
-    public static <T> T choose(Frame owner, String title, T[] choices, T defaultChoice ) {
-        JDialog dialog = new JDialog(owner, title,true);
+    public static <T> T choose(Window owner, String title, T[] choices, T defaultChoice ) {
+        JDialog dialog = new JDialog(owner, title,Dialog.ModalityType.APPLICATION_MODAL);
         ListChooserJPanel<T> panel = new ListChooserJPanel<>(dialog,choices,defaultChoice);
         dialog.setVisible(true);
         return panel.getSelectedChoice();

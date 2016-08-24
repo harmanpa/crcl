@@ -104,7 +104,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         readRecentCommandFiles();
         readRecentPrograms();
 //        this.setIconImage(DISCONNECTED_IMAGE);
-        this.setTitle("CRCL Client: Disconnected?");
+        this.setTitle("CRCL Client: Disconnected");
 //        try {
 //            this.setIconImage(IconImages.BASE_IMAGE);
 //        } catch (Exception ex) {

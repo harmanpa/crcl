@@ -70,8 +70,10 @@ import diagapplet.plotter.plotterJFrame;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Desktop;
+import java.awt.Dialog;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -108,6 +110,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -1198,7 +1201,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
 
-    private JFrame outerFrame;
+    private Container outerContainer;
     private boolean searchedForOuterFrame = false;
 
     private static final boolean LOG_IMAGES_DEFAULT = Boolean.getBoolean("crcl4java.simserver.logimages");
@@ -1223,15 +1226,32 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.toolChangerOpen = toolChangerOpen;
     }
 
-    private JFrame searchForOuterFrame() {
+    private Container searchForOuterContainer() {
         if (searchedForOuterFrame) {
-            return outerFrame;
+            return outerContainer;
         }
         searchedForOuterFrame = true;
         Container container = this;
         while (null != (container = container.getParent())) {
             if (container instanceof JFrame) {
-                return (JFrame) container;
+                return container;
+            }
+            if (container instanceof JInternalFrame) {
+                return container;
+            }
+        }
+        return null;
+    }
+
+    private Window searchForOuterWindow() {
+        if (null != outerContainer && outerContainer instanceof Window) {
+            return (Window) outerContainer;
+        }
+        searchedForOuterFrame = true;
+        Container container = this;
+        while (null != (container = container.getParent())) {
+            if (container instanceof Window) {
+                return (Window) container;
             }
         }
         return null;
@@ -1242,11 +1262,29 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      *
      * @return the value of outerFrame
      */
-    public JFrame getOuterFrame() {
-        if (null == outerFrame) {
-            outerFrame = searchForOuterFrame();
+    public Container getOuterContainer() {
+        if (null == outerContainer) {
+            outerContainer = searchForOuterContainer();
         }
-        return outerFrame;
+        return outerContainer;
+    }
+
+    /**
+     * Get the value of outerFrame
+     *
+     * @return the value of outerFrame
+     */
+    public Window getOuterWindow() {
+        if (null != outerContainer && outerContainer instanceof Window) {
+            return (Window) outerContainer;
+        }
+        if (null == outerContainer) {
+            outerContainer = searchForOuterContainer();
+        }
+        if (null != outerContainer && outerContainer instanceof Window) {
+            return (Window) outerContainer;
+        }
+        return searchForOuterWindow();
     }
 
     /**
@@ -1255,7 +1293,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      * @param outerFrame new value of outerFrame
      */
     public void setOuterFrame(JFrame outerFrame) {
-        this.outerFrame = outerFrame;
+        this.outerContainer = outerFrame;
     }
 
     @Override
@@ -1275,7 +1313,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 long t = System.currentTimeMillis();
                 if (t - last_message_show_time > 5000) {
                     last_message_show_time = System.currentTimeMillis();
-                    MultiLineStringJPanel.showText(s, PendantClientJPanel.this.getOuterFrame(), "Message from Client", true);
+                    MultiLineStringJPanel.showText(s,
+                            PendantClientJPanel.this.getOuterWindow(),
+                            "Message from Client",
+                            Dialog.ModalityType.APPLICATION_MODAL);
                 }
                 last_message_show_time = System.currentTimeMillis();
                 showing_message = false;
@@ -1407,7 +1448,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     this.jTextFieldStatCmdID.setText(ccst.getCommandID().toString());
                 }
                 String stateDescription = ccst.getStateDescription();
-                JFrame frame = this.getOuterFrame();
+                Container container = this.getOuterContainer();
+                JFrame frame = null;
+                if (container instanceof JFrame) {
+                    frame = (JFrame) container;
+                }
                 if (null != ccst.getCommandState()) {
                     final CommandStateEnumType state = ccst.getCommandState();
                     final String stateString = state.toString();
@@ -1448,11 +1493,22 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     if (!program.isEmpty() && null != ccst.getProgramLength()) {
                         program += "/" + ccst.getProgramLength().toString();
                     }
+                    JInternalFrame internalFrame = null;
+                    if (container instanceof JInternalFrame) {
+                        internalFrame = (JInternalFrame) container;
+                    }
                     if (null != frame) {
                         String lastMessage = internal.getLastMessage();
-                        frame.setTitle(frame.getClass().getSimpleName()+" " + stateString
+                        frame.setTitle("CRCL Client: " + stateString
                                 + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                                + program+" : "+lastMessage);
+                                + program
+                                + ((lastMessage != null) ? " : " + lastMessage : ""));
+                    } else if (null != internalFrame) {
+                        String lastMessage = internal.getLastMessage();
+                        internalFrame.setTitle("CRCL Client: " + stateString
+                                + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
+                                + program
+                                + ((lastMessage != null) ? " : " + lastMessage : ""));
                     }
                     if (!internal.isRunningProgram()) {
                         if (null != ccst.getProgramFile()
@@ -1651,10 +1707,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void disconnect() {
         this.jTextFieldStatus.setBackground(Color.GRAY);
-        JFrame frm = this.getOuterFrame();
-        if (null != frm) {
-            frm.setIconImage(DISCONNECTED_IMAGE);
-            frm.setTitle("CRCL Client: Disconnected?");
+        Window window = this.getOuterWindow();
+        if (window instanceof JFrame) {
+            JFrame frm = (JFrame) window;
+            if (null != frm) {
+                frm.setIconImage(DISCONNECTED_IMAGE);
+                frm.setTitle("CRCL Client: Disconnected?");
+            }
         }
         internal.disconnect();
         jogWorldSpeedsSet = false;
@@ -3521,7 +3580,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 List<Class> availClasses = getAssignableClasses(clss,
                         ObjTableJPanel.getClasses());
                 Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
-                Class selectedClss = ListChooserJPanel.choose(this.getOuterFrame(), "Type of new Item", ca, null);
+                Class selectedClss = ListChooserJPanel.choose(this.getOuterWindow(),
+                        "Type of new Item",
+                        ca, null);
                 if (selectedClss == null) {
                     showDebugMessage("Add Program Item cancelled. selectedClss == null");
                     return;

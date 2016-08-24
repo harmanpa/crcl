@@ -25,7 +25,8 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <crcl.schemaBaseUrl>https://raw.githubusercontent.com/ros-industrial/crcl/master/schemas/</crcl.schemaBaseUrl>
+        <crcl.schemaBaseUrl>https://raw.githubusercontent.com/usnistgov/crcl/master/schemas/</crcl.schemaBaseUrl>
+        <crcl.schemaFileDirl>${basedir}/../../../../schemas/</crcl.schemaFileDirl>
     </properties>
     <repositories>
         <repository>
@@ -154,7 +155,7 @@
     </distributionManagement>
     <profiles>
         <profile>
-            <id>newSchema</id>
+            <id>downloadSchema</id>
             <build>
                 <plugins>
                     <plugin>
@@ -175,6 +176,40 @@
                                         <get src="${crcl.schemaBaseUrl}/CRCLStatus.xsd" dest="${basedir}/src/main/resources/" verbose="true" usetimestamp="false" />
                                         <get src="${crcl.schemaBaseUrl}/CRCLProgramInstance.xsd" dest="${basedir}/src/main/resources/" verbose="true" usetimestamp="false" />
                                         <get src="${crcl.schemaBaseUrl}/DataPrimitives.xsd" dest="${basedir}/src/main/resources/" verbose="true" usetimestamp="false" />
+                                    </target>
+
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>copySchema</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>copy-files</id>
+                                <phase>initialize</phase>
+                                <configuration>
+
+                                    <target>
+                                        <echo message="crcl.schemaFileDirl=${crcl.schemaFileDirl}" />
+                                        <echo message="dest=${basedir}/src/main/resources/" />
+                                        <copy file="${crcl.schemaFileDirl}/CRCLCommandInstance.xsd" todir="${basedir}/src/main/resources/" verbose="true"  />
+                                        <copy file="${crcl.schemaFileDirl}/CRCLCommands.xsd" todir="${basedir}/src/main/resources/" verbose="true"  />
+                                        <copy file="${crcl.schemaFileDirl}/CRCLStatus.xsd" todir="${basedir}/src/main/resources/" verbose="true"  />
+                                        <copy file="${crcl.schemaFileDirl}/CRCLProgramInstance.xsd" todir="${basedir}/src/main/resources/" verbose="true"  />
+                                        <copy file="${crcl.schemaFileDirl}/DataPrimitives.xsd" todir="${basedir}/src/main/resources/" verbose="true"  />
                                     </target>
 
                                 </configuration>

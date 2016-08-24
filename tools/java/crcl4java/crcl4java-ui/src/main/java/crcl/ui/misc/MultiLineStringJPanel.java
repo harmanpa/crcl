@@ -20,9 +20,12 @@
  */
 package crcl.ui.misc;
 
+import java.awt.Dialog;
 import java.awt.Frame;
+import java.awt.Window;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 /**
  *
@@ -162,7 +165,14 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return !panel.cancelled;
     }
     
-    public static boolean showText(String init, Frame _owner,
+    public static boolean showText(String init, Window _owner,
+            String _title,
+            Dialog.ModalityType _modal) {
+        JDialog dialog = new JDialog(_owner, _title, _modal);
+        return showTextPrivate(dialog, init);
+    }
+    
+    public static boolean showText(String init, JFrame _owner,
             String _title,
             boolean _modal) {
         JDialog dialog = new JDialog(_owner, _title, _modal);

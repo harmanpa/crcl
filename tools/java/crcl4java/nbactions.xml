@@ -41,4 +41,14 @@
             <activatedProfile>windows_with_gpg4win</activatedProfile>
         </activatedProfiles>
     </action>
+    <action>
+            <actionName>CUSTOM-default_deploy</actionName>
+            <displayName>default_deploy</displayName>
+            <goals>
+                <goal>deploy</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>release</activatedProfile>
+            </activatedProfiles>
+        </action>
 </actions>
