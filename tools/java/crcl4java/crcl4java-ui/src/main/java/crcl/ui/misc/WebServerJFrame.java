@@ -62,7 +62,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         System.out.println("Finished WebServerJFrame.shutdownAll()");
     }
 
-    static {
+    static private void registerShutdownHook() {
         if (!shutdownHookRegistered) {
             synchronized (WebServerJFrame.class) {
                 Runtime.getRuntime().addShutdownHook(new Thread(WebServerJFrame::shutdownAll, "webServerShutdownThread"));
@@ -155,10 +155,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     /**
-     * Creates new form ServerSensorJFrame
+     * Creates new form WebServerJFrame
      */
     public WebServerJFrame() {
         initComponents();
+        registerShutdownHook();
         try {
             setURL("http://" + InetAddress.getLocalHost().getHostName() + ":8080/crcl4java-vaadin-webapp");
         } catch (UnknownHostException ex) {

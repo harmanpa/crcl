@@ -22,10 +22,14 @@ package crcl.ui.misc;
 
 import java.awt.Dialog;
 import java.awt.Frame;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.TransferHandler;
 
 /**
  *
@@ -65,6 +69,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
+        jTextArea1.addMouseListener(formListener);
         jScrollPane1.setViewportView(jTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -97,7 +102,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
 
     // Code for dispatching events from components to event handlers.
 
-    private class FormListener implements java.awt.event.ActionListener {
+    private class FormListener implements java.awt.event.ActionListener, java.awt.event.MouseListener {
         FormListener() {}
         public void actionPerformed(java.awt.event.ActionEvent evt) {
             if (evt.getSource() == jButtonCancel) {
@@ -105,6 +110,30 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             }
             else if (evt.getSource() == jButtonOK) {
                 MultiLineStringJPanel.this.jButtonOKActionPerformed(evt);
+            }
+        }
+
+        public void mouseClicked(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextArea1) {
+                MultiLineStringJPanel.this.jTextArea1MouseClicked(evt);
+            }
+        }
+
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+        }
+
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+        }
+
+        public void mousePressed(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextArea1) {
+                MultiLineStringJPanel.this.jTextArea1MousePressed(evt);
+            }
+        }
+
+        public void mouseReleased(java.awt.event.MouseEvent evt) {
+            if (evt.getSource() == jTextArea1) {
+                MultiLineStringJPanel.this.jTextArea1MouseReleased(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -118,6 +147,40 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
        this.cancelled = true;
        this.dialog.setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
+
+    private JPopupMenu popMenu = new JPopupMenu();
+    private void copyText() {
+        this.jTextArea1.getTransferHandler().exportToClipboard(this.jTextArea1, 
+                Toolkit.getDefaultToolkit().getSystemClipboard(), 
+                TransferHandler.COPY);
+        popMenu.setVisible(false);
+    }
+    
+    public void showPopup(int x,int y) {
+        JMenuItem copyMenuItem = new JMenuItem("Copy");
+        copyMenuItem.addActionListener(e -> copyText());
+        popMenu.add(copyMenuItem);
+        popMenu.setLocation(x, y);
+        popMenu.setVisible(true);
+    }
+    
+    private void jTextArea1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MousePressed
+        if(evt.isPopupTrigger()) {
+            showPopup(evt.getX(),evt.getY());
+        }
+    }//GEN-LAST:event_jTextArea1MousePressed
+
+    private void jTextArea1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseClicked
+        if(evt.isPopupTrigger()) {
+            showPopup(evt.getX(),evt.getY());
+        }
+    }//GEN-LAST:event_jTextArea1MouseClicked
+
+    private void jTextArea1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseReleased
+        if(evt.isPopupTrigger()) {
+            showPopup(evt.getX(),evt.getY());
+        }
+    }//GEN-LAST:event_jTextArea1MouseReleased
 
 
     private JDialog dialog = null;
