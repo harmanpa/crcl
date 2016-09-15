@@ -20,6 +20,7 @@
  */
 package crcl.ui.misc;
 
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -149,6 +150,11 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private JPopupMenu popMenu = new JPopupMenu();
+    {
+        JMenuItem copyMenuItem = new JMenuItem("Copy");
+        copyMenuItem.addActionListener(e -> copyText());
+        popMenu.add(copyMenuItem);
+    }
     private void copyText() {
         this.jTextArea1.getTransferHandler().exportToClipboard(this.jTextArea1, 
                 Toolkit.getDefaultToolkit().getSystemClipboard(), 
@@ -156,29 +162,26 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         popMenu.setVisible(false);
     }
     
-    public void showPopup(int x,int y) {
-        JMenuItem copyMenuItem = new JMenuItem("Copy");
-        copyMenuItem.addActionListener(e -> copyText());
-        popMenu.add(copyMenuItem);
-        popMenu.setLocation(x, y);
-        popMenu.setVisible(true);
+    public void showPopup(Component comp, int x,int y) {
+        
+        popMenu.show(comp, x, y);
     }
     
     private void jTextArea1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MousePressed
         if(evt.isPopupTrigger()) {
-            showPopup(evt.getX(),evt.getY());
+            showPopup(evt.getComponent(), evt.getX(),evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MousePressed
 
     private void jTextArea1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseClicked
         if(evt.isPopupTrigger()) {
-            showPopup(evt.getX(),evt.getY());
+            showPopup(evt.getComponent(), evt.getX(),evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MouseClicked
 
     private void jTextArea1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseReleased
         if(evt.isPopupTrigger()) {
-            showPopup(evt.getX(),evt.getY());
+            showPopup(evt.getComponent(), evt.getX(),evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MouseReleased
 
