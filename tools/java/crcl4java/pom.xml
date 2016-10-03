@@ -11,6 +11,7 @@
         <module>crcl4java-ui</module>
         <module>crcl4java-exi</module>
         <module>crcl4java-commons-math</module>
+        <module>crcl4java-motoman</module>
     </modules>
     
     <url>
