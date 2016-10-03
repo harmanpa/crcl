@@ -8,6 +8,8 @@
 #include "remoteFunctions.h"
 
 extern void *malloc(size_t);
+extern void free(void *);
+
 #define BUFF_MAX    1023
 
 static int recvN(int handle, char *buf, int n, int flags) {
@@ -58,6 +60,9 @@ static void swap(char *buf, int offset, int sz) {
 // platform to do this
 // so it gets reimplemented yet again.
 
+typedef int int32_t;
+typedef long int64_t;
+
 static int32_t getInt32(char *buf, int offset) {
 #ifdef DO_SWAP
     swap(buf, offset, 4);
@@ -74,8 +79,9 @@ static void setInt32(char *buf, int offset, int32_t val) {
 }
 
 static int64_t getInt64(char *buf, int offset) {
-    int i=0;
+  
 /*
+int i=0;
     for(i = 0; i < 8; i++) {
         printf("%2.2X",buf[offset+i]);
     }
@@ -104,7 +110,7 @@ static void setInt64(char *buf, int offset, int32_t val) {
 // Return 0 for success, anything else will be treated like a fatal error closing
 // the connection.
 
-int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int32_t type) {
+int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type) {
     int32_t ret = -1;
     int32_t options = 0;
     int64_t controlGroup = 0;
@@ -322,7 +328,6 @@ void handleSingleConnection(int acceptHandle) {
     int32_t type = 0;
     int failed = 0;
     int bytesRecv;
-    int bytesSend;
     int32_t msgSize;
 
     printf("acceptHandle=%d\n", acceptHandle);

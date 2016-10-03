@@ -47,7 +47,7 @@ extern "C" {
     // Call the appropriate mot related function and send a response on the accepted handle.
     // Note: Return 0 for successs, any other return value is treated as a fatal error 
     // closing the socket.
-    extern int handleMotFunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int32_t type);
+    extern int handleMotFunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type);
 
 #ifdef __cplusplus
 }

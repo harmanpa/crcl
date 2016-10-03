@@ -41,7 +41,7 @@ void runAcceptTcpClientsTask(ULONG portNo) {
     memset(&serverSockAddr, 0, sizeof (serverSockAddr));
     serverSockAddr.sin_family = AF_INET;
     serverSockAddr.sin_addr.s_addr = INADDR_ANY;
-    serverSockAddr.sin_port = htons(portNo);
+    serverSockAddr.sin_port = mpHtons(portNo);
 /*
     printf("portNo=%us\n", serverSockAddr.sin_port);
 */
