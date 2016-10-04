@@ -15,12 +15,15 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="f1" displayName="fake" projectFiles="true">
+        <logicalFolder name="f1" displayName="include" projectFiles="true">
+          <itemPath>motoPlus.h</itemPath>
+        </logicalFolder>
         <itemPath>main.c</itemPath>
-        <itemPath>/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpFakeLib.c</itemPath>
+        <itemPath>mpFakeLib.c</itemPath>
       </logicalFolder>
-      <itemPath>/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpMain.c</itemPath>
-      <itemPath>/home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.c</itemPath>
-      <itemPath>/home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.c</itemPath>
+      <itemPath>mpMain.c</itemPath>
+      <itemPath>remoteFunctions.c</itemPath>
+      <itemPath>tcpSvr.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -57,29 +60,9 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpFakeLib.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpMain.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.c"
-            ex="false"
-            tool="0"
             flavor2="0">
       </item>
       <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.h"
@@ -88,6 +71,16 @@
             flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="motoPlus.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="mpFakeLib.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="mpMain.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="remoteFunctions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="tcpSvr.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -110,29 +103,9 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpFakeLib.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpMain.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.c"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.h"
             ex="false"
             tool="3"
-            flavor2="0">
-      </item>
-      <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.c"
-            ex="false"
-            tool="0"
             flavor2="0">
       </item>
       <item path="/home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.h"
@@ -141,6 +114,16 @@
             flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="motoPlus.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="mpFakeLib.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="mpMain.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="remoteFunctions.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="tcpSvr.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>

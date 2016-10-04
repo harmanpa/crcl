@@ -21,8 +21,8 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux
-CND_DLIB_EXT=so
+CND_PLATFORM=Cygwin-Windows
+CND_DLIB_EXT=dll
 CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -35,11 +35,11 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/22c3ddb1/mpFakeLib.o \
-	${OBJECTDIR}/_ext/22c3ddb1/mpMain.o \
-	${OBJECTDIR}/_ext/22c3ddb1/remoteFunctions.o \
-	${OBJECTDIR}/_ext/22c3ddb1/tcpSvr.o \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/mpFakeLib.o \
+	${OBJECTDIR}/mpMain.o \
+	${OBJECTDIR}/remoteFunctions.o \
+	${OBJECTDIR}/tcpSvr.o
 
 
 # C Compiler Flags
@@ -60,36 +60,36 @@ LDLIBSOPTIONS=-lpthread
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr ${OBJECTFILES} ${LDLIBSOPTIONS}
-
-${OBJECTDIR}/_ext/22c3ddb1/mpFakeLib.o: /home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpFakeLib.c 
-	${MKDIR} -p ${OBJECTDIR}/_ext/22c3ddb1
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/22c3ddb1/mpFakeLib.o /home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpFakeLib.c
-
-${OBJECTDIR}/_ext/22c3ddb1/mpMain.o: /home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpMain.c 
-	${MKDIR} -p ${OBJECTDIR}/_ext/22c3ddb1
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/22c3ddb1/mpMain.o /home/shackle/NetBeansProjects/MotoPlusTcpSvr/mpMain.c
-
-${OBJECTDIR}/_ext/22c3ddb1/remoteFunctions.o: /home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.c 
-	${MKDIR} -p ${OBJECTDIR}/_ext/22c3ddb1
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/22c3ddb1/remoteFunctions.o /home/shackle/NetBeansProjects/MotoPlusTcpSvr/remoteFunctions.c
-
-${OBJECTDIR}/_ext/22c3ddb1/tcpSvr.o: /home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.c 
-	${MKDIR} -p ${OBJECTDIR}/_ext/22c3ddb1
-	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/22c3ddb1/tcpSvr.o /home/shackle/NetBeansProjects/MotoPlusTcpSvr/tcpSvr.c
 
 ${OBJECTDIR}/main.o: main.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
+
+${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpFakeLib.o mpFakeLib.c
+
+${OBJECTDIR}/mpMain.o: mpMain.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpMain.o mpMain.c
+
+${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/remoteFunctions.o remoteFunctions.c
+
+${OBJECTDIR}/tcpSvr.o: tcpSvr.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -DDO_SWAP=1 -I/home/shackle/motoplus_headers -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tcpSvr.o tcpSvr.c
 
 # Subprojects
 .build-subprojects:
@@ -97,7 +97,7 @@ ${OBJECTDIR}/main.o: main.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe
 
 # Subprojects
 .clean-subprojects:
