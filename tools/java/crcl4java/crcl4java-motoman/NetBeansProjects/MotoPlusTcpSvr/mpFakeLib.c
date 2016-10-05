@@ -4,14 +4,13 @@
  * and open the template in the editor.
  */
 
+#include <pthread.h>
 #include <time.h>
 #include <sys/select.h>
 #include "motoPlus.h"
-#include <pthread.h>
+
 #include <stdlib.h>
 
-extern void free(void *addr);
-extern void *malloc(size_t sz);
 
 struct pthreadArg {
     FUNCPTR entryPt;

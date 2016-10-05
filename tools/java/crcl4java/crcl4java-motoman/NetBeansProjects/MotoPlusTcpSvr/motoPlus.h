@@ -25,6 +25,8 @@ extern "C" {
 #include <netinet/in.h>
 #include <stdlib.h>
 
+
+
     typedef int BOOL;
     typedef int STATUS;
     typedef unsigned long ULONG;
@@ -100,6 +102,62 @@ extern "C" {
 #endif   /* _cplusplus */
 
     extern LONG mpPutVarData(MP_VAR_DATA *sData, LONG num);
+
+    extern int mpCreateTask(int mpPriSpec, int stackSize, FUNCPTR entryPt,
+            int arg1, int arg2, int arg3, int arg4, int arg5,
+            int arg6, int arg7, int arg8, int arg9, int arg10);
+
+    extern int mpRecv(int s, char *buf, int bufLen, int flags);
+    extern int mpSend(int s, const char *buf, int bufLen, int flags);
+
+
+    extern STATUS mpTaskSuspend(int tid);
+
+    extern int mpSocket(int domain, int type, int protocol);
+
+    extern int mpListen(int s, int backlog);
+
+    extern int mpAccept(int s, struct sockaddr *addr, int *addrlen);
+
+    extern int mpBind(int s, struct sockaddr *name, int namelen);
+
+    extern int mpConnect(int s, struct sockaddr *name, int namelen);
+
+    extern int mpRecv(int s, char *buf, int bufLen, int flags);
+
+    extern int mpSend(int s, const char *buf, int bufLen, int flags);
+
+    extern STATUS mpClose(int fd);
+
+    extern int mpMotStart(int options);
+
+    extern int mpMotStop(int options);
+
+    extern int mpMotTargetClear(CTRLG_T grp, int options);
+
+    extern int mpMotTargetSend(CTRLG_T grp, MP_TARGET *target, int timeout);
+
+    extern int mpMotTargetReceive(int grpNo, int id, int *recvId, int timeout, int options);
+
+    extern int mpMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux);
+
+    extern int mpMotSetTool(int grpNo, int toolNo);
+
+
+    extern int mpMotSetSpeed(int grpNo, MP_SPEED *spd);
+
+    extern int mpMotSetOrigin(int grpNo, int options);
+
+    extern int mpMotSetTask(int grpNo, int taskNo);
+
+    extern int mpMotSetSync(int grpNo, int aux, int options);
+
+    extern int mpMotResetSync(int grpNo);
+
+    extern LONG mpGetVarData(MP_VAR_INFO *sData, LONG* rData, LONG num);
+
+    extern LONG mpPutVarData(MP_VAR_DATA *sData, LONG num);
+
 
 #ifdef __cplusplus
 }

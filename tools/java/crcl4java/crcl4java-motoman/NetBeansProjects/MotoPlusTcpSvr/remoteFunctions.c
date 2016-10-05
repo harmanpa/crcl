@@ -66,7 +66,7 @@ static void swap(char *buf, int offset, int sz) {
 // platform to do this
 // so it gets reimplemented yet again.
 
-#ifdef NEED_STANDARD_INT_TYPES
+#ifndef DO_NOT_NEED_STANDARD_INT_TYPES
 typedef short int16_t;
 typedef int int32_t;
 typedef long int64_t;
