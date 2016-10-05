@@ -47,9 +47,6 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <incDir>
-            <pElem>/home/shackle/motoplus_headers</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>DO_SWAP=1</Elem>
           </preprocessorList>

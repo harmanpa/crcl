@@ -20,37 +20,44 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.crcl4java.motoman;
-
-import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
-import java.util.HashMap;
-import java.util.Map;
+package com.github.wshackle.crcl4java.motoman.sys1;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteFunctionGroup {
-    INVALID_FUNCTION_GROUP(0),
-    MOT_FUNCTION_GROUP(1),
-    SYS1_FUNCTION_GROUP(2);
+public enum VarType {
+    MP_RESTYPE_VAR_B((short)1),
+    MP_RESTYPE_VAR_I((short)2),
+    MP_RESTYPE_VAR_D((short)3),
+    MP_RESTYPE_VAR_R((short)4),
+    MP_RESTYPE_VAR_ROBOT((short)5),
+    MP_RESTYPE_VAR_BASE((short)6),
+    MP_RESTYPE_VAR_STATION((short)7),
+    MP_RESTYPE_CIO((short)8),
+    MP_RESTYPE_VAR_S((short)9),
+    MP_RESTYPE_CIO_GENERAL_IN((short)11),
+    MP_RESTYPE_CIO_GENERAL_OUT((short)12),
+    MP_RESTYPE_CIO_EXTERNAL_IN((short)13),
+    MP_RESTYPE_CIO_DL_IN((short)14),
+    MP_RESTYPE_CIO_EXTERNAL_OUT((short)15),
+    MP_RESTYPE_CIO_DL_OUT((short)16),
+    MP_RESTYPE_CIO_SPECIAL_IN((short)17),
+    MP_RESTYPE_CIO_SPECIAL_OUT((short)18),
+    MP_RESTYPE_CIO_IF_PANEL((short)19),
+    MP_RESTYPE_CIO_TEMP_RELAY((short)20),
+    MP_RESTYPE_CIO_PBOX_IN((short)21),
+    MP_RESTYPE_CIO_CONTROL_IN((short)22),
+    MP_RESTYPE_CIO_DUMMY_IN((short)23),
+    MP_RESTYPE_CIO_REGISTER((short)24);
+    
+    final short id;
 
-    private RemoteFunctionGroup(int id) {
+    private VarType(short id) {
         this.id = id;
     }
-    
-    private final int id;
-    
-    private static Map<Integer,MotCtrlReturnEnum> map = new HashMap<>();
-    
-    static {
-        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
-            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
-            map.put(m.getId(),m);
-        }
-    }
 
-    public int getId() {
+    public short getId() {
         return id;
     }
     

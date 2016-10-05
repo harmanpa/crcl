@@ -20,7 +20,7 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.crcl4java.motoman;
+package com.github.wshackle.crcl4java.motoman.motctrl;
 
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import java.util.HashMap;
@@ -52,14 +52,14 @@ public enum RemoteMotFunctionType {
 
     private final int id;
 
-    private static Map<Integer, MotCtrlReturnEnum> map = new HashMap<>();
-
-    static {
-        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
-            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
-            map.put(m.getId(), m);
-        }
-    }
+//    private static Map<Integer, MotCtrlReturnEnum> map = new HashMap<>();
+//
+//    static {
+//        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
+//            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
+//            map.put(m.getId(), m);
+//        }
+//    }
 
     public int getId() {
         return id;

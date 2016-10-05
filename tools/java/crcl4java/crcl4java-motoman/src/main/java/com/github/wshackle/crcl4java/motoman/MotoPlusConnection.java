@@ -22,11 +22,15 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.motctrl.RemoteMotFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
+import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -168,6 +172,8 @@ public class MotoPlusConnection implements AutoCloseable {
         return MotCtrlReturnEnum.fromId(intRet);
     }
 
+
+    
     public MotCtrlReturnEnum mpMotTargetCoordSend(long grp, CoordTarget target, int timeout) throws IOException {
         startMpMotTargetCoordSend(grp, target, timeout);
         return getMpMotStandardReturn();
@@ -350,67 +356,69 @@ public class MotoPlusConnection implements AutoCloseable {
         dos.write(bb.array());
     }
 
-    public static void main(String[] args) throws Exception {
-        try (MotoPlusConnection mpc = new MotoPlusConnection()) {
-            mpc.connect("10.0.0.2", 11000);
+    public boolean getSysOkReturn() throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        return intRet == 0;
+    }
+    
+    public boolean  mpPutVarData(MP_VAR_DATA []sData, int num) throws IOException {
+        startMpPutVarData(sData,num);
+        return getSysOkReturn();
+    }
 
-            System.out.println("Calling mpMotStart(1)");
-            MotCtrlReturnEnum motStartRet = mpc.mpMotStart(1);
-            System.out.println("motStartRet = " + motStartRet);
-            Thread.sleep(200);
-
-//            System.out.println("Calling mpMotStop(2)");
-//            MotCtrlReturnEnum motStopRet = mpc.mpMotStop(2);
-//            System.out.println("motStopRet = " + motStopRet);
-//            Thread.sleep(200);
-//
-//            System.out.println("Calling mpMotTargetClear(3,4)");
-//            MotCtrlReturnEnum motClearRet = mpc.mpMotTargetClear(3,4);
-//            System.out.println("motClearRet = " + motClearRet);
-//            Thread.sleep(200);
-//            
-//            JointTarget jointTarget = new JointTarget();
-//            jointTarget.setId(5);
-//            jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
-//            for (int i = 0; i < jointTarget.getDst().length; i++) {
-//                jointTarget.getDst()[i] = 6+i;
-//            }
-//            
-//            for (int i = 0; i < jointTarget.getDst().length; i++) {
-//                jointTarget.getAux()[i] = 14+i;
-//            }
-//            System.out.println("jointTarget = " + jointTarget);
-//            System.out.println("Calling mpMotTargetJointSend(33,(...),35)");
-//            MotCtrlReturnEnum motTargetJointRet = mpc.mpMotTargetJointSend(33, jointTarget, 35);
-//            System.out.println("motTargetJointRet = " + motTargetJointRet);
-//            Thread.sleep(200);
-//            
-//            CoordTarget coordTarget = new CoordTarget();
-//            coordTarget.setId(36);
-//            coordTarget.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
-//            coordTarget.getDst().x = 40;
-//            coordTarget.getDst().y = 41;
-//            coordTarget.getDst().z = 42;
-//            coordTarget.getDst().rx = 43;
-//            coordTarget.getDst().ry = 44;
-//            coordTarget.getDst().rz = 45;
-//            coordTarget.getDst().ex1 = 46;
-//            coordTarget.getDst().ex2 = 47;
-//            
-//            coordTarget.getAux().x = 50;
-//            coordTarget.getAux().y = 51;
-//            coordTarget.getAux().z = 52;
-//            coordTarget.getAux().rx = 53;
-//            coordTarget.getAux().ry = 54;
-//            coordTarget.getAux().rz = 55;
-//            coordTarget.getAux().ex1 = 56;
-//            coordTarget.getAux().ex2 = 57;
-//            System.out.println("coordTarget = " + coordTarget);
-//            System.out.println("Calling mpMotTargetJointSend(63,(...),65)");
-//            MotCtrlReturnEnum motTargetCoordRet = mpc.mpMotTargetCoordSend(63, coordTarget, 65);
-//            System.out.println("motTargetCoordRet = " + motTargetCoordRet);
-//            Thread.sleep(200);
-//            
+    public void startMpPutVarData(MP_VAR_DATA []sData, int num) throws IOException {
+        final int inputSize = 16 + (12*num);
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_PUT_VAR_DATA.getId()); // type of function remote server will call
+        bb.putInt(12, num);
+        for (int i = 0; i < num; i++) {
+            bb.putShort(16+(i*12),sData[i].usType.getId());
+            bb.putShort(18+(i*12),sData[i].usIndex);
+            bb.putLong(20+(i*12),sData[i].ulValue);
         }
+        dos.write(bb.array());
+    }
+    
+    public boolean mpGetVarData(MP_VAR_INFO []sData, long []rData, int num) throws IOException {
+        startMpGetVarData(sData,rData,num);
+        return getSysDataReturn(rData);
+    }
+    
+    public boolean getSysDataReturn(long rData[]) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < rData.length && i < (sz-4)/8; i++) {
+            rData[i] = bb.getLong(4+(i*8));
+        }
+        return intRet == 0;
+    }
+
+    public void startMpGetVarData(MP_VAR_INFO []sData, long []rData, int num) throws IOException {
+        final int inputSize = (int) (16 + (4*num));
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_VAR_DATA.getId()); // type of function remote server will call
+        bb.putInt(12, num);
+        for (int i = 0; i < num; i++) {
+            bb.putShort(16+(4*i),sData[i].usType.getId() );
+            bb.putShort(18+(4*i),sData[i].usIndex);
+        }
+        dos.write(bb.array());
     }
 }

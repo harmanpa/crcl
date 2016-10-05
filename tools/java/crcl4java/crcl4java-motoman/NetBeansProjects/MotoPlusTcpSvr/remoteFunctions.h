@@ -20,7 +20,8 @@ extern "C" {
 
     enum RemoteFunctionGroup {
         INVALID_FUNCTION_GROUP = 0,
-        MOT_FUNCTION_GROUP = 1
+        MOT_FUNCTION_GROUP = 1,
+        SYS1_FUNCTION_GROUP = 2
     };
 
     enum RemoteMotFunctionType {
@@ -40,6 +41,12 @@ extern "C" {
         MOT_RESET_SYNC = 13
     };
 
+    enum RemoteSys1FunctionType {
+        SYS1_INVALID = 0,
+        SYS1_GET_VAR_DATA = 1,
+        SYS1_PUT_VAR_DATA = 2
+    };
+    
     // Read requests on the given accepted socket handle, forever or until an
     // error occurs.
     extern void handleSingleConnection(int acceptHandle);
@@ -47,7 +54,13 @@ extern "C" {
     // Call the appropriate mot related function and send a response on the accepted handle.
     // Note: Return 0 for successs, any other return value is treated as a fatal error 
     // closing the socket.
-    extern int handleMotFunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type);
+    extern int handleMotFunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type, int msgSize);
+
+       // Call the appropriate from the sys related function from the first set roughly coorilating 
+    //  with mpLegApi00.hh and send a response on the accepted handle.
+    // Note: Return 0 for successs, any other return value is treated as a fatal error 
+    // closing the socket.
+    extern int handleSys1FunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type, int msgSize);
 
 #ifdef __cplusplus
 }

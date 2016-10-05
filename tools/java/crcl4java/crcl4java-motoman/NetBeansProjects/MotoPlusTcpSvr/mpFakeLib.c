@@ -76,7 +76,6 @@ int mpSocket(int domain, int type, int protocol) {
 
 int mpListen(int s, int backlog) {
     return listen(s, backlog);
-
 }
 
 int mpAccept(int s, struct sockaddr *addr, int *addrlen) {
@@ -115,13 +114,13 @@ int mpMotStop(int options) {
 }
 
 int mpMotTargetClear(CTRLG_T grp, int options) {
-    printf("mpMotTargetClear(%d,%d) called.\n", grp, options);
+    printf("mpMotTargetClear(%ld,%d) called.\n", grp, options);
     return 0;
 }
 
 int mpMotTargetSend(CTRLG_T grp, MP_TARGET *target, int timeout) {
     int i = 0;
-    printf("mpMotTargetSend(%d,%p,%d) called.\n", grp, target, timeout);
+    printf("mpMotTargetSend(%ld,%p,%d) called.\n", grp, target, timeout);
     printf("target.id=%d\n", target->id);
     printf("target.intp=%d\n", target->intp);
     printf("target.dst.coord.x=%ld\n", target->dst.coord.x);
@@ -161,16 +160,17 @@ int mpMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux) {
     printf("mpMotSetCoord(%d,%d,%d) called.\n", grpNo, type, aux);
     return 0;
 }
-int mpMotSetTool(int grpNo, int toolNo){
+
+int mpMotSetTool(int grpNo, int toolNo) {
     printf("mpMotSetTool(%d,%d) called.\n", grpNo, toolNo);
     return 0;
 }
 
 int mpMotSetSpeed(int grpNo, MP_SPEED *spd) {
     printf("mpMotSetSpeed(%d,%p) called.\n", grpNo, spd);
-    printf("spd.vj=%ld\n",spd->vj);
-    printf("spd.v=%ld\n",spd->v);
-    printf("spd.vr=%ld\n",spd->vr);
+    printf("spd.vj=%ld\n", spd->vj);
+    printf("spd.v=%ld\n", spd->v);
+    printf("spd.vr=%ld\n", spd->vr);
     return 0;
 }
 
@@ -185,11 +185,34 @@ int mpMotSetTask(int grpNo, int taskNo) {
 }
 
 int mpMotSetSync(int grpNo, int aux, int options) {
-    printf("mpMotSetSync(%d,%d,%d) called.\n", grpNo, aux,options);
+    printf("mpMotSetSync(%d,%d,%d) called.\n", grpNo, aux, options);
     return 0;
 }
 
 int mpMotResetSync(int grpNo) {
     printf("mpMotResetSync(%d) called.\n", grpNo);
+    return 0;
+}
+
+LONG mpGetVarData(MP_VAR_INFO *sData, LONG* rData, LONG num) {
+    int i = 0;
+    printf("mpGetVarData(%p,%p,%ld) called.\n", sData, rData, num);
+    for (i = 0; i < num; i++) {
+        printf("sData[%d].usType=%hu\n", i,sData[i].usType);
+        printf("sData[%d].usIndex=%hu\n", i,sData[i].usIndex);
+        rData[i] = 7+i;
+        printf("rData=%ld\n", rData[i]);
+    }
+    return 0;
+}
+
+LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
+    int i = 0;
+    printf("mpPutVarData(%p,%ld) called.\n", sData, num);
+    for (i = 0; i < num; i++) {
+        printf("sData[%d].usType=%u\n", i,sData[i].usType);
+        printf("sData[%d].usIndex=%hd\n", i, sData[i].usIndex);
+        printf("sData[%d].ulValue=%ld\n", i, sData[i].ulValue);
+    }
     return 0;
 }
