@@ -28,6 +28,7 @@ import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
@@ -421,4 +422,37 @@ public class MotoPlusConnection implements AutoCloseable {
         }
         dos.write(bb.array());
     }
+    
+    
+    public boolean mpGetCartPos(long ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
+        startMpGetCartPos(ctrlGroup,data);
+        return getCartPosReturn(data);
+    }
+    
+    public boolean getCartPosReturn(MP_CART_POS_RSP_DATA []data) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < 6; i++) {
+            data[0].lPos[i] = bb.getLong(4+(i*8));
+        }
+        data[0].sConfig = bb.getShort(52);
+        return intRet == 0;
+    }
+
+    public void startMpGetCartPos(long ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
+        final int inputSize = 20;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_POS.getId()); // type of function remote server will call
+        bb.putLong(12, ctrlGroup);
+        dos.write(bb.array());
+    }
+    
 }

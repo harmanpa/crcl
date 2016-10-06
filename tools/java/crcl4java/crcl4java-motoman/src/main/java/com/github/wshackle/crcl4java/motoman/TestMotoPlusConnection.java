@@ -4,6 +4,7 @@ import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.VarType;
@@ -40,79 +41,89 @@ public class TestMotoPlusConnection {
         try (MotoPlusConnection mpc = new MotoPlusConnection()) {
             mpc.connect("localhost", 11000);
 
-            System.out.println("Calling mpMotStart(1)");
-            MotCtrlReturnEnum motStartRet = mpc.mpMotStart(1);
-            System.out.println("motStartRet = " + motStartRet);
-            Thread.sleep(200);
-
-            System.out.println("Calling mpMotStop(2)");
-            MotCtrlReturnEnum motStopRet = mpc.mpMotStop(2);
-            System.out.println("motStopRet = " + motStopRet);
-            Thread.sleep(200);
-
-            System.out.println("Calling mpMotTargetClear(3,4)");
-            MotCtrlReturnEnum motClearRet = mpc.mpMotTargetClear(3,4);
-            System.out.println("motClearRet = " + motClearRet);
-            Thread.sleep(200);
-            
-            JointTarget jointTarget = new JointTarget();
-            jointTarget.setId(5);
-            jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
-            for (int i = 0; i < jointTarget.getDst().length; i++) {
-                jointTarget.getDst()[i] = 6+i;
+//            System.out.println("Calling mpMotStart(1)");
+//            MotCtrlReturnEnum motStartRet = mpc.mpMotStart(1);
+//            System.out.println("motStartRet = " + motStartRet);
+//            Thread.sleep(200);
+//
+//            System.out.println("Calling mpMotStop(2)");
+//            MotCtrlReturnEnum motStopRet = mpc.mpMotStop(2);
+//            System.out.println("motStopRet = " + motStopRet);
+//            Thread.sleep(200);
+//
+//            System.out.println("Calling mpMotTargetClear(3,4)");
+//            MotCtrlReturnEnum motClearRet = mpc.mpMotTargetClear(3,4);
+//            System.out.println("motClearRet = " + motClearRet);
+//            Thread.sleep(200);
+//            
+//            JointTarget jointTarget = new JointTarget();
+//            jointTarget.setId(5);
+//            jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
+//            for (int i = 0; i < jointTarget.getDst().length; i++) {
+//                jointTarget.getDst()[i] = 6+i;
+//            }
+//            
+//            for (int i = 0; i < jointTarget.getDst().length; i++) {
+//                jointTarget.getAux()[i] = 14+i;
+//            }
+//            System.out.println("jointTarget = " + jointTarget);
+//            System.out.println("Calling mpMotTargetJointSend(33,(...),35)");
+//            MotCtrlReturnEnum motTargetJointRet = mpc.mpMotTargetJointSend(33, jointTarget, 35);
+//            System.out.println("motTargetJointRet = " + motTargetJointRet);
+//            Thread.sleep(200);
+//            
+//            CoordTarget coordTarget = new CoordTarget();
+//            coordTarget.setId(36);
+//            coordTarget.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
+//            coordTarget.getDst().x = 40;
+//            coordTarget.getDst().y = 41;
+//            coordTarget.getDst().z = 42;
+//            coordTarget.getDst().rx = 43;
+//            coordTarget.getDst().ry = 44;
+//            coordTarget.getDst().rz = 45;
+//            coordTarget.getDst().ex1 = 46;
+//            coordTarget.getDst().ex2 = 47;
+//            
+//            coordTarget.getAux().x = 50;
+//            coordTarget.getAux().y = 51;
+//            coordTarget.getAux().z = 52;
+//            coordTarget.getAux().rx = 53;
+//            coordTarget.getAux().ry = 54;
+//            coordTarget.getAux().rz = 55;
+//            coordTarget.getAux().ex1 = 56;
+//            coordTarget.getAux().ex2 = 57;
+//            System.out.println("coordTarget = " + coordTarget);
+//            System.out.println("Calling mpMotTargetJointSend(63,(...),65)");
+//            MotCtrlReturnEnum motTargetCoordRet = mpc.mpMotTargetCoordSend(63, coordTarget, 65);
+//            System.out.println("motTargetCoordRet = " + motTargetCoordRet);
+//            Thread.sleep(200);
+//            MP_VAR_INFO sData[] = new MP_VAR_INFO[1];
+//            sData[0] = new MP_VAR_INFO();
+//            sData[0].usType = VarType.MP_RESTYPE_VAR_I;
+//            sData[0].usIndex = 1;
+//            long []rData = new long[1];
+//            System.out.println("Calling mpGetVarData(,,1)");
+//            boolean getVarRet = mpc.mpGetVarData(sData, rData, 1);
+//            System.out.println("getVarRet = " + getVarRet);
+//            System.out.println("rData[0] = " + rData[0]);
+//            MP_VAR_DATA varData[] = new MP_VAR_DATA[1];
+//            varData[0] = new MP_VAR_DATA();
+//            varData[0].usType = VarType.MP_RESTYPE_VAR_I;
+//            varData[0].usIndex = 1;
+//            varData[0].ulValue = 77;
+//            System.out.println("Calling mpPutVarData(,,1)");
+//            boolean putVarRet = mpc.mpPutVarData(varData, 1);
+//            System.out.println("putVarRet = " + putVarRet);
+            MP_CART_POS_RSP_DATA data[] = new MP_CART_POS_RSP_DATA[1];
+            data[0] = new MP_CART_POS_RSP_DATA();
+            System.out.println("Calling mpGetCartPos(,,1)");
+            boolean getCartPosRet = mpc.mpGetCartPos(0,data);
+            System.out.println("getCartPosRet = " + getCartPosRet);
+            for (int i = 0; i < 6; i++) {
+                System.out.println("data[0].lPos["+i+"] = " + data[0].lPos[i]);
             }
+            System.out.println("data[0].sConfig = " + data[0].sConfig);
             
-            for (int i = 0; i < jointTarget.getDst().length; i++) {
-                jointTarget.getAux()[i] = 14+i;
-            }
-            System.out.println("jointTarget = " + jointTarget);
-            System.out.println("Calling mpMotTargetJointSend(33,(...),35)");
-            MotCtrlReturnEnum motTargetJointRet = mpc.mpMotTargetJointSend(33, jointTarget, 35);
-            System.out.println("motTargetJointRet = " + motTargetJointRet);
-            Thread.sleep(200);
-            
-            CoordTarget coordTarget = new CoordTarget();
-            coordTarget.setId(36);
-            coordTarget.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
-            coordTarget.getDst().x = 40;
-            coordTarget.getDst().y = 41;
-            coordTarget.getDst().z = 42;
-            coordTarget.getDst().rx = 43;
-            coordTarget.getDst().ry = 44;
-            coordTarget.getDst().rz = 45;
-            coordTarget.getDst().ex1 = 46;
-            coordTarget.getDst().ex2 = 47;
-            
-            coordTarget.getAux().x = 50;
-            coordTarget.getAux().y = 51;
-            coordTarget.getAux().z = 52;
-            coordTarget.getAux().rx = 53;
-            coordTarget.getAux().ry = 54;
-            coordTarget.getAux().rz = 55;
-            coordTarget.getAux().ex1 = 56;
-            coordTarget.getAux().ex2 = 57;
-            System.out.println("coordTarget = " + coordTarget);
-            System.out.println("Calling mpMotTargetJointSend(63,(...),65)");
-            MotCtrlReturnEnum motTargetCoordRet = mpc.mpMotTargetCoordSend(63, coordTarget, 65);
-            System.out.println("motTargetCoordRet = " + motTargetCoordRet);
-            Thread.sleep(200);
-            MP_VAR_INFO sData[] = new MP_VAR_INFO[1];
-            sData[0] = new MP_VAR_INFO();
-            sData[0].usType = VarType.MP_RESTYPE_VAR_I;
-            sData[0].usIndex = 1;
-            long []rData = new long[1];
-            System.out.println("Calling mpGetVarData(,,1)");
-            boolean getVarRet = mpc.mpGetVarData(sData, rData, 1);
-            System.out.println("getVarRet = " + getVarRet);
-            System.out.println("rData[0] = " + rData[0]);
-            MP_VAR_DATA varData[] = new MP_VAR_DATA[1];
-            varData[0] = new MP_VAR_DATA();
-            varData[0].usType = VarType.MP_RESTYPE_VAR_I;
-            varData[0].usIndex = 1;
-            varData[0].ulValue = 77;
-            System.out.println("Calling mpPutVarData(,,1)");
-            boolean putVarRet = mpc.mpPutVarData(varData, 1);
-            System.out.println("putVarRet = " + putVarRet);
         }
     }
 }

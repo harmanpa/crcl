@@ -44,23 +44,24 @@ extern "C" {
     enum RemoteSys1FunctionType {
         SYS1_INVALID = 0,
         SYS1_GET_VAR_DATA = 1,
-        SYS1_PUT_VAR_DATA = 2
+        SYS1_PUT_VAR_DATA = 2,
+        SYS1_GET_CURRENT_POS = 3
     };
-    
+
     // Read requests on the given accepted socket handle, forever or until an
     // error occurs.
     extern void handleSingleConnection(int acceptHandle);
-    
+
     // Call the appropriate mot related function and send a response on the accepted handle.
     // Note: Return 0 for successs, any other return value is treated as a fatal error 
     // closing the socket.
-    extern int handleMotFunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type, int msgSize);
+    extern int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize);
 
-       // Call the appropriate from the sys related function from the first set roughly coorilating 
+    // Call the appropriate from the sys related function from the first set roughly coorilating 
     //  with mpLegApi00.hh and send a response on the accepted handle.
     // Note: Return 0 for successs, any other return value is treated as a fatal error 
     // closing the socket.
-    extern int handleSys1FunctionRequest(int acceptHandle,char *inBuffer,char *outBuffer,int type, int msgSize);
+    extern int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize);
 
 #ifdef __cplusplus
 }

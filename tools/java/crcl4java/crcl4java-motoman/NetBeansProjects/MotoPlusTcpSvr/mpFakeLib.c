@@ -215,3 +215,16 @@ LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
     }
     return 0;
 }
+
+extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData) {
+    int i=0;
+    printf("mpGetCartPos(%p,%p) called.\n", sData, rData);
+    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    for (i = 0; i < 6; i++) {
+        rData->lPos[i] = i+5;
+        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+    }
+    rData->sConfig = 99;
+    printf("rData->sConfig = %hu\n",rData->sConfig);
+    return 0;
+}
