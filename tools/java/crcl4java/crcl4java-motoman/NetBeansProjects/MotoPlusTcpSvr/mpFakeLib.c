@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 
+extern void close(int fd);
 
 struct pthreadArg {
     FUNCPTR entryPt;
