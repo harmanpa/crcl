@@ -69,7 +69,6 @@ static void swap(char *buf, int offset, int sz) {
 #ifndef DO_NOT_NEED_STANDARD_INT_TYPES
 typedef short int16_t;
 typedef int int32_t;
-typedef long int64_t;
 #endif
 
 static int16_t getInt16(char *buf, int offset) {
@@ -101,36 +100,6 @@ static void setInt32(char *buf, int offset, int32_t val) {
 #endif
 }
 
-static int64_t getInt64(char *buf, int offset) {
-
-    /*
-    int i=0;
-        for(i = 0; i < 8; i++) {
-            printf("%2.2X",buf[offset+i]);
-        }
-        printf("\n");
-     */
-#ifdef DO_SWAP
-    swap(buf, offset, 8);
-#endif
-    /*
-        for(i = 0; i < 8; i++) {
-            printf("%2.2X",buf[offset+i]);
-        }
-        printf("\n");
-     */
-    return *((int64_t *) (buf + offset));
-}
-
-static void setInt64(char *buf, int offset, int64_t val) {
-
-    printf("setInt64(%p,%d,%ld) called.", buf, offset, val);
-    *((int64_t *) (buf + offset)) = val;
-#ifdef DO_SWAP
-    swap(buf, offset, 8);
-#endif
-}
-
 // Return 0 for success, anything else will be treated like a fatal error closing
 // the connection.
 
@@ -145,8 +114,8 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     int ret;
     MP_CTRL_GRP_SEND_DATA ctrlGrpSendData;
     MP_CART_POS_RSP_DATA cartPosRspData;
-    int64_t controlGroup = 0;
-    
+    int32_t controlGroup = 0;
+
     switch (type) {
         case SYS1_GET_VAR_DATA:
             num = getInt32(inBuffer, 12);
@@ -163,13 +132,13 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 varInfo[i].usIndex = getInt16(inBuffer, 18 + (4 * i));
             }
             ret = mpGetVarData(varInfo, rData, num);
-            setInt32(outBuffer, 0, 4 + num * 8);
+            setInt32(outBuffer, 0, 4 + num * 4);
             setInt32(outBuffer, 4, ret);
             for (i = 0; i < num; i++) {
-                setInt64(outBuffer, 8 + 8 * i, rData[i]);
+                setInt32(outBuffer, 8 + i * 4, rData[i]);
             }
-            sendRet = sendN(acceptHandle, outBuffer, 8 + 8 * num, 0);
-            if (sendRet != 8 + 8 * num) {
+            sendRet = sendN(acceptHandle, outBuffer, 8 + num * 4, 0);
+            if (sendRet != 8 + num * 4) {
                 return -1;
             }
             break;
@@ -180,40 +149,40 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 fprintf(stderr, "invalid num for mpPutVarData num = %ld\n", num);
                 return -1;
             }
-            if (msgSize != 12 + (12* num)) {
-                fprintf(stderr, "invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (12 * num), num);
+            if (msgSize != 12 + (num * 8)) {
+                fprintf(stderr, "invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
-                varData[i].usType = getInt16(inBuffer, 16 + (12 * i));
-                varData[i].usIndex = getInt16(inBuffer, 18 + (12 * i));
-                varData[i].ulValue = getInt64(inBuffer, 20 + (12*i));
+                varData[i].usType = getInt16(inBuffer, 16 + (8 * i));
+                varData[i].usIndex = getInt16(inBuffer, 18 + (8 * i));
+                varData[i].ulValue = getInt32(inBuffer, 20 + (8 * i));
             }
             ret = mpPutVarData(varData, num);
-            setInt32(outBuffer, 0, 4 );
+            setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
                 return -1;
             }
             break;
-            
+
         case SYS1_GET_CURRENT_POS:
             if (msgSize != 16) {
                 fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
                 return -1;
             }
-            memset(&ctrlGrpSendData,0,sizeof(ctrlGrpSendData));
-            memset(&cartPosRspData,0,sizeof(cartPosRspData));
-            controlGroup = getInt64(inBuffer, 12);
+            memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
+            memset(&cartPosRspData, 0, sizeof (cartPosRspData));
+            controlGroup = getInt32(inBuffer, 12);
             ctrlGrpSendData.sCtrlGrp = controlGroup;
-            ret = mpGetCartPos(&ctrlGrpSendData,&cartPosRspData);
-            setInt32(outBuffer, 0, 54 );
+            ret = mpGetCartPos(&ctrlGrpSendData, &cartPosRspData);
+            setInt32(outBuffer, 0, 54);
             setInt32(outBuffer, 4, ret);
-            for(i = 0; i < 6; i++) {
-                setInt64(outBuffer,8+8*i,cartPosRspData.lPos[i]);
+            for (i = 0; i < 6; i++) {
+                setInt32(outBuffer, 8 + 4 * i, cartPosRspData.lPos[i]);
             }
-            setInt16(outBuffer,56,cartPosRspData.sConfig);
+            setInt16(outBuffer, 56, cartPosRspData.sConfig);
             sendRet = sendN(acceptHandle, outBuffer, 58, 0);
             if (sendRet != 58) {
                 return -1;
@@ -233,7 +202,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
     int32_t ret = -1;
     int32_t options = 0;
-    int64_t controlGroup = 0;
+    int32_t controlGroup = 0;
     int32_t timeout = 0;
     int sendRet = 0;
     MP_TARGET target;
@@ -277,12 +246,12 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             break;
 
         case MOT_TARGET_CLEAR:
-            if (msgSize != 20) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 20\n", msgSize);
+            if (msgSize != 16) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
                 return -1;
             }
-            controlGroup = getInt64(inBuffer, 12);
-            options = getInt32(inBuffer, 20);
+            controlGroup = getInt32(inBuffer, 12);
+            options = getInt32(inBuffer, 16);
             ret = mpMotTargetClear(controlGroup, options);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -293,21 +262,21 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             break;
 
         case MOT_JOINT_TARGET_SEND:
-            if (msgSize != 156) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 156\n", msgSize);
+            if (msgSize != 88) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
-            controlGroup = getInt64(inBuffer, 12);
-            target.id = getInt32(inBuffer, 20);
-            target.intp = getInt32(inBuffer, 24);
+            controlGroup = getInt32(inBuffer, 12);
+            target.id = getInt32(inBuffer, 16);
+            target.intp = getInt32(inBuffer, 20);
             for (i = 0; i < 8 /* MP_GRP_AXES_NUM */; i++) {
-                target.dst.joint[i] = getInt64(inBuffer, 28 + (i * 8));
+                target.dst.joint[i] = getInt32(inBuffer, 24 + (i * 4));
             }
             for (i = 0; i < 8 /* MP_GRP_AXES_NUM */; i++) {
-                target.aux.joint[i] = getInt64(inBuffer, 92 + (i * 8));
+                target.aux.joint[i] = getInt32(inBuffer, 56 + (i * 4));
             }
-            timeout = getInt32(inBuffer, 156);
+            timeout = getInt32(inBuffer, 88);
             ret = mpMotTargetSend(controlGroup, &target, timeout);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -318,31 +287,31 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             break;
 
         case MOT_COORD_TARGET_SEND:
-            if (msgSize != 156) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 156\n", msgSize);
+            if (msgSize != 88) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
-            controlGroup = getInt64(inBuffer, 12);
-            target.id = getInt32(inBuffer, 20);
-            target.intp = getInt32(inBuffer, 24);
-            target.dst.coord.x = getInt64(inBuffer, 28);
-            target.dst.coord.y = getInt64(inBuffer, 36);
-            target.dst.coord.z = getInt64(inBuffer, 44);
-            target.dst.coord.rx = getInt64(inBuffer, 52);
-            target.dst.coord.ry = getInt64(inBuffer, 60);
-            target.dst.coord.rz = getInt64(inBuffer, 68);
-            target.dst.coord.ex1 = getInt64(inBuffer, 76);
-            target.dst.coord.ex2 = getInt64(inBuffer, 84);
-            target.aux.coord.x = getInt64(inBuffer, 92);
-            target.aux.coord.y = getInt64(inBuffer, 100);
-            target.aux.coord.z = getInt64(inBuffer, 108);
-            target.aux.coord.rx = getInt64(inBuffer, 116);
-            target.aux.coord.ry = getInt64(inBuffer, 124);
-            target.aux.coord.rz = getInt64(inBuffer, 132);
-            target.aux.coord.ex1 = getInt64(inBuffer, 140);
-            target.aux.coord.ex2 = getInt64(inBuffer, 148);
-            timeout = getInt32(inBuffer, 156);
+            controlGroup = getInt32(inBuffer, 12);
+            target.id = getInt32(inBuffer, 16);
+            target.intp = getInt32(inBuffer, 20);
+            target.dst.coord.x = getInt32(inBuffer, 24);
+            target.dst.coord.y = getInt32(inBuffer, 28);
+            target.dst.coord.z = getInt32(inBuffer, 32);
+            target.dst.coord.rx = getInt32(inBuffer, 36);
+            target.dst.coord.ry = getInt32(inBuffer, 40);
+            target.dst.coord.rz = getInt32(inBuffer, 44);
+            target.dst.coord.ex1 = getInt32(inBuffer, 48);
+            target.dst.coord.ex2 = getInt32(inBuffer, 52);
+            target.aux.coord.x = getInt32(inBuffer, 56);
+            target.aux.coord.y = getInt32(inBuffer, 60);
+            target.aux.coord.z = getInt32(inBuffer, 64);
+            target.aux.coord.rx = getInt32(inBuffer, 68);
+            target.aux.coord.ry = getInt32(inBuffer, 72);
+            target.aux.coord.rz = getInt32(inBuffer, 76);
+            target.aux.coord.ex1 = getInt32(inBuffer, 80);
+            target.aux.coord.ex2 = getInt32(inBuffer, 84);
+            timeout = getInt32(inBuffer, 88);
             ret = mpMotTargetSend(controlGroup, &target, timeout);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -410,9 +379,9 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
-            speed.vj = getInt64(inBuffer, 16);
-            speed.v = getInt64(inBuffer, 24);
-            speed.vr = getInt64(inBuffer, 32);
+            speed.vj = getInt32(inBuffer, 16);
+            speed.v = getInt32(inBuffer, 24);
+            speed.vr = getInt32(inBuffer, 32);
             ret = mpMotSetSpeed(grpNo, &speed);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -504,6 +473,13 @@ void handleSingleConnection(int acceptHandle) {
     int32_t msgSize;
 
     printf("acceptHandle=%d\n", acceptHandle);
+    printf("sizeof(int)=%d\n", sizeof (int));
+    printf("sizeof(long)=%d\n", sizeof (long));
+    printf("sizeof(LONG)=%d\n", sizeof (LONG));
+    printf("sizeof(ULONG)=%d\n", sizeof (ULONG));
+    printf("sizeof(MP_CART_POS_RSP_DATA)=%d\n", sizeof (MP_CART_POS_RSP_DATA));
+    printf("sizeof(MP_TARGET)=%d\n", sizeof (MP_TARGET));
+
     while (failed == 0) {
 
         memset(inBuffer, 0, BUFF_MAX + 1);

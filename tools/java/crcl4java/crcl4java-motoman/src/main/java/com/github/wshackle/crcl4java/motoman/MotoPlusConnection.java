@@ -121,43 +121,43 @@ public class MotoPlusConnection implements AutoCloseable {
         return getMpMotStandardReturn();
     }
 
-    public void startMpMotTargetClear(long grp, int options) throws IOException {
-        final int inputSize = 24;
+    public void startMpMotTargetClear(int grp, int options) throws IOException {
+        final int inputSize = 20;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteMotFunctionType.MOT_TARGET_CLEAR.getId()); // type of function remote server will call
-        bb.putLong(12, grp);
-        bb.putInt(20, options);
+        bb.putInt(12, grp);
+        bb.putInt(16, options);
         dos.write(bb.array());
     }
 
-    public MotCtrlReturnEnum mpMotTargetClear(long grp, int options) throws IOException {
+    public MotCtrlReturnEnum mpMotTargetClear(int grp, int options) throws IOException {
         startMpMotTargetClear(grp, options);
         return getMpMotStandardReturn();
     }
 
-    public MotCtrlReturnEnum mpMotTargetJointSend(long grp, JointTarget target, int timeout) throws IOException {
+    public MotCtrlReturnEnum mpMotTargetJointSend(int grp, JointTarget target, int timeout) throws IOException {
         startMpMotTargetJointSend(grp, target, timeout);
         return getMpMotStandardReturn();
     }
 
-    public void startMpMotTargetJointSend(long grp, JointTarget target, int timeout) throws IOException {
-        final int inputSize = 160;
+    public void startMpMotTargetJointSend(int grp, JointTarget target, int timeout) throws IOException {
+        final int inputSize = 92;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteMotFunctionType.MOT_JOINT_TARGET_SEND.getId()); // type of function remote server will call
-        bb.putLong(12, grp);
-        bb.putInt(20, target.getId());
-        bb.putInt(24, target.getIntp().getId());
+        bb.putInt(12, grp);
+        bb.putInt(16, target.getId());
+        bb.putInt(20, target.getIntp().getId());
         for (int i = 0; i < 8 /* MP_GRP_AXES_NUM */; i++) {
-            bb.putLong(28 + (i * 8), target.getDst()[i]);
+            bb.putInt(24 + (i * 4), target.getDst()[i]);
         }
         for (int i = 0; i < 8 /* MP_GRP_AXES_NUM */; i++) {
-            bb.putLong(92 + (i * 8), target.getAux()[i]);
+            bb.putInt(56 + (i * 4), target.getAux()[i]);
         }
-        bb.putInt(156, timeout);
+        bb.putInt(88, timeout);
         dos.write(bb.array());
     }
 
@@ -175,37 +175,37 @@ public class MotoPlusConnection implements AutoCloseable {
 
 
     
-    public MotCtrlReturnEnum mpMotTargetCoordSend(long grp, CoordTarget target, int timeout) throws IOException {
+    public MotCtrlReturnEnum mpMotTargetCoordSend(int grp, CoordTarget target, int timeout) throws IOException {
         startMpMotTargetCoordSend(grp, target, timeout);
         return getMpMotStandardReturn();
     }
 
-    public void startMpMotTargetCoordSend(long grp, CoordTarget target, int timeout) throws IOException {
-        final int inputSize = 160;
+    public void startMpMotTargetCoordSend(int grp, CoordTarget target, int timeout) throws IOException {
+        final int inputSize = 92;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteMotFunctionType.MOT_COORD_TARGET_SEND.getId()); // type of function remote server will call
-        bb.putLong(12, grp);
-        bb.putInt(20, target.getId());
-        bb.putInt(24, target.getIntp().getId());
-        bb.putLong(28, target.getDst().x);
-        bb.putLong(36, target.getDst().y);
-        bb.putLong(44, target.getDst().z);
-        bb.putLong(52, target.getDst().rx);
-        bb.putLong(60, target.getDst().ry);
-        bb.putLong(68, target.getDst().rz);
-        bb.putLong(76, target.getDst().ex1);
-        bb.putLong(84, target.getDst().ex2);
-        bb.putLong(92, target.getAux().x);
-        bb.putLong(100, target.getAux().y);
-        bb.putLong(108, target.getAux().z);
-        bb.putLong(116, target.getAux().rx);
-        bb.putLong(124, target.getAux().ry);
-        bb.putLong(132, target.getAux().rz);
-        bb.putLong(140, target.getAux().ex1);
-        bb.putLong(148, target.getAux().ex2);
-        bb.putInt(156, timeout);
+        bb.putInt(12, grp);
+        bb.putInt(16, target.getId());
+        bb.putInt(20, target.getIntp().getId());
+        bb.putInt(24, target.getDst().x);
+        bb.putInt(28, target.getDst().y);
+        bb.putInt(32, target.getDst().z);
+        bb.putInt(36, target.getDst().rx);
+        bb.putInt(40, target.getDst().ry);
+        bb.putInt(44, target.getDst().rz);
+        bb.putInt(48, target.getDst().ex1);
+        bb.putInt(52, target.getDst().ex2);
+        bb.putInt(56, target.getAux().x);
+        bb.putInt(60, target.getAux().y);
+        bb.putInt(64, target.getAux().z);
+        bb.putInt(68, target.getAux().rx);
+        bb.putInt(72, target.getAux().ry);
+        bb.putInt(76, target.getAux().rz);
+        bb.putInt(80, target.getAux().ex1);
+        bb.putInt(84, target.getAux().ex2);
+        bb.putInt(88, timeout);
         dos.write(bb.array());
     }
 
@@ -375,16 +375,16 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     public void startMpPutVarData(MP_VAR_DATA []sData, int num) throws IOException {
-        final int inputSize = 16 + (12*num);
+        final int inputSize = 16 + (8*num);
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteSys1FunctionType.SYS1_PUT_VAR_DATA.getId()); // type of function remote server will call
         bb.putInt(12, num);
         for (int i = 0; i < num; i++) {
-            bb.putShort(16+(i*12),sData[i].usType.getId());
-            bb.putShort(18+(i*12),sData[i].usIndex);
-            bb.putLong(20+(i*12),sData[i].ulValue);
+            bb.putShort(16+(i*8),sData[i].usType.getId());
+            bb.putShort(18+(i*8),sData[i].usIndex);
+            bb.putInt(20+(i*8),sData[i].ulValue);
         }
         dos.write(bb.array());
     }
@@ -439,7 +439,7 @@ public class MotoPlusConnection implements AutoCloseable {
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
         for (int i = 0; i < 6; i++) {
-            data[0].lPos[i] = bb.getLong(4+(i*8));
+            data[0].lPos[i] = bb.getInt(4+(i*4));
         }
         data[0].sConfig = bb.getShort(52);
         return intRet == 0;

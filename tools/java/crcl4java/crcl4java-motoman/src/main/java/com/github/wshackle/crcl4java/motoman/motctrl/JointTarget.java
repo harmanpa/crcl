@@ -32,25 +32,25 @@ public class JointTarget extends Target {
 
     public final static int MP_GRP_AXES_NUM = 8;
 
-    private final long[] dst = new long[MP_GRP_AXES_NUM];
+    private final int[] dst = new int[MP_GRP_AXES_NUM];
 
     /**
      * Get the value of dst
      *
      * @return the value of dst
      */
-    public long[] getDst() {
+    public int[] getDst() {
         return dst;
     }
 
-    private final long[] aux = new long[MP_GRP_AXES_NUM];
+    private final int[] aux = new int[MP_GRP_AXES_NUM];
 
     /**
      * Get the value of aux
      *
      * @return the value of aux
      */
-    public long[] getAux() {
+    public int[] getAux() {
         return aux;
     }
 

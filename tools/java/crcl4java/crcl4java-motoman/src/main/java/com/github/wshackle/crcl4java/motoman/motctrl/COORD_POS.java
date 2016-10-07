@@ -27,9 +27,9 @@ package com.github.wshackle.crcl4java.motoman.motctrl;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class COORD_POS {
-    public long x,y,z;
-    public long rx,ry,rz;
-    public long ex1,ex2;
+    public int x,y,z;
+    public int rx,ry,rz;
+    public int ex1,ex2;
 
     @Override
     public String toString() {

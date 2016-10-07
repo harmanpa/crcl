@@ -29,5 +29,5 @@ package com.github.wshackle.crcl4java.motoman.sys1;
 public class MP_VAR_DATA {
     public VarType usType;
     public short usIndex;
-    public long ulValue;
+    public int ulValue;
 }

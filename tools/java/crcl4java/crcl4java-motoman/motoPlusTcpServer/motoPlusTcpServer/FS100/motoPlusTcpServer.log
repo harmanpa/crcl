@@ -1,7 +1,1 @@
-﻿  ------ Now building project: motoPlusTcpServer------
-  Compiling mpMain.c
-  Compiling remoteFunctions.c
-  Compiling tcpSvr.c
-  Building motoPlusTcpServer.out
-  Build Successful!  Check 'FS100\motoPlusTcpServer' folder for motoPlusTcpServer.out
-  ------
+﻿

@@ -39,7 +39,7 @@ import com.github.wshackle.crcl4java.motoman.sys1.VarType;
 public class TestMotoPlusConnection {
     public static void main(String[] args) throws Exception {
         try (MotoPlusConnection mpc = new MotoPlusConnection()) {
-            mpc.connect("localhost", 11000);
+            mpc.connect("10.0.0.2", 11000);
 
 //            System.out.println("Calling mpMotStart(1)");
 //            MotCtrlReturnEnum motStartRet = mpc.mpMotStart(1);
@@ -119,10 +119,8 @@ public class TestMotoPlusConnection {
             System.out.println("Calling mpGetCartPos(,,1)");
             boolean getCartPosRet = mpc.mpGetCartPos(0,data);
             System.out.println("getCartPosRet = " + getCartPosRet);
-            for (int i = 0; i < 6; i++) {
-                System.out.println("data[0].lPos["+i+"] = " + data[0].lPos[i]);
-            }
-            System.out.println("data[0].sConfig = " + data[0].sConfig);
+            System.out.println("data[0] = " + data[0]);
+            
             
         }
     }
