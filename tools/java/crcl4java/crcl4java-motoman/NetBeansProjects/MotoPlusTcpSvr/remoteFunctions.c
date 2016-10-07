@@ -143,6 +143,10 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     LONG rData[25];
     LONG num;
     int ret;
+    MP_CTRL_GRP_SEND_DATA ctrlGrpSendData;
+    MP_CART_POS_RSP_DATA cartPosRspData;
+    int64_t controlGroup = 0;
+    
     switch (type) {
         case SYS1_GET_VAR_DATA:
             num = getInt32(inBuffer, 12);
@@ -190,6 +194,28 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                return -1;
+            }
+            break;
+            
+        case SYS1_GET_CURRENT_POS:
+            if (msgSize != 16) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
+                return -1;
+            }
+            memset(&ctrlGrpSendData,0,sizeof(ctrlGrpSendData));
+            memset(&cartPosRspData,0,sizeof(cartPosRspData));
+            controlGroup = getInt64(inBuffer, 12);
+            ctrlGrpSendData.sCtrlGrp = controlGroup;
+            ret = mpGetCartPos(&ctrlGrpSendData,&cartPosRspData);
+            setInt32(outBuffer, 0, 54 );
+            setInt32(outBuffer, 4, ret);
+            for(i = 0; i < 6; i++) {
+                setInt64(outBuffer,8+8*i,cartPosRspData.lPos[i]);
+            }
+            setInt16(outBuffer,56,cartPosRspData.sConfig);
+            sendRet = sendN(acceptHandle, outBuffer, 58, 0);
+            if (sendRet != 58) {
                 return -1;
             }
             break;

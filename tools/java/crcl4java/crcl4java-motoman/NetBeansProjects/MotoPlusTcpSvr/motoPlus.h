@@ -31,6 +31,8 @@ extern "C" {
     typedef int STATUS;
     typedef unsigned long ULONG;
     typedef unsigned short USHORT;
+    typedef short SHORT;
+    typedef char CHAR;
     typedef long LONG;
     typedef unsigned long CTRLG_T;
 
@@ -42,6 +44,14 @@ extern "C" {
 #define mpHtons(x)  htons(x)
 
     typedef long MP_JOINT[MP_GRP_AXES_NUM];
+
+#define MAX_CART_AXES (6) 
+
+    typedef struct {
+        LONG lPos[MAX_CART_AXES];
+        SHORT sConfig;
+        CHAR reserved[2];
+    } MP_CART_POS_RSP_DATA;
 
     typedef struct {
         USHORT usType;
@@ -92,6 +102,17 @@ extern "C" {
         MP_POS dst; /* destination position. */
         MP_POS aux; /* passing(auxiliary) position. */
     } MP_TARGET;
+
+    typedef struct /* Control Group send data */ {
+        CTRLG_T sCtrlGrp; /* Control Group */
+    } MP_CTRL_GRP_SEND_DATA;
+
+    typedef struct /* �R���g���[���O���[�v���M�f�[�^�\���́i�g���j */ {
+        SHORT sRobotNo; /* ���{�b�g�ԍ� */
+        SHORT sFrame; /* ���W�V�X�e��ID */
+        SHORT sToolNo; /* �c�[���ԍ� */
+        CHAR reserved[2];
+    } MP_CARTPOS_EX_SEND_DATA;
 
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
@@ -158,6 +179,7 @@ extern "C" {
 
     extern LONG mpPutVarData(MP_VAR_DATA *sData, LONG num);
 
+    extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData);
 
 #ifdef __cplusplus
 }
