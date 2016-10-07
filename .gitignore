@@ -33,6 +33,12 @@ xml_parser_generator/gtest/
 java_home
 jvm_lib_dir
 .vs
+private.xml
+*.VC.db
+
+
+
+
 
 /tools/java/crcl4java/crcl4java-restful-proxy/target/
 /tools/java/crcl4java/mavenproject2/target/
