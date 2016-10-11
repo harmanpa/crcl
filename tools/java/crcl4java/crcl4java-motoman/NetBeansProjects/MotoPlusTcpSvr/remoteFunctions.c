@@ -117,8 +117,12 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_PULSE_POS_RSP_DATA pulsePosRspData;
     MP_FB_PULSE_POS_RSP_DATA fbPulsePosRspData;
     MP_DEG_POS_RSP_DATA_EX degPosRspDataEx;
+    MP_SERVO_POWER_RSP_DATA servoPowerRspData;
+    MP_SERVO_POWER_SEND_DATA servoPowerSendData;
+    MP_STD_RSP_DATA stdRspData;
     
     int32_t controlGroup = 0;
+
 
     switch (type) {
         case SYS1_GET_VAR_DATA:
@@ -260,6 +264,43 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 136, 0);
             if (sendRet != 136) {
+                fprintf(stderr, "sendRet = %d != 136\n", sendRet);
+                return -1;
+            }
+            break;
+
+
+        case SYS1_GET_SERVO_POWER:
+            if (msgSize != 8) {
+                fprintf(stderr, "invalid msgSize for mpGetServoPower = %d != 8\n", msgSize);
+                return -1;
+            }
+            memset(&servoPowerRspData, 0, sizeof (servoPowerRspData));
+            ret = mpGetServoPower(&servoPowerRspData);
+            setInt32(outBuffer, 0, 6);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer,8,servoPowerRspData.sServoPower);
+            sendRet = sendN(acceptHandle, outBuffer, 10, 0);
+            if (sendRet != 10) {
+                fprintf(stderr, "sendRet = %d != 10\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_SET_SERVO_POWER:
+            if (msgSize != 10) {
+                fprintf(stderr, "invalid msgSize for mpSetServoPower = %d != 12\n", msgSize);
+                return -1;
+            }
+            memset(&servoPowerSendData, 0, sizeof (servoPowerSendData));
+            memset(&stdRspData, 0, sizeof (stdRspData));
+            servoPowerSendData.sServoPower = getInt16(inBuffer, 12);
+            ret = mpSetServoPower(&servoPowerSendData,&stdRspData);
+            setInt32(outBuffer, 0, 6);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer, 8, stdRspData.err_no);
+            sendRet = sendN(acceptHandle, outBuffer, 10, 0);
+            if (sendRet != 10) {
                 fprintf(stderr, "sendRet = %d != 136\n", sendRet);
                 return -1;
             }

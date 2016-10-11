@@ -254,7 +254,7 @@ LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rDa
 
 LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData){
     int i=0;
-    printf("mpGetCartPos(%p,%p) called.\n", sData, rData);
+    printf("mpGetDegPosEx(%p,%p) called.\n", sData, rData);
     printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
     for (i = 0; i < 8; i++) {
         rData->lDegPos[i] = i+25;
@@ -264,3 +264,20 @@ LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData){
     }
     return 0;
 }
+
+static short sServoPower;
+
+ LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData) {
+     printf("mpSetServoPower(%p,%p) called.\n", sData, rData);
+     printf("sData->sServoPower = %d\n",sData->sServoPower);
+     sServoPower=sData->sServoPower;
+     return 0;
+ }
+    
+ LONG	mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData) {
+     rData->sServoPower = sServoPower;
+     printf("mpGetServoPower(%p) called.\n",rData);
+     printf("rData->sServoPower = %d\n",rData->sServoPower);
+     return 0;
+ }
+    

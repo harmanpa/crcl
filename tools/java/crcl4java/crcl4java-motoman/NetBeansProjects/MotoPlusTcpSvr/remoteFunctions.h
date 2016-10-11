@@ -50,8 +50,8 @@ extern "C" {
         SYS1_GET_CURRENT_FEEDBACK_PULSE_POS = 5,
         SYS1_GET_DEG_POS_EX=6,
         SYS1_INVALID_RESERVED2=7, // Place holder for GET_RAD_EX  not implemented.
-        
-        
+        SYS1_GET_SERVO_POWER=8,
+        SYS1_SET_SERVO_POWER=9,
     };
 
     // Read requests on the given accepted socket handle, forever or until an

@@ -29,11 +29,13 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
+import com.github.wshackle.crcl4java.motoman.sys1.UnitType;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -175,8 +177,6 @@ public class MotoPlusConnection implements AutoCloseable {
         return MotCtrlReturnEnum.fromId(intRet);
     }
 
-
-    
     public MotCtrlReturnEnum mpMotTargetCoordSend(int grp, CoordTarget target, int timeout) throws IOException {
         startMpMotTargetCoordSend(grp, target, timeout);
         return getMpMotStandardReturn();
@@ -370,32 +370,32 @@ public class MotoPlusConnection implements AutoCloseable {
         int intRet = bb.getInt(0);
         return intRet == 0;
     }
-    
-    public boolean  mpPutVarData(MP_VAR_DATA []sData, int num) throws IOException {
-        startMpPutVarData(sData,num);
+
+    public boolean mpPutVarData(MP_VAR_DATA[] sData, int num) throws IOException {
+        startMpPutVarData(sData, num);
         return getSysOkReturn();
     }
 
-    public void startMpPutVarData(MP_VAR_DATA []sData, int num) throws IOException {
-        final int inputSize = 16 + (8*num);
+    public void startMpPutVarData(MP_VAR_DATA[] sData, int num) throws IOException {
+        final int inputSize = 16 + (8 * num);
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteSys1FunctionType.SYS1_PUT_VAR_DATA.getId()); // type of function remote server will call
         bb.putInt(12, num);
         for (int i = 0; i < num; i++) {
-            bb.putShort(16+(i*8),sData[i].usType.getId());
-            bb.putShort(18+(i*8),sData[i].usIndex);
-            bb.putInt(20+(i*8),sData[i].ulValue);
+            bb.putShort(16 + (i * 8), sData[i].usType.getId());
+            bb.putShort(18 + (i * 8), sData[i].usIndex);
+            bb.putInt(20 + (i * 8), sData[i].ulValue);
         }
         dos.write(bb.array());
     }
-    
-    public boolean mpGetVarData(MP_VAR_INFO []sData, long []rData, int num) throws IOException {
-        startMpGetVarData(sData,rData,num);
+
+    public boolean mpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
+        startMpGetVarData(sData, rData, num);
         return getSysDataReturn(rData);
     }
-    
+
     public boolean getSysDataReturn(long rData[]) throws IOException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
@@ -405,33 +405,32 @@ public class MotoPlusConnection implements AutoCloseable {
         dis.readFully(inbuf);
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
-        for (int i = 0; i < rData.length && i < (sz-4)/8; i++) {
-            rData[i] = bb.getLong(4+(i*8));
+        for (int i = 0; i < rData.length && i < (sz - 4) / 8; i++) {
+            rData[i] = bb.getLong(4 + (i * 8));
         }
         return intRet == 0;
     }
 
-    public void startMpGetVarData(MP_VAR_INFO []sData, long []rData, int num) throws IOException {
-        final int inputSize = (int) (16 + (4*num));
+    public void startMpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
+        final int inputSize = (int) (16 + (4 * num));
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_VAR_DATA.getId()); // type of function remote server will call
         bb.putInt(12, num);
         for (int i = 0; i < num; i++) {
-            bb.putShort(16+(4*i),sData[i].usType.getId() );
-            bb.putShort(18+(4*i),sData[i].usIndex);
+            bb.putShort(16 + (4 * i), sData[i].usType.getId());
+            bb.putShort(18 + (4 * i), sData[i].usIndex);
         }
         dos.write(bb.array());
     }
-    
-    
-    public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
-        startMpGetCartPos(ctrlGroup,data);
+
+    public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
+        startMpGetCartPos(ctrlGroup, data);
         return getCartPosReturn(data);
     }
-    
-    public boolean getCartPosReturn(MP_CART_POS_RSP_DATA []data) throws IOException {
+
+    public boolean getCartPosReturn(MP_CART_POS_RSP_DATA[] data) throws IOException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
         ByteBuffer bb = ByteBuffer.wrap(inbuf);
@@ -441,13 +440,13 @@ public class MotoPlusConnection implements AutoCloseable {
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
         for (int i = 0; i < MP_CART_POS_RSP_DATA.MAX_CART_AXES; i++) {
-            data[0].lPos[i] = bb.getInt(4+(i*4));
+            data[0].lPos[i] = bb.getInt(4 + (i * 4));
         }
         data[0].sConfig = bb.getShort(52);
         return intRet == 0;
     }
 
-    public void startMpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
+    public void startMpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
         final int inputSize = 16;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
@@ -456,13 +455,13 @@ public class MotoPlusConnection implements AutoCloseable {
         bb.putInt(12, ctrlGroup);
         dos.write(bb.array());
     }
-    
-    public boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA []data) throws IOException {
-        startMpGetPulsePos(ctrlGroup,data);
+
+    public boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {
+        startMpGetPulsePos(ctrlGroup, data);
         return getPulsePosReturn(data);
     }
-    
-    public boolean getPulsePosReturn(MP_PULSE_POS_RSP_DATA []data) throws IOException {
+
+    public boolean getPulsePosReturn(MP_PULSE_POS_RSP_DATA[] data) throws IOException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
         ByteBuffer bb = ByteBuffer.wrap(inbuf);
@@ -472,12 +471,12 @@ public class MotoPlusConnection implements AutoCloseable {
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
         for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
-            data[0].lPos[i] = bb.getInt(4+(i*4));
+            data[0].lPos[i] = bb.getInt(4 + (i * 4));
         }
         return intRet == 0;
     }
 
-    public void startMpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA []data) throws IOException {
+    public void startMpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {
         final int inputSize = 16;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
@@ -486,13 +485,13 @@ public class MotoPlusConnection implements AutoCloseable {
         bb.putInt(12, ctrlGroup);
         dos.write(bb.array());
     }
-    
-    public boolean mpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
-        startMpGetFBPulsePos(ctrlGroup,data);
+
+    public boolean mpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
+        startMpGetFBPulsePos(ctrlGroup, data);
         return getFBPulsePosReturn(data);
     }
-    
-    public boolean getFBPulsePosReturn(MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
+
+    public boolean getFBPulsePosReturn(MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
         ByteBuffer bb = ByteBuffer.wrap(inbuf);
@@ -502,18 +501,126 @@ public class MotoPlusConnection implements AutoCloseable {
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
         for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
-            data[0].lPos[i] = bb.getInt(4+(i*4));
+            data[0].lPos[i] = bb.getInt(4 + (i * 4));
         }
         return intRet == 0;
     }
 
-    public void startMpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
+    public void startMpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
         final int inputSize = 16;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_FEEDBACK_PULSE_POS.getId()); // type of function remote server will call
         bb.putInt(12, ctrlGroup);
+        dos.write(bb.array());
+    }
+
+    public boolean mpGetDegPosEx(int ctrlGroup, MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
+        startMpGetDegPosEx(ctrlGroup, data);
+        return getDegPosExPosReturn(data);
+    }
+
+    public boolean getDegPosExPosReturn(MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < MP_DEG_POS_RSP_DATA_EX.MAX_PULSE_AXES; i++) {
+            data[0].degPos[i] = bb.getInt(4 + (i * 4));
+        }
+        for (int i = 0; i < MP_DEG_POS_RSP_DATA_EX.MAX_PULSE_AXES; i++) {
+            int unitInt = bb.getInt(68 + (i * 4));
+            data[0].degUnit[i] = UnitType.fromId(unitInt);
+        }
+        return intRet == 0;
+    }
+
+    public void startMpGetDegPosEx(int ctrlGroup, MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
+        final int inputSize = 16;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_DEG_POS_EX.getId()); // type of function remote server will call
+        bb.putInt(12, ctrlGroup);
+        dos.write(bb.array());
+    }
+
+    
+
+    public static class MotoPlusConnectionException extends Exception {
+
+        public MotoPlusConnectionException(String message) {
+            super(message);
+        }
+
+    }
+    public boolean mpGetServoPower() throws IOException, MotoPlusConnectionException {
+        startMpGetServoPower();
+        return getServoPowerReturn();
+    }
+    
+    public boolean getServoPowerReturn() throws IOException, MotoPlusConnectionException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        short shortRet = bb.getShort(4);
+        if (intRet != 0) {
+            throw new MotoPlusConnectionException("mpGetServoPower returned " + intRet);
+        }
+        if (shortRet < 0 || shortRet > 1) {
+            throw new MotoPlusConnectionException("mpGetServoPower had invalid value for sServoPower =  " + shortRet);
+        }
+        return shortRet == 1;
+    }
+
+    public void startMpGetServoPower() throws IOException {
+        final int inputSize = 12;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_SERVO_POWER.getId()); // type of function remote server will call
+        dos.write(bb.array());
+    }
+    
+    
+    public boolean mpSetServoPower(boolean on) throws IOException, MotoPlusConnectionException {
+        startMpSetServoPower(on);
+        return getSetServoPowerReturn();
+    }
+    
+    public boolean getSetServoPowerReturn() throws IOException, MotoPlusConnectionException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        short shortRet = bb.getShort(4);
+        if (intRet != 0) {
+            throw new MotoPlusConnectionException("mpSetServoPower returned " + intRet);
+        }
+        return shortRet == 1;
+    }
+
+    public void startMpSetServoPower(boolean on) throws IOException {
+        final int inputSize = 14;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_SET_SERVO_POWER.getId()); // type of function remote server will call
+        bb.putShort(12,(short)(on?1:0));
         dos.write(bb.array());
     }
 }

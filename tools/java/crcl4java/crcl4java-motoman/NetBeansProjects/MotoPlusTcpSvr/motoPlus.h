@@ -181,7 +181,20 @@ extern "C" {
         UCHAR reserved[3];
     } MP_SVAR_RECV_INFO;
 
+    typedef struct {
+        SHORT sServoPower;
+        CHAR reserved[2];
+    } MP_SERVO_POWER_SEND_DATA;
 
+    typedef struct {
+        SHORT sServoPower; 
+        CHAR reserved[2];
+    } MP_SERVO_POWER_RSP_DATA;
+
+    typedef struct /* Error number receive data */ {
+        USHORT err_no; /* Error number */
+        CHAR reserved[2];
+    } MP_STD_RSP_DATA;
 
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
@@ -255,7 +268,11 @@ extern "C" {
     extern LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rData);
 
     extern LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData);
+
+    extern LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData);
     
+    extern LONG	mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData);
+
 #ifdef __cplusplus
 }
 #endif

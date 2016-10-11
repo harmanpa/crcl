@@ -22,38 +22,24 @@
  */
 package com.github.wshackle.crcl4java.motoman.sys1;
 
+import java.util.Arrays;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteSys1FunctionType {
-    SYS1_INVALID(0),
-    SYS1_GET_VAR_DATA(1),
-    SYS1_PUT_VAR_DATA(2),
-    SYS1_GET_CURRENT_CART_POS(3),
-    SYS1_GET_CURRENT_PULSE_POS(4),
-    SYS1_GET_CURRENT_FEEDBACK_PULSE_POS(5),
-    SYS1_GET_DEG_POS_EX(6),
-    SYS1_INVALID_RESERVED2(7), // Place holder for GET_RAD_EX  not implemented.
-    SYS1_GET_SERVO_POWER(8),
-    SYS1_SET_SERVO_POWER(9);
-
-    private RemoteSys1FunctionType(int id) {
-        this.id = id;
+public class MP_DEG_POS_RSP_DATA_EX {
+    public static final int MAX_PULSE_AXES = 8;
+    
+    public final int[] degPos = new int[MAX_PULSE_AXES];
+    public final UnitType[] degUnit = new UnitType[MAX_PULSE_AXES];
+    
+    @Override
+    public String toString() {
+        return "MP_DEG_POS_RSP_DATA_EX{" 
+                + "degPos=" + Arrays.toString(degPos) 
+                + "degUnit=" + Arrays.toString(degUnit) 
+                + '}';
     }
-
-    private final int id;
-
-//    private static Map<Integer, RemoteSys1FunctionType> map = new HashMap<>();
-//
-//    static {
-//        for (int i = 0; i < RemoteSys1FunctionType.values().length; i++) {
-//            RemoteSys1FunctionType m = RemoteSys1FunctionType.values()[i];
-//            map.put(m.getId(), m);
-//        }
-//    }
-    public int getId() {
-        return id;
-    }
-
+    
 }
