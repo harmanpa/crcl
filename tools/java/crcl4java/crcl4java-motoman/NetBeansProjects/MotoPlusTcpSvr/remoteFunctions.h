@@ -45,7 +45,13 @@ extern "C" {
         SYS1_INVALID = 0,
         SYS1_GET_VAR_DATA = 1,
         SYS1_PUT_VAR_DATA = 2,
-        SYS1_GET_CURRENT_POS = 3
+        SYS1_GET_CURRENT_CART_POS = 3,
+        SYS1_GET_CURRENT_PULSE_POS = 4,
+        SYS1_GET_CURRENT_FEEDBACK_PULSE_POS = 5,
+        SYS1_GET_DEG_POS_EX=6,
+        SYS1_INVALID_RESERVED2=7, // Place holder for GET_RAD_EX  not implemented.
+        
+        
     };
 
     // Read requests on the given accepted socket handle, forever or until an

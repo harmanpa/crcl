@@ -5,6 +5,8 @@ import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.VarType;
@@ -31,15 +33,16 @@ import com.github.wshackle.crcl4java.motoman.sys1.VarType;
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class TestMotoPlusConnection {
+
     public static void main(String[] args) throws Exception {
         try (MotoPlusConnection mpc = new MotoPlusConnection()) {
             mpc.connect("10.0.0.2", 11000);
+//            mpc.connect("localhost", 11000);
 
 //            System.out.println("Calling mpMotStart(1)");
 //            MotCtrlReturnEnum motStartRet = mpc.mpMotStart(1);
@@ -114,14 +117,28 @@ public class TestMotoPlusConnection {
 //            System.out.println("Calling mpPutVarData(,,1)");
 //            boolean putVarRet = mpc.mpPutVarData(varData, 1);
 //            System.out.println("putVarRet = " + putVarRet);
+
+            MP_FB_PULSE_POS_RSP_DATA fbPulseData[] = new MP_FB_PULSE_POS_RSP_DATA[1];
+            fbPulseData[0] = new MP_FB_PULSE_POS_RSP_DATA();
+            System.out.println("Calling mpGetFBPulsePos(0,...)");
+            boolean getFBPulsePosRet = mpc.mpGetFBPulsePos(0, fbPulseData);
+            System.out.println("getFBPulsePosRet = " + getFBPulsePosRet);
+            System.out.println("fbPulseData[0] = " + fbPulseData[0]);
+
             MP_CART_POS_RSP_DATA data[] = new MP_CART_POS_RSP_DATA[1];
             data[0] = new MP_CART_POS_RSP_DATA();
-            System.out.println("Calling mpGetCartPos(,,1)");
-            boolean getCartPosRet = mpc.mpGetCartPos(0,data);
+            System.out.println("Calling mpGetCartPos(0,...)");
+            boolean getCartPosRet = mpc.mpGetCartPos(0, data);
             System.out.println("getCartPosRet = " + getCartPosRet);
             System.out.println("data[0] = " + data[0]);
-            
-            
+
+            MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
+            pulseData[0] = new MP_PULSE_POS_RSP_DATA();
+            System.out.println("Calling mpGetPulsePos(0,...)");
+            boolean getPulsePosRet = mpc.mpGetPulsePos(0, pulseData);
+            System.out.println("getPulsePosRet = " + getPulsePosRet);
+            System.out.println("pulseData[0] = " + pulseData[0]);
+
         }
     }
 }

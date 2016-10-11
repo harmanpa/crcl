@@ -29,7 +29,8 @@ import java.util.Arrays;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MP_CART_POS_RSP_DATA {
-    public final int lPos[] = new int[6];
+    public static final int MAX_CART_AXES = 6;
+    public final int lPos[] = new int[MAX_CART_AXES];
     public short sConfig;
 
     public boolean front() {

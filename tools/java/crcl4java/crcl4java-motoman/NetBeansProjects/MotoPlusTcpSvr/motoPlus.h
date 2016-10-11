@@ -34,6 +34,7 @@ extern "C" {
     typedef short SHORT;
     typedef char CHAR;
     typedef long LONG;
+    typedef unsigned char UCHAR;
     typedef unsigned long CTRLG_T;
 
 #define MP_GRP_AXES_NUM 8 
@@ -107,12 +108,80 @@ extern "C" {
         CTRLG_T sCtrlGrp; /* Control Group */
     } MP_CTRL_GRP_SEND_DATA;
 
-    typedef struct /* �R���g���[���O���[�v���M�f�[�^�\���́i�g���j */ {
-        SHORT sRobotNo; /* ���{�b�g�ԍ� */
-        SHORT sFrame; /* ���W�V�X�e��ID */
-        SHORT sToolNo; /* �c�[���ԍ� */
+    typedef struct {
+        SHORT sRobotNo;
+        SHORT sFrame;
+        SHORT sToolNo;
         CHAR reserved[2];
     } MP_CARTPOS_EX_SEND_DATA;
+
+
+#define MAX_PULSE_AXES   (8) /* Maximum pulse axes */
+
+    typedef struct /* Pulse position receive data */ {
+        LONG lPos[MAX_PULSE_AXES]; /* Pulse position */
+    } MP_PULSE_POS_RSP_DATA;
+
+    typedef struct /* Radian position receive data */ {
+        LONG lRadPos[MAX_PULSE_AXES]; /* Radian position */
+    } MP_RAD_POS_RSP_DATA;
+
+    typedef struct /* Degree position receive data */ {
+        LONG lDegPos[MAX_PULSE_AXES]; /* Degree position */
+    } MP_DEG_POS_RSP_DATA;
+
+#define MP_POS_UNIT_DEGREE   (1)
+#define MP_POS_UNIT_DISTANCE  (2)
+#define MP_POS_UNIT_RADIAN   (3)
+
+    typedef struct /* Radian position and unit receive data */ {
+        LONG lRadPos[MAX_PULSE_AXES]; /* Radian position */
+        LONG lRadUnit[MAX_PULSE_AXES]; /* Unit */
+    } MP_RAD_POS_RSP_DATA_EX;
+
+    typedef struct /* Degree position and unit receive data */ {
+        LONG lDegPos[MAX_PULSE_AXES]; /* Degree position */
+        LONG lDegUnit[MAX_PULSE_AXES]; /* Unit */
+    } MP_DEG_POS_RSP_DATA_EX;
+
+    typedef struct /* Feedback pulse position receive data */ {
+        LONG lPos[MAX_PULSE_AXES]; /* Pulse position */
+    } MP_FB_PULSE_POS_RSP_DATA;
+
+    typedef struct /* Servo speed data */ {
+        LONG lSpeed[MAX_PULSE_AXES]; /* Speed */
+    } MP_SERVO_SPEED_RSP_DATA;
+
+    typedef struct /* Feedback speed data */ {
+        LONG lSpeed[MAX_PULSE_AXES]; /* Speed */
+    } MP_FB_SPEED_RSP_DATA;
+
+    typedef struct /* Torque receive data */ {
+        LONG lTorquePcnt[MAX_PULSE_AXES]; /* Torque [percent] */
+    } MP_TORQUE_RSP_DATA;
+
+    typedef struct /* Torque receive data (absolute) */ {
+        LONG lTorqueNm[MAX_PULSE_AXES]; /* Torque [percent] */
+    } MP_TORQUE_EX_RSP_DATA;
+
+    typedef struct /* JOG speed receive data */ {
+        SHORT sJogSpeed; /* JOG speed */
+        CHAR reserved[2];
+    } MP_JOGSPEED_RSP_DATA;
+
+    typedef struct /* JOG coordinate receive data */ {
+        USHORT sJogCoord; /* JOG coordinate */
+        CHAR reserved[2];
+    } MP_JOGCOORD_RSP_DATA;
+
+#define MAX_SVAR_SIZE    (16) /* size of S-Variable */
+
+    typedef struct /* S-Variable recieve data */ {
+        UCHAR ucValue[MAX_SVAR_SIZE + 1]; /* S-Variable data(with delimiter) */
+        UCHAR reserved[3];
+    } MP_SVAR_RECV_INFO;
+
+
 
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
@@ -181,6 +250,12 @@ extern "C" {
 
     extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData);
 
+    extern LONG mpGetPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_PULSE_POS_RSP_DATA *rData);
+
+    extern LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rData);
+
+    extern LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData);
+    
 #ifdef __cplusplus
 }
 #endif

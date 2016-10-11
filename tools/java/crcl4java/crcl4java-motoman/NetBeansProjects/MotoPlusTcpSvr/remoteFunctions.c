@@ -114,6 +114,10 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     int ret;
     MP_CTRL_GRP_SEND_DATA ctrlGrpSendData;
     MP_CART_POS_RSP_DATA cartPosRspData;
+    MP_PULSE_POS_RSP_DATA pulsePosRspData;
+    MP_FB_PULSE_POS_RSP_DATA fbPulsePosRspData;
+    MP_DEG_POS_RSP_DATA_EX degPosRspDataEx;
+    
     int32_t controlGroup = 0;
 
     switch (type) {
@@ -139,6 +143,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 8 + num * 4, 0);
             if (sendRet != 8 + num * 4) {
+                fprintf(stderr, "sendRet = %d != 8 + num*4\n", sendRet);
                 return -1;
             }
             break;
@@ -163,13 +168,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
-        case SYS1_GET_CURRENT_POS:
-            if (msgSize != 16) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
+        case SYS1_GET_CURRENT_CART_POS:
+            if (msgSize != 12) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -185,6 +191,76 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt16(outBuffer, 56, cartPosRspData.sConfig);
             sendRet = sendN(acceptHandle, outBuffer, 58, 0);
             if (sendRet != 58) {
+                fprintf(stderr, "sendRet = %d != 58\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_CURRENT_PULSE_POS:
+            if (msgSize != 12) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                return -1;
+            }
+            memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
+            memset(&pulsePosRspData, 0, sizeof (pulsePosRspData));
+            controlGroup = getInt32(inBuffer, 12);
+            ctrlGrpSendData.sCtrlGrp = controlGroup;
+            ret = mpGetPulsePos(&ctrlGrpSendData, &pulsePosRspData);
+            setInt32(outBuffer, 0, 68);
+            setInt32(outBuffer, 4, ret);
+            for (i = 0; i < 8; i++) {
+                setInt32(outBuffer, 8 + 4 * i, pulsePosRspData.lPos[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 72, 0);
+            if (sendRet != 72) {
+                fprintf(stderr, "sendRet = %d != 72\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_CURRENT_FEEDBACK_PULSE_POS:
+            if (msgSize != 12) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                return -1;
+            }
+            memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
+            memset(&fbPulsePosRspData, 0, sizeof (fbPulsePosRspData));
+            controlGroup = getInt32(inBuffer, 12);
+            ctrlGrpSendData.sCtrlGrp = controlGroup;
+            ret = mpGetFBPulsePos(&ctrlGrpSendData, &fbPulsePosRspData);
+            setInt32(outBuffer, 0, 68);
+            setInt32(outBuffer, 4, ret);
+            for (i = 0; i < 8; i++) {
+                setInt32(outBuffer, 8 + 4 * i, fbPulsePosRspData.lPos[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 72, 0);
+            if (sendRet != 72) {
+                fprintf(stderr, "sendRet = %d != 72\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_DEG_POS_EX:
+            if (msgSize != 12) {
+                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                return -1;
+            }
+            memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
+            memset(&degPosRspDataEx, 0, sizeof (degPosRspDataEx));
+            controlGroup = getInt32(inBuffer, 12);
+            ctrlGrpSendData.sCtrlGrp = controlGroup;
+            ret = mpGetDegPosEx(&ctrlGrpSendData, &degPosRspDataEx);
+            setInt32(outBuffer, 0, 132);
+            setInt32(outBuffer, 4, ret);
+            for (i = 0; i < 8; i++) {
+                setInt32(outBuffer, 8 + 4 * i, degPosRspDataEx.lDegPos[i]);
+            }
+            for (i = 0; i < 8; i++) {
+                setInt32(outBuffer, 72 + 4 * i, degPosRspDataEx.lDegUnit[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 136, 0);
+            if (sendRet != 136) {
+                fprintf(stderr, "sendRet = %d != 136\n", sendRet);
                 return -1;
             }
             break;
@@ -226,6 +302,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -241,6 +318,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -257,6 +335,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -282,6 +361,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -317,6 +397,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -336,6 +417,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 8, recvId);
             sendRet = sendN(acceptHandle, outBuffer, 12, 0);
             if (sendRet != 12) {
+                fprintf(stderr, "sendRet = %d != 12\n", sendRet);
                 return -1;
             }
             break;
@@ -353,6 +435,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -369,6 +452,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -387,6 +471,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -403,6 +488,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -419,6 +505,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -436,6 +523,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
@@ -451,6 +539,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
+                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;

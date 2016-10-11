@@ -22,34 +22,22 @@
  */
 package com.github.wshackle.crcl4java.motoman.sys1;
 
+import java.util.Arrays;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteSys1FunctionType {
-    SYS1_INVALID(0),
-    SYS1_GET_VAR_DATA(1),
-    SYS1_PUT_VAR_DATA(2),
-    SYS1_GET_CURRENT_CART_POS(3),
-    SYS1_GET_CURRENT_PULSE_POS(4),
-    SYS1_GET_CURRENT_FEEDBACK_PULSE_POS(5);
-
-    private RemoteSys1FunctionType(int id) {
-        this.id = id;
+public class MP_PULSE_POS_RSP_DATA {
+    public static final int MAX_PULSE_AXES = 8;
+    
+    public final int lPos[] = new int[MAX_PULSE_AXES];
+    
+    @Override
+    public String toString() {
+        return "MP_PULSE_POS_RSP_DATA{" 
+                + "lPos=" + Arrays.toString(lPos) 
+                + '}';
     }
-
-    private final int id;
-
-//    private static Map<Integer, RemoteSys1FunctionType> map = new HashMap<>();
-//
-//    static {
-//        for (int i = 0; i < RemoteSys1FunctionType.values().length; i++) {
-//            RemoteSys1FunctionType m = RemoteSys1FunctionType.values()[i];
-//            map.put(m.getId(), m);
-//        }
-//    }
-    public int getId() {
-        return id;
-    }
-
+    
 }

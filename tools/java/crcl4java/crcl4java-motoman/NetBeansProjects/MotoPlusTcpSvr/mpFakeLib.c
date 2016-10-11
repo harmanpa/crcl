@@ -217,7 +217,7 @@ LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
     return 0;
 }
 
-extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData) {
+LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData) {
     int i=0;
     printf("mpGetCartPos(%p,%p) called.\n", sData, rData);
     printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
@@ -227,5 +227,40 @@ extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rDa
     }
     rData->sConfig = 99;
     printf("rData->sConfig = %hu\n",rData->sConfig);
+    return 0;
+}
+
+LONG mpGetPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_PULSE_POS_RSP_DATA *rData) {
+    int i=0;
+    printf("mpGetPulsePos(%p,%p) called.\n", sData, rData);
+    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    for (i = 0; i < 8; i++) {
+        rData->lPos[i] = i+10;
+        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+    }
+    return 0;
+}
+
+LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rData){
+    int i=0;
+    printf("mpGetFBPulsePos(%p,%p) called.\n", sData, rData);
+    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    for (i = 0; i < 8; i++) {
+        rData->lPos[i] = i+15;
+        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+    }
+    return 0;
+}
+
+LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData){
+    int i=0;
+    printf("mpGetCartPos(%p,%p) called.\n", sData, rData);
+    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    for (i = 0; i < 8; i++) {
+        rData->lDegPos[i] = i+25;
+        printf("rData->lDegPos[%d]=%ld\n", i,rData->lDegPos[i]);
+         rData->lDegUnit[i] = MP_POS_UNIT_DEGREE;
+        printf("rData->lPos[%d]=%ld\n", i,rData->lDegUnit[i]);
+    }
     return 0;
 }

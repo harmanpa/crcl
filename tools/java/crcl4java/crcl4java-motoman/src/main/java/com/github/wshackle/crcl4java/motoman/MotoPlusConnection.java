@@ -29,6 +29,8 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
@@ -424,7 +426,7 @@ public class MotoPlusConnection implements AutoCloseable {
     }
     
     
-    public boolean mpGetCartPos(long ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
+    public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
         startMpGetCartPos(ctrlGroup,data);
         return getCartPosReturn(data);
     }
@@ -438,21 +440,80 @@ public class MotoPlusConnection implements AutoCloseable {
         dis.readFully(inbuf);
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < MP_CART_POS_RSP_DATA.MAX_CART_AXES; i++) {
             data[0].lPos[i] = bb.getInt(4+(i*4));
         }
         data[0].sConfig = bb.getShort(52);
         return intRet == 0;
     }
 
-    public void startMpGetCartPos(long ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
-        final int inputSize = 20;
+    public void startMpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA []data) throws IOException {
+        final int inputSize = 16;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
-        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_POS.getId()); // type of function remote server will call
-        bb.putLong(12, ctrlGroup);
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_CART_POS.getId()); // type of function remote server will call
+        bb.putInt(12, ctrlGroup);
         dos.write(bb.array());
     }
     
+    public boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA []data) throws IOException {
+        startMpGetPulsePos(ctrlGroup,data);
+        return getPulsePosReturn(data);
+    }
+    
+    public boolean getPulsePosReturn(MP_PULSE_POS_RSP_DATA []data) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
+            data[0].lPos[i] = bb.getInt(4+(i*4));
+        }
+        return intRet == 0;
+    }
+
+    public void startMpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA []data) throws IOException {
+        final int inputSize = 16;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_PULSE_POS.getId()); // type of function remote server will call
+        bb.putInt(12, ctrlGroup);
+        dos.write(bb.array());
+    }
+    
+    public boolean mpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
+        startMpGetFBPulsePos(ctrlGroup,data);
+        return getFBPulsePosReturn(data);
+    }
+    
+    public boolean getFBPulsePosReturn(MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
+            data[0].lPos[i] = bb.getInt(4+(i*4));
+        }
+        return intRet == 0;
+    }
+
+    public void startMpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA []data) throws IOException {
+        final int inputSize = 16;
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_FEEDBACK_PULSE_POS.getId()); // type of function remote server will call
+        bb.putInt(12, ctrlGroup);
+        dos.write(bb.array());
+    }
 }
