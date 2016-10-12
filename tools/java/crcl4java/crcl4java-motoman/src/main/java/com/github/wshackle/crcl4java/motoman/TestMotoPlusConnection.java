@@ -1,5 +1,6 @@
 package com.github.wshackle.crcl4java.motoman;
 
+import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
@@ -7,6 +8,8 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import java.net.Socket;
+import java.util.Arrays;
 
 /*
  * This software is public domain software, however it is preferred
@@ -37,8 +40,8 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 public class TestMotoPlusConnection {
 
     public static void main(String[] args) throws Exception {
-        try (MotoPlusConnection mpc = new MotoPlusConnection()) {
-            mpc.connect("10.0.0.2", 11000);
+        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket("10.0.0.2", 11000))) {
+//            mpc.connect("10.0.0.2", 11000);
 //            mpc.connect("localhost", 11000);
 
 //
@@ -60,7 +63,7 @@ public class TestMotoPlusConnection {
             System.out.println("Calling mpGetServoPower()");
             on = mpc.mpGetServoPower();
             System.out.println("on = " + on);
-            
+
             JointTarget jointTarget = new JointTarget();
             jointTarget.setId(5);
             jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
@@ -78,8 +81,9 @@ public class TestMotoPlusConnection {
             System.out.println("motStartRet = " + motStartRet);
             Thread.sleep(200);
             int recvId[] = new int[1];
-            mpc.mpMotTargetReceive(0, 5, recvId, 0, 0);
-
+            System.out.println("Calling mpMotTargetReceive(0,5,...,WAIT_FOREVER,0)");
+            mpc.mpMotTargetReceive(0, 5, recvId, WAIT_FOREVER, 0);
+            System.out.println("recvId = " + Arrays.toString(recvId));
 //            
 //            CoordTarget coordTarget = new CoordTarget();
 //            coordTarget.setId(36);
@@ -150,7 +154,7 @@ public class TestMotoPlusConnection {
             boolean geDegPosExRet = mpc.mpGetDegPosEx(0, degData);
             System.out.println("geDegPosExRet = " + geDegPosExRet);
             System.out.println("degData[0] = " + degData[0]);
-            
+
             System.out.println("Calling mpSetServoPower(false)");
             mpc.mpSetServoPower(false);
             System.out.println("Calling mpGetServoPower()");

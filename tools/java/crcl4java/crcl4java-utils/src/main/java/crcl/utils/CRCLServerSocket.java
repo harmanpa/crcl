@@ -64,6 +64,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     private final List<CRCLServerClientInfo> clients = new ArrayList<>();
 
     public static class CRCLServerClientInfo implements AutoCloseable {
+
         private final CRCLSocket socket;
         private final Future<?> future;
 
@@ -79,21 +80,22 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
             this.socket = socket;
             this.future = future;
         }
-        
+
         @Override
         public void close() {
             try {
-                if(null != socket) {
+                if (null != socket) {
                     this.socket.close();
                 }
             } catch (IOException ex) {
                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
-            if(null != future) {
+            if (null != future) {
                 this.future.cancel(true);
             }
         }
     }
+
     /**
      * Get the value of clients
      *
@@ -264,7 +266,6 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
 
     private ServerSocket serverSocket;
 
-    
     final List<CRCLServerSocketEventListener> listeners = new ArrayList<>();
 
     public synchronized void addListener(CRCLServerSocketEventListener l) {
@@ -336,7 +337,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
             }
             for (int i = 0; i < clients.size(); i++) {
                 CRCLServerClientInfo c = clients.get(i);
-                if(Objects.equals(c.getSocket(), event.getSource())) {
+                if (Objects.equals(c.getSocket(), event.getSource())) {
                     clients.remove(c);
                 }
             }
@@ -345,12 +346,12 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     }
 
     public CRCLServerSocketEvent waitForEvent() throws InterruptedException {
-        if(!started && !isRunning()) {
+        if (!started && !isRunning()) {
             throw new IllegalStateException("CRCLServerSocket must be running/started before call to waitForEvent.");
         }
-        if(!queueEvents) {
-             throw new IllegalStateException("queueEvents should be set before call to waitForEvent.");
-           
+        if (!queueEvents) {
+            throw new IllegalStateException("queueEvents should be set before call to waitForEvent.");
+
         }
         return queue.take();
     }
@@ -529,7 +530,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                         clientSocketChannel
                                 = (SocketChannel) clientSocketChannel.configureBlocking(false);
                         CRCLSocket crclSocket = new CRCLSocket(clientSocketChannel);
-                        clients.add(new CRCLServerClientInfo(crclSocket,null));
+                        clients.add(new CRCLServerClientInfo(crclSocket, null));
                         SelectionKey newKey
                                 = clientSocketChannel.register(selector, SelectionKey.OP_READ, crclSocket);
                     }
@@ -538,13 +539,26 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                     List<CRCLCommandInstanceType> cmdInstances;
                     try {
                         SocketChannel s = ((SocketChannel) key.channel());
-                        ByteBuffer bb = ByteBuffer.allocate(4096);
-                        int readbytes = s.read(bb);
-                        if (readbytes > 0) {
-                            String string = new String(bb.array(), 0, readbytes);
-                            cmdInstances = crclSocket.parseMultiCommandString(string, validate);
-                            for (CRCLCommandInstanceType instance : cmdInstances) {
-                                handleEvent(new CRCLServerSocketEvent(crclSocket, instance, null));
+                        try {
+                            ByteBuffer bb = ByteBuffer.allocate(4096);
+                            int readbytes = s.read(bb);
+                            if (readbytes > 0) {
+                                String string = new String(bb.array(), 0, readbytes);
+                                cmdInstances = crclSocket.parseMultiCommandString(string, validate);
+                                for (CRCLCommandInstanceType instance : cmdInstances) {
+                                    handleEvent(new CRCLServerSocketEvent(crclSocket, instance, null));
+                                }
+                            }
+                        } catch (IOException iOException) {
+                            try {
+                                s.close();
+                                selector.selectedKeys().remove(key);
+                            } catch (Exception exception) {
+                            }
+                            handleEvent(new CRCLServerSocketEvent(crclSocket, null, iOException));
+                            try {
+                                crclSocket.close();
+                            } catch (Exception exception) {
                             }
                         }
                     } catch (CRCLException ex) {
@@ -653,7 +667,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                     }
                 }
             });
-            clients.add(new CRCLServerClientInfo(crclSocket,future));
+            clients.add(new CRCLServerClientInfo(crclSocket, future));
         }
     }
 
@@ -703,7 +717,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     }
 
     private boolean started = false;
-    
+
     public Future<?> start() {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");

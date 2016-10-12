@@ -51,6 +51,14 @@ public class MotoPlusConnection implements AutoCloseable {
     private Socket socket;
     private DataOutputStream dos;
     private DataInputStream dis;
+    public static final int NO_WAIT = 0;
+    public static final int WAIT_FOREVER = -1;
+
+    public MotoPlusConnection(Socket socket) throws IOException {
+        this.socket = socket;
+        dos = new DataOutputStream(socket.getOutputStream());
+        dis = new DataInputStream(socket.getInputStream());
+    }
 
     public void connect(String host, int port) throws IOException {
         if (null != socket) {
@@ -550,8 +558,6 @@ public class MotoPlusConnection implements AutoCloseable {
         dos.write(bb.array());
     }
 
-    
-
     public static class MotoPlusConnectionException extends Exception {
 
         public MotoPlusConnectionException(String message) {
@@ -559,11 +565,12 @@ public class MotoPlusConnection implements AutoCloseable {
         }
 
     }
+
     public boolean mpGetServoPower() throws IOException, MotoPlusConnectionException {
         startMpGetServoPower();
         return getServoPowerReturn();
     }
-    
+
     public boolean getServoPowerReturn() throws IOException, MotoPlusConnectionException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
@@ -591,13 +598,12 @@ public class MotoPlusConnection implements AutoCloseable {
         bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_SERVO_POWER.getId()); // type of function remote server will call
         dos.write(bb.array());
     }
-    
-    
+
     public boolean mpSetServoPower(boolean on) throws IOException, MotoPlusConnectionException {
         startMpSetServoPower(on);
         return getSetServoPowerReturn();
     }
-    
+
     public boolean getSetServoPowerReturn() throws IOException, MotoPlusConnectionException {
         byte inbuf[] = new byte[4];
         dis.readFully(inbuf);
@@ -620,7 +626,7 @@ public class MotoPlusConnection implements AutoCloseable {
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteSys1FunctionType.SYS1_SET_SERVO_POWER.getId()); // type of function remote server will call
-        bb.putShort(12,(short)(on?1:0));
+        bb.putShort(12, (short) (on ? 1 : 0));
         dos.write(bb.array());
     }
 }

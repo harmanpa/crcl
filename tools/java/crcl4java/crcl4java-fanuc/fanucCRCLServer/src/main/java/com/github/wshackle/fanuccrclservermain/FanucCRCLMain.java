@@ -121,7 +121,6 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
 
 /**
  *
