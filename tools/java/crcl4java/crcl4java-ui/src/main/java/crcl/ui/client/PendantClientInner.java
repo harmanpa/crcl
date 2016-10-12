@@ -686,6 +686,9 @@ public class PendantClientInner {
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
+            if(null != ex.getCause() && ex.getCause() instanceof SocketException) {
+                disconnect();
+            }
         }
         return false;
     }

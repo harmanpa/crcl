@@ -69,14 +69,16 @@ void runAcceptTcpClientsTask(ULONG portNo) {
         sizeofSockAddr = sizeof (clientSockAddr);
 
         acceptHandle = mpAccept(sockHandle, (struct sockaddr *) &clientSockAddr, &sizeofSockAddr);
-
+        printf("tcpSvr: acceptHandle = %d\n", acceptHandle);
         if (acceptHandle < 0)
             break;
 
-        taskIdArray[taskSpawnCounter] = mpCreateTask(MP_PRI_TIME_NORMAL, MP_STACK_SIZE, (FUNCPTR) handleSingleConnection,
+        taskIdArray[taskSpawnCounter%100] = mpCreateTask(MP_PRI_TIME_NORMAL, MP_STACK_SIZE, (FUNCPTR) handleSingleConnection,
                 acceptHandle, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        printf("tcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter);
+        printf("tcpSvr: taskIdArray[taskSpawnCounter%%100] = %d\n", taskIdArray[taskSpawnCounter%100]);
         taskSpawnCounter++;
-
+        printf("tcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter); 
     }
 closeSockHandle:
     mpClose(sockHandle);

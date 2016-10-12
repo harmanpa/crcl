@@ -18,11 +18,11 @@ static int recvN(int handle, char *buf, int n, int flags) {
     do {
         lastRecv = mpRecv(handle, (buf + totalRecv), n - totalRecv, flags);
         if (lastRecv == 0) {
-            fprintf(stderr, "recv returned 0\n");
+            fprintf(stderr, "tcpSvr: recv returned 0\n");
             return lastRecv;
         }
         if (lastRecv < 1) {
-            fprintf(stderr, "recv error : %s\n", strerror(errno));
+            fprintf(stderr, "tcpSvr: recv error : %s\n", strerror(errno));
             return lastRecv;
         }
         totalRecv += lastRecv;
@@ -36,7 +36,7 @@ static int sendN(int handle, char *buf, int n, int flags) {
     do {
         lastSend = mpSend(handle, (buf + totalSend), n - totalSend, flags);
         if (lastSend < 1) {
-            fprintf(stderr, "send error : %s\n", strerror(errno));
+            fprintf(stderr, "tcpSvr: send error : %s\n", strerror(errno));
             return lastSend;
         }
         totalSend += lastSend;
@@ -122,17 +122,18 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_STD_RSP_DATA stdRspData;
     
     int32_t controlGroup = 0;
-
+	int nowait = NO_WAIT;
+	int waitforever = WAIT_FOREVER;
 
     switch (type) {
         case SYS1_GET_VAR_DATA:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "invalid num for mpGetVarData num = %ld\n", num);
+                fprintf(stderr, "tcpSvr: invalid num for mpGetVarData num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (4 * num)) {
-                fprintf(stderr, "invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -147,7 +148,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 8 + num * 4, 0);
             if (sendRet != 8 + num * 4) {
-                fprintf(stderr, "sendRet = %d != 8 + num*4\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8 + num*4\n", sendRet);
                 return -1;
             }
             break;
@@ -155,11 +156,11 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case SYS1_PUT_VAR_DATA:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "invalid num for mpPutVarData num = %ld\n", num);
+                fprintf(stderr, "tcpSvr: invalid num for mpPutVarData num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (num * 8)) {
-                fprintf(stderr, "invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -172,14 +173,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case SYS1_GET_CURRENT_CART_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -195,14 +196,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt16(outBuffer, 56, cartPosRspData.sConfig);
             sendRet = sendN(acceptHandle, outBuffer, 58, 0);
             if (sendRet != 58) {
-                fprintf(stderr, "sendRet = %d != 58\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 58\n", sendRet);
                 return -1;
             }
             break;
 
         case SYS1_GET_CURRENT_PULSE_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -217,14 +218,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 72, 0);
             if (sendRet != 72) {
-                fprintf(stderr, "sendRet = %d != 72\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 72\n", sendRet);
                 return -1;
             }
             break;
 
         case SYS1_GET_CURRENT_FEEDBACK_PULSE_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -239,14 +240,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 72, 0);
             if (sendRet != 72) {
-                fprintf(stderr, "sendRet = %d != 72\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 72\n", sendRet);
                 return -1;
             }
             break;
 
         case SYS1_GET_DEG_POS_EX:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -264,7 +265,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             sendRet = sendN(acceptHandle, outBuffer, 136, 0);
             if (sendRet != 136) {
-                fprintf(stderr, "sendRet = %d != 136\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 136\n", sendRet);
                 return -1;
             }
             break;
@@ -272,7 +273,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_SERVO_POWER:
             if (msgSize != 8) {
-                fprintf(stderr, "invalid msgSize for mpGetServoPower = %d != 8\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetServoPower = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&servoPowerRspData, 0, sizeof (servoPowerRspData));
@@ -282,14 +283,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt16(outBuffer,8,servoPowerRspData.sServoPower);
             sendRet = sendN(acceptHandle, outBuffer, 10, 0);
             if (sendRet != 10) {
-                fprintf(stderr, "sendRet = %d != 10\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 10\n", sendRet);
                 return -1;
             }
             break;
 
         case SYS1_SET_SERVO_POWER:
             if (msgSize != 10) {
-                fprintf(stderr, "invalid msgSize for mpSetServoPower = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpSetServoPower = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&servoPowerSendData, 0, sizeof (servoPowerSendData));
@@ -301,13 +302,13 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             setInt16(outBuffer, 8, stdRspData.err_no);
             sendRet = sendN(acceptHandle, outBuffer, 10, 0);
             if (sendRet != 10) {
-                fprintf(stderr, "sendRet = %d != 136\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 136\n", sendRet);
                 return -1;
             }
             break;
 
         default:
-            fprintf(stderr, "invalid sys1 function type = %d\n", type);
+            fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -334,7 +335,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     switch (type) {
         case MOT_START:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotStart = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotStart = %d != 12\n", msgSize);
                 return -1;
             }
             options = getInt32(inBuffer, 12);
@@ -343,14 +344,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_STOP:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotStop = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotStop = %d != 12\n", msgSize);
                 return -1;
             }
             options = getInt32(inBuffer, 12);
@@ -359,14 +360,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_TARGET_CLEAR:
             if (msgSize != 16) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
                 return -1;
             }
             controlGroup = getInt32(inBuffer, 12);
@@ -376,14 +377,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_JOINT_TARGET_SEND:
             if (msgSize != 88) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
@@ -402,14 +403,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_COORD_TARGET_SEND:
             if (msgSize != 88) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
@@ -438,14 +439,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_TARGET_RECEIVE:
             if (msgSize != 24) {
-                fprintf(stderr, "invalid msgSize for mpMotTargetReceive = %d != 24\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetReceive = %d != 24\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -458,14 +459,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 8, recvId);
             sendRet = sendN(acceptHandle, outBuffer, 12, 0);
             if (sendRet != 12) {
-                fprintf(stderr, "sendRet = %d != 12\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 12\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_COORD:
             if (msgSize != 20) {
-                fprintf(stderr, "invalid msgSize for mpMotSetCoord = %d != 20\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetCoord = %d != 20\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -476,14 +477,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_TOOL:
             if (msgSize != 16) {
-                fprintf(stderr, "invalid msgSize for mpMotSetTool = %d != 16\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetTool = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -493,14 +494,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_SPEED:
             if (msgSize != 32) {
-                fprintf(stderr, "invalid msgSize for mpMotSetSpeed = %d != 32\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetSpeed = %d != 32\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -512,14 +513,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_ORIGIN:
             if (msgSize != 16) {
-                fprintf(stderr, "invalid msgSize for mpMotSetOrigin = %d != 16\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetOrigin = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -529,14 +530,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_TASK:
             if (msgSize != 16) {
-                fprintf(stderr, "invalid msgSize for mpMotSetTask = %d != 16\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetTask = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -546,14 +547,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_SET_SYNC:
             if (msgSize != 20) {
-                fprintf(stderr, "invalid msgSize for mpMotSetSync = %d != 20\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetSync = %d != 20\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -564,14 +565,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         case MOT_RESET_SYNC:
             if (msgSize != 12) {
-                fprintf(stderr, "invalid msgSize for mpMotResetSync = %d != 12\n", msgSize);
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotResetSync = %d != 12\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -580,13 +581,13 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8, 0);
             if (sendRet != 8) {
-                fprintf(stderr, "sendRet = %d != 8\n", sendRet);
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
                 return -1;
             }
             break;
 
         default:
-            fprintf(stderr, "invalid mot function type = %d\n", type);
+            fprintf(stderr, "tcpSvr: invalid mot function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -602,13 +603,13 @@ void handleSingleConnection(int acceptHandle) {
     int bytesRecv;
     int32_t msgSize;
 
-    printf("acceptHandle=%d\n", acceptHandle);
-    printf("sizeof(int)=%d\n", sizeof (int));
-    printf("sizeof(long)=%d\n", sizeof (long));
-    printf("sizeof(LONG)=%d\n", sizeof (LONG));
-    printf("sizeof(ULONG)=%d\n", sizeof (ULONG));
-    printf("sizeof(MP_CART_POS_RSP_DATA)=%d\n", sizeof (MP_CART_POS_RSP_DATA));
-    printf("sizeof(MP_TARGET)=%d\n", sizeof (MP_TARGET));
+    printf("tcpSvr: acceptHandle=%d\n", acceptHandle);
+    printf("tcpSvr: sizeof(int)=%d\n", sizeof (int));
+    printf("tcpSvr: sizeof(long)=%d\n", sizeof (long));
+    printf("tcpSvr: sizeof(LONG)=%d\n", sizeof (LONG));
+    printf("tcpSvr: sizeof(ULONG)=%d\n", sizeof (ULONG));
+    printf("tcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%d\n", sizeof (MP_CART_POS_RSP_DATA));
+    printf("tcpSvr: sizeof(MP_TARGET)=%d\n", sizeof (MP_TARGET));
 
     while (failed == 0) {
 
@@ -620,9 +621,9 @@ void handleSingleConnection(int acceptHandle) {
         }
 
         msgSize = getInt32(inBuffer, 0);
-        printf("msgSize=%d\n", msgSize);
+        printf("tcpSvr: msgSize=%d\n", msgSize);
         if (msgSize < 8 || msgSize >= (BUFF_MAX - 4)) {
-            printf("Invalid msgSize\n");
+            printf("tcpSvr: Invalid msgSize\n");
             break;
         }
 
@@ -632,11 +633,11 @@ void handleSingleConnection(int acceptHandle) {
             break;
 
         group = getInt32(inBuffer, 4);
-        printf("group=%d\n", group);
+        printf("tcpSvr: group=%d\n", group);
         type = getInt32(inBuffer, 8);
-        printf("type=%d\n", type);
+        printf("tcpSvr: type=%d\n", type);
         count++;
-        printf("count=%d\n", count);
+        printf("tcpSvr: count=%d\n", count);
 
         switch (group) {
             case MOT_FUNCTION_GROUP:
@@ -648,13 +649,17 @@ void handleSingleConnection(int acceptHandle) {
                 break;
 
             default:
-                fprintf(stderr, "unrecognized group =%d\n", group);
+                fprintf(stderr, "tcpSvr: unrecognized group =%d\n", group);
                 failed = 1;
                 break;
         }
     }
-    printf("Closing acceptHandle=%d\n", acceptHandle);
+    printf("tcpSvr: Closing acceptHandle=%d\n", acceptHandle);
     mpClose(acceptHandle);
     free(inBuffer);
     free(outBuffer);
 }
+
+        
+        
+        

@@ -433,6 +433,16 @@ public class MotoPlusConnection implements AutoCloseable {
         dos.write(bb.array());
     }
 
+    public MP_CART_POS_RSP_DATA getCartPos(int grp) throws MotoPlusConnectionException, IOException {
+        MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
+        cartData[0] = new MP_CART_POS_RSP_DATA();
+        MP_CART_POS_RSP_DATA pos = cartData[0];
+        if (!mpGetCartPos(0, cartData)) {
+            throw new MotoPlusConnectionException("mpGetCartPos returned false");
+        }
+        return cartData[0];
+    }
+
     public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
         startMpGetCartPos(ctrlGroup, data);
         return getCartPosReturn(data);
@@ -462,6 +472,15 @@ public class MotoPlusConnection implements AutoCloseable {
         bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_CART_POS.getId()); // type of function remote server will call
         bb.putInt(12, ctrlGroup);
         dos.write(bb.array());
+    }
+
+    public MP_PULSE_POS_RSP_DATA getPulsePos(int grp) throws MotoPlusConnectionException, IOException {
+        MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
+        pulseData[0] = new MP_PULSE_POS_RSP_DATA();
+        if (!mpGetPulsePos(grp, pulseData)) {
+            throw new MotoPlusConnectionException("mpGetPulsePos returned false");
+        }
+        return pulseData[0];
     }
 
     public boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {

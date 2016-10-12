@@ -3330,6 +3330,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jLabel18.setText("State Description:");
 
         jTextAreaStateDescription.setColumns(20);
+        jTextAreaStateDescription.setFont(new java.awt.Font("Monospaced", 0, 10)); // NOI18N
         jTextAreaStateDescription.setRows(2);
         jScrollPane6.setViewportView(jTextAreaStateDescription);
 
@@ -3382,9 +3383,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel18)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 114, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
