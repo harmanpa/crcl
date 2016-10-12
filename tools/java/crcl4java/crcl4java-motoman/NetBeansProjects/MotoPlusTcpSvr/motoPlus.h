@@ -25,7 +25,8 @@ extern "C" {
 #include <netinet/in.h>
 #include <stdlib.h>
 
-
+#define NO_WAIT (0)
+#define WAIT_FOREVER (-1)
 
     typedef int BOOL;
     typedef int STATUS;
