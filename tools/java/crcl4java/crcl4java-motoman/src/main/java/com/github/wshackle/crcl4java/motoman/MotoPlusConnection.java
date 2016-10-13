@@ -291,15 +291,15 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     public void startMpMotSetSpeed(int grpNo, MP_SPEED spd) throws IOException {
-        final int inputSize = 40;
+        final int inputSize = 36;
         ByteBuffer bb = ByteBuffer.allocate(inputSize);
         bb.putInt(0, inputSize - 4); // bytes to read
         bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
         bb.putInt(8, RemoteMotFunctionType.MOT_SET_SPEED.getId()); // type of function remote server will call
         bb.putInt(12, grpNo);
-        bb.putLong(16, spd.vj);
-        bb.putLong(24, spd.v);
-        bb.putLong(32, spd.vr);
+        bb.putInt(16, spd.vj);
+        bb.putInt(24, spd.v);
+        bb.putInt(32, spd.vr);
         dos.write(bb.array());
     }
 

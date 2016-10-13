@@ -3,6 +3,7 @@ package com.github.wshackle.crcl4java.motoman;
 import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
+import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
@@ -39,8 +40,11 @@ import java.util.Arrays;
  */
 public class TestMotoPlusConnection {
 
+    private static String host = "10.0.0.2";
+//    private static String host = "localhost";
+    
     public static void main(String[] args) throws Exception {
-        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket("10.0.0.2", 11000))) {
+        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 11000))) {
 //            mpc.connect("10.0.0.2", 11000);
 //            mpc.connect("localhost", 11000);
 
@@ -64,6 +68,10 @@ public class TestMotoPlusConnection {
             on = mpc.mpGetServoPower();
             System.out.println("on = " + on);
 
+            MP_SPEED spd = new MP_SPEED();
+            spd.vj = (int) 300;
+            System.out.println("Calling mpMotSetSpeed(1,...)");
+            mpc.mpMotSetSpeed(1, spd);
             JointTarget jointTarget = new JointTarget();
             jointTarget.setId(5);
             jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
@@ -127,6 +135,7 @@ public class TestMotoPlusConnection {
 //            System.out.println("Calling mpPutVarData(,,1)");
 //            boolean putVarRet = mpc.mpPutVarData(varData, 1);
 //            System.out.println("putVarRet = " + putVarRet);
+
             MP_FB_PULSE_POS_RSP_DATA fbPulseData[] = new MP_FB_PULSE_POS_RSP_DATA[1];
             fbPulseData[0] = new MP_FB_PULSE_POS_RSP_DATA();
             System.out.println("Calling mpGetFBPulsePos(0,...)");

@@ -27,6 +27,6 @@ package com.github.wshackle.crcl4java.motoman.motctrl;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MP_SPEED {
-    public long vj,v,vr;
+    public int vj,v,vr;
     
 }
