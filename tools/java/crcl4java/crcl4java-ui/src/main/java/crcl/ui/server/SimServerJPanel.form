@@ -379,13 +379,13 @@
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jTextFieldEndEffector" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                      <Component id="jTextFieldCurrentCommandType" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                      <Component id="jTextFieldCurWaypoint" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                      <Component id="jTextFieldNumWaypoints" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                      <Component id="jTextFieldCycleCount" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                      <Component id="jTextFieldConnectedClients" alignment="0" min="-2" pref="139" max="-2" attributes="0"/>
-                      <Component id="lengthUnitComboBox" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="jTextFieldEndEffector" linkSize="1" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="jTextFieldCurrentCommandType" linkSize="1" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="jTextFieldCurWaypoint" linkSize="1" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="jTextFieldNumWaypoints" linkSize="1" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="jTextFieldCycleCount" linkSize="1" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="jTextFieldConnectedClients" linkSize="1" alignment="0" min="-2" pref="139" max="-2" attributes="0"/>
+                      <Component id="lengthUnitComboBox" linkSize="1" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
