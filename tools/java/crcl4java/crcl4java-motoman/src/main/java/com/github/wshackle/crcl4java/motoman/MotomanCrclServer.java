@@ -22,7 +22,9 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
+import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
@@ -43,8 +45,13 @@ import crcl.base.JointDetailsType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
+import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
+import crcl.base.SetTransSpeedType;
 import crcl.base.StopMotionType;
+import crcl.base.TransSpeedAbsoluteType;
+import crcl.base.TransSpeedRelativeType;
+import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.point;
@@ -65,6 +72,7 @@ import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
+import rcs.posemath.Posemath;
 
 /**
  *
@@ -106,8 +114,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     public CRCLStatusType getCrclStatus() {
         long time = System.currentTimeMillis();
         long time_diff = time - last_status_update_time;
-        System.out.println("time = " + time);
-        System.out.println("time_diff = " + time_diff);
+//        System.out.println("time = " + time);
+//        System.out.println("time_diff = " + time_diff);
         if (time_diff > 50) {
             try {
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
@@ -129,7 +137,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         if (last_status_update_time > 0) {
                             double vj = ((double) diff) / time_diff;
                             js.setJointVelocity(BigDecimal.valueOf(vj));
-                            System.out.println("i = " + i + "vj = " + vj);
+//                            System.out.println("i = " + i + "vj = " + vj);
                         }
                         jsl.add(js);
                     } else {
@@ -140,7 +148,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         if (last_status_update_time > 0) {
                             double vj = ((double) diff) / time_diff;
                             js.setJointVelocity(BigDecimal.valueOf(vj));
-                            System.out.println("i = " + i + ", vj = " + vj);
+//                            System.out.println("i = " + i + ", vj = " + vj);
                         }
                     }
                 }
@@ -148,13 +156,13 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 
                 if (crclStatus.getCommandStatus().getCommandState() == CRCL_WORKING) {
                     if (lastSentTargetId != lastRecvdTargetId) {
-                        System.out.println("lastSentTargetId = " + lastSentTargetId);
-                        System.out.println("lastRecvdTargetId = " + lastRecvdTargetId);
+//                        System.out.println("lastSentTargetId = " + lastSentTargetId);
+//                        System.out.println("lastRecvdTargetId = " + lastRecvdTargetId);
                         int recvId[] = new int[1];
                         mpc.mpMotTargetReceive(0, lastSentTargetId, recvId, 0, MotoPlusConnection.NO_WAIT);
-                        System.out.println("recvId = " + Arrays.toString(recvId));
                         if (recvId[0] != 0) {
                             lastRecvdTargetId = recvId[0];
+                            System.out.println("recvId = " + Arrays.toString(recvId));
                         }
                         if (lastSentTargetId == lastRecvdTargetId) {
                             crclStatus.getCommandStatus().setCommandState(CRCL_DONE);
@@ -173,11 +181,71 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private boolean initialized = false;
 
     private void stopMotion() throws IOException {
-        mpc.mpMotStop(0);
+        MotCtrlReturnEnum stopRet = mpc.mpMotStop(0);
+        System.out.println("stopRet = " + stopRet);
+        MotCtrlReturnEnum clearRet = mpc.mpMotTargetClear(0xf, 0);
+        System.out.println("clearRet = " + clearRet);
     }
 
     private int lastSentTargetId = 1;
     private int lastRecvdTargetId = 1;
+    private double maxVelocity = 100.0;
+
+    private void setTransSpeed(SetTransSpeedType sts) throws IOException {
+        MP_SPEED spd = new MP_SPEED();
+        TransSpeedType ts = sts.getTransSpeed();
+        if (ts instanceof TransSpeedAbsoluteType) {
+            TransSpeedAbsoluteType tsa = (TransSpeedAbsoluteType) ts;
+            spd.v = (int) (tsa.getSetting().doubleValue() * 10.0);
+            mpc.mpMotSetSpeed(1, spd);
+        } else if (ts instanceof TransSpeedRelativeType) {
+            TransSpeedRelativeType tsr = (TransSpeedRelativeType) ts;
+            spd.v = (int) (tsr.getFraction().doubleValue() * maxVelocity);
+            mpc.mpMotSetSpeed(1, spd);
+        }
+    }
+
+    private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
+        CoordTarget tgt = new CoordTarget();
+        mpc.mpSetServoPower(true);
+        boolean power = mpc.mpGetServoPower();
+        System.out.println("power = " + power);
+        System.out.println("Calling mpMotSetCoord(1, MP_COORD_TYPE.MP_ROBOT_TYPE, 0)");
+        MotCtrlReturnEnum motSetCoordRet = mpc.mpMotSetCoord(0, MP_COORD_TYPE.MP_ROBOT_TYPE, 0);
+        System.out.println("motSetCoordRet = " + motSetCoordRet);
+
+        lastSentTargetId++;
+        tgt.setId(lastSentTargetId);
+        tgt.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
+        tgt.getDst().x = (int) (cmd.getEndPosition().getPoint().getX().doubleValue() * 1000.0 * lengthScale);
+        tgt.getDst().y = (int) (cmd.getEndPosition().getPoint().getY().doubleValue() * 1000.0 * lengthScale);
+        tgt.getDst().z = (int) (cmd.getEndPosition().getPoint().getZ().doubleValue() * 1000.0 * lengthScale);
+        PmRpy rpy = CRCLPosemath.toPmRpy(cmd.getEndPosition());
+        MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
+        tgt.getDst().rx = pos.lPos[3];
+        tgt.getDst().ry = pos.lPos[4];
+        tgt.getDst().rz = pos.lPos[5];
+
+        tgt.getAux().x = (int) (cmd.getEndPosition().getPoint().getX().doubleValue() * 1000.0 * lengthScale);
+        tgt.getAux().y = (int) (cmd.getEndPosition().getPoint().getY().doubleValue() * 1000.0 * lengthScale);
+        tgt.getAux().z = (int) (cmd.getEndPosition().getPoint().getZ().doubleValue() * 1000.0 * lengthScale);
+//        PmRpy rpy = CRCLPosemath.toPmRpy(cmd.getEndPosition());
+//        MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
+        tgt.getAux().rx = pos.lPos[3];
+        tgt.getAux().ry = pos.lPos[4];
+        tgt.getAux().rz = pos.lPos[5];
+
+        System.out.println("tgt = " + tgt);
+        System.out.println("pos = " + pos);
+        MotCtrlReturnEnum targetCoordSendRet
+                = mpc.mpMotTargetCoordSend(1, tgt, MotoPlusConnection.NO_WAIT);
+        System.out.println("targetCoordSendRet = " + targetCoordSendRet);
+
+        MotCtrlReturnEnum motStartRet
+                = mpc.mpMotStart(0);
+        System.out.println("motStartRet = " + motStartRet);
+        System.out.println("lastSentTargetId = " + lastSentTargetId);
+    }
 
     private void actuateJoints(ActuateJointsType ajs) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
         JointTarget tgt = new JointTarget();
@@ -187,6 +255,11 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         lastSentTargetId++;
         tgt.setId(lastSentTargetId);
         tgt.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
+        
+        System.out.println("Calling mpMotSetCoord(1, MP_COORD_TYPE.MP_ROBOT_TYPE, 0)");
+        MotCtrlReturnEnum motSetCoordRet = mpc.mpMotSetCoord(0, MP_COORD_TYPE.MP_PULSE_TYPE, 0);
+        System.out.println("motSetCoordRet = " + motSetCoordRet);
+
         MP_PULSE_POS_RSP_DATA pulseData = mpc.getPulsePos(0);
         System.out.println("pulseData = " + pulseData);
         for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
@@ -241,11 +314,19 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         actuateJoints((ActuateJointsType) cmd);
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_WORKING);
                         crclStatus.getCommandStatus().setStateDescription("");
+                    } else if (cmd instanceof SetTransSpeedType) {
+                        setTransSpeed((SetTransSpeedType) cmd);
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription("");
+                    } else if (cmd instanceof MoveToType) {
+                        moveTo((MoveToType) cmd);
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_WORKING);
+                        crclStatus.getCommandStatus().setStateDescription("");
                     }
                     System.out.println("cmd = " + cmd);
                 }
             }
-        } catch (CRCLException | IOException | MotoPlusConnection.MotoPlusConnectionException ex) {
+        } catch (CRCLException | IOException | MotoPlusConnection.MotoPlusConnectionException | PmException ex) {
             Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -272,7 +353,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     break;
             }
         }
-        System.out.println("Starting MotomanCrclServer on port "+crclPort +" after connecting to Motoman robot "+motomanHost+" on port "+motomanPort);
+        System.out.println("Starting MotomanCrclServer on port " + crclPort + " after connecting to Motoman robot " + motomanHost + " on port " + motomanPort);
         try (MotomanCrclServer motomanCrclServer = new MotomanCrclServer(
                 new CRCLServerSocket(crclPort),
                 new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {

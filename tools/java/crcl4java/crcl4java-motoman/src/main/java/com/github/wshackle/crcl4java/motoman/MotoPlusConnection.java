@@ -64,7 +64,9 @@ public class MotoPlusConnection implements AutoCloseable {
         if (null != socket) {
             socket.close();
         }
+        System.out.println("Connecting to "+ host +", port="+port+" . . .");
         socket = new Socket(host, port);
+        System.out.println("Connection successful.");
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
     }

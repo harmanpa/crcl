@@ -120,10 +120,10 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_SERVO_POWER_RSP_DATA servoPowerRspData;
     MP_SERVO_POWER_SEND_DATA servoPowerSendData;
     MP_STD_RSP_DATA stdRspData;
-    
+
     int32_t controlGroup = 0;
-	int nowait = NO_WAIT;
-	int waitforever = WAIT_FOREVER;
+    int nowait = NO_WAIT;
+    int waitforever = WAIT_FOREVER;
 
     switch (type) {
         case SYS1_GET_VAR_DATA:
@@ -280,7 +280,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             ret = mpGetServoPower(&servoPowerRspData);
             setInt32(outBuffer, 0, 6);
             setInt32(outBuffer, 4, ret);
-            setInt16(outBuffer,8,servoPowerRspData.sServoPower);
+            setInt16(outBuffer, 8, servoPowerRspData.sServoPower);
             sendRet = sendN(acceptHandle, outBuffer, 10, 0);
             if (sendRet != 10) {
                 fprintf(stderr, "tcpSvr: sendRet = %d != 10\n", sendRet);
@@ -296,7 +296,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             memset(&servoPowerSendData, 0, sizeof (servoPowerSendData));
             memset(&stdRspData, 0, sizeof (stdRspData));
             servoPowerSendData.sServoPower = getInt16(inBuffer, 12);
-            ret = mpSetServoPower(&servoPowerSendData,&stdRspData);
+            ret = mpSetServoPower(&servoPowerSendData, &stdRspData);
             setInt32(outBuffer, 0, 6);
             setInt32(outBuffer, 4, ret);
             setInt16(outBuffer, 8, stdRspData.err_no);
@@ -610,6 +610,19 @@ void handleSingleConnection(int acceptHandle) {
     printf("tcpSvr: sizeof(ULONG)=%d\n", sizeof (ULONG));
     printf("tcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%d\n", sizeof (MP_CART_POS_RSP_DATA));
     printf("tcpSvr: sizeof(MP_TARGET)=%d\n", sizeof (MP_TARGET));
+    printf("tcpSvr: MP_R1_GID = %d\n", MP_R1_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R1_GID));
+    printf("tcpSvr: MP_R2_GID = %d\n", MP_R2_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R2_GID));
+    printf("tcpSvr: MP_B1_GID = %d\n", MP_B1_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B1_GID));
+    printf("tcpSvr: MP_B2_GID = %d\n", MP_B2_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B2_GID));
+    printf("tcpSvr: MP_S1_GID = %d\n", MP_S1_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S1_GID));
+    printf("tcpSvr: MP_S2_GID = %d\n", MP_S2_GID);
+    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S2_GID));
+   
 
     while (failed == 0) {
 
@@ -621,7 +634,7 @@ void handleSingleConnection(int acceptHandle) {
         }
 
         msgSize = getInt32(inBuffer, 0);
-        printf("tcpSvr: msgSize=%d\n", msgSize);
+
         if (msgSize < 8 || msgSize >= (BUFF_MAX - 4)) {
             printf("tcpSvr: Invalid msgSize\n");
             break;
@@ -631,13 +644,9 @@ void handleSingleConnection(int acceptHandle) {
 
         if (bytesRecv != msgSize)
             break;
-
         group = getInt32(inBuffer, 4);
-        printf("tcpSvr: group=%d\n", group);
         type = getInt32(inBuffer, 8);
-        printf("tcpSvr: type=%d\n", type);
         count++;
-        printf("tcpSvr: count=%d\n", count);
 
         switch (group) {
             case MOT_FUNCTION_GROUP:
@@ -654,12 +663,15 @@ void handleSingleConnection(int acceptHandle) {
                 break;
         }
     }
+    printf("tcpSvr: msgSize=%d\n", msgSize);
+    printf("tcpSvr: group=%d\n", group);
+    printf("tcpSvr: type=%d\n", type);
+    printf("tcpSvr: count=%d\n", count);
     printf("tcpSvr: Closing acceptHandle=%d\n", acceptHandle);
     mpClose(acceptHandle);
     free(inBuffer);
     free(outBuffer);
 }
 
-        
-        
-        
+
+

@@ -74,6 +74,20 @@ extern "C" {
         MP_USER_TYPE, /* user coordinate data type. */
     } MP_COORD_TYPE;
 
+    typedef enum {
+        MP_R1_GID = 0,
+        MP_R2_GID,
+        MP_R3_GID,
+        MP_R4_GID,
+        MP_B1_GID,
+        MP_B2_GID,
+        MP_B3_GID,
+        MP_B4_GID,
+        MP_S1_GID,
+        MP_S2_GID,
+        MP_S3_GID
+    } MP_GRP_ID_TYPE;
+
     typedef struct {
         long vj; /* joint velocity(0.01[%]). */
         long v; /* trajectory velocity(0.1[mm/sec]). */
@@ -188,7 +202,7 @@ extern "C" {
     } MP_SERVO_POWER_SEND_DATA;
 
     typedef struct {
-        SHORT sServoPower; 
+        SHORT sServoPower;
         CHAR reserved[2];
     } MP_SERVO_POWER_RSP_DATA;
 
@@ -271,8 +285,8 @@ extern "C" {
     extern LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData);
 
     extern LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData);
-    
-    extern LONG	mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData);
+
+    extern LONG mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData);
 
 #ifdef __cplusplus
 }
