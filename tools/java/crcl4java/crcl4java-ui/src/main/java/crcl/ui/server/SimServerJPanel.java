@@ -31,7 +31,7 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
-import crcl.exi.CrclExiSocket;
+
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
 import static crcl.ui.server.SimServerJFrame.LOGGER;
@@ -138,7 +138,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
 
-    transient private CrclExiSocket gripperSocket = null;
+    transient private CRCLSocket gripperSocket = null;
     transient private Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
@@ -163,7 +163,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 gripperSocket.close();
                 gripperSocket = null;
                 this.inner.setGripperSocket(gripperSocket);
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
@@ -665,7 +665,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 gripperHost = JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
                 gripperPort = Integer.parseInt(gripperPortString);
                 sendGripperStatusRequests = (JOptionPane.showConfirmDialog(this, "Send status requests?") == JOptionPane.YES_OPTION);
-                this.gripperSocket = new CrclExiSocket(gripperHost, gripperPort);
+                this.gripperSocket = new CRCLSocket(gripperHost, gripperPort);
                 this.gripperReadThread = new Thread(new Runnable() {
 
                     @Override

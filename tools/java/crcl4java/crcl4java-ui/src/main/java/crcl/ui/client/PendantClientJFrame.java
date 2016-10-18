@@ -370,7 +370,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         jMenuItemRunTest.addActionListener(formListener);
         jMenuTools.add(jMenuItemRunTest);
 
-        jCheckBoxMenuItemRecordPoseList.setSelected(true);
         jCheckBoxMenuItemRecordPoseList.setText("Record Pose List");
         jMenuTools.add(jCheckBoxMenuItemRecordPoseList);
 

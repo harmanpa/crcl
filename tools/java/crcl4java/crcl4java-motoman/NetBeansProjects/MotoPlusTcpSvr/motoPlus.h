@@ -24,7 +24,8 @@ extern "C" {
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-
+#include <sys/select.h>
+    
 #define NO_WAIT (0)
 #define WAIT_FOREVER (-1)
 
@@ -227,8 +228,9 @@ extern "C" {
 
     extern int mpRecv(int s, char *buf, int bufLen, int flags);
     extern int mpSend(int s, const char *buf, int bufLen, int flags);
-
-
+    extern int mpSelect(int width, fd_set *pReadFds, fd_set *pWriteFds, fd_set *pExceptFds, struct timeval *pTimeOut);
+    extern int mpCtrlGrpId2GrpNo(int in);
+    
     extern STATUS mpTaskSuspend(int tid);
 
     extern int mpSocket(int domain, int type, int protocol);

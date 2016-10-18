@@ -79,7 +79,6 @@ import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VectorType;
-import crcl.exi.CrclExiSocket;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.SimRobotEnum;
@@ -132,6 +131,20 @@ import java.util.Objects;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
+import static crcl.utils.CRCLPosemath.multiply;
+import static crcl.utils.CRCLPosemath.toPoseType;
 
 /**
  *
@@ -970,7 +983,7 @@ public class SimServerInner {
 
     public void setCmdSchema(File[] fa) {
         try {
-            CRCLSocket.filesToDefaultCmdSchema(fa);
+            CRCLSocket.filesToCmdSchema(fa);
             for (ClientState state : this.clientStates) {
                 state.getCs().setCmdSchema(CRCLSocket.getDefaultCmdSchema());
             }
@@ -981,7 +994,7 @@ public class SimServerInner {
 
     public void setStatSchema(File[] fa) {
         try {
-            CRCLSocket.filesToDefaultStatSchema(fa);
+            CRCLSocket.filesToStatSchema(fa);
             for (ClientState state : this.clientStates) {
                 state.getCs().setStatSchema(CRCLSocket.getDefaultStatSchema());
             }
@@ -1655,9 +1668,9 @@ public class SimServerInner {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 final Socket s = ssock.accept();
-                final CrclExiSocket cs = new CrclExiSocket(s);
+                final CRCLSocket cs = new CRCLSocket(s);
                 final ClientState state = new ClientState(cs);
-                cs.setEXIEnabled(menuOuter().isEXISelected());
+//                cs.setEXIEnabled(menuOuter().isEXISelected());
                 clientStates.add(state);
                 Thread t = new Thread(() -> readCommandsRepeatedly(state),
                         "client" + s.getInetAddress().toString() + ":" + s.getPort()
@@ -1665,7 +1678,7 @@ public class SimServerInner {
                 clientThreadMap.put(cs, t);
                 t.start();
                 this.updateConnectedClients();
-            } catch (CRCLException | IOException ex) {
+            } catch (Exception ex) {
                 if (close_count <= start_close_count) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }

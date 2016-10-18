@@ -56,7 +56,7 @@ extern "C" {
 
     // Read requests on the given accepted socket handle, forever or until an
     // error occurs.
-    extern void handleSingleConnection(int acceptHandle);
+    extern int handleSingleConnection(int acceptHandle);
 
     // Call the appropriate mot related function and send a response on the accepted handle.
     // Note: Return 0 for successs, any other return value is treated as a fatal error 

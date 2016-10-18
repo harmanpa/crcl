@@ -74,7 +74,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
-import crcl.exi.CrclExiSocket;
+
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.server.SimServerInner;
 import crcl.utils.AnnotatedPose;
@@ -179,7 +179,7 @@ public class PendantClientInner {
     private Thread runTestProgramThread = null;
 
     private CRCLStatusType status;
-    private CrclExiSocket crclSocket = null;
+    private CRCLSocket crclSocket = null;
 
     private final PendantClientOuter outer;
     private static final double JOG_INCREMENT_DEFAULT = 3.0;
@@ -191,9 +191,9 @@ public class PendantClientInner {
     private volatile AtomicInteger close_test_count = new AtomicInteger(0);
     int request_status_count = 0;
     private final GetStatusType getStatusMsg = new GetStatusType();
-    private static final int JOG_INTERVAL_DEFAULT=50;
+    private static final int JOG_INTERVAL_DEFAULT = 50;
     private int jogInterval = JOG_INTERVAL_DEFAULT;
-    private static final double XYZ_JOG_INCREMENT_DEFAULT=3.0;
+    private static final double XYZ_JOG_INCREMENT_DEFAULT = 3.0;
     private double xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
     private int poll_ms = jogInterval;
     private BigInteger cmdId = BigInteger.ONE;
@@ -242,17 +242,16 @@ public class PendantClientInner {
     boolean testCommandStartLengthUnitSent = false;
 
     private double jogRotSpeed = 3.0;
-    
+
     private PendantClientMenuOuter menuOuter() {
-        if(null == outer) {
+        if (null == outer) {
             throw new IllegalStateException("PendantClientOuter not set.");
         }
-        if(null == outer.getMenuOuter()) {
+        if (null == outer.getMenuOuter()) {
             throw new IllegalStateException("PendantClientOuter has null PendantClientMenuOuter.");
         }
         return outer.getMenuOuter();
     }
-    
 
     /**
      * Get the value of jogRotSpeed
@@ -272,8 +271,8 @@ public class PendantClientInner {
         this.jogRotSpeed = jogRotSpeed;
     }
 
-    private static final double JOG_TRANS_SPEED_DEFAULT=100.0;
-    
+    private static final double JOG_TRANS_SPEED_DEFAULT = 100.0;
+
     private double jogTransSpeed = JOG_TRANS_SPEED_DEFAULT;
 
     /**
@@ -518,7 +517,7 @@ public class PendantClientInner {
 
     public synchronized void setStatSchema(File[] fa) {
         try {
-            CRCLSocket.filesToDefaultStatSchema(fa);
+            CRCLSocket.filesToStatSchema(fa);
             if (null != this.crclSocket) {
                 this.crclSocket.setStatSchema(CRCLSocket.getDefaultStatSchema());
             }
@@ -532,7 +531,7 @@ public class PendantClientInner {
 //    }
     public void setCmdSchema(File[] fa) {
         try {
-            CRCLSocket.filesToDefaultCmdSchema(fa);
+            CRCLSocket.filesToCmdSchema(fa);
             if (null != this.crclSocket) {
                 this.crclSocket.setStatSchema(CRCLSocket.getDefaultCmdSchema());
             }
@@ -544,7 +543,7 @@ public class PendantClientInner {
 
     public synchronized void setProgramSchema(File[] fa) {
         try {
-            CRCLSocket.filesToDefaultProgramSchema(fa);
+            CRCLSocket.filesToProgramSchema(fa);
             if (null != this.crclSocket) {
                 this.crclSocket.setProgramSchema(CRCLSocket.getDefaultProgramSchema());
             }
@@ -683,10 +682,10 @@ public class PendantClientInner {
             crclSocket.writeCommand(cmdInstance, menuOuter().validateXmlSelected());
             lastCommandIdSent = id;
             return true;
-        } catch (CRCLException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
-            if(null != ex.getCause() && ex.getCause() instanceof SocketException) {
+            if (null != ex.getCause() && ex.getCause() instanceof SocketException) {
                 disconnect();
             }
         }
@@ -948,11 +947,34 @@ public class PendantClientInner {
         return CRCLPosemath.getPoint(status);
     }
 
+    private int maxPoseListLength = 1000;
+
+    /**
+     * Get the value of maxPoseListLength
+     *
+     * @return the value of maxPoseListLength
+     */
+    public int getMaxPoseListLength() {
+        return maxPoseListLength;
+    }
+
+    /**
+     * Set the value of maxPoseListLength
+     *
+     * @param maxPoseListLength new value of maxPoseListLength
+     */
+    public void setMaxPoseListLength(int maxPoseListLength) {
+        this.maxPoseListLength = maxPoseListLength;
+    }
+
     public List<AnnotatedPose> getPoseList() {
         if (null != poseQueue) {
             synchronized (poseList) {
                 AnnotatedPose ap = null;
                 while (null != (ap = poseQueue.poll())) {
+                    if (poseList.size() > maxPoseListLength && maxPoseListLength > 0) {
+                        poseList.remove(0);
+                    }
                     poseList.add(ap);
                 }
             }
@@ -1113,14 +1135,16 @@ public class PendantClientInner {
                 }
                 PmPose pmPose = CRCLPosemath.toPmPose(curStatus);
                 if (null != curStatus.getCommandStatus()) {
-                    AnnotatedPose annotatedPose
-                            = new AnnotatedPose(System.currentTimeMillis(),
-                                    lastCommandIdSent,
-                                    curStatus.getCommandStatus().getCommandID().compareTo(lastCommandIdSent) <= 0 ? cmdNameString(lastCommandSent) : cmdNameString(prevLastCommandSent),
-                                    pmPose.tran, pmPose.rot,
-                                    CRCLPosemath.copy(curStatus)
-                            );
-                    poseQueue.add(annotatedPose);
+                    if (poseQueue.size() < 2 * maxPoseListLength + 100) {
+                        AnnotatedPose annotatedPose
+                                = new AnnotatedPose(System.currentTimeMillis(),
+                                        lastCommandIdSent,
+                                        curStatus.getCommandStatus().getCommandID().compareTo(lastCommandIdSent) <= 0 ? cmdNameString(lastCommandSent) : cmdNameString(prevLastCommandSent),
+                                        pmPose.tran, pmPose.rot,
+                                        CRCLPosemath.copy(curStatus)
+                                );
+                        poseQueue.add(annotatedPose);
+                    }
                 }
             }
             this.setStatus(curStatus);
@@ -1178,8 +1202,13 @@ public class PendantClientInner {
         try {
             disconnect();
             disconnecting = false;
-            crclSocket = new CrclExiSocket(host, port);
-            crclSocket.setEXIEnabled(menuOuter().isEXISelected());
+            boolean exiSelected = menuOuter().isEXISelected();
+            if (exiSelected) {
+//                crclSocket = new CrclExiSocket(host, port);
+//                ((CrclExiSocket)crclSocket).setEXIEnabled(true);
+            } else {
+                crclSocket = new CRCLSocket(host, port);
+            }
             startStatusReaderThread();
             outer.finishConnect();
         } catch (CRCLException | IOException ex) {
@@ -1213,7 +1242,7 @@ public class PendantClientInner {
         if (null != crclSocket) {
             try {
                 crclSocket.close();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
             crclSocket = null;
@@ -1270,7 +1299,7 @@ public class PendantClientInner {
         outer.setExpectedHoldingObject(holdingObjectExpected);
     }
 
-        private String lastMessage;
+    private String lastMessage;
 
     /**
      * Get the value of lastMessage
@@ -1290,10 +1319,9 @@ public class PendantClientInner {
         this.lastMessage = lastMessage;
     }
 
-    
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
         if (cmd instanceof MessageType) {
-            setLastMessage(((MessageType)cmd).getMessage());
+            setLastMessage(((MessageType) cmd).getMessage());
             return true;
         }
         if (cmd instanceof ActuateJointsType) {
@@ -2688,6 +2716,7 @@ public class PendantClientInner {
         jogTransSpeed = JOG_TRANS_SPEED_DEFAULT;
         jogInterval = JOG_INTERVAL_DEFAULT;
     }
+
     public double getXyzJogIncrement() {
         return xyzJogIncrement;
     }

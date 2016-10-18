@@ -73,6 +73,20 @@ import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
 import rcs.posemath.Posemath;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
 
 /**
  *
@@ -331,8 +345,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
 
-    public static final String DEFAULT_MOTOMAN_HOST = "10.0.0.2";
-//    public static final String DEFAULT_MOTOMAN_HOST = "localhost";
+//    public static final String DEFAULT_MOTOMAN_HOST = "10.0.0.2";
+    public static final String DEFAULT_MOTOMAN_HOST = "localhost";
     public static final int DEFAULT_MOTOMAN_PORT = 11000;
 
     public static void main(String[] args) throws Exception {

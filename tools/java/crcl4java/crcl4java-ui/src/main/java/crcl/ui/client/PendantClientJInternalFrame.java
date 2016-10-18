@@ -508,7 +508,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         });
         jMenuTools.add(jMenuItemRunTest);
 
-        jCheckBoxMenuItemRecordPoseList.setSelected(true);
         jCheckBoxMenuItemRecordPoseList.setText("Record Pose List");
         jMenuTools.add(jCheckBoxMenuItemRecordPoseList);
 

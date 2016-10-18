@@ -593,9 +593,11 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     return 0;
 }
 
-void handleSingleConnection(int acceptHandle) {
-    char *inBuffer = (char *) malloc(BUFF_MAX + 1);
-    char *outBuffer = (char *) malloc(BUFF_MAX + 1);
+static char inBuffer[BUFF_MAX + 1];
+static char outBuffer[BUFF_MAX + 1];
+
+int handleSingleConnection(int acceptHandle) {
+
     int32_t count = 0;
     int32_t group = 0;
     int32_t type = 0;
@@ -603,66 +605,47 @@ void handleSingleConnection(int acceptHandle) {
     int bytesRecv;
     int32_t msgSize;
 
-    printf("tcpSvr: acceptHandle=%d\n", acceptHandle);
-    printf("tcpSvr: sizeof(int)=%d\n", sizeof (int));
-    printf("tcpSvr: sizeof(long)=%d\n", sizeof (long));
-    printf("tcpSvr: sizeof(LONG)=%d\n", sizeof (LONG));
-    printf("tcpSvr: sizeof(ULONG)=%d\n", sizeof (ULONG));
-    printf("tcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%d\n", sizeof (MP_CART_POS_RSP_DATA));
-    printf("tcpSvr: sizeof(MP_TARGET)=%d\n", sizeof (MP_TARGET));
-    printf("tcpSvr: MP_R1_GID = %d\n", MP_R1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R1_GID));
-    printf("tcpSvr: MP_R2_GID = %d\n", MP_R2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R2_GID));
-    printf("tcpSvr: MP_B1_GID = %d\n", MP_B1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B1_GID));
-    printf("tcpSvr: MP_B2_GID = %d\n", MP_B2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B2_GID));
-    printf("tcpSvr: MP_S1_GID = %d\n", MP_S1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S1_GID));
-    printf("tcpSvr: MP_S2_GID = %d\n", MP_S2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S2_GID));
-   
+    memset(inBuffer, 0, BUFF_MAX + 1);
+    bytesRecv = recvN(acceptHandle, inBuffer, 4, 0);
+    if (bytesRecv != 4) {
+        failed = 1;
+        return failed;
+    }
 
-    while (failed == 0) {
+    msgSize = getInt32(inBuffer, 0);
 
-        memset(inBuffer, 0, BUFF_MAX + 1);
-        bytesRecv = recvN(acceptHandle, inBuffer, 4, 0);
-        if (bytesRecv != 4) {
+    if (msgSize < 8 || msgSize >= (BUFF_MAX - 4)) {
+        printf("tcpSvr: Invalid msgSize\n");
+        failed = 1;
+        return failed;
+    }
+
+    bytesRecv = recvN(acceptHandle, inBuffer + 4, (int) msgSize, 0);
+
+    if (bytesRecv != msgSize){ 
+        failed = 1;
+        return failed;
+    }
+    group = getInt32(inBuffer, 4);
+    type = getInt32(inBuffer, 8);
+    count++;
+
+    switch (group) {
+        case MOT_FUNCTION_GROUP:
+            failed = handleMotFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        case SYS1_FUNCTION_GROUP:
+            failed = handleSys1FunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        default:
+            fprintf(stderr, "tcpSvr: unrecognized group =%d\n", group);
             failed = 1;
             break;
-        }
-
-        msgSize = getInt32(inBuffer, 0);
-
-        if (msgSize < 8 || msgSize >= (BUFF_MAX - 4)) {
-            printf("tcpSvr: Invalid msgSize\n");
-            break;
-        }
-
-        bytesRecv = recvN(acceptHandle, inBuffer + 4, (int) msgSize, 0);
-
-        if (bytesRecv != msgSize)
-            break;
-        group = getInt32(inBuffer, 4);
-        type = getInt32(inBuffer, 8);
-        count++;
-
-        switch (group) {
-            case MOT_FUNCTION_GROUP:
-                failed = handleMotFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
-                break;
-
-            case SYS1_FUNCTION_GROUP:
-                failed = handleSys1FunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
-                break;
-
-            default:
-                fprintf(stderr, "tcpSvr: unrecognized group =%d\n", group);
-                failed = 1;
-                break;
-        }
     }
+    return failed;
+    /*
     printf("tcpSvr: msgSize=%d\n", msgSize);
     printf("tcpSvr: group=%d\n", group);
     printf("tcpSvr: type=%d\n", type);
@@ -671,6 +654,7 @@ void handleSingleConnection(int acceptHandle) {
     mpClose(acceptHandle);
     free(inBuffer);
     free(outBuffer);
+     */
 }
 
 

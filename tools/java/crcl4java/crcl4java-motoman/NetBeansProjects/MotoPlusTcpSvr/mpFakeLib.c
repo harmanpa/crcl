@@ -98,6 +98,14 @@ int mpSend(int s, const char *buf, int bufLen, int flags) {
     return send(s, buf, bufLen, flags);
 }
 
+int mpSelect(int width, fd_set *pReadFds, fd_set *pWriteFds, fd_set *pExceptFds, struct timeval *pTimeOut) {
+    return select(width,pReadFds,pWriteFds,pExceptFds,pTimeOut);
+}
+
+int mpCtrlGrpId2GrpNo(int in) {
+    return in == 0 ? 0:-1;
+}
+
 STATUS mpClose(int fd) {
     close(fd);
     return 0;

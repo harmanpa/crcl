@@ -32,7 +32,7 @@ import crcl.base.ParallelGripperStatusType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.VacuumGripperStatusType;
-import crcl.exi.CrclExiSocket;
+
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
@@ -617,7 +617,7 @@ public class GripperJFrame extends javax.swing.JFrame {
     private void acceptClient() throws IOException {
         try {
             Socket s = serverSocket.accept();
-            final CrclExiSocket cs = new CrclExiSocket(s);
+            final CRCLSocket cs = new CRCLSocket(s);
             if (null == clients) {
                 clients = new ArrayList<>();
             }
@@ -655,7 +655,7 @@ public class GripperJFrame extends javax.swing.JFrame {
             }
             clientThreads.add(t);
             t.start();
-        } catch (CRCLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(GripperJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

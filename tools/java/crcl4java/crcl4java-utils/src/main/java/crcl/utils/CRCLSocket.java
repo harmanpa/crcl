@@ -231,20 +231,22 @@ public class CRCLSocket implements AutoCloseable {
     final public static boolean DEFAULT_JAXB_FRAGMENT = true;
 
     /*@Nullable*/
-    private static Schema defaultCmdSchema = null;
+//    private static Schema defaultCmdSchema = null;
+    private static File defaultStatSchemaFiles[] = null;
     private static File defaultCmdSchemaFiles[] = null;
     private static File defaultProgramSchemaFiles[] = null;
 
-    public static synchronized void filesToDefaultCmdSchema(File fa[]) throws CRCLException {
-        if (null != fa) {
-            fa = reorderCommandSchemaFiles(Arrays.copyOf(fa, fa.length));
-            defaultCmdSchema = filesToSchema(fa);
-            defaultCmdSchemaFiles = fa;
+    public static synchronized Schema filesToCmdSchema(File fa[]) throws CRCLException {
+        if (null == fa) {
+            return null;
         }
+        fa = reorderCommandSchemaFiles(Arrays.copyOf(fa, fa.length));
+        defaultCmdSchemaFiles = fa;
+        return filesToSchema(fa);
     }
 
-    public static synchronized Schema getDefaultCmdSchema() {
-        return defaultCmdSchema;
+    public static synchronized Schema getDefaultCmdSchema() throws CRCLException {
+        return filesToCmdSchema(defaultCmdSchemaFiles);
     }
 
     public static synchronized File[] getDefaultCmdSchemaFiles() {
@@ -262,33 +264,35 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     /*@Nullable*/
-    private static Schema defaultProgramSchema = null;
-
-    public static synchronized void filesToDefaultStatSchema(File fa[]) throws CRCLException {
-        if (null != fa) {
-            fa = reorderStatSchemaFiles(Arrays.copyOf(fa, fa.length));
-            defaultStatSchema = filesToSchema(fa);
+//    private static Schema defaultProgramSchema = null;
+    public static synchronized Schema filesToStatSchema(File fa[]) throws CRCLException {
+        if (null == fa) {
+            return null;
         }
+        fa = reorderStatSchemaFiles(Arrays.copyOf(fa, fa.length));
+        defaultStatSchemaFiles = fa;
+        return filesToSchema(fa);
     }
 
-    public static synchronized Schema getDefaultStatSchema() {
-        return defaultStatSchema;
+    public static synchronized Schema getDefaultStatSchema() throws CRCLException {
+        return filesToStatSchema(defaultStatSchemaFiles);
     }
 
-    public static synchronized void filesToDefaultProgramSchema(File fa[]) throws CRCLException {
-        if (null != fa) {
-            fa = reorderProgramSchemaFiles(Arrays.copyOf(fa, fa.length));
-            defaultProgramSchema = filesToSchema(fa);
-            defaultProgramSchemaFiles = fa;
+    public static synchronized Schema filesToProgramSchema(File fa[]) throws CRCLException {
+        if (null == fa) {
+            return null;
         }
+        fa = reorderProgramSchemaFiles(Arrays.copyOf(fa, fa.length));
+        defaultProgramSchemaFiles = fa;
+        return filesToSchema(fa);
     }
 
-    public static synchronized Schema getDefaultProgramSchema() {
-        return defaultProgramSchema;
+    public static synchronized Schema getDefaultProgramSchema() throws CRCLException {
+        return filesToProgramSchema(defaultProgramSchemaFiles);
     }
 
     /*@Nullable*/
-    private static Schema defaultStatSchema = null;
+//    private static Schema defaultStatSchema = null;
 
     /*@Nullable*/
     private static File commandXsdFile = null;
@@ -475,7 +479,7 @@ public class CRCLSocket implements AutoCloseable {
             return;
         }
         boolean made_directory = crclSchemaDirFile.mkdirs();
-        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, crclSchemaDirFile+ "mkdirs() returned"+made_directory);
+        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, crclSchemaDirFile + "mkdirs() returned" + made_directory);
         copyResourcesToFiles(crclSchemaDirFile,
                 "CRCLCommandInstance.xsd",
                 "CRCLCommands.xsd",
@@ -538,7 +542,7 @@ public class CRCLSocket implements AutoCloseable {
      */
     private static void copyResourcesToFiles(File dirFile, String... names) {
         boolean made_directory = dirFile.mkdirs();
-        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, dirFile+ "mkdirs() returned"+made_directory);
+        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, dirFile + "mkdirs() returned" + made_directory);
         ClassLoader classLoader = CRCLStatusType.class.getClassLoader();
         if (null != classLoader) {
             for (String name : names) {
@@ -942,9 +946,9 @@ public class CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private String lastCommandString = null;
     /*@Nullable*/ private String lastProgramString = null;
 
-    /*@Nullable*/ private Schema cmdSchema = defaultCmdSchema;
-    /*@Nullable*/ private Schema programSchema = defaultProgramSchema;
-    /*@Nullable*/ private Schema statSchema = defaultStatSchema;
+    /*@Nullable*/ private Schema cmdSchema = null;
+    /*@Nullable*/ private Schema programSchema = null;
+    /*@Nullable*/ private Schema statSchema = null;
     /*@NonNull*/ protected final Marshaller m_cmd;
     /*@NonNull*/ protected final Unmarshaller u_cmd;
     /*@NonNull*/ protected final Marshaller m_prog;
@@ -983,22 +987,25 @@ public class CRCLSocket implements AutoCloseable {
             assert null != context : "@AssumeAssertion(nullness)";
             u_cmd = context.createUnmarshaller();
             m_cmd = context.createMarshaller();
-            if (null != defaultCmdSchema) {
-                u_cmd.setSchema(defaultCmdSchema);
-                m_cmd.setSchema(defaultCmdSchema);
-            }
+//            cmdSchema = getDefaultCmdSchema();
+//            if (null != cmdSchema) {
+//                u_cmd.setSchema(cmdSchema);
+//                m_cmd.setSchema(cmdSchema);
+//            }
             u_stat = context.createUnmarshaller();
             m_stat = context.createMarshaller();
-            if (null != defaultStatSchema) {
-                u_stat.setSchema(defaultStatSchema);
-                m_stat.setSchema(defaultStatSchema);
-            }
+//            statSchema = getDefaultStatSchema();
+//            if (null != statSchema) {
+//                u_stat.setSchema(statSchema);
+//                m_stat.setSchema(statSchema);
+//            }
             u_prog = context.createUnmarshaller();
             m_prog = context.createMarshaller();
-            if (null != defaultProgramSchema) {
-                u_prog.setSchema(defaultProgramSchema);
-                m_prog.setSchema(defaultProgramSchema);
-            }
+//            programSchema = getDefaultProgramSchema();
+//            if (null != programSchema) {
+//                u_prog.setSchema(programSchema);
+//                m_prog.setSchema(programSchema);
+//            }
 
             bufferedInputStream = null;
         } catch (JAXBException ex) {
@@ -1313,7 +1320,6 @@ public class CRCLSocket implements AutoCloseable {
 //        LOGGER.log(Level.FINER, "readUntilEndTag({0}) called with skipped_str=\"{1}\"  from Thread: {2}", new Object[]{tag, skipped_str_f, threadName});
 //        return str;
 //    }
-
     public String readUntilEndTag(final String tag, final InputStream is) throws IOException {
         String rips = "";
         final String endTagStartString = "</" + tag;
@@ -1616,7 +1622,6 @@ public class CRCLSocket implements AutoCloseable {
 //        assert t != null : "@AssumeAssertion(nullness)";
 //        return (/*@NonNull*/T) t;
 //    }
-
     public CRCLStatusType
             readStatusFromSaxSource(SAXSource saxSource) throws JAXBException {
         synchronized (u_stat) {
@@ -1685,38 +1690,72 @@ public class CRCLSocket implements AutoCloseable {
         return "";
     }
 
+    private int checkCommandSchemaCount = 0;
+
     private void checkCommandSchema(boolean validate) throws CRCLException {
-        if (validate && null == cmdSchema) {
-            if (null == CRCLSocket.defaultCmdSchema) {
-                File fa[] = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
-                fa = CRCLSocket.reorderCommandSchemaFiles(fa);
-                CRCLSocket.defaultCmdSchema = CRCLSocket.filesToSchema(fa);
-            }
-            setCmdSchema(CRCLSocket.defaultCmdSchema);
+        checkCommandSchemaCount++;
+        if (checkCommandSchemaCount > 100) {
+            checkCommandSchemaCount = 0;
+            cmdSchema = null;
         }
-    }
-
-    private void checkStatusSchema(boolean validate) throws CRCLException {
-        if (validate && null == statSchema) {
-            if (null == CRCLSocket.defaultStatSchema) {
-                File fa[] = CRCLSocket.readStatSchemaFiles(statSchemasFile);
-                fa = CRCLSocket.reorderStatSchemaFiles(fa);
-                CRCLSocket.defaultStatSchema = CRCLSocket.filesToSchema(fa);
-            }
-            setStatSchema(CRCLSocket.defaultStatSchema);
-        }
-    }
-
-    private void checkProgramSchema(boolean validate) throws CRCLException {
-        if (validate && null == programSchema) {
-            if (null == CRCLSocket.defaultProgramSchema) {
-                File fa[] = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
-                if (null != fa) {
-                    fa = CRCLSocket.reorderProgramSchemaFiles(fa);
-                    CRCLSocket.defaultProgramSchema = CRCLSocket.filesToSchema(fa);
+        if (validate) {
+            if (null == cmdSchema) {
+                Schema defaultCmdSchema = CRCLSocket.getDefaultCmdSchema();
+                if (null == defaultCmdSchema) {
+                    File fa[] = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
+                    if (null != fa) {
+                        setCmdSchema(CRCLSocket.filesToCmdSchema(fa));
+                    }
+                } else {
+                    setCmdSchema(defaultCmdSchema);
                 }
             }
-            setProgramSchema(CRCLSocket.defaultProgramSchema);
+        }
+    }
+
+    private int checkStatusSchemaCount = 0;
+
+    private void checkStatusSchema(boolean validate) throws CRCLException {
+        checkStatusSchemaCount++;
+        if (checkStatusSchemaCount > 100) {
+            checkStatusSchemaCount = 0;
+            statSchema = null;
+        }
+        if (validate) {
+            if (null == statSchema) {
+                Schema defaultStatSchema = CRCLSocket.getDefaultStatSchema();
+                if (null == defaultStatSchema) {
+                    File fa[] = CRCLSocket.readStatSchemaFiles(statSchemasFile);
+                    if (null != fa) {
+                        setStatSchema(CRCLSocket.filesToStatSchema(fa));
+                    }
+                } else {
+                    setStatSchema(defaultStatSchema);
+                }
+            }
+        }
+    }
+
+    private int checkProgramSchemaCount = 0;
+
+    private void checkProgramSchema(boolean validate) throws CRCLException {
+        checkProgramSchemaCount++;
+        if (checkProgramSchemaCount > 100) {
+            checkProgramSchemaCount = 0;
+            programSchema = null;
+        }
+        if (validate) {
+            if (null == programSchema) {
+                Schema defaultProgramSchema = CRCLSocket.getDefaultProgramSchema();
+                if (null == defaultProgramSchema) {
+                    File fa[] = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
+                    if (null != fa) {
+                        setProgramSchema(CRCLSocket.filesToProgramSchema(fa));
+                    }
+                } else {
+                    setProgramSchema(defaultProgramSchema);
+                }
+            }
         }
     }
 
