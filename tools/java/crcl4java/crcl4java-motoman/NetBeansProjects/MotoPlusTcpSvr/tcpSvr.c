@@ -60,14 +60,14 @@ void runAcceptTcpClientsTask(ULONG portNo) {
     fd_set readFdSet;
     fd_set exceptFdSet;
     int emptyIndexFound = 0;
-    int i= 0;
+    int i = 0;
     printf("sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
     memset(clientHandles, 0, sizeof (clientHandles));
 
-/*
-    printf("sizeof(taskIdArray)=  %ld\n", sizeof (taskIdArray));
-    memset(taskIdArray, 0, sizeof (taskIdArray));
-*/
+    /*
+        printf("sizeof(taskIdArray)=  %ld\n", sizeof (taskIdArray));
+        memset(taskIdArray, 0, sizeof (taskIdArray));
+     */
 
     printf("TCP server starting for port %ld\n", portNo);
 
@@ -112,7 +112,7 @@ void runAcceptTcpClientsTask(ULONG portNo) {
         maxFd = sockHandle;
 
 
-        for ( i = 0; i < maxClientHandleIndex; i++) {
+        for (i = 0; i < maxClientHandleIndex; i++) {
             if (clientHandles[i] > 0) {
                 FD_SET(clientHandles[i], &readFdSet);
                 FD_SET(clientHandles[i], &exceptFdSet);
@@ -120,11 +120,12 @@ void runAcceptTcpClientsTask(ULONG portNo) {
             }
         }
 /*
-        printf("Calling select(%d,%p,NULL,%p,NULL) ...\n",(maxFd+1),&readFdSet,&exceptFdSet);
+        printf("Calling select(%d,%p,NULL,%p,NULL) ...\n", (maxFd + 1), &readFdSet, &exceptFdSet);
 */
-        selectRet = mpSelect(maxFd+1, &readFdSet, NULL, &exceptFdSet, NULL);
+        selectRet = mpSelect(maxFd + 1, &readFdSet, NULL, &exceptFdSet, NULL);
+
 /*
-        printf("select returned %d\n",selectRet);
+        printf("select returned %d\n", selectRet);
 */
         if (selectRet <= 0) {
             printf("mpSelect returned %d\n", selectRet);
@@ -141,9 +142,9 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                 continue;
             }
             emptyIndexFound = 0;
-            for ( i = 0; i < maxClientHandleIndex; i++) {
+            for (i = 0; i < maxClientHandleIndex; i++) {
                 printf("clientHandles[i=%d]=%d\n",
-                        i,clientHandles[i]);
+                        i, clientHandles[i]);
                 if (clientHandles[i] < 2) {
                     emptyIndexFound = 1;
                     clientHandles[i] = acceptHandle;
@@ -157,19 +158,26 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                 }
                 clientHandles[maxClientHandleIndex] = acceptHandle;
                 printf("clientHandles[maxClientHandleIndex=%d]=%d\n",
-                        maxClientHandleIndex,clientHandles[maxClientHandleIndex]);
+                        maxClientHandleIndex, clientHandles[maxClientHandleIndex]);
                 maxClientHandleIndex++;
-                printf("maxClientHandleIndex=%d\n",maxClientHandleIndex);
+                printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
             }
         }
-        for ( i = 0; i < maxClientHandleIndex; i++) {
+        for (i = 0; i < maxClientHandleIndex; i++) {
             if (clientHandles[i] > 0) {
+
                 if (FD_ISSET(clientHandles[i], &exceptFdSet)) {
+                    printf("exceptFdSet set for clientHandle\n");
+                    printf("Closing clientHandles[i=%d]=%d\n",
+                            i, clientHandles[i]);
                     mpClose(clientHandles[i]);
                     clientHandles[i] = 0;
                 }
                 if (FD_ISSET(clientHandles[i], &readFdSet)) {
-                    if (handleSingleConnection(clientHandles[i]) < 0) {
+                    if (handleSingleConnection(clientHandles[i]) != 0) {
+                        printf("handleSingleConnection() returned non-zero\n");
+                        printf("Closing clientHandles[i=%d]=%d\n",
+                                i, clientHandles[i]);
                         mpClose(clientHandles[i]);
                         clientHandles[i] = 0;
                     }
