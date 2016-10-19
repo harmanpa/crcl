@@ -119,18 +119,30 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                 maxFd = maxFd > clientHandles[i] ? maxFd : clientHandles[i];
             }
         }
-/*
-        printf("Calling select(%d,%p,NULL,%p,NULL) ...\n", (maxFd + 1), &readFdSet, &exceptFdSet);
-*/
+        /*
+                printf("Calling select(%d,%p,NULL,%p,NULL) ...\n", (maxFd + 1), &readFdSet, &exceptFdSet);
+         */
         selectRet = mpSelect(maxFd + 1, &readFdSet, NULL, &exceptFdSet, NULL);
 
-/*
-        printf("select returned %d\n", selectRet);
-*/
+        /*
+                printf("select returned %d\n", selectRet);
+         */
         if (selectRet <= 0) {
             printf("mpSelect returned %d\n", selectRet);
             printf("Error = %s\n", strerror(errno));
-            goto closeSockHandle;
+            for (i = 0; i < maxClientHandleIndex; i++) {
+                printf("clientHandles[i=%d]=%d\n",
+                        i, clientHandles[i]);
+                if (clientHandles[i] > 0) {
+                    mpClose(clientHandles[i]);
+                }
+                clientHandles[i] = 0;
+            }
+            printf("maxFd=%d\n", maxFd);
+            printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
+            maxClientHandleIndex = 0;
+            printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
+            continue;
         }
         if (FD_ISSET(sockHandle, &readFdSet)) {
             memset(&clientSockAddr, 0, sizeof (clientSockAddr));

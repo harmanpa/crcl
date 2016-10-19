@@ -2692,7 +2692,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jPanelJogging.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jPanelJogging.setName("Jogging"); // NOI18N
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Joint 1", "Joint 2", "Joint 3", "Joint 4", "Joint 5", "Joint 6" }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Joint 1 (S)", "Joint 2 (L)", "Joint 3 (U)", "Joint 4 (R)", "Joint 5 (B)", "Joint 6 (T)", "Joint 7 (E)", "Joint 8 " }));
 
         jPanelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
         jPanelJogMinus.setBorder(new javax.swing.border.MatteBorder(null));

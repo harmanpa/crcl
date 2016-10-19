@@ -43,8 +43,8 @@ import java.util.Arrays;
  */
 public class TestMotoPlusConnection {
 
-//    private static String host = "10.0.0.2";
-    private static String host = "localhost";
+    private static String host = "10.0.0.2";
+//    private static String host = "localhost";
 
     public static void main(String[] args) throws Exception {
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 11000))) {
