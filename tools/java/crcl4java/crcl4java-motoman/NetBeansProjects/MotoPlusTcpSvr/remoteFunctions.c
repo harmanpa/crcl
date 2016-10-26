@@ -109,7 +109,10 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     int i = 0;
     MP_VAR_INFO varInfo[25];
     MP_VAR_DATA varData[25];
+    MP_IO_INFO ioInfo[25];
+    MP_IO_DATA ioData[25];
     LONG rData[25];
+    USHORT iorData[25];
     LONG num;
     int ret;
     MP_CTRL_GRP_SEND_DATA ctrlGrpSendData;
@@ -306,6 +309,59 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 return -1;
             }
             break;
+
+
+        case SYS1_READIO:
+            num = getInt32(inBuffer, 12);
+            if (num < 1 || num > 24) {
+                fprintf(stderr, "tcpSvr: invalid num for mpReadIO num = %ld\n", num);
+                return -1;
+            }
+            if (msgSize != 12 + (4 * num)) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpReadIO = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                return -1;
+            }
+            for (i = 0; i < num; i++) {
+                ioInfo[i].ulAddr = getInt32(inBuffer, 16 + (4 * i));
+            }
+            memset(iorData,0,sizeof(iorData));
+            ret = mpReadIO(ioInfo, iorData, num);
+            setInt32(outBuffer, 0, 4 + num * 2);
+            setInt32(outBuffer, 4, ret);
+            for (i = 0; i < num; i++) {
+                setInt16(outBuffer, 8 + i * 2, iorData[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 8 + num * 2, 0);
+            if (sendRet != 8 + num * 2) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8 + num*4\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_WRITEIO:
+            num = getInt32(inBuffer, 12);
+            if (num < 1 || num > 24) {
+                fprintf(stderr, "tcpSvr: invalid num for mpPutVarData num = %ld\n", num);
+                return -1;
+            }
+            if (msgSize != 12 + (num * 8)) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
+                return -1;
+            }
+            for (i = 0; i < num; i++) {
+                ioData[i].ulAddr = getInt32(inBuffer, 16 + (8 * i));
+                ioData[i].ulValue = getInt32(inBuffer, 20 + (8 * i));
+            }
+            ret = mpWriteIO(ioData, num);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
 
         default:
             fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
@@ -622,7 +678,7 @@ int handleSingleConnection(int acceptHandle) {
 
     bytesRecv = recvN(acceptHandle, inBuffer + 4, (int) msgSize, 0);
 
-    if (bytesRecv != msgSize){ 
+    if (bytesRecv != msgSize) {
         failed = 1;
         return failed;
     }

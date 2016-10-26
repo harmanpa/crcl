@@ -31,6 +31,8 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
@@ -400,6 +402,26 @@ public class MotoPlusConnection implements AutoCloseable {
         }
         dos.write(bb.array());
     }
+    
+    public boolean mpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
+        startMpWriteIO(sData, num);
+        return getSysOkReturn();
+    }
+
+    public void startMpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
+        final int inputSize = 16 + (8 * num);
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_WRITEIO.getId()); // type of function remote server will call
+        bb.putInt(12, num);
+        for (int i = 0; i < num; i++) {
+            bb.putInt(16 + (i * 8), sData[i].ulAddr);
+            bb.putInt(20 + (i * 8), sData[i].ulValue);
+        }
+        dos.write(bb.array());
+    }
+    
 
     public boolean mpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
         startMpGetVarData(sData, rData, num);
@@ -415,8 +437,8 @@ public class MotoPlusConnection implements AutoCloseable {
         dis.readFully(inbuf);
         bb = ByteBuffer.wrap(inbuf);
         int intRet = bb.getInt(0);
-        for (int i = 0; i < rData.length && i < (sz - 4) / 8; i++) {
-            rData[i] = bb.getLong(4 + (i * 8));
+        for (int i = 0; i < rData.length && i < (sz - 4) / 4; i++) {
+            rData[i] = bb.getInt(4 + (i * 4));
         }
         return intRet == 0;
     }
@@ -435,6 +457,39 @@ public class MotoPlusConnection implements AutoCloseable {
         dos.write(bb.array());
     }
 
+    public boolean mpReadIO(MP_IO_INFO[] sData, short[] iorData, int num) throws IOException {
+        startMpReadIO(sData, iorData, num);
+        return getSysReadIOReturn(iorData);
+    }
+
+    public boolean getSysReadIOReturn(short iorData[]) throws IOException {
+        byte inbuf[] = new byte[4];
+        dis.readFully(inbuf);
+        ByteBuffer bb = ByteBuffer.wrap(inbuf);
+        int sz = bb.getInt(0);
+        inbuf = new byte[sz];
+        dis.readFully(inbuf);
+        bb = ByteBuffer.wrap(inbuf);
+        int intRet = bb.getInt(0);
+        for (int i = 0; i < iorData.length && i < (sz - 4) / 2; i++) {
+            iorData[i] = bb.getShort(4 + (i * 2));
+        }
+        return intRet == 0;
+    }
+
+    public void startMpReadIO(MP_IO_INFO[] sData, short[] iorData, int num) throws IOException {
+        final int inputSize = (int) (16 + (4 * num));
+        ByteBuffer bb = ByteBuffer.allocate(inputSize);
+        bb.putInt(0, inputSize - 4); // bytes to read
+        bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+        bb.putInt(8, RemoteSys1FunctionType.SYS1_READIO.getId()); // type of function remote server will call
+        bb.putInt(12, num);
+        for (int i = 0; i < num; i++) {
+            bb.putInt(16 + (4 * i), sData[i].ulAddr);
+        }
+        dos.write(bb.array());
+    }
+    
     public MP_CART_POS_RSP_DATA getCartPos(int grp) throws MotoPlusConnectionException, IOException {
         MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
         cartData[0] = new MP_CART_POS_RSP_DATA();

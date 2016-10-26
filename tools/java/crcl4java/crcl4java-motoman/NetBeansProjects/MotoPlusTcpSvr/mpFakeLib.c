@@ -99,11 +99,11 @@ int mpSend(int s, const char *buf, int bufLen, int flags) {
 }
 
 int mpSelect(int width, fd_set *pReadFds, fd_set *pWriteFds, fd_set *pExceptFds, struct timeval *pTimeOut) {
-    return select(width,pReadFds,pWriteFds,pExceptFds,pTimeOut);
+    return select(width, pReadFds, pWriteFds, pExceptFds, pTimeOut);
 }
 
 int mpCtrlGrpId2GrpNo(int in) {
-    return in == 0 ? 0:-1;
+    return in == 0 ? 0 : -1;
 }
 
 STATUS mpClose(int fd) {
@@ -206,9 +206,9 @@ LONG mpGetVarData(MP_VAR_INFO *sData, LONG* rData, LONG num) {
     int i = 0;
     printf("mpGetVarData(%p,%p,%ld) called.\n", sData, rData, num);
     for (i = 0; i < num; i++) {
-        printf("sData[%d].usType=%hu\n", i,sData[i].usType);
-        printf("sData[%d].usIndex=%hu\n", i,sData[i].usIndex);
-        rData[i] = 7+i;
+        printf("sData[%d].usType=%hu\n", i, sData[i].usType);
+        printf("sData[%d].usIndex=%hu\n", i, sData[i].usIndex);
+        rData[i] = 7 + i;
         printf("rData=%ld\n", rData[i]);
     }
     return 0;
@@ -218,7 +218,7 @@ LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
     int i = 0;
     printf("mpPutVarData(%p,%ld) called.\n", sData, num);
     for (i = 0; i < num; i++) {
-        printf("sData[%d].usType=%u\n", i,sData[i].usType);
+        printf("sData[%d].usType=%u\n", i, sData[i].usType);
         printf("sData[%d].usIndex=%hd\n", i, sData[i].usIndex);
         printf("sData[%d].ulValue=%ld\n", i, sData[i].ulValue);
     }
@@ -226,66 +226,87 @@ LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
 }
 
 LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData) {
-    int i=0;
+    int i = 0;
     printf("mpGetCartPos(%p,%p) called.\n", sData, rData);
-    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
     for (i = 0; i < 6; i++) {
-        rData->lPos[i] = i+5;
-        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+        rData->lPos[i] = i + 5;
+        printf("rData->lPos[%d]=%ld\n", i, rData->lPos[i]);
     }
     rData->sConfig = 99;
-    printf("rData->sConfig = %hu\n",rData->sConfig);
+    printf("rData->sConfig = %hu\n", rData->sConfig);
     return 0;
 }
 
 LONG mpGetPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_PULSE_POS_RSP_DATA *rData) {
-    int i=0;
+    int i = 0;
     printf("mpGetPulsePos(%p,%p) called.\n", sData, rData);
-    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
     for (i = 0; i < 8; i++) {
-        rData->lPos[i] = i+10;
-        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+        rData->lPos[i] = i + 10;
+        printf("rData->lPos[%d]=%ld\n", i, rData->lPos[i]);
     }
     return 0;
 }
 
-LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rData){
-    int i=0;
+LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rData) {
+    int i = 0;
     printf("mpGetFBPulsePos(%p,%p) called.\n", sData, rData);
-    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
     for (i = 0; i < 8; i++) {
-        rData->lPos[i] = i+15;
-        printf("rData->lPos[%d]=%ld\n", i,rData->lPos[i]);
+        rData->lPos[i] = i + 15;
+        printf("rData->lPos[%d]=%ld\n", i, rData->lPos[i]);
     }
     return 0;
 }
 
-LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData){
-    int i=0;
+LONG mpGetDegPosEx(MP_CTRL_GRP_SEND_DATA *sData, MP_DEG_POS_RSP_DATA_EX *rData) {
+    int i = 0;
     printf("mpGetDegPosEx(%p,%p) called.\n", sData, rData);
-    printf("sData->sCtrlGrp = %ld\n",sData->sCtrlGrp);
+    printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
     for (i = 0; i < 8; i++) {
-        rData->lDegPos[i] = i+25;
-        printf("rData->lDegPos[%d]=%ld\n", i,rData->lDegPos[i]);
-         rData->lDegUnit[i] = MP_POS_UNIT_DEGREE;
-        printf("rData->lPos[%d]=%ld\n", i,rData->lDegUnit[i]);
+        rData->lDegPos[i] = i + 25;
+        printf("rData->lDegPos[%d]=%ld\n", i, rData->lDegPos[i]);
+        rData->lDegUnit[i] = MP_POS_UNIT_DEGREE;
+        printf("rData->lPos[%d]=%ld\n", i, rData->lDegUnit[i]);
     }
     return 0;
 }
 
 static short sServoPower;
 
- LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData) {
-     printf("mpSetServoPower(%p,%p) called.\n", sData, rData);
-     printf("sData->sServoPower = %d\n",sData->sServoPower);
-     sServoPower=sData->sServoPower;
-     return 0;
- }
-    
- LONG	mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData) {
-     rData->sServoPower = sServoPower;
-     printf("mpGetServoPower(%p) called.\n",rData);
-     printf("rData->sServoPower = %d\n",rData->sServoPower);
-     return 0;
- }
-    
+LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData) {
+    printf("mpSetServoPower(%p,%p) called.\n", sData, rData);
+    printf("sData->sServoPower = %d\n", sData->sServoPower);
+    sServoPower = sData->sServoPower;
+    return 0;
+}
+
+LONG mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData) {
+    rData->sServoPower = sServoPower;
+    printf("mpGetServoPower(%p) called.\n", rData);
+    printf("rData->sServoPower = %d\n", rData->sServoPower);
+    return 0;
+}
+
+LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num) {
+    short i = 0;
+    printf("mpReadIO(%p,%p,%d) called.\n", sData, rData, num);
+    for (i = 0; i < num; i++) {
+        printf("sData[%d].ulAddr=%ld\n", i, sData[i].ulAddr);
+        rData[i] = 7+i;
+        printf("rData[%d]=%d\n", i, rData[i]);
+    }
+    return 0;
+}
+
+LONG mpWriteIO(MP_IO_DATA *sData, LONG num) {
+    short i = 0;
+    printf("mpWriteIO(%p,%d) called.\n", sData, num);
+    for (i = 0; i < num; i++) {
+        printf("sData[%d].ulAddr=%ld\n", i, sData[i].ulAddr);
+        printf("sData[%d].ulValue=%ld\n", i, sData[i].ulValue);
+    }
+    return 0;
+}
+

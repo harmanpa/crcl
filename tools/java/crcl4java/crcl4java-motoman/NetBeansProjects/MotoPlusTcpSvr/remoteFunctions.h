@@ -52,6 +52,8 @@ extern "C" {
         SYS1_INVALID_RESERVED2=7, // Place holder for GET_RAD_EX  not implemented.
         SYS1_GET_SERVO_POWER=8,
         SYS1_SET_SERVO_POWER=9,
+        SYS1_READIO=10,
+        SYS1_WRITEIO=11,
     };
 
     // Read requests on the given accepted socket handle, forever or until an

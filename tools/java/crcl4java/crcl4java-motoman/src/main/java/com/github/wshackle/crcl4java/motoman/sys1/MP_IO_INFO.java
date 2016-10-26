@@ -26,36 +26,6 @@ package com.github.wshackle.crcl4java.motoman.sys1;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteSys1FunctionType {
-    SYS1_INVALID(0),
-    SYS1_GET_VAR_DATA(1),
-    SYS1_PUT_VAR_DATA(2),
-    SYS1_GET_CURRENT_CART_POS(3),
-    SYS1_GET_CURRENT_PULSE_POS(4),
-    SYS1_GET_CURRENT_FEEDBACK_PULSE_POS(5),
-    SYS1_GET_DEG_POS_EX(6),
-    SYS1_INVALID_RESERVED2(7), // Place holder for GET_RAD_EX  not implemented.
-    SYS1_GET_SERVO_POWER(8),
-    SYS1_SET_SERVO_POWER(9),
-    SYS1_READIO(10),
-    SYS1_WRITEIO(11);
-
-    private RemoteSys1FunctionType(int id) {
-        this.id = id;
-    }
-
-    private final int id;
-
-//    private static Map<Integer, RemoteSys1FunctionType> map = new HashMap<>();
-//
-//    static {
-//        for (int i = 0; i < RemoteSys1FunctionType.values().length; i++) {
-//            RemoteSys1FunctionType m = RemoteSys1FunctionType.values()[i];
-//            map.put(m.getId(), m);
-//        }
-//    }
-    public int getId() {
-        return id;
-    }
-
+public class MP_IO_INFO {
+    public int ulAddr;
 }

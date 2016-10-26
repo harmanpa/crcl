@@ -1,20 +1,3 @@
-package com.github.wshackle.crcl4java.motoman;
-
-import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
-import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
-import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
-import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
-import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
-import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
-import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
-import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
-import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
-import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
-import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
-import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
-import java.net.Socket;
-import java.util.Arrays;
-
 /*
  * This software is public domain software, however it is preferred
  * that the following disclaimers be attached.
@@ -37,6 +20,26 @@ import java.util.Arrays;
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
+
+package com.github.wshackle.crcl4java.motoman;
+
+import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
+import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
+import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
+import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
+import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
+import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
+import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
+import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import java.net.Socket;
+import java.util.Arrays;
+
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -62,10 +65,54 @@ public class TestMotoPlusConnection {
 //            System.out.println("motClearRet = " + motClearRet);
 //            Thread.sleep(200);
 //            
+//            System.out.println("mpGetVar(...,...,1)");
+//            MP_VAR_INFO varInfo[] = new MP_VAR_INFO[10];
+//            for (short i = 0; i < varInfo.length; i++) {
+//                varInfo[i] = new MP_VAR_INFO();
+//                varInfo[i].usIndex = i;
+//                varInfo[i].usType = VarType.MP_RESTYPE_VAR_I;
+//            }
+//
+//            long data[] = new long[10];
+//            boolean getVarDataRet = mpc.mpGetVarData(varInfo, data, 10);
+//            System.out.println("getVarDataRet = " + getVarDataRet);
+//            System.out.println("data = " + Arrays.toString(data));
+//
+//            MP_VAR_DATA varData[] = new MP_VAR_DATA[1];
+//            varData[0] = new MP_VAR_DATA();
+//            varData[0].ulValue = 0;
+//            varData[0].usIndex = 3;
+//            varData[0].usType = VarType.MP_RESTYPE_VAR_I;
+//            mpc.mpPutVarData(varData, 1);
+//            MP_IO_DATA ioData[] = new MP_IO_DATA[1];
+//            ioData[0] = new MP_IO_DATA();
+//            ioData[0].ulAddr = 7;
+//            ioData[0].ulValue = 92;
+//            boolean writeIORet = mpc.mpWriteIO(ioData, 1);
+//            System.out.println("writeIORet = " + writeIORet);
+            MP_IO_INFO ioInfo[] = new MP_IO_INFO[8];
+            for (int i = 0; i < ioInfo.length; i++) {
+                ioInfo[i] = new MP_IO_INFO();
+                ioInfo[i].ulAddr = 80010 + i;
+            }
+         
+            short iorData[] = new short[ioInfo.length];
+            boolean readIORet = mpc.mpReadIO(ioInfo, iorData, ioInfo.length);
+            System.out.println("readIORet = " + readIORet);
+//            System.out.println("iorData = " + Arrays.toString(iorData));
+            for (int i = 0; i < iorData.length/2; i++) {
+                short tmp = iorData[i];
+                iorData[i] = iorData[iorData.length-i-1];
+                iorData[iorData.length-i-1] = tmp;
+            }
+            System.out.println("reversed iorData = " + Arrays.toString(iorData));
+            System.out.printf("iorData[0] = %x\n", iorData[0]);
             System.out.println("Calling mpGetServoPower()");
             boolean on = mpc.mpGetServoPower();
             System.out.println("on = " + on);
-
+            if (true) {
+                return;
+            }
             System.out.println("Calling mpMotStop(0)");
             MotCtrlReturnEnum motStopRet = mpc.mpMotStop(0);
             System.out.println("motStopRet = " + motStopRet);

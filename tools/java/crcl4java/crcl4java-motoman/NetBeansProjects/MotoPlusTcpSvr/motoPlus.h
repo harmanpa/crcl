@@ -25,7 +25,7 @@ extern "C" {
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/select.h>
-    
+
 #define NO_WAIT (0)
 #define WAIT_FOREVER (-1)
 
@@ -212,6 +212,16 @@ extern "C" {
         CHAR reserved[2];
     } MP_STD_RSP_DATA;
 
+    typedef struct {
+        ULONG ulAddr;
+    } MP_IO_INFO;
+
+    typedef struct {
+        ULONG ulAddr;
+        ULONG ulValue;
+    } MP_IO_DATA;
+
+
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
     typedef void (*VOIDFUNCPTR) (...); /* ptr to function returning void */
@@ -230,7 +240,7 @@ extern "C" {
     extern int mpSend(int s, const char *buf, int bufLen, int flags);
     extern int mpSelect(int width, fd_set *pReadFds, fd_set *pWriteFds, fd_set *pExceptFds, struct timeval *pTimeOut);
     extern int mpCtrlGrpId2GrpNo(int in);
-    
+
     extern STATUS mpTaskSuspend(int tid);
 
     extern int mpSocket(int domain, int type, int protocol);
@@ -289,6 +299,10 @@ extern "C" {
     extern LONG mpSetServoPower(MP_SERVO_POWER_SEND_DATA *sData, MP_STD_RSP_DATA *rData);
 
     extern LONG mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData);
+
+    extern LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num);
+
+    extern LONG mpWriteIO(MP_IO_DATA *sData, LONG num);
 
 #ifdef __cplusplus
 }
