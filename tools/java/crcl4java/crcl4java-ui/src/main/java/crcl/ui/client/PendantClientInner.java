@@ -376,11 +376,17 @@ public class PendantClientInner {
             if (runTestProgramThread.equals(Thread.currentThread())) {
                 return;
             }
-            this.runTestProgramThread.interrupt();
-            try {
-                this.runTestProgramThread.join(100);
-            } catch (InterruptedException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
+            if (this.runTestProgramThread.isAlive()) {
+                Thread.dumpStack();
+                System.err.println("Interrupting runTestProgramThread = " + runTestProgramThread);
+                System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
+                System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(runTestProgramThread.getStackTrace()));
+                this.runTestProgramThread.interrupt();
+                try {
+                    this.runTestProgramThread.join(100);
+                } catch (InterruptedException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
             }
             this.runTestProgramThread = null;
         }
@@ -834,6 +840,22 @@ public class PendantClientInner {
         return true;
     }
 
+    private long lastWaitForDoneTimeDiff = -1;
+    private long lastWaitForDoneFullTimeout = -1;
+    private BigInteger lastWaitForDoneMinCmdId = null;
+    private Exception lastWaitForDoneException = null;
+
+    private static enum WaitForDoneResult {
+        WFD_DONE,
+        WFD_INTERRUPTED,
+        WFD_UNEXPECTED_RETURN,
+        WFD_REQUEST_STATUS_FAILED,
+        WFD_PAUSED,
+        WFD_HOLDING_ERROR,
+        WFD_EXCEPTION,
+        WFD_TIMEOUT;
+    };
+
     /**
      *
      * @param minCmdId the value of minCmdId
@@ -841,24 +863,30 @@ public class PendantClientInner {
      * @return the boolean
      * @throws InterruptedException when Thread interrupted
      */
-    public boolean waitForDone(BigInteger minCmdId, long timeoutMilliSeconds)
+    public WaitForDoneResult waitForDone(final BigInteger minCmdId, final long timeoutMilliSeconds)
             throws InterruptedException, JAXBException {
 
-        boolean returnDone = false;
         try {
             if (menuOuter().isDebugWaitForDoneSelected()) {
                 showDebugStatus();
             }
             long start = System.currentTimeMillis();
             long timeDiff = System.currentTimeMillis() - start;
+            lastWaitForDoneTimeDiff = timeDiff;
             int old_pause_count = this.pause_count.get();
             final long fullTimeout = timeoutMilliSeconds
                     + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0);
-            while (!Thread.currentThread().isInterrupted()
-                    && !isDone(minCmdId)
-                    && timeDiff < fullTimeout) {
+            lastWaitForDoneFullTimeout = fullTimeout;
+            lastWaitForDoneMinCmdId = minCmdId;
+            while (true) {
+                if (isDone(minCmdId)) {
+                    return WaitForDoneResult.WFD_DONE;
+                }
                 if (holdingErrorOccured) {
-                    return false;
+                    return WaitForDoneResult.WFD_HOLDING_ERROR;
+                }
+                if (Thread.currentThread().isInterrupted()) {
+                    return WaitForDoneResult.WFD_INTERRUPTED;
                 }
                 if (menuOuter().isDebugWaitForDoneSelected()) {
                     showDebugStatus();
@@ -868,31 +896,28 @@ public class PendantClientInner {
                     Thread.sleep(waitForDoneDelay);
                 }
                 if (!requestStatus()) {
-                    return false;
+                    return WaitForDoneResult.WFD_REQUEST_STATUS_FAILED;
                 }
                 if (null == readerThread) {
                     readStatus();
                 }
                 if (this.pause_count.get() != old_pause_count || this.paused) {
-                    return false;
+                    return WaitForDoneResult.WFD_PAUSED;
                 }
                 timeDiff = System.currentTimeMillis() - start;
-            }
-            if (menuOuter().isDebugWaitForDoneSelected()) {
-                showDebugMessage("PendantClient waitForDone(" + minCmdId + ") returning");
-                showDebugStatus();
-                showDebugMessage("PendantClient timeDiff = " + timeDiff + " / " + timeoutMilliSeconds + " = " + ((double) timeDiff) / timeoutMilliSeconds);
-                if (timeDiff >= timeoutMilliSeconds) {
-                    showMessage("Timed out waiting for DONE.");
+                lastWaitForDoneTimeDiff = timeDiff;
+                if (timeDiff > fullTimeout) {
+                    return WaitForDoneResult.WFD_TIMEOUT;
                 }
             }
-            returnDone = !Thread.currentThread().isInterrupted()
-                    && isDone(minCmdId);
-        } catch (NullPointerException ex) {
+        } catch (InterruptedException interruptedException) {
+            return WaitForDoneResult.WFD_INTERRUPTED;
+        } catch (Exception ex) {
             // Ugly hack hoping to catch strange debugging problem.
             LOGGER.log(Level.SEVERE, null, ex);
+            lastWaitForDoneException = ex;
+            return WaitForDoneResult.WFD_EXCEPTION;
         }
-        return returnDone;
     }
 
     public long getWaitForDoneDelay() {
@@ -1258,15 +1283,20 @@ public class PendantClientInner {
         if (null != readerThread) {
             try {
                 stopStatusReaderFlag = true;
-                readerThread.interrupt();
-                readerThread.join(1500);
+                if (readerThread.isAlive()) {
+                    Thread.dumpStack();
+                    System.err.println("Interrupting readerThread = "+readerThread);
+                    System.out.println("Interrupting readerThread = "+readerThread);
+                    System.out.println("readerThread.getStackTrace() = " + Arrays.toString(readerThread.getStackTrace()));
+                    readerThread.interrupt();
+                    readerThread.join(1500);
+                }
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             } finally {
                 readerThread = null;
                 stopStatusReaderFlag = false;
             }
-
         }
     }
 
@@ -1998,7 +2028,7 @@ public class PendantClientInner {
                     cjrs.getConfigureJointReport().add(cjr);
                 }
                 testProgram.getMiddleCommand().add(cjrs);
-                int maxJoint = Integer.valueOf(testProperies.getOrDefault("maxJoint","10"));
+                int maxJoint = Integer.valueOf(testProperies.getOrDefault("maxJoint", "10"));
                 for (int i = 0; i < jointList.size() && i < maxJoint; i++) {
                     JointStatusType js = jointList.get(i);
                     ActuateJointsType ajst = new ActuateJointsType();
@@ -2541,6 +2571,7 @@ public class PendantClientInner {
         long sendCommandTime = testCommandStartTime;
         long curTime = testCommandStartTime;
         String poseListSaveFileName = null;
+        this.lastWaitForDoneException = null;
         do {
             if (null == crclSocket) {
                 throw new IllegalStateException("crclSocket must not be null");
@@ -2603,7 +2634,8 @@ public class PendantClientInner {
             }
 
             sendCommandTime = System.currentTimeMillis();
-            if (!waitForDone(cmd.getCommandID(), timeout)) {
+            WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
+            if (wfdResult != WaitForDoneResult.WFD_DONE) {
                 if (pause_count_start != this.pause_count.get()) {
                     continue;
                 }
@@ -2614,6 +2646,8 @@ public class PendantClientInner {
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
                 showMessage("Test Progam timed out waiting for DONE from " + NEW_LINE
+                        + "wfdResult=" + wfdResult + NEW_LINE
+                        + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
                         + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                         + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE

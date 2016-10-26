@@ -1021,8 +1021,18 @@ public class SimServerInner {
         this.close_count++;
         if (null != acceptClientsThread) {
             try {
-                acceptClientsThread.interrupt();
-                acceptClientsThread.join(100);
+                try {
+                     acceptClientsThread.join(100);
+                } catch (InterruptedException ex) {
+                }
+                if (acceptClientsThread.isAlive()) {
+                    Thread.dumpStack();
+                    System.err.println("Interrupting acceptClientsThread = " + acceptClientsThread);
+                    System.out.println("Interrupting acceptClientsThread = " + acceptClientsThread);
+                    System.out.println("acceptClientsThread.getStackTrace() = " + Arrays.toString(acceptClientsThread.getStackTrace()));
+                    acceptClientsThread.interrupt();
+                    acceptClientsThread.join(100);
+                }
                 acceptClientsThread = null;
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -1032,8 +1042,14 @@ public class SimServerInner {
             synchronized (clientThreadMap) {
                 for (Thread t : clientThreadMap.values()) {
                     try {
-                        t.interrupt();
-                        t.join(2000);
+                        if (t.isAlive()) {
+                            Thread.dumpStack();
+                            System.err.println("Interrupting t = " + t);
+                            System.out.println("Interrupting t = " + t);
+                            System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            t.interrupt();
+                            t.join(2000);
+                        }
                     } catch (InterruptedException ex) {
                         Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1042,8 +1058,18 @@ public class SimServerInner {
         }
         if (null != simThread) {
             try {
-                simThread.interrupt();
-                simThread.join(100);
+                try {
+                     simThread.join(100);
+                } catch (InterruptedException ex) {
+                }
+                if (simThread.isAlive()) {
+                    Thread.dumpStack();
+                    System.err.println("Interrupting simThread = " + simThread);
+                    System.out.println("Interrupting simThread = " + simThread);
+                    System.out.println("simThread.getStackTrace() = " + Arrays.toString(simThread.getStackTrace()));
+                    simThread.interrupt();
+                    simThread.join(100);
+                }
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -1074,8 +1100,14 @@ public class SimServerInner {
             synchronized (clientThreadMap) {
                 for (Thread t : clientThreadMap.values()) {
                     try {
-                        t.interrupt();
-                        t.join(100);
+                        if (t.isAlive()) {
+                            Thread.dumpStack();
+                            System.err.println("Interrupting t = " + t);
+                            System.out.println("Interrupting t = " + t);
+                            System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            t.interrupt();
+                            t.join(100);
+                        }
                     } catch (InterruptedException ex) {
                         Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1087,15 +1119,15 @@ public class SimServerInner {
     }
 
     private SimServerMenuOuter menuOuter() {
-        if(null == outer) {
+        if (null == outer) {
             throw new IllegalStateException("SimServerOuter not set.");
         }
-        if(null == outer.getMenuOuter()) {
+        if (null == outer.getMenuOuter()) {
             throw new IllegalStateException("SimServerOuter has null SimServerMenuOuter.");
         }
         return outer.getMenuOuter();
     }
-    
+
     private void sendStatus(CRCLSocket socket) {
         CRCLSocket curSocket = socket;
         try {
@@ -1228,8 +1260,14 @@ public class SimServerInner {
                                 clientThreadMap.remove(curSocket);
                             }
                             if (null != t) {
-                                t.interrupt();
-                                t.join(100);
+                                if (t.isAlive()) {
+                                    Thread.dumpStack();
+                                    System.err.println("Interrupting t = " + t);
+                                    System.out.println("Interrupting t = " + t);
+                                    System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                                    t.interrupt();
+                                    t.join(100);
+                                }
                             }
                             updateConnectedClients();
                         } catch (InterruptedException ex1) {

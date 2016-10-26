@@ -927,10 +927,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return program.getMiddleCommand().get(curRow - 1);
     }
 
+    private int pollStopCount =0;
+    
     private void pollStatus() {
         try {
+            final int startPollStopCount = pollStopCount;
             while (!Thread.currentThread().isInterrupted()
-                    && this.jCheckBoxPoll.isSelected() && null != internal.getCRCLSocket()) {
+                    && this.jCheckBoxPoll.isSelected() 
+                    && null != internal.getCRCLSocket()
+                    && startPollStopCount == pollStopCount) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
                 internal.requestStatus();
@@ -986,17 +991,29 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     @Override
     public void stopPollTimer() {
+        pollStopCount++;
         if (null != pollingThread) {
-            pollingThread.interrupt();
             try {
-                pollingThread.join(1000);
+                pollingThread.join(100+ internal.getPoll_ms());
             } catch (InterruptedException ex) {
-                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (pollingThread.isAlive()) {
+                Thread.dumpStack();
+                System.err.println("Interruptint pollingThread = " + pollingThread);
+                System.out.println("Interruptint pollingThread = " + pollingThread);
+                System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pollingThread.getStackTrace()));
+                pollingThread.interrupt();
+                try {
+                    pollingThread.join(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             pollingThread = null;
             if (statusRequested) {
                 internal.readStatus();
             }
+
         }
     }
 
@@ -1456,7 +1473,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 if (null != ccst.getCommandState()) {
                     final CommandStateEnumType state = ccst.getCommandState();
                     String stateString = state.toString();
-                    if(stateString.startsWith("CRCL_")) {
+                    if (stateString.startsWith("CRCL_")) {
                         stateString = stateString.substring("CRCL_".length());
                     }
                     if (!stateString.equals(jTextFieldStatus.getText())) {

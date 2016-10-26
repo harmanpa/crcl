@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -131,7 +132,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     public void restartServer() {
         inner.restartServer();
     }
-    
+
     static public boolean LOG_IMAGES_DEFAULT = false;
 
     String tempDir = "/tmp";
@@ -169,8 +170,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         }
         if (null != gripperReadThread) {
             try {
-                gripperReadThread.interrupt();
-                gripperReadThread.join(100);
+                if (gripperReadThread.isAlive()) {
+                    Thread.dumpStack();
+                    System.err.println("Interrupting gripperReadThread = " + gripperReadThread);
+                    System.out.println("Interrupting gripperReadThread = " + gripperReadThread);
+                    System.out.println("gripperReadThread.getStackTrace() = " + Arrays.toString(gripperReadThread.getStackTrace()));
+                    gripperReadThread.interrupt();
+                    gripperReadThread.join(100);
+                }
                 gripperReadThread = null;
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -601,7 +608,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
         public R apply(T o) throws Exception;
     };
-    
+
     public void setSchemaAction() {
         JFileChooser jFileChooser = new JFileChooser();
         javax.swing.filechooser.FileFilter[] ffa = jFileChooser.getChoosableFileFilters();
@@ -619,14 +626,13 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             CRCLSocket.saveStatSchemaFiles(statSchemasFile, fa);
         }
     }
-    
+
     public int getPort() {
         return inner.getPort();
     }
-    
 
     public void viewCommandLogBriefAction() {
-         List<CRCLCommandType> l = inner.getCmdLog();
+        List<CRCLCommandType> l = inner.getCmdLog();
         final CRCLSocket s = this.inner.getCheckerCRCLSocket();
         String string = l.stream()
                 .map(c -> apply(s::commandToSimpleString, c))
@@ -634,12 +640,12 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 .collect(Collectors.joining("\n"));
         this.showMessage(string);
     }
-    
+
     public void setLogImages(boolean logImages) {
         this.overHeadJPanel1.setLogImages(logImages);
         this.sideViewJPanel1.setLogImages(logImages);
     }
-    
+
     public void aboutAction() {
         try {
             JOptionPane.showMessageDialog(this, getVersion());
@@ -647,7 +653,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             Logger.getLogger(SimServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void viewCommandLogFullAction() {
         List<CRCLCommandType> l = inner.getCmdLog();
         final CRCLSocket s = this.inner.getCheckerCRCLSocket();
@@ -657,60 +663,62 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 .collect(Collectors.joining("\n"));
         this.showMessage(string);
     }
+
     public void setIncludeGripperAction() {
         try {
-                this.closeGripperSocket();
-                String gripperPortString = JOptionPane.showInputDialog(this, "Gripper Server Port?", this.gripperPort);
-                gripperPort = Integer.parseInt(gripperPortString);
-                gripperHost = JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
-                gripperPort = Integer.parseInt(gripperPortString);
-                sendGripperStatusRequests = (JOptionPane.showConfirmDialog(this, "Send status requests?") == JOptionPane.YES_OPTION);
-                this.gripperSocket = new CRCLSocket(gripperHost, gripperPort);
-                this.gripperReadThread = new Thread(new Runnable() {
+            this.closeGripperSocket();
+            String gripperPortString = JOptionPane.showInputDialog(this, "Gripper Server Port?", this.gripperPort);
+            gripperPort = Integer.parseInt(gripperPortString);
+            gripperHost = JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
+            gripperPort = Integer.parseInt(gripperPortString);
+            sendGripperStatusRequests = (JOptionPane.showConfirmDialog(this, "Send status requests?") == JOptionPane.YES_OPTION);
+            this.gripperSocket = new CRCLSocket(gripperHost, gripperPort);
+            this.gripperReadThread = new Thread(new Runnable() {
 
-                    @Override
-                    public void run() {
-                        try {
-                            GetStatusType getStatus = new GetStatusType();
-                            getStatus.setCommandID(BigInteger.ONE);
-                            CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
-                            cmdInstance.setCRCLCommand(getStatus);
-                            while (!Thread.currentThread().isInterrupted()) {
-                                CRCLCommandInstanceType gripperCmd = inner.getGripperCmdQueue().poll();
-                                if (null != gripperCmd) {
-                                    gripperSocket.writeCommand(gripperCmd);
-                                }
-                                if (sendGripperStatusRequests) {
-                                    Thread.sleep(inner.getDelayMillis());
-                                    getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
-                                    gripperSocket.writeCommand(cmdInstance, false);
-                                }
-                                checkMenuOuter();
-                                CRCLStatusType gripperStatus
-                                        = gripperSocket.readStatus(menuOuter.isValidateXMLSelected());
-                                SimServerJPanel.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
+                @Override
+                public void run() {
+                    try {
+                        GetStatusType getStatus = new GetStatusType();
+                        getStatus.setCommandID(BigInteger.ONE);
+                        CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
+                        cmdInstance.setCRCLCommand(getStatus);
+                        while (!Thread.currentThread().isInterrupted()) {
+                            CRCLCommandInstanceType gripperCmd = inner.getGripperCmdQueue().poll();
+                            if (null != gripperCmd) {
+                                gripperSocket.writeCommand(gripperCmd);
                             }
-                        } catch (CRCLException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                            showMessage(ex);
-                        } catch (InterruptedException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
+                            if (sendGripperStatusRequests) {
+                                Thread.sleep(inner.getDelayMillis());
+                                getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
+                                gripperSocket.writeCommand(cmdInstance, false);
+                            }
+                            checkMenuOuter();
+                            CRCLStatusType gripperStatus
+                                    = gripperSocket.readStatus(menuOuter.isValidateXMLSelected());
+                            SimServerJPanel.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
                         }
+                    } catch (CRCLException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                        showMessage(ex);
+                    } catch (InterruptedException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
                     }
-                }, "simServerReadGripperThread");
-                gripperReadThread.start();
-                this.inner.setGripperSocket(gripperSocket);
+                }
+            }, "simServerReadGripperThread");
+            gripperReadThread.start();
+            this.inner.setGripperSocket(gripperSocket);
 
-            } catch (IOException | CRCLException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
+        } catch (IOException | CRCLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
+
     public void editStatusAction() {
         this.editing_status = true;
         try {
             CRCLStatusType newstat
                     = ObjTableJPanel.editObject(this.getStatus(),
-                            this.getOuterFrame(), 
+                            this.getOuterFrame(),
                             "Edit Status", true,
                             inner.getXpu(),
                             null,
@@ -736,7 +744,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             this.editing_status = false;
         }
     }
-    
+
     @Override
     public boolean isEditingStatus() {
         return editing_status;
@@ -805,7 +813,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     public boolean checkPose(PoseType goalPose) {
         return inner.checkPose(goalPose);
     }
-
 
     @Override
     public void updateCycleCount(int _newCycleCount) {
