@@ -221,6 +221,36 @@ extern "C" {
         ULONG ulValue;
     } MP_IO_DATA;
 
+    typedef struct {
+        SHORT sMode; /* Mode (Play/Teach) */
+        SHORT sRemote; /* Remote mode */
+    } MP_MODE_RSP_DATA;
+
+    typedef struct /* Cycle receive data */ {
+        SHORT sCycle; /* Cycle */
+        CHAR reserved[2];
+    } MP_CYCLE_RSP_DATA;
+
+    typedef struct /* Alarm status receive data */ {
+        SHORT sIsAlarm; /* Alarm status */
+        CHAR reserved[2];
+    } MP_ALARM_STATUS_RSP_DATA;
+
+#define MAX_ALARM_COUNT    (4) /* Maximum Alarm no. */
+
+    typedef struct {
+        USHORT usAlarmNo[MAX_ALARM_COUNT]; /* Alarm number */
+        USHORT usAlarmData[MAX_ALARM_COUNT]; /* Alarm Data */
+    } MP_ALARM_DATA;
+
+    typedef struct /* Alarm code receive data */ {
+        USHORT usErrorNo; /* Error number */
+        USHORT usErrorData; /* Error data */
+        USHORT usAlarmNum; /* Number of Alarm */
+        CHAR reserved[2];
+        MP_ALARM_DATA AlarmData; /* Alarm data */
+    } MP_ALARM_CODE_RSP_DATA;
+
 
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
@@ -303,6 +333,15 @@ extern "C" {
     extern LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num);
 
     extern LONG mpWriteIO(MP_IO_DATA *sData, LONG num);
+
+    extern LONG mpGetMode(MP_MODE_RSP_DATA *rData);
+
+    extern LONG mpGetCycle(MP_CYCLE_RSP_DATA *rData);
+
+    extern LONG mpGetAlarmStatus(MP_ALARM_STATUS_RSP_DATA *rData);
+
+    extern LONG mpGetAlarmCode(MP_ALARM_CODE_RSP_DATA *rData);
+
 
 #ifdef __cplusplus
 }

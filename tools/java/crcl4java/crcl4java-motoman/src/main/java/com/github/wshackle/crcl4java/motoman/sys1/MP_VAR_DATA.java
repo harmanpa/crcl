@@ -30,4 +30,10 @@ public class MP_VAR_DATA {
     public VarType usType;
     public short usIndex;
     public int ulValue;
+
+    @Override
+    public String toString() {
+        return "MP_VAR_DATA{" + "usType=" + usType + ", usIndex=" + usIndex + ", ulValue=" + ulValue + '}';
+    }
+    
 }

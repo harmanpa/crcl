@@ -31,10 +31,14 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_ALARM_CODE_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_ALARM_STATUS_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_CYCLE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_MODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import java.net.Socket;
 import java.util.Arrays;
@@ -90,6 +94,21 @@ public class TestMotoPlusConnection {
 //            ioData[0].ulValue = 92;
 //            boolean writeIORet = mpc.mpWriteIO(ioData, 1);
 //            System.out.println("writeIORet = " + writeIORet);
+
+
+
+            MP_MODE_DATA modeData = mpc.mpGetMode();
+            System.out.println("modeData = " + modeData);
+            
+            MP_CYCLE_DATA cycleData = mpc.mpGetCycle();
+            System.out.println("cycleData = " + cycleData);
+            
+            MP_ALARM_STATUS_DATA alarmStatusData = mpc.mpGetAlarmStatus();
+            System.out.println("alarmStatusData = " + alarmStatusData);
+            
+            MP_ALARM_CODE_DATA alarmCodeData = mpc.mpGetAlarmCode();
+            System.out.println("alarmCodeData = " + alarmCodeData);
+            
             MP_IO_INFO ioInfo[] = new MP_IO_INFO[8];
             for (int i = 0; i < ioInfo.length; i++) {
                 ioInfo[i] = new MP_IO_INFO();
@@ -110,9 +129,9 @@ public class TestMotoPlusConnection {
             System.out.println("Calling mpGetServoPower()");
             boolean on = mpc.mpGetServoPower();
             System.out.println("on = " + on);
-            if (true) {
-                return;
-            }
+//            if (true) {
+//                return;
+//            }
             System.out.println("Calling mpMotStop(0)");
             MotCtrlReturnEnum motStopRet = mpc.mpMotStop(0);
             System.out.println("motStopRet = " + motStopRet);
@@ -134,26 +153,26 @@ public class TestMotoPlusConnection {
             spd.vj = (int) 300;
             System.out.println("Calling mpMotSetSpeed(1,...)");
             mpc.mpMotSetSpeed(1, spd);
-            JointTarget jointTarget = new JointTarget();
-            jointTarget.setId(15);
-            jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
-            int jp[] = new int[]{-3348, 9564, -74224, 3640, -112923, 3209, -5, 0};
-            System.arraycopy(jp, 0, jointTarget.getDst(), 0, jointTarget.getDst().length);
-            System.arraycopy(jp, 0, jointTarget.getAux(), 0, jointTarget.getAux().length);
-            System.out.println("jointTarget = " + jointTarget);
-            System.out.println("Calling mpMotTargetJointSend(0,(...),0)\n");
-            MotCtrlReturnEnum motTargetJointRet = mpc.mpMotTargetJointSend(1, jointTarget, 0);
-            System.out.println("motTargetJointRet = " + motTargetJointRet);
-            Thread.sleep(200);
-
-            System.out.println("Calling mpMotStart(0)");
-            motTargetClearRet = mpc.mpMotStart(0);
-            System.out.println("motStartRet = " + motTargetClearRet);
+//            JointTarget jointTarget = new JointTarget();
+//            jointTarget.setId(15);
+//            jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
+//            int jp[] = new int[]{-3348, 9564, -74224, 3640, -112923, 3209, -5, 0};
+//            System.arraycopy(jp, 0, jointTarget.getDst(), 0, jointTarget.getDst().length);
+//            System.arraycopy(jp, 0, jointTarget.getAux(), 0, jointTarget.getAux().length);
+//            System.out.println("jointTarget = " + jointTarget);
+//            System.out.println("Calling mpMotTargetJointSend(0,(...),0)\n");
+//            MotCtrlReturnEnum motTargetJointRet = mpc.mpMotTargetJointSend(1, jointTarget, 0);
+//            System.out.println("motTargetJointRet = " + motTargetJointRet);
+//            Thread.sleep(200);
+//
+//            System.out.println("Calling mpMotStart(0)");
+//            motTargetClearRet = mpc.mpMotStart(0);
+//            System.out.println("motStartRet = " + motTargetClearRet);
             Thread.sleep(200);
             int recvId[] = new int[1];
-            System.out.println("Calling mpMotTargetReceive(0,5,...,WAIT_FOREVER,0)");
-            mpc.mpMotTargetReceive(0, 15, recvId, WAIT_FOREVER, 0);
-            System.out.println("recvId = " + Arrays.toString(recvId));
+//            System.out.println("Calling mpMotTargetReceive(0,5,...,WAIT_FOREVER,0)");
+//            mpc.mpMotTargetReceive(0, 15, recvId, WAIT_FOREVER, 0);
+//            System.out.println("recvId = " + Arrays.toString(recvId));
 
             System.out.println("Calling mpMotStop(0)");
             motTargetClearRet = mpc.mpMotStop(0);

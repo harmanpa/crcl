@@ -29,4 +29,9 @@ package com.github.wshackle.crcl4java.motoman.sys1;
 public class MP_VAR_INFO {
     public VarType usType;
     public short usIndex;
+
+    @Override
+    public String toString() {
+        return "MP_VAR_INFO{" + "usType=" + usType + ", usIndex=" + usIndex + '}';
+    }
 }

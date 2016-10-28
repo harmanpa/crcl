@@ -26,11 +26,13 @@ package com.github.wshackle.crcl4java.motoman.sys1;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class MP_IO_INFO {
-    public int ulAddr;
+public class MP_MODE_DATA {
+    public ModeEnum mode;
+    public short sRemote;
 
     @Override
     public String toString() {
-        return "MP_IO_INFO{" + "ulAddr=" + ulAddr + '}';
+        return "MP_MODE_DATA{" + "mode=" + mode + ", sRemote=" + sRemote + '}';
     }
+    
 }

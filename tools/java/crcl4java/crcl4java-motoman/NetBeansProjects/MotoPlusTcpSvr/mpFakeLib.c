@@ -63,7 +63,7 @@ int mpCreateTask(int mpPriSpec, int stackSize, FUNCPTR entryPt,
         fprintf(stderr, "pthread_create failed: %s", strerror(pthreadErrCode));
         return -1;
     }
-    return (int) thread;
+    return 0;
 }
 
 STATUS mpTaskSuspend(int tid) {
@@ -294,7 +294,7 @@ LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num) {
     printf("mpReadIO(%p,%p,%d) called.\n", sData, rData, num);
     for (i = 0; i < num; i++) {
         printf("sData[%d].ulAddr=%ld\n", i, sData[i].ulAddr);
-        rData[i] = 7+i;
+        rData[i] = 7 + i;
         printf("rData[%d]=%d\n", i, rData[i]);
     }
     return 0;
@@ -309,4 +309,37 @@ LONG mpWriteIO(MP_IO_DATA *sData, LONG num) {
     }
     return 0;
 }
+
+LONG mpGetMode(MP_MODE_RSP_DATA *rData) {
+    printf("mpGetMode(%p) called.\n", rData);
+    rData->sMode = 2; // 1 = TEACH, 2 = PLAY
+    rData->sRemote = 7; // ????
+    return 0;
+}
+
+LONG mpGetCycle(MP_CYCLE_RSP_DATA *rData) {
+    printf("mpGetCycle(%p) called.\n", rData);
+    rData->sCycle = 1; // 1 = Step, 2 = 1Cycle, 3 = Auto
+    return 0;
+}
+
+LONG mpGetAlarmStatus(MP_ALARM_STATUS_RSP_DATA *rData) {
+    printf("mpGetAlarmStatus(%p) called.\n", rData);
+    rData->sIsAlarm = 3; // D00 Error, D01 = Alarm 
+    return 0;
+}
+
+LONG mpGetAlarmCode(MP_ALARM_CODE_RSP_DATA *rData) {
+    int i=0;
+    printf("mpGetAlarmCode(%p) called.\n", rData);
+    rData->usErrorNo = 13;
+    rData->usErrorData = 113;
+    rData->usAlarmNum = 3;
+    for(i = 0; i< 3; i++ ) {
+        rData->AlarmData.usAlarmData[i] = 70+i;
+        rData->AlarmData.usAlarmNo[i] = 90+i;
+    }
+    return 0;
+}
+
 

@@ -26,11 +26,12 @@ package com.github.wshackle.crcl4java.motoman.sys1;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class MP_IO_INFO {
-    public int ulAddr;
+public class MP_ALARM_STATUS_DATA {
+    public short sIsAlarm;
 
     @Override
     public String toString() {
-        return "MP_IO_INFO{" + "ulAddr=" + ulAddr + '}';
+        return "MP_ALARM_STATUS_DATA{" + "sIsAlarm=" + sIsAlarm + '}';
     }
+    
 }

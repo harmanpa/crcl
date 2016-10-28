@@ -29,4 +29,9 @@ package com.github.wshackle.crcl4java.motoman.sys1;
 public class MP_IO_DATA {
     public int ulAddr;
     public int ulValue;
+
+    @Override
+    public String toString() {
+        return "MP_IO_DATA{" + "ulAddr=" + ulAddr + ", ulValue=" + ulValue + '}';
+    }
 }

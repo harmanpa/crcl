@@ -38,7 +38,11 @@ public enum RemoteSys1FunctionType {
     SYS1_GET_SERVO_POWER(8),
     SYS1_SET_SERVO_POWER(9),
     SYS1_READIO(10),
-    SYS1_WRITEIO(11);
+    SYS1_WRITEIO(11),
+    SYS1_GET_MODE(12),
+    SYS1_GET_CYCLE(13),
+    SYS1_GET_ALARM_STATUS(14),
+    SYS1_GET_ALARM_CODE(15);
 
     private RemoteSys1FunctionType(int id) {
         this.id = id;

@@ -113,6 +113,10 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_IO_DATA ioData[25];
     LONG rData[25];
     USHORT iorData[25];
+    MP_MODE_RSP_DATA modeData;
+    MP_CYCLE_RSP_DATA cycleData;
+    MP_ALARM_STATUS_RSP_DATA alarmStatusData;
+    MP_ALARM_CODE_RSP_DATA alarmCodeData;
     LONG num;
     int ret;
     MP_CTRL_GRP_SEND_DATA ctrlGrpSendData;
@@ -324,7 +328,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             for (i = 0; i < num; i++) {
                 ioInfo[i].ulAddr = getInt32(inBuffer, 16 + (4 * i));
             }
-            memset(iorData,0,sizeof(iorData));
+            memset(iorData, 0, sizeof (iorData));
             ret = mpReadIO(ioInfo, iorData, num);
             setInt32(outBuffer, 0, 4 + num * 2);
             setInt32(outBuffer, 4, ret);
@@ -362,6 +366,80 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             break;
 
+        case SYS1_GET_MODE:
+            if (msgSize != 8) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetMode = %d != 8\n", msgSize);
+                return -1;
+            }
+            memset(&modeData, 0, sizeof (modeData));
+            ret = mpGetMode(&modeData);
+            setInt32(outBuffer, 0, 8);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer, 8, modeData.sMode);
+            setInt16(outBuffer, 10, modeData.sRemote);
+            sendRet = sendN(acceptHandle, outBuffer, 12, 0);
+            if (sendRet != 12) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 12\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_CYCLE:
+            if (msgSize != 8) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetCycle = %d != 8\n", msgSize);
+                return -1;
+            }
+            memset(&cycleData, 0, sizeof (cycleData));
+            ret = mpGetCycle(&cycleData);
+            setInt32(outBuffer, 0, 6);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer, 8, cycleData.sCycle);
+            sendRet = sendN(acceptHandle, outBuffer, 10, 0);
+            if (sendRet != 10) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 10\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_ALARM_STATUS:
+            if (msgSize != 8) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmStatus = %d != 8\n", msgSize);
+                return -1;
+            }
+            memset(&alarmStatusData, 0, sizeof (alarmStatusData));
+            ret = mpGetAlarmStatus(&alarmStatusData);
+            setInt32(outBuffer, 0, 6);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer, 8, alarmStatusData.sIsAlarm);
+            sendRet = sendN(acceptHandle, outBuffer, 10, 0);
+            if (sendRet != 10) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 10\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case SYS1_GET_ALARM_CODE:
+            if (msgSize != 8) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
+                return -1;
+            }
+            memset(&alarmCodeData, 0, sizeof (alarmCodeData));
+            ret = mpGetAlarmCode(&alarmCodeData);
+            setInt32(outBuffer, 0, 10 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum));
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer, 8, alarmCodeData.usErrorNo);
+            setInt16(outBuffer, 10, alarmCodeData.usErrorData);
+            setInt16(outBuffer, 12, alarmCodeData.usAlarmNum);
+            for(i = 0; i < alarmCodeData.usAlarmNum && i < 4; i++) {
+                setInt16(outBuffer, 14 + i*4, alarmCodeData.AlarmData.usAlarmNo[i]);
+                setInt16(outBuffer, 16 + i*4, alarmCodeData.AlarmData.usAlarmData[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum), 0);
+            if (sendRet != 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum)) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum)\n", sendRet);
+                return -1;
+            }
+            break;
 
         default:
             fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
