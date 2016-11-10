@@ -7,11 +7,17 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/select.h>
+#include <unistd.h>
+#include <fcntl.h>
+ 
+/* Not technically required, but needed on some UNIX distributions */
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "motoPlus.h"
 
 #include <stdlib.h>
 
-extern void close(int fd);
 
 struct pthreadArg {
     FUNCPTR entryPt;
@@ -330,16 +336,113 @@ LONG mpGetAlarmStatus(MP_ALARM_STATUS_RSP_DATA *rData) {
 }
 
 LONG mpGetAlarmCode(MP_ALARM_CODE_RSP_DATA *rData) {
-    int i=0;
+    int i = 0;
     printf("mpGetAlarmCode(%p) called.\n", rData);
     rData->usErrorNo = 13;
     rData->usErrorData = 113;
     rData->usAlarmNum = 3;
-    for(i = 0; i< 3; i++ ) {
-        rData->AlarmData.usAlarmData[i] = 70+i;
-        rData->AlarmData.usAlarmNo[i] = 90+i;
+    for (i = 0; i < 3; i++) {
+        rData->AlarmData.usAlarmData[i] = 70 + i;
+        rData->AlarmData.usAlarmNo[i] = 90 + i;
     }
     return 0;
 }
 
+long mpRefreshFileList(short extensionId) {
+    printf("mpRefreshFileList(%d) called.\n", extensionId);
+    return 0;
+}
+
+long mpGetFileCount(void) {
+    printf("mpGetFileCount() called.\n");
+    return 1;
+}
+
+long mpGetFileName(int index, char *fileName) {
+    printf("mpGetFileName(%d,%p) called.\n", index, fileName);
+    strcpy(fileName, "foo.jbi");
+    return 0;
+}
+
+long mpLoadFile(long mpRamDriveId, const char *loadPath, const char *fileName) {
+    printf("mpLoadFile(%d,%s,%s) called.\n", mpRamDriveId, loadPath, fileName);
+    return 0;
+}
+
+long mpSaveFile(long mpRamDriveId, const char *savePath, const char *fileName) {
+    printf("mpSaveFile(%d,%s,%s) called.\n", mpRamDriveId, savePath, fileName);
+    return 0;
+}
+
+long mpFdWriteFile(int fd, MP_FILE_NAME_SEND_DATA *sData) {
+    printf("mpFdWriteFile(%d,%p) called.\n", fd, sData);
+    printf("sData->cFileName=%s\n", sData->cFileName);
+    return 0;
+}
+
+long mpFdReadFile(int fd, MP_FILE_NAME_SEND_DATA *sData) {
+    printf("mpFdReadFile(%d,%p) called.\n", fd, sData);
+    printf("sData->cFileName=%s\n", sData->cFileName);
+    return 0;
+}
+
+long mpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA *rData) {
+    printf("mpFdGetJobList(%d,%p) called.\n", fd, rData);
+    rData->err_no = 0;
+    rData->uIsEndFlag = 1;
+    rData->uListDataNum = 1;
+    strcpy(rData->cListData, "myjob");
+    return 0;
+}
+
+int mpCreate(const char * name, int flags) {
+    int ret = -1;
+    printf("mpCreate(%s,%d) called.\n", name, flags);
+    ret = creat(name,0666);
+    if(ret < 0) {
+        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    }
+    return ret;
+}
+
+int mpOpen(const char * name, int flags, int mode) {
+    int ret=-1;
+    printf("mpOpen(%s,%d,%d) called.\n", name, flags,mode);
+    ret =  open(name,flags,0666);
+    if(ret < 0) {
+        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    }
+    return ret;
+}
+
+STATUS mpRemove(const char * name)  {
+    printf("mpRemove(%s,) called.\n", name);
+    return 0;
+}
+
+
+int mpRename(const char * oldName, const char * newName) {
+    printf("mpRename(%s,%s) called.\n", oldName,newName);
+    return 0;
+}
+
+int mpRead(int fd, char * buffer, size_t maxBytes) {
+    int ret = -1;
+    printf("mpRead(%d,%p,%ld) called.\n", fd,buffer,maxBytes);
+    ret =  read(fd,buffer,maxBytes);
+    if(ret < 0) {
+        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    }
+    return ret;
+}
+
+int mpWrite(int fd, char * buffer, size_t nBytes) {
+    int ret=-1;
+    printf("mpWrite(%d,%p,%ld) called.\n", fd,buffer,nBytes);
+    ret = write(fd,buffer,nBytes);
+    if(ret < 0) {
+        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    }
+    return ret;
+}
 

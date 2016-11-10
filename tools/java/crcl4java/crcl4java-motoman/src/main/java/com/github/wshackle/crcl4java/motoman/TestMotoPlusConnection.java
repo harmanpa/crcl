@@ -20,13 +20,15 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-
 package com.github.wshackle.crcl4java.motoman;
 
 import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
+import com.github.wshackle.crcl4java.motoman.exfile.MP_GET_JOBLIST_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.exfile.MpExFileRamIdEnum;
+import com.github.wshackle.crcl4java.motoman.exfile.MpExtensionType;
+import com.github.wshackle.crcl4java.motoman.file.MpFileFlagsEnum;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
-import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
@@ -37,12 +39,13 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CYCLE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_DEG_POS_RSP_DATA_EX;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_FB_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_MODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.Arrays;
-
 
 /**
  *
@@ -75,7 +78,7 @@ public class TestMotoPlusConnection {
 //                varInfo[i] = new MP_VAR_INFO();
 //                varInfo[i].usIndex = i;
 //                varInfo[i].usType = VarType.MP_RESTYPE_VAR_I;
-//            }
+//          mp
 //
 //            long data[] = new long[10];
 //            boolean getVarDataRet = mpc.mpGetVarData(varInfo, data, 10);
@@ -94,44 +97,163 @@ public class TestMotoPlusConnection {
 //            ioData[0].ulValue = 92;
 //            boolean writeIORet = mpc.mpWriteIO(ioData, 1);
 //            System.out.println("writeIORet = " + writeIORet);
-
-
-
-            MP_MODE_DATA modeData = mpc.mpGetMode();
-            System.out.println("modeData = " + modeData);
-            
-            MP_CYCLE_DATA cycleData = mpc.mpGetCycle();
-            System.out.println("cycleData = " + cycleData);
-            
-            MP_ALARM_STATUS_DATA alarmStatusData = mpc.mpGetAlarmStatus();
-            System.out.println("alarmStatusData = " + alarmStatusData);
-            
-            MP_ALARM_CODE_DATA alarmCodeData = mpc.mpGetAlarmCode();
-            System.out.println("alarmCodeData = " + alarmCodeData);
-            
-            MP_IO_INFO ioInfo[] = new MP_IO_INFO[8];
-            for (int i = 0; i < ioInfo.length; i++) {
-                ioInfo[i] = new MP_IO_INFO();
-                ioInfo[i].ulAddr = 80010 + i;
+//            int lret = mpc.mpLoadFile(MpExFileRamIdEnum.MP_DRV_ID_DRAM, "file1", "file2");
+//            System.out.println("lret = " + lret);
+//            
+//            int sret = mpc.mpSaveFile(MpExFileRamIdEnum.MP_DRV_ID_DRAM, "file1", "file2");
+//            System.out.println("sret = " + sret);
+//            
+            int jbiCount = mpc.getMpFileCount(MpExtensionType.MP_EXT_ID_JBI);
+            System.out.println("jbiCount = " + jbiCount);
+            for (int i = 0; i < jbiCount; i++) {
+                String name = mpc.getMpFileName(MpExtensionType.MP_EXT_ID_JBI, i);
+                System.out.println("name = " + name);
             }
-         
-            short iorData[] = new short[ioInfo.length];
-            boolean readIORet = mpc.mpReadIO(ioInfo, iorData, ioInfo.length);
-            System.out.println("readIORet = " + readIORet);
-//            System.out.println("iorData = " + Arrays.toString(iorData));
-            for (int i = 0; i < iorData.length/2; i++) {
-                short tmp = iorData[i];
-                iorData[i] = iorData[iorData.length-i-1];
-                iorData[iorData.length-i-1] = tmp;
+            int jbrCount = mpc.getMpFileCount(MpExtensionType.MP_EXT_ID_JBR);
+            System.out.println("jbrCount = " + jbrCount);
+            for (int i = 0; i < jbrCount; i++) {
+                String name = mpc.getMpFileName(MpExtensionType.MP_EXT_ID_JBR, i);
+                System.out.println("name = " + name);
             }
-            System.out.println("reversed iorData = " + Arrays.toString(iorData));
-            System.out.printf("iorData[0] = %x\n", iorData[0]);
-            System.out.println("Calling mpGetServoPower()");
-            boolean on = mpc.mpGetServoPower();
-            System.out.println("on = " + on);
+
+            String fname = "MPRAM1:0/PNP5.JBI";
+//            String contents = mpc.readFullFileByNameToString(fname);
+//            System.out.println("contents = " + contents);
 //            if (true) {
 //                return;
 //            }
+            int fd0 = -1;
+            int closeRet = -1;
+
+            System.out.println("Calling  mpc.mpCreateFile(\"" + fname + "\",MpFileFlagsEnum.O_RDWR); ");
+
+            fd0 = mpc.mpCreateFile(fname, MpFileFlagsEnum.O_RDWR);
+            System.out.println("fd0 = " + fd0);
+
+            int fdReadRet = mpc.mpFdReadFile(fd0, "PNP.JBI");
+            System.out.println("fdReadRet = " + fdReadRet);
+
+            closeRet = mpc.mpCloseFile(fd0);
+            System.out.println("closeRet = " + closeRet);
+            fd0 = mpc.mpOpenFile(fname, MpFileFlagsEnum.O_RDWR, 0666);
+            System.out.println("fd0 = " + fd0);
+
+            byte buf[] = new byte[MotoPlusConnection.MAX_READ_LEN];
+            int r = buf.length;
+            while (r == buf.length) {
+                r = mpc.mpReadFile(fd0, buf);
+                System.out.println("r = " + r);
+                if(r > 0 && r <= buf.length) {
+                    System.out.println("Start buf:\n\n" + new String(buf,0,r, Charset.forName("US-ASCII"))+"\nend buf:\n");
+                }
+            }
+
+            closeRet = mpc.mpCloseFile(fd0);
+            System.out.println("closeRet = " + closeRet);
+            if (true) {
+                return;
+            }
+            int fdWriteRet = mpc.mpFdWriteFile(3, "anotherfile");
+            System.out.println("fdWriteRet = " + fdWriteRet);
+
+            MP_GET_JOBLIST_RSP_DATA jlistData = new MP_GET_JOBLIST_RSP_DATA();
+            int ret = mpc.mpFdGetJobList(3, jlistData);
+            System.out.println("jlistData = " + jlistData);
+            if (true) {
+                return;
+            }
+
+            System.out.println("Calling  mpc.mpCreateFile(\"test.txt\",MpFileFlagsEnum.O_RDWR); ");
+            fd0 = mpc.mpCreateFile("C:\\Users\\shackle\\Documents\\test.txt", MpFileFlagsEnum.O_RDWR);
+            System.out.println("fd0 = " + fd0);
+            int writeRet = mpc.mpWriteFile(fd0, "test text 2".getBytes());
+            System.out.println("writeRet = " + writeRet);
+            closeRet = mpc.mpCloseFile(fd0);
+            System.out.println("closeRet = " + closeRet);
+
+            System.out.println("Calling  mpc.mpOpenFile(\"C:\\Users\\shackle\\Documents\\test.txt\",MpFileFlagsEnum.O_RDWR); ");
+            int fd1 = mpc.mpOpenFile("C:\\Users\\shackle\\Documents\\test.txt", MpFileFlagsEnum.O_RDWR, 0);
+            System.out.println("fd1 = " + fd1);
+            buf = new byte[40];
+            int readRet = mpc.mpReadFile(fd1, buf);
+            System.out.println("readRet = " + readRet);
+            System.out.println("buf = " + new String(buf, Charset.forName("US-ASCII")));
+            closeRet = mpc.mpCloseFile(fd1);
+            System.out.println("closeRet = " + closeRet);
+            if (true) {
+                return;
+            }
+
+            jbiCount = mpc.getMpFileCount(MpExtensionType.MP_EXT_ID_JBI);
+            System.out.println("jbiCount = " + jbiCount);
+            for (int i = 0; i < jbiCount; i++) {
+                String name = mpc.getMpFileName(MpExtensionType.MP_EXT_ID_JBI, i);
+                System.out.println("name = " + name);
+            }
+            jbrCount = mpc.getMpFileCount(MpExtensionType.MP_EXT_ID_JBR);
+            System.out.println("jbrCount = " + jbrCount);
+            for (int i = 0; i < jbrCount; i++) {
+                String name = mpc.getMpFileName(MpExtensionType.MP_EXT_ID_JBR, i);
+                System.out.println("name = " + name);
+            }
+
+            MP_MODE_DATA modeData = mpc.mpGetMode();
+            System.out.println("modeData = " + modeData);
+
+            MP_CYCLE_DATA cycleData = mpc.mpGetCycle();
+            System.out.println("cycleData = " + cycleData);
+
+            MP_ALARM_STATUS_DATA alarmStatusData = mpc.mpGetAlarmStatus();
+            System.out.println("alarmStatusData = " + alarmStatusData);
+
+            MP_ALARM_CODE_DATA alarmCodeData = mpc.mpGetAlarmCode();
+            System.out.println("alarmCodeData = " + alarmCodeData);
+
+            MP_IO_INFO ioInfo[] = new MP_IO_INFO[8];
+            for (int i = 0; i < ioInfo.length; i++) {
+                ioInfo[i] = new MP_IO_INFO();
+                ioInfo[i].ulAddr = 10 + i;
+            }
+            MP_IO_DATA ioData[] = new MP_IO_DATA[2];
+            ioData[0] = new MP_IO_DATA();
+
+            // Close
+            ioData[0].ulAddr = 10010;
+            ioData[0].ulValue = 0;
+            ioData[1] = new MP_IO_DATA();
+            ioData[1].ulAddr = 10011;
+            ioData[1].ulValue = 1;
+//            
+//            // Open
+//            ioData[0] = new MP_IO_DATA();
+//            ioData[0].ulAddr = 10010;
+//            ioData[0].ulValue = 1;
+//            ioData[1] = new MP_IO_DATA();
+//            ioData[1].ulAddr = 10011;
+//            ioData[1].ulValue = 0;
+            boolean mpWriteIoRet = mpc.mpWriteIO(ioData, 2);
+            System.out.println("mpWriteIoRet = " + mpWriteIoRet);
+            boolean t = true;
+            while (t) {
+                short iorData[] = new short[ioInfo.length];
+                boolean readIORet = mpc.mpReadIO(ioInfo, iorData, ioInfo.length);
+                System.out.println("readIORet = " + readIORet);
+//            System.out.println("iorData = " + Arrays.toString(iorData));
+                for (int i = 0; i < iorData.length / 2; i++) {
+                    short tmp = iorData[i];
+                    iorData[i] = iorData[iorData.length - i - 1];
+                    iorData[iorData.length - i - 1] = tmp;
+                }
+                System.out.println("reversed iorData = " + Arrays.toString(iorData));
+                System.out.printf("iorData[0] = %x\n", iorData[0]);
+                Thread.sleep(100);
+            }
+            System.out.println("Calling mpGetServoPower()");
+            boolean on = mpc.mpGetServoPower();
+            System.out.println("on = " + on);
+            if (true) {
+                return;
+            }
             System.out.println("Calling mpMotStop(0)");
             MotCtrlReturnEnum motStopRet = mpc.mpMotStop(0);
             System.out.println("motStopRet = " + motStopRet);

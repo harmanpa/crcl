@@ -425,17 +425,17 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             memset(&alarmCodeData, 0, sizeof (alarmCodeData));
             ret = mpGetAlarmCode(&alarmCodeData);
-            setInt32(outBuffer, 0, 10 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum));
+            setInt32(outBuffer, 0, 10 + 4 * ((alarmCodeData.usAlarmNum > 4) ? 4 : alarmCodeData.usAlarmNum));
             setInt32(outBuffer, 4, ret);
             setInt16(outBuffer, 8, alarmCodeData.usErrorNo);
             setInt16(outBuffer, 10, alarmCodeData.usErrorData);
             setInt16(outBuffer, 12, alarmCodeData.usAlarmNum);
-            for(i = 0; i < alarmCodeData.usAlarmNum && i < 4; i++) {
-                setInt16(outBuffer, 14 + i*4, alarmCodeData.AlarmData.usAlarmNo[i]);
-                setInt16(outBuffer, 16 + i*4, alarmCodeData.AlarmData.usAlarmData[i]);
+            for (i = 0; i < alarmCodeData.usAlarmNum && i < 4; i++) {
+                setInt16(outBuffer, 14 + i * 4, alarmCodeData.AlarmData.usAlarmNo[i]);
+                setInt16(outBuffer, 16 + i * 4, alarmCodeData.AlarmData.usAlarmData[i]);
             }
-            sendRet = sendN(acceptHandle, outBuffer, 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum), 0);
-            if (sendRet != 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum)) {
+            sendRet = sendN(acceptHandle, outBuffer, 14 + 4 * ((alarmCodeData.usAlarmNum > 4) ? 4 : alarmCodeData.usAlarmNum), 0);
+            if (sendRet != 14 + 4 * ((alarmCodeData.usAlarmNum > 4) ? 4 : alarmCodeData.usAlarmNum)) {
                 fprintf(stderr, "tcpSvr: sendRet = %d != 14 +4*((alarmCodeData.usAlarmNum>4)?4:alarmCodeData.usAlarmNum)\n", sendRet);
                 return -1;
             }
@@ -727,6 +727,314 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     return 0;
 }
 
+short lastExtensionId = -1;
+
+int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
+    int32_t ret = -1;
+    int32_t index = -1;
+    int32_t ramDriveId = -1;
+    int32_t fileNameOffset = -1;
+    int32_t fd = -1;
+
+    int sendRet = 0;
+    int namelen = 0;
+    short extensionId = -1;
+    MP_FILE_NAME_SEND_DATA fileNameSendData;
+    MP_GET_JOBLIST_RSP_DATA jobListData;
+
+    switch (type) {
+
+        case EX_FILE_CTRL_GET_FILE_COUNT:
+            if (msgSize != 10) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetFileCount = %d != 10\n", msgSize);
+                return -1;
+            }
+            extensionId = getInt16(inBuffer, 12);
+            if (extensionId < 1 || extensionId > 2) {
+                fprintf(stderr, "tcpSvr: invalid extensionId for mpGetFileCount = %d  (must be 1 or 2)\n", extensionId);
+                return -1;
+            }
+            lastExtensionId = -1;
+            ret = mpRefreshFileList(extensionId);
+            if (ret != 0) {
+                setInt32(outBuffer, 0, 4);
+                setInt32(outBuffer, 4, ret);
+                sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+                if (sendRet != 8) {
+                    fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                    return -1;
+                }
+                return 0;
+            }
+            lastExtensionId = extensionId;
+            ret = mpGetFileCount();
+            setInt32(outBuffer, 0, 8);
+            setInt32(outBuffer, 4, 0);
+            setInt32(outBuffer, 8, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 12, 0);
+            if (sendRet != 12) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 12\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case EX_FILE_CTRL_GET_FILE_NAME:
+            extensionId = getInt16(inBuffer, 12);
+            if (extensionId < 1 || extensionId > 2) {
+                fprintf(stderr, "tcpSvr: invalid extensionId for mpGetFileName = %d  (must be 1 or 2)\n", extensionId);
+                return -1;
+            }
+            if (extensionId != lastExtensionId) {
+                lastExtensionId = -1;
+                ret = mpRefreshFileList(extensionId);
+                if (ret != 0) {
+                    setInt32(outBuffer, 0, 4);
+                    setInt32(outBuffer, 4, ret);
+                    lastExtensionId = -1;
+                    sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+                    if (sendRet != 8) {
+                        fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                        return -1;
+                    }
+                    return 0;
+                }
+            }
+            index = getInt32(inBuffer, 14);
+            ret = mpGetFileName(index, outBuffer + 12);
+            namelen = strlen(outBuffer + 12);
+            setInt32(outBuffer, 0, 8 + namelen + 1);
+            setInt32(outBuffer, 4, 0);
+            setInt32(outBuffer, 8, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 12 + namelen + 1, 0);
+            if (sendRet != 12 + namelen + 1) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 12+namelen+1\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case EX_FILE_CTRL_LOAD_FILE:
+            ramDriveId = getInt32(inBuffer, 12);
+            if (ramDriveId < 1 || ramDriveId > 2) {
+                fprintf(stderr, "tcpSvr: invalid ramDriveId for mpLoadFile = %d  (must be 1 or 2)\n", ramDriveId);
+                return -1;
+            }
+            fileNameOffset = getInt32(inBuffer, 16);
+            if (fileNameOffset < 20 || fileNameOffset > (BUFF_MAX - 21)) {
+                fprintf(stderr, "tcpSvr: invalid fileNameOffset for mpLoadFile = %d  \n", fileNameOffset);
+                return -1;
+            }
+            ret = mpLoadFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case EX_FILE_CTRL_SAVE_FILE:
+            ramDriveId = getInt32(inBuffer, 12);
+            if (ramDriveId < 1 || ramDriveId > 2) {
+                fprintf(stderr, "tcpSvr: invalid ramDriveId for mpSaveFile = %d  (must be 1 or 2)\n", ramDriveId);
+                return -1;
+            }
+            fileNameOffset = getInt32(inBuffer, 16);
+            if (fileNameOffset < 20 || fileNameOffset > (BUFF_MAX - 21)) {
+                fprintf(stderr, "tcpSvr: invalid fileNameOffset for mpSaveFile = %d  \n", fileNameOffset);
+                return -1;
+            }
+            ret = mpSaveFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case EX_FILE_CTRL_FD_READ_FILE:
+            fd = getInt32(inBuffer, 12);
+            if(fd == -99) {
+                fd = acceptHandle;
+            }
+            if (fd < 1 ) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpFdReadFile = %d\n", ramDriveId);
+                return -1;
+            }
+            memset(&fileNameSendData,0,sizeof(fileNameSendData));
+            strcpy(fileNameSendData.cFileName,inBuffer+16);
+            ret = mpFdReadFile(fd, &fileNameSendData);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+            
+        case EX_FILE_CTRL_FD_WRITE_FILE:
+            fd = getInt32(inBuffer, 12);
+            if(fd == -99) {
+                fd = acceptHandle;
+            }
+            if (fd < 1 ) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpFdWriteFile = %d\n", ramDriveId);
+                return -1;
+            }
+            memset(&fileNameSendData,0,sizeof(fileNameSendData));
+            strcpy(fileNameSendData.cFileName,inBuffer+16);
+            ret = mpFdWriteFile(fd, &fileNameSendData);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+            
+        case EX_FILE_CTRL_FD_GET_JOB_LIST:
+            fd = getInt32(inBuffer, 12);
+            if(fd == -99) {
+                fd = acceptHandle;
+            }
+            if (fd < 1 ) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpFdGetJobList = %d  (must be 1 or 2)\n", ramDriveId);
+                return -1;
+            }
+            memset(&jobListData,0,sizeof(jobListData));
+            ret = mpFdGetJobList(fd, &jobListData);
+            setInt32(outBuffer, 0, 10);
+            setInt32(outBuffer, 4, ret);
+            setInt16(outBuffer,8,jobListData.err_no);
+            setInt16(outBuffer,10,jobListData.uIsEndFlag);
+            setInt16(outBuffer,12,jobListData.uListDataNum);
+            sendRet = sendN(acceptHandle, outBuffer, 14, 0);
+            if (sendRet != 14) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 14\n", sendRet);
+                return -1;
+            }
+            break;
+
+        default:
+            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            return -1;
+    }
+    return 0;
+}
+
+int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
+    int32_t ret = -1;
+    int32_t index = -1;
+    int32_t mode = -1;
+    int32_t flags = -1;
+    int32_t fd = -1;
+    int32_t maxBytes = -1;
+
+    int sendRet = 0;
+    int namelen = 0;
+    short extensionId = -1;
+
+    switch (type) {
+
+        case FILE_CTRL_OPEN:
+            flags = getInt32(inBuffer, 12);
+            mode = getInt32(inBuffer, 16);
+            ret = mpOpen(inBuffer + 20, flags, mode);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case FILE_CTRL_CREATE:
+            flags = getInt32(inBuffer, 12);
+            ret = mpCreate(inBuffer + 16, flags);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case FILE_CTRL_CLOSE:
+            if (msgSize != 12) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpClose = %d != 12\n", msgSize);
+                return -1;
+            }
+            fd = getInt32(inBuffer, 12);
+            if (fd < 1) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                return -1;
+            }
+            ret = mpClose(fd);
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
+
+        case FILE_CTRL_READ:
+            fd = getInt32(inBuffer, 12);
+            if (fd < 1) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                return -1;
+            }
+            maxBytes = getInt32(inBuffer, 16);
+            if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
+                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes,(BUFF_MAX-8));
+                return -1;
+            }
+            ret = mpRead(fd, outBuffer + 8, maxBytes);
+            setInt32(outBuffer, 0, 4 + (ret > 0 ? ret : 0));
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8 + (ret > 0 ? ret : 0), 0);
+            if (sendRet != 8 + (ret > 0 ? ret : 0)) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8 + (ret > 0?ret:0)\n", sendRet);
+                return -1;
+            }
+            break;
+
+
+        case FILE_CTRL_WRITE:
+            fd = getInt32(inBuffer, 12);
+            if (fd < 1) {
+                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                return -1;
+            }
+            maxBytes = getInt32(inBuffer, 16);
+            if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
+                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes,(BUFF_MAX-8));
+                return -1;
+            }
+            ret = mpWrite(fd, inBuffer+20, maxBytes);
+            setInt32(outBuffer, 0, 4 + (ret > 0 ? ret : 0));
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8 + (ret > 0 ? ret : 0), 0);
+            if (sendRet != 8 + (ret > 0 ? ret : 0)) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8 + (ret > 0?ret:0)\n", sendRet);
+                return -1;
+            }
+            break;
+
+        default:
+            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            return -1;
+    }
+    return 0;
+}
+
 static char inBuffer[BUFF_MAX + 1];
 static char outBuffer[BUFF_MAX + 1];
 
@@ -740,6 +1048,7 @@ int handleSingleConnection(int acceptHandle) {
     int32_t msgSize;
 
     memset(inBuffer, 0, BUFF_MAX + 1);
+    memset(outBuffer, 0, BUFF_MAX + 1);
     bytesRecv = recvN(acceptHandle, inBuffer, 4, 0);
     if (bytesRecv != 4) {
         failed = 1;
@@ -771,6 +1080,14 @@ int handleSingleConnection(int acceptHandle) {
 
         case SYS1_FUNCTION_GROUP:
             failed = handleSys1FunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        case FILE_CTRL_FUNCTION_GROUP:
+            failed = handleFileFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        case EX_FILE_CTRL_FUNCTION_GROUP:
+            failed = handleExFileFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
             break;
 
         default:

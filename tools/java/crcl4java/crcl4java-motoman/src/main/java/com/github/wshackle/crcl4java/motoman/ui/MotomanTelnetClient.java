@@ -105,16 +105,17 @@ public class MotomanTelnetClient {
         return open(DEFAULT_MOTOMAN_HOST, DEFAULT_PORT, localPrintStream, DEFAULT_MOTOMAN_USERNAME, DEFAULT_MOTOMAN_PASSWD, localInputStream);
     }
 
+    public static MotomanTelnetClient defaultMotomanWithHostPort(String host, int port, final PrintStream localPrintStream, final InputStream localInputStream) throws IOException {
+        return open(host, port, localPrintStream, DEFAULT_MOTOMAN_USERNAME, DEFAULT_MOTOMAN_PASSWD, localInputStream);
+    }
+
     public static MotomanTelnetClient open(final String host, final int port, final PrintStream localPrintStream, final String userName, final String passwd, final InputStream localInputStream) throws IOException {
         MotomanTelnetClient motomanTelnetClient = new MotomanTelnetClient();
         motomanTelnetClient.telnet = new TelnetClient();;
-        try {
+
 //            open.connect("rainmaker.wunderground.com", 3000);
-            motomanTelnetClient.telnet.connect(host, port);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        motomanTelnetClient.telnet.connect(host, port);
+
         final InputStream remoteInputStream = motomanTelnetClient.telnet.getInputStream();
         final OutputStream remoteOutputStream = motomanTelnetClient.telnet.getOutputStream();
         motomanTelnetClient.remoteToLocalThread = new Thread(() -> {

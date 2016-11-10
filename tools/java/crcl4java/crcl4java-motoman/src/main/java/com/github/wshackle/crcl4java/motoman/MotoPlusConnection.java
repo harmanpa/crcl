@@ -22,6 +22,12 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.exfile.MP_GET_JOBLIST_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.exfile.MpExFileRamIdEnum;
+import com.github.wshackle.crcl4java.motoman.exfile.MpExtensionType;
+import com.github.wshackle.crcl4java.motoman.exfile.RemoteExFileFunctionType;
+import com.github.wshackle.crcl4java.motoman.file.MpFileFlagsEnum;
+import com.github.wshackle.crcl4java.motoman.file.RemoteFileFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.RemoteMotFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -49,6 +55,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -117,6 +127,155 @@ public class MotoPlusConnection implements AutoCloseable {
 
         private Starter() {
             // only one needed per MotoPlusConnection instance
+        }
+
+        public void startMpLoadFile(int fd, String name, String name2) throws IOException {
+            final int inputSize = name.length() + name2.length() + 22;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_LOAD_FILE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            int offset = 21 + name.length();
+            bb.putInt(16, offset);
+            bb.position(20);
+            bb.put(name.getBytes());
+            bb.position(offset);
+            bb.put(name2.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpSaveFile(int fd, String name, String name2) throws IOException {
+            final int inputSize = name.length() + name2.length() + 22;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_SAVE_FILE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            int offset = 21 + name.length();
+            bb.putInt(16, offset);
+            bb.position(20);
+            bb.put(name.getBytes());
+            bb.position(offset);
+            bb.put(name2.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpFdReadFile(int fd, String name) throws IOException {
+            final int inputSize = name.length() + 17;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_FD_READ_FILE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            bb.position(16);
+            bb.put(name.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpFdWriteFile(int fd, String name) throws IOException {
+            final int inputSize = name.length() + 17;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_FD_WRITE_FILE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            bb.position(16);
+            bb.put(name.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA jlistData) throws IOException {
+            final int inputSize = 16;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_FD_GET_JOB_LIST.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            dos.write(bb.array());
+        }
+
+        public void startMpOpenFile(String name, int flags, int mode) throws IOException {
+            final int inputSize = name.length() + 21;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_OPEN.getId()); // type of function remote server will call
+            bb.putInt(12, flags);
+            bb.putInt(16, mode);
+            bb.position(20);
+            bb.put(name.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpCreateFile(String name, int flags) throws IOException {
+            final int inputSize = name.length() + 17;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_CREATE.getId()); // type of function remote server will call
+            bb.putInt(12, flags);
+            bb.position(16);
+            bb.put(name.getBytes());
+            dos.write(bb.array());
+        }
+
+        public void startMpCloseFile(int fd) throws IOException {
+            final int inputSize = 16;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_CLOSE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            dos.write(bb.array());
+        }
+
+        public void startMpReadFile(int fd, int maxBytes) throws IOException {
+            final int inputSize = 20;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_READ.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            bb.putInt(16, maxBytes);
+            dos.write(bb.array());
+        }
+
+        public void startMpWriteFile(int fd, byte bytesToWrite[], int offset, int maxBytes) throws IOException {
+            if (maxBytes > bytesToWrite.length - offset) {
+                maxBytes = bytesToWrite.length - offset;
+            }
+            final int inputSize = 20 + bytesToWrite.length;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_WRITE.getId()); // type of function remote server will call
+            bb.putInt(12, fd);
+            bb.putInt(16, maxBytes);
+            bb.position(20);
+            bb.put(bytesToWrite, offset, maxBytes);
+            dos.write(bb.array());
+        }
+
+        public void startMpGetFileCount(MpExtensionType ext) throws IOException {
+            final int inputSize = 14;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_GET_FILE_COUNT.getId()); // type of function remote server will call
+            bb.putShort(12, ext.getId());
+            dos.write(bb.array());
+        }
+
+        public void startMpGetFileName(MpExtensionType ext, int index) throws IOException {
+            final int inputSize = 18;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_GET_FILE_NAME.getId()); // type of function remote server will call
+            bb.putShort(12, ext.getId());
+            bb.putInt(14, index);
+            dos.write(bb.array());
         }
 
         public void startMpMotStart(int options) throws IOException {
@@ -405,7 +564,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putShort(12, (short) (on ? 1 : 0));
             dos.write(bb.array());
         }
-        
+
         public void startMpGetMode() throws IOException {
             final int inputSize = 12;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -423,7 +582,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CYCLE.getId()); // type of function remote server will call
             dos.write(bb.array());
         }
-        
+
         public void startMpGetAlarmStatus() throws IOException {
             final int inputSize = 12;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -432,7 +591,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_ALARM_STATUS.getId()); // type of function remote server will call
             dos.write(bb.array());
         }
-        
+
         public void startMpGetAlarmCode() throws IOException {
             final int inputSize = 12;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -447,6 +606,195 @@ public class MotoPlusConnection implements AutoCloseable {
 
         private Returner() {
             // only one needed per MotoPlusConnection instance
+        }
+
+        public int getMpFdReadFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            return intRet;
+        }
+
+        public int getMpFdWriteFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            return intRet;
+        }
+
+        public int getMpSaveFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            return intRet;
+        }
+
+        public int getMpLoadFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            return intRet;
+        }
+
+        public int getMpOpenFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet <= 0) {
+                throw new MotoPlusConnectionException("mpOpen returned " + intRet);
+            }
+            return intRet;
+        }
+
+        public int getMpFdGetJobListReturn(MP_GET_JOBLIST_RSP_DATA jListData) throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet != 0) {
+                throw new MotoPlusConnectionException("mpFdGetJobList returned " + intRet);
+            }
+            if (size < 10) {
+                throw new MotoPlusConnectionException("mpFdGetJobList size = " + size);
+            }
+            jListData.err_no = bb.getShort(4);
+            jListData.uIsEndFlag = bb.getShort(6);
+            jListData.uListDataNum = bb.getShort(8);
+            return intRet;
+        }
+
+        public int getMpCreateFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet <= 0) {
+                throw new MotoPlusConnectionException("mpCreate returned " + intRet);
+            }
+            return intRet;
+        }
+
+        public int getMpCloseFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet != 0) {
+                throw new MotoPlusConnectionException("mpClose returned " + intRet);
+            }
+            return intRet;
+        }
+
+        public int getMpReadFileReturn(byte buf[], int offset, int len) throws IOException, MotoPlusConnectionException {
+            if (null == buf || buf.length < offset + len) {
+                throw new IllegalArgumentException("Buf must not be null and have length of atleast offset = " + offset + " len = " + len);
+            }
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet <= 0) {
+                throw new MotoPlusConnectionException("mpRead returned " + intRet);
+            }
+            if (size <= 3) {
+                throw new MotoPlusConnectionException("mpRead size = " + size);
+            }
+            bb.position(4);
+            bb.get(buf, offset, Math.min(intRet, Math.min(len, size - 4)));
+            return intRet;
+        }
+
+        public int getMpWriteFileReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            return intRet;
+        }
+
+        public int getMpFileCountReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet != 0) {
+                throw new MotoPlusConnectionException("mpRefreshFileList returned " + intRet);
+            }
+            if (size < 8) {
+                throw new MotoPlusConnectionException("mpGetFileCount size = " + size + ": 8 bytes needed");
+            }
+            return bb.getInt(4);
+        }
+
+        public String getMpFileNameReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            dis.readFully(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int size = bb.getInt(0);
+            inbuf = new byte[size];
+            dis.readFully(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            if (intRet != 0) {
+                throw new MotoPlusConnectionException("mpRefreshFileList returned " + intRet);
+            }
+            if (size < 10) {
+                throw new MotoPlusConnectionException("mpGetFileCount size = " + size + ": 10 bytes needed");
+            }
+            intRet = bb.getInt(4);
+            if (intRet != 0) {
+                throw new MotoPlusConnectionException("mpGetFileName returned " + intRet);
+            }
+            return new String(inbuf, 8, size - 9, Charset.forName("US-ASCII"));
         }
 
         public MotCtrlReturnEnum getMpMotStandardReturn() throws IOException {
@@ -653,7 +1001,7 @@ public class MotoPlusConnection implements AutoCloseable {
             data.cycle = CycleEnum.fromId(bb.getShort(4));
             return data;
         }
-        
+
         public MP_ALARM_STATUS_DATA getAlarmStatusReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
             dis.readFully(inbuf);
@@ -670,7 +1018,7 @@ public class MotoPlusConnection implements AutoCloseable {
             data.sIsAlarm = bb.getShort(4);
             return data;
         }
-        
+
         public MP_ALARM_CODE_DATA getAlarmCodeReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
             dis.readFully(inbuf);
@@ -687,13 +1035,13 @@ public class MotoPlusConnection implements AutoCloseable {
             data.usErrorNo = bb.getShort(4);
             data.usErrorData = bb.getShort(6);
             data.usAlarmNum = bb.getShort(8);
-            for(int i = 0; i < data.usAlarmNum && i < 4; i++) {
-                data.AlarmData.usAlarmNo[i] = bb.getShort(10+i*4);
-                data.AlarmData.usAlarmData[i] = bb.getShort(12+i*4);
+            for (int i = 0; i < data.usAlarmNum && i < 4; i++) {
+                data.AlarmData.usAlarmNo[i] = bb.getShort(10 + i * 4);
+                data.AlarmData.usAlarmData[i] = bb.getShort(12 + i * 4);
             }
             return data;
         }
-        
+
     };
 
     private final Starter starter = new Starter();
@@ -854,19 +1202,184 @@ public class MotoPlusConnection implements AutoCloseable {
         starter.startMpGetMode();
         return returner.getModeReturn();
     }
-    
+
     public MP_CYCLE_DATA mpGetCycle() throws IOException, MotoPlusConnectionException {
         starter.startMpGetCycle();
         return returner.getCycleReturn();
     }
-    
+
     public MP_ALARM_STATUS_DATA mpGetAlarmStatus() throws IOException, MotoPlusConnectionException {
         starter.startMpGetAlarmStatus();
         return returner.getAlarmStatusReturn();
     }
+
     public MP_ALARM_CODE_DATA mpGetAlarmCode() throws IOException, MotoPlusConnectionException {
         starter.startMpGetAlarmCode();
         return returner.getAlarmCodeReturn();
     }
-    
+
+    public int getMpFileCount(MpExtensionType ext) throws IOException, MotoPlusConnectionException {
+        starter.startMpGetFileCount(ext);
+        return returner.getMpFileCountReturn();
+    }
+
+    public String getMpFileName(MpExtensionType ext, int index) throws IOException, MotoPlusConnectionException {
+        starter.startMpGetFileName(ext, index);
+        return returner.getMpFileNameReturn();
+    }
+
+    public int mpOpenFile(String filename, MpFileFlagsEnum flags, int mode) throws IOException, MotoPlusConnectionException {
+        starter.startMpOpenFile(filename, flags.getId(), mode);
+        return returner.getMpOpenFileReturn();
+    }
+
+    public int mpCreateFile(String filename, MpFileFlagsEnum flags) throws IOException, MotoPlusConnectionException {
+        starter.startMpCreateFile(filename, flags.getId());
+        return returner.getMpCreateFileReturn();
+    }
+
+    public int mpCloseFile(int fd) throws IOException, MotoPlusConnectionException {
+        starter.startMpCloseFile(fd);
+        return returner.getMpCloseFileReturn();
+    }
+
+    public int mpReadFileEx(int fd, byte buf[], int offset, int len) throws IOException, MotoPlusConnectionException {
+        if (null == buf || len <= 0 || offset < 0 || buf.length < offset + len) {
+            throw new IllegalArgumentException("Buf must not be null and have length of atleast offset = " + offset + " + len = " + len);
+        }
+        if (len > MAX_READ_LEN) {
+            throw new IllegalArgumentException("len = " + len + "   must not be greater than MAX_READ_LEN = " + MAX_READ_LEN);
+        }
+        starter.startMpReadFile(fd, (len - offset));
+        return returner.getMpReadFileReturn(buf, offset, len);
+    }
+
+    public int mpReadFile(int fd, byte buf[]) throws IOException, MotoPlusConnectionException {
+        return mpReadFileEx(fd, buf, 0, buf.length);
+    }
+
+    private static class ReadBlock {
+
+        public ReadBlock(int r, byte[] buf) {
+            this.r = r;
+            this.buf = buf;
+        }
+
+        final int r;
+        final byte buf[];
+
+        @Override
+        public String toString() {
+            return "ReadBlock{" + "r=" + r + ", buf=" + new String(buf) + '}';
+        }
+    };
+
+    public byte[] readFullFile(int fd) throws IOException, MotoPlusConnectionException {
+        int r = MAX_READ_LEN;
+        int sum = 0;
+        ArrayList<ReadBlock> l = new ArrayList<>();
+        while (r == MAX_READ_LEN) {
+            byte buf[] = new byte[MAX_READ_LEN];
+            r = mpReadFile(fd, buf);
+            if (r > 0 && r <= buf.length) {
+                l.add(new ReadBlock(r, buf));
+                sum += r;
+            }
+        }
+        byte ret[] = new byte[sum];
+        int s = 0;
+        for (ReadBlock rb : l) {
+            System.arraycopy(rb.buf, 0, ret, s, rb.r);
+            s += rb.r;
+        }
+        return ret;
+    }
+
+    public boolean openGripper() throws IOException {
+        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+        ioData[0] = new MP_IO_DATA();
+        ioData[0] = new MP_IO_DATA();
+        ioData[0].ulAddr = 10010;
+        ioData[0].ulValue = 1;
+        ioData[1] = new MP_IO_DATA();
+        ioData[1].ulAddr = 10011;
+        ioData[1].ulValue = 0;
+        ioData[2] = new MP_IO_DATA();
+        ioData[2].ulAddr = 10012;
+        ioData[2].ulValue = 1;
+        return mpWriteIO(ioData, 3);
+    }
+
+    public boolean closeGripper() throws IOException {
+        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+        ioData[0] = new MP_IO_DATA();
+        ioData[0] = new MP_IO_DATA();
+        ioData[0].ulAddr = 10010;
+        ioData[0].ulValue = 0;
+        ioData[1] = new MP_IO_DATA();
+        ioData[1].ulAddr = 10011;
+        ioData[1].ulValue = 1;
+        ioData[2] = new MP_IO_DATA();
+        ioData[2].ulAddr = 10012;
+        ioData[2].ulValue = 1;
+        return mpWriteIO(ioData, 3);
+    }
+
+    public byte[] readFullFileByName(String fname) throws IOException, MotoPlusConnectionException {
+        int fd = mpOpenFile(fname, MpFileFlagsEnum.O_RDWR, 0666);
+        if (fd < 0) {
+            throw new MotoPlusConnectionException("mpOpenFile(" + fname + ") returned " + fd);
+        }
+        byte ret[] = readFullFile(fd);
+        mpCloseFile(fd);
+        return ret;
+    }
+
+    public String readFullFileByNameToString(String fname) throws IOException, MotoPlusConnectionException {
+        return new String(readFullFileByName(fname), Charset.forName("US-ASCII"));
+    }
+
+    public static final int MAX_WRITE_LEN = 1024 - 10;
+    public static final int MAX_READ_LEN = 1024 - 10;
+
+    public int mpWriteFileEx(int fd, byte buf[], int offset, int len) throws IOException, MotoPlusConnectionException {
+        if (null == buf || len <= 0 || offset < 0 || buf.length < offset + len) {
+            throw new IllegalArgumentException("Buf must not be null and have length of atleast offset = " + offset + " + len = " + len);
+        }
+        if (len > MAX_WRITE_LEN) {
+            throw new IllegalArgumentException("len = " + len + "  must not be greater  than MAX_WRITE_LEN = " + MAX_WRITE_LEN);
+        }
+        starter.startMpWriteFile(fd, buf, offset, len);
+        return returner.getMpWriteFileReturn();
+    }
+
+    public int mpWriteFile(int fd, byte buf[]) throws IOException, MotoPlusConnectionException {
+        return mpWriteFileEx(fd, buf, 0, buf.length);
+    }
+
+    public int mpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA jlistData) throws IOException, MotoPlusConnectionException {
+        starter.startMpFdGetJobList(fd, jlistData);
+        return returner.getMpFdGetJobListReturn(jlistData);
+    }
+
+    public int mpFdReadFile(int fd, String name) throws IOException, MotoPlusConnectionException {
+        starter.startMpFdReadFile(fd, name);
+        return returner.getMpFdReadFileReturn();
+    }
+
+    public int mpFdWriteFile(int fd, String name) throws IOException, MotoPlusConnectionException {
+        starter.startMpFdWriteFile(fd, name);
+        return returner.getMpFdWriteFileReturn();
+    }
+
+    public int mpLoadFile(MpExFileRamIdEnum id, String name, String name2) throws IOException, MotoPlusConnectionException {
+        starter.startMpLoadFile(id.getId(), name, name2);
+        return returner.getMpLoadFileReturn();
+    }
+
+    public int mpSaveFile(MpExFileRamIdEnum id, String name, String name2) throws IOException, MotoPlusConnectionException {
+        starter.startMpSaveFile(id.getId(), name, name2);
+        return returner.getMpSaveFileReturn();
+    }
+
 }

@@ -50,6 +50,7 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
+import crcl.base.SetEndEffectorType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.StopMotionType;
@@ -76,6 +77,12 @@ import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.vector;
 
 /**
  *
@@ -213,6 +220,13 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
     
+    private void setEndEffector(SetEndEffectorType see) throws IOException {
+        if(see.getSetting().doubleValue() > 0.5) {
+            mpc.openGripper();
+        } else {
+            mpc.closeGripper();
+        }
+    }
     private void setLengthUnits(SetLengthUnitsType slu) {
         switch(slu.getUnitName()) {
             case MILLIMETER:
@@ -378,6 +392,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         crclStatus.getCommandStatus().setStateDescription("");
                     }  else if (cmd instanceof SetLengthUnitsType) {
                         setLengthUnits((SetLengthUnitsType)cmd);
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription("");
+                    }  else if (cmd instanceof SetEndEffectorType) {
+                        setEndEffector((SetEndEffectorType) cmd);
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
                         crclStatus.getCommandStatus().setStateDescription("");
                     }  else if (cmd instanceof EndCanonType) {

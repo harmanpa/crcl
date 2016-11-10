@@ -21,7 +21,9 @@ extern "C" {
     enum RemoteFunctionGroup {
         INVALID_FUNCTION_GROUP = 0,
         MOT_FUNCTION_GROUP = 1,
-        SYS1_FUNCTION_GROUP = 2
+        SYS1_FUNCTION_GROUP = 2,
+        FILE_CTRL_FUNCTION_GROUP = 3,
+        EX_FILE_CTRL_FUNCTION_GROUP = 4,
     };
 
     enum RemoteMotFunctionType {
@@ -61,6 +63,28 @@ extern "C" {
         
     };
 
+    
+    enum RemoteFileFunctionType {
+        FILE_CTRL_INVALID = 0,
+        FILE_CTRL_OPEN = 1,
+        FILE_CTRL_CREATE = 2,
+        FILE_CTRL_CLOSE = 3,
+        FILE_CTRL_READ = 4,
+        FILE_CTRL_WRITE = 5,
+    };
+    
+    enum RemoteExFileFunctionType {
+        EX_FILE_CTRL_INVALID = 0,
+        EX_FILE_CTRL_GET_FILE_COUNT = 1,
+        EX_FILE_CTRL_GET_FILE_NAME = 2,
+        EX_FILE_CTRL_LOAD_FILE = 3,
+        EX_FILE_CTRL_SAVE_FILE = 4,
+        EX_FILE_CTRL_FD_READ_FILE = 5,
+        EX_FILE_CTRL_FD_WRITE_FILE = 6,
+        EX_FILE_CTRL_FD_GET_JOB_LIST = 7,
+    };
+    
+    
     // Read requests on the given accepted socket handle, forever or until an
     // error occurs.
     extern int handleSingleConnection(int acceptHandle);

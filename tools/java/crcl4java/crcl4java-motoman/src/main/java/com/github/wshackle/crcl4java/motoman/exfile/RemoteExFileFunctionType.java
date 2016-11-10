@@ -20,38 +20,36 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.crcl4java.motoman;
-
-import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
-import java.util.HashMap;
-import java.util.Map;
+package com.github.wshackle.crcl4java.motoman.exfile;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteFunctionGroup {
-    INVALID_FUNCTION_GROUP(0),
-    MOT_FUNCTION_GROUP(1),
-    SYS1_FUNCTION_GROUP(2),
-    FILE_CTRL_FUNCTION_GROUP(3),
-    EX_FILE_CTRL_FUNCTION_GROUP(4);
+public enum RemoteExFileFunctionType {
+    EX_FILE_CTRL_INVALID(0),
+    EX_FILE_CTRL_GET_FILE_COUNT(1),
+    EX_FILE_CTRL_GET_FILE_NAME(2),
+    EX_FILE_CTRL_LOAD_FILE(3),
+    EX_FILE_CTRL_SAVE_FILE(4),
+    EX_FILE_CTRL_FD_READ_FILE(5),
+    EX_FILE_CTRL_FD_WRITE_FILE(6),
+    EX_FILE_CTRL_FD_GET_JOB_LIST(7);
 
-    private RemoteFunctionGroup(int id) {
+    private RemoteExFileFunctionType(int id) {
         this.id = id;
     }
 
     private final int id;
 
-    private static Map<Integer, MotCtrlReturnEnum> map = new HashMap<>();
-
-    static {
-        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
-            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
-            map.put(m.getId(), m);
-        }
-    }
-
+//    private static Map<Integer, RemoteSys1FunctionType> map = new HashMap<>();
+//
+//    static {
+//        for (int i = 0; i < RemoteSys1FunctionType.values().length; i++) {
+//            RemoteSys1FunctionType m = RemoteSys1FunctionType.values()[i];
+//            map.put(m.getId(), m);
+//        }
+//    }
     public int getId() {
         return id;
     }

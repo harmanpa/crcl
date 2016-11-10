@@ -55,11 +55,25 @@ public class TelnetJPanel extends javax.swing.JPanel {
 //        System.out.println("font = " + font);
     }
 
+    private String host;
+    private int port;
     public void connect() throws IOException {
         if (null != tc) {
             tc.disconnect();
         }
-        tc = MotomanTelnetClient.defaultMotoman(getPrintStream(), getInputStream());
+        host = jTextFieldHostName.getText();
+        if(host.trim().length() < 1) {
+            jTextFieldHostName.setText(MotomanTelnetClient.DEFAULT_MOTOMAN_HOST);
+            host = MotomanTelnetClient.DEFAULT_MOTOMAN_HOST;
+        }
+        try {
+            port = Integer.valueOf(jTextFieldPort.getText().trim());
+            
+        } catch (Exception exception) {
+            port = MotomanTelnetClient.DEFAULT_PORT;
+            jTextFieldPort.setText(Integer.toString(port));
+        }
+        tc = MotomanTelnetClient.defaultMotomanWithHostPort(host, port, getPrintStream(), getInputStream());
         if (!jCheckBoxConnect.isSelected()) {
             this.jCheckBoxConnect.setSelected(true);
         }
@@ -91,6 +105,10 @@ public class TelnetJPanel extends javax.swing.JPanel {
         jSpinnerMaxLines = new javax.swing.JSpinner();
         jCheckBoxPauseOutput = new javax.swing.JCheckBox();
         jCheckBoxConnect = new javax.swing.JCheckBox();
+        jLabel2 = new javax.swing.JLabel();
+        jTextFieldHostName = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jTextFieldPort = new javax.swing.JTextField();
 
         jTextArea1.setEditable(false);
         jTextArea1.setColumns(20);
@@ -117,6 +135,14 @@ public class TelnetJPanel extends javax.swing.JPanel {
             }
         });
 
+        jLabel2.setText("Host: ");
+
+        jTextFieldHostName.setText("10.0.0.2");
+
+        jLabel3.setText("Port: ");
+
+        jTextFieldPort.setText("23");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -134,20 +160,36 @@ public class TelnetJPanel extends javax.swing.JPanel {
                         .addComponent(jCheckBoxPauseOutput)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jCheckBoxConnect)
-                        .addGap(0, 143, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldHostName, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 50, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(11, 11, 11)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jSpinnerMaxLines, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBoxPauseOutput)
-                    .addComponent(jCheckBoxConnect))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel1)
+                        .addComponent(jSpinnerMaxLines, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jCheckBoxPauseOutput)
+                        .addComponent(jCheckBoxConnect)
+                        .addComponent(jLabel2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(1, 1, 1)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextFieldHostName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3)
+                            .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(10, 10, 10))
@@ -161,7 +203,14 @@ public class TelnetJPanel extends javax.swing.JPanel {
             } else {
                 disconnect();
             }
-        } catch (IOException iOException) {
+        } catch (Exception ex) {
+             Logger.getLogger(TelnetJPanel.class.getName()).log(Level.SEVERE, null, ex);
+             try {
+                 disconnect();
+             } catch(Exception ex2) {
+                 
+             }
+             appendText("Connection  to "+host+":"+port +" failed: "+ex +"\n");
         }
     }//GEN-LAST:event_jCheckBoxConnectActionPerformed
 
@@ -305,7 +354,7 @@ public class TelnetJPanel extends javax.swing.JPanel {
             }
         }
         if (!jCheckBoxPauseOutput.isSelected()) {
-            jTextArea1.setCaretPosition(jTextArea1.getText().length() - 1);
+            jTextArea1.setCaretPosition(jTextArea1.getText().length());
         }
     }
 
@@ -343,9 +392,13 @@ public class TelnetJPanel extends javax.swing.JPanel {
     private javax.swing.JCheckBox jCheckBoxConnect;
     private javax.swing.JCheckBox jCheckBoxPauseOutput;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner jSpinnerMaxLines;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextFieldHostName;
+    private javax.swing.JTextField jTextFieldPort;
     // End of variables declaration//GEN-END:variables
 }

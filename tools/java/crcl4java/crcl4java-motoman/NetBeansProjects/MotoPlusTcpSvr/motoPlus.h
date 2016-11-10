@@ -11,8 +11,12 @@
  * Created on October 3, 2016, 4:45 PM
  */
 
+#ifdef USE_FAKE_MOTOPLUS
+
 #ifndef MOTOPLUS_H
 #define MOTOPLUS_H
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -252,6 +256,25 @@ extern "C" {
     } MP_ALARM_CODE_RSP_DATA;
 
 
+#ifndef TRANS_FILE_LEN
+#define TRANS_FILE_LEN (32 + 1 + 3)
+#endif /*TRANS_FILE_LEN*/
+
+    typedef struct {
+        char cFileName[TRANS_FILE_LEN + 1];
+        char reserved[3];
+    } MP_FILE_NAME_SEND_DATA;
+
+#define MP_LIST_DATA_SIZE   (1000)
+
+    typedef struct {
+        unsigned short err_no;
+        unsigned short uIsEndFlag;
+        unsigned short uListDataNum;
+        unsigned char cListData[MP_LIST_DATA_SIZE];
+        char reserved[2];
+    } MP_GET_JOBLIST_RSP_DATA;
+
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
     typedef void (*VOIDFUNCPTR) (...); /* ptr to function returning void */
@@ -342,10 +365,36 @@ extern "C" {
 
     extern LONG mpGetAlarmCode(MP_ALARM_CODE_RSP_DATA *rData);
 
+    extern long mpRefreshFileList(short extensionId);
 
+    extern long mpGetFileCount(void);
+    extern long mpGetFileName(int index, char *fileName);
+
+    extern long mpLoadFile(long mpRamDriveId, const char *loadPath, const char *fileName);
+    extern long mpSaveFile(long mpRamDriveId, const char *savePath, const char *fileName);
+
+
+    extern long mpFdWriteFile(int fd, MP_FILE_NAME_SEND_DATA *sData);
+    extern long mpFdReadFile(int fd, MP_FILE_NAME_SEND_DATA *sData);
+    extern long mpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA *rData);
+
+    
+    extern int mpCreate(const char * name, int flags);
+    extern int mpOpen(const char * name,int flags,int mode);
+    extern STATUS mpRemove(const char * name);
+    extern STATUS mpClose(int fd);
+    extern int mpRename(const char * oldName, const char * newName);
+    extern int mpRead(int    fd,char * buffer,size_t maxBytes);
+    extern int mpWrite(int    fd,char * buffer,size_t nBytes);
+    
+    
 #ifdef __cplusplus
 }
 #endif
 
+
 #endif /* MOTOPLUS_H */
+
+#endif /* USE_FAKE_MOTOPLUS */
+
 
