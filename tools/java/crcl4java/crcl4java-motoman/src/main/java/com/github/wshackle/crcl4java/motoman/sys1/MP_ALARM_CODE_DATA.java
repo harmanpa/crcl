@@ -37,22 +37,23 @@ public class MP_ALARM_CODE_DATA {
     public short usAlarmNum;
 
     static public final class MP_ALARM_DATA {
-        static public final int MAX_ALARM_COUNT=4;
-        public final short usAlarmNo[] = new short[MAX_ALARM_COUNT]; 
-        public final short usAlarmData[] = new short[MAX_ALARM_COUNT]; 
+
+        static public final int MAX_ALARM_COUNT = 4;
+        public final short usAlarmNo[] = new short[MAX_ALARM_COUNT];
+        public final short usAlarmData[] = new short[MAX_ALARM_COUNT];
 
         @Override
         public String toString() {
-            return "MP_ALARM_DATA{" 
-                    + "usAlarmNo=" + Arrays.toString(usAlarmNo) 
-                    + ", comments=" + Arrays.toString(getAlarmNoComments()) 
+            return "MP_ALARM_DATA{"
+                    + "usAlarmNo=" + Arrays.toString(usAlarmNo)
+                    + ", comments=" + Arrays.toString(getAlarmNoComments())
                     + ", usAlarmData=" + Arrays.toString(usAlarmData) + '}';
         }
-        
-        public String []getAlarmNoComments() {
+
+        public String[] getAlarmNoComments() {
             return MP_ALARM_CODE_DATA.getAlarmNoComments(usAlarmNo);
         }
-        
+
     };
     public final MP_ALARM_DATA AlarmData = new MP_ALARM_DATA();
 
@@ -60,16 +61,19 @@ public class MP_ALARM_CODE_DATA {
     public String toString() {
         return "MP_ALARM_CODE_DATA{" + "usErrorNo=" + usErrorNo + ", usErrorData=" + usErrorData + ", usAlarmNum=" + usAlarmNum + ", AlarmData=" + AlarmData + '}';
     }
-    
-    private final static Map<Short,String> alarmCommentMap = new HashMap<>();
-    
+
+    private final static Map<Short, String> alarmCommentMap = new HashMap<>();
+
     static {
         alarmCommentMap.put((short) 4980, "DESTINATION PULSE LIMIT");
+        alarmCommentMap.put((short) 4312, "ENCODER BATTERY ERROR");
+        alarmCommentMap.put((short) 4677, "IMPOSSIBLE LINEAR MOTION");
     }
+
     public static String getAlarmNoComment(short alarmNo) {
         return alarmCommentMap.get(alarmNo);
     }
-    
+
     public static String[] getAlarmNoComments(short alarmNos[]) {
         String comments[] = new String[alarmNos.length];
         for (int i = 0; i < alarmNos.length; i++) {
@@ -77,5 +81,5 @@ public class MP_ALARM_CODE_DATA {
         }
         return comments;
     }
-    
+
 }

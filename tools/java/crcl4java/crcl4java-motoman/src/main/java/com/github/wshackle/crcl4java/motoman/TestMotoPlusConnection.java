@@ -24,7 +24,6 @@ package com.github.wshackle.crcl4java.motoman;
 
 import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
 import com.github.wshackle.crcl4java.motoman.exfile.MP_GET_JOBLIST_RSP_DATA;
-import com.github.wshackle.crcl4java.motoman.exfile.MpExFileRamIdEnum;
 import com.github.wshackle.crcl4java.motoman.exfile.MpExtensionType;
 import com.github.wshackle.crcl4java.motoman.file.MpFileFlagsEnum;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
@@ -43,6 +42,7 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_MODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import java.io.File;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -103,6 +103,11 @@ public class TestMotoPlusConnection {
 //            int sret = mpc.mpSaveFile(MpExFileRamIdEnum.MP_DRV_ID_DRAM, "file1", "file2");
 //            System.out.println("sret = " + sret);
 //            
+
+            mpc.downloadJobData("MOVELGEAR", new File(System.getProperty("user.home"),"MOVELGEAR.JBR"));
+            if(true) {
+                return;
+            }
             int jbiCount = mpc.getMpFileCount(MpExtensionType.MP_EXT_ID_JBI);
             System.out.println("jbiCount = " + jbiCount);
             for (int i = 0; i < jbiCount; i++) {
@@ -116,7 +121,7 @@ public class TestMotoPlusConnection {
                 System.out.println("name = " + name);
             }
 
-            String fname = "MPRAM1:0/PNP5.JBI";
+            String fname = "MPRAM1:0/MOVELGEAR.JBR";
 //            String contents = mpc.readFullFileByNameToString(fname);
 //            System.out.println("contents = " + contents);
 //            if (true) {
@@ -130,26 +135,28 @@ public class TestMotoPlusConnection {
             fd0 = mpc.mpCreateFile(fname, MpFileFlagsEnum.O_RDWR);
             System.out.println("fd0 = " + fd0);
 
-            int fdReadRet = mpc.mpFdReadFile(fd0, "PNP.JBI");
+            int fdReadRet = mpc.mpFdReadFile(fd0, "MOVELGEAR.JBR");
             System.out.println("fdReadRet = " + fdReadRet);
 
             closeRet = mpc.mpCloseFile(fd0);
             System.out.println("closeRet = " + closeRet);
-            fd0 = mpc.mpOpenFile(fname, MpFileFlagsEnum.O_RDWR, 0666);
-            System.out.println("fd0 = " + fd0);
+            String fileStr = mpc.readFullFileByNameToString(fname);
+            System.out.println("fileStr = " + fileStr);
+//            fd0 = mpc.mpOpenFile(fname, MpFileFlagsEnum.O_RDWR, 0666);
+//            System.out.println("fd0 = " + fd0);
+//
+//            byte buf[] = new byte[MotoPlusConnection.MAX_READ_LEN];
+//            int r = buf.length;
+//            while (r == buf.length) {
+//                r = mpc.mpReadFile(fd0, buf);
+//                System.out.println("r = " + r);
+//                if(r > 0 && r <= buf.length) {
+//                    System.out.println("Start buf:\n\n" + new String(buf,0,r, Charset.forName("US-ASCII"))+"\nend buf:\n");
+//                }
+//            }
 
-            byte buf[] = new byte[MotoPlusConnection.MAX_READ_LEN];
-            int r = buf.length;
-            while (r == buf.length) {
-                r = mpc.mpReadFile(fd0, buf);
-                System.out.println("r = " + r);
-                if(r > 0 && r <= buf.length) {
-                    System.out.println("Start buf:\n\n" + new String(buf,0,r, Charset.forName("US-ASCII"))+"\nend buf:\n");
-                }
-            }
-
-            closeRet = mpc.mpCloseFile(fd0);
-            System.out.println("closeRet = " + closeRet);
+//            closeRet = mpc.mpCloseFile(fd0);
+//            System.out.println("closeRet = " + closeRet);
             if (true) {
                 return;
             }
@@ -174,7 +181,7 @@ public class TestMotoPlusConnection {
             System.out.println("Calling  mpc.mpOpenFile(\"C:\\Users\\shackle\\Documents\\test.txt\",MpFileFlagsEnum.O_RDWR); ");
             int fd1 = mpc.mpOpenFile("C:\\Users\\shackle\\Documents\\test.txt", MpFileFlagsEnum.O_RDWR, 0);
             System.out.println("fd1 = " + fd1);
-            buf = new byte[40];
+            byte buf[] = new byte[40];
             int readRet = mpc.mpReadFile(fd1, buf);
             System.out.println("readRet = " + readRet);
             System.out.println("buf = " + new String(buf, Charset.forName("US-ASCII")));

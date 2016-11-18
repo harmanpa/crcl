@@ -28,7 +28,9 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_ALARM_CODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_MODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
@@ -50,8 +52,12 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
+import crcl.base.RotSpeedAbsoluteType;
+import crcl.base.RotSpeedRelativeType;
+import crcl.base.RotSpeedType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.SetLengthUnitsType;
+import crcl.base.SetRotSpeedType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
@@ -59,9 +65,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
-import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.pose;
-import static crcl.utils.CRCLPosemath.vector;
 import crcl.utils.CRCLServerSocket;
 import crcl.utils.CRCLServerSocketEvent;
 import crcl.utils.CRCLServerSocketEventListener;
@@ -77,10 +81,6 @@ import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.vector;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.vector;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
 
@@ -130,7 +130,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
             try {
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
                 PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
-                PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()));
+                PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx())+Math.PI);
                 crclStatus.getPoseStatus().setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), crclStatus.getPoseStatus().getPose()));
 //                crclStatus.getPoseStatus().getPose().setPoint(point(cartData[0].x(), cartData[0].y(), cartData[0].z()));
                 MP_PULSE_POS_RSP_DATA pulseData = mpc.getPulsePos(0);
@@ -154,12 +154,13 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         JointStatusType js = jsl.get(i);
                         js.setJointNumber(BigInteger.valueOf(i + 1));
                         js.setJointPosition(BigDecimal.valueOf(pulseData.lPos[i]));
-                        jsl.set(i, js);
+                        
                         if (last_status_update_time > 0) {
                             double vj = ((double) diff) / time_diff;
                             js.setJointVelocity(BigDecimal.valueOf(vj));
 //                            System.out.println("i = " + i + ", vj = " + vj);
                         }
+                        jsl.set(i, js);
                     }
                     lastJointPos[i] = pulseData.lPos[i];
                 }
@@ -182,6 +183,20 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     if(dwelling && System.currentTimeMillis() > dwellEnd) {
                         crclStatus.getCommandStatus().setCommandState(CRCL_DONE);
                         dwelling=false;
+                    }
+                }
+                if(crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                    MP_MODE_DATA modeData = mpc.mpGetMode();
+                    if(modeData.sRemote == 0) {
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        crclStatus.getCommandStatus().setStateDescription("mode = "+modeData.toString());
+                    }
+                }
+                if(crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                    if(mpc.mpGetAlarmStatus().sIsAlarm != 0) {
+                        MP_ALARM_CODE_DATA alarmData = mpc.mpGetAlarmCode();
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        crclStatus.getCommandStatus().setStateDescription("alarmData = "+alarmData);
                     }
                 }
                 last_status_update_time = System.currentTimeMillis();
@@ -220,6 +235,20 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
     
+    private void setRotSpeed(SetRotSpeedType srs) throws IOException {
+//        MP_SPEED spd = new MP_SPEED();
+//        RotSpeedType rs = srs.getRotSpeed();
+//        if (rs instanceof RotSpeedAbsoluteType) {
+//            RotSpeedAbsoluteType rsa = (RotSpeedAbsoluteType) rs;
+//            spd.vr = (int) (rsa.getSetting().doubleValue() * 10.0);
+//            mpc.mpMotSetSpeed(1, spd);
+//        } else if (rs instanceof RotSpeedRelativeType) {
+//            RotSpeedRelativeType rsr = (RotSpeedRelativeType) rs;
+//            spd.vr = (int) (rsr.getFraction().doubleValue() * maxVelocity);
+//            mpc.mpMotSetSpeed(1, spd);
+//        }
+    }
+    
     private void setEndEffector(SetEndEffectorType see) throws IOException {
         if(see.getSetting().doubleValue() > 0.5) {
             mpc.openGripper();
@@ -248,6 +277,9 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         mpc.mpSetServoPower(true);
         boolean power = mpc.mpGetServoPower();
         System.out.println("power = " + power);
+        if(power == false) {
+            throw new MotoPlusConnection.MotoPlusConnectionException("Failed to set servo power on");
+        }
         System.out.println("Calling mpMotSetCoord(1, MP_COORD_TYPE.MP_ROBOT_TYPE, 0)");
         MotCtrlReturnEnum motSetCoordRet = mpc.mpMotSetCoord(0, MP_COORD_TYPE.MP_ROBOT_TYPE, 0);
         System.out.println("motSetCoordRet = " + motSetCoordRet);
@@ -268,10 +300,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 //        PmRpy rpy = CRCLPosemath.toPmRpy(cmd.getEndPosition());
 //        MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
 
-        tgt.getDst().rx = (int) (Math.toDegrees(rpy.y) * 10000.0);
+        tgt.getDst().rx = (int) (Math.toDegrees(rpy.y-Math.PI) * 10000.0);
         tgt.getDst().ry = (int) (Math.toDegrees(rpy.p) * 10000.0);
         tgt.getDst().rz = (int) (Math.toDegrees(rpy.r) * 10000.0);
-        tgt.getAux().rx = (int) (Math.toDegrees(rpy.y) * 10000.0);
+        tgt.getAux().rx = (int) (Math.toDegrees(rpy.y-Math.PI) * 10000.0);
         tgt.getAux().ry = (int) (Math.toDegrees(rpy.p) * 10000.0);
         tgt.getAux().rz = (int) (Math.toDegrees(rpy.r) * 10000.0);
 
@@ -362,6 +394,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     if (cmd instanceof InitCanonType) {
                         initialized = true;
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription("");
                     } else if (!initialized) {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                         crclStatus.getCommandStatus().setStateDescription("Command recieved when not initialized.");
@@ -376,6 +409,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         crclStatus.getCommandStatus().setStateDescription("");
                     } else if (cmd instanceof SetTransSpeedType) {
                         setTransSpeed((SetTransSpeedType) cmd);
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription("");
+                    } else if (cmd instanceof SetRotSpeedType) {
+                        setRotSpeed((SetRotSpeedType) cmd);
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
                         crclStatus.getCommandStatus().setStateDescription("");
                     } else if (cmd instanceof MoveToType) {
@@ -409,6 +446,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                 }
             }
         } catch (CRCLException | IOException | MotoPlusConnection.MotoPlusConnectionException | PmException ex) {
+            crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            crclStatus.getCommandStatus().setStateDescription(ex.getMessage());
             Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

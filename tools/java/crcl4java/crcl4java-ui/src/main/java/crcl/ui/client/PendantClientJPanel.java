@@ -927,13 +927,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return program.getMiddleCommand().get(curRow - 1);
     }
 
-    private int pollStopCount =0;
-    
+    private int pollStopCount = 0;
+
     private void pollStatus() {
         try {
             final int startPollStopCount = pollStopCount;
             while (!Thread.currentThread().isInterrupted()
-                    && this.jCheckBoxPoll.isSelected() 
+                    && this.jCheckBoxPoll.isSelected()
                     && null != internal.getCRCLSocket()
                     && startPollStopCount == pollStopCount) {
                 cycles++;
@@ -994,7 +994,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         pollStopCount++;
         if (null != pollingThread) {
             try {
-                pollingThread.join(100+ internal.getPoll_ms());
+                pollingThread.join(100 + internal.getPoll_ms());
             } catch (InterruptedException ex) {
             }
             if (pollingThread.isAlive()) {
@@ -1592,13 +1592,23 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     DefaultTableModel tm = (DefaultTableModel) this.jTableJoints.getModel();
                     double t = System.currentTimeMillis();
                     tm.setRowCount(jsl.size());
+                    boolean hasForce = false;
+                    boolean hasVel = false;
                     for (JointStatusType js : jsl) {
                         int jn = js.getJointNumber().intValue();
                         if (null != js.getJointVelocity()) {
+                            if(tm.getColumnCount() < 3) {
+                                tm.setColumnCount(3);
+                            }
                             tm.setValueAt(js.getJointVelocity().doubleValue(), jn - 1, 2);
+                            hasVel = true;
                         }
                         if (null != js.getJointTorqueOrForce()) {
+                            if(tm.getColumnCount() < 4) {
+                                tm.setColumnCount(4);
+                            }
                             tm.setValueAt(js.getJointTorqueOrForce().doubleValue(), jn - 1, 3);
+                            hasForce = true;
                         }
                         if (null == js.getJointPosition()) {
 //                            tm.setValueAt(Double.NaN, jn-1,1);
@@ -1627,6 +1637,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 this.jointsPlotter.FitToGraph();
                             }
                         }
+                    }
+                    if (!hasForce && !hasVel) {
+                        tm.setColumnIdentifiers(new String[]{"Joint", "Position"});
+                        tm.setColumnCount(2);
+                    } else if (!hasForce) {
+                        tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity"});
+                        tm.setColumnCount(3);
+                    } else {
+                        tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity", "TorqueOrForce"});
+                        tm.setColumnCount(4);
                     }
                     if (null != this.jointsPlotter) {
                         this.jointsPlotter.ScrollRight();
@@ -2674,11 +2694,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
@@ -3070,7 +3090,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldJogInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
-                .addContainerGap(189, Short.MAX_VALUE))
+                .addContainerGap(261, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("Jog", jPanelJogging);
@@ -3370,9 +3390,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jScrollPane6)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3390,7 +3410,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)))
                         .addGap(10, 10, 10)))
                 .addContainerGap())
         );
@@ -3412,12 +3432,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel18)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jTabbedPaneRightUpper.addTab("Status", jPanelStatus);
@@ -3434,7 +3453,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 203, Short.MAX_VALUE)
+            .addGap(0, 231, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout jPanelOverheadProgramPlotLayout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot);
@@ -3464,7 +3483,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         );
         programPlotterJPanelSideLayout.setVerticalGroup(
             programPlotterJPanelSideLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 204, Short.MAX_VALUE)
+            .addGap(0, 232, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout jPanelOverheadProgramPlot1Layout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot1);
@@ -3547,7 +3566,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .addComponent(jTabbedPaneRightUpper)
                     .addComponent(jTabbedPaneLeftUpper))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 102, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents

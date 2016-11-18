@@ -834,12 +834,22 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     private List<ITPProgram> programs;
 
+    
+
+    public int getLocalCrclPort() {
+        return main.getLocalPort();
+    }
+
+    public void setLocalCrclPort(int crclPort) {
+        main.setLocalPort(crclPort);
+    }
+    
     public void launchClient() {
         try {
             PendantClientJFrame client = new PendantClientJFrame();
             client.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             client.setVisible(true);
-            client.connect("localhost", CRCLSocket.DEFAULT_PORT);
+            client.connect("localhost", getLocalCrclPort());
         } catch (Exception ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1012,6 +1022,9 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         jLabelStatus = new javax.swing.JLabel();
         jCheckBoxMonitorTasks = new javax.swing.JCheckBox();
         jCheckBoxConnnected = new javax.swing.JCheckBox();
+        jLabel11 = new javax.swing.JLabel();
+        jTextFieldCrclPort = new javax.swing.JTextField();
+        jCheckBoxEnableCRCL = new javax.swing.JCheckBox();
 
         jSliderOverride.setMajorTickSpacing(10);
         jSliderOverride.setMinorTickSpacing(10);
@@ -1211,6 +1224,23 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             }
         });
 
+        jLabel11.setText("CRCL Port:");
+
+        jTextFieldCrclPort.setText("64444");
+        jTextFieldCrclPort.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldCrclPortActionPerformed(evt);
+            }
+        });
+
+        jCheckBoxEnableCRCL.setSelected(true);
+        jCheckBoxEnableCRCL.setText("Enable");
+        jCheckBoxEnableCRCL.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxEnableCRCLActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -1258,7 +1288,14 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                             .addComponent(jLabel3)
                             .addComponent(jSliderOverride, javax.swing.GroupLayout.PREFERRED_SIZE, 464, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jCheckBoxConnnected)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBoxConnnected)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jCheckBoxEnableCRCL)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jRadioButtonUseRobotNeighborhood)
@@ -1308,7 +1345,10 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldRobotNeighborhoodPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jRadioButtonUseRobotNeighborhood))
+                    .addComponent(jRadioButtonUseRobotNeighborhood)
+                    .addComponent(jLabel11)
+                    .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBoxEnableCRCL))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -1396,6 +1436,22 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         setConnected(jCheckBoxConnnected.isSelected());
     }//GEN-LAST:event_jCheckBoxConnnectedActionPerformed
 
+    private void jTextFieldCrclPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCrclPortActionPerformed
+        setLocalCrclPort(Integer.valueOf(jTextFieldCrclPort.getText()));
+    }//GEN-LAST:event_jTextFieldCrclPortActionPerformed
+
+    private void jCheckBoxEnableCRCLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCRCLActionPerformed
+       if(jCheckBoxConnnected.isSelected()) {
+           try {
+               main.startCrclServer();
+           } catch (IOException ex) {
+               Logger.getLogger(FanucCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       } else {
+           main.stopCrclServer();
+       }
+    }//GEN-LAST:event_jCheckBoxEnableCRCLActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAbortAllTasks;
@@ -1403,11 +1459,13 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     private javax.swing.JCheckBox jCheckBoxConnnected;
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
+    private javax.swing.JCheckBox jCheckBoxEnableCRCL;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;
     private javax.swing.JCheckBox jCheckBoxMonitorTasks;
     private javax.swing.JCheckBox jCheckBoxShowAborted;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -1431,6 +1489,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     private javax.swing.JTable jTableTasks;
     private javax.swing.JTextArea jTextAreaErrors;
     private javax.swing.JTextField jTextFieldCartesianConfig;
+    private javax.swing.JTextField jTextFieldCrclPort;
     private javax.swing.JTextField jTextFieldHostName;
     private javax.swing.JTextField jTextFieldLimitSafetyBumper;
     private javax.swing.JTextField jTextFieldRobotNeighborhoodPath;

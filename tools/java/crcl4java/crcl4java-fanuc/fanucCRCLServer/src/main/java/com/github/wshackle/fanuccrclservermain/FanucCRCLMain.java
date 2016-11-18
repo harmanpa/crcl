@@ -121,6 +121,7 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
+import java.util.concurrent.Future;
 
 /**
  *
@@ -912,6 +913,35 @@ public class FanucCRCLMain {
         System.exit(0);
     }
 
+    public void stopCrclServer() {
+        if (null != crclServerFuture) {
+            crclServerFuture.cancel(true);
+//            try {
+//                crclServerFuture.get(100, TimeUnit.MILLISECONDS);
+//            } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+//                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+        }
+        if (null != clients) {
+            for (CRCLSocket cs : clients) {
+                try {
+                    cs.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            clients.clear();
+        }
+        if (null != ss) {
+            try {
+                ss.close();
+            } catch (IOException ex) {
+                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            ss = null;
+        }
+    }
+
     private void stopInternal() {
         if (null != moveThread) {
             moveThread.interrupt();
@@ -922,22 +952,7 @@ public class FanucCRCLMain {
             }
             moveThread = null;
         }
-        for (CRCLSocket cs : clients) {
-            try {
-                cs.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        clients.clear();
-        if (null != ss) {
-            try {
-                ss.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            ss = null;
-        }
+        stopCrclServer();
         if (null != es) {
             es.shutdownNow();
             try {
@@ -1842,10 +1857,13 @@ public class FanucCRCLMain {
         }
     }
 
-    private void startCrclServer() throws IOException {
+    Future<?> crclServerFuture = null;
+
+    public void startCrclServer() throws IOException {
+        stopCrclServer();
         es = Executors.newWorkStealingPool();
         ss = new ServerSocket(localPort);
-        es.submit(() -> {
+        crclServerFuture = es.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     CRCLSocket cs = new CRCLSocket(ss.accept());
