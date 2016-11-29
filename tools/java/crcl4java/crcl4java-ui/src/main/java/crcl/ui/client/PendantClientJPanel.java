@@ -1507,29 +1507,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
                         }
                     }
-                    String program = (null != ccst.getProgramFile() && null != ccst.getProgramIndex())
-                            ? " " + ccst.getProgramFile() + ":" + ccst.getProgramIndex().toString() : "";
-
-                    if (!program.isEmpty() && null != ccst.getProgramLength()) {
-                        program += "/" + ccst.getProgramLength().toString();
-                    }
-                    JInternalFrame internalFrame = null;
-                    if (container instanceof JInternalFrame) {
-                        internalFrame = (JInternalFrame) container;
-                    }
-                    if (null != frame) {
-                        String lastMessage = internal.getLastMessage();
-                        frame.setTitle("CRCL Client: " + stateString
-                                + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                                + program
-                                + ((lastMessage != null) ? " : " + lastMessage : ""));
-                    } else if (null != internalFrame) {
-                        String lastMessage = internal.getLastMessage();
-                        internalFrame.setTitle("CRCL Client: " + stateString
-                                + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                                + program
-                                + ((lastMessage != null) ? " : " + lastMessage : ""));
-                    }
+                    updateTitle(ccst, container, frame, stateString, stateDescription);
+                    
                     if (!internal.isRunningProgram()) {
                         if (null != ccst.getProgramFile()
                                 && !ccst.getProgramFile().equals(internal.getOutgoingProgramFile())
@@ -1709,6 +1688,55 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     }
                 }
 
+            }
+        }
+    }
+
+    List<UpdateTitleListener> updateTitleListeners = null;
+    
+    public void addUpdateTitleListener(UpdateTitleListener utl) {
+        if(null == updateTitleListeners) {
+            updateTitleListeners = new ArrayList<>();
+        }
+        updateTitleListeners.add(utl);
+    }
+    
+     public void removeUpdateTitleListener(UpdateTitleListener utl) {
+        if(null != updateTitleListeners) {
+            updateTitleListeners.remove(utl);
+            if(updateTitleListeners.size()<1) {
+                updateTitleListeners = null;
+            }
+        }
+    }
+    
+    public void updateTitle(CommandStatusType ccst, Container container, JFrame frame, String stateString, String stateDescription) {
+        String program = (null != ccst.getProgramFile() && null != ccst.getProgramIndex())
+                ? " " + ccst.getProgramFile() + ":" + ccst.getProgramIndex().toString() : "";
+        
+        if (!program.isEmpty() && null != ccst.getProgramLength()) {
+            program += "/" + ccst.getProgramLength().toString();
+        }
+        JInternalFrame internalFrame = null;
+        if (container instanceof JInternalFrame) {
+            internalFrame = (JInternalFrame) container;
+        }
+        if (null != frame) {
+            String lastMessage = internal.getLastMessage();
+            frame.setTitle("CRCL Client: " + stateString
+                    + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
+                    + program
+                    + ((lastMessage != null) ? " : " + lastMessage : ""));
+        } else if (null != internalFrame) {
+            String lastMessage = internal.getLastMessage();
+            internalFrame.setTitle("CRCL Client: " + stateString
+                    + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
+                    + program
+                    + ((lastMessage != null) ? " : " + lastMessage : ""));
+        }
+        if(null != updateTitleListeners) {
+            for(UpdateTitleListener utl : updateTitleListeners) {
+                utl.titleChanged(ccst, container, stateString, stateDescription);
             }
         }
     }

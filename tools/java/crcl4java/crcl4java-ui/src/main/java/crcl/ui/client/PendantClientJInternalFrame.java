@@ -41,6 +41,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -94,6 +95,13 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         return parentJFrame;
     }
     
+    public void addUpdateTitleListener(UpdateTitleListener utl) {
+        pendantClientJPanel1.addUpdateTitleListener(utl);
+    }
+    
+     public void removeUpdateTitleListener(UpdateTitleListener utl) {
+        pendantClientJPanel1.removeUpdateTitleListener(utl);
+    }
 
     private void init() {
         initComponents();
