@@ -135,6 +135,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         pendantClientJPanel1.removeProgramLineListener(l);
     }
     
+    public void addCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) { 
+        pendantClientJPanel1.addCurrentPoseListener(l);
+    }
+    
+    public void removeCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) { 
+        pendantClientJPanel1.removeCurrentPoseListener(l);
+    }
+    
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);
@@ -999,5 +1007,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     @Override
     public PendantClientMenuOuter getMenuOuter() {
         return this;
+    }
+
+    @Override
+    public void abortProgram() {
+        pendantClientJPanel1.abortProgram();
     }
 }

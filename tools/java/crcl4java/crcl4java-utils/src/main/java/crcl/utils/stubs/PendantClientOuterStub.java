@@ -263,4 +263,9 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return this;
     }
 
+    @Override
+    public void abortProgram() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

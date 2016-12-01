@@ -102,6 +102,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
+    @Override
+    public void abortProgram() {
+        pendantClientJPanel1.abortProgram();
+    }
+    
     private void updateUIFromInternal() {
         pendantClientJPanel1.updateUIFromInternal();
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());

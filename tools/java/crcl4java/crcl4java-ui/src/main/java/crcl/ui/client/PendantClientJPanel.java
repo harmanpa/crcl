@@ -257,6 +257,25 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         public void accept(PendantClientJPanel panel, int line);
     }
 
+    public static interface CurrentPoseListener {
+
+        public void accept(PendantClientJPanel panel, PoseType pose);
+    }
+    
+    private final List<CurrentPoseListener> currentPoseListeners = new ArrayList<>();
+
+    public void addCurrentPoseListener(CurrentPoseListener l) {
+        synchronized (programLineListeners) {
+            if (!programLineListeners.contains(l)) {
+                currentPoseListeners.add(l);
+            }
+        }
+    }
+
+    public void removeCurrentPoseListener(CurrentPoseListener l) {
+        currentPoseListeners.remove(l);
+    }
+    
     private final List<ProgramLineListener> programLineListeners = new ArrayList<>();
 
     public void addProgramLineListener(ProgramLineListener l) {
@@ -1508,7 +1527,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         }
                     }
                     updateTitle(ccst, container, frame, stateString, stateDescription);
-                    
+
                     if (!internal.isRunningProgram()) {
                         if (null != ccst.getProgramFile()
                                 && !ccst.getProgramFile().equals(internal.getOutgoingProgramFile())
@@ -1576,14 +1595,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     for (JointStatusType js : jsl) {
                         int jn = js.getJointNumber().intValue();
                         if (null != js.getJointVelocity()) {
-                            if(tm.getColumnCount() < 3) {
+                            if (tm.getColumnCount() < 3) {
                                 tm.setColumnCount(3);
                             }
                             tm.setValueAt(js.getJointVelocity().doubleValue(), jn - 1, 2);
                             hasVel = true;
                         }
                         if (null != js.getJointTorqueOrForce()) {
-                            if(tm.getColumnCount() < 4) {
+                            if (tm.getColumnCount() < 4) {
                                 tm.setColumnCount(4);
                             }
                             tm.setValueAt(js.getJointTorqueOrForce().doubleValue(), jn - 1, 3);
@@ -1687,33 +1706,35 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         this.last_t_pos_logged = t;
                     }
                 }
-
+                for(CurrentPoseListener l : currentPoseListeners) {
+                    l.accept(this, p);
+                }
             }
         }
     }
 
     List<UpdateTitleListener> updateTitleListeners = null;
-    
+
     public void addUpdateTitleListener(UpdateTitleListener utl) {
-        if(null == updateTitleListeners) {
+        if (null == updateTitleListeners) {
             updateTitleListeners = new ArrayList<>();
         }
         updateTitleListeners.add(utl);
     }
-    
-     public void removeUpdateTitleListener(UpdateTitleListener utl) {
-        if(null != updateTitleListeners) {
+
+    public void removeUpdateTitleListener(UpdateTitleListener utl) {
+        if (null != updateTitleListeners) {
             updateTitleListeners.remove(utl);
-            if(updateTitleListeners.size()<1) {
+            if (updateTitleListeners.size() < 1) {
                 updateTitleListeners = null;
             }
         }
     }
-    
+
     public void updateTitle(CommandStatusType ccst, Container container, JFrame frame, String stateString, String stateDescription) {
         String program = (null != ccst.getProgramFile() && null != ccst.getProgramIndex())
                 ? " " + ccst.getProgramFile() + ":" + ccst.getProgramIndex().toString() : "";
-        
+
         if (!program.isEmpty() && null != ccst.getProgramLength()) {
             program += "/" + ccst.getProgramLength().toString();
         }
@@ -1734,8 +1755,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     + program
                     + ((lastMessage != null) ? " : " + lastMessage : ""));
         }
-        if(null != updateTitleListeners) {
-            for(UpdateTitleListener utl : updateTitleListeners) {
+        if (null != updateTitleListeners) {
+            for (UpdateTitleListener utl : updateTitleListeners) {
                 utl.titleChanged(ccst, container, stateString, stateDescription);
             }
         }
@@ -3607,9 +3628,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jogWorldSpeedsSet = false;
     }//GEN-LAST:event_jButtonProgramPauseActionPerformed
 
-    private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
+    public void abortProgram() {
         pauseTime = System.currentTimeMillis();
         internal.abort();
+    }
+    
+    private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
+        this.abortProgram();
     }//GEN-LAST:event_jButtonProgramAbortActionPerformed
 
     private void jButtonEditProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditProgramItemActionPerformed
