@@ -1472,6 +1472,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         if (null != main) {
             boolean origConnected = this.jCheckBoxConnnected.isSelected();
             if (origConnected) {
+                this.jCheckBoxConnnected.setSelected(false);
                 main.disconnectRemoteRobot();
                 this.setConnected(true);
             }
@@ -1482,6 +1483,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         if (null != main) {
             boolean origConnected = this.jCheckBoxConnnected.isSelected();
             if (origConnected) {
+                this.jCheckBoxConnnected.setSelected(false);
                 main.disconnectRemoteRobot();
                 this.setConnected(true);
             }
