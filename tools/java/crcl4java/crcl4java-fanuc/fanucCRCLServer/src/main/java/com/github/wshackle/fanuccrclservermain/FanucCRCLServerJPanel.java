@@ -120,6 +120,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     public void setConnected(boolean connected) {
         if (null != main) {
+            main.setPreferRobotNeighborhood(jRadioButtonUseRobotNeighborhood.isSelected());
             main.setConnected(connected);
         }
         startUpdateConnecedCheckbox();
@@ -127,7 +128,11 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     private void startUpdateConnecedCheckbox() {
         if (null != jCheckBoxConnnected && null != main && jCheckBoxConnnected.isSelected() != main.isConnected()) {
-            javax.swing.SwingUtilities.invokeLater(this::updateConnectedCheckbox);
+            if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+                updateConnectedCheckbox();
+            } else {
+                javax.swing.SwingUtilities.invokeLater(this::updateConnectedCheckbox);
+            }
         }
     }
 
@@ -834,8 +839,6 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     private List<ITPProgram> programs;
 
-    
-
     public int getLocalCrclPort() {
         return main.getLocalPort();
     }
@@ -843,7 +846,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     public void setLocalCrclPort(int crclPort) {
         main.setLocalPort(crclPort);
     }
-    
+
     public void launchClient() {
         try {
             PendantClientJFrame client = new PendantClientJFrame();
@@ -984,6 +987,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroupConnectionMethod = new javax.swing.ButtonGroup();
         jSliderOverride = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -1055,9 +1059,21 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
         jTextFieldHostName.setText("129.6.78.111");
 
+        buttonGroupConnectionMethod.add(jRadioButtonUseDirectIP);
         jRadioButtonUseDirectIP.setText("Use Direct Hostname/IP Address:");
+        jRadioButtonUseDirectIP.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonUseDirectIPActionPerformed(evt);
+            }
+        });
 
+        buttonGroupConnectionMethod.add(jRadioButtonUseRobotNeighborhood);
         jRadioButtonUseRobotNeighborhood.setText("Use Robot Neighborhood Path:");
+        jRadioButtonUseRobotNeighborhood.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jRadioButtonUseRobotNeighborhoodActionPerformed(evt);
+            }
+        });
 
         jTextFieldRobotNeighborhoodPath.setText("\\AgilityLabLRMate200iD");
         jTextFieldRobotNeighborhoodPath.addActionListener(new java.awt.event.ActionListener() {
@@ -1441,19 +1457,40 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jTextFieldCrclPortActionPerformed
 
     private void jCheckBoxEnableCRCLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCRCLActionPerformed
-       if(jCheckBoxConnnected.isSelected()) {
-           try {
-               main.startCrclServer();
-           } catch (IOException ex) {
-               Logger.getLogger(FanucCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
-           }
-       } else {
-           main.stopCrclServer();
-       }
+        if (jCheckBoxConnnected.isSelected()) {
+            try {
+                main.startCrclServer();
+            } catch (IOException ex) {
+                Logger.getLogger(FanucCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            main.stopCrclServer();
+        }
     }//GEN-LAST:event_jCheckBoxEnableCRCLActionPerformed
+
+    private void jRadioButtonUseRobotNeighborhoodActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonUseRobotNeighborhoodActionPerformed
+        if (null != main) {
+            boolean origConnected = this.jCheckBoxConnnected.isSelected();
+            if (origConnected) {
+                main.disconnectRemoteRobot();
+                this.setConnected(true);
+            }
+        }
+    }//GEN-LAST:event_jRadioButtonUseRobotNeighborhoodActionPerformed
+
+    private void jRadioButtonUseDirectIPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonUseDirectIPActionPerformed
+        if (null != main) {
+            boolean origConnected = this.jCheckBoxConnnected.isSelected();
+            if (origConnected) {
+                main.disconnectRemoteRobot();
+                this.setConnected(true);
+            }
+        }
+    }//GEN-LAST:event_jRadioButtonUseDirectIPActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroupConnectionMethod;
     private javax.swing.JButton jButtonAbortAllTasks;
     private javax.swing.JButton jButtonClearErrors;
     private javax.swing.JCheckBox jCheckBoxConnnected;
