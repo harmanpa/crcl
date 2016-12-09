@@ -617,7 +617,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }//GEN-LAST:event_jMenuItemSavePoseListActionPerformed
 
     private void jMenuItemPoseList3DPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemPoseList3DPlotActionPerformed
-        pendantClientJPanel1.show3DPlot();
+//        pendantClientJPanel1.show3DPlot();
     }//GEN-LAST:event_jMenuItemPoseList3DPlotActionPerformed
 
     private void jMenuItemOpenStatusLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOpenStatusLogActionPerformed
@@ -955,5 +955,25 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     @Override
     public PendantClientMenuOuter getMenuOuter() {
         return this;
+    }
+
+    @Override
+    public File getPropertiesFile() {
+       return pendantClientJPanel1.getPropertiesFile();
+    }
+
+    @Override
+    public void setPropertiesFile(File propertiesFile) {
+        pendantClientJPanel1.setPropertiesFile(propertiesFile);
+    }
+
+    @Override
+    public void loadProperties() {
+        pendantClientJPanel1.loadProperties();
+    }
+
+    @Override
+    public void saveProperties() {
+       pendantClientJPanel1.saveProperties();
     }
 }

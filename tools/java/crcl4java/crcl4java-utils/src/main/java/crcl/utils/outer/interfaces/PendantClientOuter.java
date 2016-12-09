@@ -85,4 +85,13 @@ public interface PendantClientOuter {
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException;
     
     public PendantClientMenuOuter getMenuOuter();
+    
+    public File getPropertiesFile();
+
+    public void setPropertiesFile(File propertiesFile);
+
+    public void loadProperties();
+    
+    public void saveProperties();
+    
 }

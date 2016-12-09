@@ -25,6 +25,7 @@ package com.github.wshackle.crcl4java.motoman.ui;
 import com.github.wshackle.crcl4java.motoman.MotoPlusConnection;
 import com.github.wshackle.crcl4java.motoman.MotomanCrclServer;
 import crcl.utils.CRCLServerSocket;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -82,6 +83,36 @@ public class MotomanCrclServerJInternalFrame extends javax.swing.JInternalFrame 
     public void disconnectCrclMotoplus() {
         this.motomanCrclServerJPanel1.disconnectCrclMotoplus();
     }
+    
+    public File getPropertiesFile() {
+        return motomanCrclServerJPanel1.getPropertiesFile();
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        motomanCrclServerJPanel1.setPropertiesFile(propertiesFile);
+    }
+
+    public void saveProperties() throws IOException {
+        motomanCrclServerJPanel1.saveProperties();
+    }
+    
+    public void loadProperties() throws IOException {
+        motomanCrclServerJPanel1.loadProperties();
+    }
+    
+    public void setCrclPort(int crclPort) {
+        motomanCrclServerJPanel1.setCrclPort(crclPort);
+    }
+    
+    public int getCrclPort() {
+        return motomanCrclServerJPanel1.getCrclPort();
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.github.wshackle.crcl4java.motoman.ui.MotomanCrclServerJPanel motomanCrclServerJPanel1;
     // End of variables declaration//GEN-END:variables

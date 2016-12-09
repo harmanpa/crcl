@@ -19,6 +19,11 @@
             <artifactId>commons-net</artifactId>
             <version>3.5</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rcslib</artifactId>
+            <version>2016.11.19-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

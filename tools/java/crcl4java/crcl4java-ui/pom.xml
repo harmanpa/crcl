@@ -27,16 +27,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.wshackle</groupId>
-            <artifactId>rcslib</artifactId>
-            <version>2015.05.04.02</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.wshackle</groupId>
-            <artifactId>poseList3DPlot</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>

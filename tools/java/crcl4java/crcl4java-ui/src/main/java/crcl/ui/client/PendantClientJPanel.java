@@ -261,7 +261,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
         public void accept(PendantClientJPanel panel, PoseType pose);
     }
-    
+
     private final List<CurrentPoseListener> currentPoseListeners = new ArrayList<>();
 
     public void addCurrentPoseListener(CurrentPoseListener l) {
@@ -275,7 +275,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void removeCurrentPoseListener(CurrentPoseListener l) {
         currentPoseListeners.remove(l);
     }
-    
+
     private final List<ProgramLineListener> programLineListeners = new ArrayList<>();
 
     public void addProgramLineListener(ProgramLineListener l) {
@@ -458,6 +458,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     @Override
     public int getPort() {
         return Integer.parseInt(this.jTextFieldPort.getText());
+    }
+    
+    public void setPort(int port) {
+        jTextFieldPort.setText(Integer.toString(port));
     }
 
     private Optional<Object> safeInvokeMethod(Method m, Object o) {
@@ -712,6 +716,34 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    private File propertiesFile;
+
+    /**
+     * Get the value of propertiesFile
+     *
+     * @return the value of propertiesFile
+     */
+    public File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        this.propertiesFile = propertiesFile;
+    }
+
+    public void loadProperties() {
+        loadPrefsFile(propertiesFile);
+    }
+    
+    public void saveProperties() {
+        savePrefsFile(propertiesFile);
+    }
+    
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
@@ -1706,7 +1738,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         this.last_t_pos_logged = t;
                     }
                 }
-                for(CurrentPoseListener l : currentPoseListeners) {
+                for (CurrentPoseListener l : currentPoseListeners) {
                     l.accept(this, p);
                 }
             }
@@ -2324,15 +2356,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
-    public void show3DPlot() {
-        try {
-//            File tmpFile = File.createTempFile("poseList", ".csv");
-//            this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
-            com.github.wshackle.poselist3dplot.MainJFrame.showPoseList(this.internal.getPoseList());
-        } catch (Exception ex) {
-            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+//    public void show3DPlot() {
+//        try {
+////            File tmpFile = File.createTempFile("poseList", ".csv");
+////            this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
+//            com.github.wshackle.poselist3dplot.MainJFrame.showPoseList(this.internal.getPoseList());
+//        } catch (Exception ex) {
+//            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 
     public void useExiAction() {
         if (this.isConnected()) {
@@ -2642,6 +2674,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         });
 
         jButtonPlotProgramItem.setText("Plot");
+        jButtonPlotProgramItem.setEnabled(false);
         jButtonPlotProgramItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonPlotProgramItemActionPerformed(evt);
@@ -3632,7 +3665,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         pauseTime = System.currentTimeMillis();
         internal.abort();
     }
-    
+
     private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
         this.abortProgram();
     }//GEN-LAST:event_jButtonProgramAbortActionPerformed
@@ -3747,19 +3780,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonResumeActionPerformed
 
     private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
-        final int index = getProgramRow();
-        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
-            MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
-            BigInteger id = cmdOrig.getCommandID();
-            final List<AnnotatedPose> l
-                    = this.internal
-                    .getPoseList()
-                    .stream()
-                    .filter(x -> x.getLastCommandIdSent().compareTo(id) == 0)
-                    .collect(Collectors.toList());
-            com.github.wshackle.poselist3dplot.MainJFrame
-                    .showPoseList(l);
-        }
+//        final int index = getProgramRow();
+//        if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
+//            MiddleCommandType cmdOrig = internal.getProgram().getMiddleCommand().get(index - 1);
+//            BigInteger id = cmdOrig.getCommandID();
+//            final List<AnnotatedPose> l
+//                    = this.internal
+//                    .getPoseList()
+//                    .stream()
+//                    .filter(x -> x.getLastCommandIdSent().compareTo(id) == 0)
+//                    .collect(Collectors.toList());
+//            com.github.wshackle.poselist3dplot.MainJFrame
+//                    .showPoseList(l);
+//        }
     }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
     private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed

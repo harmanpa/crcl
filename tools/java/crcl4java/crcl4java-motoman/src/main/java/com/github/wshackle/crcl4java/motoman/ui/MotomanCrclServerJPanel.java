@@ -26,8 +26,12 @@ import com.github.wshackle.crcl4java.motoman.MotoPlusConnection;
 import com.github.wshackle.crcl4java.motoman.MotomanCrclServer;
 import crcl.utils.CRCLServerSocket;
 import crcl.utils.CRCLSocket;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -217,6 +221,10 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
     }
     private void jCheckBoxConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxConnectActionPerformed
 
+        updateConnection();
+    }//GEN-LAST:event_jCheckBoxConnectActionPerformed
+
+    private void updateConnection() throws NumberFormatException {
         if (this.jCheckBoxConnect.isSelected()) {
             try {
                 disconnectCrclMotoplus();
@@ -230,8 +238,75 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         } else {
             disconnectCrclMotoplus();
         }
-    }//GEN-LAST:event_jCheckBoxConnectActionPerformed
+    }
 
+    private File propertiesFile;
+
+    /**
+     * Get the value of propertiesFile
+     *
+     * @return the value of propertiesFile
+     */
+    public File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        this.propertiesFile = propertiesFile;
+    }
+
+    public void saveProperties() throws IOException {
+        Properties props = new Properties();
+        props.put(CRCL_PORT_PROPERTY_NAME, jTextFieldCrclPort.getText());
+        props.put(MOTOPLUS_PORT_PROPERTY_NAME, jTextFieldMotoplusPort.getText());
+        props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
+
+        System.out.println("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
+        try (FileWriter fw = new FileWriter(propertiesFile)) {
+            props.store(fw, "");
+        }
+    }
+    private static final String MOTOPLUS_HOST_PROPERTY_NAME = "MOTOPLUS_HOST";
+    private static final String MOTOPLUS_PORT_PROPERTY_NAME = "MOTOPLUS_PORT";
+    private static final String CRCL_PORT_PROPERTY_NAME = "CRCL_PORT";
+
+    public void setCrclPort(int port) {
+        this.jTextFieldCrclPort.setText(Integer.toString(port));
+        crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
+        updateConnection();
+    }
+    
+    public int getCrclPort() {
+        return crclPort;
+    }
+    
+    public void loadProperties() throws IOException {
+        Properties props = new Properties();
+        System.out.println("MotomanCrclServerJPanel loading properties from " + propertiesFile.getCanonicalPath());
+        try (FileReader fr = new FileReader(propertiesFile)) {
+            props.load(fr);
+        }
+        String crclPortString = props.getProperty(CRCL_PORT_PROPERTY_NAME);
+        if (null != crclPortString) {
+            jTextFieldCrclPort.setText(crclPortString);
+        }
+        String motoplusPortString = props.getProperty(MOTOPLUS_PORT_PROPERTY_NAME);
+        if (null != motoplusPortString) {
+            jTextFieldMotoplusPort.setText(motoplusPortString);
+        }
+        String motomanHostString = props.getProperty(MOTOPLUS_HOST_PROPERTY_NAME);
+        if (null != motomanHostString) {
+            jTextFieldMotoplusHost.setText(motomanHostString);
+        }
+        crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
+        motomanPort = Integer.valueOf(jTextFieldMotoplusPort.getText());
+        motomanHost = jTextFieldMotoplusHost.getText();
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox jCheckBoxConnect;

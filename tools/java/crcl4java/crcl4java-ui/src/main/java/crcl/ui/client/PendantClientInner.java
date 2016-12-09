@@ -370,6 +370,26 @@ public class PendantClientInner {
         return this.crclSocket;
     }
 
+    private boolean debugInterrupts;
+
+    /**
+     * Get the value of debugInterrupts
+     *
+     * @return the value of debugInterrupts
+     */
+    public boolean isDebugInterrupts() {
+        return debugInterrupts;
+    }
+
+    /**
+     * Set the value of debugInterrupts
+     *
+     * @param debugInterrupts new value of debugInterrupts
+     */
+    public void setDebugInterrupts(boolean debugInterrupts) {
+        this.debugInterrupts = debugInterrupts;
+    }
+
     public void closeTestProgramThread() {
         close_test_count.incrementAndGet();
         if (null != runTestProgramThread) {
@@ -377,10 +397,12 @@ public class PendantClientInner {
                 return;
             }
             if (this.runTestProgramThread.isAlive()) {
-                Thread.dumpStack();
-                System.err.println("Interrupting runTestProgramThread = " + runTestProgramThread);
-                System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
-                System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(runTestProgramThread.getStackTrace()));
+                if (debugInterrupts) {
+                    Thread.dumpStack();
+                    System.err.println("Interrupting runTestProgramThread = " + runTestProgramThread);
+                    System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
+                    System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(runTestProgramThread.getStackTrace()));
+                }
                 this.runTestProgramThread.interrupt();
                 try {
                     this.runTestProgramThread.join(100);
@@ -1285,8 +1307,8 @@ public class PendantClientInner {
                 stopStatusReaderFlag = true;
                 if (readerThread.isAlive()) {
                     Thread.dumpStack();
-                    System.err.println("Interrupting readerThread = "+readerThread);
-                    System.out.println("Interrupting readerThread = "+readerThread);
+                    System.err.println("Interrupting readerThread = " + readerThread);
+                    System.out.println("Interrupting readerThread = " + readerThread);
                     System.out.println("readerThread.getStackTrace() = " + Arrays.toString(readerThread.getStackTrace()));
                     readerThread.interrupt();
                     readerThread.join(1500);

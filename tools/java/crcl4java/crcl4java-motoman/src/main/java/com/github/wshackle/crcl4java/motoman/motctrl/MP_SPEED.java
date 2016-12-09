@@ -28,5 +28,11 @@ package com.github.wshackle.crcl4java.motoman.motctrl;
  */
 public class MP_SPEED {
     public int vj,v,vr;
+
+    @Override
+    public String toString() {
+        return "MP_SPEED{" + "vj=" + vj + ", v=" + v + ", vr=" + vr + '}';
+    }
+    
     
 }

@@ -739,7 +739,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     }//GEN-LAST:event_jMenuItemRunTestActionPerformed
 
     private void jMenuItemPoseList3DPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemPoseList3DPlotActionPerformed
-        pendantClientJPanel1.show3DPlot();
+//        pendantClientJPanel1.show3DPlot();
     }//GEN-LAST:event_jMenuItemPoseList3DPlotActionPerformed
 
     private void jMenuItemOpenStatusLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemOpenStatusLogActionPerformed
@@ -1012,5 +1012,25 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     @Override
     public void abortProgram() {
         pendantClientJPanel1.abortProgram();
+    }
+    
+    @Override
+    public File getPropertiesFile() {
+       return pendantClientJPanel1.getPropertiesFile();
+    }
+
+    @Override
+    public void setPropertiesFile(File propertiesFile) {
+        pendantClientJPanel1.setPropertiesFile(propertiesFile);
+    }
+
+    @Override
+    public void loadProperties() {
+        pendantClientJPanel1.loadProperties();
+    }
+
+    @Override
+    public void saveProperties() {
+       pendantClientJPanel1.saveProperties();
     }
 }

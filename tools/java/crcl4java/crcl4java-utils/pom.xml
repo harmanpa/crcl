@@ -15,11 +15,6 @@
     </description>
     <dependencies>
         <dependency>
-            <groupId>com.github.wshackle</groupId>
-            <artifactId>rcslib</artifactId>
-            <version>2015.05.04.02</version>
-        </dependency>
-        <dependency>
             <artifactId>crcl4java-base</artifactId>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
@@ -29,6 +24,11 @@
             <artifactId>junit</artifactId>
             <version>4.10</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rcslib</artifactId>
+            <version>2016.11.19-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <properties>

@@ -29,6 +29,7 @@ import java.util.Arrays;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MP_CART_POS_RSP_DATA {
+
     public static final int MAX_CART_AXES = 6;
     public final int lPos[] = new int[MAX_CART_AXES];
     public short sConfig;
@@ -36,100 +37,123 @@ public class MP_CART_POS_RSP_DATA {
     public boolean front() {
         return (sConfig & 1) == 0;
     }
-    
+
     public boolean back() {
         return !front();
     }
-    
+
     public boolean upper() {
-        return (sConfig & (1<<1)) == 0;
+        return (sConfig & (1 << 1)) == 0;
     }
-    
+
     public boolean lower() {
         return !upper();
     }
-    
+
     public boolean flip() {
-        return (sConfig & (1<<2)) == 0;
+        return (sConfig & (1 << 2)) == 0;
     }
-    
+
     public boolean noFlip() {
         return !flip();
     }
-    
+
     public boolean rLt180() {
-        return (sConfig & (1<<3)) == 0;
+        return (sConfig & (1 << 3)) == 0;
     }
-    
+
     public boolean rGe180() {
         return !rLt180();
     }
-    
+
     public boolean tLt180() {
-        return (sConfig & (1<<4)) == 0;
+        return (sConfig & (1 << 4)) == 0;
     }
-    
+
     public boolean tGe180() {
         return !tLt180();
     }
-    
+
     public boolean sLt180() {
-        return (sConfig & (1<<5)) == 0;
+        return (sConfig & (1 << 5)) == 0;
     }
-    
+
     public boolean sGe180() {
         return !sLt180();
     }
-    
+
     public double x() {
-        return lPos[0]/1000.0;
+        return lx() / 1000.0;
     }
-    
+
+    public int lx() {
+        return lPos[0];
+    }
+
     public double y() {
-        return lPos[1]/1000.0;
+        return ly() / 1000.0;
     }
-    
+
+    public int ly() {
+        return lPos[1];
+    }
+
     public double z() {
-        return lPos[2]/1000.0;
+        return lz() / 1000.0;
     }
-    
+
+    public int lz() {
+        return lPos[2];
+    }
+
     public double rx() {
-        return lPos[3]/10000.0;
+        return lrx() / 10000.0;
     }
-    
+
+    public int lrx() {
+        return lPos[3];
+    }
+
     public double ry() {
-        return lPos[4]/10000.0;
+        return lry() / 10000.0;
     }
-    
+
+    public int lry() {
+        return lPos[4];
+    }
+
     public double rz() {
-        return lPos[5]/10000.0;
+        return lrz() / 10000.0;
     }
-    
+
+    public int lrz() {
+        return lPos[5];
+    }
+
     @Override
     public String toString() {
-        return "MP_CART_POS_RSP_DATA{" 
-                + "lPos=" + Arrays.toString(lPos) 
+        return "MP_CART_POS_RSP_DATA{"
+                + "lPos=" + Arrays.toString(lPos)
                 + ", x=" + x()
                 + ", y=" + y()
                 + ", z=" + z()
                 + ", rx=" + rx()
                 + ", ry=" + ry()
                 + ", rz=" + rz()
-                + ", sConfig=" + String.format("%x",sConfig) 
-                + (front()?" FRONT":"")
-                + (back()?" BACK":"")
-                + (upper()?" UPPER_ARM":"")
-                + (lower()?" LOWER_ARM":"")
-                + (flip()?" FLIP":"")
-                + (noFlip()?" NO_FLIP":"")
-                + (rLt180()?" (R<180)":"")
-                + (rGe180()?" (R>=180)":"")
-                + (tLt180()?" (T<180)":"")
-                + (tGe180()?" (T>=180)":"")
-                + (sLt180()?" (S<180)":"")
-                + (sGe180()?" (S>=180)":"")
+                + ", sConfig=" + String.format("%x", sConfig)
+                + (front() ? " FRONT" : "")
+                + (back() ? " BACK" : "")
+                + (upper() ? " UPPER_ARM" : "")
+                + (lower() ? " LOWER_ARM" : "")
+                + (flip() ? " FLIP" : "")
+                + (noFlip() ? " NO_FLIP" : "")
+                + (rLt180() ? " (R<180)" : "")
+                + (rGe180() ? " (R>=180)" : "")
+                + (tLt180() ? " (T<180)" : "")
+                + (tGe180() ? " (T>=180)" : "")
+                + (sLt180() ? " (S<180)" : "")
+                + (sGe180() ? " (S>=180)" : "")
                 + '}';
     }
-    
-    
+
 }
