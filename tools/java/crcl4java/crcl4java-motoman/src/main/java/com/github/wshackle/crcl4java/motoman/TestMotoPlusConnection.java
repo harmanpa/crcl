@@ -22,7 +22,6 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
-import static com.github.wshackle.crcl4java.motoman.MotoPlusConnection.WAIT_FOREVER;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -439,8 +438,10 @@ public class TestMotoPlusConnection {
         Thread.sleep(2000);
 
         int[] recvId = new int[1];
-        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,WAIT_FOREVER,0)");
-        mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, WAIT_FOREVER, 0);
+        final int MAX_WAIT = mpc.mpGetMaxWait();
+        System.out.println("MAX_WAIT = " + MAX_WAIT);
+        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,"+MAX_WAIT+",0)");
+        mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, mpc.mpGetMaxWait(), 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
         Thread.sleep(2000);
 
@@ -475,8 +476,8 @@ public class TestMotoPlusConnection {
         Thread.sleep(200);
 
         recvId = new int[1];
-        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,WAIT_FOREVER,0)");
-        mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, WAIT_FOREVER, 0);
+        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,"+MAX_WAIT+",0)");
+        mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, MAX_WAIT, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
 //
 
@@ -546,8 +547,10 @@ public class TestMotoPlusConnection {
         Thread.sleep(2000);
 
         int[] recvId = new int[1];
-        System.out.println("Calling mpMotTargetReceive(0,"+jointTarget.getId()+",...,WAIT_FOREVER,0)");
-        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, WAIT_FOREVER, 0);
+        final int MAX_WAIT = mpc.mpGetMaxWait();
+        System.out.println("MAX_WAIT = " + MAX_WAIT);
+        System.out.println("Calling mpMotTargetReceive(0,"+jointTarget.getId()+",...,MAX_WAIT,0)");
+        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, MAX_WAIT+1000, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
         Thread.sleep(2000);
 
@@ -575,7 +578,7 @@ public class TestMotoPlusConnection {
 
         recvId = new int[1];
         System.out.println("Calling mpMotTargetReceive(0,"+jointTarget.getId()+",...,WAIT_FOREVER,0)");
-        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, WAIT_FOREVER, 0);
+        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, MAX_WAIT, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
 //
 

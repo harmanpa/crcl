@@ -129,8 +129,6 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_STD_RSP_DATA stdRspData;
 
     int32_t controlGroup = 0;
-    int nowait = NO_WAIT;
-    int waitforever = WAIT_FOREVER;
 
     switch (type) {
         case SYS1_GET_VAR_DATA:
@@ -441,6 +439,20 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             break;
 
+        case SYS1_GET_RTC:
+            if (msgSize != 8) {
+                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
+                return -1;
+            }
+            ret = mpGetRtc();
+            setInt32(outBuffer, 0, 4);
+            setInt32(outBuffer, 4, ret);
+            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+            if (sendRet != 8) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+                return -1;
+            }
+            break;
         default:
             fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
             return -1;
@@ -466,6 +478,8 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     int32_t taskNo = 0;
     int recvId = 0;
     int i = 0;
+    int millisPerTick = 0;
+    int maxTimeout = 0;
     switch (type) {
         case MOT_START:
             if (msgSize != 12) {
@@ -532,6 +546,19 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 target.aux.joint[i] = getInt32(inBuffer, 56 + (i * 4));
             }
             timeout = getInt32(inBuffer, 88);
+            if (timeout == WAIT_FOREVER) {
+                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
+                return -1;
+            }
+            if (timeout != NO_WAIT) {
+                millisPerTick = mpGetRtc();
+                maxTimeout = 5000 / millisPerTick;
+                if (timeout < 0 || timeout > maxTimeout) {
+                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                            timeout, millisPerTick, maxTimeout);
+                    return -1;
+                }
+            }
             ret = mpMotTargetSend(controlGroup, &target, timeout);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -568,6 +595,19 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             target.aux.coord.ex1 = getInt32(inBuffer, 80);
             target.aux.coord.ex2 = getInt32(inBuffer, 84);
             timeout = getInt32(inBuffer, 88);
+            if (timeout == WAIT_FOREVER) {
+                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
+                return -1;
+            }
+            if (timeout != NO_WAIT) {
+                millisPerTick = mpGetRtc();
+                maxTimeout = 5000 / millisPerTick;
+                if (timeout < 0 || timeout > maxTimeout) {
+                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                            timeout, millisPerTick, maxTimeout);
+                    return -1;
+                }
+            }
             ret = mpMotTargetSend(controlGroup, &target, timeout);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -586,6 +626,19 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             grpNo = getInt32(inBuffer, 12);
             target.id = getInt32(inBuffer, 16);
             timeout = getInt32(inBuffer, 20);
+            if (timeout == WAIT_FOREVER) {
+                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetReceive = %d, WAIT_FOREVER not allowed.\n", timeout);
+                return -1;
+            }
+            if (timeout != NO_WAIT) {
+                millisPerTick = mpGetRtc();
+                maxTimeout = 5000 / millisPerTick;
+                if (timeout < 0 || timeout > maxTimeout) {
+                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetReceive = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                            timeout, millisPerTick, maxTimeout);
+                    return -1;
+                }
+            }
             options = getInt32(inBuffer, 24);
             ret = mpMotTargetReceive(grpNo, target.id, &recvId, timeout, options);
             setInt32(outBuffer, 0, 8);
@@ -856,15 +909,15 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
 
         case EX_FILE_CTRL_FD_READ_FILE:
             fd = getInt32(inBuffer, 12);
-            if(fd == -99) {
+            if (fd == -99) {
                 fd = acceptHandle;
             }
-            if (fd < 1 ) {
+            if (fd < 1) {
                 fprintf(stderr, "tcpSvr: invalid fd for mpFdReadFile = %d\n", ramDriveId);
                 return -1;
             }
-            memset(&fileNameSendData,0,sizeof(fileNameSendData));
-            strcpy(fileNameSendData.cFileName,inBuffer+16);
+            memset(&fileNameSendData, 0, sizeof (fileNameSendData));
+            strcpy(fileNameSendData.cFileName, inBuffer + 16);
             ret = mpFdReadFile(fd, &fileNameSendData);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -874,18 +927,18 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 return -1;
             }
             break;
-            
+
         case EX_FILE_CTRL_FD_WRITE_FILE:
             fd = getInt32(inBuffer, 12);
-            if(fd == -99) {
+            if (fd == -99) {
                 fd = acceptHandle;
             }
-            if (fd < 1 ) {
+            if (fd < 1) {
                 fprintf(stderr, "tcpSvr: invalid fd for mpFdWriteFile = %d\n", ramDriveId);
                 return -1;
             }
-            memset(&fileNameSendData,0,sizeof(fileNameSendData));
-            strcpy(fileNameSendData.cFileName,inBuffer+16);
+            memset(&fileNameSendData, 0, sizeof (fileNameSendData));
+            strcpy(fileNameSendData.cFileName, inBuffer + 16);
             ret = mpFdWriteFile(fd, &fileNameSendData);
             setInt32(outBuffer, 0, 4);
             setInt32(outBuffer, 4, ret);
@@ -895,23 +948,23 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 return -1;
             }
             break;
-            
+
         case EX_FILE_CTRL_FD_GET_JOB_LIST:
             fd = getInt32(inBuffer, 12);
-            if(fd == -99) {
+            if (fd == -99) {
                 fd = acceptHandle;
             }
-            if (fd < 1 ) {
+            if (fd < 1) {
                 fprintf(stderr, "tcpSvr: invalid fd for mpFdGetJobList = %d  (must be 1 or 2)\n", ramDriveId);
                 return -1;
             }
-            memset(&jobListData,0,sizeof(jobListData));
+            memset(&jobListData, 0, sizeof (jobListData));
             ret = mpFdGetJobList(fd, &jobListData);
             setInt32(outBuffer, 0, 10);
             setInt32(outBuffer, 4, ret);
-            setInt16(outBuffer,8,jobListData.err_no);
-            setInt16(outBuffer,10,jobListData.uIsEndFlag);
-            setInt16(outBuffer,12,jobListData.uListDataNum);
+            setInt16(outBuffer, 8, jobListData.err_no);
+            setInt16(outBuffer, 10, jobListData.uIsEndFlag);
+            setInt16(outBuffer, 12, jobListData.uListDataNum);
             sendRet = sendN(acceptHandle, outBuffer, 14, 0);
             if (sendRet != 14) {
                 fprintf(stderr, "tcpSvr: sendRet = %d != 14\n", sendRet);
@@ -993,7 +1046,7 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             maxBytes = getInt32(inBuffer, 16);
             if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
-                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes,(BUFF_MAX-8));
+                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
                 return -1;
             }
             ret = mpRead(fd, outBuffer + 8, maxBytes);
@@ -1015,10 +1068,10 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             maxBytes = getInt32(inBuffer, 16);
             if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
-                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes,(BUFF_MAX-8));
+                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
                 return -1;
             }
-            ret = mpWrite(fd, inBuffer+20, maxBytes);
+            ret = mpWrite(fd, inBuffer + 20, maxBytes);
             setInt32(outBuffer, 0, 4 + (ret > 0 ? ret : 0));
             setInt32(outBuffer, 4, ret);
             sendRet = sendN(acceptHandle, outBuffer, 8 + (ret > 0 ? ret : 0), 0);

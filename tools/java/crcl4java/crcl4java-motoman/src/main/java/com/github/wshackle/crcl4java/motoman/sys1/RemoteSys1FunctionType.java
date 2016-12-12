@@ -42,7 +42,8 @@ public enum RemoteSys1FunctionType {
     SYS1_GET_MODE(12),
     SYS1_GET_CYCLE(13),
     SYS1_GET_ALARM_STATUS(14),
-    SYS1_GET_ALARM_CODE(15);
+    SYS1_GET_ALARM_CODE(15),
+    SYS1_GET_RTC(16);
 
     private RemoteSys1FunctionType(int id) {
         this.id = id;

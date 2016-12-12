@@ -60,6 +60,7 @@ extern "C" {
         SYS1_GET_CYCLE=13,
         SYS1_GET_ALARM_STATUS=14,
         SYS1_GET_ALARM_CODE=15,
+        SYS1_GET_RTC=16,
         
     };
 

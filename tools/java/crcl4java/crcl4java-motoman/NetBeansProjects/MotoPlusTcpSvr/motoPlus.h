@@ -386,7 +386,7 @@ extern "C" {
     extern int mpRename(const char * oldName, const char * newName);
     extern int mpRead(int    fd,char * buffer,size_t maxBytes);
     extern int mpWrite(int    fd,char * buffer,size_t nBytes);
-    
+    extern int mpGetRtc(void);
     
 #ifdef __cplusplus
 }

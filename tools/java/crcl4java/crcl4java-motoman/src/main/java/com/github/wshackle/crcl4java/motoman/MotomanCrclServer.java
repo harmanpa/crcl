@@ -478,8 +478,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         crclStatus.getCommandStatus().setStateDescription("");
                     } else if (!initialized) {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
-                        crclStatus.getCommandStatus().setStateDescription("Command recieved when not initialized.");
-                        System.err.println("Command recieved when not initialized.");
+                        crclStatus.getCommandStatus().setStateDescription("Command received when not initialized.");
+                        System.err.println("Command received when not initialized.");
                     } else if (cmd instanceof StopMotionType) {
                         stopMotion();
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);

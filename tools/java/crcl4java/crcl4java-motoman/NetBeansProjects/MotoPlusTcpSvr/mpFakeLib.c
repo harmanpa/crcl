@@ -446,3 +446,8 @@ int mpWrite(int fd, char * buffer, size_t nBytes) {
     return ret;
 }
 
+
+int mpGetRtc(void) {
+    printf("mpGetRtc() called.\n");
+    return 1;
+}
