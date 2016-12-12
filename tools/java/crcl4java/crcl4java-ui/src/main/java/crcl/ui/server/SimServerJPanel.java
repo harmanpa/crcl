@@ -34,7 +34,6 @@ import crcl.base.PoseType;
 
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
-import static crcl.ui.server.SimServerJFrame.LOGGER;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.SimRobotEnum;
@@ -46,12 +45,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -61,6 +63,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -189,7 +192,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         return inner.getStatus();
     }
 
-    private SimServerMenuOuter menuOuter;
+    private volatile SimServerMenuOuter menuOuter;
 
     /**
      * Get the value of menuOuter
@@ -577,7 +580,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private boolean editing_status = false;
+    private volatile boolean editing_status = false;
 
 //    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
 //        return xpu.queryXml(statSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
@@ -978,8 +981,22 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
     private boolean showing_message = false;
 
+    private boolean getSwingBoolean(Supplier<Boolean> supplier) {
+        final boolean boolarra[]= new boolean[1];
+        try {
+            SwingUtilities.invokeAndWait(() -> boolarra[0] = supplier.get());
+        } catch (InterruptedException | InvocationTargetException ex) {
+            Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return boolarra[0];
+    }
+
     public boolean isInitializedSelected() {
-        return this.jCheckBoxInitialized.isSelected();
+        if (SwingUtilities.isEventDispatchThread()) {
+            return this.jCheckBoxInitialized.isSelected();
+        } else {
+            return getSwingBoolean(() -> this.jCheckBoxInitialized.isSelected());
+        }
     }
 
     @Override

@@ -1012,6 +1012,26 @@ public class SimServerInner {
         this.moveStraight = moveStraight;
     }
 
+    private volatile boolean debugInterrupts = Boolean.getBoolean("crcl.ui.server.SimServerInner.debugInterrupts");
+
+    /**
+     * Get the value of debugInterrupts
+     *
+     * @return the value of debugInterrupts
+     */
+    public boolean isDebugInterrupts() {
+        return debugInterrupts;
+    }
+
+    /**
+     * Set the value of debugInterrupts
+     *
+     * @param debugInterrupts new value of debugInterrupts
+     */
+    public void setDebugInterrupts(boolean debugInterrupts) {
+        this.debugInterrupts = debugInterrupts;
+    }
+
     public void closeServer() {
         try {
             SimServerInner.runningServers.remove(this);
@@ -1022,14 +1042,16 @@ public class SimServerInner {
         if (null != acceptClientsThread) {
             try {
                 try {
-                     acceptClientsThread.join(100);
+                    acceptClientsThread.join(100);
                 } catch (InterruptedException ex) {
                 }
                 if (acceptClientsThread.isAlive()) {
-                    Thread.dumpStack();
-                    System.err.println("Interrupting acceptClientsThread = " + acceptClientsThread);
-                    System.out.println("Interrupting acceptClientsThread = " + acceptClientsThread);
-                    System.out.println("acceptClientsThread.getStackTrace() = " + Arrays.toString(acceptClientsThread.getStackTrace()));
+                    if (debugInterrupts) {
+                        Thread.dumpStack();
+                        System.err.println("Interrupting acceptClientsThread = " + acceptClientsThread);
+                        System.out.println("Interrupting acceptClientsThread = " + acceptClientsThread);
+                        System.out.println("acceptClientsThread.getStackTrace() = " + Arrays.toString(acceptClientsThread.getStackTrace()));
+                    }
                     acceptClientsThread.interrupt();
                     acceptClientsThread.join(100);
                 }
@@ -1043,10 +1065,12 @@ public class SimServerInner {
                 for (Thread t : clientThreadMap.values()) {
                     try {
                         if (t.isAlive()) {
-                            Thread.dumpStack();
-                            System.err.println("Interrupting t = " + t);
-                            System.out.println("Interrupting t = " + t);
-                            System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            if (debugInterrupts) {
+                                Thread.dumpStack();
+                                System.err.println("Interrupting t = " + t);
+                                System.out.println("Interrupting t = " + t);
+                                System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            }
                             t.interrupt();
                             t.join(2000);
                         }
@@ -1059,14 +1083,16 @@ public class SimServerInner {
         if (null != simThread) {
             try {
                 try {
-                     simThread.join(100);
+                    simThread.join(100);
                 } catch (InterruptedException ex) {
                 }
                 if (simThread.isAlive()) {
-                    Thread.dumpStack();
-                    System.err.println("Interrupting simThread = " + simThread);
-                    System.out.println("Interrupting simThread = " + simThread);
-                    System.out.println("simThread.getStackTrace() = " + Arrays.toString(simThread.getStackTrace()));
+                    if (debugInterrupts) {
+                        Thread.dumpStack();
+                        System.err.println("Interrupting simThread = " + simThread);
+                        System.out.println("Interrupting simThread = " + simThread);
+                        System.out.println("simThread.getStackTrace() = " + Arrays.toString(simThread.getStackTrace()));
+                    }
                     simThread.interrupt();
                     simThread.join(100);
                 }
@@ -1101,10 +1127,12 @@ public class SimServerInner {
                 for (Thread t : clientThreadMap.values()) {
                     try {
                         if (t.isAlive()) {
-                            Thread.dumpStack();
-                            System.err.println("Interrupting t = " + t);
-                            System.out.println("Interrupting t = " + t);
-                            System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            if (debugInterrupts) {
+                                Thread.dumpStack();
+                                System.err.println("Interrupting t = " + t);
+                                System.out.println("Interrupting t = " + t);
+                                System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                            }
                             t.interrupt();
                             t.join(100);
                         }
