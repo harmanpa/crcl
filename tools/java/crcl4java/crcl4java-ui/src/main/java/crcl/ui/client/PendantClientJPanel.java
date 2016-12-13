@@ -459,7 +459,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public int getPort() {
         return Integer.parseInt(this.jTextFieldPort.getText());
     }
-    
+
     public void setPort(int port) {
         jTextFieldPort.setText(Integer.toString(port));
     }
@@ -737,13 +737,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public void loadProperties() {
-        loadPrefsFile(propertiesFile);
+        if (null != propertiesFile && propertiesFile.exists()) {
+            loadPrefsFile(propertiesFile);
+        }
     }
-    
+
     public void saveProperties() {
         savePrefsFile(propertiesFile);
     }
-    
+
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
@@ -2365,7 +2367,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-
     public void useExiAction() {
         if (this.isConnected()) {
             this.disconnect();
