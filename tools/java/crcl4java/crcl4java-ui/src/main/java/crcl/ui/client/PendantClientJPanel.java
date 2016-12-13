@@ -314,7 +314,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         InitCanonType cmd = program.getInitCanon();
                         String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
                         showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException ex) {
+                    } catch (JAXBException | CRCLException ex) {
                         Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else if (line > 0 && (null == program.getMiddleCommand())) {
@@ -322,7 +322,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         EndCanonType cmd = program.getEndCanon();
                         String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
                         showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException ex) {
+                    } catch (JAXBException | CRCLException ex) {
                         Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else if (line > 0 && line <= program.getMiddleCommand().size()) {
@@ -330,7 +330,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
                         String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
                         showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException ex) {
+                    } catch (JAXBException | CRCLException ex) {
                         Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else if (line == program.getMiddleCommand().size() + 1) {
@@ -338,7 +338,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         EndCanonType cmd = program.getEndCanon();
                         String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
                         showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException ex) {
+                    } catch (JAXBException | CRCLException ex) {
                         Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }

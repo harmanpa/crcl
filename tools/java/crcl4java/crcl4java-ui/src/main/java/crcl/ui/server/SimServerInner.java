@@ -1599,8 +1599,8 @@ public class SimServerInner {
                 this.updateStatus();
                 ps.println("End printClientStates");
             }
-        } catch (JAXBException jAXBException) {
-            LOGGER.log(Level.SEVERE, null, jAXBException);
+        } catch (CRCLException | JAXBException ex) {
+            Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

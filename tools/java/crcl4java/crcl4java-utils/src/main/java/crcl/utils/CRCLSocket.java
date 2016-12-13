@@ -1826,10 +1826,10 @@ public class CRCLSocket implements AutoCloseable {
         return commandInstanceToPrettyString(instance, false);
     }
 
-    public String commandToPrettyString(CRCLCommandType cmd, String errorText) throws CRCLException {
+    public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
         try {
             return commandToPrettyString(cmd);
-        } catch (JAXBException ex) {
+        } catch (JAXBException | CRCLException ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, "could not convert cmd=" + cmd, ex);
         }
         return errorText;
