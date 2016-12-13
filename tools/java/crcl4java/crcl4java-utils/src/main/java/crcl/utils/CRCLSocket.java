@@ -1820,13 +1820,13 @@ public class CRCLSocket implements AutoCloseable {
         return this.lastProgramString;
     }
 
-    public String commandToPrettyString(CRCLCommandType cmd) throws JAXBException {
+    public String commandToPrettyString(CRCLCommandType cmd) throws JAXBException, CRCLException {
         CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
         instance.setCRCLCommand(cmd);
         return commandInstanceToPrettyString(instance, false);
     }
 
-    public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
+    public String commandToPrettyString(CRCLCommandType cmd, String errorText) throws CRCLException {
         try {
             return commandToPrettyString(cmd);
         } catch (JAXBException ex) {
@@ -1835,7 +1835,7 @@ public class CRCLSocket implements AutoCloseable {
         return errorText;
     }
 
-    public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException {
+    public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException, CRCLException {
         if (null == cmd.getCRCLCommand()) {
             throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
         }
@@ -1846,6 +1846,7 @@ public class CRCLSocket implements AutoCloseable {
                 = objectFactory.createCRCLCommandInstance(cmd);
         StringWriter sw = new StringWriter();
         String ret = null;
+        this.checkCommandSchema(validate);
         synchronized (m_cmd) {
             setMarshallerSchema(m_cmd, validate ? cmdSchema : null);
             m_cmd.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
