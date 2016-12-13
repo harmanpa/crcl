@@ -58,7 +58,6 @@ import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
 import static crcl.ui.IconImages.WORKING_IMAGE;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
-import crcl.utils.AnnotatedPose;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -459,7 +458,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public int getPort() {
         return Integer.parseInt(this.jTextFieldPort.getText());
     }
-
+    
     public void setPort(int port) {
         jTextFieldPort.setText(Integer.toString(port));
     }
@@ -737,15 +736,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public void loadProperties() {
-        if (null != propertiesFile && propertiesFile.exists()) {
-            loadPrefsFile(propertiesFile);
-        }
+        loadPrefsFile(propertiesFile);
     }
-
+    
     public void saveProperties() {
         savePrefsFile(propertiesFile);
     }
-
+    
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
@@ -2367,6 +2364,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
+
     public void useExiAction() {
         if (this.isConnected()) {
             this.disconnect();
