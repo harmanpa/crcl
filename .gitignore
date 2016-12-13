@@ -66,3 +66,7 @@ private.xml
 /tools/java/crcl4java/crcl4java-zeroc-ice/crcl4java-zeroc-ice-baselib/target/
 /tools/java/crcl4java/crcl4java-zeroc-ice/crcl4java-zeroc-ice-server/target/
 /tools/java/crcl4java/crcl4java-zeroc-ice/crcl4java-zeroc-ice-client/target/
+/.gnupg/
+/tools/java/crcl4java/crcl4java-motoman/NetBeansProjects/MotoPlusTcpSvr/build/
+/tools/java/crcl4java/crcl4java-motoman/NetBeansProjects/MotoPlusTcpSvr/dist/
+/tools/java/crcl4java/crcl4java-motoman/target/
