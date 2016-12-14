@@ -164,27 +164,31 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     public void saveProperties() throws IOException {
-        Properties props = new Properties();
-        int port = Integer.valueOf(jTextFieldPort.getText());
-        props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
-        System.out.println("AprsJFrame saving properties to " + propertiesFile.getCanonicalPath());
-        try (FileWriter fw = new FileWriter(propertiesFile)) {
-            props.store(fw, "");
+        if (null != propertiesFile) {
+            Properties props = new Properties();
+            int port = Integer.valueOf(jTextFieldPort.getText());
+            props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
+            System.out.println("SimServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
+            try (FileWriter fw = new FileWriter(propertiesFile)) {
+                props.store(fw, "");
+            }
         }
     }
 
     public void loadProperties() throws IOException {
-        Properties props = new Properties();
-        if (propertiesFile.exists()) {
-            try (FileReader fr = new FileReader(propertiesFile)) {
-                props.load(fr);
-            } 
-        }
-        String portString = props.getProperty(CRCLPORT_PROPERTY_NAME);
-        if(portString != null) {
-            int port = Integer.valueOf(portString);
-            jTextFieldPort.setText(Integer.toString(port));
-            restartServer();
+        if (null != propertiesFile) {
+            Properties props = new Properties();
+            if (propertiesFile.exists()) {
+                try (FileReader fr = new FileReader(propertiesFile)) {
+                    props.load(fr);
+                }
+            }
+            String portString = props.getProperty(CRCLPORT_PROPERTY_NAME);
+            if (portString != null) {
+                int port = Integer.valueOf(portString);
+                jTextFieldPort.setText(Integer.toString(port));
+                restartServer();
+            }
         }
     }
     private static final String CRCLPORT_PROPERTY_NAME = "crcl.port";
