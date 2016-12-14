@@ -43,6 +43,8 @@ import java.awt.Container;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -135,10 +138,56 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     public void restartServer() {
         inner.restartServer();
     }
-    
+
     public void closeServer() {
         inner.closeServer();
     }
+
+    private File propertiesFile;
+
+    /**
+     * Get the value of propertiesFile
+     *
+     * @return the value of propertiesFile
+     */
+    public File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        this.propertiesFile = propertiesFile;
+    }
+
+    public void saveProperties() throws IOException {
+        Properties props = new Properties();
+        int port = Integer.valueOf(jTextFieldPort.getText());
+        props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
+        System.out.println("AprsJFrame saving properties to " + propertiesFile.getCanonicalPath());
+        try (FileWriter fw = new FileWriter(propertiesFile)) {
+            props.store(fw, "");
+        }
+    }
+
+    public void loadProperties() throws IOException {
+        Properties props = new Properties();
+        if (propertiesFile.exists()) {
+            try (FileReader fr = new FileReader(propertiesFile)) {
+                props.load(fr);
+            } 
+        }
+        String portString = props.getProperty(CRCLPORT_PROPERTY_NAME);
+        if(portString != null) {
+            int port = Integer.valueOf(portString);
+            jTextFieldPort.setText(Integer.toString(port));
+            restartServer();
+        }
+    }
+    private static final String CRCLPORT_PROPERTY_NAME = "crcl.port";
 
     static public boolean LOG_IMAGES_DEFAULT = false;
 
@@ -991,7 +1040,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private boolean showing_message = false;
 
     private boolean getSwingBoolean(Supplier<Boolean> supplier) {
-        final boolean boolarra[]= new boolean[1];
+        final boolean boolarra[] = new boolean[1];
         try {
             SwingUtilities.invokeAndWait(() -> boolarra[0] = supplier.get());
         } catch (InterruptedException | InvocationTargetException ex) {

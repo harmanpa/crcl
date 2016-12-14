@@ -24,8 +24,11 @@ import crcl.base.LengthUnitEnumType;
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -67,6 +70,8 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemExit = new javax.swing.JMenuItem();
+        jMenuItemSaveProperties = new javax.swing.JMenuItem();
+        jMenuItemLoadProperties = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItemEditStatus = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
@@ -98,6 +103,14 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         jMenuItemExit.setText("Exit");
         jMenuItemExit.addActionListener(formListener);
         jMenu1.add(jMenuItemExit);
+
+        jMenuItemSaveProperties.setText("Save Properties As ...");
+        jMenuItemSaveProperties.addActionListener(formListener);
+        jMenu1.add(jMenuItemSaveProperties);
+
+        jMenuItemLoadProperties.setText("Load Properties ...");
+        jMenuItemLoadProperties.addActionListener(formListener);
+        jMenu1.add(jMenuItemLoadProperties);
 
         jMenuBar1.add(jMenu1);
 
@@ -229,6 +242,12 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServerJFrame.this.jMenuItemViewCommandLogFullActionPerformed(evt);
             }
+            else if (evt.getSource() == jMenuItemSaveProperties) {
+                SimServerJFrame.this.jMenuItemSavePropertiesActionPerformed(evt);
+            }
+            else if (evt.getSource() == jMenuItemLoadProperties) {
+                SimServerJFrame.this.jMenuItemLoadPropertiesActionPerformed(evt);
+            }
         }
     }// </editor-fold>//GEN-END:initComponents
 
@@ -277,6 +296,30 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
     private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
         simServerJPanel1.aboutAction();
     }//GEN-LAST:event_jMenuItemAboutActionPerformed
+
+    private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+            setPropertiesFile(chooser.getSelectedFile());
+            try {
+                saveProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jMenuItemSavePropertiesActionPerformed
+
+    private void jMenuItemLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPropertiesActionPerformed
+       JFileChooser chooser = new JFileChooser();
+        if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+            setPropertiesFile(chooser.getSelectedFile());
+           try {
+               loadProperties();
+           } catch (IOException ex) {
+               Logger.getLogger(SimServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+           }
+        }
+    }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
 
     /**
      * @param args the command line arguments
@@ -334,6 +377,8 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
     private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemEditStatus;
     private javax.swing.JMenuItem jMenuItemExit;
+    private javax.swing.JMenuItem jMenuItemLoadProperties;
+    private javax.swing.JMenuItem jMenuItemSaveProperties;
     private javax.swing.JMenuItem jMenuItemSetSchema;
     private javax.swing.JMenuItem jMenuItemViewCommandLogBrief;
     private javax.swing.JMenuItem jMenuItemViewCommandLogFull;
@@ -470,4 +515,18 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         return this;
     }
 
+    public File getPropertiesFile() {
+        return simServerJPanel1.getPropertiesFile();
+    }
+    
+    public void setPropertiesFile(File f) {
+        simServerJPanel1.setPropertiesFile(f);
+    }
+    
+    public void loadProperties() throws IOException {
+        simServerJPanel1.loadProperties();
+    }
+    public void saveProperties() throws IOException {
+        simServerJPanel1.saveProperties();
+    }
 }

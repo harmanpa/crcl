@@ -25,6 +25,11 @@ package crcl.ui.server;
 import crcl.base.LengthUnitEnumType;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 
 /**
  *
@@ -58,6 +63,8 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemExit = new javax.swing.JMenuItem();
+        jMenuItemSaveProperties = new javax.swing.JMenuItem();
+        jMenuItemLoadProperties = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItemEditStatus = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
@@ -93,6 +100,22 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             }
         });
         jMenu1.add(jMenuItemExit);
+
+        jMenuItemSaveProperties.setText("Save Properties As ...");
+        jMenuItemSaveProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSavePropertiesActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSaveProperties);
+
+        jMenuItemLoadProperties.setText("Load Properties ...");
+        jMenuItemLoadProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLoadPropertiesActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemLoadProperties);
 
         jMenuBar1.add(jMenu1);
 
@@ -264,6 +287,30 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         simServerJPanel1.viewCommandLogFullAction();
     }//GEN-LAST:event_jMenuItemViewCommandLogFullActionPerformed
 
+    private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+            setPropertiesFile(chooser.getSelectedFile());
+            try {
+                saveProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jMenuItemSavePropertiesActionPerformed
+
+    private void jMenuItemLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPropertiesActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+            try {
+                setPropertiesFile(chooser.getSelectedFile());
+                loadProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
+
     
     @Override
     public boolean isDebugMoveDoneSelected() {
@@ -393,7 +440,22 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     public SimServerMenuOuter getMenuOuter() {
         return this;
     }
-
+    
+    public File getPropertiesFile() {
+        return simServerJPanel1.getPropertiesFile();
+    }
+    
+    public void setPropertiesFile(File f) {
+        simServerJPanel1.setPropertiesFile(f);
+    }
+    
+    public void loadProperties() throws IOException {
+        simServerJPanel1.loadProperties();
+    }
+    public void saveProperties() throws IOException {
+        simServerJPanel1.saveProperties();
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemAppendZero;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugMoveDone;
@@ -415,6 +477,8 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemEditStatus;
     private javax.swing.JMenuItem jMenuItemExit;
+    private javax.swing.JMenuItem jMenuItemLoadProperties;
+    private javax.swing.JMenuItem jMenuItemSaveProperties;
     private javax.swing.JMenuItem jMenuItemSetSchema;
     private javax.swing.JMenuItem jMenuItemViewCommandLogBrief;
     private javax.swing.JMenuItem jMenuItemViewCommandLogFull;
