@@ -187,6 +187,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             if (portString != null) {
                 int port = Integer.valueOf(portString);
                 jTextFieldPort.setText(Integer.toString(port));
+                inner.setPort(port);
                 restartServer();
             }
         }
