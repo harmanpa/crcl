@@ -46,6 +46,18 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         this.simServerJPanel1.restartServer();
     }
 
+    public SimServerJInternalFrame(boolean startServer) {
+        initComponents();
+        this.simServerJPanel1.setMenuOuter(this);
+        if(startServer) {
+            this.simServerJPanel1.restartServer();
+        }
+    }
+    
+    public void restartServer() {
+        this.simServerJPanel1.restartServer();
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
