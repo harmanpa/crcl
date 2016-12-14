@@ -30,7 +30,7 @@ import crcl.utils.outer.interfaces.SimServerOuter;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class SimServerJInternalFrame extends javax.swing.JInternalFrame implements SimServerOuter, SimServerMenuOuter {
+public class SimServerJInternalFrame extends javax.swing.JInternalFrame implements SimServerOuter, SimServerMenuOuter, AutoCloseable {
 
     /**
      * Creates new form SimServerJInternalFrame
@@ -420,4 +420,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     private javax.swing.JMenuItem jMenuItemViewCommandLogFull;
     private crcl.ui.server.SimServerJPanel simServerJPanel1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void close() throws Exception {
+        simServerJPanel1.restartServer();
+        this.setVisible(false);
+    }
 }

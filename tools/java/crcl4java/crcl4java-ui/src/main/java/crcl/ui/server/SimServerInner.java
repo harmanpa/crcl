@@ -2355,6 +2355,7 @@ public class SimServerInner {
             ssock.setReuseAddress(true);
             acceptClientsThread = new Thread(this::runAcceptClients,
                     "acceptClientsThread");
+            acceptClientsThread.setDaemon(true);
             acceptClientsThread.start();
             final int start_close_count = this.close_count;
             maxReadCommandTime = 0;
@@ -2415,6 +2416,7 @@ public class SimServerInner {
                     }
                 }
             }, "simThread");
+            simThread.setDaemon(true);
             simThread.start();
             SimServerInner.runningServers.add(this);
         } catch (IOException ex) {

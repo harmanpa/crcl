@@ -72,7 +72,7 @@ import javax.xml.parsers.ParserConfigurationException;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class SimServerJPanel extends javax.swing.JPanel implements SimServerOuter {
+public class SimServerJPanel extends javax.swing.JPanel implements SimServerOuter, AutoCloseable {
 
     /**
      * Creates new form SimServerJPanel
@@ -134,6 +134,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     public void restartServer() {
         inner.restartServer();
+    }
+    
+    public void closeServer() {
+        inner.closeServer();
     }
 
     static public boolean LOG_IMAGES_DEFAULT = false;
@@ -605,6 +609,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
+    }
+
+    @Override
+    public void close() throws Exception {
+        closeServer();
     }
 
     private static interface TryFunction<T, R> {
