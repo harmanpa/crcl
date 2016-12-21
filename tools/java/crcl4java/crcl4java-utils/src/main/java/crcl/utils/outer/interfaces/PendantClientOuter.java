@@ -26,6 +26,7 @@ import crcl.base.PoseType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBException;
 
 /**
@@ -64,7 +65,7 @@ public interface PendantClientOuter {
 
     public CRCLProgramType editProgram(CRCLProgramType program);
 
-    public boolean checkUserText(String text);
+    public boolean checkUserText(String text) throws InterruptedException,ExecutionException ;
 
     public boolean isMonitoringHoldingObject();
 

@@ -164,6 +164,26 @@ public class SimServerInner {
 
     private boolean reportPoseStatus = true;
 
+        private boolean forceFail = false;
+
+    /**
+     * Get the value of forceFail
+     *
+     * @return the value of forceFail
+     */
+    public boolean isForceFail() {
+        return forceFail;
+    }
+
+    /**
+     * Set the value of forceFail
+     *
+     * @param forceFail new value of forceFail
+     */
+    public void setForceFail(boolean forceFail) {
+        this.forceFail = forceFail;
+    }
+
     public void setPoseStatus(PoseStatusType newPoseStatus) {
         if (null != newPoseStatus) {
             poseStatus.setName(newPoseStatus.getName());
@@ -634,6 +654,7 @@ public class SimServerInner {
 
     public void simulatedTeleportToPose(PoseType pose) {
         try {
+            if(checkForceFail()) return;
             if (null != pose) {
                 PointType pt = pose.getPoint();
                 if (null != pt) {
@@ -667,6 +688,15 @@ public class SimServerInner {
         } catch (PmException ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private boolean checkForceFail() {
+        if (this.forceFail) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            setStateDescription("Forced Failure State");
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -720,6 +750,7 @@ public class SimServerInner {
             if (null == cst.getStatusID()) {
                 cst.setStatusID(BigInteger.ONE);
             }
+            
             setCommandState(CommandStateEnumType.CRCL_DONE);
         } catch (PmException ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
@@ -1366,6 +1397,7 @@ public class SimServerInner {
     private boolean updateStatus() {
         boolean jointschanged = false;
         PoseType curGoalPose = null;
+        if(checkForceFail()) return true;
         try {
             synchronized (status) {
                 if (!outer.isEditingStatus()) {

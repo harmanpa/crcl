@@ -20,6 +20,7 @@
  */
 package crcl.ui.misc;
 
+import crcl.base.CRCLProgramType;
 import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
@@ -46,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -747,12 +750,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     private JDialog dialog = null;
     private boolean cancelled = false;
-    transient private Predicate<T> isValid = null;
+    transient private Function<T,CompletableFuture<Boolean>>  isValid = null;
 
     private static <T> T editObjectPriv(JDialog _dialog, T _obj,
             XpathUtils xpu,
             File schemaFiles[],
-            java.util.function.Predicate<T> isValid) {
+            Function<T,CompletableFuture<Boolean>> isValid) {
         ObjTableJPanel<T> panel = new ObjTableJPanel<>();
         panel.dialog = _dialog;
         panel.setObj(_obj);
@@ -793,13 +796,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return panel.getObj();
     }
 
-    public static <T> T editObject(T _obj, Frame _owner, String _title, boolean _modal, XpathUtils xpu, File schemaFiles[], java.util.function.Predicate<T> isValid) {
+    public static <T> T editObject(T _obj, Frame _owner, String _title, boolean _modal, XpathUtils xpu, File schemaFiles[], Function<T,CompletableFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog(_owner, _obj.getClass().getCanonicalName() + ":" + _title, _modal);
         return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid);
     }
 
     public static <T> T editObject(T _obj, XpathUtils xpu, File schemaFiles[],
-            Predicate<T> isValid) {
+            Function<T,CompletableFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog();
         dialog.setTitle(_obj.getClass().getCanonicalName());
         dialog.setModal(true);
@@ -1036,13 +1039,23 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         this.cancelled = false;
         this.updateObjFromTable();
         if (null != this.isValid) {
-            if (!this.isValid.test(this.obj)) {
-                return;
-            }
+            // The predicate is potentially blocking. To avoid blocking it may return
+            // a CompleteableFuture<Boolean> which is then scheduled to set the dialogs
+            // visible state when/if it completes.
+            this.isValid.apply(this.obj)
+                    .thenAccept(b -> runOnDispatchThread(() -> this.dialog.setVisible(!b)));
+            return;
         }
         this.dialog.setVisible(false);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
+    private static void runOnDispatchThread(final Runnable r) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            r.run();
+        } else {
+            javax.swing.SwingUtilities.invokeLater(r);
+        }
+    }
     static private List<Class> classes = null;
 
     static private List<Class> addClasses(String prefix, File dir, List<Class> classes) {

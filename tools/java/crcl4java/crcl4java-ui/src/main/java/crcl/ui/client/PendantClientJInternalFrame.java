@@ -24,14 +24,13 @@ package crcl.ui.client;
 
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
-import crcl.ui.IconImages;
-import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.ui.misc.ObjTableJPanel;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
-import crcl.ui.server.SimServerJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
@@ -41,13 +40,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -74,6 +74,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         init();
     }
     
+    public void disconnect() {
+        pendantClientJPanel1.disconnect();
+    }
+    
     public void connectCurrent() {
         pendantClientJPanel1.connectCurrent();
     }
@@ -81,6 +85,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public void connect(String host, int port) {
         pendantClientJPanel1.connect(host, port);
     }
+    
     
     private JFrame parentJFrame = null;
     public JFrame findParentJFrame() {
@@ -364,6 +369,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         jCheckBoxMenuItemDebugWaitForDone = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugSendCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
+        jMenuItemDebugInterrupts = new javax.swing.JMenuItem();
         jCheckBoxMenuItemUseEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
@@ -594,6 +600,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         jCheckBoxMenuItemDebugReadStatus.setText("Debug  readStatus() ");
         jMenuOptions.add(jCheckBoxMenuItemDebugReadStatus);
 
+        jMenuItemDebugInterrupts.setText("Debug interrupts");
+        jMenuItemDebugInterrupts.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemDebugInterruptsActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jMenuItemDebugInterrupts);
+
         jCheckBoxMenuItemUseEXI.setText("USE EXI (Efficient XML Interchange)");
         jCheckBoxMenuItemUseEXI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -785,6 +799,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         pendantClientJPanel1.aboutAction();
     }//GEN-LAST:event_jMenuItemAboutActionPerformed
 
+    private void jMenuItemDebugInterruptsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDebugInterruptsActionPerformed
+        pendantClientJPanel1.setDebugInterrupts(jMenuItemDebugInterrupts.isSelected());
+    }//GEN-LAST:event_jMenuItemDebugInterruptsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadStatus;
@@ -806,6 +824,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     private javax.swing.JMenu jMenuCommandRecent;
     private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemClearRecordedPoints;
+    private javax.swing.JMenuItem jMenuItemDebugInterrupts;
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemLoadPrefs;
     private javax.swing.JMenuItem jMenuItemOpenStatusLog;
@@ -907,7 +926,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     }
 
     @Override
-    public boolean checkUserText(String text) {
+    public boolean checkUserText(String text) throws InterruptedException, ExecutionException {
         return pendantClientJPanel1.checkUserText(text);
     }
 
@@ -926,6 +945,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         return pendantClientJPanel1.getCurrentProgramCommand();
     }
 
+    public Optional<CRCLStatusType> getCurrentStatus() {
+        return pendantClientJPanel1.getCurrentStatus();
+    }
+
+    public Optional<CommandStateEnumType> getCurrentState() {
+        return pendantClientJPanel1.getCurrentState();
+    }
+    
     @Override
     public PoseType getCurrentPose() {
         return pendantClientJPanel1.getCurrentPose();
@@ -1027,6 +1054,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     @Override
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
+        jMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
     }
 
     @Override

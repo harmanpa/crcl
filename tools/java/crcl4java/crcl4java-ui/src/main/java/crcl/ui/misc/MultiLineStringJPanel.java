@@ -25,12 +25,18 @@ import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.TransferHandler;
+import javax.swing.WindowConstants;
 
 /**
  *
@@ -145,50 +151,51 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
-       this.cancelled = true;
-       this.dialog.setVisible(false);
+        this.cancelled = true;
+        this.dialog.setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private JPopupMenu popMenu = new JPopupMenu();
+
     {
         JMenuItem copyMenuItem = new JMenuItem("Copy");
         copyMenuItem.addActionListener(e -> copyText());
         popMenu.add(copyMenuItem);
     }
+
     private void copyText() {
-        this.jTextArea1.getTransferHandler().exportToClipboard(this.jTextArea1, 
-                Toolkit.getDefaultToolkit().getSystemClipboard(), 
+        this.jTextArea1.getTransferHandler().exportToClipboard(this.jTextArea1,
+                Toolkit.getDefaultToolkit().getSystemClipboard(),
                 TransferHandler.COPY);
         popMenu.setVisible(false);
     }
-    
-    public void showPopup(Component comp, int x,int y) {
-        
+
+    public void showPopup(Component comp, int x, int y) {
+
         popMenu.show(comp, x, y);
     }
-    
+
     private void jTextArea1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MousePressed
-        if(evt.isPopupTrigger()) {
-            showPopup(evt.getComponent(), evt.getX(),evt.getY());
+        if (evt.isPopupTrigger()) {
+            showPopup(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MousePressed
 
     private void jTextArea1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseClicked
-        if(evt.isPopupTrigger()) {
-            showPopup(evt.getComponent(), evt.getX(),evt.getY());
+        if (evt.isPopupTrigger()) {
+            showPopup(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MouseClicked
 
     private void jTextArea1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextArea1MouseReleased
-        if(evt.isPopupTrigger()) {
-            showPopup(evt.getComponent(), evt.getX(),evt.getY());
+        if (evt.isPopupTrigger()) {
+            showPopup(evt.getComponent(), evt.getX(), evt.getY());
         }
     }//GEN-LAST:event_jTextArea1MouseReleased
 
-
     private JDialog dialog = null;
     private boolean cancelled = false;
-    
+
     private static String editTextPrivate(JDialog _dialog, String init) {
         MultiLineStringJPanel panel = new MultiLineStringJPanel();
         panel.jTextArea1.setText(init);
@@ -198,12 +205,12 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         _dialog.add(panel);
         _dialog.pack();
         _dialog.setVisible(true);
-        if(panel.cancelled) {
+        if (panel.cancelled) {
             return null;
         }
         return panel.jTextArea1.getText();
     }
-    
+
     public static String editText(String init, Frame _owner,
             String _title,
             boolean _modal) {
@@ -216,41 +223,73 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         dialog.setModal(true);
         return editTextPrivate(dialog, init);
     }
-    
-    
+
     private static boolean showTextPrivate(JDialog _dialog, String init) {
         MultiLineStringJPanel panel = new MultiLineStringJPanel();
         panel.jTextArea1.setText(init);
 //        panel.jTextArea1.setEditable(false);
         panel.jScrollPane1.getVerticalScrollBar().setValue(0);
         panel.jTextArea1.setCaretPosition(0);
+        _dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        _dialog.addWindowListener(new WindowAdapter() {
+            
+            @Override
+            public void windowClosing(WindowEvent e) {
+                _dialog.setVisible(false);
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                 _dialog.setVisible(false);
+            }
+
+        });
         panel.dialog = _dialog;
         _dialog.add(panel);
         _dialog.pack();
         _dialog.setVisible(true);
         return !panel.cancelled;
     }
-    
-    public static boolean showText(String init, Window _owner,
+
+    public static void showText(String init, Window _owner,
             String _title,
             Dialog.ModalityType _modal) {
         JDialog dialog = new JDialog(_owner, _title, _modal);
-        return showTextPrivate(dialog, init);
+        showTextPrivate(dialog, init);
     }
-    
-    public static boolean showText(String init, JFrame _owner,
+
+    public static CompletableFuture<Boolean> showText(String init, JFrame _owner,
             String _title,
             boolean _modal) {
-        JDialog dialog = new JDialog(_owner, _title, _modal);
+        
+        final CompletableFuture<Boolean> ret = new CompletableFuture<>();
+        runOnDispatchThread(() ->  {
+            JDialog dialog = new JDialog(_owner, _title, _modal);
+            ret.complete(showTextPrivate(dialog, init));
+        });
+        return ret;
+    }
+
+    public static CompletableFuture<Boolean> showText(String init) {
+        final CompletableFuture<Boolean> ret = new CompletableFuture<>();
+        runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
+        return ret;
+    }
+
+    private static boolean showTextInternal(String init) {
+        JDialog dialog = new JDialog();
+        dialog.setModal(false);
         return showTextPrivate(dialog, init);
     }
 
-    public static boolean showText(String init) {
-        JDialog dialog = new JDialog();
-        dialog.setModal(true);
-        return showTextPrivate(dialog, init);
+    private static void runOnDispatchThread(final Runnable r) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            r.run();
+        } else {
+            javax.swing.SwingUtilities.invokeLater(r);
+        }
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonCancel;
     private javax.swing.JButton jButtonOK;

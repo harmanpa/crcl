@@ -236,6 +236,14 @@
                 <Property name="text" type="java.lang.String" value="Debug  readStatus() "/>
               </Properties>
             </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="jMenuItemDebugInterrupts">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Debug interrupts"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemDebugInterruptsActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemUseEXI">
               <Properties>
                 <Property name="text" type="java.lang.String" value="USE EXI (Efficient XML Interchange)"/>

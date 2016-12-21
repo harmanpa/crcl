@@ -111,6 +111,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -200,9 +201,9 @@ public class PendantClientInner {
     private final XpathUtils xpu;
     private CRCLSocket checkerCRCLSocket = null;
     private CRCLCommandInstanceType checkerCommandInstance = null;
-    private final Predicate<CRCLProgramType> checkProgramValidPredicate
+    private final Function<CRCLProgramType, CompletableFuture<Boolean>> checkProgramValidPredicate
             = this::checkProgramValid;
-    private final Predicate<CRCLCommandType> checkCommandValidPredicate
+    private final Function<CRCLCommandType, CompletableFuture<Boolean>> checkCommandValidPredicate
             = this::checkCommandValid;
 //    private File[] cmdSchemaFiles = null;
 //    private File[] programSchemaFiles = null;
@@ -390,11 +391,18 @@ public class PendantClientInner {
         this.debugInterrupts = debugInterrupts;
     }
 
+    private final List<StackTraceElement[]> interruptStacks = Collections.synchronizedList(new ArrayList<>());
+
     public void closeTestProgramThread() {
         close_test_count.incrementAndGet();
         if (null != runTestProgramThread) {
             if (runTestProgramThread.equals(Thread.currentThread())) {
                 return;
+            }
+            try {
+                this.runTestProgramThread.join(100);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             if (this.runTestProgramThread.isAlive()) {
                 if (debugInterrupts) {
@@ -403,6 +411,7 @@ public class PendantClientInner {
                     System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
                     System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(runTestProgramThread.getStackTrace()));
                 }
+                interruptStacks.add(Thread.currentThread().getStackTrace());
                 this.runTestProgramThread.interrupt();
                 try {
                     this.runTestProgramThread.join(100);
@@ -487,15 +496,15 @@ public class PendantClientInner {
         return this.xpu;
     }
 
-    public Predicate<CRCLProgramType> getCheckProgramValidPredicate() {
+    public Function<CRCLProgramType, CompletableFuture<Boolean>> getCheckProgramValidPredicate() {
         return checkProgramValidPredicate;
     }
 
-    public Predicate<CRCLCommandType> getCheckCommandValidPredicate() {
+    public Function<CRCLCommandType, CompletableFuture<Boolean>> getCheckCommandValidPredicate() {
         return checkCommandValidPredicate;
     }
 
-    public boolean checkProgramValid(CRCLProgramType prog) {
+    public CompletableFuture<Boolean> checkProgramValid(CRCLProgramType prog) {
         try {
             if (null == checkerCommandInstance) {
                 checkerCommandInstance = new CRCLCommandInstanceType();
@@ -506,7 +515,7 @@ public class PendantClientInner {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return false;
+        return CompletableFuture.completedFuture(false);
     }
 
     public CRCLSocket getTempCRCLSocket() {
@@ -516,7 +525,7 @@ public class PendantClientInner {
         return (checkerCRCLSocket = new CRCLSocket());
     }
 
-    public boolean checkCommandValid(CRCLCommandType cmdObj) {
+    public CompletableFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
         try {
             if (null == checkerCommandInstance) {
                 checkerCommandInstance = new CRCLCommandInstanceType();
@@ -540,7 +549,7 @@ public class PendantClientInner {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return false;
+        return CompletableFuture.completedFuture(false);
     }
 
     public synchronized void setStatSchema(File[] fa) {
@@ -1757,10 +1766,21 @@ public class PendantClientInner {
         this.outgoingProgramLength = outgoingProgramLength;
     }
 
+    private final ThreadLocal<StackTraceElement[]> callingRunProgramStackTrace = new ThreadLocal<>();
+
+    public ThreadLocal<StackTraceElement[]> getCallingRunProgramStackTrace() {
+        return callingRunProgramStackTrace;
+    }
+
     public boolean runProgram(CRCLProgramType prog, int startLine) {
+        return runProgram(prog, startLine, null);
+    }
+
+    public boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
+        callingRunProgramStackTrace.set(threadCreateCallStack);
         try {
             setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
             paused = false;
@@ -1853,6 +1873,7 @@ public class PendantClientInner {
             setOutgoingProgramIndex(null);
             this.runEndMillis = System.currentTimeMillis();
             outer.checkPollSelected();
+            callingRunProgramStackTrace.set(null);
         }
         return false;
     }
@@ -2578,6 +2599,23 @@ public class PendantClientInner {
         return newStat;
     }
 
+    private String createInterrupStackString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < this.interruptStacks.size(); i++) {
+            StackTraceElement[] stack = interruptStacks.get(i);
+            sb.append("stack ");
+            sb.append(i);
+            sb.append(":");
+            sb.append(NEW_LINE);
+            for (StackTraceElement el : stack) {
+                sb.append(el.toString());
+                sb.append(NEW_LINE);
+            }
+        }
+        interruptStacks.clear();
+        return sb.toString();
+    }
+
     /**
      *
      * @param cmd the value of command to test
@@ -2657,6 +2695,9 @@ public class PendantClientInner {
 
             sendCommandTime = System.currentTimeMillis();
             WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
+            if(cmd instanceof EndCanonType) {
+                return true;
+            }
             if (wfdResult != WaitForDoneResult.WFD_DONE) {
                 if (pause_count_start != this.pause_count.get()) {
                     continue;
@@ -2667,6 +2708,7 @@ public class PendantClientInner {
                     poseListSaveFileName = tmpFile.getCanonicalPath();
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
+                String intString = this.createInterrupStackString();
                 showMessage("Test Progam timed out waiting for DONE from " + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
@@ -2683,6 +2725,7 @@ public class PendantClientInner {
                                 ? "status.getCommandStatus()=null\n"
                                 : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
                                 + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        + "intString=" + intString + NEW_LINE
                 );
                 SimServerInner.printAllClientStates(System.err);
                 Thread.getAllStackTraces().entrySet().forEach((x) -> {
@@ -2692,12 +2735,14 @@ public class PendantClientInner {
                     });
                     System.err.println("");
                 });
+                System.err.println("intString=" + intString);
                 return false;
             }
         } while (pause_count_start != this.pause_count.get());
 
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
+            String intString = this.createInterrupStackString();
             showMessage("Test Progam testCommandEffect failed for " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
@@ -2712,6 +2757,7 @@ public class PendantClientInner {
                             ? "status.getCommandStatus()=null\n"
                             : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
                             + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                    + "intString=" + intString + NEW_LINE
             );
         }
         return effectOk;
@@ -2719,11 +2765,12 @@ public class PendantClientInner {
 
     public void startRunProgramThread(final int startLine) {
         this.closeTestProgramThread();
+        final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
         this.runTestProgramThread = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                runProgram(program, startLine);
+                runProgram(program, startLine, callingStackTrace);
             }
 
         }, "PendantClientInner.runProgram");

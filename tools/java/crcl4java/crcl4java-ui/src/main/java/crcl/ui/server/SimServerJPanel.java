@@ -50,11 +50,12 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -297,6 +298,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jButtonRestartServer = new javax.swing.JButton();
         jComboBoxRobotType = new javax.swing.JComboBox<>();
         jCheckBoxTeleportToGoals = new javax.swing.JCheckBox();
+        jCheckBoxForceFail = new javax.swing.JCheckBox();
         jPanel5 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -436,6 +438,13 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             }
         });
 
+        jCheckBoxForceFail.setText("Force Fail");
+        jCheckBoxForceFail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxForceFailActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
@@ -443,21 +452,25 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGap(0, 2, Short.MAX_VALUE)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(jCheckBoxSendStatusWithoutRequest))
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(jButtonReset)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonRestartServer)))
-                        .addGap(12, 12, 12))
+                                .addComponent(jButtonRestartServer))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addGap(12, 12, 12)
+                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jCheckBoxSendStatusWithoutRequest)
+                                    .addGroup(jPanel4Layout.createSequentialGroup()
+                                        .addComponent(jCheckBoxTeleportToGoals)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jCheckBoxForceFail))))))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(jCheckBoxInitialized)
                         .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap(92, Short.MAX_VALUE))
+                .addGap(90, 90, 90))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jComboBoxRobotType, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -465,18 +478,13 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jTextFieldCycleTime)
-                            .addComponent(jTextFieldPort, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(jCheckBoxTeleportToGoals)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextFieldCycleTime)
+                    .addComponent(jTextFieldPort, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -499,7 +507,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxSendStatusWithoutRequest)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jCheckBoxTeleportToGoals))
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxTeleportToGoals)
+                    .addComponent(jCheckBoxForceFail)))
         );
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Status"));
@@ -615,8 +625,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE))))
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -885,15 +895,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    transient private final Predicate<CRCLStatusType> checkStatusValidPredicate = new Predicate<CRCLStatusType>() {
+    transient private final Function<CRCLStatusType,CompletableFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType,CompletableFuture<Boolean>>() {
+
         @Override
-        public boolean test(CRCLStatusType t) {
+        public CompletableFuture<Boolean> apply(CRCLStatusType t) {
             return checkStatusValid(t);
         }
     };
 
 //            = this::checkStatusValid;
-    public boolean checkStatusValid(CRCLStatusType statusObj) {
+    public CompletableFuture<Boolean> checkStatusValid(CRCLStatusType statusObj) {
         try {
             String s = inner.getCheckerCRCLSocket().statusToPrettyString(statusObj, true);
             return MultiLineStringJPanel.showText(s);
@@ -901,7 +912,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return false;
+        return CompletableFuture.completedFuture(false);
     }
 
     public boolean isSendStatusWithoutRequestSelected() {
@@ -991,7 +1002,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 showing_message = false;
             }
         });
-    }
+    } 
 
     private boolean toolChangerOpen;
 
@@ -1145,10 +1156,15 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         }
     }//GEN-LAST:event_lengthUnitComboBoxActionPerformed
 
+    private void jCheckBoxForceFailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxForceFailActionPerformed
+        this.inner.setForceFail(jCheckBoxForceFail.isSelected());
+    }//GEN-LAST:event_jCheckBoxForceFailActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonReset;
     private javax.swing.JButton jButtonRestartServer;
+    private javax.swing.JCheckBox jCheckBoxForceFail;
     private javax.swing.JCheckBox jCheckBoxInitialized;
     private javax.swing.JCheckBox jCheckBoxSendStatusWithoutRequest;
     private javax.swing.JCheckBox jCheckBoxTeleportToGoals;

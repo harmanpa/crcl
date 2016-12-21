@@ -103,6 +103,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -159,8 +160,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private PendantClientMenuOuter menuOuter;
 
     @Override
-    public boolean checkUserText(String text) {
-        return MultiLineStringJPanel.showText(text);
+    public boolean checkUserText(String text) throws InterruptedException, ExecutionException {
+        return MultiLineStringJPanel.showText(text).get();
     }
 
     public void showJointsPlot() {
@@ -265,7 +266,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public void addCurrentPoseListener(CurrentPoseListener l) {
         synchronized (programLineListeners) {
-            if (!programLineListeners.contains(l)) {
+            if (!currentPoseListeners.contains(l)) {
                 currentPoseListeners.add(l);
             }
         }
@@ -967,6 +968,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return CRCLPosemath.getPose(internal.getStatus());
     }
 
+    public Optional<CRCLStatusType> getCurrentStatus() {
+        return Optional.ofNullable(internal)
+                .map(x -> x.getStatus());
+    }
+
+    public Optional<CommandStateEnumType> getCurrentState() {
+        return getCurrentStatus()
+                .map(x -> x.getCommandStatus())
+                .map(x -> x.getCommandState());
+    }
+    
     public MiddleCommandType getCurrentProgramCommand() {
         CRCLProgramType program = internal.getProgram();
         if (null == program) {
@@ -1041,6 +1053,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         pollingThread.start();
     }
 
+    public void setDebugInterrupts(boolean debugInterrupts) {
+        internal.setDebugInterrupts(debugInterrupts);
+    }
+
+    public boolean isDebugInterrupts() {
+        return internal.isDebugInterrupts();
+    }
+
     @Override
     public void stopPollTimer() {
         pollStopCount++;
@@ -1050,10 +1070,21 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             } catch (InterruptedException ex) {
             }
             if (pollingThread.isAlive()) {
-                Thread.dumpStack();
-                System.err.println("Interruptint pollingThread = " + pollingThread);
-                System.out.println("Interruptint pollingThread = " + pollingThread);
-                System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pollingThread.getStackTrace()));
+                if (this.internal.isDebugInterrupts()) {
+                    Thread.dumpStack();
+                    System.err.println("Interruptint pollingThread = " + pollingThread);
+                    System.out.println("Interruptint pollingThread = " + pollingThread);
+                    System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pollingThread.getStackTrace()));
+                    StackTraceElement ste[] = internal.getCallingRunProgramStackTrace().get();
+                    if (null != ste) {
+                        System.out.println("CallingRunProgramStackTrace: ");
+                        for (StackTraceElement el : ste) {
+                            System.out.println(el);
+                        }
+                        System.out.println("End CallingRunProgramStackTrace");
+                        System.out.println("");
+                    }
+                }
                 pollingThread.interrupt();
                 try {
                     pollingThread.join(1000);
@@ -1827,7 +1858,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
-    private void disconnect() {
+    public void disconnect() {
         this.jTextFieldStatus.setBackground(Color.GRAY);
         Window window = this.getOuterWindow();
         if (window instanceof JFrame) {

@@ -45,6 +45,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -60,12 +61,11 @@ import org.xml.sax.SAXException;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
-public class PendantClientJFrame extends javax.swing.JFrame implements PendantClientOuter,PendantClientMenuOuter {
+public class PendantClientJFrame extends javax.swing.JFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     public PendantClientJFrame(GraphicsConfiguration gc) throws ParserConfigurationException {
         super(gc);
         init();
-        
     }
 
     public PendantClientJFrame(String title) throws ParserConfigurationException {
@@ -106,7 +106,19 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     public void abortProgram() {
         pendantClientJPanel1.abortProgram();
     }
-    
+
+    public void connectCurrent() {
+        pendantClientJPanel1.connectCurrent();
+    }
+
+    public void connect(String host, int port) {
+        pendantClientJPanel1.connect(host, port);
+    }
+
+    public void disconnect() {
+        pendantClientJPanel1.disconnect();
+    }
+
     private void updateUIFromInternal() {
         pendantClientJPanel1.updateUIFromInternal();
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
@@ -641,7 +653,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }//GEN-LAST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
 
     private void jMenuItemShowCommandLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemShowCommandLogActionPerformed
-        
+
         pendantClientJPanel1.showCommandLog();
     }//GEN-LAST:event_jMenuItemShowCommandLogActionPerformed
 
@@ -696,19 +708,19 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return this.jCheckBoxMenuItemUseReadStatusThread.isSelected();
     }
 
-    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
     }
-    
-    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+
+    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
         pendantClientJPanel1.removeProgramLineListener(l);
     }
-    
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        
+
         String prefLaf = "Nimbus"; // "GTK+"; // "GTK+"; // Nimbus, Metal ...
         /* Set the preferred look and feel */
 
@@ -864,7 +876,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @Override
-    public boolean checkUserText(String text) {
+    public boolean checkUserText(String text) throws InterruptedException, ExecutionException {
         return pendantClientJPanel1.checkUserText(text);
     }
 
@@ -948,9 +960,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return jCheckBoxMenuItemRecordPoseList.isSelected();
     }
 
-    public void connect(String _host, int _port) {
-        pendantClientJPanel1.connect(_host, _port);
-    }
 
     @Override
     public PendantClientMenuOuter getMenuOuter() {
@@ -959,7 +968,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
     @Override
     public File getPropertiesFile() {
-       return pendantClientJPanel1.getPropertiesFile();
+        return pendantClientJPanel1.getPropertiesFile();
     }
 
     @Override
@@ -974,6 +983,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
     @Override
     public void saveProperties() {
-       pendantClientJPanel1.saveProperties();
+        pendantClientJPanel1.saveProperties();
     }
 }
