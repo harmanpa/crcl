@@ -2300,7 +2300,10 @@ public class FanucCRCLMain {
             if (null != moveGroup1RobMoveVar) {
                 moveGroup1RobMoveVar.refresh();
             }
-            readCartLimitsFromRobot();
+            xMax = yMax = zMax = 10000.0f;
+            xMin = yMin = zMin = -10000.0f;
+            
+//            readCartLimitsFromRobot();
             readAndApplyUserCartLimits();
             for (int i = 0; i < 6; i++) {
                 IVar jointUpperLimVar = sysvars.item("$MRR_GRP[1].$UPPERLIMSDF[" + (i + 1) + "]", null).queryInterface(IVar.class);
