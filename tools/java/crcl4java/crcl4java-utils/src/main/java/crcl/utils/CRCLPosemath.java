@@ -83,6 +83,21 @@ public class CRCLPosemath {
     }
 
     /**
+     * Create a new PoseType object set to refer the the given pt with xaxis = 1,0,0,
+     * and zaxis = 0,0,1
+     *
+     * @param pt point to refer t
+     * @return new PoseType object.
+     */
+    static public PoseType pose(PointType pt) {
+        PoseType pose = new PoseType();
+        pose.setPoint(pt);
+        pose.setXAxis(vector(1.0,0.0,0.0));
+        pose.setZAxis(vector(0.0,0.0,1.0));
+        return pose;
+    }
+    
+    /**
      * Create a new PoseType object set to refer the the given pt, xAxis, and
      * zAxis.
      *
@@ -125,6 +140,11 @@ public class CRCLPosemath {
      * @return new PointType object.
      */
     static public PointType point(double x, double y, double z) {
+        if(Double.isInfinite(x) || Double.isNaN(x)
+                || Double.isInfinite(y) || Double.isNaN(y)
+                || Double.isInfinite(z) || Double.isNaN(z)) {
+            throw new IllegalArgumentException("point("+x+","+y+","+z+") contains NaN or Infinity");
+        }
         PointType point = new PointType();
         point.setX(BigDecimal.valueOf(x));
         point.setY(BigDecimal.valueOf(y));
