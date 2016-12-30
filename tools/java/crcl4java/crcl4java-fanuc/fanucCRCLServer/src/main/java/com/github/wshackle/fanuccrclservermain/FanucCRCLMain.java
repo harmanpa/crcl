@@ -743,9 +743,9 @@ public class FanucCRCLMain {
                         } else if (prevCmd instanceof DwellType) {
                             long diff = System.currentTimeMillis() - dwellEndTime;
                             if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                                if(diff > 5) {
-                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
-                                }
+//                                if(diff > 5) {
+//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
+//                                }
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         } else if (prevCmd instanceof ActuateJointsType) {
