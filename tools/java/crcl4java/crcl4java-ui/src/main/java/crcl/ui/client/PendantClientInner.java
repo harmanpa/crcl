@@ -2352,6 +2352,9 @@ public class PendantClientInner {
         if (cmd instanceof DwellType) {
             return getTimeoutForDwell((DwellType) cmd);
         }
+        if (cmd instanceof InitCanonType) {
+            return 30000;
+        }
         return 3000;
     }
 

@@ -973,6 +973,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     }
 
     public void runCurrentProgram() {
+        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
         pendantClientJPanel1.runCurrentProgram();
     }
     

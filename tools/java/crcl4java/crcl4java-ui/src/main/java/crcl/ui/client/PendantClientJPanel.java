@@ -3786,7 +3786,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 connectCurrent();
             }
             this.clearProgramTimesDistances();
+            
             int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
+            internal.setQuitOnTestCommandFailure(true);
             internal.setPoll_ms(new_poll_ms);
             internal.setWaitForDoneDelay(new_poll_ms);
             internal.setStepMode(false);
