@@ -267,16 +267,24 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             boolean _modal) {
 
         final CompletableFuture<Boolean> ret = new CompletableFuture<>();
-        runOnDispatchThread(() -> {
-            JDialog dialog = new JDialog(_owner, _title, _modal);
-            ret.complete(showTextPrivate(dialog, init));
-        });
+        if (!disableShowText) {
+            runOnDispatchThread(() -> {
+                JDialog dialog = new JDialog(_owner, _title, _modal);
+                ret.complete(showTextPrivate(dialog, init));
+            });
+        } else {
+            ret.complete(false);
+        }
         return ret;
     }
 
     public static CompletableFuture<Boolean> showText(String init) {
         final CompletableFuture<Boolean> ret = new CompletableFuture<>();
-        runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
+        if (!disableShowText) {
+            runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
+        } else {
+            ret.complete(false);
+        }
         return ret;
     }
 
