@@ -103,6 +103,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -3780,7 +3781,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         runCurrentProgram();
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
-    public void runCurrentProgram() {
+    public CompletableFuture<Boolean> runCurrentProgram() {
         try {
             if (!isConnected()) {
                 connectCurrent();
@@ -3792,12 +3793,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             internal.setPoll_ms(new_poll_ms);
             internal.setWaitForDoneDelay(new_poll_ms);
             internal.setStepMode(false);
-            internal.startRunProgramThread(0);
+            CompletableFuture<Boolean> future = internal.startRunProgramThread(0);
             this.jButtonResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldSpeedsSet = false;
-        } catch (NumberFormatException numberFormatException) {
-            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, numberFormatException);
+            return future;
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            future.completeExceptionally(ex);
+            return future;
         }
     }
 

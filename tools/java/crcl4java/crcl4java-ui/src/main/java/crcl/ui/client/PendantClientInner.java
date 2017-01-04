@@ -2766,18 +2766,21 @@ public class PendantClientInner {
         return effectOk;
     }
 
-    public void startRunProgramThread(final int startLine) {
+    public CompletableFuture<Boolean> startRunProgramThread(final int startLine) {
+        final CompletableFuture<Boolean> future = new CompletableFuture<>();
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
         this.runTestProgramThread = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                runProgram(program, startLine, callingStackTrace);
+                future.complete(runProgram(program, startLine, callingStackTrace));
+                
             }
 
         }, "PendantClientInner.runProgram");
         this.runTestProgramThread.start();
+        return future;
     }
 
     public void startRunTestThread(final Map<String, String> testProperties) {

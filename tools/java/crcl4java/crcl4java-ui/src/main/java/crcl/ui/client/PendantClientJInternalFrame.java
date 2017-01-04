@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -972,9 +973,9 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         return pendantClientJPanel1.getLastOpenedProgramFile();
     }
 
-    public void runCurrentProgram() {
+    public CompletableFuture<Boolean> runCurrentProgram() {
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
-        pendantClientJPanel1.runCurrentProgram();
+        return pendantClientJPanel1.runCurrentProgram();
     }
     
     @Override
