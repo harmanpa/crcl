@@ -232,7 +232,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         panel.jTextArea1.setCaretPosition(0);
         _dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         _dialog.addWindowListener(new WindowAdapter() {
-            
+
             @Override
             public void windowClosing(WindowEvent e) {
                 _dialog.setVisible(false);
@@ -240,7 +240,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
 
             @Override
             public void windowClosed(WindowEvent e) {
-                 _dialog.setVisible(false);
+                _dialog.setVisible(false);
             }
 
         });
@@ -251,19 +251,23 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return !panel.cancelled;
     }
 
+    public static volatile boolean disableShowText = Boolean.valueOf("crcl.ui.misc.MultiLineString.disableShowText");
+
     public static void showText(String init, Window _owner,
             String _title,
             Dialog.ModalityType _modal) {
-        JDialog dialog = new JDialog(_owner, _title, _modal);
-        showTextPrivate(dialog, init);
+        if (!disableShowText) {
+            JDialog dialog = new JDialog(_owner, _title, _modal);
+            showTextPrivate(dialog, init);
+        }
     }
 
     public static CompletableFuture<Boolean> showText(String init, JFrame _owner,
             String _title,
             boolean _modal) {
-        
+
         final CompletableFuture<Boolean> ret = new CompletableFuture<>();
-        runOnDispatchThread(() ->  {
+        runOnDispatchThread(() -> {
             JDialog dialog = new JDialog(_owner, _title, _modal);
             ret.complete(showTextPrivate(dialog, init));
         });
