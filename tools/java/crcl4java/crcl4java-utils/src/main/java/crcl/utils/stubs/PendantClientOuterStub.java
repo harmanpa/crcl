@@ -22,6 +22,7 @@ package crcl.utils.stubs;
 
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLException;
@@ -125,7 +126,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public void showCurrentProgramLine(int line) {
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
     }
 
     @Override

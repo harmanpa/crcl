@@ -907,8 +907,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     }
 
     @Override
-    public void showCurrentProgramLine(int line) {
-        pendantClientJPanel1.showCurrentProgramLine(line);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
+        pendantClientJPanel1.showCurrentProgramLine(line,program,status);
     }
 
     @Override

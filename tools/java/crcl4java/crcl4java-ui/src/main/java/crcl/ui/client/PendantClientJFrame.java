@@ -22,6 +22,7 @@ package crcl.ui.client;
 
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.IconImages;
@@ -856,8 +857,8 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @Override
-    public void showCurrentProgramLine(int line) {
-        pendantClientJPanel1.showCurrentProgramLine(line);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
+        pendantClientJPanel1.showCurrentProgramLine(line,program,status);
     }
 
     @Override

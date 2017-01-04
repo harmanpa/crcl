@@ -1773,10 +1773,11 @@ public class PendantClientInner {
     }
 
     public boolean runProgram(CRCLProgramType prog, int startLine) {
-        return runProgram(prog, startLine, null);
+        return runProgram(prog, startLine, null,null);
     }
 
-    public boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack) {
+    private boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack,
+            CompletableFuture<Boolean> future) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
@@ -1802,7 +1803,7 @@ public class PendantClientInner {
             }
             if (startLine == 0) {
                 setOutgoingProgramIndex(BigInteger.ZERO);
-                outer.showCurrentProgramLine(startLine);
+                outer.showCurrentProgramLine(startLine,prog,getStatus());
                 InitCanonType initCmd = prog.getInitCanon();
                 if (initCmd.getCommandID() == null) {
                     initCmd.setCommandID(BigInteger.ONE);
@@ -1829,9 +1830,12 @@ public class PendantClientInner {
             PmCartesian p1 = getPoseCart();
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, p1.distFrom(p0), true);
             p0 = p1;
-            outer.showCurrentProgramLine(startLine);
+            outer.showCurrentProgramLine(startLine,prog,getStatus());
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
             for (int i = startLine; i < middleCommands.size(); i++) {
+                if(null != future && future.isCancelled()) {
+                    return false;
+                }
                 programCommandStartTime = System.currentTimeMillis();
                 setOutgoingProgramIndex(BigInteger.valueOf(i));
                 MiddleCommandType cmd = middleCommands.get(i - 1);
@@ -1851,7 +1855,7 @@ public class PendantClientInner {
                 if (stepMode) {
                     pause();
                 }
-                outer.showCurrentProgramLine(i + 1);
+                outer.showCurrentProgramLine(i + 1,prog,getStatus());
             }
             programCommandStartTime = System.currentTimeMillis();
             EndCanonType endCmd = prog.getEndCanon();
@@ -1860,7 +1864,7 @@ public class PendantClientInner {
             }
             time_to_exec = System.currentTimeMillis() - programCommandStartTime;
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, 0, true);
-            outer.showCurrentProgramLine(middleCommands.size() + 2);
+            outer.showCurrentProgramLine(middleCommands.size() + 2,prog,getStatus());
             outer.showDebugMessage("testProgram() succeeded");
             return true;
         } catch (InterruptedException ex) {
@@ -2774,7 +2778,7 @@ public class PendantClientInner {
 
             @Override
             public void run() {
-                future.complete(runProgram(program, startLine, callingStackTrace));
+                future.complete(runProgram(program, startLine, callingStackTrace,future));
                 
             }
 

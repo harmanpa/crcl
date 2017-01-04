@@ -21,6 +21,7 @@
 package crcl.utils.outer.interfaces;
 
 import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLException;
@@ -57,7 +58,7 @@ public interface PendantClientOuter {
 
     public void checkPollSelected();
 
-    public void showCurrentProgramLine(int line);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status);
 
     public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result);
 
