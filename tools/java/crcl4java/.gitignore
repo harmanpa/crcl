@@ -49,3 +49,13 @@ node_modules
 crcl4java-utils-javadoc
 crcl4java-base-javadoc
 generated
+
+/tools/java/crcl4java/crcl4java-vaadin-webapp/src/main/webapp/VAADIN/themes/default_theme/addons.scss
+/tools/java/crcl4java/crcl4java-motoman/NetBeansProjects/MotoPlusTcpSvr/test text
+/tools/java/crcl4java/crcl4java-motoman/NetBeansProjects/MotoPlusTcpSvr/test.txt
+/tools/java/crcl4java/crcl4java-motoman/motoPlusTcpServer/FS100/
+/tools/java/crcl4java/crcl4java-motoman/motoPlusTcpServer/motoPlusTcpServer/_ErrorLog.txt
+/tools/java/crcl4java/crcl4java-motoman/spy.log
+/tools/java/crcl4java/crcl4java-zeroc-ice/target/
+/tools/java/crcl4java/crcl4java-motoman/motoPlusTcpServer/motoPlusTcpServer/FS100/motoPlusTcpServer.log
+

@@ -58,7 +58,7 @@ only in the InitCanon command.
   </MiddleCommand>
   <MiddleCommand xsi:type="DwellType">
     <CommandID>5</CommandID>
-    <DwellTime>2.5</DwellTime>
+    <DwellTime>0.001</DwellTime>
   </MiddleCommand>
   <MiddleCommand xsi:type="GetStatusType">
     <CommandID>6</CommandID>

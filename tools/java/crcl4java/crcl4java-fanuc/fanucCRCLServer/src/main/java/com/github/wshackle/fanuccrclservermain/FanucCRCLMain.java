@@ -1914,6 +1914,9 @@ public class FanucCRCLMain {
                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
                 return;
             }
+            if(status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                status.getCommandStatus().setStateDescription("");
+            }
             if (cmd instanceof InitCanonType) {
                 handleInitCanon((InitCanonType) cmd);
             } else if (cmd instanceof StopMotionType) {

@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.MotoPlusConnection.MotoPlusConnectionException;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
@@ -85,8 +86,6 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
-import rcs.posemath.PmEulerZyx;
-import rcs.posemath.PmEulerZyz;
 import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.Posemath;
 
@@ -226,30 +225,31 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private int lastSentTargetId = 1;
     private int lastRecvdTargetId = 1;
     private double maxVelocity = 100.0;
-    
+
     private LengthUnitEnumType currentLengthUnits = LengthUnitEnumType.MILLIMETER;
     private AngleUnitEnumType currentAngleUnits = AngleUnitEnumType.DEGREE;
-    
+
     private final double MM_TO_INCH = 0.0393701;
+
     private void setTransSpeed(SetTransSpeedType sts) throws IOException {
         MP_SPEED spd = new MP_SPEED();
         TransSpeedType ts = sts.getTransSpeed();
         if (ts instanceof TransSpeedAbsoluteType) {
             TransSpeedAbsoluteType tsa = (TransSpeedAbsoluteType) ts;
-            switch(currentLengthUnits) {
+            switch (currentLengthUnits) {
                 case MILLIMETER:
                     spd.v = (int) (tsa.getSetting().doubleValue() * 10.0);
                     break;
-                    
+
                 case INCH:
-                    spd.v = (int) (tsa.getSetting().doubleValue() * 10.0/ MM_TO_INCH);
+                    spd.v = (int) (tsa.getSetting().doubleValue() * 10.0 / MM_TO_INCH);
                     break;
-                    
+
                 case METER:
                     spd.v = (int) (tsa.getSetting().doubleValue() * 10_000.0);
                     break;
             }
-            
+
             System.out.println("spd = " + spd);
             mpc.mpMotSetSpeed(0, spd);
         } else if (ts instanceof TransSpeedRelativeType) {
@@ -266,11 +266,11 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         RotSpeedType rs = srs.getRotSpeed();
         if (rs instanceof RotSpeedAbsoluteType) {
             RotSpeedAbsoluteType rsa = (RotSpeedAbsoluteType) rs;
-            switch(currentAngleUnits) {
+            switch (currentAngleUnits) {
                 case DEGREE:
                     spd.vr = (int) (rsa.getSetting().doubleValue() * 10.0);
                     break;
-                    
+
                 case RADIAN:
                     spd.vr = (int) (Math.toDegrees(rsa.getSetting().doubleValue()) * 10.0);
                     break;
@@ -461,6 +461,36 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private long dwellEnd = -1;
     private boolean dwelling = false;
 
+    private void initCanon() {
+        try {
+            if (!mpc.isConnected()) {
+                mpc.reconnect();
+            }
+            if (!mpc.isConnected()) {
+                crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                crclStatus.getCommandStatus().setStateDescription("Can not connect to robot.");
+            }
+            stopMotion();
+            if (!mpc.mpGetServoPower()) {
+                mpc.mpSetServoPower(true);
+                if (!mpc.mpGetServoPower()) {
+                    crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                    crclStatus.getCommandStatus().setStateDescription("Can not enable servo power.");
+                }
+            }
+            mpc.mpSetServoPower(false);
+            initialized = true;
+            crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+            crclStatus.getCommandStatus().setStateDescription("");
+        } catch (IOException | MotoPlusConnectionException ex) {
+            if (!mpc.isConnected()) {
+                crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                crclStatus.getCommandStatus().setStateDescription(ex.toString());
+            }
+            Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Override
     public void accept(CRCLServerSocketEvent event) {
         try {
@@ -473,9 +503,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     crclStatus.getCommandStatus().setCommandID(cmd.getCommandID());
                     crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_WORKING);
                     if (cmd instanceof InitCanonType) {
-                        initialized = true;
-                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
-                        crclStatus.getCommandStatus().setStateDescription("");
+                        initCanon();
+
                     } else if (!initialized) {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                         crclStatus.getCommandStatus().setStateDescription("Command received when not initialized.");

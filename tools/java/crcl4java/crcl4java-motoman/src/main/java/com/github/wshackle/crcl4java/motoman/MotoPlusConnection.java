@@ -87,7 +87,16 @@ public class MotoPlusConnection implements AutoCloseable {
         dis = new DataInputStream(socket.getInputStream());
     }
 
+    public boolean isConnected() {
+        return null != socket && socket.isConnected();
+    }
+    
+    private String host;
+    private int port;
+    
     public void connect(String host, int port) throws IOException {
+        this.host = host;
+        this.port = port;
         if (null != socket) {
             socket.close();
         }
@@ -97,6 +106,12 @@ public class MotoPlusConnection implements AutoCloseable {
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
     }
+    public  void reconnect() throws IOException {
+        if(!isConnected() && null != host && port > 0) {
+            connect(host,port);
+        }
+    }
+    
 
     @Override
     public void close() throws Exception {

@@ -1,1 +1,11 @@
-﻿
+﻿  ------ Now building project: motoPlusTcpServer------
+  Compiling mpMain.c
+  Compiling remoteFunctions.c
+..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c : warning : In function 'handleFileFunctionRequest'
+..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(992): warning : unused variable 'extensionId'
+..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(991): warning : unused variable 'namelen'
+..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(984): warning : unused variable 'index'
+  Compiling tcpSvr.c
+  Building motoPlusTcpServer.out
+  Build Successful!  Check 'FS100\motoPlusTcpServer' folder for motoPlusTcpServer.out
+  ------

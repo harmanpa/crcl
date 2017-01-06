@@ -1773,7 +1773,7 @@ public class PendantClientInner {
     }
 
     public boolean runProgram(CRCLProgramType prog, int startLine) {
-        return runProgram(prog, startLine, null,null);
+        return runProgram(prog, startLine, null, null);
     }
 
     private boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack,
@@ -1803,7 +1803,7 @@ public class PendantClientInner {
             }
             if (startLine == 0) {
                 setOutgoingProgramIndex(BigInteger.ZERO);
-                outer.showCurrentProgramLine(startLine,prog,getStatus());
+                outer.showCurrentProgramLine(startLine, prog, getStatus());
                 InitCanonType initCmd = prog.getInitCanon();
                 if (initCmd.getCommandID() == null) {
                     initCmd.setCommandID(BigInteger.ONE);
@@ -1830,10 +1830,16 @@ public class PendantClientInner {
             PmCartesian p1 = getPoseCart();
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, p1.distFrom(p0), true);
             p0 = p1;
-            outer.showCurrentProgramLine(startLine,prog,getStatus());
+            outer.showCurrentProgramLine(startLine, prog, getStatus());
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
             for (int i = startLine; i < middleCommands.size(); i++) {
-                if(null != future && future.isCancelled()) {
+                if (null != future && future.isCancelled()) {
+                    try {
+                        stopMotion(StopConditionEnumType.FAST);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    System.err.println("runProgram() stopped when future.isCancelled() returned true");
                     return false;
                 }
                 programCommandStartTime = System.currentTimeMillis();
@@ -1842,6 +1848,10 @@ public class PendantClientInner {
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {
+                        stopMotion(StopConditionEnumType.FAST);
+                        if (null != future) {
+                            future.cancel(false);
+                        }
                         return false;
                     }
                 }
@@ -1855,16 +1865,19 @@ public class PendantClientInner {
                 if (stepMode) {
                     pause();
                 }
-                outer.showCurrentProgramLine(i + 1,prog,getStatus());
+                outer.showCurrentProgramLine(i + 1, prog, getStatus());
             }
             programCommandStartTime = System.currentTimeMillis();
             EndCanonType endCmd = prog.getEndCanon();
             if (!testCommand(endCmd)) {
+                if (null != future) {
+                    future.cancel(false);
+                }
                 return false;
             }
             time_to_exec = System.currentTimeMillis() - programCommandStartTime;
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, 0, true);
-            outer.showCurrentProgramLine(middleCommands.size() + 2,prog,getStatus());
+            outer.showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
             outer.showDebugMessage("testProgram() succeeded");
             return true;
         } catch (InterruptedException ex) {
@@ -1873,11 +1886,20 @@ public class PendantClientInner {
             }
         } catch (CRCLException | IOException | PmException | JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+
         } finally {
             setOutgoingProgramIndex(null);
             this.runEndMillis = System.currentTimeMillis();
             outer.checkPollSelected();
             callingRunProgramStackTrace.set(null);
+        }
+        try {
+            stopMotion(StopConditionEnumType.FAST);
+        } catch (JAXBException ex) {
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (null != future) {
+            future.cancel(false);
         }
         return false;
     }
@@ -2702,7 +2724,7 @@ public class PendantClientInner {
 
             sendCommandTime = System.currentTimeMillis();
             WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
-            if(cmd instanceof EndCanonType) {
+            if (cmd instanceof EndCanonType) {
                 return true;
             }
             if (wfdResult != WaitForDoneResult.WFD_DONE) {
@@ -2778,8 +2800,8 @@ public class PendantClientInner {
 
             @Override
             public void run() {
-                future.complete(runProgram(program, startLine, callingStackTrace,future));
-                
+                future.complete(runProgram(program, startLine, callingStackTrace, future));
+
             }
 
         }, "PendantClientInner.runProgram");
