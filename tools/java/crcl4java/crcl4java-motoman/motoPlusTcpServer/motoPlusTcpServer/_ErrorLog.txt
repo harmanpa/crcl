@@ -1,0 +1,8 @@
+C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c: In function 'handleFileFunctionRequest':
+
+C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:992: warning: unused variable 'extensionId'
+
+C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:991: warning: unused variable 'namelen'
+
+C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:984: warning: unused variable 'index'
+
