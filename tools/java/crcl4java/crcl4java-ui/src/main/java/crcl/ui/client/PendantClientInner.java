@@ -789,7 +789,8 @@ public class PendantClientInner {
                 cjrMap.put(cjr.getJointNumber().intValue(), cjr);
             }
         } else if (cmd instanceof SetEndEffectorType) {
-            this.setHoldingObjectExpected(false);
+            SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
+            this.setHoldingObjectExpected(seeCmd.getSetting().doubleValue() < 0.5);
             holdingErrorOccured = false;
         }
         boolean ret = this.sendCommandPrivate(cmd);

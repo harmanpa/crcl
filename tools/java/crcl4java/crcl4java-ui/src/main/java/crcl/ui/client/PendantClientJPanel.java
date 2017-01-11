@@ -942,6 +942,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    public boolean isHoldingObjectExpected() {
+        return internal.isHoldingObjectExpected();
+    }
     private class MyPropertyChangeListener implements PropertyChangeListener {
 
         @Override
