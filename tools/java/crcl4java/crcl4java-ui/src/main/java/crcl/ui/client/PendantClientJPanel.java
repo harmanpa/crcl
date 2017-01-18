@@ -104,6 +104,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -263,7 +264,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         public void accept(PendantClientJPanel panel, PoseType pose);
     }
 
-    private final List<CurrentPoseListener> currentPoseListeners = new ArrayList<>();
+    private final ConcurrentLinkedDeque<CurrentPoseListener> currentPoseListeners = new ConcurrentLinkedDeque<>();
 
     public void addCurrentPoseListener(CurrentPoseListener l) {
         synchronized (programLineListeners) {
