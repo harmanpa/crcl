@@ -20,7 +20,7 @@
  */
 package crcl.ui.misc;
 
-import crcl.base.CRCLProgramType;
+import crcl.ui.XFuture;
 import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
@@ -47,9 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Level;
@@ -750,12 +748,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     private JDialog dialog = null;
     private boolean cancelled = false;
-    transient private Function<T,CompletableFuture<Boolean>>  isValid = null;
+    transient private Function<T,XFuture<Boolean>>  isValid = null;
 
     private static <T> T editObjectPriv(JDialog _dialog, T _obj,
             XpathUtils xpu,
             File schemaFiles[],
-            Function<T,CompletableFuture<Boolean>> isValid) {
+            Function<T,XFuture<Boolean>> isValid) {
         ObjTableJPanel<T> panel = new ObjTableJPanel<>();
         panel.dialog = _dialog;
         panel.setObj(_obj);
@@ -796,13 +794,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return panel.getObj();
     }
 
-    public static <T> T editObject(T _obj, Frame _owner, String _title, boolean _modal, XpathUtils xpu, File schemaFiles[], Function<T,CompletableFuture<Boolean>> isValid) {
+    public static <T> T editObject(T _obj, Frame _owner, String _title, boolean _modal, XpathUtils xpu, File schemaFiles[], Function<T,XFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog(_owner, _obj.getClass().getCanonicalName() + ":" + _title, _modal);
         return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid);
     }
 
     public static <T> T editObject(T _obj, XpathUtils xpu, File schemaFiles[],
-            Function<T,CompletableFuture<Boolean>> isValid) {
+            Function<T,XFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog();
         dialog.setTitle(_obj.getClass().getCanonicalName());
         dialog.setModal(true);

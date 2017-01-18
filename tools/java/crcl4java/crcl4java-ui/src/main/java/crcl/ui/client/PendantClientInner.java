@@ -74,6 +74,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import crcl.ui.XFuture;
 
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.server.SimServerInner;
@@ -111,11 +112,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -201,9 +200,9 @@ public class PendantClientInner {
     private final XpathUtils xpu;
     private CRCLSocket checkerCRCLSocket = null;
     private CRCLCommandInstanceType checkerCommandInstance = null;
-    private final Function<CRCLProgramType, CompletableFuture<Boolean>> checkProgramValidPredicate
+    private final Function<CRCLProgramType, XFuture<Boolean>> checkProgramValidPredicate
             = this::checkProgramValid;
-    private final Function<CRCLCommandType, CompletableFuture<Boolean>> checkCommandValidPredicate
+    private final Function<CRCLCommandType, XFuture<Boolean>> checkCommandValidPredicate
             = this::checkCommandValid;
 //    private File[] cmdSchemaFiles = null;
 //    private File[] programSchemaFiles = null;
@@ -496,15 +495,15 @@ public class PendantClientInner {
         return this.xpu;
     }
 
-    public Function<CRCLProgramType, CompletableFuture<Boolean>> getCheckProgramValidPredicate() {
+    public Function<CRCLProgramType, XFuture<Boolean>> getCheckProgramValidPredicate() {
         return checkProgramValidPredicate;
     }
 
-    public Function<CRCLCommandType, CompletableFuture<Boolean>> getCheckCommandValidPredicate() {
+    public Function<CRCLCommandType, XFuture<Boolean>> getCheckCommandValidPredicate() {
         return checkCommandValidPredicate;
     }
 
-    public CompletableFuture<Boolean> checkProgramValid(CRCLProgramType prog) {
+    public XFuture<Boolean> checkProgramValid(CRCLProgramType prog) {
         try {
             if (null == checkerCommandInstance) {
                 checkerCommandInstance = new CRCLCommandInstanceType();
@@ -515,7 +514,7 @@ public class PendantClientInner {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return CompletableFuture.completedFuture(false);
+        return XFuture.completedFuture(false);
     }
 
     public CRCLSocket getTempCRCLSocket() {
@@ -525,7 +524,7 @@ public class PendantClientInner {
         return (checkerCRCLSocket = new CRCLSocket());
     }
 
-    public CompletableFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
+    public XFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
         try {
             if (null == checkerCommandInstance) {
                 checkerCommandInstance = new CRCLCommandInstanceType();
@@ -549,7 +548,7 @@ public class PendantClientInner {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return CompletableFuture.completedFuture(false);
+        return XFuture.completedFuture(false);
     }
 
     public synchronized void setStatSchema(File[] fa) {
@@ -1778,7 +1777,7 @@ public class PendantClientInner {
     }
 
     private boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack,
-            CompletableFuture<Boolean> future) {
+            XFuture<Boolean> future) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
@@ -2793,8 +2792,8 @@ public class PendantClientInner {
         return effectOk;
     }
 
-    public CompletableFuture<Boolean> startRunProgramThread(final int startLine) {
-        final CompletableFuture<Boolean> future = new CompletableFuture<>();
+    public XFuture<Boolean> startRunProgramThread(final int startLine) {
+        final XFuture<Boolean> future = new XFuture<>();
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
         this.runTestProgramThread = new Thread(new Runnable() {

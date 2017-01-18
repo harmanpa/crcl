@@ -57,6 +57,7 @@ import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
 import static crcl.ui.IconImages.WORKING_IMAGE;
+import crcl.ui.XFuture;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -103,7 +104,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -3794,7 +3794,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         runCurrentProgram();
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
-    public CompletableFuture<Boolean> runCurrentProgram() {
+    public XFuture<Boolean> runCurrentProgram() {
         try {
             if (!isConnected()) {
                 connectCurrent();
@@ -3806,14 +3806,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             internal.setPoll_ms(new_poll_ms);
             internal.setWaitForDoneDelay(new_poll_ms);
             internal.setStepMode(false);
-            CompletableFuture<Boolean> future = internal.startRunProgramThread(0);
+            XFuture<Boolean> future = internal.startRunProgramThread(0);
             this.jButtonResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldSpeedsSet = false;
             return future;
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
+            XFuture<Boolean> future = new XFuture<>();
             future.completeExceptionally(ex);
             return future;
         }

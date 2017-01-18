@@ -28,6 +28,7 @@ import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
+import crcl.ui.XFuture;
 import crcl.ui.misc.ObjTableJPanel;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -973,7 +973,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         return pendantClientJPanel1.getLastOpenedProgramFile();
     }
 
-    public CompletableFuture<Boolean> runCurrentProgram() {
+    public XFuture<Boolean> runCurrentProgram() {
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
         return pendantClientJPanel1.runCurrentProgram();
     }

@@ -31,6 +31,7 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
+import crcl.ui.XFuture;
 
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
@@ -54,9 +55,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -895,16 +894,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    transient private final Function<CRCLStatusType,CompletableFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType,CompletableFuture<Boolean>>() {
+    transient private final Function<CRCLStatusType,XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType,XFuture<Boolean>>() {
 
         @Override
-        public CompletableFuture<Boolean> apply(CRCLStatusType t) {
+        public XFuture<Boolean> apply(CRCLStatusType t) {
             return checkStatusValid(t);
         }
     };
 
 //            = this::checkStatusValid;
-    public CompletableFuture<Boolean> checkStatusValid(CRCLStatusType statusObj) {
+    public XFuture<Boolean> checkStatusValid(CRCLStatusType statusObj) {
         try {
             String s = inner.getCheckerCRCLSocket().statusToPrettyString(statusObj, true);
             return MultiLineStringJPanel.showText(s);
@@ -912,7 +911,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
-        return CompletableFuture.completedFuture(false);
+        return XFuture.completedFuture(false);
     }
 
     public boolean isSendStatusWithoutRequestSelected() {

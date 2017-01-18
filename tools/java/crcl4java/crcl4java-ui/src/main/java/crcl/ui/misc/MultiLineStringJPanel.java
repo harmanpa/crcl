@@ -20,6 +20,7 @@
  */
 package crcl.ui.misc;
 
+import crcl.ui.XFuture;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
@@ -27,9 +28,6 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowStateListener;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -262,11 +260,11 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
     }
 
-    public static CompletableFuture<Boolean> showText(String init, JFrame _owner,
+    public static XFuture<Boolean> showText(String init, JFrame _owner,
             String _title,
             boolean _modal) {
 
-        final CompletableFuture<Boolean> ret = new CompletableFuture<>();
+        final XFuture<Boolean> ret = new XFuture<>();
         if (!disableShowText) {
             runOnDispatchThread(() -> {
                 JDialog dialog = new JDialog(_owner, _title, _modal);
@@ -278,8 +276,8 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return ret;
     }
 
-    public static CompletableFuture<Boolean> showText(String init) {
-        final CompletableFuture<Boolean> ret = new CompletableFuture<>();
+    public static XFuture<Boolean> showText(String init) {
+        final XFuture<Boolean> ret = new XFuture<>();
         if (!disableShowText) {
             runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
         } else {
