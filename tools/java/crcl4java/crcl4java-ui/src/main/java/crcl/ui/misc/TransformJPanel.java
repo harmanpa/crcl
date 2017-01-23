@@ -28,6 +28,7 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
+import static crcl.ui.client.PendantClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -178,7 +179,7 @@ public class TransformJPanel extends javax.swing.JPanel {
      */
     public void setTransform(PoseType transform) {
         this.transform = transform;
-        PendantClientJPanel.updatePoseTable(transform, jTablePose);
+        PendantClientJPanel.updatePoseTable(transform, jTablePose, XYZ_XAXIS_ZAXIS);
     }
 
     private void updateTransformBothPoints() {

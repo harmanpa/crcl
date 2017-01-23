@@ -58,6 +58,7 @@ import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
 import static crcl.ui.IconImages.WORKING_IMAGE;
 import crcl.ui.XFuture;
+import static crcl.ui.client.PendantClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -363,7 +364,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
         for (int i = 0; i < programLineListeners.size(); i++) {
             ProgramLineListener l = programLineListeners.get(i);
-            l.accept(this, line,program,status);
+            l.accept(this, line, program, status);
         }
         programLineShowing = line;
     }
@@ -444,7 +445,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
         checkSettingsRef();
         this.updateUIFromInternal();
-        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(getProgramRow(),internal.getProgram(),internal.getStatus()));
+        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus()));
         this.internal.addPropertyChangeListener(new PendantClientJPanel.MyPropertyChangeListener());
         this.transformJPanel1.setPendantClient(this);
         this.jTextFieldStatus.setBackground(Color.GRAY);
@@ -946,6 +947,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public boolean isHoldingObjectExpected() {
         return internal.isHoldingObjectExpected();
     }
+
     private class MyPropertyChangeListener implements PropertyChangeListener {
 
         @Override
@@ -1735,7 +1737,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .map(CRCLPosemath::getPose)
                     .orElse(null);
             if (null != p) {
-                updatePoseTable(p, this.jTablePose);
+                updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
                 checkMenuOuter();
                 if (this.menuOuter.isPlotXyzSelected()) {
@@ -1840,35 +1842,75 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
-    public static void updatePoseTable(PoseType p, JTable jTable) {
+    public static enum PoseDisplayMode {
+        XYZ_XAXIS_ZAXIS,
+        XYZ_RPY,
+        XYZ_RX_RY_RZ
+    };
+
+    public static void updatePoseTable(PoseType p, JTable jTable, PoseDisplayMode displayMode) {
         try {
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
-            PointType pt = p.getPoint();
-            if (null != pt) {
-                tm.setValueAt(pt.getX().doubleValue(), 0, 1);
-                tm.setValueAt(pt.getY().doubleValue(), 1, 1);
-                tm.setValueAt(pt.getZ().doubleValue(), 2, 1);
-            }
-            VectorType xv = p.getXAxis();
-            if (null != xv) {
-                tm.setValueAt(xv.getI().doubleValue(), 3, 1);
-                tm.setValueAt(xv.getJ().doubleValue(), 4, 1);
-                tm.setValueAt(xv.getK().doubleValue(), 5, 1);
-            }
-            VectorType zv = p.getZAxis();
-            if (null != zv) {
-                tm.setValueAt(zv.getI().doubleValue(), 6, 1);
-                tm.setValueAt(zv.getJ().doubleValue(), 7, 1);
-                tm.setValueAt(zv.getK().doubleValue(), 8, 1);
-            }
-            if (tm.getRowCount() >= 12) {
-                PmRpy rpy = CRCLPosemath.toPmRpy(p);
-                tm.setValueAt(Math.toDegrees(rpy.r), 9, 1);
-                tm.setValueAt(Math.toDegrees(rpy.p), 10, 1);
-                tm.setValueAt(Math.toDegrees(rpy.y), 11, 1);
+            updatePointTable(p, tm, 0);
+            switch(displayMode) {
+                case XYZ_XAXIS_ZAXIS:
+                    updateXaxisZaxisTable(p, tm,3);
+                    break;
+                    
+                case XYZ_RPY:
+                    updateRpyTable(p, tm,3);
+                    break;
+                    
+                case XYZ_RX_RY_RZ: 
+                    updateRxRyRzTable(p, tm, 3);
+                    break;
+                    
             }
         } catch (PmException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void updateRpyTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
+        PmRpy rpy = CRCLPosemath.toPmRpy(p);
+        if (null != rpy && tm.getRowCount() > 2+ index) {
+            tm.setValueAt(Math.toDegrees(rpy.r), 0+index, 1);
+            tm.setValueAt(Math.toDegrees(rpy.p), 1+index, 1);
+            tm.setValueAt(Math.toDegrees(rpy.y), 2+index, 1);
+        }
+    }
+    
+    private static void updateRxRyRzTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
+        PmRotationVector rv = CRCLPosemath.toPmRotationVector(p);
+        if (null != rv && tm.getRowCount() > 2+ index) {
+            double rotMagDeg = Math.toDegrees(rv.s);
+            tm.setValueAt(rotMagDeg*rv.x, 0+index, 1);
+            tm.setValueAt(rotMagDeg*rv.y, 1+index, 1);
+            tm.setValueAt(rotMagDeg*rv.z, 2+index, 1);
+        }
+    }
+    
+    private static void updateXaxisZaxisTable(PoseType p, DefaultTableModel tm, int index) {
+        VectorType xv = p.getXAxis();
+        VectorType zv = p.getZAxis();
+        if (null != xv && tm.getRowCount() > 2+index) {
+            tm.setValueAt(xv.getI().doubleValue(), 0+index, 1);
+            tm.setValueAt(xv.getJ().doubleValue(), 1+index, 1);
+            tm.setValueAt(xv.getK().doubleValue(), 2+index, 1);
+        }
+        if (null != zv && tm.getRowCount() > 5+index) {
+            tm.setValueAt(zv.getI().doubleValue(), 3+index, 1);
+            tm.setValueAt(zv.getJ().doubleValue(), 4+index, 1);
+            tm.setValueAt(zv.getK().doubleValue(), 5+index, 1);
+        }
+    }
+
+    public static void updatePointTable(PoseType p, DefaultTableModel tm, int index) {
+        PointType pt = p.getPoint();
+        if (null != pt && tm.getRowCount() > 2+ index) {
+            tm.setValueAt(pt.getX().doubleValue(), 0+index, 1);
+            tm.setValueAt(pt.getY().doubleValue(), 1+index, 1);
+            tm.setValueAt(pt.getZ().doubleValue(), 2+index, 1);
         }
     }
 
@@ -2625,6 +2667,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jLabel18 = new javax.swing.JLabel();
         jScrollPane6 = new javax.swing.JScrollPane();
         jTextAreaStateDescription = new javax.swing.JTextArea();
+        jComboBoxPoseDisplayMode = new javax.swing.JComboBox<>();
         jPanelProgramPlot = new javax.swing.JPanel();
         jPanelOverheadProgramPlot = new javax.swing.JPanel();
         programPlotterJPanelOverhead = new crcl.ui.misc.ProgramPlotterJPanel();
@@ -2814,7 +2857,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jButtonStepFwd)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabelExpectHoldingObject)))
-                        .addGap(0, 45, Short.MAX_VALUE)))
+                        .addGap(0, 85, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelProgramLayout.setVerticalGroup(
@@ -3163,7 +3206,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(117, Short.MAX_VALUE))
+                .addContainerGap(146, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3471,10 +3514,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 {"XK", null},
                 {"ZI", null},
                 {"ZJ", null},
-                {"Zk", null},
-                {"Roll", null},
-                {"Pitch", null},
-                {"Yaw", null}
+                {"Zk", null}
             },
             new String [] {
                 "Pose Axis", "Position"
@@ -3508,6 +3548,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jTextAreaStateDescription.setRows(2);
         jScrollPane6.setViewportView(jTextAreaStateDescription);
 
+        jComboBoxPoseDisplayMode.setModel(new javax.swing.DefaultComboBoxModel(PoseDisplayMode.values()));
+        jComboBoxPoseDisplayMode.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBoxPoseDisplayModeItemStateChanged(evt);
+            }
+        });
+        jComboBoxPoseDisplayMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxPoseDisplayModeActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelStatusLayout = new javax.swing.GroupLayout(jPanelStatus);
         jPanelStatus.setLayout(jPanelStatusLayout);
         jPanelStatusLayout.setHorizontalGroup(
@@ -3537,8 +3589,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)))
-                        .addGap(10, 10, 10)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)))
+                        .addGap(10, 10, 10))
+                    .addGroup(jPanelStatusLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jComboBoxPoseDisplayMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelStatusLayout.setVerticalGroup(
@@ -3563,7 +3618,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBoxPoseDisplayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         jTabbedPaneRightUpper.addTab("Status", jPanelStatus);
@@ -3576,7 +3634,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 123, Short.MAX_VALUE)
+            .addGap(0, 124, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3680,7 +3738,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .addComponent(jScrollPane1)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 647, Short.MAX_VALUE)
+                        .addComponent(jTabbedPaneLeftUpper)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTabbedPaneRightUpper)
                         .addGap(11, 11, 11))))
@@ -4063,8 +4121,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
 
+    
+    public PoseDisplayMode getCurrentPoseDisplayMode() {
+        return (PoseDisplayMode) jComboBoxPoseDisplayMode.getSelectedItem();
+    }
+    
     private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
-        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose);
+        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose, getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
 
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
@@ -4139,6 +4202,128 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jTextAreaErrorsMouseClicked
 
+    private void setPoseDisplayModelXAxisZAxis() {
+        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI", null},
+                {"XJ", null},
+                {"XK", null},
+                {"ZI", null},
+                {"ZJ", null},
+                {"Zk", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+    }
+    
+    private void setPoseDisplayModelRpy() {
+        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"Roll", null},
+                {"Pitch", null},
+                {"Yaw", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+    }
+    
+    private void setPoseDisplayModelRxRyRz() {
+        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"Rx", null},
+                {"Ry", null},
+                {"Rz", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+    }
+    
+    private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
+        updateDisplayMode();
+    }//GEN-LAST:event_jComboBoxPoseDisplayModeActionPerformed
+
+    private void jComboBoxPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeItemStateChanged
+        updateDisplayMode();
+    }//GEN-LAST:event_jComboBoxPoseDisplayModeItemStateChanged
+
+    private void updateDisplayMode() {
+        PoseDisplayMode displayMode = getCurrentPoseDisplayMode();
+        switch(displayMode) {
+            case XYZ_XAXIS_ZAXIS:
+                setPoseDisplayModelXAxisZAxis();
+                break;
+                
+            case XYZ_RPY:
+                setPoseDisplayModelRpy();
+                break;
+                
+            case XYZ_RX_RY_RZ:
+                setPoseDisplayModelRxRyRz();
+                break;
+        }
+        updatePoseTable(internal.getPose(), jTablePose, displayMode);
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAddProgramItem;
@@ -4165,6 +4350,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JCheckBox jCheckBoxPoll;
     private javax.swing.JCheckBox jCheckBoxStraight;
     private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox<PoseDisplayMode> jComboBoxPoseDisplayMode;
     private javax.swing.JComboBox jComboBoxXYZRPY;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
