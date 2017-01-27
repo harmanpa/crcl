@@ -134,6 +134,12 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 //        System.out.println("time_diff = " + time_diff);
         if (time_diff > 50) {
             try {
+                if (null == mpc || !mpc.isConnected()) {
+                    crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                    crclStatus.getCommandStatus().setStateDescription(" NOT Connected to Robot");
+                    crclStatus.getCommandStatus().setStatusID(crclStatus.getCommandStatus().getStatusID().add(BigInteger.ONE));
+                    return crclStatus;
+                }
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
                 PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
                 PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) + Math.PI);
@@ -213,6 +219,13 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                 last_status_update_time = System.currentTimeMillis();
             } catch (IOException | PmException | MotoPlusConnection.MotoPlusConnectionException ex) {
                 Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
+                try {
+                    mpc.close();
+                } catch (Exception ex1) {
+                    Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+                crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                crclStatus.getCommandStatus().setStateDescription(ex.getMessage());
             }
         }
         crclStatus.getCommandStatus().setStatusID(crclStatus.getCommandStatus().getStatusID().add(BigInteger.ONE));
