@@ -76,7 +76,7 @@ import org.xml.sax.SAXException;
 /**
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
- * @param <T>
+ * @param <T> Type of object to be shown/modified.
  */
 public class ObjTableJPanel<T> extends javax.swing.JPanel {
 

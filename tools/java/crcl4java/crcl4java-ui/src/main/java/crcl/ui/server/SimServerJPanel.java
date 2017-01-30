@@ -79,6 +79,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     /**
      * Creates new form SimServerJPanel
+     * @throws javax.xml.parsers.ParserConfigurationException when XML schemas not setup correctly.
+     * 
      */
     public SimServerJPanel() throws ParserConfigurationException {
         initComponents();

@@ -846,8 +846,9 @@ public class PendantClientInner {
     }
 
     /**
-     *
-     * @param stopType the value of stopType
+     * Send a new command to stop motion.
+     * @param stopType the value of stop condition
+     * @throws javax.xml.bind.JAXBException when xml can not be generated.
      */
     public void stopMotion(StopConditionEnumType stopType) throws JAXBException {
         StopMotionType stop = new StopMotionType();
@@ -884,24 +885,15 @@ public class PendantClientInner {
     private BigInteger lastWaitForDoneMinCmdId = null;
     private Exception lastWaitForDoneException = null;
 
-    private static enum WaitForDoneResult {
-        WFD_DONE,
-        WFD_ERROR,
-        WFD_INTERRUPTED,
-        WFD_UNEXPECTED_RETURN,
-        WFD_REQUEST_STATUS_FAILED,
-        WFD_PAUSED,
-        WFD_HOLDING_ERROR,
-        WFD_EXCEPTION,
-        WFD_TIMEOUT;
-    };
 
     /**
-     *
+     * Poll the status until the current command is done or ends with an error.
+     * 
      * @param minCmdId the value of minCmdId
      * @param timeoutMilliSeconds the value of timeoutMilliSeconds
      * @return the boolean
      * @throws InterruptedException when Thread interrupted
+     * @throws javax.xml.bind.JAXBException when there is a failure creating the XML
      */
     public WaitForDoneResult waitForDone(final BigInteger minCmdId, final long timeoutMilliSeconds)
             throws InterruptedException, JAXBException {
@@ -1497,7 +1489,7 @@ public class PendantClientInner {
     /**
      * Add PropertyChangeListener.
      *
-     * @param listener
+     * @param listener listener to be notified of property changes.
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.addPropertyChangeListener(listener);
@@ -1506,7 +1498,7 @@ public class PendantClientInner {
     /**
      * Remove PropertyChangeListener.
      *
-     * @param listener
+     * @param listener previously added listener to be removed.
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
@@ -2020,7 +2012,8 @@ public class PendantClientInner {
      * Tests if an automatically generated set of commands appears to be
      * correctly implemented by the server.
      *
-     * @param testProperies
+     * @param testProperies map of option names to values to modify the tests
+     * 
      * @return false for failure or true for success
      */
     public boolean runTest(Map<String, String> testProperies) {
@@ -2662,11 +2655,18 @@ public class PendantClientInner {
     }
 
     /**
-     *
-     * @param cmd the value of command to test
-     * @param timeout the value of timeout
+     * Test a command by sending it and waiting for the status to indicate 
+     * it  succeeded of failed. Additional effect properties are also checked
+     * for some commands.
+     * 
+     * @param cmd the command to send and test
      * @return false for failure or true for success
-     * @throws InterruptedException
+     * 
+     * @throws javax.xml.bind.JAXBException failed to parse or generate xml
+     * @throws InterruptedException this thread was interrupted
+     * @throws java.io.IOException socket closed/failed.
+     * @throws rcs.posemath.PmException math failure 
+     * @throws crcl.utils.CRCLException CRCL utility failed.
      */
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
@@ -2697,39 +2697,6 @@ public class PendantClientInner {
                 showMessage("testCommand can not get starting status");
                 return false;
             }
-//            if (cmd.getCommandID() == null) {
-//                showMessage("Command from program has null commandId");
-//                return false;
-//            }
-//
-//            if (cmd.getCommandID().compareTo(status.getCommandStatus().getCommandID()) == 0
-//                    || cmd.getCommandID().compareTo(lastCommandIdSent) == 0) {
-//                if (cmd instanceof InitCanonType) {
-//                    InitCanonType newInitCanon = new InitCanonType();
-//                    newInitCanon.setCommandID(BigInteger.TEN);
-//                    incAndSendCommand(newInitCanon);
-//                    sendCommandTime = System.currentTimeMillis();
-//                    if (!waitForDone(newInitCanon.getCommandID(), timeout)) {
-//                        showMessage("Forced InitCanonType timedout.");
-//                        return false;
-//                    }
-//                    if (cmd.getCommandID().compareTo(status.getCommandStatus().getCommandID()) == 0
-//                            || cmd.getCommandID().compareTo(lastCommandIdSent) == 0) {
-//                        showMessage("Command has same commandID as current status. cmd=" + CRCLSocket.getUtilSocket().commandToString(cmd, false)+ ", lastCommandIdSent="+lastCommandIdSent);
-//                        return false;
-//                    }
-//                } else {
-//                    showMessage("Command has same commandID as current status. cmd=" + CRCLSocket.getUtilSocket().commandToString(cmd, false)+ ", lastCommandIdSent="+lastCommandIdSent);
-//                    return false;
-//                }
-//            }
-//            if (!sendCommand(cmd)) {
-//                if (pause_count_start != this.pause_count) {
-//                    continue;
-//                }
-//                showMessage("Can not send " + cmdString + ".");
-//                return false;
-//            }
             if (!incAndSendCommand(cmd)) {
                 if (pause_count_start != this.pause_count.get()) {
                     continue;

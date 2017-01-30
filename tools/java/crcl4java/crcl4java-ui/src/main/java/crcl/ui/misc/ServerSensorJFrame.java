@@ -6,8 +6,6 @@
 package crcl.ui.misc;
 
 
-import crcl.ui.misc.FingerPressureSensorData;
-import com.google.gson.Gson;
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
@@ -61,7 +59,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     /**
      * Add PropertyChangeListener.
      *
-     * @param listener
+     * @param listener listener to be notified of changes
      */
     @Override
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -71,7 +69,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     /**
      * Remove PropertyChangeListener.
      *
-     * @param listener
+     * @param listener previously added listener to be removed
      */
     @Override
     public void removePropertyChangeListener(PropertyChangeListener listener) {

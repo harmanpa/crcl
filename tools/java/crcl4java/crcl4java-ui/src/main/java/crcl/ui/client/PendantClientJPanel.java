@@ -412,6 +412,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     /**
      * Creates new form PendantClientJPanel
+     * @throws javax.xml.parsers.ParserConfigurationException when xml schemas are invalid.
      */
     public PendantClientJPanel() throws ParserConfigurationException {
         initComponents();

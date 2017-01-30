@@ -31,7 +31,7 @@ import javax.swing.JDialog;
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
- * @param <TT>
+ * @param <TT> type of object in list to be chosen.
  */
 public class ListChooserJPanel<TT> extends javax.swing.JPanel {
 
