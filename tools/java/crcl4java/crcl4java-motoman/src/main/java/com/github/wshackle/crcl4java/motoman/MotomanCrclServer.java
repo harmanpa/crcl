@@ -58,6 +58,7 @@ import crcl.base.PoseStatusType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
 import crcl.base.RotSpeedType;
+import crcl.base.SetAngleUnitsType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetRotSpeedType;
@@ -312,6 +313,11 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
 
+    AngleUnitEnumType currentAngleUnit = AngleUnitEnumType.DEGREE;
+    private void setAngleUnits(SetAngleUnitsType sau) {
+        currentAngleUnit = sau.getUnitName();
+    }
+    
     private void setLengthUnits(SetLengthUnitsType slu) {
         switch (slu.getUnitName()) {
             case MILLIMETER:
@@ -561,6 +567,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         crclStatus.getCommandStatus().setStateDescription("");
                     } else if (cmd instanceof SetLengthUnitsType) {
                         setLengthUnits((SetLengthUnitsType) cmd);
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription("");
+                    } else if (cmd instanceof SetAngleUnitsType) {
+                        setAngleUnits((SetAngleUnitsType) cmd);
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
                         crclStatus.getCommandStatus().setStateDescription("");
                     } else if (cmd instanceof SetEndEffectorType) {
