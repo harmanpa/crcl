@@ -117,8 +117,13 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static XFuture<Void> runAsync(Runnable r, ExecutorService es) {
         XFuture<Void> myf = new XFuture<>();
         Future<?> f = es.submit(() -> {
-            r.run();
-            myf.complete(null);
+            try {
+                r.run();
+                myf.complete(null);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                myf.completeExceptionally(e);
+            }
         });
         myf.futureFromExecSubmit = ((Future<Void>) f);
         return myf;
