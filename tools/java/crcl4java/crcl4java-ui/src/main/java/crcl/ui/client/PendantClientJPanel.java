@@ -3852,6 +3852,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         runCurrentProgram();
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
+    private XFuture<Boolean> lastProgramFuture = null;
+    
     public XFuture<Boolean> runCurrentProgram() {
         try {
             if (!isConnected()) {
@@ -3868,11 +3870,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.jButtonResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldSpeedsSet = false;
+            lastProgramFuture = future;
             return future;
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             XFuture<Boolean> future = new XFuture<>();
             future.completeExceptionally(ex);
+            lastProgramFuture = null;
             return future;
         }
     }
@@ -3905,6 +3909,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
     private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
+        continueCurrentProgram();
+    }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
+
+    public XFuture<Boolean> continueCurrentProgram() {
         if (pauseTime > this.internal.runStartMillis) {
             this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
         }
@@ -3915,10 +3923,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.internal.setStepMode(false);
         if (internal.isPaused() && internal.isRunningProgram()) {
             internal.unpause();
+            return lastProgramFuture;
         } else {
-            internal.startRunProgramThread(this.getCurrentProgramLine());
+            InitCanonType init = new InitCanonType();
+            init.setCommandID(BigInteger.ONE);
+            return XFuture.runAsync(() -> {
+                try {
+                    internal.testCommand(init);
+                } catch (JAXBException | InterruptedException | IOException | PmException | CRCLException ex) {
+                    Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            })
+            .thenCompose(x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
         }
-    }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
+    }
 
     private void jButtonStepBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepBackActionPerformed
         internal.setStepMode(true);

@@ -65,7 +65,7 @@ import org.xml.sax.SAXException;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  implements PendantClientOuter, PendantClientMenuOuter {
+public class PendantClientJInternalFrame extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     /**
      * Creates new form PendantClientJInternalFrame
@@ -74,38 +74,38 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         initComponents();
         init();
     }
-    
+
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }
-    
+
     public void connectCurrent() {
         pendantClientJPanel1.connectCurrent();
     }
-    
+
     public void connect(String host, int port) {
         pendantClientJPanel1.connect(host, port);
     }
-    
-    
+
     private JFrame parentJFrame = null;
+
     public JFrame findParentJFrame() {
-        if(parentJFrame != null) {
+        if (parentJFrame != null) {
             return parentJFrame;
         }
         Container parent = this.getParent();
-        while(parent != null && !(parent instanceof JFrame)) {
+        while (parent != null && !(parent instanceof JFrame)) {
             parent = parent.getParent();
         }
         parentJFrame = (JFrame) parentJFrame;
         return parentJFrame;
     }
-    
+
     public void addUpdateTitleListener(UpdateTitleListener utl) {
         pendantClientJPanel1.addUpdateTitleListener(utl);
     }
-    
-     public void removeUpdateTitleListener(UpdateTitleListener utl) {
+
+    public void removeUpdateTitleListener(UpdateTitleListener utl) {
         pendantClientJPanel1.removeUpdateTitleListener(utl);
     }
 
@@ -133,22 +133,22 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
-    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
     }
-    
-    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) { 
+
+    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
         pendantClientJPanel1.removeProgramLineListener(l);
     }
-    
-    public void addCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) { 
+
+    public void addCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) {
         pendantClientJPanel1.addCurrentPoseListener(l);
     }
-    
-    public void removeCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) { 
+
+    public void removeCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) {
         pendantClientJPanel1.removeCurrentPoseListener(l);
     }
-    
+
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);
@@ -208,7 +208,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
             }
         }
     }
-    
+
     private void readRecentPrograms() {
         Set<String> pathSet = pendantClientJPanel1.getRecentPrograms();
         this.jMenuRecentProgram.removeAll();
@@ -278,22 +278,22 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     }
     public static final Logger LOGGER = Logger.getLogger(PendantClientJInternalFrame.class.getName());
 
-     @Override
+    @Override
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
         pendantClientJPanel1.saveXmlProgramFile(f);
     }
 
     private JFrame outerFrame;
-    private boolean searchedForOuterFrame=false;
-    
+    private boolean searchedForOuterFrame = false;
+
     private JFrame searchForOuterFrame() {
-        if(searchedForOuterFrame) {
+        if (searchedForOuterFrame) {
             return outerFrame;
         }
         searchedForOuterFrame = true;
         Container container = this;
-        while(null != (container = container.getParent() )) {
-            if(container instanceof JFrame) {
+        while (null != (container = container.getParent())) {
+            if (container instanceof JFrame) {
                 return (JFrame) container;
             }
         }
@@ -306,7 +306,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
      * @return the value of outerFrame
      */
     public JFrame getOuterFrame() {
-        if(null == outerFrame) {
+        if (null == outerFrame) {
             outerFrame = searchForOuterFrame();
         }
         return outerFrame;
@@ -320,7 +320,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public void setOuterFrame(JFrame outerFrame) {
         this.outerFrame = outerFrame;
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -686,7 +686,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     private void jMenuItemSaveProgramAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveProgramAsActionPerformed
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            "XML Program Files", "xml");
+                "XML Program Files", "xml");
         chooser.setFileFilter(filter);
         int returnVal = chooser.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -748,8 +748,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     private void jMenuItemRunTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemRunTestActionPerformed
         Map<String, String> testPropsMap
-        = PropertiesJPanel.confirmPropertiesMap(this.getOuterFrame(), "Test Run Properties", true,
-            pendantClientJPanel1.getInternal().getDefaultTestPropertiesMap());
+                = PropertiesJPanel.confirmPropertiesMap(this.getOuterFrame(), "Test Run Properties", true,
+                        pendantClientJPanel1.getInternal().getDefaultTestPropertiesMap());
         pendantClientJPanel1.startRunTest(testPropsMap);
     }//GEN-LAST:event_jMenuItemRunTestActionPerformed
 
@@ -889,7 +889,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public void finishSetStatus() {
         pendantClientJPanel1.finishSetStatus();
     }
-        
 
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
@@ -908,7 +907,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     @Override
     public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
-        pendantClientJPanel1.showCurrentProgramLine(line,program,status);
+        pendantClientJPanel1.showCurrentProgramLine(line, program, status);
     }
 
     @Override
@@ -953,7 +952,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public Optional<CommandStateEnumType> getCurrentState() {
         return pendantClientJPanel1.getCurrentState();
     }
-    
+
     @Override
     public PoseType getCurrentPose() {
         return pendantClientJPanel1.getCurrentPose();
@@ -967,7 +966,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public boolean isConnected() {
         return pendantClientJPanel1.isConnected();
     }
-    
+
     @Override
     public File getLastOpenedProgramFile() {
         return pendantClientJPanel1.getLastOpenedProgramFile();
@@ -977,7 +976,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
         return pendantClientJPanel1.runCurrentProgram();
     }
-    
+
     @Override
     public void setProgram(CRCLProgramType program) throws JAXBException {
         pendantClientJPanel1.setProgram(program);
@@ -995,7 +994,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     @Override
     public boolean validateXmlSelected() {
-         return jCheckBoxMenuItemValidateXml.isSelected();
+        return jCheckBoxMenuItemValidateXml.isSelected();
     }
 
     @Override
@@ -1042,10 +1041,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
     public void abortProgram() {
         pendantClientJPanel1.abortProgram();
     }
-    
+
     @Override
     public File getPropertiesFile() {
-       return pendantClientJPanel1.getPropertiesFile();
+        return pendantClientJPanel1.getPropertiesFile();
     }
 
     @Override
@@ -1061,6 +1060,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame  imp
 
     @Override
     public void saveProperties() {
-       pendantClientJPanel1.saveProperties();
+        pendantClientJPanel1.saveProperties();
+    }
+
+    public XFuture<Boolean> continueCurrentProgram() {
+        return pendantClientJPanel1.continueCurrentProgram();
     }
 }

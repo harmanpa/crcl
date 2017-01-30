@@ -427,7 +427,15 @@ public class PendantClientInner {
                 && this.status.getCommandStatus() != null
                 && this.status.getCommandStatus().getCommandID() != null
                 && this.status.getCommandStatus().getCommandID().compareTo(minCmdId) == 0
-                && this.status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING;
+                && this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE;
+    }
+    
+    public boolean isError(BigInteger minCmdId) {
+        return this.status != null
+                && this.status.getCommandStatus() != null
+                && this.status.getCommandStatus().getCommandID() != null
+                && this.status.getCommandStatus().getCommandID().compareTo(minCmdId) == 0
+                && this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR;
     }
 
     public boolean requestStatus() throws JAXBException {
@@ -878,6 +886,7 @@ public class PendantClientInner {
 
     private static enum WaitForDoneResult {
         WFD_DONE,
+        WFD_ERROR,
         WFD_INTERRUPTED,
         WFD_UNEXPECTED_RETURN,
         WFD_REQUEST_STATUS_FAILED,
@@ -912,6 +921,9 @@ public class PendantClientInner {
             while (true) {
                 if (isDone(minCmdId)) {
                     return WaitForDoneResult.WFD_DONE;
+                }
+                if (isError(minCmdId)) {
+                    return WaitForDoneResult.WFD_ERROR;
                 }
                 if (holdingErrorOccured) {
                     return WaitForDoneResult.WFD_HOLDING_ERROR;
@@ -1776,12 +1788,14 @@ public class PendantClientInner {
         return runProgram(prog, startLine, null, null);
     }
 
-    private boolean runProgram(CRCLProgramType prog, int startLine, final StackTraceElement[] threadCreateCallStack,
+    private boolean runProgram(CRCLProgramType prog, int startLine, 
+            final StackTraceElement[] threadCreateCallStack,
             XFuture<Boolean> future) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
         callingRunProgramStackTrace.set(threadCreateCallStack);
+        int i=0;
         try {
             setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
             paused = false;
@@ -1832,7 +1846,7 @@ public class PendantClientInner {
             p0 = p1;
             outer.showCurrentProgramLine(startLine, prog, getStatus());
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
-            for (int i = startLine; i < middleCommands.size(); i++) {
+            for ( i = (startLine >1?startLine:1); i < middleCommands.size(); i++) {
                 if (null != future && future.isCancelled()) {
                     try {
                         stopMotion(StopConditionEnumType.FAST);
@@ -1884,9 +1898,11 @@ public class PendantClientInner {
             if (close_test_count.get() <= start_close_test_count) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (CRCLException | IOException | PmException | JAXBException ex) {
+        } catch (Throwable ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
-
+            System.err.println("startLine="+startLine);
+            System.err.println("i="+i);
+            System.err.println("threadCreateCallStack="+Arrays.toString(threadCreateCallStack));
         } finally {
             setOutgoingProgramIndex(null);
             this.runEndMillis = System.currentTimeMillis();
@@ -2652,7 +2668,7 @@ public class PendantClientInner {
      * @return false for failure or true for success
      * @throws InterruptedException
      */
-    private boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+    public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
         int pause_count_start = this.pause_count.get();
         long testCommandStartTime = System.currentTimeMillis();

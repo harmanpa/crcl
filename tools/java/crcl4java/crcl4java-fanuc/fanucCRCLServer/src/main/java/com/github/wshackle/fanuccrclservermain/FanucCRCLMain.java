@@ -748,6 +748,36 @@ public class FanucCRCLMain {
 //                                }
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
+                        } else if (prevCmd instanceof InitCanonType) {
+                            long diff = System.currentTimeMillis() - dwellEndTime;
+//                            System.out.println("(prevCmd instanceof InitCanonType) diff = " + diff);
+//                            System.out.println("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
+                            if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+//                                if(diff > 5) {
+//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
+//                                }
+                                lastServoReady = true;
+//                                System.out.println("robotResetCount = " + robotResetCount);
+                                boolean secondInitSafetyStatError = checkSafetyStatError();
+//                                System.out.println("secondInitSafetyStatError = " + secondInitSafetyStatError);
+                                if (secondInitSafetyStatError) {
+                                    setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                } else if (robotResetCount < 3) {
+                                    boolean secondInitCheckServoReady = checkServoReady();
+                                    System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
+                                    if (!secondInitCheckServoReady) {
+                                        robot.alarms().reset();
+                                        robot.tasks().abortAll(true);
+                                        dwellEndTime = System.currentTimeMillis() + 2000;
+                                        robotResetCount++;
+                                        setCommandState(CommandStateEnumType.CRCL_WORKING);
+                                    } else {
+                                        setCommandState(CommandStateEnumType.CRCL_DONE);
+                                    }
+                                } else {
+                                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
+                            }
                         } else if (prevCmd instanceof ActuateJointsType) {
                             posReg97.update();
                             if (posReg97.isAtCurPosition()) {
@@ -848,40 +878,69 @@ public class FanucCRCLMain {
                     }
                     jointStatuses.getJointStatus().add(js);
                 }
-                if (null != morSafetyStatVar) {
-                    morSafetyStatVar.refresh();
-                    int safety_stat = (int) morSafetyStatVar.value();
-                    if (isMoreSafetyStatError(safety_stat)) {
-                        if (safety_stat != last_safety_stat) {
-                            showError(morSafetyStatToString(safety_stat));
-                        } else if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                            setStatusErrorDescription(morSafetyStatToString(safety_stat));
-                        }
-                        lastServoReady = true;
-                    } else if (null != moveGroup1ServoReadyVar) {
-                        moveGroup1ServoReadyVar.refresh();
-                        Object val = moveGroup1ServoReadyVar.value();
-                        if (val instanceof Boolean) {
-                            boolean servoReady = (boolean) val;
-                            if (!servoReady) {
-                                if (lastServoReady) {
-                                    showError("SERVO_NOT_READY (Need to reset fault?)");
-                                } else if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                                    setStatusErrorDescription("SERVO_NOT_READY (Need to reset fault?)");
-                                }
-                            }
-                            lastServoReady = servoReady;
-                        }
-                    } else {
-                        lastServoReady = true;
-                    }
-                    last_safety_stat = safety_stat;
+                if (null == prevCmd || !(prevCmd instanceof InitCanonType)
+                        || status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+                    checkServoReady();
                 }
             }
         } catch (PmException ex) {
             showError(ex.toString());
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private boolean lastActivAlarms = false;
+
+    private boolean checkServoReady() {
+        boolean readyNow = false;
+        boolean safetyStatError = checkSafetyStatError();
+        if (safetyStatError) {
+            lastServoReady = true;
+        } else if (null != moveGroup1ServoReadyVar) {
+            moveGroup1ServoReadyVar.refresh();
+            Object val = moveGroup1ServoReadyVar.value();
+            if (val instanceof Boolean) {
+                boolean servoReady = (boolean) val;
+                if (!servoReady) {
+                    if (lastServoReady) {
+                        showError("SERVO_NOT_READY (Need to reset fault?)");
+                    } else if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                        setStatusErrorDescription("SERVO_NOT_READY (Need to reset fault?)");
+                    }
+                }
+                lastServoReady = servoReady;
+                readyNow = servoReady;
+            }
+        } else {
+            lastServoReady = true;
+        }
+        return readyNow;
+    }
+
+    private volatile boolean lastSafetyStatError = false;
+    private volatile long lastCheckSafetyStatTime = 0;
+
+    private boolean checkSafetyStatError() {
+        boolean safetyStatError = false;
+        if (System.currentTimeMillis() - lastCheckSafetyStatTime < 100) {
+            return lastSafetyStatError;
+        }
+        if (null != morSafetyStatVar) {
+            morSafetyStatVar.refresh();
+            int safety_stat = (int) morSafetyStatVar.value();
+            lastCheckSafetyStatTime = System.currentTimeMillis();
+            safetyStatError = isMoreSafetyStatError(safety_stat);
+            if (safetyStatError) {
+                if (safety_stat != last_safety_stat) {
+                    showError(morSafetyStatToString(safety_stat));
+                } else if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                    setStatusErrorDescription(morSafetyStatToString(safety_stat));
+                }
+            }
+            last_safety_stat = safety_stat;
+        }
+        lastSafetyStatError = safetyStatError;
+        return safetyStatError;
     }
 
     public ExecutorService getRobotService() {
@@ -1033,10 +1092,27 @@ public class FanucCRCLMain {
         }
     }
 
+    private volatile int robotResetCount = 0;
+
     private void handleInitCanon(InitCanonType initCmd) {
+        lastServoReady = true;
+
+        boolean initSafetyStatError = checkSafetyStatError();
+//        System.out.println("initSafetyStatError = " + initSafetyStatError);
+        if (initSafetyStatError) {
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+        } else {
+            boolean initCheckServoReady = checkServoReady();
+//            System.out.println("initCheckServoReady = " + initCheckServoReady);
+            if (!initCheckServoReady) {
+                setCommandState(CommandStateEnumType.CRCL_WORKING);
+                dwellEndTime = System.currentTimeMillis() + 1000;
+            } else {
+                setCommandState(CommandStateEnumType.CRCL_DONE);
+            }
+        }
         robot.alarms().reset();
         robot.tasks().abortAll(true);
-        setCommandState(CommandStateEnumType.CRCL_DONE);
         handleCommandCount = 0;
         updateStatusCount = 0;
         maxHandleCommandTime = 0;
@@ -1044,6 +1120,8 @@ public class FanucCRCLMain {
         maxUpdateStatusTime = 0;
         totalUpdateStatusTime = 0;
         lastServoReady = true;
+
+        robotResetCount = 0;
 //        checkAlarms();
     }
 
@@ -1121,7 +1199,7 @@ public class FanucCRCLMain {
                 status.getCommandStatus().setCommandID(BigInteger.ONE);
             }
 
-            status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
             status.getCommandStatus().setStateDescription(error);
         }
     }
@@ -1259,11 +1337,11 @@ public class FanucCRCLMain {
     long startMoveTime = -1;
 
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
-        try {
-            System.out.println("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
-        } catch (CRCLException ex) {
-            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            System.out.println("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
+//        } catch (CRCLException ex) {
+//            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
         posReg97Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -1521,13 +1599,16 @@ public class FanucCRCLMain {
 
     private void handleDwell(DwellType dwellCmd) {
         dwellEndTime = System.currentTimeMillis() + ((long) (dwellCmd.getDwellTime().doubleValue() * 1000.0 + 1.0));
-        System.out.println("dwellEndTime = " + dwellEndTime);
+//        System.out.println("dwellEndTime = " + dwellEndTime);
         setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
 
     private void setCommandState(CommandStateEnumType newState) {
         if (null == status.getCommandStatus()) {
             status.setCommandStatus(new CommandStatusType());
+        }
+        if (checkSafetyStatError()) {
+            newState = CommandStateEnumType.CRCL_ERROR;
         }
         CommandStatusType cmdStatus = status.getCommandStatus();
         if (null != cmdStatus) {
@@ -1607,7 +1688,7 @@ public class FanucCRCLMain {
                 try {
                     if (tsk != null && tskProgName != null && tskProgName.equals(prog.name())) {
                         FRETaskStatusConstants tskStatus = tsk.status();
-                        System.out.println("tskStatus = " + tskStatus);
+//                        System.out.println("tskStatus = " + tskStatus);
                         if (tskStatus == FRETaskStatusConstants.frStatusRun) {
                             System.out.println("aborting task with curProgram().name() = " + tskProgName);
                             tsk.abort(true, true);
