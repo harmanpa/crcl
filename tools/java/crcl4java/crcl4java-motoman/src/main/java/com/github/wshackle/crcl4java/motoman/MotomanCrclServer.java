@@ -53,6 +53,7 @@ import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
+import crcl.base.MessageType;
 import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
 import crcl.base.RotSpeedAbsoluteType;
@@ -580,6 +581,9 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     } else if (cmd instanceof EndCanonType) {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
                         crclStatus.getCommandStatus().setStateDescription("");
+                    } else if (cmd instanceof MessageType) {
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_DONE);
+                        crclStatus.getCommandStatus().setStateDescription(((MessageType)cmd).getMessage());
                     } else {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                         crclStatus.getCommandStatus().setStateDescription(cmd.getClass().getName() + " not implemented");
