@@ -56,7 +56,6 @@ public class XFuture<T> extends CompletableFuture<T> {
     public void setOnCancelAllRunnable(Runnable onCancelAllRunnable) {
         this.onCancelAllRunnable = onCancelAllRunnable;
     }
-    
 
     public Thread getThreadToInterrupt() {
         return threadToInterrupt;
@@ -99,15 +98,21 @@ public class XFuture<T> extends CompletableFuture<T> {
         ret.alsoCancel.addAll(Arrays.asList(cfs));
         return ret.wrap(orig);
     }
-    
+
     private final ConcurrentLinkedDeque<CompletableFuture> alsoCancel = new ConcurrentLinkedDeque<>();
 
     public static <T> XFuture<T> supplyAsync(Callable<T> c, ExecutorService es) {
         XFuture<T> myf = new XFuture<>();
         Future<T> f = es.submit(() -> {
-            T result = c.call();
-            myf.complete(result);
-            return result;
+            try {
+                T result = c.call();
+                myf.complete(result);
+                return result;
+            } catch (Throwable throwable) {
+                myf.completeExceptionally(throwable);
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, throwable);
+                throw new RuntimeException(throwable);
+            }
         });
         myf.futureFromExecSubmit = f;
         return myf;
@@ -117,7 +122,13 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static XFuture<Void> runAsync(Runnable r, ExecutorService es) {
         XFuture<Void> myf = new XFuture<>();
         Future<?> f = es.submit(() -> {
-            r.run();
+            try {
+                r.run();
+            } catch (Throwable throwable) {
+                myf.completeExceptionally(throwable);
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, throwable);
+                throw new RuntimeException(throwable);
+            }
             myf.complete(null);
         });
         myf.futureFromExecSubmit = ((Future<Void>) f);
@@ -197,7 +208,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public void cancelAll(boolean mayInterrupt) {
         this.cancel(mayInterrupt);
-        if(null != onCancelAllRunnable) {
+        if (null != onCancelAllRunnable) {
             onCancelAllRunnable.run();
         }
         if (null != futureFromExecSubmit) {
@@ -206,7 +217,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() == threadToInterrupt) {
             threadToInterrupt.interrupt();
         }
-        
 
         for (CompletableFuture f : alsoCancel) {
             if (null != f && null != this) {
