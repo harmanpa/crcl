@@ -412,7 +412,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     /**
      * Creates new form PendantClientJPanel
-     * @throws javax.xml.parsers.ParserConfigurationException when xml schemas are invalid.
+     *
+     * @throws javax.xml.parsers.ParserConfigurationException when xml schemas
+     * are invalid.
      */
     public PendantClientJPanel() throws ParserConfigurationException {
         initComponents();
@@ -1853,19 +1855,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
             updatePointTable(p, tm, 0);
-            switch(displayMode) {
+            switch (displayMode) {
                 case XYZ_XAXIS_ZAXIS:
-                    updateXaxisZaxisTable(p, tm,3);
+                    updateXaxisZaxisTable(p, tm, 3);
                     break;
-                    
+
                 case XYZ_RPY:
-                    updateRpyTable(p, tm,3);
+                    updateRpyTable(p, tm, 3);
                     break;
-                    
-                case XYZ_RX_RY_RZ: 
+
+                case XYZ_RX_RY_RZ:
                     updateRxRyRzTable(p, tm, 3);
                     break;
-                    
+
             }
         } catch (PmException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1874,44 +1876,44 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private static void updateRpyTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
         PmRpy rpy = CRCLPosemath.toPmRpy(p);
-        if (null != rpy && tm.getRowCount() > 2+ index) {
-            tm.setValueAt(Math.toDegrees(rpy.r), 0+index, 1);
-            tm.setValueAt(Math.toDegrees(rpy.p), 1+index, 1);
-            tm.setValueAt(Math.toDegrees(rpy.y), 2+index, 1);
+        if (null != rpy && tm.getRowCount() > 2 + index) {
+            tm.setValueAt(Math.toDegrees(rpy.r), 0 + index, 1);
+            tm.setValueAt(Math.toDegrees(rpy.p), 1 + index, 1);
+            tm.setValueAt(Math.toDegrees(rpy.y), 2 + index, 1);
         }
     }
-    
+
     private static void updateRxRyRzTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
         PmRotationVector rv = CRCLPosemath.toPmRotationVector(p);
-        if (null != rv && tm.getRowCount() > 2+ index) {
+        if (null != rv && tm.getRowCount() > 2 + index) {
             double rotMagDeg = Math.toDegrees(rv.s);
-            tm.setValueAt(rotMagDeg*rv.x, 0+index, 1);
-            tm.setValueAt(rotMagDeg*rv.y, 1+index, 1);
-            tm.setValueAt(rotMagDeg*rv.z, 2+index, 1);
+            tm.setValueAt(rotMagDeg * rv.x, 0 + index, 1);
+            tm.setValueAt(rotMagDeg * rv.y, 1 + index, 1);
+            tm.setValueAt(rotMagDeg * rv.z, 2 + index, 1);
         }
     }
-    
+
     private static void updateXaxisZaxisTable(PoseType p, DefaultTableModel tm, int index) {
         VectorType xv = p.getXAxis();
         VectorType zv = p.getZAxis();
-        if (null != xv && tm.getRowCount() > 2+index) {
-            tm.setValueAt(xv.getI().doubleValue(), 0+index, 1);
-            tm.setValueAt(xv.getJ().doubleValue(), 1+index, 1);
-            tm.setValueAt(xv.getK().doubleValue(), 2+index, 1);
+        if (null != xv && tm.getRowCount() > 2 + index) {
+            tm.setValueAt(xv.getI().doubleValue(), 0 + index, 1);
+            tm.setValueAt(xv.getJ().doubleValue(), 1 + index, 1);
+            tm.setValueAt(xv.getK().doubleValue(), 2 + index, 1);
         }
-        if (null != zv && tm.getRowCount() > 5+index) {
-            tm.setValueAt(zv.getI().doubleValue(), 3+index, 1);
-            tm.setValueAt(zv.getJ().doubleValue(), 4+index, 1);
-            tm.setValueAt(zv.getK().doubleValue(), 5+index, 1);
+        if (null != zv && tm.getRowCount() > 5 + index) {
+            tm.setValueAt(zv.getI().doubleValue(), 3 + index, 1);
+            tm.setValueAt(zv.getJ().doubleValue(), 4 + index, 1);
+            tm.setValueAt(zv.getK().doubleValue(), 5 + index, 1);
         }
     }
 
     public static void updatePointTable(PoseType p, DefaultTableModel tm, int index) {
         PointType pt = p.getPoint();
-        if (null != pt && tm.getRowCount() > 2+ index) {
-            tm.setValueAt(pt.getX().doubleValue(), 0+index, 1);
-            tm.setValueAt(pt.getY().doubleValue(), 1+index, 1);
-            tm.setValueAt(pt.getZ().doubleValue(), 2+index, 1);
+        if (null != pt && tm.getRowCount() > 2 + index) {
+            tm.setValueAt(pt.getX().doubleValue(), 0 + index, 1);
+            tm.setValueAt(pt.getY().doubleValue(), 1 + index, 1);
+            tm.setValueAt(pt.getZ().doubleValue(), 2 + index, 1);
         }
     }
 
@@ -3854,7 +3856,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
     private XFuture<Boolean> lastProgramFuture = null;
-    
+
     public XFuture<Boolean> runCurrentProgram() {
         try {
             if (!isConnected()) {
@@ -3914,6 +3916,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
     public XFuture<Boolean> continueCurrentProgram() {
+        if (!isConnected()) {
+            connectCurrent();
+        }
+        if(null == internal.getProgram() 
+                || getCurrentProgramLine() < 0 
+                || getCurrentProgramLine() > (internal.getProgram().getMiddleCommand().size()+1)) {
+            return XFuture.completedFuture(true);
+        }
         if (pauseTime > this.internal.runStartMillis) {
             this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
         }
@@ -3935,7 +3945,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                 }
             })
-            .thenCompose(x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
+                    .thenCompose(x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
         }
     }
 
@@ -4140,11 +4150,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
 
-    
     public PoseDisplayMode getCurrentPoseDisplayMode() {
         return (PoseDisplayMode) jComboBoxPoseDisplayMode.getSelectedItem();
     }
-    
+
     private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
         this.updatePoseTable(internal.getPose(), this.jTableMoveToPose, getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
@@ -4223,100 +4232,100 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void setPoseDisplayModelXAxisZAxis() {
         jTablePose.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
-                {"XI", null},
-                {"XJ", null},
-                {"XK", null},
-                {"ZI", null},
-                {"ZJ", null},
-                {"Zk", null}
-            },
-            new String [] {
-                "Pose Axis", "Position"
-            }
+                new Object[][]{
+                    {"X", null},
+                    {"Y", null},
+                    {"Z", null},
+                    {"XI", null},
+                    {"XJ", null},
+                    {"XK", null},
+                    {"ZI", null},
+                    {"ZJ", null},
+                    {"Zk", null}
+                },
+                new String[]{
+                    "Pose Axis", "Position"
+                }
         ) {
-            Class[] types = new Class [] {
+            Class[] types = new Class[]{
                 java.lang.String.class, java.lang.Double.class
             };
-            boolean[] canEdit = new boolean [] {
+            boolean[] canEdit = new boolean[]{
                 false, false
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
     }
-    
+
     private void setPoseDisplayModelRpy() {
         jTablePose.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
-                {"Roll", null},
-                {"Pitch", null},
-                {"Yaw", null}
-            },
-            new String [] {
-                "Pose Axis", "Position"
-            }
+                new Object[][]{
+                    {"X", null},
+                    {"Y", null},
+                    {"Z", null},
+                    {"Roll", null},
+                    {"Pitch", null},
+                    {"Yaw", null}
+                },
+                new String[]{
+                    "Pose Axis", "Position"
+                }
         ) {
-            Class[] types = new Class [] {
+            Class[] types = new Class[]{
                 java.lang.String.class, java.lang.Double.class
             };
-            boolean[] canEdit = new boolean [] {
+            boolean[] canEdit = new boolean[]{
                 false, false
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
     }
-    
+
     private void setPoseDisplayModelRxRyRz() {
         jTablePose.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"X", null},
-                {"Y", null},
-                {"Z", null},
-                {"Rx", null},
-                {"Ry", null},
-                {"Rz", null}
-            },
-            new String [] {
-                "Pose Axis", "Position"
-            }
+                new Object[][]{
+                    {"X", null},
+                    {"Y", null},
+                    {"Z", null},
+                    {"Rx", null},
+                    {"Ry", null},
+                    {"Rz", null}
+                },
+                new String[]{
+                    "Pose Axis", "Position"
+                }
         ) {
-            Class[] types = new Class [] {
+            Class[] types = new Class[]{
                 java.lang.String.class, java.lang.Double.class
             };
-            boolean[] canEdit = new boolean [] {
+            boolean[] canEdit = new boolean[]{
                 false, false
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
     }
-    
+
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
         updateDisplayMode();
     }//GEN-LAST:event_jComboBoxPoseDisplayModeActionPerformed
@@ -4327,15 +4336,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void updateDisplayMode() {
         PoseDisplayMode displayMode = getCurrentPoseDisplayMode();
-        switch(displayMode) {
+        switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
                 setPoseDisplayModelXAxisZAxis();
                 break;
-                
+
             case XYZ_RPY:
                 setPoseDisplayModelRpy();
                 break;
-                
+
             case XYZ_RX_RY_RZ:
                 setPoseDisplayModelRxRyRz();
                 break;

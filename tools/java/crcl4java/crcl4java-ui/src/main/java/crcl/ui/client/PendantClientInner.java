@@ -1788,8 +1788,17 @@ public class PendantClientInner {
         holdingErrorRepCount = 0;
         callingRunProgramStackTrace.set(threadCreateCallStack);
         int i=0;
+        if(null == prog) {
+            System.err.println("startLine="+startLine);
+            System.err.println("threadCreateCallStack="+Arrays.toString(threadCreateCallStack));
+            throw new IllegalArgumentException("prog == null");
+        }
         try {
-            setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
+            if(null != prog && null != prog.getMiddleCommand()) {
+                setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
+            } else {
+                setOutgoingProgramLength(BigInteger.ZERO);
+            }
             paused = false;
             if (null == this.crclSocket) {
                 this.connect(outer.getHost(), outer.getPort());
@@ -2776,6 +2785,12 @@ public class PendantClientInner {
     }
 
     public XFuture<Boolean> startRunProgramThread(final int startLine) {
+        if(null == program) {
+            throw new IllegalStateException("program is null");
+        }
+        if(startLine < 0) {
+            throw new IllegalArgumentException("startLine="+startLine +" (must be atleast 0)");
+        }
         final XFuture<Boolean> future = new XFuture<>();
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
