@@ -228,7 +228,26 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
 
     }
+    
+    public static class PrintedXFutureRuntimeException extends RuntimeException {
 
+        public PrintedXFutureRuntimeException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    public static <T> T logException(T ret, Throwable thrown) {
+        if(null != thrown) {
+            if(thrown instanceof PrintedXFutureRuntimeException) {
+                throw ((PrintedXFutureRuntimeException) thrown);
+            } else {
+                thrown.printStackTrace();
+                throw new PrintedXFutureRuntimeException(thrown);
+            }
+        }
+        return ret;
+    }
+    
     public <T> XFuture<T> wrap(CompletableFuture<T> future) {
         if (future instanceof XFuture) {
             if (this != future) {
@@ -237,7 +256,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             return (XFuture<T>) future;
         }
         XFuture<T> newFuture = new XFuture<>();
-        future.thenAccept(newFuture::complete);
+        future.thenAccept(newFuture::complete).handle(XFuture::logException);
         newFuture.alsoCancel.add(this);
         newFuture.alsoCancel.add(future);
         return newFuture;

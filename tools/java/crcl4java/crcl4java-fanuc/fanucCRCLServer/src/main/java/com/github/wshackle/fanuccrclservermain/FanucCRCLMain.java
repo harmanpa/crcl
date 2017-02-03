@@ -1959,9 +1959,11 @@ public class FanucCRCLMain {
 
     public void startCrclServer() throws IOException {
         stopCrclServer();
-        es = Executors.newWorkStealingPool();
+        es = Executors.newCachedThreadPool();
         ss = new ServerSocket(localPort);
         crclServerFuture = es.submit(() -> {
+            String origName = Thread.currentThread().getName();
+            Thread.currentThread().setName("Fanuc_CRCLServer_on_port_"+localPort);
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     CRCLSocket cs = new CRCLSocket(ss.accept());
@@ -1974,6 +1976,7 @@ public class FanucCRCLMain {
                     return;
                 }
             }
+            Thread.currentThread().setName(origName);
         });
     }
 
