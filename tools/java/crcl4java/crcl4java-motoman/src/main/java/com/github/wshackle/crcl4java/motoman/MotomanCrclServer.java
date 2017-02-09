@@ -234,7 +234,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         return crclStatus;
     }
 
-    private boolean initialized = false;
+    private volatile boolean initialized = false;
 
     private void stopMotion() throws IOException {
         MotCtrlReturnEnum stopRet = mpc.mpMotStop(0);
@@ -492,6 +492,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 
     private void initCanon() {
         try {
+            initialized = false;
             if (!mpc.isConnected()) {
                 mpc.reconnect();
             }
@@ -505,6 +506,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                 if (!mpc.mpGetServoPower()) {
                     crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                     crclStatus.getCommandStatus().setStateDescription("Can not enable servo power.");
+                    mpc.mpSetServoPower(false);
+                    return;
                 }
             }
             mpc.mpSetServoPower(false);

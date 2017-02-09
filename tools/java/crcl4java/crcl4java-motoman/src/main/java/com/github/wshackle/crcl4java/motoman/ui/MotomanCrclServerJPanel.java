@@ -30,7 +30,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,12 +177,38 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
     private int crclPort = CRCLSocket.DEFAULT_PORT;
     private String motomanHost = MotomanCrclServer.DEFAULT_MOTOMAN_HOST;
     private Thread crclThread = null;
+    
+    private int connectTimeoutMillis = 2000;
 
+    /**
+     * Get the value of connectTimeoutMillis
+     *
+     * @return the value of connectTimeoutMillis
+     */
+    public int getConnectTimeoutMillis() {
+        return connectTimeoutMillis;
+    }
+
+    /**
+     * Set the value of connectTimeoutMillis
+     *
+     * @param connectTimeoutMillis new value of connectTimeoutMillis
+     */
+    public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+    }
+
+
+    private static Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException  {
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress(host, port), timeoutMillis);
+        return socket;
+    }
     public void connectCrclMotoplus() throws IOException {
 
         motomanCrclServer = new MotomanCrclServer(
                 new CRCLServerSocket(crclPort),
-                new MotoPlusConnection(new Socket(motomanHost, motomanPort)));
+                new MotoPlusConnection(createSocketWithTimeout(motomanHost,motomanPort,connectTimeoutMillis)));
         crclThread = new Thread(motomanCrclServer, "motomanCrclServer");
         crclThread.start();
         if (!jCheckBoxConnect.isSelected()) {
