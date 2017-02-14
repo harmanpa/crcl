@@ -74,6 +74,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import crcl.utils.CrclCommandWrapper;
 import crcl.ui.XFuture;
 
 import crcl.ui.misc.MultiLineStringJPanel;
@@ -770,6 +771,11 @@ public class PendantClientInner {
         }
         if (null == this.crclSocket) {
             throw new IllegalStateException("crclSocket must not be null.");
+        }
+        if(cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapped = (CrclCommandWrapper) cmd;
+            wrapped.notifyOnStartListeners();
+            cmd = wrapped.getWrappedCommand();
         }
         if (!(cmd instanceof GetStatusType) && menuOuter().isDebugSendCommandSelected()) {
             showDebugMessage("PendantClientInner.sendCommand() : cmd = " + cmdString(cmd));
@@ -1860,6 +1866,10 @@ public class PendantClientInner {
                 programCommandStartTime = System.currentTimeMillis();
                 setOutgoingProgramIndex(BigInteger.valueOf(i));
                 MiddleCommandType cmd = middleCommands.get(i - 1);
+                if(cmd instanceof CrclCommandWrapper) {
+                    CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+                    wrapper.setCurProgram(program);
+                }
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {
@@ -2296,6 +2306,9 @@ public class PendantClientInner {
         if (null == cmd) {
             return "";
         }
+        if(cmd instanceof CrclCommandWrapper) {
+            cmd = ((CrclCommandWrapper)cmd).getWrappedCommand();
+        }
         String cmdName = cmd.getClass().getSimpleName();
         final String prefix = "crcl.base.";
         if (cmdName.startsWith(prefix)) {
@@ -2305,6 +2318,9 @@ public class PendantClientInner {
     }
 
     private String cmdString(CRCLCommandType cmd) throws JAXBException {
+        if(cmd instanceof CrclCommandWrapper) {
+            cmd = ((CrclCommandWrapper)cmd).getWrappedCommand();
+        }
         String cmdName = cmdNameString(cmd);
         return cmdName + " with ID = " + cmd.getCommandID() + ", \txml: " + this.getTempCRCLSocket().commandToString(cmd, false);
     }
@@ -2716,6 +2732,15 @@ public class PendantClientInner {
 
             sendCommandTime = System.currentTimeMillis();
             WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
+            if(cmd instanceof CrclCommandWrapper) {
+                CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+                if(wfdResult == WaitForDoneResult.WFD_DONE) {
+                    wrapper.notifyOnDoneListeners();
+                } else if(wfdResult == WaitForDoneResult.WFD_ERROR) {
+                    wrapper.notifyOnErrorListeners();
+                }
+                cmd = wrapper.getWrappedCommand();
+            }
             if (cmd instanceof EndCanonType) {
                 return true;
             }

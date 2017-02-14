@@ -1675,6 +1675,10 @@ public class CRCLSocket implements AutoCloseable {
 
     public String commandToString(CRCLCommandType cmd, boolean validate) {
         try {
+            if (cmd instanceof CrclCommandWrapper) {
+                CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+                cmd = wrapper.getWrappedCommand();
+            }
             if (null == cmd.getCommandID()) {
                 throw new IllegalArgumentException("cmd.getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
             }
@@ -1822,11 +1826,19 @@ public class CRCLSocket implements AutoCloseable {
 
     public String commandToPrettyString(CRCLCommandType cmd) throws JAXBException, CRCLException {
         CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+        if (cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+            cmd = wrapper.getWrappedCommand();
+        }
         instance.setCRCLCommand(cmd);
         return commandInstanceToPrettyString(instance, false);
     }
 
     public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
+        if (cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+            cmd = wrapper.getWrappedCommand();
+        }
         try {
             return commandToPrettyString(cmd);
         } catch (JAXBException | CRCLException ex) {
@@ -2185,10 +2197,18 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String commandToSimpleString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException {
+        if (cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+            cmd = wrapper.getWrappedCommand();
+        }
         return commandToSimpleString(cmd, 9, 50);
     }
 
     public String commandToSimpleString(CRCLCommandType cmd, final int max_fields, final int max_length) throws ParserConfigurationException, SAXException, IOException {
+        if (cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+            cmd = wrapper.getWrappedCommand();
+        }
         String xmlString = this.commandToString(cmd, false);
         DefaultHandler handler = new DefaultHandler() {
 

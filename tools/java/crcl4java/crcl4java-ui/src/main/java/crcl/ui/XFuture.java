@@ -466,8 +466,6 @@ class TestClass {
                 System.out.println("T2 started");
 
                 while (!f.isCancelled() && ++count < 50) {
-//                    boolean isCancelled = f.isCancelled();
-//                    System.out.println("isCancelled = " + isCancelled);
                     Thread.sleep(100);
                 }
                 System.out.println("T2 count=" + count);
