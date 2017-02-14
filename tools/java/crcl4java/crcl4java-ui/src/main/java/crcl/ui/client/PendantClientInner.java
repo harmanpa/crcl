@@ -430,7 +430,7 @@ public class PendantClientInner {
                 && this.status.getCommandStatus().getCommandID().compareTo(minCmdId) == 0
                 && this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE;
     }
-    
+
     public boolean isError(BigInteger minCmdId) {
         return this.status != null
                 && this.status.getCommandStatus() != null
@@ -772,7 +772,7 @@ public class PendantClientInner {
         if (null == this.crclSocket) {
             throw new IllegalStateException("crclSocket must not be null.");
         }
-        if(cmd instanceof CrclCommandWrapper) {
+        if (cmd instanceof CrclCommandWrapper) {
             CrclCommandWrapper wrapped = (CrclCommandWrapper) cmd;
             wrapped.notifyOnStartListeners();
             cmd = wrapped.getWrappedCommand();
@@ -853,6 +853,7 @@ public class PendantClientInner {
 
     /**
      * Send a new command to stop motion.
+     *
      * @param stopType the value of stop condition
      * @throws javax.xml.bind.JAXBException when xml can not be generated.
      */
@@ -891,15 +892,15 @@ public class PendantClientInner {
     private BigInteger lastWaitForDoneMinCmdId = null;
     private Exception lastWaitForDoneException = null;
 
-
     /**
      * Poll the status until the current command is done or ends with an error.
-     * 
+     *
      * @param minCmdId the value of minCmdId
      * @param timeoutMilliSeconds the value of timeoutMilliSeconds
      * @return the boolean
      * @throws InterruptedException when Thread interrupted
-     * @throws javax.xml.bind.JAXBException when there is a failure creating the XML
+     * @throws javax.xml.bind.JAXBException when there is a failure creating the
+     * XML
      */
     public WaitForDoneResult waitForDone(final BigInteger minCmdId, final long timeoutMilliSeconds)
             throws InterruptedException, JAXBException {
@@ -1786,21 +1787,21 @@ public class PendantClientInner {
         return runProgram(prog, startLine, null, null);
     }
 
-    private boolean runProgram(CRCLProgramType prog, int startLine, 
+    private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement[] threadCreateCallStack,
             XFuture<Boolean> future) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
         holdingErrorRepCount = 0;
         callingRunProgramStackTrace.set(threadCreateCallStack);
-        int i=0;
-        if(null == prog) {
-            System.err.println("startLine="+startLine);
-            System.err.println("threadCreateCallStack="+Arrays.toString(threadCreateCallStack));
+        int i = 0;
+        if (null == prog) {
+            System.err.println("startLine=" + startLine);
+            System.err.println("threadCreateCallStack=" + Arrays.toString(threadCreateCallStack));
             throw new IllegalArgumentException("prog == null");
         }
         try {
-            if(null != prog && null != prog.getMiddleCommand()) {
+            if (null != prog && null != prog.getMiddleCommand()) {
                 setOutgoingProgramLength(BigInteger.valueOf(prog.getMiddleCommand().size()));
             } else {
                 setOutgoingProgramLength(BigInteger.ZERO);
@@ -1853,7 +1854,7 @@ public class PendantClientInner {
             p0 = p1;
             outer.showCurrentProgramLine(startLine, prog, getStatus());
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
-            for ( i = (startLine >1?startLine:1); i < middleCommands.size(); i++) {
+            for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size()+1; i++) {
                 if (null != future && future.isCancelled()) {
                     try {
                         stopMotion(StopConditionEnumType.FAST);
@@ -1866,7 +1867,7 @@ public class PendantClientInner {
                 programCommandStartTime = System.currentTimeMillis();
                 setOutgoingProgramIndex(BigInteger.valueOf(i));
                 MiddleCommandType cmd = middleCommands.get(i - 1);
-                if(cmd instanceof CrclCommandWrapper) {
+                if (cmd instanceof CrclCommandWrapper) {
                     CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                     wrapper.setCurProgram(program);
                 }
@@ -1890,7 +1891,9 @@ public class PendantClientInner {
                 if (stepMode) {
                     pause();
                 }
-                outer.showCurrentProgramLine(i + 1, prog, getStatus());
+                if(i < middleCommands.size()) {
+                    outer.showCurrentProgramLine(i + 1, prog, getStatus());
+                }
             }
             programCommandStartTime = System.currentTimeMillis();
             EndCanonType endCmd = prog.getEndCanon();
@@ -1911,9 +1914,9 @@ public class PendantClientInner {
             }
         } catch (Throwable ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
-            System.err.println("startLine="+startLine);
-            System.err.println("i="+i);
-            System.err.println("threadCreateCallStack="+Arrays.toString(threadCreateCallStack));
+            System.err.println("startLine=" + startLine);
+            System.err.println("i=" + i);
+            System.err.println("threadCreateCallStack=" + Arrays.toString(threadCreateCallStack));
         } finally {
             setOutgoingProgramIndex(null);
             this.runEndMillis = System.currentTimeMillis();
@@ -2032,7 +2035,7 @@ public class PendantClientInner {
      * correctly implemented by the server.
      *
      * @param testProperies map of option names to values to modify the tests
-     * 
+     *
      * @return false for failure or true for success
      */
     public boolean runTest(Map<String, String> testProperies) {
@@ -2306,8 +2309,8 @@ public class PendantClientInner {
         if (null == cmd) {
             return "";
         }
-        if(cmd instanceof CrclCommandWrapper) {
-            cmd = ((CrclCommandWrapper)cmd).getWrappedCommand();
+        if (cmd instanceof CrclCommandWrapper) {
+            cmd = ((CrclCommandWrapper) cmd).getWrappedCommand();
         }
         String cmdName = cmd.getClass().getSimpleName();
         final String prefix = "crcl.base.";
@@ -2318,8 +2321,8 @@ public class PendantClientInner {
     }
 
     private String cmdString(CRCLCommandType cmd) throws JAXBException {
-        if(cmd instanceof CrclCommandWrapper) {
-            cmd = ((CrclCommandWrapper)cmd).getWrappedCommand();
+        if (cmd instanceof CrclCommandWrapper) {
+            cmd = ((CrclCommandWrapper) cmd).getWrappedCommand();
         }
         String cmdName = cmdNameString(cmd);
         return cmdName + " with ID = " + cmd.getCommandID() + ", \txml: " + this.getTempCRCLSocket().commandToString(cmd, false);
@@ -2679,18 +2682,39 @@ public class PendantClientInner {
         return sb.toString();
     }
 
+    private boolean printDetailedCommandFailureInfo = false;
+
     /**
-     * Test a command by sending it and waiting for the status to indicate 
-     * it  succeeded of failed. Additional effect properties are also checked
-     * for some commands.
-     * 
+     * Get the value of printDetailedCommandFailureInfo
+     *
+     * @return the value of printDetailedCommandFailureInfo
+     */
+    public boolean isPrintDetailedCommandFailureInfo() {
+        return printDetailedCommandFailureInfo;
+    }
+
+    /**
+     * Set the value of printDetailedCommandFailureInfo
+     *
+     * @param printDetailedCommandFailureInfo new value of
+     * printDetailedCommandFailureInfo
+     */
+    public void setPrintDetailedCommandFailureInfo(boolean printDetailedCommandFailureInfo) {
+        this.printDetailedCommandFailureInfo = printDetailedCommandFailureInfo;
+    }
+
+    /**
+     * Test a command by sending it and waiting for the status to indicate it
+     * succeeded of failed. Additional effect properties are also checked for
+     * some commands.
+     *
      * @param cmd the command to send and test
      * @return false for failure or true for success
-     * 
+     *
      * @throws javax.xml.bind.JAXBException failed to parse or generate xml
      * @throws InterruptedException this thread was interrupted
      * @throws java.io.IOException socket closed/failed.
-     * @throws rcs.posemath.PmException math failure 
+     * @throws rcs.posemath.PmException math failure
      * @throws crcl.utils.CRCLException CRCL utility failed.
      */
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
@@ -2732,11 +2756,11 @@ public class PendantClientInner {
 
             sendCommandTime = System.currentTimeMillis();
             WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
-            if(cmd instanceof CrclCommandWrapper) {
+            if (cmd instanceof CrclCommandWrapper) {
                 CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
-                if(wfdResult == WaitForDoneResult.WFD_DONE) {
+                if (wfdResult == WaitForDoneResult.WFD_DONE) {
                     wrapper.notifyOnDoneListeners();
-                } else if(wfdResult == WaitForDoneResult.WFD_ERROR) {
+                } else if (wfdResult == WaitForDoneResult.WFD_ERROR) {
                     wrapper.notifyOnErrorListeners();
                 }
                 cmd = wrapper.getWrappedCommand();
@@ -2755,7 +2779,7 @@ public class PendantClientInner {
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
                 String intString = this.createInterrupStackString();
-                showMessage("Test Progam timed out waiting for DONE from " + NEW_LINE
+                String messageString = "Test Progam timed out waiting for DONE from " + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
@@ -2771,17 +2795,20 @@ public class PendantClientInner {
                                 ? "status.getCommandStatus()=null\n"
                                 : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
                                 + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
-                        + "intString=" + intString + NEW_LINE
-                );
-                SimServerInner.printAllClientStates(System.err);
-                Thread.getAllStackTraces().entrySet().forEach((x) -> {
-                    System.err.println("Thread:" + x.getKey().getName());
-                    Arrays.stream(x.getValue()).forEach((xx) -> {
-                        System.err.println("\t" + xx);
+                        + "intString=" + intString + NEW_LINE;
+                System.out.println(messageString);
+                showMessage(messageString);
+                if (debugInterrupts || printDetailedCommandFailureInfo) {
+                    SimServerInner.printAllClientStates(System.err);
+                    Thread.getAllStackTraces().entrySet().forEach((x) -> {
+                        System.err.println("Thread:" + x.getKey().getName());
+                        Arrays.stream(x.getValue()).forEach((xx) -> {
+                            System.err.println("\t" + xx);
+                        });
+                        System.err.println("");
                     });
-                    System.err.println("");
-                });
-                System.err.println("intString=" + intString);
+                    System.err.println("intString=" + intString);
+                }
                 return false;
             }
         } while (pause_count_start != this.pause_count.get());
@@ -2789,7 +2816,7 @@ public class PendantClientInner {
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
-            showMessage("Test Progam testCommandEffect failed for " + NEW_LINE
+            String messageString = "Test Progam testCommandEffect failed for " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                     + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
@@ -2803,18 +2830,19 @@ public class PendantClientInner {
                             ? "status.getCommandStatus()=null\n"
                             : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
                             + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
-                    + "intString=" + intString + NEW_LINE
-            );
+                    + "intString=" + intString + NEW_LINE;
+            System.out.println(messageString);
+            showMessage(messageString);
         }
         return effectOk;
     }
 
     public XFuture<Boolean> startRunProgramThread(final int startLine) {
-        if(null == program) {
+        if (null == program) {
             throw new IllegalStateException("program is null");
         }
-        if(startLine < 0) {
-            throw new IllegalArgumentException("startLine="+startLine +" (must be atleast 0)");
+        if (startLine < 0) {
+            throw new IllegalArgumentException("startLine=" + startLine + " (must be atleast 0)");
         }
         final XFuture<Boolean> future = new XFuture<>();
         this.closeTestProgramThread();
