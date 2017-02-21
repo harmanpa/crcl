@@ -167,6 +167,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return MultiLineStringJPanel.showText(text).get();
     }
 
+    
+    public void pauseCrclProgram() {
+        pauseTime = System.currentTimeMillis();
+        internal.pause();
+        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+        jogWorldSpeedsSet = false;
+    }
+    
     public void showJointsPlot() {
 //        if (this.jCheckBoxMenuItemJoints.isSelected()) {
         jointsPlotter = new plotterJFrame();
@@ -3760,11 +3769,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonProgramPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramPauseActionPerformed
-        pauseTime = System.currentTimeMillis();
-        internal.pause();
-        this.jButtonResume.setEnabled(internal.isPaused());
-        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
+        pauseCrclProgram();
     }//GEN-LAST:event_jButtonProgramPauseActionPerformed
 
     public void abortProgram() {

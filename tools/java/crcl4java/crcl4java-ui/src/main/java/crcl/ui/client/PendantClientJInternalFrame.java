@@ -78,6 +78,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }
+    
+    public void pauseCrclProgram() {
+        pendantClientJPanel1.pauseCrclProgram();
+    }
 
     public void connectCurrent() {
         pendantClientJPanel1.connectCurrent();
