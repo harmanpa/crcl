@@ -3947,7 +3947,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.internal.runStartMillis = System.currentTimeMillis();
         }
         this.internal.setStepMode(false);
-        if (internal.isPaused() && internal.isRunningProgram()) {
+        if (internal.isPaused() && internal.getProgram() != null) {
             internal.unpause();
             return lastProgramFuture;
         } else {
