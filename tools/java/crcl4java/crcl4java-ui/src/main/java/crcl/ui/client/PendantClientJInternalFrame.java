@@ -75,6 +75,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         init();
     }
 
+    public boolean isPaused() {
+        return pendantClientJPanel1.isPaused();
+    }
+    
+    public boolean isRunningProgram() {
+        return pendantClientJPanel1.isRunningProgram();
+    }
+    
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }

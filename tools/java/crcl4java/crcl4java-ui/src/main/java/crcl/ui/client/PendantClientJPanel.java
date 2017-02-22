@@ -176,6 +176,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jogWorldSpeedsSet = false;
     }
     
+   
+    
     public void showJointsPlot() {
 //        if (this.jCheckBoxMenuItemJoints.isSelected()) {
         jointsPlotter = new plotterJFrame();
@@ -3920,6 +3922,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         continueCurrentProgram();
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
+    public boolean isPaused() {
+        return internal.isPaused();
+    }
+    
+    public boolean isRunningProgram() {
+        return internal.isRunningProgram();
+    }
+    
     public XFuture<Boolean> continueCurrentProgram() {
         if (!isConnected()) {
             connectCurrent();
