@@ -6,6 +6,7 @@
 package crcl.ui.misc;
 
 import static crcl.ui.IconImages.SERVER_IMAGE;
+import crcl.utils.PropertiesUtils;
 import java.awt.Desktop;
 import java.awt.Image;
 import java.io.BufferedReader;
@@ -601,12 +602,18 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     private void saveProperties() {
-        try (FileWriter fileWriter = new FileWriter(PROPERTIES_FILE)) {
-            Properties props = new Properties();
-            props.put("webServerCmd", jTextFieldCommand.getText());
-            props.put("webServerDirectory", jTextFieldDirectory.getText());
-            props.put("url", jTextFieldURL.getText());
-            props.store(fileWriter, "Saved automatically from " + Arrays.toString(Thread.currentThread().getStackTrace()));
+        Properties props = new Properties();
+        props.put("webServerCmd", jTextFieldCommand.getText());
+        props.put("webServerDirectory", jTextFieldDirectory.getText());
+        props.put("url", jTextFieldURL.getText());
+        try {
+            //        try (FileWriter fileWriter = new FileWriter(PROPERTIES_FILE)) {
+//
+//            props.store(fileWriter, "Saved automatically from " + Arrays.toString(Thread.currentThread().getStackTrace()));
+//        } catch (IOException ex) {
+//            Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+            PropertiesUtils.saveProperties(PROPERTIES_FILE, props);
         } catch (IOException ex) {
             Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -652,9 +659,9 @@ public class WebServerJFrame extends javax.swing.JFrame {
         showLogFile();
     }//GEN-LAST:event_jButtonFullLogActionPerformed
 
-    private synchronized  void showLogFile() {
+    private synchronized void showLogFile() {
         closeLogger();
-        if(null != logFile && logFile.exists()) {
+        if (null != logFile && logFile.exists()) {
             try {
                 Desktop.getDesktop().open(logFile);
             } catch (IOException ex) {
@@ -662,7 +669,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             }
         }
     }
-    
+
     private void jTextFieldCommandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCommandActionPerformed
         saveProperties();
     }//GEN-LAST:event_jTextFieldCommandActionPerformed

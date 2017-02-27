@@ -41,6 +41,7 @@ import crcl.ui.misc.WebServerJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import crcl.utils.PropertiesUtils;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -878,7 +879,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 //            props.setProperty("autoStartClient", Boolean.toString(jCheckBoxMenuItemStartClient.isSelected()));
 //            props.setProperty("autoStartPressureSensorServer", Boolean.toString(jCheckBoxMenuItemStartPressureServer.isSelected()));
 //            props.setProperty("showPressureOutput", Boolean.toString(jCheckBoxMenuItemShowPressureOutput.isSelected()));
-            props.store(new FileWriter(PROPERTIES_FILE), "");
+//            props.store(new FileWriter(PROPERTIES_FILE), "");
+            PropertiesUtils.saveProperties(PROPERTIES_FILE, props);
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

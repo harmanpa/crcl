@@ -37,6 +37,7 @@ import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.PropertiesUtils;
 import crcl.utils.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
@@ -171,9 +172,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             int port = Integer.valueOf(jTextFieldPort.getText());
             props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
             System.out.println("SimServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
-            try (FileWriter fw = new FileWriter(propertiesFile)) {
-                props.store(fw, "");
-            }
+//            try (FileWriter fw = new FileWriter(propertiesFile)) {
+//                props.store(fw, "");
+//            }
+            PropertiesUtils.saveProperties(propertiesFile, props);
         }
     }
 

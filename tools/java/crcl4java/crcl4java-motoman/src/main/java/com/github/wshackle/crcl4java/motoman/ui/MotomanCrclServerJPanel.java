@@ -26,6 +26,7 @@ import com.github.wshackle.crcl4java.motoman.MotoPlusConnection;
 import com.github.wshackle.crcl4java.motoman.MotomanCrclServer;
 import crcl.utils.CRCLServerSocket;
 import crcl.utils.CRCLSocket;
+import crcl.utils.PropertiesUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -296,9 +297,10 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
 
         System.out.println("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
-        try (FileWriter fw = new FileWriter(propertiesFile)) {
-            props.store(fw, "");
-        }
+//        try (FileWriter fw = new FileWriter(propertiesFile)) {
+//            props.store(fw, "");
+//        }
+        PropertiesUtils.saveProperties(propertiesFile, props);
     }
     private static final String MOTOPLUS_HOST_PROPERTY_NAME = "MOTOPLUS_HOST";
     private static final String MOTOPLUS_PORT_PROPERTY_NAME = "MOTOPLUS_PORT";
