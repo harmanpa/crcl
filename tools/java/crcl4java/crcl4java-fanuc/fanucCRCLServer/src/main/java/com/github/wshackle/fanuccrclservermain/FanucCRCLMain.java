@@ -1752,6 +1752,18 @@ public class FanucCRCLMain {
         for (ActuateJointType aj : ajCmd.getActuateJoint()) {
             double val = aj.getJointPosition().doubleValue();
             short number = aj.getJointNumber().shortValue();
+            if(number <1 ) {
+                System.err.println("bad joint number : "+number);
+                continue;
+            }
+            if(number > this.upperJointLimits.length) {
+                System.err.println("bad joint number > this.upperJointLimits.length : "+number+" > "+this.upperJointLimits);
+                continue;
+            }
+             if(number > this.lowerJointLimits.length) {
+                System.err.println("bad joint number > this.lowerJointLimits.length : "+number+" > "+this.lowerJointLimits);
+                continue;
+            }
             if (val > this.upperJointLimits[number - 1]) {
                 val = this.upperJointLimits[number - 1];
             }
@@ -1959,11 +1971,9 @@ public class FanucCRCLMain {
 
     public void startCrclServer() throws IOException {
         stopCrclServer();
-        es = Executors.newCachedThreadPool();
+        es = Executors.newWorkStealingPool();
         ss = new ServerSocket(localPort);
         crclServerFuture = es.submit(() -> {
-            String origName = Thread.currentThread().getName();
-            Thread.currentThread().setName("Fanuc_CRCLServer_on_port_"+localPort);
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     CRCLSocket cs = new CRCLSocket(ss.accept());
@@ -1976,7 +1986,6 @@ public class FanucCRCLMain {
                     return;
                 }
             }
-            Thread.currentThread().setName(origName);
         });
     }
 

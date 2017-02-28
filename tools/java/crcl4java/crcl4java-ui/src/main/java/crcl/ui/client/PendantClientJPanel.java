@@ -1420,6 +1420,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     @Override
     public void showMessage(final String s) {
+        System.out.println(s);
         if (showDebugMessage(s)) {
             return;
         }

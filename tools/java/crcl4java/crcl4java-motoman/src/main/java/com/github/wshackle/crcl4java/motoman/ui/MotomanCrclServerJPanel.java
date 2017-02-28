@@ -71,6 +71,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         jCheckBoxConnect = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         jTextFieldMotoplusPort = new javax.swing.JTextField();
+        jCheckBoxDebug = new javax.swing.JCheckBox();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Telnet"));
 
@@ -111,6 +112,13 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
         jTextFieldMotoplusPort.setText("11000");
 
+        jCheckBoxDebug.setText("Debug");
+        jCheckBoxDebug.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxDebugActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -134,6 +142,9 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                         .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jCheckBoxDebug)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -148,7 +159,9 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                     .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
                     .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 88, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
+                .addComponent(jCheckBoxDebug)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -178,7 +191,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
     private int crclPort = CRCLSocket.DEFAULT_PORT;
     private String motomanHost = MotomanCrclServer.DEFAULT_MOTOMAN_HOST;
     private Thread crclThread = null;
-    
+
     private int connectTimeoutMillis = 2000;
 
     /**
@@ -199,17 +212,18 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-
-    private static Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException  {
+    private static Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException {
         Socket socket = new Socket();
         socket.connect(new InetSocketAddress(host, port), timeoutMillis);
         return socket;
     }
+
     public void connectCrclMotoplus() throws IOException {
 
         motomanCrclServer = new MotomanCrclServer(
                 new CRCLServerSocket(crclPort),
-                new MotoPlusConnection(createSocketWithTimeout(motomanHost,motomanPort,connectTimeoutMillis)));
+                new MotoPlusConnection(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis)));
+        motomanCrclServer.setDebug(jCheckBoxDebug.isSelected());
         crclThread = new Thread(motomanCrclServer, "motomanCrclServer");
         crclThread.start();
         if (!jCheckBoxConnect.isSelected()) {
@@ -254,6 +268,12 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         updateConnection();
     }//GEN-LAST:event_jCheckBoxConnectActionPerformed
 
+    private void jCheckBoxDebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxDebugActionPerformed
+        if (null != motomanCrclServer) {
+            motomanCrclServer.setDebug(jCheckBoxDebug.isSelected());
+        }
+    }//GEN-LAST:event_jCheckBoxDebugActionPerformed
+
     private void updateConnection() throws NumberFormatException {
         if (this.jCheckBoxConnect.isSelected()) {
             try {
@@ -295,6 +315,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         props.put(CRCL_PORT_PROPERTY_NAME, jTextFieldCrclPort.getText());
         props.put(MOTOPLUS_PORT_PROPERTY_NAME, jTextFieldMotoplusPort.getText());
         props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
+        props.put("debug", jCheckBoxDebug.isSelected());
 
         System.out.println("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
 //        try (FileWriter fw = new FileWriter(propertiesFile)) {
@@ -311,11 +332,11 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
         updateConnection();
     }
-    
+
     public int getCrclPort() {
         return crclPort;
     }
-    
+
     public void loadProperties() throws IOException {
         Properties props = new Properties();
         System.out.println("MotomanCrclServerJPanel loading properties from " + propertiesFile.getCanonicalPath());
@@ -337,10 +358,15 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
         motomanPort = Integer.valueOf(jTextFieldMotoplusPort.getText());
         motomanHost = jTextFieldMotoplusHost.getText();
+        String debugString = props.getProperty("debug");
+        if(debugString != null && debugString.length() > 0 && Boolean.valueOf(debugString)) {
+            jCheckBoxDebug.setSelected(true);
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox jCheckBoxConnect;
+    private javax.swing.JCheckBox jCheckBoxDebug;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
