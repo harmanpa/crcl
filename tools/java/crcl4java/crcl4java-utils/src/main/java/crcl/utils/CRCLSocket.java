@@ -2253,6 +2253,9 @@ public class CRCLSocket implements AutoCloseable {
         if (lpindex > 0 && lpindex < cmdName.length() - 1) {
             cmdName = cmdName.substring(lpindex + 1);
         }
+        if(cmdName.endsWith("Type")) {
+            cmdName = cmdName.substring(0, cmdName.length()-4);
+        }
         String content = handler.toString();
         content = content.trim();
         if (content.length() > max_length) {

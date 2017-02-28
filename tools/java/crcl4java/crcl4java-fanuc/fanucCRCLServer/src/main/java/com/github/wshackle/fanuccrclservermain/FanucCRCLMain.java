@@ -122,6 +122,8 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
+import java.io.FileWriter;
+import java.util.Properties;
 import java.util.concurrent.Future;
 
 /**
@@ -1751,24 +1753,27 @@ public class FanucCRCLMain {
         long max_time = 0;
         for (ActuateJointType aj : ajCmd.getActuateJoint()) {
             double val = aj.getJointPosition().doubleValue();
+            final double origval = val;
             short number = aj.getJointNumber().shortValue();
-            if(number <1 ) {
-                System.err.println("bad joint number : "+number);
-                continue;
+            if (number < 1) {
+                System.err.println("bad joint number : " + number);
+                return;
             }
-            if(number > this.upperJointLimits.length) {
-                System.err.println("bad joint number > this.upperJointLimits.length : "+number+" > "+this.upperJointLimits);
-                continue;
+            if (number > this.upperJointLimits.length) {
+                System.err.println("bad joint number > this.upperJointLimits.length : " + number + " > " + this.upperJointLimits);
+                return;
             }
-             if(number > this.lowerJointLimits.length) {
-                System.err.println("bad joint number > this.lowerJointLimits.length : "+number+" > "+this.lowerJointLimits);
-                continue;
+            if (number > this.lowerJointLimits.length) {
+                System.err.println("bad joint number > this.lowerJointLimits.length : " + number + " > " + this.lowerJointLimits);
+                return;
             }
-            if (val > this.upperJointLimits[number - 1]) {
-                val = this.upperJointLimits[number - 1];
+            final double uplimit = this.upperJointLimits[number - 1];
+            if (val > uplimit) {
+                val = uplimit;
             }
-            if (val < this.lowerJointLimits[number - 1]) {
-                val = this.lowerJointLimits[number - 1];
+            final double lowlimit = this.lowerJointLimits[number - 1];
+            if (val < lowlimit) {
+                val = lowlimit;
             }
             float curVal = (float) posReg97Joint.item(number);
             double absDiff = (double) Math.abs(val - curVal);
@@ -1789,6 +1794,13 @@ public class FanucCRCLMain {
                 max_time = time;
             }
             posReg97Joint.item(number, val);
+            posReg97.update();
+            posReg97.refresh();
+            double chkval = posReg97Joint.item(number);
+            System.out.println("Actuate joints: number=" + number + " \tval=\t" + val + " \torigval=" + origval + "\tup_limit=" + uplimit + "\tlow_limit=" + lowlimit);
+            if (Math.abs(chkval - val) > 1e-4) {
+                System.err.println("chkval = " + chkval);
+            }
         }
         if (max_time < 50) {
             max_time = 50;
@@ -2082,6 +2094,55 @@ public class FanucCRCLMain {
     private long isMovingLastCheckTime = 0;
     private boolean lastIsMoving = false;
 
+    private File propertiesFile;
+
+    /**
+     * Get the value of propertiesFile
+     *
+     * @return the value of propertiesFile
+     */
+    public File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        this.propertiesFile = propertiesFile;
+        setJointLimitsFile(new File(propertiesFile.getParentFile(), "fanucCRLCJointLimits.txt"));
+        setCartLimitsFile(new File(propertiesFile.getParentFile(), "fanucCRLCCartLimits.txt"));
+    }
+
+    
+    public void loadProperties() {
+        if(null != this.propertiesFile) {
+            Properties props = new Properties();
+            try(FileReader reader = new FileReader(propertiesFile)) {
+                props.load(reader);
+            } catch(IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        readAndApplyUserCartLimits();
+        readAndApplyUserJointLimits();
+    }
+    
+    public void saveProperties() {
+        if(null != this.propertiesFile) {
+            Properties props = new Properties();
+            try(FileWriter fw = new FileWriter(propertiesFile)) {
+                props.store(fw, "");
+            } catch(IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        saveCartLimits(new PmCartesian(xMin,yMin,zMin), new PmCartesian(xMax, yMax, zMax));
+        saveJointLimits(this.lowerJointLimits,this.upperJointLimits);
+    }
+    
     public boolean isMoving() {
         if (System.currentTimeMillis() - isMovingLastCheckTime < 20) {
             return lastIsMoving;
@@ -2156,8 +2217,8 @@ public class FanucCRCLMain {
         }
     }
 
-    float lowerJointLimits[] = new float[6];
-    float upperJointLimits[] = new float[6];
+    float lowerJointLimits[] = new float[]{-10000.f, -10000.f, -10000.f, -10000.f, -10000.f, -10000.f};
+    float upperJointLimits[] = new float[]{10000.f, 10000.f, 10000.f, 10000.f, 10000.f, 10000.f};
 
     public void applyAdditionalCartLimits(PmCartesian min, PmCartesian max) {
         xMax = (float) Math.min(xMax, max.x);
@@ -2171,7 +2232,7 @@ public class FanucCRCLMain {
     }
 
     public void saveCartLimits(PmCartesian min, PmCartesian max) {
-        try (PrintWriter pw = new PrintWriter(CART_LIMITS_FILE)) {
+        try (PrintWriter pw = new PrintWriter(cartLimitsFile)) {
             pw.println("min.x=" + min.x);
             pw.println("min.y=" + min.y);
             pw.println("min.z=" + min.z);
@@ -2186,8 +2247,8 @@ public class FanucCRCLMain {
     public void applyAdditionalJointLimits(float[] min, float[] max) {
         settingsStatus.getJointLimits().clear();
         for (int i = 0; i < min.length && i < max.length && i < lowerJointLimits.length; i++) {
-            lowerJointLimits[i] = Math.max(lowerJointLimits[i], min[i]);
-            upperJointLimits[i] = Math.min(upperJointLimits[i], max[i]);
+            lowerJointLimits[i] = min[i];
+            upperJointLimits[i] = max[i];
             JointLimitType jointLimit = new JointLimitType();
             jointLimit.setJointNumber(BigInteger.valueOf(i + 1));
             jointLimit.setJointMaxPosition(BigDecimal.valueOf(upperJointLimits[i]));
@@ -2197,7 +2258,7 @@ public class FanucCRCLMain {
     }
 
     public void saveJointLimits(float[] min, float[] max) {
-        try (PrintWriter pw = new PrintWriter(JOINT_LIMITS_FILE)) {
+        try (PrintWriter pw = new PrintWriter(jointLimitsFile)) {
             for (int i = 0; i < max.length && i < min.length; i++) {
                 pw.println("min[" + i + "]=" + min[i]);
                 pw.println("max[" + i + "]=" + max[i]);
@@ -2207,9 +2268,49 @@ public class FanucCRCLMain {
         }
     }
 
-    public static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
+    private File jointLimitsFile = JOINT_LIMITS_FILE;
+
+    /**
+     * Get the value of jointLimitsFile
+     *
+     * @return the value of jointLimitsFile
+     */
+    public File getJointLimitsFile() {
+        return jointLimitsFile;
+    }
+
+    /**
+     * Set the value of jointLimitsFile
+     *
+     * @param jointLimitsFile new value of jointLimitsFile
+     */
+    public void setJointLimitsFile(File jointLimitsFile) {
+        this.jointLimitsFile = jointLimitsFile;
+    }
+
+    private File cartLimitsFile = CART_LIMITS_FILE;
+
+    /**
+     * Get the value of cartLimitsFile
+     *
+     * @return the value of cartLimitsFile
+     */
+    public File getCartLimitsFile() {
+        return cartLimitsFile;
+    }
+
+    /**
+     * Set the value of cartLimitsFile
+     *
+     * @param cartLimitsFile new value of cartLimitsFile
+     */
+    public void setCartLimitsFile(File cartLimitsFile) {
+        this.cartLimitsFile = cartLimitsFile;
+    }
+
+    private static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
             ".fanucCRLCCartLimits.txt");
-    public static final File JOINT_LIMITS_FILE = new File(System.getProperty("user.home"),
+    private static final File JOINT_LIMITS_FILE = new File(System.getProperty("user.home"),
             ".fanucCRLCJointLimits.txt");
 
     private void findString(String input, String token, Consumer<String> tailConsumer) {
@@ -2239,7 +2340,7 @@ public class FanucCRCLMain {
     public void readAndApplyUserCartLimits() {
         PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
         PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-        try (BufferedReader br = new BufferedReader(new FileReader(CART_LIMITS_FILE))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
             String line = null;
             while ((line = br.readLine()) != null) {
                 findString(line, "min.x=", t -> min.x = Double.valueOf(t));
@@ -2262,7 +2363,7 @@ public class FanucCRCLMain {
             max[i] = Float.POSITIVE_INFINITY;
             min[i] = Float.NEGATIVE_INFINITY;
         }
-        try (BufferedReader br = new BufferedReader(new FileReader(JOINT_LIMITS_FILE))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(jointLimitsFile))) {
             String line = null;
             while ((line = br.readLine()) != null) {
                 findIndexedString(line, "min[]=", (i, t) -> min[i] = Float.valueOf(t));

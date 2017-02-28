@@ -18,6 +18,7 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -166,6 +167,21 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         }
     }
 
+    public File getPropertiesFile() {
+        return fanucCRCLServerJPanel1.getPropertiesFile();
+    }
+
+    public void setPropertiesFile(File propertiesFile) {
+        fanucCRCLServerJPanel1.setPropertiesFile(propertiesFile);
+    }
+    
+    public void loadProperties() {
+        fanucCRCLServerJPanel1.loadProperties();
+    }
+    
+    
+    
+    
     public void setMain(FanucCRCLMain _main) {
         fanucCRCLServerJPanel1.setMain(_main);
     }

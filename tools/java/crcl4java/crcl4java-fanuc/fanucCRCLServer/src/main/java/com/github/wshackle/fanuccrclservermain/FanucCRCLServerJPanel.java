@@ -108,6 +108,30 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         javax.swing.SwingUtilities.invokeLater(() -> jLabelPerformance.setText(s));
     }
 
+    
+    public File getPropertiesFile() {
+        return main.getPropertiesFile();
+    }
+
+    File externalSetPropertiesFile = null;
+    boolean mainNeedsLoadProperties = false;
+    
+    public void setPropertiesFile(File propertiesFile) {
+        externalSetPropertiesFile = propertiesFile;
+        if(null != main) {
+            main.setPropertiesFile(propertiesFile);
+        }
+        jpanelPropertiesFile = new File(propertiesFile.getParentFile(),"fanucJPanelCRLCProperties.txt");
+    }
+    
+    public void loadProperties() {
+        if(null != main) {
+            main.loadProperties();
+        } else {
+            mainNeedsLoadProperties = true;
+        }
+    }
+    
     public boolean isConnected() {
         startUpdateConnecedCheckbox();
         return main != null && main.isConnected();
@@ -428,6 +452,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     public static final File PROPERTIES_FILE = new File(System.getProperty("user.home"),
             ".fanucCRLCProperties.txt");
     Properties props = new Properties();
+    
+    private File jpanelPropertiesFile = PROPERTIES_FILE;
 
     private String getProperty(String key, String defaultValue) {
         String sysProp = System.getProperty(key);
@@ -459,7 +485,9 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     private void readPropertiesFile() {
         try {
-            if (PROPERTIES_FILE.exists()) {
+            if (jpanelPropertiesFile.exists()) {
+                props.load(new FileReader(jpanelPropertiesFile));
+            } else if(PROPERTIES_FILE.exists()) {
                 props.load(new FileReader(PROPERTIES_FILE));
             }
             fingerSensorServerCmd = getProperty("fingerSensorServerCmd", DEFAULT_FINGER_SENSOR_SERVER_COMMAND);
@@ -670,6 +698,14 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
      */
     public void setMain(FanucCRCLMain main) {
         this.main = main;
+        if(externalSetPropertiesFile != null) {
+            main.setPropertiesFile(externalSetPropertiesFile);
+            externalSetPropertiesFile = null;
+        }
+        if(mainNeedsLoadProperties) {
+            main.loadProperties();
+            mainNeedsLoadProperties = false;
+        }
     }
 
     public void updateWatchVar(IRobot2 robot1) {
@@ -880,7 +916,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 //            props.setProperty("autoStartPressureSensorServer", Boolean.toString(jCheckBoxMenuItemStartPressureServer.isSelected()));
 //            props.setProperty("showPressureOutput", Boolean.toString(jCheckBoxMenuItemShowPressureOutput.isSelected()));
 //            props.store(new FileWriter(PROPERTIES_FILE), "");
-            PropertiesUtils.saveProperties(PROPERTIES_FILE, props);
+            PropertiesUtils.saveProperties(jpanelPropertiesFile, props);
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
