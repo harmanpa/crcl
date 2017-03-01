@@ -2118,7 +2118,7 @@ public class FanucCRCLMain {
 
     
     public void loadProperties() {
-        if(null != this.propertiesFile) {
+        if(null != this.propertiesFile && propertiesFile.exists()) {
             Properties props = new Properties();
             try(FileReader reader = new FileReader(propertiesFile)) {
                 props.load(reader);
