@@ -2116,33 +2116,32 @@ public class FanucCRCLMain {
         setCartLimitsFile(new File(propertiesFile.getParentFile(), "fanucCRLCCartLimits.txt"));
     }
 
-    
     public void loadProperties() {
-        if(null != this.propertiesFile && propertiesFile.exists()) {
+        if (null != this.propertiesFile && propertiesFile.exists()) {
             Properties props = new Properties();
-            try(FileReader reader = new FileReader(propertiesFile)) {
+            try (FileReader reader = new FileReader(propertiesFile)) {
                 props.load(reader);
-            } catch(IOException exception) {
+            } catch (IOException exception) {
                 exception.printStackTrace();
             }
         }
         readAndApplyUserCartLimits();
         readAndApplyUserJointLimits();
     }
-    
+
     public void saveProperties() {
-        if(null != this.propertiesFile) {
+        if (null != this.propertiesFile) {
             Properties props = new Properties();
-            try(FileWriter fw = new FileWriter(propertiesFile)) {
+            try (FileWriter fw = new FileWriter(propertiesFile)) {
                 props.store(fw, "");
-            } catch(IOException exception) {
+            } catch (IOException exception) {
                 exception.printStackTrace();
             }
         }
-        saveCartLimits(new PmCartesian(xMin,yMin,zMin), new PmCartesian(xMax, yMax, zMax));
-        saveJointLimits(this.lowerJointLimits,this.upperJointLimits);
+        saveCartLimits(new PmCartesian(xMin, yMin, zMin), new PmCartesian(xMax, yMax, zMax));
+        saveJointLimits(this.lowerJointLimits, this.upperJointLimits);
     }
-    
+
     public boolean isMoving() {
         if (System.currentTimeMillis() - isMovingLastCheckTime < 20) {
             return lastIsMoving;
@@ -2340,18 +2339,20 @@ public class FanucCRCLMain {
     public void readAndApplyUserCartLimits() {
         PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
         PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-        try (BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                findString(line, "min.x=", t -> min.x = Double.valueOf(t));
-                findString(line, "max.x=", t -> max.x = Double.valueOf(t));
-                findString(line, "min.y=", t -> min.y = Double.valueOf(t));
-                findString(line, "max.y=", t -> max.y = Double.valueOf(t));
-                findString(line, "min.z=", t -> min.z = Double.valueOf(t));
-                findString(line, "max.z=", t -> max.z = Double.valueOf(t));
+        if (null != cartLimitsFile && cartLimitsFile.exists()) {
+            try (BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    findString(line, "min.x=", t -> min.x = Double.valueOf(t));
+                    findString(line, "max.x=", t -> max.x = Double.valueOf(t));
+                    findString(line, "min.y=", t -> min.y = Double.valueOf(t));
+                    findString(line, "max.y=", t -> max.y = Double.valueOf(t));
+                    findString(line, "min.z=", t -> min.z = Double.valueOf(t));
+                    findString(line, "max.z=", t -> max.z = Double.valueOf(t));
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
         }
         applyAdditionalCartLimits(min, max);
     }
