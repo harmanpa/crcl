@@ -315,7 +315,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         props.put(CRCL_PORT_PROPERTY_NAME, jTextFieldCrclPort.getText());
         props.put(MOTOPLUS_PORT_PROPERTY_NAME, jTextFieldMotoplusPort.getText());
         props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
-        props.put("debug", jCheckBoxDebug.isSelected());
+        props.put("debug", Boolean.toString(jCheckBoxDebug.isSelected()));
 
         System.out.println("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
 //        try (FileWriter fw = new FileWriter(propertiesFile)) {

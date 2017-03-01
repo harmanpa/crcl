@@ -2333,7 +2333,6 @@ public class FanucCRCLMain {
                 tailConsumer.accept(indexVal, tail);
             }
         }
-
     }
 
     public void readAndApplyUserCartLimits() {
