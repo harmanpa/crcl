@@ -164,7 +164,7 @@ public class SimServerInner {
 
     private boolean reportPoseStatus = true;
 
-        private boolean forceFail = false;
+    private boolean forceFail = false;
 
     /**
      * Get the value of forceFail
@@ -654,7 +654,9 @@ public class SimServerInner {
 
     public void simulatedTeleportToPose(PoseType pose) {
         try {
-            if(checkForceFail()) return;
+            if (checkForceFail()) {
+                return;
+            }
             if (null != pose) {
                 PointType pt = pose.getPoint();
                 if (null != pt) {
@@ -750,7 +752,7 @@ public class SimServerInner {
             if (null == cst.getStatusID()) {
                 cst.setStatusID(BigInteger.ONE);
             }
-            
+
             setCommandState(CommandStateEnumType.CRCL_DONE);
         } catch (PmException ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
@@ -1378,13 +1380,14 @@ public class SimServerInner {
             if (null != cst) {
                 cst.setStatusID(
                         Optional.ofNullable(cst.getStatusID())
-                        .orElse(BigInteger.ZERO)
-                        .add(BigInteger.ONE)
+                                .orElse(BigInteger.ZERO)
+                                .add(BigInteger.ONE)
                 );
             }
             if (null != cmdLog && cmdLog.size() > 0) {
                 if (cst.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
-                    cst.setStateDescription("Running " + this.cmdLog.get(cmdLog.size() - 1).getClass().getSimpleName());
+                    cst.setStateDescription("");
+//Running " + this.cmdLog.get(cmdLog.size() - 1).getClass().getSimpleName());
                 }
             }
         }
@@ -1397,7 +1400,9 @@ public class SimServerInner {
     private boolean updateStatus() {
         boolean jointschanged = false;
         PoseType curGoalPose = null;
-        if(checkForceFail()) return true;
+        if (checkForceFail()) {
+            return true;
+        }
         try {
             synchronized (status) {
                 if (!outer.isEditingStatus()) {
