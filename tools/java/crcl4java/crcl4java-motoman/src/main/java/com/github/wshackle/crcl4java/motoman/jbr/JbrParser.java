@@ -82,8 +82,8 @@ public class JbrParser {
                     String fa[] = line.substring(7).split("[ ,]+");
                     System.out.println("fa = " + Arrays.toString(fa));
 
-                    PmCartesian cart = new PmCartesian(Double.valueOf(fa[0]), Double.valueOf(fa[1]), Double.valueOf(fa[2]));
-                    PmRpy rpy = new PmRpy(Math.toRadians(Double.valueOf(fa[5])), Math.toRadians(Double.valueOf(fa[4])), Math.toRadians(Double.valueOf(fa[3])+Math.PI));
+                    PmCartesian cart = new PmCartesian(Double.parseDouble(fa[0]), Double.parseDouble(fa[1]), Double.parseDouble(fa[2]));
+                    PmRpy rpy = new PmRpy(Math.toRadians(Double.parseDouble(fa[5])), Math.toRadians(Double.parseDouble(fa[4])), Math.toRadians(Double.parseDouble(fa[3])+Math.PI));
                     PoseType pose = CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy));
                     JbrPose jbrPose = new JbrPose("", index, pose);
                     System.out.println("jbrPose = " + jbrPose);

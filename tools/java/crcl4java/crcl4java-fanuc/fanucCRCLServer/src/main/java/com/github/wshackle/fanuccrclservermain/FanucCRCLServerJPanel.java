@@ -171,12 +171,12 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
             PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
             TableModel model = this.jTableCartesianLimits.getModel();
-            min.x = Double.valueOf(model.getValueAt(0, 1).toString());
-            max.x = Double.valueOf(model.getValueAt(0, 3).toString());
-            min.y = Double.valueOf(model.getValueAt(1, 1).toString());
-            max.y = Double.valueOf(model.getValueAt(1, 3).toString());
-            min.z = Double.valueOf(model.getValueAt(2, 1).toString());
-            max.z = Double.valueOf(model.getValueAt(2, 3).toString());
+            min.x = Double.parseDouble(model.getValueAt(0, 1).toString());
+            max.x = Double.parseDouble(model.getValueAt(0, 3).toString());
+            min.y = Double.parseDouble(model.getValueAt(1, 1).toString());
+            max.y = Double.parseDouble(model.getValueAt(1, 3).toString());
+            min.z = Double.parseDouble(model.getValueAt(2, 1).toString());
+            max.z = Double.parseDouble(model.getValueAt(2, 3).toString());
             if (null != main) {
                 main.applyAdditionalCartLimits(min, max);
                 main.saveCartLimits(min, max);
@@ -799,7 +799,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                     String el_index_string = lhs.substring(cindex + 1, lhs.length() - 1);
                     int el_index = Integer.valueOf(el_index_string);
                     if (rhs.startsWith("(") && rhs.endsWith(")")) {
-                        double value = Double.valueOf(rhs.substring(1, rhs.length() - 1));
+                        double value = Double.parseDouble(rhs.substring(1, rhs.length() - 1));
                         posMap.get(lhs_id).setOne(el_index, value);
                     }
                 } else {
@@ -840,7 +840,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 if (timeString.endsWith("(sec)")) {
                     timeString = timeString.substring(0, timeString.indexOf('(')).trim();
                 }
-                dwellCmd.setDwellTime(BigDecimal.valueOf(Double.valueOf(timeString) * timeScale));
+                dwellCmd.setDwellTime(BigDecimal.valueOf(Double.parseDouble(timeString) * timeScale));
                 dwellCmd.setName(cmdName);
                 crclProg.getMiddleCommand().add(dwellCmd);
             } else if (parts.length > 1 && (parts[0].equalsIgnoreCase("J") || parts[0].equalsIgnoreCase("L"))) {
@@ -855,7 +855,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                             SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
                             TransSpeedAbsoluteType transSpeed = new TransSpeedAbsoluteType();
                             String spdString = parts[2].substring(0, parts[2].length() - "mm/sec".length()).trim();
-                            transSpeed.setSetting(BigDecimal.valueOf(Double.valueOf(spdString)));
+                            transSpeed.setSetting(BigDecimal.valueOf(Double.parseDouble(spdString)));
                             setSpeedCmd.setTransSpeed(transSpeed);
                             setSpeedCmd.setCommandID(cmdId);
                             crclProg.getMiddleCommand().add(setSpeedCmd);

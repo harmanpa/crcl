@@ -2342,12 +2342,12 @@ public class FanucCRCLMain {
             try (BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
                 String line = null;
                 while ((line = br.readLine()) != null) {
-                    findString(line, "min.x=", t -> min.x = Double.valueOf(t));
-                    findString(line, "max.x=", t -> max.x = Double.valueOf(t));
-                    findString(line, "min.y=", t -> min.y = Double.valueOf(t));
-                    findString(line, "max.y=", t -> max.y = Double.valueOf(t));
-                    findString(line, "min.z=", t -> min.z = Double.valueOf(t));
-                    findString(line, "max.z=", t -> max.z = Double.valueOf(t));
+                    findString(line, "min.x=", t -> min.x = Double.parseDouble(t));
+                    findString(line, "max.x=", t -> max.x = Double.parseDouble(t));
+                    findString(line, "min.y=", t -> min.y = Double.parseDouble(t));
+                    findString(line, "max.y=", t -> max.y = Double.parseDouble(t));
+                    findString(line, "min.z=", t -> min.z = Double.parseDouble(t));
+                    findString(line, "max.z=", t -> max.z = Double.parseDouble(t));
                 }
             } catch (IOException ex) {
                 Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);

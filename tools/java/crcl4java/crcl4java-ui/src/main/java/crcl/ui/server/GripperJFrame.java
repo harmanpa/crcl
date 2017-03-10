@@ -518,7 +518,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 Object f1forceObj = this.jTableThreeFinger.getModel().getValueAt(0, 2);
                 if (null != f1forceObj) {
                     try {
-                        double f1force = Double.valueOf(f1forceObj.toString());
+                        double f1force = Double.parseDouble(f1forceObj.toString());
                         threeFingerGripperStatus.setFinger1Force(BigDecimal.valueOf(f1force));
                     } catch (NumberFormatException numberFormatException) {
                     }
@@ -526,7 +526,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 Object f2forceObj = this.jTableThreeFinger.getModel().getValueAt(1, 2);
                 if (null != f2forceObj) {
                     try {
-                        double f2force = Double.valueOf(f2forceObj.toString());
+                        double f2force = Double.parseDouble(f2forceObj.toString());
                         threeFingerGripperStatus.setFinger2Force(BigDecimal.valueOf(f2force));
                     } catch (NumberFormatException numberFormatException) {
                     }
@@ -534,7 +534,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 Object f3forceObj = this.jTableThreeFinger.getModel().getValueAt(2, 2);
                 if (null != f3forceObj) {
                     try {
-                        double f3force = Double.valueOf(f3forceObj.toString());
+                        double f3force = Double.parseDouble(f3forceObj.toString());
                         threeFingerGripperStatus.setFinger3Force(BigDecimal.valueOf(f3force));
                     } catch (NumberFormatException numberFormatException) {
                     }
@@ -554,7 +554,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                     this.parallelGripperStatus = new ParallelGripperStatusType();
                 }
                 try {
-                    double sep = Double.valueOf(this.jTextFieldParallelSeperation.getText());
+                    double sep = Double.parseDouble(this.jTextFieldParallelSeperation.getText());
                     parallelGripperStatus.setSeparation(BigDecimal.valueOf(sep));
 
                 } catch (NumberFormatException numberFormatException) {

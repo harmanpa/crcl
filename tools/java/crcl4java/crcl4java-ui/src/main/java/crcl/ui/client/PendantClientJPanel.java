@@ -1994,7 +1994,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             showMessage("Can not send command when not connected.");
             return;
         }
-        internal.setJogIncrement(Double.valueOf(this.jTextFieldJointJogIncrement.getText()));
+        internal.setJogIncrement(Double.parseDouble(this.jTextFieldJointJogIncrement.getText()));
 //        this.setJointControlModes(JointControlModeEnumType.POSITION);
         final int index = this.jComboBox1.getSelectedIndex() + 1;
         if (null != jog_timer) {
@@ -2049,7 +2049,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     lastJogJointPos = pos;
                     aj.setJointPosition(js.getJointPosition().add(BigDecimal.valueOf(increment)));
                     JointSpeedAccelType jsa = new JointSpeedAccelType();
-                    jsa.setJointSpeed(BigDecimal.valueOf(Double.valueOf(PendantClientJPanel.this.jTextFieldJointJogSpeed.getText())));
+                    jsa.setJointSpeed(BigDecimal.valueOf(Double.parseDouble(PendantClientJPanel.this.jTextFieldJointJogSpeed.getText())));
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
                     internal.incAndSendCommand(ajst);
@@ -2095,13 +2095,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             if (!jogWorldSpeedsSet) {
                 SetTransSpeedType stst = new SetTransSpeedType();
                 TransSpeedAbsoluteType tas = new TransSpeedAbsoluteType();
-                tas.setSetting(BigDecimal.valueOf(Double.valueOf(this.jTextFieldTransSpeed.getText())));
+                tas.setSetting(BigDecimal.valueOf(Double.parseDouble(this.jTextFieldTransSpeed.getText())));
                 stst.setTransSpeed(tas);
                 internal.incAndSendCommand(stst);
                 internal.waitForDone(stst.getCommandID(), 200);
                 SetRotSpeedType srst = new SetRotSpeedType();
                 RotSpeedAbsoluteType ras = new RotSpeedAbsoluteType();
-                ras.setSetting(BigDecimal.valueOf(Double.valueOf(this.jTextFieldRotationSpeed.getText())));
+                ras.setSetting(BigDecimal.valueOf(Double.parseDouble(this.jTextFieldRotationSpeed.getText())));
                 srst.setRotSpeed(ras);
                 internal.incAndSendCommand(srst);
                 internal.waitForDone(srst.getCommandID(), 200);
@@ -4100,16 +4100,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_lengthUnitComboBoxLengthUnitActionPerformed
 
     private void jTextFieldJointJogSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldJointJogSpeedActionPerformed
-        internal.setJogJointSpeed(Double.valueOf(this.jTextFieldJointJogSpeed.getText()));
+        internal.setJogJointSpeed(Double.parseDouble(this.jTextFieldJointJogSpeed.getText()));
     }//GEN-LAST:event_jTextFieldJointJogSpeedActionPerformed
 
     private void jTextFieldTransSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldTransSpeedActionPerformed
-        internal.setJogTransSpeed(Double.valueOf(this.jTextFieldTransSpeed.getText()));
+        internal.setJogTransSpeed(Double.parseDouble(this.jTextFieldTransSpeed.getText()));
         jogWorldSpeedsSet = false;
     }//GEN-LAST:event_jTextFieldTransSpeedActionPerformed
 
     private void jTextFieldRotationSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldRotationSpeedActionPerformed
-        internal.setJogRotSpeed(Double.valueOf(this.jTextFieldRotationSpeed.getText()));
+        internal.setJogRotSpeed(Double.parseDouble(this.jTextFieldRotationSpeed.getText()));
         jogWorldSpeedsSet = false;
     }//GEN-LAST:event_jTextFieldRotationSpeedActionPerformed
 

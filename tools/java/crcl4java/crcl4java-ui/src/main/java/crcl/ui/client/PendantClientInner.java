@@ -1424,7 +1424,7 @@ public class PendantClientInner {
     private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
 
     private static double getDoubleProperty(String propName, double defaultVal) {
-        return Double.valueOf(System.getProperty(propName, Double.toString(defaultVal)));
+        return Double.parseDouble(System.getProperty(propName, Double.toString(defaultVal)));
     }
 
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
