@@ -32,7 +32,7 @@ public class MP_MODE_DATA {
 
     @Override
     public String toString() {
-        return "MP_MODE_DATA{" + "mode=" + mode + ", sRemote=" + sRemote + '}';
+        return (sRemote!=0)?"REMOTE":mode.toString();
     }
     
 }

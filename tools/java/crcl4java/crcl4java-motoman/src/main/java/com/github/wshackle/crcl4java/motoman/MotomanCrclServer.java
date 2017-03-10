@@ -130,7 +130,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 
     private double lengthScale = 1.0;
     private final int lastJointPos[] = new int[MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES];
-
+    private boolean lastErrorWasWrongMode = false;
+    
     public CRCLStatusType getCrclStatus() {
         long time = System.currentTimeMillis();
         long time_diff = time - last_status_update_time;
@@ -208,12 +209,19 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         dwelling = false;
                     }
                 }
-                if (crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                if (crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR || lastErrorWasWrongMode) {
                     MP_MODE_DATA modeData = mpc.mpGetMode();
-                    if (modeData.sRemote == 0) {
+                    boolean wrongMode = (modeData.sRemote == 0);
+                    if (wrongMode) {
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
-                        crclStatus.getCommandStatus().setStateDescription("mode = " + modeData.toString());
-                    }
+                        crclStatus.getCommandStatus().setStateDescription("Pendant switch must be set to REMOTE. : current mode = " + modeData.toString());
+                        lastErrorWasWrongMode = true;
+                    } else if(lastErrorWasWrongMode) {
+                        crclStatus.getCommandStatus().setStateDescription("");
+                    }  
+                }
+                if(crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                    lastErrorWasWrongMode = false;
                 }
                 if (crclStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
                     if (mpc.mpGetAlarmStatus().sIsAlarm != 0) {
@@ -221,7 +229,9 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                         crclStatus.getCommandStatus().setStateDescription("alarmData = " + alarmData);
                     }
+                    lastErrorWasWrongMode = false;
                 }
+                
                 last_status_update_time = System.currentTimeMillis();
             } catch (IOException | PmException | MotoPlusConnection.MotoPlusConnectionException ex) {
                 Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -305,7 +315,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     spd.vr = (int) (Math.toDegrees(rsa.getSetting().doubleValue()) * 10.0);
                     break;
             }
-            if(debug) {
+            if (debug) {
                 System.out.println("spd = " + spd);
             }
             mpc.mpMotSetSpeed(0, spd);
@@ -570,8 +580,14 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
             if (!mpc.mpGetServoPower()) {
                 mpc.mpSetServoPower(true);
                 if (!mpc.mpGetServoPower()) {
-                    crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
-                    crclStatus.getCommandStatus().setStateDescription("Can not enable servo power.");
+                    MP_MODE_DATA modeData = mpc.mpGetMode();
+                    if (modeData.sRemote == 0) {
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        crclStatus.getCommandStatus().setStateDescription("Pendant switch must be set to REMOTE. : current mode = " + modeData.toString());
+                    } else {
+                        crclStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        crclStatus.getCommandStatus().setStateDescription("Can not enable servo power.");
+                    }
                     mpc.mpSetServoPower(false);
                     return;
                 }
