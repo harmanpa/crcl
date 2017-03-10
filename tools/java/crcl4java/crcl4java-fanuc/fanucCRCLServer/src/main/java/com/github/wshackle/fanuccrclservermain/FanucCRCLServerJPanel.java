@@ -795,17 +795,17 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 int cindex = lhs.indexOf(',');
                 Integer lhs_id = 0;
                 if (cindex > 0) {
-                    lhs_id = Integer.valueOf(lhs.substring(3, cindex));
+                    lhs_id = Integer.parseInt(lhs.substring(3, cindex));
                     String el_index_string = lhs.substring(cindex + 1, lhs.length() - 1);
-                    int el_index = Integer.valueOf(el_index_string);
+                    int el_index = Integer.parseInt(el_index_string);
                     if (rhs.startsWith("(") && rhs.endsWith(")")) {
                         double value = Double.parseDouble(rhs.substring(1, rhs.length() - 1));
                         posMap.get(lhs_id).setOne(el_index, value);
                     }
                 } else {
-                    lhs_id = Integer.valueOf(lhs.substring(3, lhs.length() - 1));
+                    lhs_id = Integer.parseInt(lhs.substring(3, lhs.length() - 1));
                     if (rhs.startsWith("PR[") && rhs.endsWith("]")) {
-                        Integer rhs_id = Integer.valueOf(rhs.substring(3, rhs.length() - 1));
+                        Integer rhs_id = Integer.parseInt(rhs.substring(3, rhs.length() - 1));
                         posMap.get(lhs_id).setAll(posMap.get(rhs_id));
                     }
                 }
@@ -845,7 +845,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 crclProg.getMiddleCommand().add(dwellCmd);
             } else if (parts.length > 1 && (parts[0].equalsIgnoreCase("J") || parts[0].equalsIgnoreCase("L"))) {
                 if (parts[1].startsWith("PR[") && parts[1].endsWith("]")) {
-                    Integer id = Integer.valueOf(parts[1].substring(3, parts[1].length() - 1));
+                    Integer id = Integer.parseInt(parts[1].substring(3, parts[1].length() - 1));
                     PmXyzWpr posxyzwpr = posMap.get(id);
                     if (null != posxyzwpr) {
 //                        PmCartesian cart = new PmCartesian(posxyzwpr.x(), posxyzwpr.y(), posxyzwpr.z());
@@ -1491,7 +1491,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jCheckBoxConnnectedActionPerformed
 
     private void jTextFieldCrclPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCrclPortActionPerformed
-        setLocalCrclPort(Integer.valueOf(jTextFieldCrclPort.getText()));
+        setLocalCrclPort(Integer.parseInt(jTextFieldCrclPort.getText()));
     }//GEN-LAST:event_jTextFieldCrclPortActionPerformed
 
     private void jCheckBoxEnableCRCLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCRCLActionPerformed

@@ -686,10 +686,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     break;
 
                 case "--motomanport":
-                    motomanPort = Integer.valueOf(args[i + 1]);
+                    motomanPort = Integer.parseInt(args[i + 1]);
                     break;
                 case "--crclport":
-                    crclPort = Integer.valueOf(args[i + 1]);
+                    crclPort = Integer.parseInt(args[i + 1]);
                     break;
             }
         }

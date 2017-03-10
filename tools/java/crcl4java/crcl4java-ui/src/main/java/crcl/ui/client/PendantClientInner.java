@@ -2128,7 +2128,7 @@ public class PendantClientInner {
                     cjrs.getConfigureJointReport().add(cjr);
                 }
                 testProgram.getMiddleCommand().add(cjrs);
-                int maxJoint = Integer.valueOf(testProperies.getOrDefault("maxJoint", "10"));
+                int maxJoint = Integer.parseInt(testProperies.getOrDefault("maxJoint", "10"));
                 for (int i = 0; i < jointList.size() && i < maxJoint; i++) {
                     JointStatusType js = jointList.get(i);
                     ActuateJointsType ajst = new ActuateJointsType();

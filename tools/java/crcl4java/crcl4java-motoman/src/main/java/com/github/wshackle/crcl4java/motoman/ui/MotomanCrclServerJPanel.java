@@ -278,8 +278,8 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         if (this.jCheckBoxConnect.isSelected()) {
             try {
                 disconnectCrclMotoplus();
-                crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
-                motomanPort = Integer.valueOf(jTextFieldMotoplusPort.getText());
+                crclPort = Integer.parseInt(jTextFieldCrclPort.getText());
+                motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText());
                 motomanHost = jTextFieldMotoplusHost.getText();
                 connectCrclMotoplus();
             } catch (IOException ex) {
@@ -329,7 +329,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
     public void setCrclPort(int port) {
         this.jTextFieldCrclPort.setText(Integer.toString(port));
-        crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
+        crclPort = Integer.parseInt(jTextFieldCrclPort.getText());
         updateConnection();
     }
 
@@ -355,8 +355,8 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         if (null != motomanHostString) {
             jTextFieldMotoplusHost.setText(motomanHostString);
         }
-        crclPort = Integer.valueOf(jTextFieldCrclPort.getText());
-        motomanPort = Integer.valueOf(jTextFieldMotoplusPort.getText());
+        crclPort = Integer.parseInt(jTextFieldCrclPort.getText());
+        motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText());
         motomanHost = jTextFieldMotoplusHost.getText();
         String debugString = props.getProperty("debug");
         if(debugString != null && debugString.length() > 0 && Boolean.valueOf(debugString)) {

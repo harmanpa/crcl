@@ -77,7 +77,7 @@ public class JbrParser {
             while (null != (line = br.readLine())) {
                 if (line.matches("P\\d\\d\\d\\d\\d=.*")) {
                     System.out.println("line = " + line);
-                    int index = Integer.valueOf(line.substring(1, 6), 10);
+                    int index = Integer.parseInt(line.substring(1, 6), 10);
                     System.out.println("index = " + index);
                     String fa[] = line.substring(7).split("[ ,]+");
                     System.out.println("fa = " + Arrays.toString(fa));
@@ -115,7 +115,7 @@ public class JbrParser {
                 if (readingAliases) {
                     if (line.matches("P\\d\\d\\d.* [^ ]*")) {
                         String fa[] = line.substring(1).split("[ ]+");
-                        int index = Integer.valueOf(fa[0]);
+                        int index = Integer.parseInt(fa[0]);
                         System.out.println("index = " + index);
                         String name = fa[1];
                         System.out.println("name = " + name);
@@ -133,7 +133,7 @@ public class JbrParser {
 
     JbrPose getPose(String poseNameOrId) {
         if (poseNameOrId.matches("P\\d\\d\\d.* [^ ]*")) {
-            int index = Integer.valueOf(poseNameOrId.substring(1));
+            int index = Integer.parseInt(poseNameOrId.substring(1));
             return jbrIndexMap.get(index);
         } else {
             return jbrNameMap.get(poseNameOrId);

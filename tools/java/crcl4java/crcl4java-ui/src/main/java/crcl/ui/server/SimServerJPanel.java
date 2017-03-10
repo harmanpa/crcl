@@ -169,7 +169,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     public void saveProperties() throws IOException {
         if (null != propertiesFile) {
             Properties props = new Properties();
-            int port = Integer.valueOf(jTextFieldPort.getText());
+            int port = Integer.parseInt(jTextFieldPort.getText());
             props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
             System.out.println("SimServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
 //            try (FileWriter fw = new FileWriter(propertiesFile)) {
@@ -189,7 +189,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             }
             String portString = props.getProperty(CRCLPORT_PROPERTY_NAME);
             if (portString != null) {
-                int port = Integer.valueOf(portString);
+                int port = Integer.parseInt(portString);
                 jTextFieldPort.setText(Integer.toString(port));
                 inner.setPort(port);
                 restartServer();

@@ -67,7 +67,7 @@ public class TelnetJPanel extends javax.swing.JPanel {
             host = MotomanTelnetClient.DEFAULT_MOTOMAN_HOST;
         }
         try {
-            port = Integer.valueOf(jTextFieldPort.getText().trim());
+            port = Integer.parseInt(jTextFieldPort.getText().trim());
             
         } catch (Exception exception) {
             port = MotomanTelnetClient.DEFAULT_PORT;
