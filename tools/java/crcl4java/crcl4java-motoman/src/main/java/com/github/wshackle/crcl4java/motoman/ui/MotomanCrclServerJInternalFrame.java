@@ -53,6 +53,9 @@ public class MotomanCrclServerJInternalFrame extends javax.swing.JInternalFrame 
 
         motomanCrclServerJPanel1 = new com.github.wshackle.crcl4java.motoman.ui.MotomanCrclServerJPanel();
 
+        setIconifiable(true);
+        setMaximizable(true);
+        setResizable(true);
         setTitle("Motoman CRCL Server");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

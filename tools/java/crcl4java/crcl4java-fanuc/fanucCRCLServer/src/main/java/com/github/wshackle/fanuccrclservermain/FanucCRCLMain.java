@@ -1253,6 +1253,7 @@ public class FanucCRCLMain {
             TransSpeedAbsoluteType tsAbs = (TransSpeedAbsoluteType) ts;
             transSpeed = tsAbs.getSetting().doubleValue() * lengthScale;
             regNumeric98.regFloat((float) transSpeed);
+            showInfo("R[98] = transSpeed = "+transSpeed);
 //            reg98Var.update();
             setCommandState(CommandStateEnumType.CRCL_DONE);
             settingsStatus.setTransSpeedAbsolute(tsAbs);
@@ -1370,11 +1371,16 @@ public class FanucCRCLMain {
         if (rotMoveTime > cartMoveTime) {
             double timeNeeded = Math.max(rotMoveTime, cartMoveTime);
             int time_needed_ms = (int) (1000.0 * timeNeeded);
+            showInfo("MoveTo : cartDiff = "+cartDiff+",rotDiff = "+rotDiff+", transSpeed="+transSpeed+", time_needed_ms = " + time_needed_ms);
+            if(time_needed_ms < 10) {
+                time_needed_ms = 10;
+            }
             regNumeric96.regLong(time_needed_ms);
             reg96Var.update();
             runMotionTpProgram(move_w_time_prog);
             expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms;
         } else {
+            showInfo("MoveTo : cartDiff = "+cartDiff+",rotDiff = "+rotDiff);
             runMotionTpProgram(move_linear_prog);
         }
         startMoveTime = System.currentTimeMillis();
