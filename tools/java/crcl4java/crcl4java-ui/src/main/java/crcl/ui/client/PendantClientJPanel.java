@@ -1133,6 +1133,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jTextFieldTransSpeed.setText(Double.toString(internal.getJogTransSpeed()));
         this.jTextFieldRPYJogIncrement.setText(Double.toString(this.rpyJogIncrement));
         this.jTextFieldJogInterval.setText(Double.toString(internal.getJogInterval()));
+        this.jTextFieldPollTime.setText(Integer.toString(internal.getPoll_ms()));
+        this.stopPollTimer();
+        if (this.jCheckBoxPoll.isSelected()) {
+            this.startPollTimer();
+        }
 //        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(internal.isQuitOnTestCommandFailure());
     }
 

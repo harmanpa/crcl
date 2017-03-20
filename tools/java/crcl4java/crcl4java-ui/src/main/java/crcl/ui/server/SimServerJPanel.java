@@ -398,7 +398,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
         jLabel3.setText("Cycle Time (ms): ");
 
-        jTextFieldCycleTime.setText("100");
+        jTextFieldCycleTime.setText("20");
         jTextFieldCycleTime.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldCycleTimeActionPerformed(evt);
@@ -455,7 +455,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(0, 2, Short.MAX_VALUE)
+                        .addGap(0, 13, Short.MAX_VALUE)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(jButtonReset)

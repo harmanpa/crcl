@@ -466,7 +466,7 @@ public class SimServerInner {
     private boolean debug_this_command = false;
     private int cmdQueueCmdsOffered = 0;
     Thread acceptClientsThread = null;
-    private long delayMillis = Long.getLong("crcl4java.simserver.delayMillis", 100);
+    private long delayMillis = Long.getLong("crcl4java.simserver.delayMillis", 20);
     private ConfigureJointReportsType cjrs = null;
     private Map<Integer, ConfigureJointReportType> cjrMap = null;
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
