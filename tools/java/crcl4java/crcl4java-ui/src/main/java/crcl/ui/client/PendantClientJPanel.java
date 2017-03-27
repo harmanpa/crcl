@@ -3940,7 +3940,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == internal.getProgram()
                 || getCurrentProgramLine() < 0
                 || getCurrentProgramLine() > (internal.getProgram().getMiddleCommand().size() + 1)) {
-            return XFuture.completedFuture(true);
+            return XFuture.completedFuture(internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR);
         }
         if (pauseTime > this.internal.runStartMillis) {
             this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);

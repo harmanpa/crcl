@@ -1907,7 +1907,7 @@ public class PendantClientInner {
             outer.showLastProgramLineExecTimeMillisDists(time_to_exec, 0, true);
             outer.showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
             outer.showDebugMessage("testProgram() succeeded");
-            return true;
+            return status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
         } catch (InterruptedException ex) {
             if (close_test_count.get() <= start_close_test_count) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -2765,8 +2765,11 @@ public class PendantClientInner {
                 }
                 cmd = wrapper.getWrappedCommand();
             }
-            if (cmd instanceof EndCanonType) {
-                return true;
+            if (cmd instanceof EndCanonType) { 
+                return wfdResult != WaitForDoneResult.WFD_ERROR
+                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION 
+                        && wfdResult != WaitForDoneResult.WFD_HOLDING_ERROR
+                        && status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
             }
             if (wfdResult != WaitForDoneResult.WFD_DONE) {
                 if (pause_count_start != this.pause_count.get()) {
