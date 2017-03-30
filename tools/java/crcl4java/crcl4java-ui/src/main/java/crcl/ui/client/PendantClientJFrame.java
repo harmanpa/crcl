@@ -309,6 +309,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
 
         FormListener formListener = new FormListener();
@@ -456,6 +457,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         jCheckBoxMenuItemQuitProgramOnTestCommandFail.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemQuitProgramOnTestCommandFail);
 
+        jCheckBoxMenuItemDisableTextPopups.setSelected(true);
+        jCheckBoxMenuItemDisableTextPopups.setText("Disable Text Popups");
+        jCheckBoxMenuItemDisableTextPopups.addActionListener(formListener);
+        jMenuOptions.add(jCheckBoxMenuItemDisableTextPopups);
+
         jMenuItemAbout.setText("About");
         jMenuItemAbout.addActionListener(formListener);
         jMenuOptions.add(jMenuItemAbout);
@@ -560,6 +566,9 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
             }
             else if (evt.getSource() == jCheckBoxMenuItemQuitProgramOnTestCommandFail) {
                 PendantClientJFrame.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
+            }
+            else if (evt.getSource() == jCheckBoxMenuItemDisableTextPopups) {
+                PendantClientJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemAbout) {
                 PendantClientJFrame.this.jMenuItemAboutActionPerformed(evt);
@@ -699,6 +708,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         pendantClientJPanel1.resetPrefs();
     }//GEN-LAST:event_jMenuItemResetPrefsActionPerformed
 
+    private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+        crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+        this.pendantClientJPanel1.setDisableTextPopups(crcl.ui.misc.MultiLineStringJPanel.disableShowText);
+    }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
     @Override
     public boolean isEXISelected() {
         return this.jCheckBoxMenuItemUseEXI.isSelected();
@@ -762,6 +776,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendCommand;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
@@ -980,6 +995,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     @Override
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
+        jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
     }
 
     @Override

@@ -93,6 +93,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         jCheckBoxMenuItemReplaceXmlHeader = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemLogImages = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
         jMenu5 = new javax.swing.JMenu();
         jMenuItemViewCommandLogBrief = new javax.swing.JMenuItem();
@@ -206,6 +207,14 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             }
         });
         jMenu4.add(jCheckBoxMenuItemLogImages);
+
+        jCheckBoxMenuItemDisableTextPopups.setText("Disable Text Popups");
+        jCheckBoxMenuItemDisableTextPopups.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItemDisableTextPopups);
 
         jMenuItemAbout.setText("About");
         jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
@@ -322,6 +331,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             }
         }
     }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
+
+    private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+       crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+    }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
 
     
     @Override
@@ -473,6 +486,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugMoveDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadCommand;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendStatus;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEXI;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIncludeGripperStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemLogImages;
@@ -499,7 +513,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
 
     @Override
     public void close() throws Exception {
-        simServerJPanel1.restartServer();
+        simServerJPanel1.closeServer();
         this.setVisible(false);
     }
 }

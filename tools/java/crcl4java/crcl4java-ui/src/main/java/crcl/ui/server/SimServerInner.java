@@ -1768,8 +1768,9 @@ public class SimServerInner {
 
     public void runAcceptClients() {
         final int start_close_count = this.close_count;
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+
                 final Socket s = ssock.accept();
                 final CRCLSocket cs = new CRCLSocket(s);
                 final ClientState state = new ClientState(cs);
@@ -1781,10 +1782,11 @@ public class SimServerInner {
                 clientThreadMap.put(cs, t);
                 t.start();
                 this.updateConnectedClients();
-            } catch (Exception ex) {
-                if (close_count <= start_close_count) {
-                    LOGGER.log(Level.SEVERE, null, ex);
-                }
+
+            }
+        } catch (Exception ex) {
+            if (close_count <= start_close_count) {
+                LOGGER.log(Level.SEVERE, "close_count ="+close_count+", start_close_count ="+start_close_count, ex);
             }
         }
     }

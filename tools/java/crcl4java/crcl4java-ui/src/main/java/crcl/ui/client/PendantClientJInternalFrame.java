@@ -78,15 +78,15 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public boolean isPaused() {
         return pendantClientJPanel1.isPaused();
     }
-    
+
     public boolean isRunningProgram() {
         return pendantClientJPanel1.isRunningProgram();
     }
-    
+
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }
-    
+
     public void pauseCrclProgram() {
         pendantClientJPanel1.pauseCrclProgram();
     }
@@ -382,11 +382,12 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugWaitForDone = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugSendCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
-        jMenuItemDebugInterrupts = new javax.swing.JMenuItem();
+        jCheckBoxMenuItemDebugInterrupts = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
 
         setIconifiable(true);
@@ -613,13 +614,9 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugReadStatus.setText("Debug  readStatus() ");
         jMenuOptions.add(jCheckBoxMenuItemDebugReadStatus);
 
-        jMenuItemDebugInterrupts.setText("Debug interrupts");
-        jMenuItemDebugInterrupts.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemDebugInterruptsActionPerformed(evt);
-            }
-        });
-        jMenuOptions.add(jMenuItemDebugInterrupts);
+        jCheckBoxMenuItemDebugInterrupts.setSelected(true);
+        jCheckBoxMenuItemDebugInterrupts.setText("Debug Interrupts");
+        jMenuOptions.add(jCheckBoxMenuItemDebugInterrupts);
 
         jCheckBoxMenuItemUseEXI.setText("USE EXI (Efficient XML Interchange)");
         jCheckBoxMenuItemUseEXI.addActionListener(new java.awt.event.ActionListener() {
@@ -654,6 +651,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
             }
         });
         jMenuOptions.add(jCheckBoxMenuItemQuitProgramOnTestCommandFail);
+
+        jCheckBoxMenuItemDisableTextPopups.setText("Disable Text Popups");
+        jCheckBoxMenuItemDisableTextPopups.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jCheckBoxMenuItemDisableTextPopups);
 
         jMenuItemAbout.setText("About");
         jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
@@ -812,15 +817,19 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.aboutAction();
     }//GEN-LAST:event_jMenuItemAboutActionPerformed
 
-    private void jMenuItemDebugInterruptsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemDebugInterruptsActionPerformed
-        pendantClientJPanel1.setDebugInterrupts(jMenuItemDebugInterrupts.isSelected());
-    }//GEN-LAST:event_jMenuItemDebugInterruptsActionPerformed
+   
+    private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+        crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+        this.pendantClientJPanel1.setDisableTextPopups(crcl.ui.misc.MultiLineStringJPanel.disableShowText);
+    }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugInterrupts;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendCommand;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
@@ -837,7 +846,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private javax.swing.JMenu jMenuCommandRecent;
     private javax.swing.JMenuItem jMenuItemAbout;
     private javax.swing.JMenuItem jMenuItemClearRecordedPoints;
-    private javax.swing.JMenuItem jMenuItemDebugInterrupts;
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemLoadPrefs;
     private javax.swing.JMenuItem jMenuItemOpenStatusLog;
@@ -1067,7 +1075,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     @Override
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
-        jMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
+        jCheckBoxMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
+        jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
     }
 
     @Override

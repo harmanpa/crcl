@@ -85,6 +85,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         jCheckBoxMenuItemDebugMoveDone = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugSendStatus = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemReplaceXmlHeader = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemLogImages = new javax.swing.JCheckBoxMenuItem();
@@ -158,6 +159,10 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         jCheckBoxMenuItemDebugSendStatus.setText("Debug Send Status");
         jMenu4.add(jCheckBoxMenuItemDebugSendStatus);
 
+        jCheckBoxMenuItemDisableTextPopups.setText("Disable Text Popups");
+        jCheckBoxMenuItemDisableTextPopups.addActionListener(formListener);
+        jMenu4.add(jCheckBoxMenuItemDisableTextPopups);
+
         jCheckBoxMenuItemReplaceXmlHeader.setSelected(true);
         jCheckBoxMenuItemReplaceXmlHeader.setText("Replace XML Headers");
         jMenu4.add(jCheckBoxMenuItemReplaceXmlHeader);
@@ -218,6 +223,12 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
             if (evt.getSource() == jMenuItemExit) {
                 SimServerJFrame.this.jMenuItemExitActionPerformed(evt);
             }
+            else if (evt.getSource() == jMenuItemSaveProperties) {
+                SimServerJFrame.this.jMenuItemSavePropertiesActionPerformed(evt);
+            }
+            else if (evt.getSource() == jMenuItemLoadProperties) {
+                SimServerJFrame.this.jMenuItemLoadPropertiesActionPerformed(evt);
+            }
             else if (evt.getSource() == jMenuItemEditStatus) {
                 SimServerJFrame.this.jMenuItemEditStatusActionPerformed(evt);
             }
@@ -242,11 +253,8 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServerJFrame.this.jMenuItemViewCommandLogFullActionPerformed(evt);
             }
-            else if (evt.getSource() == jMenuItemSaveProperties) {
-                SimServerJFrame.this.jMenuItemSavePropertiesActionPerformed(evt);
-            }
-            else if (evt.getSource() == jMenuItemLoadProperties) {
-                SimServerJFrame.this.jMenuItemLoadPropertiesActionPerformed(evt);
+            else if (evt.getSource() == jCheckBoxMenuItemDisableTextPopups) {
+                SimServerJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -321,6 +329,10 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         }
     }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
 
+    private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+        crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+    }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -361,6 +373,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugMoveDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadCommand;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendStatus;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEXI;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIncludeGripperStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemLogImages;

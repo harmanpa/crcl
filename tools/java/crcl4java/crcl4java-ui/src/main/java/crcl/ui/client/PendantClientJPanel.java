@@ -1138,7 +1138,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
         }
-//        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(internal.isQuitOnTestCommandFailure());
+        if(isDisableTextPopups()) {
+            crcl.ui.misc.MultiLineStringJPanel.disableShowText = true;
+        }
     }
 
     public void openXmlProgramFile(File f) {
@@ -4278,6 +4280,26 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 return canEdit[columnIndex];
             }
         });
+    }
+
+    private boolean disableTextPopups = true;
+
+    /**
+     * Get the value of disableTextPopups
+     *
+     * @return the value of disableTextPopups
+     */
+    public boolean isDisableTextPopups() {
+        return disableTextPopups;
+    }
+
+    /**
+     * Set the value of disableTextPopups
+     *
+     * @param disableTextPopups new value of disableTextPopups
+     */
+    public void setDisableTextPopups(boolean disableTextPopups) {
+        this.disableTextPopups = disableTextPopups;
     }
 
     private void setPoseDisplayModelRpy() {
