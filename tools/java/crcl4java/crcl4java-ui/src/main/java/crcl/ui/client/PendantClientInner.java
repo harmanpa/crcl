@@ -221,7 +221,7 @@ public class PendantClientInner {
     private Queue<AnnotatedPose> poseQueue = null;
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement / 5.0);
+    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement);
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -300,16 +300,16 @@ public class PendantClientInner {
         this.expectedEndPoseTolerance = new PoseToleranceType();
         this.expectedEndPoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
         this.expectedEndPoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedEndPoseTolerance.setXPointTolerance(BigDecimal.ONE);
-        this.expectedEndPoseTolerance.setYPointTolerance(BigDecimal.ONE);
-        this.expectedEndPoseTolerance.setZPointTolerance(BigDecimal.ONE);
+        this.expectedEndPoseTolerance.setXPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedEndPoseTolerance.setYPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedEndPoseTolerance.setZPointTolerance(BigDecimal.valueOf(2.0));
 
         this.expectedIntermediatePoseTolerance = new PoseToleranceType();
         this.expectedIntermediatePoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
         this.expectedIntermediatePoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedIntermediatePoseTolerance.setXPointTolerance(BigDecimal.ONE);
-        this.expectedIntermediatePoseTolerance.setYPointTolerance(BigDecimal.ONE);
-        this.expectedIntermediatePoseTolerance.setZPointTolerance(BigDecimal.ONE);
+        this.expectedIntermediatePoseTolerance.setXPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedIntermediatePoseTolerance.setYPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedIntermediatePoseTolerance.setZPointTolerance(BigDecimal.valueOf(2.0));
     }
 
     /**
@@ -914,7 +914,8 @@ public class PendantClientInner {
             lastWaitForDoneTimeDiff = timeDiff;
             int old_pause_count = this.pause_count.get();
             final long fullTimeout = timeoutMilliSeconds
-                    + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0);
+                    + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0)
+                    + 2000;
             lastWaitForDoneFullTimeout = fullTimeout;
             lastWaitForDoneMinCmdId = minCmdId;
             while (true) {
