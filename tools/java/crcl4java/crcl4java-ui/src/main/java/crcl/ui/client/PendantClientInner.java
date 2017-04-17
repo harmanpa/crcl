@@ -1278,6 +1278,7 @@ public class PendantClientInner {
                 crclSocket = new CRCLSocket(host, port);
             }
             startStatusReaderThread();
+            
             outer.finishConnect();
         } catch (CRCLException | IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1899,9 +1900,6 @@ public class PendantClientInner {
             programCommandStartTime = System.currentTimeMillis();
             EndCanonType endCmd = prog.getEndCanon();
             if (!testCommand(endCmd)) {
-                if (null != future) {
-                    future.cancel(false);
-                }
                 return false;
             }
             time_to_exec = System.currentTimeMillis() - programCommandStartTime;
@@ -1928,9 +1926,6 @@ public class PendantClientInner {
             stopMotion(StopConditionEnumType.FAST);
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        if (null != future) {
-            future.cancel(false);
         }
         return false;
     }
