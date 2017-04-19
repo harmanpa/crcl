@@ -75,6 +75,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         init();
     }
 
+    public String getCrclClientErrorMessage() {
+        return pendantClientJPanel1.getCrclClientErrorMessage();
+    }
+    
     public boolean isPaused() {
         return pendantClientJPanel1.isPaused();
     }

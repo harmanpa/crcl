@@ -271,7 +271,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public static interface CurrentPoseListener {
 
-        public void accept(PendantClientJPanel panel, PoseType pose);
+        public void handlePoseUpdate(PendantClientJPanel panel, PoseType pose,CRCLStatusType stat,CRCLCommandType cmd,boolean isHoldingObjectExpected);
     }
 
     private final ConcurrentLinkedDeque<CurrentPoseListener> currentPoseListeners = new ConcurrentLinkedDeque<>();
@@ -1535,13 +1535,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void finishSetStatus() {
         final CRCLStatusType curInternalStatus
                 = CRCLPosemath.copy(internal.getStatus());
+        final boolean isHoldingObjectExpected = internal.isHoldingObjectExpected();
+        final CRCLCommandType lastCmd = internal.getLastCommandSent();
+        
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
-            finishSetStatusPriv(curInternalStatus);
+            finishSetStatusPriv(curInternalStatus,lastCmd,isHoldingObjectExpected);
         } else {
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    PendantClientJPanel.this.finishSetStatusPriv(curInternalStatus);
+                    PendantClientJPanel.this.finishSetStatusPriv(curInternalStatus,lastCmd,isHoldingObjectExpected);
                 }
             });
         }
@@ -1576,7 +1579,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private int lastProgramIndex = 0;
 
-    private void finishSetStatusPriv(final CRCLStatusType curInternalStatus) {
+    private void finishSetStatusPriv(final CRCLStatusType curInternalStatus, final CRCLCommandType lastCommandSent, boolean isHoldingObject) {
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             CommandStatusType ccst = curInternalStatus.getCommandStatus();
             if (null != ccst) {
@@ -1807,7 +1810,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     }
                 }
                 for (CurrentPoseListener l : currentPoseListeners) {
-                    l.accept(this, p);
+                    l.handlePoseUpdate(this, p, curInternalStatus, lastCommandSent, isHoldingObject);
                 }
             }
         }
@@ -2294,6 +2297,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jPanelJogPlus1.repaint();
     }
 
+    public String getCrclClientErrorMessage() {
+        return internal.getCrclClientErrorMessage();
+    }
+    
+    
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmd) throws JAXBException, IOException {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmd, true);

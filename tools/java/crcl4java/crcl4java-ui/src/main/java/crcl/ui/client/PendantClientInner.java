@@ -208,6 +208,11 @@ public class PendantClientInner {
 //    private File[] cmdSchemaFiles = null;
 //    private File[] programSchemaFiles = null;
     private CRCLCommandType lastCommandSent = null;
+    
+    public CRCLCommandType getLastCommandSent() {
+        return this.lastCommandSent;
+    }
+    
     private CRCLCommandType prevLastCommandSent = null;
     private boolean recordCommands = true;
     final private Queue<CRCLCommandType> recordedCommandsQueue
@@ -470,6 +475,25 @@ public class PendantClientInner {
         }
     }
 
+    private volatile String crclClientErrorMessage = null;
+    
+    public String getCrclClientErrorMessage() {
+        return crclClientErrorMessage;
+    }
+    
+    
+    private void showErrorMessage(String s) {
+        crclClientErrorMessage = s;
+        outer.showMessage(s);
+        if (null == logStream) {
+            openLogStream();
+        }
+        if (null != logStream) {
+            logStream.println(s);
+        }
+    }
+    
+    
     private void showMessage(String s) {
         outer.showMessage(s);
         if (null == logStream) {
@@ -891,6 +915,9 @@ public class PendantClientInner {
     private long lastWaitForDoneFullTimeout = -1;
     private BigInteger lastWaitForDoneMinCmdId = null;
     private Exception lastWaitForDoneException = null;
+    
+    private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION =
+            Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension","5000"));
 
     /**
      * Poll the status until the current command is done or ends with an error.
@@ -915,7 +942,7 @@ public class PendantClientInner {
             int old_pause_count = this.pause_count.get();
             final long fullTimeout = timeoutMilliSeconds
                     + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0)
-                    + 2000;
+                    + WAIT_FOR_DONE_TIMEOUT_EXTENSION;
             lastWaitForDoneFullTimeout = fullTimeout;
             lastWaitForDoneMinCmdId = minCmdId;
             while (true) {
@@ -1432,7 +1459,7 @@ public class PendantClientInner {
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
         if (null == status.getJointStatuses()) {
-            showMessage("Test program failed : (null == status.getJointStatuses() ");
+            showMessage("ActuateJoints failed : (null == status.getJointStatuses() ");
             return false;
         }
         for (ActuateJointType aj : ajl) {
@@ -1446,12 +1473,12 @@ public class PendantClientInner {
                 }
             }
             if (null == jointStatusTest) {
-                showMessage("Test program failed : no jointStatus for " + aj.getJointNumber());
+                showMessage("ActuateJoints failed : no jointStatus for " + aj.getJointNumber());
                 return false;
             }
             BigDecimal jointDiff = jointStatusTest.getJointPosition().subtract(aj.getJointPosition()).abs();
             if (jointDiff.compareTo(jointTol) > 0) {
-                showMessage("Test program failed measured position differs from commanded position." + NEW_LINE
+                showMessage("ActuateJoints failed measured position differs from commanded position." + NEW_LINE
                         + "JointNumber: " + aj.getJointNumber() + NEW_LINE
                         + "Commanded :" + aj.getJointPosition() + NEW_LINE
                         + "Status (Measured): " + jointStatusTest.getJointPosition() + NEW_LINE
@@ -1794,6 +1821,7 @@ public class PendantClientInner {
             XFuture<Boolean> future) {
         final int start_close_test_count = this.close_test_count.get();
         holdingErrorOccured = false;
+        crclClientErrorMessage = null;
         holdingErrorRepCount = 0;
         callingRunProgramStackTrace.set(threadCreateCallStack);
         int i = 0;
@@ -2778,7 +2806,7 @@ public class PendantClientInner {
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
                 String intString = this.createInterrupStackString();
-                String messageString = "Test Progam timed out waiting for DONE from " + NEW_LINE
+                String messageString = cmd.getClass().getName()+ " timed out waiting for DONE " + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
@@ -2796,7 +2824,7 @@ public class PendantClientInner {
                                 + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
-                showMessage(messageString);
+                showErrorMessage(messageString);
                 if (debugInterrupts || printDetailedCommandFailureInfo) {
                     SimServerInner.printAllClientStates(System.err);
                     Thread.getAllStackTraces().entrySet().forEach((x) -> {
@@ -2815,7 +2843,7 @@ public class PendantClientInner {
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
-            String messageString = "Test Progam testCommandEffect failed for " + NEW_LINE
+            String messageString = cmd.getClass().getName()+ " testCommandEffect failed " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                     + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
@@ -2831,7 +2859,7 @@ public class PendantClientInner {
                             + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE;
             System.out.println(messageString);
-            showMessage(messageString);
+            showErrorMessage(messageString);
         }
         return effectOk;
     }
