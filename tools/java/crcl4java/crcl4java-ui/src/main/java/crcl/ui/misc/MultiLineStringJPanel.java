@@ -264,7 +264,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             String _title,
             boolean _modal) {
 
-        final XFuture<Boolean> ret = new XFuture<>();
+        final XFuture<Boolean> ret = new XFuture<>("showText("+init+","+_title+")");
         if (!disableShowText) {
             runOnDispatchThread(() -> {
                 JDialog dialog = new JDialog(_owner, _title, _modal);
@@ -277,7 +277,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     public static XFuture<Boolean> showText(String init) {
-        final XFuture<Boolean> ret = new XFuture<>();
+        final XFuture<Boolean> ret = new XFuture<>("showText("+init+")");
         if (!disableShowText) {
             runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
         } else {

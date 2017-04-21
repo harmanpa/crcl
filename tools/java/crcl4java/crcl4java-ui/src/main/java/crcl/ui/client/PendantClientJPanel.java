@@ -150,7 +150,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private diagapplet.plotter.plotterJFrame jointsPlotter = null;
 
     //    javax.swing.Timer pollTimer = null;
-    transient private Thread pollingThread = null;
+    transient private volatile Thread pollingThread = null;
     transient private volatile boolean statusRequested = false;
     private long max_diff_readStatusEndTime_requestStatusStartTime = 0;
     private long maxPollStatusCycleTime = 0;
@@ -1087,17 +1087,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     @Override
     public void stopPollTimer() {
         pollStopCount++;
-        if (null != pollingThread) {
+        Thread pt = pollingThread;
+        if (null != pt) {
             try {
-                pollingThread.join(100 + internal.getPoll_ms());
+                pt.join(100 + internal.getPoll_ms());
             } catch (InterruptedException ex) {
             }
-            if (pollingThread.isAlive()) {
+            if (pt.isAlive()) {
                 if (this.internal.isDebugInterrupts()) {
                     Thread.dumpStack();
-                    System.err.println("Interruptint pollingThread = " + pollingThread);
-                    System.out.println("Interruptint pollingThread = " + pollingThread);
-                    System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pollingThread.getStackTrace()));
+                    System.err.println("Interruptint pollingThread = " + pt);
+                    System.out.println("Interruptint pollingThread = " + pt);
+                    System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pt.getStackTrace()));
                     StackTraceElement ste[] = internal.getCallingRunProgramStackTrace().get();
                     if (null != ste) {
                         System.out.println("CallingRunProgramStackTrace: ");
@@ -1108,9 +1109,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         System.out.println("");
                     }
                 }
-                pollingThread.interrupt();
+                pt.interrupt();
                 try {
-                    pollingThread.join(1000);
+                    pt.join(1000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -1234,7 +1235,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.getProgram();
     }
 
+//    private CRCLProgramType copyProgram(CRCLProgramType program) {
+//        CRCLProgramType newProgram = new CRCLProgramType();
+//        newProgram.setInitCanon(program.getInitCanon());
+//        newProgram.getMiddleCommand().addAll(program.getMiddleCommand());
+//        newProgram.setEndCanon(program.getEndCanon());
+//        return newProgram;
+//    }
+    
     public void setProgram(CRCLProgramType program) throws JAXBException {
+//        CRCLProgramType newProgram = copyProgram(program);
         this.internal.setProgram(program);
         this.showProgram(program);
     }
@@ -3878,7 +3888,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             return ret;
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            XFuture<Boolean> future = new XFuture<>();
+            XFuture<Boolean> future = new XFuture<>("runCurrentProgram immediate exception");
             future.completeExceptionally(ex);
             lastProgramFuture = null;
             return future;
@@ -3956,7 +3966,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         InitCanonType init = new InitCanonType();
         init.setCommandID(BigInteger.ONE);
         final CountDownLatch latch = new CountDownLatch(1);
-        XFuture<Boolean> newProgramFutureInternal = XFuture.runAsync(() -> {
+        XFuture<Boolean> newProgramFutureInternal = XFuture.runAsync("continueCurrentProgram.step1",() -> {
             try {
                 latch.await();
                 this.internal.closeTestProgramThread();
@@ -3969,7 +3979,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         })
-                .thenCompose(x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
+                .thenCompose("continueCurrentProgram.step2",x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
         XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
         programFutureInternal = newProgramFutureInternal;
         latch.countDown();

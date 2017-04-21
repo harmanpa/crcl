@@ -28,20 +28,29 @@ import crcl.base.MiddleCommandType;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CrclCommandWrapper extends MessageType {
-    
+
     public static interface CRCLCommandWrapperConsumer {
-        
+
         public void accept(CrclCommandWrapper wrapper);
     }
     private final MiddleCommandType wrappedCommand;
     private CRCLProgramType curProgram = null;
+    private int curProgramIndex = -1;
 
+    public int getCurProgramIndex() {
+        return curProgramIndex;
+    }
+
+    public void setCurProgramIndex(int curProgramIndex) {
+        this.curProgramIndex = curProgramIndex;
+    }
+    
+    
     public CRCLProgramType getCurProgram() {
         return curProgram;
     }
@@ -49,37 +58,37 @@ public class CrclCommandWrapper extends MessageType {
     public void setCurProgram(CRCLProgramType curProgram) {
         this.curProgram = curProgram;
     }
-    
+
     private CrclCommandWrapper(MiddleCommandType wrappedCommand) {
         this.wrappedCommand = wrappedCommand;
         this.commandID = wrappedCommand.getCommandID();
         this.name = wrappedCommand.getName();
-        if(wrappedCommand instanceof MessageType) {
-            this.message = ((MessageType)wrappedCommand).getMessage();
+        if (wrappedCommand instanceof MessageType) {
+            this.message = ((MessageType) wrappedCommand).getMessage();
         }
     }
-    
+
     public static CrclCommandWrapper wrapWithOnDone(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
         cmd.addOnDoneListener(listener);
         return cmd;
     }
-    
+
     public static CrclCommandWrapper wrapWithOnStart(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
         cmd.addOnStartListener(listener);
         return cmd;
     }
-    
+
     public static CrclCommandWrapper wrapWithOnError(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
         cmd.addOnErrorListener(listener);
         return cmd;
     }
-    
+
     public static CrclCommandWrapper wrap(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer onStartListener,
             CRCLCommandWrapperConsumer onDoneListener,
@@ -94,77 +103,76 @@ public class CrclCommandWrapper extends MessageType {
     public MiddleCommandType getWrappedCommand() {
         return wrappedCommand;
     }
-    
-    
+
     @Override
     public void setCommandID(BigInteger value) {
-        wrappedCommand.setCommandID(value); 
-         this.commandID = wrappedCommand.getCommandID();
+        wrappedCommand.setCommandID(value);
+        this.commandID = wrappedCommand.getCommandID();
     }
 
     @Override
     public BigInteger getCommandID() {
-        return wrappedCommand.getCommandID(); 
+        return wrappedCommand.getCommandID();
     }
 
     @Override
     public void setName(String value) {
-        wrappedCommand.setName(value); 
+        wrappedCommand.setName(value);
         this.name = wrappedCommand.getName();
     }
 
     @Override
     public String getName() {
-        return wrappedCommand.getName(); 
+        return wrappedCommand.getName();
     }
-    
-    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onStartListeners = 
-            new ConcurrentLinkedDeque<>();
-    
+
+    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onStartListeners
+            = new ConcurrentLinkedDeque<>();
+
     public void addOnStartListener(CRCLCommandWrapperConsumer consumer) {
         onStartListeners.add(consumer);
     }
-    
+
     public void removeOnStartListener(CRCLCommandWrapperConsumer consumer) {
         onStartListeners.add(consumer);
     }
-    
+
     public void notifyOnStartListeners() {
-        for(CRCLCommandWrapperConsumer consumer : onStartListeners) {
+        for (CRCLCommandWrapperConsumer consumer : onStartListeners) {
             consumer.accept(this);
         }
     }
-    
-    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onDoneListeners = 
-            new ConcurrentLinkedDeque<>();
-    
+
+    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onDoneListeners
+            = new ConcurrentLinkedDeque<>();
+
     public void addOnDoneListener(CRCLCommandWrapperConsumer consumer) {
         onDoneListeners.add(consumer);
     }
-    
+
     public void removeOnDoneListener(CRCLCommandWrapperConsumer consumer) {
         onDoneListeners.add(consumer);
     }
-    
+
     public void notifyOnDoneListeners() {
-        for(CRCLCommandWrapperConsumer consumer : onDoneListeners) {
+        for (CRCLCommandWrapperConsumer consumer : onDoneListeners) {
             consumer.accept(this);
         }
     }
-    
-    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onErrorListeners = 
-            new ConcurrentLinkedDeque<>();
-    
+
+    private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onErrorListeners
+            = new ConcurrentLinkedDeque<>();
+
     public void addOnErrorListener(CRCLCommandWrapperConsumer consumer) {
         onErrorListeners.add(consumer);
     }
-    
+
     public void removeOnErrorListener(CRCLCommandWrapperConsumer consumer) {
         onErrorListeners.add(consumer);
     }
-    
+
     public void notifyOnErrorListeners() {
-        for(CRCLCommandWrapperConsumer consumer : onErrorListeners) {
+        for (CRCLCommandWrapperConsumer consumer : onErrorListeners) {
             consumer.accept(this);
         }
     }

@@ -22,9 +22,11 @@
  */
 package crcl.ui;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -48,6 +50,47 @@ public class XFuture<T> extends CompletableFuture<T> {
     private volatile Future<T> futureFromExecSubmit = null;
     private volatile Thread threadToInterrupt = null;
     private volatile Runnable onCancelAllRunnable = null;
+
+    private final String name;
+
+    public XFuture(String name) {
+        this.name = name;
+    }
+
+    public void printStatus(PrintStream ps) {
+        ps.println();
+        ps.println("Status for " + name);
+        internalPrintStatus(ps);
+        ps.println();
+    }
+
+    private void internalPrintStatus(PrintStream ps) {
+
+        if (isDone()) {
+            ps.println(this.toString() + " is done.");
+            return;
+        } else if (isCancelled()) {
+            ps.println(this.toString() + " is cancelled.");
+            return;
+        }
+        for (CompletableFuture f : alsoCancel) {
+            if (f instanceof XFuture) {
+                XFuture xf = (XFuture) f;
+                xf.internalPrintStatus(ps);
+            }
+        }
+        for (CompletableFuture f : alsoCancel) {
+            if (!(f instanceof XFuture)) {
+                ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + f.toString());
+            }
+        }
+        ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + this.toString());
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "{name=" + name + "}";
+    }
 
     public Runnable getOnCancelAllRunnable() {
         return onCancelAllRunnable;
@@ -85,28 +128,31 @@ public class XFuture<T> extends CompletableFuture<T> {
         return Hider.DEFAULT_EXECUTOR_SERVICE;
     }
 
-    public static XFuture<Void> allOf(CompletableFuture<?>... cfs) {
-        XFuture<Void> ret = new XFuture<>();
+    public static XFuture<Void> allOf(String name, CompletableFuture<?>... cfs) {
+        XFuture<Void> ret = new XFuture<>(name);
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
-        return ret.wrap(orig);
+        return ret.wrap(name, orig);
     }
 
-    public static XFuture<Object> anyOf(CompletableFuture<?>... cfs) {
-        XFuture<Object> ret = new XFuture<>();
+    public static XFuture<Object> anyOf(String name, CompletableFuture<?>... cfs) {
+        XFuture<Object> ret = new XFuture<>(name);
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
-        return ret.wrap(orig);
+        return ret.wrap(name, orig);
     }
 
     private final ConcurrentLinkedDeque<CompletableFuture> alsoCancel = new ConcurrentLinkedDeque<>();
 
-    public static <T> XFuture<T> supplyAsync(Callable<T> c, ExecutorService es) {
-        XFuture<T> myf = new XFuture<>();
+    public static <T> XFuture<T> supplyAsync(String name, Callable<T> c, ExecutorService es) {
+        XFuture<T> myf = new XFuture<>(name);
         Future<T> f = es.submit(() -> {
             try {
+                String tname = Thread.currentThread().getName();
+                Thread.currentThread().setName(name);
                 T result = c.call();
                 myf.complete(result);
+                Thread.currentThread().setName(tname);
                 return result;
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
@@ -119,11 +165,14 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public static XFuture<Void> runAsync(Runnable r, ExecutorService es) {
-        XFuture<Void> myf = new XFuture<>();
+    public static XFuture<Void> runAsync(String name, Runnable r, ExecutorService es) {
+        XFuture<Void> myf = new XFuture<>(name);
         Future<?> f = es.submit(() -> {
             try {
+                String tname = Thread.currentThread().getName();
+                Thread.currentThread().setName(name);
                 r.run();
+                Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, throwable);
@@ -135,24 +184,34 @@ public class XFuture<T> extends CompletableFuture<T> {
         return myf;
     }
 
-    public static <T> XFuture<T> completedFuture(T object) {
-        XFuture<T> ret = new XFuture<>();
+    public static <T> XFuture<T> completedFutureWithName(String name, T object) {
+        XFuture<T> ret = new XFuture<>(name);
         ret.complete(object);
         return ret;
     }
 
-    public static XFuture<Void> runAsync(Runnable r) {
-        return runAsync(r, getDefaultThreadPool());
+    public static <T> XFuture<T> completedFuture(T object) {
+        XFuture<T> ret = new XFuture<>("completedFuture(" + object + ")");
+        ret.complete(object);
+        return ret;
     }
 
-    public static <T> XFuture<T> supplyAsync(Callable<T> c) {
-        return supplyAsync(c, getDefaultThreadPool());
+    public static XFuture<Void> runAsync(String name, Runnable r) {
+        return runAsync(name, r, getDefaultThreadPool());
+    }
+
+    public static <T> XFuture<T> supplyAsync(String name, Callable<T> c) {
+        return supplyAsync(name, c, getDefaultThreadPool());
     }
 
     @Override
     public <U> XFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn) {
+        return this.thenCompose(name + ".thenCompose", fn);
+    }
 
-        XFuture<U> myF = new XFuture<>();
+    public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
+
+        XFuture<U> myF = new XFuture<>(name);
         CompletableFuture<U> f = super.thenApply(fn)
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
@@ -170,8 +229,11 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
+        return this.thenComposeAsync(name + ".thenComposeAsync", fn, executor);
+    }
 
-        XFuture<U> myF = new XFuture<>();
+    public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
+        XFuture<U> myF = new XFuture<>(name);
         CompletableFuture<U> f = super.thenApplyAsync(fn, executor)
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
@@ -189,8 +251,11 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn) {
+        return this.thenComposeAsync(name + ".thenComposeAsync", fn);
+    }
 
-        XFuture<U> myF = new XFuture<>();
+    public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
+        XFuture<U> myF = new XFuture<>(name);
         CompletableFuture<U> f = super.thenApplyAsync(fn, getDefaultThreadPool())
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
@@ -207,28 +272,42 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public void cancelAll(boolean mayInterrupt) {
-        this.cancel(mayInterrupt);
-        if (null != onCancelAllRunnable) {
-            onCancelAllRunnable.run();
-        }
-        if (null != futureFromExecSubmit) {
-            futureFromExecSubmit.cancel(mayInterrupt);
-        }
-        if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() == threadToInterrupt) {
-            threadToInterrupt.interrupt();
-        }
+        try {
 
-        for (CompletableFuture f : alsoCancel) {
-            if (null != f && null != this) {
-                f.cancel(true);
-                if (f instanceof XFuture) {
-                    ((XFuture) f).cancelAll(mayInterrupt);
+            try {
+                if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
+                    this.cancel(false);
+                }
+            } catch (Exception e) {
+                System.err.println("Cancel all ignoring " + e.toString());
+            }
+            if (null != onCancelAllRunnable) {
+                onCancelAllRunnable.run();
+            }
+            if (null != futureFromExecSubmit) {
+                futureFromExecSubmit.cancel(mayInterrupt);
+            }
+            if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() == threadToInterrupt) {
+                threadToInterrupt.interrupt();
+            }
+
+            for (CompletableFuture f : alsoCancel) {
+                if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
+                    try {
+                        f.cancel(false);
+                    } catch (Exception e) {
+                        System.err.println("Cancel all ignoring " + e.toString());
+                    }
+                    if (f instanceof XFuture) {
+                        ((XFuture) f).cancelAll(mayInterrupt);
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Cancel all ignoring " + e.toString());
         }
-
     }
-    
+
     public static class PrintedXFutureRuntimeException extends RuntimeException {
 
         public PrintedXFutureRuntimeException(Throwable cause) {
@@ -236,27 +315,69 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
-    public static <T> T logException(T ret, Throwable thrown) {
-        if(null != thrown) {
-            if(thrown instanceof PrintedXFutureRuntimeException) {
+    private static volatile PrintStream logExceptionPrintStream = System.err;
+
+    public static void setLogExceptionPrintStream(PrintStream _logExceptionPrintStream) {
+        logExceptionPrintStream = _logExceptionPrintStream;
+    }
+
+    public static PrintStream getLogExceptionPrintStream() {
+        return logExceptionPrintStream;
+    }
+
+    private static volatile boolean printCancellationExceptions = Boolean.getBoolean("XFuture.printCancellationExceptions");
+
+    public static void setPrintCancellationExceptions(boolean _printCancellationExceptions) {
+        printCancellationExceptions = _printCancellationExceptions;
+    }
+
+    public static boolean getPrintCancellationExceptions() {
+        return printCancellationExceptions;
+    }
+
+    public <T> T logException(T ret, Throwable thrown) {
+        if (null != thrown) {
+            this.completeExceptionally(thrown);
+            if (thrown instanceof PrintedXFutureRuntimeException) {
                 throw ((PrintedXFutureRuntimeException) thrown);
             } else {
-                thrown.printStackTrace();
+                PrintStream ps = logExceptionPrintStream;
+                if (null != ps) {
+                    Throwable cause = thrown.getCause();
+                    boolean isCancellationException
+                            = (thrown instanceof CancellationException)
+                            || (null != cause && cause instanceof CancellationException);
+                    if (!isCancellationException || printCancellationExceptions) {
+                        thrown.printStackTrace(ps);
+                        if (null != cause) {
+                            cause.printStackTrace(ps);
+                        }
+                    }
+                    if (isCancellationException && !printCancellationExceptions) {
+                        if (thrown instanceof RuntimeException) {
+                            RuntimeException re = (RuntimeException) thrown;
+                            throw re;
+                        }
+                    }
+                }
                 throw new PrintedXFutureRuntimeException(thrown);
             }
         }
         return ret;
     }
-    
-    public <T> XFuture<T> wrap(CompletableFuture<T> future) {
+
+    public <T> XFuture<T> wrap(String name, CompletableFuture<T> future) {
         if (future instanceof XFuture) {
             if (this != future) {
                 ((XFuture<T>) future).alsoCancel.add(this);
             }
             return (XFuture<T>) future;
         }
-        XFuture<T> newFuture = new XFuture<>();
-        future.thenAccept(newFuture::complete).handle(XFuture::logException);
+        XFuture<T> newFuture = new XFuture<>(name);
+        future.handle(newFuture::logException)
+                .thenAccept(x -> {
+                    newFuture.complete(x);
+                });
         newFuture.alsoCancel.add(this);
         newFuture.alsoCancel.add(future);
         return newFuture;
@@ -264,172 +385,192 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public XFuture<T> exceptionally(Function<Throwable, ? extends T> fn) {
-        return wrap(super.exceptionally(fn));
+        return wrap(this.name + ".exceptionally", super.exceptionally(fn));
+    }
+
+    public XFuture<T> exceptionally(String name, Function<Throwable, ? extends T> fn) {
+        return wrap(name, super.exceptionally(fn));
     }
 
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
-        return wrap(super.handleAsync(fn, executor));
+        return wrap(this.name + ".handleAsync", super.handleAsync(fn, executor));
+    }
+
+    public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
+        return wrap(name, super.handleAsync(fn, executor));
     }
 
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(super.handleAsync(fn));
+        return wrap(this.name + ".handleAsync", super.handleAsync(fn));
+    }
+
+    public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
+        return wrap(name, super.handleAsync(fn));
     }
 
     @Override
     public <U> XFuture<U> handle(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(super.handle(fn));
+        return wrap(this.name + ".handle", super.handle(fn));
+    }
+
+    public <U> XFuture<U> handle(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
+        return wrap(name, super.handle(fn));
     }
 
     @Override
     public XFuture<T> whenCompleteAsync(BiConsumer<? super T, ? super Throwable> action, Executor executor) {
-        return wrap(super.whenCompleteAsync(action, executor));
+        return wrap(this.name + ".whenCompleteAsync", super.whenCompleteAsync(action, executor));
     }
 
     @Override
     public XFuture<T> whenCompleteAsync(BiConsumer<? super T, ? super Throwable> action) {
-        return wrap(super.whenCompleteAsync(action));
+        return wrap(this.name + ".whenCompleteAsync", super.whenCompleteAsync(action));
     }
 
     @Override
     public XFuture<T> whenComplete(BiConsumer<? super T, ? super Throwable> action) {
-        return wrap(super.whenComplete(action));
+        return wrap(this.name + ".whenComplete", super.whenComplete(action));
     }
 
     @Override
     public XFuture<Void> runAfterEitherAsync(CompletionStage<?> other, Runnable action, Executor executor) {
-        return wrap(super.runAfterEitherAsync(other, action, executor));
+        return wrap(this.name + ".runAfterEitherAsync", super.runAfterEitherAsync(other, action, executor));
     }
 
     @Override
     public XFuture<Void> runAfterEitherAsync(CompletionStage<?> other, Runnable action) {
-        return wrap(super.runAfterEitherAsync(other, action, getDefaultThreadPool()));
+        return wrap(this.name + ".runAfterEitherAsync", super.runAfterEitherAsync(other, action, getDefaultThreadPool()));
     }
 
     @Override
     public XFuture<Void> runAfterEither(CompletionStage<?> other, Runnable action) {
-        return wrap(super.runAfterEither(other, action));
+        return wrap(this.name + ".runAfterEither", super.runAfterEither(other, action));
     }
 
     @Override
     public XFuture<Void> acceptEitherAsync(CompletionStage<? extends T> other, Consumer<? super T> action, Executor executor) {
-        return wrap(super.acceptEitherAsync(other, action, executor));
+        return wrap(this.name + ".acceptEitherAsync", super.acceptEitherAsync(other, action, executor));
     }
 
     @Override
     public XFuture<Void> acceptEitherAsync(CompletionStage<? extends T> other, Consumer<? super T> action) {
-        return wrap(super.acceptEitherAsync(other, action, getDefaultThreadPool()));
+        return wrap(this.name + ".acceptEitherAsync", super.acceptEitherAsync(other, action, getDefaultThreadPool()));
     }
 
     @Override
     public XFuture<Void> acceptEither(CompletionStage<? extends T> other, Consumer<? super T> action) {
-        return wrap(super.acceptEither(other, action));
+        return wrap(this.name + ".acceptEither", super.acceptEither(other, action));
     }
 
     @Override
     public <U> XFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn, Executor executor) {
-        return wrap(super.applyToEitherAsync(other, fn, executor));
+        return wrap(this.name + ".applyToEitherAsync", super.applyToEitherAsync(other, fn, executor));
     }
 
     @Override
     public <U> XFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn) {
-        return wrap(super.applyToEitherAsync(other, fn, getDefaultThreadPool()));
+        return wrap(this.name + ".applyToEitherAsync", super.applyToEitherAsync(other, fn, getDefaultThreadPool()));
     }
 
     @Override
     public <U> XFuture<U> applyToEither(CompletionStage<? extends T> other, Function<? super T, U> fn) {
-        return wrap(super.applyToEither(other, fn));
+        return wrap(this.name + ".applyToEither", super.applyToEither(other, fn));
     }
 
     @Override
     public XFuture<Void> runAfterBothAsync(CompletionStage<?> other, Runnable action, Executor executor) {
-        return wrap(super.runAfterBothAsync(other, action, executor));
+        return wrap(this.name + ".runAfterBothAsync", super.runAfterBothAsync(other, action, executor));
     }
 
     @Override
     public XFuture<Void> runAfterBothAsync(CompletionStage<?> other, Runnable action) {
-        return wrap(super.runAfterBothAsync(other, action, getDefaultThreadPool()));
+        return wrap(this.name + ".runAfterBothAsync", super.runAfterBothAsync(other, action, getDefaultThreadPool()));
     }
 
     @Override
     public XFuture<Void> runAfterBoth(CompletionStage<?> other, Runnable action) {
-        return wrap(super.runAfterBoth(other, action));
+        return wrap(this.name + ".runAfterBoth", super.runAfterBoth(other, action));
     }
 
     @Override
     public <U> XFuture<Void> thenAcceptBothAsync(CompletionStage<? extends U> other, BiConsumer<? super T, ? super U> action, Executor executor) {
-        return wrap(super.thenAcceptBothAsync(other, action, executor));
+        return wrap(this.name + ".thenAcceptBothAsync", super.thenAcceptBothAsync(other, action, executor));
     }
 
     @Override
     public <U> XFuture<Void> thenAcceptBothAsync(CompletionStage<? extends U> other, BiConsumer<? super T, ? super U> action) {
-        return wrap(super.thenAcceptBothAsync(other, action, getDefaultThreadPool()));
+        return wrap(this.name + ".thenAcceptBothAsync", super.thenAcceptBothAsync(other, action, getDefaultThreadPool()));
     }
 
     @Override
     public <U> XFuture<Void> thenAcceptBoth(CompletionStage<? extends U> other, BiConsumer<? super T, ? super U> action) {
-        return wrap(super.thenAcceptBoth(other, action));
+        return wrap(this.name + ".thenAcceptBoth", super.thenAcceptBoth(other, action));
     }
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
-        return wrap(super.thenCombineAsync(other, fn, executor));
+        return wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
     }
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        return wrap(super.thenCombineAsync(other, fn, getDefaultThreadPool()));
+        return wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
     }
 
     @Override
     public <U, V> XFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        return wrap(super.thenCombine(other, fn));
+        return wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
     }
 
     @Override
     public XFuture<Void> thenRunAsync(Runnable action, Executor executor) {
-        return wrap(super.thenRunAsync(action, executor));
+        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(action, executor));
     }
 
     @Override
     public XFuture<Void> thenRunAsync(Runnable action) {
-        return wrap(super.thenRunAsync(action, getDefaultThreadPool()));
+        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(action, getDefaultThreadPool()));
     }
 
     @Override
     public XFuture<Void> thenRun(Runnable action) {
-        return wrap(super.thenRun(action));
+        return wrap(this.name + ".thenRun", super.thenRun(action));
+    }
+
+    public XFuture<Void> thenRun(String name, Runnable action) {
+        return wrap(name, super.thenRun(action));
     }
 
     @Override
     public XFuture<Void> thenAcceptAsync(Consumer<? super T> action, Executor executor) {
-        return wrap(super.thenAcceptAsync(action, executor));
+        return wrap(this.name + ".thenAcceptAsync", super.thenAcceptAsync(action, executor));
     }
 
     @Override
     public XFuture<Void> thenAcceptAsync(Consumer<? super T> action) {
-        return wrap(super.thenAcceptAsync(action, getDefaultThreadPool()));
+        return wrap(this.name + ".thenAcceptAsync", super.thenAcceptAsync(action, getDefaultThreadPool()));
     }
 
     @Override
     public XFuture<Void> thenAccept(Consumer<? super T> action) {
-        return wrap(super.thenAccept(action));
+        return wrap(this.name + ".thenAccept", super.thenAccept(action));
     }
 
     @Override
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn, Executor executor) {
-        return wrap(super.thenApplyAsync(fn, executor));
+        return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, executor));
     }
 
     @Override
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn) {
-        return wrap(super.thenApplyAsync(fn, getDefaultThreadPool()));
+        return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, getDefaultThreadPool()));
     }
 
     @Override
     public <U> XFuture<U> thenApply(Function<? super T, ? extends U> fn) {
-        return wrap(super.thenApply(fn));
+        return wrap(this.name + ".thenApply", super.thenApply(fn));
     }
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
@@ -445,7 +586,7 @@ class TestClass {
 
     static XFuture<Void> startT1() {
         XFuture<Void> f
-                = XFuture.runAsync(() -> {
+                = XFuture.runAsync("startT1", () -> {
                     try {
                         int count = 0;
                         System.out.println("T1 started");
@@ -459,7 +600,7 @@ class TestClass {
     }
 
     static XFuture<Void> startT2() {
-        XFuture<Void> f = new XFuture<>();
+        XFuture<Void> f = new XFuture<>("startT2");
         new Thread(() -> {
             try {
                 int count = 0;
@@ -482,6 +623,16 @@ class TestClass {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws InterruptedException, ExecutionException {
+
+//        CompletableFuture cf  = new CompletableFuture();
+//        System.out.println("cf = " + cf);
+//        cf.complete(null);
+//        System.out.println("cf = " + cf);
+//        
+//        XFuture xf = new XFuture("xf");
+//        System.out.println("xf = " + xf);
+//        xf.complete(null);
+//        System.out.println("xf = " + xf);
         AtomicReference<Thread> at = new AtomicReference<>();
         ExecutorService es = Executors.newCachedThreadPool();
         XFuture<Void> f = startT1().thenCompose(x -> startT2()).thenCompose(x -> startT1());

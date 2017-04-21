@@ -1691,7 +1691,9 @@ public class PendantClientInner {
             pause_count.incrementAndGet();
             pauseQueue.clear();
             paused = true;
-            stopMotion(StopConditionEnumType.NORMAL);
+            if(isConnected()) {
+                stopMotion(StopConditionEnumType.NORMAL);
+            }
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1900,6 +1902,7 @@ public class PendantClientInner {
                 if (cmd instanceof CrclCommandWrapper) {
                     CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                     wrapper.setCurProgram(program);
+                    wrapper.setCurProgramIndex(i-1);
                 }
                 boolean result = testCommand(cmd);
                 if (!result) {
@@ -2871,7 +2874,7 @@ public class PendantClientInner {
         if (startLine < 0) {
             throw new IllegalArgumentException("startLine=" + startLine + " (must be atleast 0)");
         }
-        final XFuture<Boolean> future = new XFuture<>();
+        final XFuture<Boolean> future = new XFuture<>("startRunProgramThread("+startLine+")");
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
         this.runTestProgramThread = new Thread(new Runnable() {
