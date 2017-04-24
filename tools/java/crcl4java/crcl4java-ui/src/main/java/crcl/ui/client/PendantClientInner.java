@@ -226,7 +226,7 @@ public class PendantClientInner {
     private Queue<AnnotatedPose> poseQueue = null;
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement);
+    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement*2.0);
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
