@@ -1786,7 +1786,7 @@ public class SimServerInner {
             }
         } catch (Exception ex) {
             if (close_count <= start_close_count) {
-                LOGGER.log(Level.SEVERE, "close_count ="+close_count+", start_close_count ="+start_close_count, ex);
+                LOGGER.log(Level.SEVERE, "close_count =" + close_count + ", start_close_count =" + start_close_count, ex);
             }
         }
     }
@@ -1997,6 +1997,16 @@ public class SimServerInner {
             if (cmd instanceof InitCanonType) {
                 InitCanonType init = (InitCanonType) cmd;
                 initialize();
+            } else if (cmd instanceof StopMotionType) {
+                this.executingMoveCommand = true;
+                StopMotionType stop = (StopMotionType) cmd;
+                this.setGoalPose(null);
+                this.setWaypoints(null);
+                if (null != this.jointPositions && null != this.commandedJointPositions) {
+                    System.arraycopy(this.jointPositions, 0, this.commandedJointPositions, 0,
+                            Math.min(this.jointPositions.length, this.commandedJointPositions.length));
+                }
+                setCommandState(CommandStateEnumType.CRCL_DONE);
             } else {
                 if (this.getCommandState() == CommandStateEnumType.CRCL_DONE) {
                     this.setWaypoints(null);
@@ -2112,7 +2122,7 @@ public class SimServerInner {
                 } else if (cmd instanceof EndCanonType) {
                     EndCanonType end = (EndCanonType) cmd;
                     setCommandState(CommandStateEnumType.CRCL_DONE);
-                    outer.updateIsInitialized(false);
+//                    outer.updateIsInitialized(false);
                     this.setWaypoints(null);
                     this.setGoalPose(null);
                     this.commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
@@ -2210,16 +2220,6 @@ public class SimServerInner {
                     this.commandedJointAccellerations = null;
                     this.commandedJointVelocities = null;
                     this.commandedJointPositions = null;
-                } else if (cmd instanceof StopMotionType) {
-                    this.executingMoveCommand = true;
-                    StopMotionType stop = (StopMotionType) cmd;
-                    this.setGoalPose(null);
-                    this.setWaypoints(null);
-                    if (null != this.jointPositions && null != this.commandedJointPositions) {
-                        System.arraycopy(this.jointPositions, 0, this.commandedJointPositions, 0,
-                                Math.min(this.jointPositions.length, this.commandedJointPositions.length));
-                    }
-                    setCommandState(CommandStateEnumType.CRCL_DONE);
                 } else if (cmd instanceof SetAngleUnitsType) {
                     SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
                     this.setAngleType(setAngle.getUnitName());

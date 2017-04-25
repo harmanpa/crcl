@@ -59,20 +59,29 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public void printStatus(PrintStream ps) {
         ps.println();
-        ps.println("Status for " + name);
+        ps.println("Status for " + this.toString());
         internalPrintStatus(ps);
+        
+        if (isCompletedExceptionally()) {
+            this.exceptionally(t -> t.printStackTrace(ps));
+            return;
+        } 
         ps.println();
     }
 
     private void internalPrintStatus(PrintStream ps) {
 
-        if (isDone()) {
-            ps.println(this.toString() + " is done.");
+        if (isCompletedExceptionally()) {
+            ps.println(this.toString() + " is CompletedExceptionally.");
+            this.exceptionally(t -> t.printStackTrace(ps));
             return;
-        } else if (isCancelled()) {
+        } if (isCancelled()) {
             ps.println(this.toString() + " is cancelled.");
             return;
-        }
+        } else if (isDone()) {
+            ps.println(this.toString() + " is done.");
+            return;
+        } 
         for (CompletableFuture f : alsoCancel) {
             if (f instanceof XFuture) {
                 XFuture xf = (XFuture) f;
@@ -190,6 +199,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
+    
     public static <T> XFuture<T> completedFuture(T object) {
         XFuture<T> ret = new XFuture<>("completedFuture(" + object + ")");
         ret.complete(object);

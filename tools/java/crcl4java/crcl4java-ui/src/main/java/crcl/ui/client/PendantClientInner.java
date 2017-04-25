@@ -115,6 +115,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -761,27 +762,31 @@ public class PendantClientInner {
         return false;
     }
 
+    private final AtomicLong commandId = new AtomicLong(0);
+    
     private void incCommandID(CRCLCommandType cmd) {
-        if (null == cmdId) {
-            cmdId = BigInteger.ONE;
-        }
-        if (null != cmd.getCommandID()) {
-            cmdId = cmd.getCommandID();
-        }
-        List<Long> usedIds = new ArrayList<>();
-        if (null != status
-                && null != status.getCommandStatus()
-                && null != status.getCommandStatus().getCommandID()) {
-            usedIds.add(status.getCommandStatus().getCommandID().longValue());
-        }
-        if (null != lastCommandIdSent) {
-            usedIds.add(lastCommandIdSent.longValue());
-        }
-        final long cmdIdInt = cmdId.longValue();
-        if (null == cmd.getCommandID() || usedIds.stream().anyMatch(i -> i == cmdIdInt)) {
-            long newCmdIdInt = usedIds.stream().mapToLong(i -> i).max().orElse(cmdIdInt) + 1;
-            cmd.setCommandID(BigInteger.valueOf(newCmdIdInt));
-        }
+        long id = commandId.incrementAndGet();
+        cmd.setCommandID(BigInteger.valueOf(id));
+//        if (null == cmdId) {
+//            cmdId = BigInteger.ONE;
+//        }
+//        if (null != cmd.getCommandID()) {
+//            cmdId = cmd.getCommandID();
+//        }
+//        List<Long> usedIds = new ArrayList<>();
+//        if (null != status
+//                && null != status.getCommandStatus()
+//                && null != status.getCommandStatus().getCommandID()) {
+//            usedIds.add(status.getCommandStatus().getCommandID().longValue());
+//        }
+//        if (null != lastCommandIdSent) {
+//            usedIds.add(lastCommandIdSent.longValue());
+//        }
+//        final long cmdIdInt = cmdId.longValue();
+//        if (null == cmd.getCommandID() || usedIds.stream().anyMatch(i -> i == cmdIdInt)) {
+//            long newCmdIdInt = usedIds.stream().mapToLong(i -> i).max().orElse(cmdIdInt) + 1;
+//            cmd.setCommandID(BigInteger.valueOf(newCmdIdInt));
+//        }
     }
 
     public boolean incAndSendCommand(CRCLCommandType cmd) throws JAXBException {
@@ -882,9 +887,17 @@ public class PendantClientInner {
      * @throws javax.xml.bind.JAXBException when xml can not be generated.
      */
     public void stopMotion(StopConditionEnumType stopType) throws JAXBException {
+        
+        if(this.runTestProgramThread != null
+                && Thread.currentThread()  != this.runTestProgramThread) {
+            Thread.dumpStack();
+            System.err.println("stopMotion called while program running");
+//            closeTestProgramThread();
+        }
         StopMotionType stop = new StopMotionType();
         stop.setStopCondition(stopType);
-        this.incAndSendCommand(stop);
+        stop.setCommandID(BigInteger.valueOf(commandId.get()));
+        this.sendCommand(stop);
     }
 
     public boolean waitForStatus(long timeoutMilliSeconds, long delay) throws InterruptedException, JAXBException {
@@ -1860,8 +1873,9 @@ public class PendantClientInner {
                 outer.showCurrentProgramLine(startLine, prog, getStatus());
                 InitCanonType initCmd = prog.getInitCanon();
                 if (initCmd.getCommandID() == null) {
-                    initCmd.setCommandID(BigInteger.ONE);
+                    initCmd.setCommandID(BigInteger.valueOf(commandId.incrementAndGet()));
                 }
+                commandId.set(initCmd.getCommandID().longValue());
                 if ((null != lastCommandIdSent && initCmd.getCommandID().compareTo(lastCommandIdSent) == 0)
                         || (null != status && null != status.getCommandStatus()
                         && null != status.getCommandStatus().getCommandID()
