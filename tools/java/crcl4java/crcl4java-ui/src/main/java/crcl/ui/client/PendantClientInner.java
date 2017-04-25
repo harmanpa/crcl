@@ -1203,6 +1203,9 @@ public class PendantClientInner {
 
     public void readStatus() {
         try {
+            if(null == crclSocket || null == menuOuter()) {
+                return;
+            }
             if (menuOuter().replaceStateSelected()) {
                 crclSocket.setStatusStringInputFilter(CRCLSocket.addCRCLToState);
             } else {
