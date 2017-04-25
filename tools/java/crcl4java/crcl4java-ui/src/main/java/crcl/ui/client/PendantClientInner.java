@@ -227,7 +227,7 @@ public class PendantClientInner {
     private Queue<AnnotatedPose> poseQueue = null;
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement*2.0);
+    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement*5.0);
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -1437,6 +1437,7 @@ public class PendantClientInner {
     }
 
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
+        effectFailedMessage = null;
         if (cmd instanceof MessageType) {
             setLastMessage(((MessageType) cmd).getMessage());
             return true;
@@ -1472,6 +1473,8 @@ public class PendantClientInner {
         return Double.parseDouble(System.getProperty(propName, Double.toString(defaultVal)));
     }
 
+    private String effectFailedMessage = null;
+    
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
         if (null == status.getJointStatuses()) {
@@ -1494,11 +1497,13 @@ public class PendantClientInner {
             }
             BigDecimal jointDiff = jointStatusTest.getJointPosition().subtract(aj.getJointPosition()).abs();
             if (jointDiff.compareTo(jointTol) > 0) {
-                showMessage("ActuateJoints failed measured position differs from commanded position." + NEW_LINE
+                effectFailedMessage = "ActuateJoints failed measured position differs from commanded position." + NEW_LINE
                         + "JointNumber: " + aj.getJointNumber() + NEW_LINE
                         + "Commanded :" + aj.getJointPosition() + NEW_LINE
                         + "Status (Measured): " + jointStatusTest.getJointPosition() + NEW_LINE
-                        + "Diff: " + jointDiff);
+                        + "Tolerance: " + jointTol + NEW_LINE
+                        + "Diff: " + jointDiff;
+                showMessage(effectFailedMessage);
                 return false;
             }
         }
@@ -2865,6 +2870,7 @@ public class PendantClientInner {
             String intString = this.createInterrupStackString();
             String messageString = cmd.getClass().getName()+ " testCommandEffect failed " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
+                    + "effectFailedMessage=" + effectFailedMessage + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                     + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
                     + "sendCommandTime=" + sendCommandTime + NEW_LINE
