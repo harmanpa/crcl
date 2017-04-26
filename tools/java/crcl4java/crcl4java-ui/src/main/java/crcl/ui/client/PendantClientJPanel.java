@@ -2334,6 +2334,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.getCrclClientErrorMessage();
     }
 
+    public void clearCrclClientErrorMessage() {
+       internal.clearCrclClientErrorMessage();
+    }
+    
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmd) throws JAXBException, IOException {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmd, true);

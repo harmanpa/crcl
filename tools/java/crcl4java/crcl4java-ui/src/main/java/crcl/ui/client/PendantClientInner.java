@@ -107,6 +107,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -198,7 +199,7 @@ public class PendantClientInner {
     private static final double XYZ_JOG_INCREMENT_DEFAULT = 3.0;
     private double xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
     private int poll_ms = jogInterval;
-    private BigInteger cmdId = BigInteger.ONE;
+//    private BigInteger cmdId = BigInteger.ONE;
     private final XpathUtils xpu;
     private CRCLSocket checkerCRCLSocket = null;
     private CRCLCommandInstanceType checkerCommandInstance = null;
@@ -209,11 +210,11 @@ public class PendantClientInner {
 //    private File[] cmdSchemaFiles = null;
 //    private File[] programSchemaFiles = null;
     private CRCLCommandType lastCommandSent = null;
-    
+
     public CRCLCommandType getLastCommandSent() {
         return this.lastCommandSent;
     }
-    
+
     private CRCLCommandType prevLastCommandSent = null;
     private boolean recordCommands = true;
     final private Queue<CRCLCommandType> recordedCommandsQueue
@@ -227,7 +228,7 @@ public class PendantClientInner {
     private Queue<AnnotatedPose> poseQueue = null;
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement*5.0);
+    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement * 5.0);
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -454,13 +455,11 @@ public class PendantClientInner {
         request_status_count++;
         LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
         boolean result = false;
-        synchronized (this) {
-            if (null == cmdId || cmdId.compareTo(BigInteger.ONE) < 0) {
-                cmdId = BigInteger.ONE;
-            }
-            getStatusMsg.setCommandID(cmdId);
-            result = this.sendCommand(getStatusMsg);
+        getStatusMsg.setCommandID(BigInteger.valueOf(commandId.get()));
+        if(getStatusMsg.getCommandID().compareTo(BigInteger.ONE) <= 0) {
+            getStatusMsg.setCommandID(BigInteger.valueOf(System.currentTimeMillis()));
         }
+        result = this.sendCommand(getStatusMsg);
         LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : returning from RequestStatus() " + request_status_count);
         return result;
     }
@@ -477,11 +476,14 @@ public class PendantClientInner {
     }
 
     private volatile String crclClientErrorMessage = null;
-    
+
     public String getCrclClientErrorMessage() {
         return crclClientErrorMessage;
     }
-    
+
+    public void clearCrclClientErrorMessage() {
+        crclClientErrorMessage = null;
+    }
     
     private void showErrorMessage(String s) {
         crclClientErrorMessage = s;
@@ -493,8 +495,7 @@ public class PendantClientInner {
             logStream.println(s);
         }
     }
-    
-    
+
     private void showMessage(String s) {
         outer.showMessage(s);
         if (null == logStream) {
@@ -763,10 +764,18 @@ public class PendantClientInner {
     }
 
     private final AtomicLong commandId = new AtomicLong(0);
-    
+
     private void incCommandID(CRCLCommandType cmd) {
         long id = commandId.incrementAndGet();
+        BigInteger sid = getStatusCommandId();
+        if (sid.compareTo(BigInteger.ONE) <= 0 && id <= 1) {
+            if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_READY);
+            }
+            status.getCommandStatus().setCommandID(BigInteger.valueOf(System.currentTimeMillis()));
+        }
         cmd.setCommandID(BigInteger.valueOf(id));
+
 //        if (null == cmdId) {
 //            cmdId = BigInteger.ONE;
 //        }
@@ -789,8 +798,37 @@ public class PendantClientInner {
 //        }
     }
 
+    public BigInteger getStatusCommandId() {
+        CRCLStatusType s = getStatus();
+        if (null != s) {
+            CommandStatusType cs = s.getCommandStatus();
+            if (null != cs) {
+                return cs.getCommandID();
+            }
+        }
+        return null;
+    }
+
+    public String commandToSimpleString(CRCLCommandType cmd) {
+        if (null != cmd) {
+            try {
+                return getTempCRCLSocket().commandToSimpleString(cmd);
+            } catch (ParserConfigurationException | SAXException | IOException ex) {
+                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                return ex.toString();
+            }
+        } else {
+            return null;
+        }
+    }
+
     public boolean incAndSendCommand(CRCLCommandType cmd) throws JAXBException {
         this.incCommandID(cmd);
+        BigInteger sid = getStatusCommandId();
+        if (Objects.equals(cmd.getCommandID(), sid)) {
+            throw new IllegalStateException("unsent command with id " + cmd.getCommandID() + " already matches  status command id  " + sid + " , cmd="
+                    + commandToSimpleString(cmd) + ", lastCommandSent=" + commandToSimpleString(lastCommandSent));
+        }
         return sendCommand(cmd);
     }
 
@@ -887,9 +925,9 @@ public class PendantClientInner {
      * @throws javax.xml.bind.JAXBException when xml can not be generated.
      */
     public void stopMotion(StopConditionEnumType stopType) throws JAXBException {
-        
-        if(this.runTestProgramThread != null
-                && Thread.currentThread()  != this.runTestProgramThread) {
+
+        if (this.runTestProgramThread != null
+                && Thread.currentThread() != this.runTestProgramThread) {
             Thread.dumpStack();
             System.err.println("stopMotion called while program running");
 //            closeTestProgramThread();
@@ -928,9 +966,9 @@ public class PendantClientInner {
     private long lastWaitForDoneFullTimeout = -1;
     private BigInteger lastWaitForDoneMinCmdId = null;
     private Exception lastWaitForDoneException = null;
-    
-    private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION =
-            Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension","5000"));
+
+    private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION
+            = Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension", "5000"));
 
     /**
      * Poll the status until the current command is done or ends with an error.
@@ -969,6 +1007,8 @@ public class PendantClientInner {
                     return WaitForDoneResult.WFD_HOLDING_ERROR;
                 }
                 if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("Current Thread is interrupted : "+Thread.currentThread());
+                    Thread.dumpStack();
                     return WaitForDoneResult.WFD_INTERRUPTED;
                 }
                 if (menuOuter().isDebugWaitForDoneSelected()) {
@@ -1203,7 +1243,7 @@ public class PendantClientInner {
 
     public void readStatus() {
         try {
-            if(null == crclSocket || null == menuOuter()) {
+            if (null == crclSocket || null == menuOuter()) {
                 return;
             }
             if (menuOuter().replaceStateSelected()) {
@@ -1321,7 +1361,7 @@ public class PendantClientInner {
                 crclSocket = new CRCLSocket(host, port);
             }
             startStatusReaderThread();
-            
+
             outer.finishConnect();
         } catch (CRCLException | IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1474,7 +1514,7 @@ public class PendantClientInner {
     }
 
     private String effectFailedMessage = null;
-    
+
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
         if (null == status.getJointStatuses()) {
@@ -1689,15 +1729,15 @@ public class PendantClientInner {
             return false;
         }
         if (!PoseToleranceChecker.isInTolerance(curPose, cmdPose, expectedEndPoseTolerance, angleType)) {
-            outer.showMessage("MoveTo Failed : diference between curPose and cmdPose exceeds tolerance." + NEW_LINE
+            effectFailedMessage = "MoveTo Failed : diference between curPose and cmdPose exceeds tolerance." + NEW_LINE
                     + "curPose =" + CRCLPosemath.toString(curPose) + NEW_LINE
                     + "cmdPose=" + CRCLPosemath.toString(cmdPose) + NEW_LINE
                     + "expectedEndPoseTolerance=" + expectedEndPoseTolerance + ", angleType=" + angleType + NEW_LINE
                     + PoseToleranceChecker.checkToleranceString(curPose, cmdPose, expectedEndPoseTolerance, angleType) + NEW_LINE
                     + "moveTo.getCommandID()=" + moveTo.getCommandID() + NEW_LINE
                     + "stat.getCommandStatus().getCommandId()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "stat.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE
-            );
+                    + "stat.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE;
+            outer.showMessage(effectFailedMessage);
             return false;
         }
         return true;
@@ -1712,7 +1752,7 @@ public class PendantClientInner {
             pause_count.incrementAndGet();
             pauseQueue.clear();
             paused = true;
-            if(isConnected()) {
+            if (isConnected()) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (JAXBException ex) {
@@ -1869,7 +1909,7 @@ public class PendantClientInner {
             }
             outer.stopPollTimer();
 //            this.stopStatusReaderThread();
-            cmdId = BigInteger.ZERO;
+            BigInteger cmdId = BigInteger.ZERO;
             programCommandStartTime = System.currentTimeMillis();
             PmCartesian p0 = getPoseCart();
             if (this.runStartMillis < 1 || startLine == 0) {
@@ -1883,18 +1923,8 @@ public class PendantClientInner {
                 if (initCmd.getCommandID() == null) {
                     initCmd.setCommandID(BigInteger.valueOf(commandId.incrementAndGet()));
                 }
-                commandId.set(initCmd.getCommandID().longValue());
-                if ((null != lastCommandIdSent && initCmd.getCommandID().compareTo(lastCommandIdSent) == 0)
-                        || (null != status && null != status.getCommandStatus()
-                        && null != status.getCommandStatus().getCommandID()
-                        && status.getCommandStatus().getCommandID().compareTo(initCmd.getCommandID()) == 0)) {
-                    BigInteger max = CRCLPosemath.getMaxId(prog);
-                    InitCanonType newInitCmd = new InitCanonType();
-                    newInitCmd.setCommandID(max.add(BigInteger.ONE));
-                    if (!testCommand(newInitCmd)) {
-                        return false;
-                    }
-                } else if (!testCommand(initCmd)) {
+                commandId.set(initCmd.getCommandID().longValue()-1);
+                if (!testCommand(initCmd)) {
                     return false;
                 }
                 if (stepMode) {
@@ -1908,7 +1938,7 @@ public class PendantClientInner {
             p0 = p1;
             outer.showCurrentProgramLine(startLine, prog, getStatus());
             List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
-            for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size()+1; i++) {
+            for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size() + 1; i++) {
                 if (null != future && future.isCancelled()) {
                     try {
                         stopMotion(StopConditionEnumType.FAST);
@@ -1924,7 +1954,7 @@ public class PendantClientInner {
                 if (cmd instanceof CrclCommandWrapper) {
                     CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                     wrapper.setCurProgram(program);
-                    wrapper.setCurProgramIndex(i-1);
+                    wrapper.setCurProgramIndex(i - 1);
                 }
                 boolean result = testCommand(cmd);
                 if (!result) {
@@ -1946,7 +1976,7 @@ public class PendantClientInner {
                 if (stepMode) {
                     pause();
                 }
-                if(i < middleCommands.size()) {
+                if (i < middleCommands.size()) {
                     outer.showCurrentProgramLine(i + 1, prog, getStatus());
                 }
             }
@@ -2098,7 +2128,7 @@ public class PendantClientInner {
             }
             outer.stopPollTimer();
             InitCanonType initCmd = new InitCanonType();
-            cmdId = cmdId.add(BigInteger.ONE);
+            BigInteger cmdId = BigInteger.valueOf(commandId.incrementAndGet());
             initCmd.setCommandID(cmdId);
             testCommand(initCmd);
             SetLengthUnitsType setUnitType = new SetLengthUnitsType();
@@ -2814,9 +2844,9 @@ public class PendantClientInner {
                 }
                 cmd = wrapper.getWrappedCommand();
             }
-            if (cmd instanceof EndCanonType) { 
+            if (cmd instanceof EndCanonType) {
                 return wfdResult != WaitForDoneResult.WFD_ERROR
-                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION 
+                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION
                         && wfdResult != WaitForDoneResult.WFD_HOLDING_ERROR
                         && status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
             }
@@ -2831,7 +2861,7 @@ public class PendantClientInner {
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
                 String intString = this.createInterrupStackString();
-                String messageString = cmd.getClass().getName()+ " timed out waiting for DONE " + NEW_LINE
+                String messageString = cmd.getClass().getName() + " timed out waiting for DONE " + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
@@ -2868,7 +2898,7 @@ public class PendantClientInner {
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
-            String messageString = cmd.getClass().getName()+ " testCommandEffect failed " + NEW_LINE
+            String messageString = cmd.getClass().getName() + " testCommandEffect failed " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
                     + "effectFailedMessage=" + effectFailedMessage + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
@@ -2897,7 +2927,7 @@ public class PendantClientInner {
         if (startLine < 0) {
             throw new IllegalArgumentException("startLine=" + startLine + " (must be atleast 0)");
         }
-        final XFuture<Boolean> future = new XFuture<>("startRunProgramThread("+startLine+")");
+        final XFuture<Boolean> future = new XFuture<>("startRunProgramThread(" + startLine + ")");
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
         this.runTestProgramThread = new Thread(new Runnable() {
@@ -2935,11 +2965,7 @@ public class PendantClientInner {
     }
 
     public BigInteger getCmdId() {
-        return cmdId;
-    }
-
-    public void setCmdId(BigInteger cmdId) {
-        this.cmdId = cmdId;
+        return BigInteger.valueOf(commandId.get());
     }
 
     public double getJogIncrement() {
