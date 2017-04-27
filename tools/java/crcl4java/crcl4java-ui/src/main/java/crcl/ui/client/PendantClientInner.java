@@ -307,16 +307,16 @@ public class PendantClientInner {
         this.expectedEndPoseTolerance = new PoseToleranceType();
         this.expectedEndPoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
         this.expectedEndPoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedEndPoseTolerance.setXPointTolerance(BigDecimal.valueOf(2.0));
-        this.expectedEndPoseTolerance.setYPointTolerance(BigDecimal.valueOf(2.0));
-        this.expectedEndPoseTolerance.setZPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedEndPoseTolerance.setXPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedEndPoseTolerance.setYPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedEndPoseTolerance.setZPointTolerance(BigDecimal.valueOf(3.0));
 
         this.expectedIntermediatePoseTolerance = new PoseToleranceType();
         this.expectedIntermediatePoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
         this.expectedIntermediatePoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedIntermediatePoseTolerance.setXPointTolerance(BigDecimal.valueOf(2.0));
-        this.expectedIntermediatePoseTolerance.setYPointTolerance(BigDecimal.valueOf(2.0));
-        this.expectedIntermediatePoseTolerance.setZPointTolerance(BigDecimal.valueOf(2.0));
+        this.expectedIntermediatePoseTolerance.setXPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedIntermediatePoseTolerance.setYPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedIntermediatePoseTolerance.setZPointTolerance(BigDecimal.valueOf(3.0));
     }
 
     /**
@@ -826,8 +826,11 @@ public class PendantClientInner {
         this.incCommandID(cmd);
         BigInteger sid = getStatusCommandId();
         if (Objects.equals(cmd.getCommandID(), sid)) {
-            throw new IllegalStateException("unsent command with id " + cmd.getCommandID() + " already matches  status command id  " + sid + " , cmd="
-                    + commandToSimpleString(cmd) + ", lastCommandSent=" + commandToSimpleString(lastCommandSent));
+            String cmdString = commandToSimpleString(cmd);
+            String lastCommandString = commandToSimpleString(lastCommandSent);
+            throw new IllegalStateException("unsent command with id " + cmd.getCommandID() 
+                    + " already matches  status command id  " + sid + " , cmd="
+                    + cmdString + ", lastCommandSent=" + lastCommandString);
         }
         return sendCommand(cmd);
     }
@@ -934,7 +937,7 @@ public class PendantClientInner {
         }
         StopMotionType stop = new StopMotionType();
         stop.setStopCondition(stopType);
-        stop.setCommandID(BigInteger.valueOf(commandId.get()));
+        stop.setCommandID(BigInteger.valueOf(Math.max(1, commandId.get()-1)));
         this.sendCommand(stop);
     }
 
