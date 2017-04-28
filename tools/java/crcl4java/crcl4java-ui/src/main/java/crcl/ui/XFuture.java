@@ -60,7 +60,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public void printStatus() {
         printStatus(System.out);
     }
-    
+
     public void printStatus(PrintStream ps) {
         ps.println();
         ps.println("Status for " + this.toString());
@@ -68,8 +68,8 @@ public class XFuture<T> extends CompletableFuture<T> {
 
         if (isCompletedExceptionally()) {
             this.exceptionally(t -> {
-                if(!(t instanceof CancellationException)) {
-                    System.err.println(XFuture.this.toString()+" Completed Exceptionally with: ");
+                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
                 }
                 return null;
@@ -84,7 +84,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (isCompletedExceptionally()) {
             ps.println(this.toString() + " is CompletedExceptionally.");
             this.exceptionally(t -> {
-                t.printStackTrace(ps);
+                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
+                    t.printStackTrace(ps);
+                }
                 return null;
             });
             return;

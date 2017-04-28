@@ -486,6 +486,7 @@ public class PendantClientInner {
     }
     
     private void showErrorMessage(String s) {
+        Thread.dumpStack();
         crclClientErrorMessage = s;
         outer.showMessage(s);
         if (null == logStream) {
