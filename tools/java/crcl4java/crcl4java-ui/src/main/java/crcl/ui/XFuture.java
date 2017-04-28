@@ -57,6 +57,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         this.name = name;
     }
 
+    public void printStatus() {
+        printStatus(System.out);
+    }
+    
     public void printStatus(PrintStream ps) {
         ps.println();
         ps.println("Status for " + this.toString());
@@ -64,7 +68,10 @@ public class XFuture<T> extends CompletableFuture<T> {
 
         if (isCompletedExceptionally()) {
             this.exceptionally(t -> {
-                t.printStackTrace(ps);
+                if(!(t instanceof CancellationException)) {
+                    System.err.println(XFuture.this.toString()+" Completed Exceptionally with: ");
+                    t.printStackTrace(ps);
+                }
                 return null;
             });
             return;
