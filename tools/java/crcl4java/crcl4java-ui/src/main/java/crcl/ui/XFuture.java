@@ -178,6 +178,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 Thread.currentThread().setName(name);
                 T result = c.call();
                 myf.complete(result);
+//                myf.alsoCancel.clear();
                 Thread.currentThread().setName(tname);
                 return result;
             } catch (Throwable throwable) {
@@ -205,6 +206,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 throw new RuntimeException(throwable);
             }
             myf.complete(null);
+//            myf.alsoCancel.clear();
         });
         myf.futureFromExecSubmit = ((Future<Void>) f);
         return myf;
@@ -235,6 +237,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         return this.thenCompose(name + ".thenCompose", fn);
     }
 
+    public boolean complete(T value) {
+        boolean ret = super.complete(value);
+        this.alsoCancel.clear();
+        return ret;
+    }
+    
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
 
         XFuture<U> myF = new XFuture<>(name);
@@ -403,6 +411,8 @@ public class XFuture<T> extends CompletableFuture<T> {
         future.handle(newFuture::logException)
                 .thenAccept(x -> {
                     newFuture.complete(x);
+//                    XFuture.this.alsoCancel.clear();
+//                    newFuture.alsoCancel.clear();
                 });
         newFuture.alsoCancel.add(this);
         newFuture.alsoCancel.add(future);

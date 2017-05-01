@@ -117,6 +117,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,7 +180,7 @@ public class PendantClientInner {
                 .collect(Collectors.joining(","));
     }
 
-    private Thread runTestProgramThread = null;
+    private final AtomicReference<Thread> runTestProgramThread = new AtomicReference<>(null);
 
     private CRCLStatusType status;
     private CRCLSocket crclSocket = null;
@@ -402,31 +403,31 @@ public class PendantClientInner {
 
     public void closeTestProgramThread() {
         close_test_count.incrementAndGet();
-        if (null != runTestProgramThread) {
-            if (runTestProgramThread.equals(Thread.currentThread())) {
+        Thread rtpt = runTestProgramThread.getAndSet(null);
+        if (null != rtpt) {
+            if (rtpt.equals(Thread.currentThread())) {
                 return;
             }
             try {
-                this.runTestProgramThread.join(100);
+                rtpt.join(100);
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-            if (this.runTestProgramThread.isAlive()) {
+            if (rtpt.isAlive()) {
                 if (debugInterrupts) {
                     Thread.dumpStack();
                     System.err.println("Interrupting runTestProgramThread = " + runTestProgramThread);
                     System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
-                    System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(runTestProgramThread.getStackTrace()));
+                    System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(rtpt.getStackTrace()));
                 }
                 interruptStacks.add(Thread.currentThread().getStackTrace());
-                this.runTestProgramThread.interrupt();
+                rtpt.interrupt();
                 try {
-                    this.runTestProgramThread.join(100);
+                    rtpt.join(100);
                 } catch (InterruptedException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
             }
-            this.runTestProgramThread = null;
         }
     }
 
@@ -930,8 +931,9 @@ public class PendantClientInner {
      */
     public void stopMotion(StopConditionEnumType stopType) throws JAXBException {
 
-        if (this.runTestProgramThread != null
-                && Thread.currentThread() != this.runTestProgramThread) {
+        Thread rtpt = this.runTestProgramThread.get();
+        if (rtpt != null
+                && Thread.currentThread() != rtpt) {
             Thread.dumpStack();
             System.err.println("stopMotion called while program running");
 //            closeTestProgramThread();
@@ -1013,6 +1015,7 @@ public class PendantClientInner {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.println("Current Thread is interrupted : "+Thread.currentThread());
                     Thread.dumpStack();
+                     System.out.println("interruptStacks = " + interruptStacks);
                     return WaitForDoneResult.WFD_INTERRUPTED;
                 }
                 if (menuOuter().isDebugWaitForDoneSelected()) {
@@ -1038,6 +1041,9 @@ public class PendantClientInner {
                 }
             }
         } catch (InterruptedException interruptedException) {
+            System.out.println("Current Thread is interrupted : "+Thread.currentThread());
+            interruptedException.printStackTrace();
+            System.out.println("interruptStacks = " + interruptStacks);
             return WaitForDoneResult.WFD_INTERRUPTED;
         } catch (Exception ex) {
             // Ugly hack hoping to catch strange debugging problem.
@@ -2032,9 +2038,10 @@ public class PendantClientInner {
     }
 
     public boolean isRunningProgram() {
+        Thread rptp = this.runTestProgramThread.get();
         return !paused
-                && null != this.runTestProgramThread
-                && this.runTestProgramThread.isAlive();
+                && null != rptp
+                && rptp.isAlive();
     }
 
     public long getRunStartMillis() {
@@ -2865,10 +2872,12 @@ public class PendantClientInner {
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
                 String intString = this.createInterrupStackString();
+                String lastCmdString = commandToSimpleString(lastCommandSent);
                 String messageString = cmd.getClass().getName() + " timed out waiting for DONE " + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
+                        + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
                         + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                         + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
                         + "sendCommandTime=" + sendCommandTime + NEW_LINE
@@ -2934,7 +2943,7 @@ public class PendantClientInner {
         final XFuture<Boolean> future = new XFuture<>("startRunProgramThread(" + startLine + ")");
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
-        this.runTestProgramThread = new Thread(new Runnable() {
+        Thread rtpt = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -2943,13 +2952,14 @@ public class PendantClientInner {
             }
 
         }, "PendantClientInner.runProgram");
-        this.runTestProgramThread.start();
+        rtpt.start();
+        runTestProgramThread.set(rtpt);
         return future;
     }
 
     public void startRunTestThread(final Map<String, String> testProperties) {
         this.closeTestProgramThread();
-        this.runTestProgramThread = new Thread(new Runnable() {
+        Thread rtpt = new Thread(new Runnable() {
 
             @Override
             public void run() {
@@ -2957,7 +2967,8 @@ public class PendantClientInner {
             }
 
         }, "PendantClientInner.runTest");
-        this.runTestProgramThread.start();
+        rtpt.start();
+        this.runTestProgramThread.set(rtpt);
     }
 
     public int getPoll_ms() {
