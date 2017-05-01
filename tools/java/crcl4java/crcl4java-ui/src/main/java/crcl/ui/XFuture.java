@@ -340,6 +340,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         } catch (Exception e) {
             System.err.println("Cancel all ignoring " + e.toString());
         }
+        this.alsoCancel.clear();
     }
 
     public static class PrintedXFutureRuntimeException extends RuntimeException {
