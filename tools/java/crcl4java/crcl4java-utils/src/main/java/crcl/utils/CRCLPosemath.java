@@ -478,7 +478,7 @@ public class CRCLPosemath {
         if (wrench != null) {
             newStatus.setWrench(wrench);
         }
-        newStatus.setConfiguration(status.getConfiguration());
+//        newStatus.setConfiguration(status.getConfiguration());
         return newStatus;
     }
 

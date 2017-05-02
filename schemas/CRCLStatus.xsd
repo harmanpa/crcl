@@ -136,6 +136,9 @@
              and first MiddleCommand will have index 1.
           ProgramLength is the number of commands in the current program if 
              known.
+          
+          
+          
         The combination of StatusID and CommandID must be unique
         within a session.
       </xs:documentation>
@@ -224,10 +227,13 @@
         The abstract GripperStatusType is derived from DataThingType.
         An instance of GripperStatusType has the following elements:
           Name (inherited, optional)
-          GripperName.
+          GripperName
+          HoldingObject (optional).
  
         GripperStatusType is an abstract type from which more specialized
-        types of gripper status are derived.
+        types of gripper status are derived. HoldingObject is true if the 
+          gripper is expected to be holding an object given its position and/or 
+          pressure sensors on the finger tips.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -235,6 +241,9 @@
         <xs:sequence>
           <xs:element name="GripperName"
             type="xs:NMTOKEN"/>
+          <xs:element name="HoldingObject"
+            type="xs:boolean"
+            minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -265,8 +274,7 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:complexType name="JointStatusType
-">
+  <xs:complexType name="JointStatusType">
     <xs:annotation>
       <xs:documentation>
         JointStatusType is derived from DataThingType.
@@ -336,10 +344,11 @@
     </xs:complexContent>
   </xs:complexType>
 
+
   <xs:complexType name="ParallelGripperStatusType">
     <xs:annotation>
       <xs:documentation>
-        ParallelGripperStatusType is derived from GripperStatusType.
+        "ParallelGripperStatusType is derived from GripperStatusType.
         An instance of ParallelGripperStatusType has the following elements:
           Name (inherited, optional)
           GripperName (inherited)
@@ -368,12 +377,16 @@
           Name (inherited, optional)
           Pose
           Twist (optional)
-          Wrench (optional).
+          Wrench (optional)
+          Configuration (optional).
 
         PoseStatusType provides a Cartesian counterpart to
         JointStatusesType, representing the generalized
         position/orientation, velocities, and forces.
         of a reference frame.
+          
+        Configuration provides a robot specific description of the current 
+            configuration flags and turns.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -386,6 +399,9 @@
             minOccurs="0"/>
           <xs:element name="Wrench"
             type="WrenchType"
+            minOccurs="0"/>
+          <xs:element name="Configuration"
+            type="xs:string"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>

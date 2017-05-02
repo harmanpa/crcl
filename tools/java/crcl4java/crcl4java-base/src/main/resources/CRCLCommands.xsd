@@ -4,7 +4,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  version="2016Apr15">
+  version="2014Jul2">
   <xs:include schemaLocation="DataPrimitives.xsd"/>
 
   <xs:annotation>
@@ -262,38 +262,6 @@
     </xs:complexContent>
   </xs:complexType>
 
-<xs:complexType name="ConfigureStatusReportType">
-    <xs:annotation>
-      <xs:documentation>
-        ConfigureStatusReportType is derived from MiddleCommandType. 
-        An instance of ConfigureStatusReportType has the following elements:
-          Name (inherited, optional)
-          CommandID (inherited)
-          ReportJointStatuses
-          ReportPoseStatus
-          ReportGripperStatus
-          ReportSettingsStatus.
-
-        ConfigureStatusReportType is used to specify how the status of the
-        robot should be reported. 
-      </xs:documentation>
-    </xs:annotation>
-    <xs:complexContent>
-      <xs:extension base="MiddleCommandType">
-        <xs:sequence>
-          <xs:element name="ReportJointStatuses"
-            type="xs:boolean"/>
-          <xs:element name="ReportPoseStatus"
-            type="xs:boolean"/>
-          <xs:element name="ReportGripperStatus"
-            type="xs:boolean"/>
-          <xs:element name="ReportSettingsStatus"
-            type="xs:boolean"/>
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  
   <xs:complexType name="CRCLCommandType"
     abstract="true">
     <xs:annotation>
@@ -709,6 +677,7 @@
     </xs:complexContent>
   </xs:complexType>
 
+
   <xs:complexType name="PoseAndSetType">
     <xs:annotation>
       <xs:documentation>
@@ -764,6 +733,7 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+
 
   <xs:complexType name="RunProgramType">
     <xs:annotation>
@@ -1192,6 +1162,38 @@
         <xs:sequence>
           <xs:element name="StopCondition"
             type="StopConditionEnumType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ConfigureStatusReportType">
+    <xs:annotation>
+      <xs:documentation>
+        ConfigureStatusReportType is derived from MiddleCommandType. 
+        An instance of ConfigureStatusReportType has the following elements:
+          Name (inherited, optional)
+          CommandID (inherited)
+          ReportJointStatuses
+          ReportPoseStatus
+          ReportGripperStatus
+          ReportSettingsStatus.
+
+        ConfigureStatusReportType is used to specify how the status of the
+        robot should be reported. 
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="MiddleCommandType">
+        <xs:sequence>
+          <xs:element name="ReportJointStatuses"
+            type="xs:boolean"/>
+          <xs:element name="ReportPoseStatus"
+            type="xs:boolean"/>
+          <xs:element name="ReportGripperStatus"
+            type="xs:boolean"/>
+          <xs:element name="ReportSettingsStatus"
+            type="xs:boolean"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

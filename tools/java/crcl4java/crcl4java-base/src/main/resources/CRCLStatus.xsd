@@ -4,7 +4,7 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   elementFormDefault="qualified"
   attributeFormDefault="unqualified"
-  version="2016Apr15">
+  version="2017May01">
   <xs:include schemaLocation="DataPrimitives.xsd"/>
 
   <xs:element name="CRCLStatus"
@@ -139,8 +139,8 @@
           
           
           
-          The combination of StatusID and CommandID must be unique
-            within a session.
+        The combination of StatusID and CommandID must be unique
+        within a session.
       </xs:documentation>
     </xs:annotation>
     <xs:complexContent>
@@ -229,7 +229,7 @@
           Name (inherited, optional)
           GripperName
           HoldingObject (optional).
-          
+ 
         GripperStatusType is an abstract type from which more specialized
         types of gripper status are derived. HoldingObject is true if the 
           gripper is expected to be holding an object given its position and/or 
@@ -638,7 +638,7 @@
   <xs:complexType name="VacuumGripperStatusType">
     <xs:annotation>
       <xs:documentation>
-        "VacuumGripperStatusType is derived from GripperStatusType.
+        VacuumGripperStatusType is derived from GripperStatusType.
         An instance of VacuumGripperStatusType has the following elements:
           Name (inherited, optional)
           GripperName (inherited)
