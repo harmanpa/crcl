@@ -72,19 +72,19 @@ public class PerfTest {
         stat.setCommandStatus(cst);
         PoseType pose = new PoseType();
         PointType pt = new PointType();
-        pt.setX(BigDecimal.ZERO);
-        pt.setY(BigDecimal.ONE);
-        pt.setZ(BigDecimal.TEN);
+        pt.setX(0.0);
+        pt.setY(1.0);
+        pt.setZ(10.0);
         pose.setPoint(pt);
         VectorType xAxis = new VectorType();
-        xAxis.setI(BigDecimal.ONE);
-        xAxis.setJ(BigDecimal.ZERO);
-        xAxis.setK(BigDecimal.ZERO);
+        xAxis.setI(1.0);
+        xAxis.setJ(0.0);
+        xAxis.setK(0.0);
         pose.setXAxis(xAxis);
         VectorType zAxis = new VectorType();
-        zAxis.setI(BigDecimal.ZERO);
-        zAxis.setJ(BigDecimal.ZERO);
-        zAxis.setK(BigDecimal.ONE);
+        zAxis.setI(0.0);
+        zAxis.setJ(0.0);
+        zAxis.setK(1.0);
         pose.setZAxis(zAxis);
         CRCLPosemath.setPose(stat, pose);
         GripperStatusType gst = new VacuumGripperStatusType();
@@ -94,7 +94,7 @@ public class PerfTest {
         for (int i = 1; i <= 6; i++) {
             JointStatusType js = new JointStatusType();
             js.setJointNumber(BigInteger.valueOf(i));
-            js.setJointPosition(BigDecimal.valueOf(i * 0.1));
+            js.setJointPosition(i * 0.1);
             jst.getJointStatus().add(js);
         }
         stat.setJointStatuses(jst);

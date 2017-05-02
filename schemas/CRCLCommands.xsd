@@ -153,7 +153,7 @@
           <xs:element name="JointNumber"
             type="xs:positiveInteger"/>
           <xs:element name="JointPosition"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="JointDetails"
             type="JointDetailsType"/>
         </xs:sequence>
@@ -302,7 +302,7 @@
       <xs:extension base="MiddleCommandType">
         <xs:sequence>
           <xs:element name="DwellTime"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -409,10 +409,10 @@
       <xs:extension base="JointDetailsType">
         <xs:sequence>
           <xs:element name="Setting"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="ChangeRate"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -441,10 +441,10 @@
       <xs:extension base="JointDetailsType">
         <xs:sequence>
           <xs:element name="JointSpeed"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointAccel"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -561,12 +561,12 @@
             type="PointType"
             minOccurs="0"/>
           <xs:element name="AxialDistanceFree"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="AxialDistanceScrew"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="Turn"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

@@ -842,17 +842,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         PoseType p = new PoseType();
         TableModel tm = table.getModel();
         PointType pt = new PointType();
-        pt.setX(BigDecimal.valueOf((Double) tm.getValueAt(0, 1)));
-        pt.setY(BigDecimal.valueOf((Double) tm.getValueAt(1, 1)));
-        pt.setZ(BigDecimal.valueOf((Double) tm.getValueAt(2, 1)));
+        pt.setX((Double) tm.getValueAt(0, 1));
+        pt.setY((Double) tm.getValueAt(1, 1));
+        pt.setZ((Double) tm.getValueAt(2, 1));
         VectorType xv = new VectorType();
-        xv.setI(BigDecimal.valueOf((Double) tm.getValueAt(3, 1)));
-        xv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(4, 1)));
-        xv.setK(BigDecimal.valueOf((Double) tm.getValueAt(5, 1)));
+        xv.setI((Double) tm.getValueAt(3, 1));
+        xv.setJ((Double) tm.getValueAt(4, 1));
+        xv.setK((Double) tm.getValueAt(5, 1));
         VectorType zv = new VectorType();
-        zv.setI(BigDecimal.valueOf((Double) tm.getValueAt(6, 1)));
-        zv.setJ(BigDecimal.valueOf((Double) tm.getValueAt(7, 1)));
-        zv.setK(BigDecimal.valueOf((Double) tm.getValueAt(8, 1)));
+        zv.setI((Double) tm.getValueAt(6, 1));
+        zv.setJ((Double) tm.getValueAt(7, 1));
+        zv.setK((Double) tm.getValueAt(8, 1));
         p.setPoint(pt);
         p.setXAxis(xv);
         p.setZAxis(zv);
@@ -1516,14 +1516,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     double last_t_pos_logged = 0;
 
-    final Map<BigInteger, BigDecimal> last_joints = new HashMap<>();
+    final Map<BigInteger, Double> last_joints = new HashMap<>();
 
     private boolean jointsChanged(List<JointStatusType> jsl) {
         if (jsl.size() != last_joints.values().size()) {
             return true;
         }
         for (JointStatusType jst : jsl) {
-            BigDecimal D = last_joints.get(jst.getJointNumber());
+            Double D = last_joints.get(jst.getJointNumber());
             if (null == D) {
                 return true;
             }
@@ -1739,14 +1739,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             if (tm.getColumnCount() < 3) {
                                 tm.setColumnCount(3);
                             }
-                            tm.setValueAt(js.getJointVelocity().doubleValue(), jn - 1, 2);
+                            tm.setValueAt(js.getJointVelocity(), jn - 1, 2);
                             hasVel = true;
                         }
                         if (null != js.getJointTorqueOrForce()) {
                             if (tm.getColumnCount() < 4) {
                                 tm.setColumnCount(4);
                             }
-                            tm.setValueAt(js.getJointTorqueOrForce().doubleValue(), jn - 1, 3);
+                            tm.setValueAt(js.getJointTorqueOrForce(), jn - 1, 3);
                             hasForce = true;
                         }
                         if (null == js.getJointPosition()) {
@@ -1754,7 +1754,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             continue;
                         }
 
-                        double pos = js.getJointPosition().doubleValue();
+                        double pos = js.getJointPosition();
                         tm.setValueAt(jn, jn - 1, 0);
                         tm.setValueAt(pos, jn - 1, 1);
                         if (this.getMenuOuter().isPlotJointsSelected()) {
@@ -1821,7 +1821,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             xpd.name = "x";
                             xyzPlotter.AddPlot(xpd, "x");
                         }
-                        double x = pt.getX().doubleValue();
+                        double x = pt.getX();
                         xyzPlotter.AddPointToPlot(xpd, t, x, true);
                         PlotData ypd = xyzPlotter.getPlotByName("y");
                         if (null == ypd) {
@@ -1829,7 +1829,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             ypd.name = "y";
                             xyzPlotter.AddPlot(xpd, "y");
                         }
-                        double y = pt.getY().doubleValue();
+                        double y = pt.getY();
                         xyzPlotter.AddPointToPlot(ypd, t, y, true);
                         PlotData zpd = xyzPlotter.getPlotByName("z");
                         if (null == zpd) {
@@ -1837,7 +1837,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             zpd.name = "x";
                             xyzPlotter.AddPlot(zpd, "z");
                         }
-                        double z = pt.getZ().doubleValue();
+                        double z = pt.getZ();
                         xyzPlotter.AddPointToPlot(zpd, t, z, true);
                         if (xpd.get_num_points() < 100) {
                             xyzPlotter.FitToGraph();
@@ -1955,23 +1955,23 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         VectorType xv = p.getXAxis();
         VectorType zv = p.getZAxis();
         if (null != xv && tm.getRowCount() > 2 + index) {
-            tm.setValueAt(xv.getI().doubleValue(), 0 + index, 1);
-            tm.setValueAt(xv.getJ().doubleValue(), 1 + index, 1);
-            tm.setValueAt(xv.getK().doubleValue(), 2 + index, 1);
+            tm.setValueAt(xv.getI(), 0 + index, 1);
+            tm.setValueAt(xv.getJ(), 1 + index, 1);
+            tm.setValueAt(xv.getK(), 2 + index, 1);
         }
         if (null != zv && tm.getRowCount() > 5 + index) {
-            tm.setValueAt(zv.getI().doubleValue(), 3 + index, 1);
-            tm.setValueAt(zv.getJ().doubleValue(), 4 + index, 1);
-            tm.setValueAt(zv.getK().doubleValue(), 5 + index, 1);
+            tm.setValueAt(zv.getI(), 3 + index, 1);
+            tm.setValueAt(zv.getJ(), 4 + index, 1);
+            tm.setValueAt(zv.getK(), 5 + index, 1);
         }
     }
 
     public static void updatePointTable(PoseType p, DefaultTableModel tm, int index) {
         PointType pt = p.getPoint();
         if (null != pt && tm.getRowCount() > 2 + index) {
-            tm.setValueAt(pt.getX().doubleValue(), 0 + index, 1);
-            tm.setValueAt(pt.getY().doubleValue(), 1 + index, 1);
-            tm.setValueAt(pt.getZ().doubleValue(), 2 + index, 1);
+            tm.setValueAt(pt.getX(), 0 + index, 1);
+            tm.setValueAt(pt.getY(), 1 + index, 1);
+            tm.setValueAt(pt.getZ(), 2 + index, 1);
         }
     }
 
@@ -2071,14 +2071,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     List<ActuateJointType> ajl = ajst.getActuateJoint();
                     ActuateJointType aj = new ActuateJointType();
                     aj.setJointNumber(js.getJointNumber());
-                    double pos = js.getJointPosition().doubleValue();
+                    double pos = js.getJointPosition();
                     if (Math.abs(pos - lastJogJointPos) <= Math.abs((increment) * 0.001)) {
                         return;
                     }
                     lastJogJointPos = pos;
-                    aj.setJointPosition(js.getJointPosition().add(BigDecimal.valueOf(increment)));
+                    aj.setJointPosition(js.getJointPosition() + increment);
                     JointSpeedAccelType jsa = new JointSpeedAccelType();
-                    jsa.setJointSpeed(BigDecimal.valueOf(Double.parseDouble(PendantClientJPanel.this.jTextFieldJointJogSpeed.getText())));
+                    jsa.setJointSpeed(Double.parseDouble(PendantClientJPanel.this.jTextFieldJointJogSpeed.getText()));
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
                     internal.incAndSendCommand(ajst);
@@ -2124,13 +2124,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             if (!jogWorldSpeedsSet) {
                 SetTransSpeedType stst = new SetTransSpeedType();
                 TransSpeedAbsoluteType tas = new TransSpeedAbsoluteType();
-                tas.setSetting(BigDecimal.valueOf(Double.parseDouble(this.jTextFieldTransSpeed.getText())));
+                tas.setSetting(Double.parseDouble(this.jTextFieldTransSpeed.getText()));
                 stst.setTransSpeed(tas);
                 internal.incAndSendCommand(stst);
                 internal.waitForDone(stst.getCommandID(), 200);
                 SetRotSpeedType srst = new SetRotSpeedType();
                 RotSpeedAbsoluteType ras = new RotSpeedAbsoluteType();
-                ras.setSetting(BigDecimal.valueOf(Double.parseDouble(this.jTextFieldRotationSpeed.getText())));
+                ras.setSetting(Double.parseDouble(this.jTextFieldRotationSpeed.getText()));
                 srst.setRotSpeed(ras);
                 internal.incAndSendCommand(srst);
                 internal.waitForDone(srst.getCommandID(), 200);
@@ -2156,7 +2156,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 default:
                     throw new IllegalStateException("Invalid axis selected: " + axis);
             }
-            final BigDecimal axisIncrement = BigDecimal.valueOf(tmpinc);
+            final double axisIncrement = tmpinc;
             final double inc = tmpinc;
             if (null != jog_timer) {
                 jog_timer.stop();
@@ -2214,15 +2214,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             moveToCmd.getEndPosition().getZAxis().setK(pose.getZAxis().getK());
                             switch (axis) {
                                 case "X":
-                                    moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(axisIncrement));
+                                    moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX() + axisIncrement);
                                     break;
 
                                 case "Y":
-                                    moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(axisIncrement));
+                                    moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY() + axisIncrement);
                                     break;
 
                                 case "Z":
-                                    moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(axisIncrement));
+                                    moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ() + axisIncrement);
                                     break;
 
                                 case "Roll":
@@ -4194,7 +4194,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void jButtonOpenGripperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenGripperActionPerformed
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
-            seeCmd.setSetting(BigDecimal.ONE);
+            seeCmd.setSetting(1.0);
             internal.incAndSendCommand(seeCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();
@@ -4210,7 +4210,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void jButtonCloseGripperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseGripperActionPerformed
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
-            seeCmd.setSetting(BigDecimal.ZERO);
+            seeCmd.setSetting(0.0);
             internal.incAndSendCommand(seeCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();

@@ -140,7 +140,7 @@ import rcs.posemath.Posemath;
 public class PendantClientInner {
 
     //    public static final BigDecimal BIG_DECIMAL_POINT_01 = new BigDecimal("0.01");
-    public static final BigDecimal BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS = BigDecimal.valueOf(Math.PI / 36);
+    public static final double FIVE_DEGREES_IN_RADIANS = Math.PI / 36;
     public static final Logger LOGGER = Logger.getLogger(PendantClientInner.class.getName());
     public static final String PROP_LENGTHUNIT = "lengthUnit";
 
@@ -229,7 +229,7 @@ public class PendantClientInner {
     private Queue<AnnotatedPose> poseQueue = null;
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private BigDecimal jointTol = BigDecimal.valueOf(jogIncrement * 5.0);
+    private double jointTol = jogIncrement * 5.0;
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private transient final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
@@ -306,18 +306,18 @@ public class PendantClientInner {
         this.outer = outer;
         this.xpu = new XpathUtils();
         this.expectedEndPoseTolerance = new PoseToleranceType();
-        this.expectedEndPoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedEndPoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedEndPoseTolerance.setXPointTolerance(BigDecimal.valueOf(3.0));
-        this.expectedEndPoseTolerance.setYPointTolerance(BigDecimal.valueOf(3.0));
-        this.expectedEndPoseTolerance.setZPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedEndPoseTolerance.setXAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedEndPoseTolerance.setZAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedEndPoseTolerance.setXPointTolerance(3.0);
+        this.expectedEndPoseTolerance.setYPointTolerance(3.0);
+        this.expectedEndPoseTolerance.setZPointTolerance(3.0);
 
         this.expectedIntermediatePoseTolerance = new PoseToleranceType();
-        this.expectedIntermediatePoseTolerance.setXAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedIntermediatePoseTolerance.setZAxisTolerance(BIG_DECIMAL_FIVE_DEGREES_IN_RADIANS);
-        this.expectedIntermediatePoseTolerance.setXPointTolerance(BigDecimal.valueOf(3.0));
-        this.expectedIntermediatePoseTolerance.setYPointTolerance(BigDecimal.valueOf(3.0));
-        this.expectedIntermediatePoseTolerance.setZPointTolerance(BigDecimal.valueOf(3.0));
+        this.expectedIntermediatePoseTolerance.setXAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedIntermediatePoseTolerance.setZAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedIntermediatePoseTolerance.setXPointTolerance(3.0);
+        this.expectedIntermediatePoseTolerance.setYPointTolerance(3.0);
+        this.expectedIntermediatePoseTolerance.setZPointTolerance(3.0);
     }
 
     /**
@@ -875,7 +875,7 @@ public class PendantClientInner {
             }
         } else if (cmd instanceof SetEndEffectorType) {
             SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
-            this.setHoldingObjectExpected(seeCmd.getSetting().doubleValue() < 0.5);
+            this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
             holdingErrorOccured = false;
         }
         boolean ret = this.sendCommandPrivate(cmd);
@@ -1437,13 +1437,14 @@ public class PendantClientInner {
         }
     }
 
-    public BigDecimal getJointTol() {
+    public double getJointTol() {
         return jointTol;
     }
 
-    public void setJointTol(BigDecimal jointTol) {
+    public void setJointTol(double jointTol) {
         this.jointTol = jointTol;
     }
+    
 
     private boolean holdingObjectExpected;
 
@@ -1512,7 +1513,7 @@ public class PendantClientInner {
         }
         if (cmd instanceof SetEndEffectorType) {
             SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
-            this.setHoldingObjectExpected(seeCmd.getSetting().doubleValue() < 0.5);
+            this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
         }
         return true;
     }
@@ -1545,8 +1546,8 @@ public class PendantClientInner {
                 showMessage("ActuateJoints failed : no jointStatus for " + aj.getJointNumber());
                 return false;
             }
-            BigDecimal jointDiff = jointStatusTest.getJointPosition().subtract(aj.getJointPosition()).abs();
-            if (jointDiff.compareTo(jointTol) > 0) {
+            double jointDiff = Math.abs(jointStatusTest.getJointPosition() - aj.getJointPosition());
+            if (jointDiff > jointTol) {
                 effectFailedMessage = "ActuateJoints failed measured position differs from commanded position." + NEW_LINE
                         + "JointNumber: " + aj.getJointNumber() + NEW_LINE
                         + "Commanded :" + aj.getJointPosition() + NEW_LINE
@@ -1619,7 +1620,7 @@ public class PendantClientInner {
 
     private boolean testDwellEffect(DwellType dwell, long startTime) {
         long elapsed = System.currentTimeMillis() - startTime;
-        double dwellTime = dwell.getDwellTime().doubleValue() * 1000.0;
+        double dwellTime = dwell.getDwellTime() * 1000.0;
         if (dwellTime > maxDwell) {
             LOGGER.warning("dwellTime of " + dwellTime + " exceeded max of " + maxDwell);
             return true;
@@ -1655,23 +1656,23 @@ public class PendantClientInner {
         double newScale = unitToScale(slu.getUnitName());
         double oldScale = unitToScale(testCommandStartLengthUnit);
         double convertScale = newScale / oldScale;
-        double origX = origPoint.getX().doubleValue();
+        double origX = origPoint.getX();
         double expectedX = origX / convertScale;
-        double curX = curPoint.getX().doubleValue();
+        double curX = curPoint.getX();
         if (Math.abs(expectedX - curX) > 0.0001) {
             showMessage("X value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origX + " " + testCommandStartLengthUnit + " was expected to become " + expectedX + " " + slu.getUnitName() + " but instead was " + curX);
             return false;
         }
-        double origY = origPoint.getY().doubleValue();
+        double origY = origPoint.getY();
         double expectedY = origY / convertScale;
-        double curY = curPoint.getY().doubleValue();
+        double curY = curPoint.getY();
         if (Math.abs(expectedY - curY) > 0.0001) {
             showMessage("Y value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origY + " " + testCommandStartLengthUnit + " was expected to become " + expectedY + " " + slu.getUnitName() + " but instead was " + curY);
             return false;
         }
-        double origZ = origPoint.getZ().doubleValue();
+        double origZ = origPoint.getZ();
         double expectedZ = origZ / convertScale;
-        double curZ = curPoint.getZ().doubleValue();
+        double curZ = curPoint.getZ();
         if (Math.abs(expectedZ - curZ) > 0.0001) {
             showMessage("Z value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origZ + " " + testCommandStartLengthUnit + " was expected to become " + expectedZ + " " + slu.getUnitName() + " but instead was " + curZ);
             return false;
@@ -2054,7 +2055,7 @@ public class PendantClientInner {
 
     public Map<String, String> getDefaultTestPropertiesMap() {
         Map<String, String> map = new HashMap<>();
-        map.put("jointTol", jointTol.toString());
+        map.put("jointTol", Double.toString(jointTol));
         map.put("jointPosIncrement", BigDecimal.valueOf(jogIncrement).toString());
         map.put("jointMoveSpeed", jointMoveSpeed != null ? jointMoveSpeed.toString() : "");
         map.put("jointMoveAccel", jointMoveAccel != null ? jointMoveAccel.toString() : "");
@@ -2168,39 +2169,34 @@ public class PendantClientInner {
             Optional.ofNullable(testProperies)
                     .map(m -> m.get("jointTol"))
                     .map(Double::valueOf)
-                    .map(BigDecimal::valueOf)
                     .ifPresent(this::setJointTol);
-            BigDecimal jointPosIncrement
+            double jointPosIncrement
                     = Optional.ofNullable(testProperies)
                     .map(m -> m.get("jointPosIncrement"))
-                    .map(Double::valueOf)
-                    .map(BigDecimal::valueOf)
-                    .orElse(BigDecimal.valueOf(jogIncrement));
-            BigDecimal testJointMoveSpeed
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
+            Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
                     .map(m -> m.get("jointMoveSpeed"))
                     .filter(s -> s.length() > 0)
                     .map(Double::valueOf)
-                    .map(BigDecimal::valueOf)
                     .orElse(null);
-            BigDecimal testJointMoveAccel
+            Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
                     .map(m -> m.get("jointMoveAccel"))
                     .filter(s -> s.length() > 0)
                     .map(Double::valueOf)
-                    .map(BigDecimal::valueOf)
                     .orElse(null);
-            final BigDecimal xyzAxisIncrement
+            final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
                     .map(m -> m.get("xyzAxisIncrement"))
                     .map(Double::valueOf)
-                    .map(BigDecimal::valueOf)
-                    .orElse(BigDecimal.valueOf(this.getXyzJogIncrement()));
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             cmdId = cmdId.add(BigInteger.ONE);
             setTransSpeed.setCommandID(cmdId);
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
-            transRel.setFraction(BigDecimal.ONE);
+            transRel.setFraction(1.0);
             setTransSpeed.setTransSpeed(transRel);
             testProgram.getMiddleCommand().add(setTransSpeed);
             if (null != status.getJointStatuses()) {
@@ -2225,8 +2221,8 @@ public class PendantClientInner {
                     List<ActuateJointType> ajl = ajst.getActuateJoint();
                     ActuateJointType aj = new ActuateJointType();
                     aj.setJointNumber(js.getJointNumber());
-                    BigDecimal origPosition = BigDecimal.valueOf(js.getJointPosition().doubleValue());
-                    aj.setJointPosition(js.getJointPosition().add(jointPosIncrement));
+                    double origPosition = js.getJointPosition();
+                    aj.setJointPosition(js.getJointPosition() + jointPosIncrement);
                     JointSpeedAccelType jsa = new JointSpeedAccelType();
                     if (null != testJointMoveSpeed) {
                         jsa.setJointSpeed(testJointMoveSpeed);
@@ -2252,7 +2248,7 @@ public class PendantClientInner {
                     ajst.setCommandID(cmdId);
                     testProgram.getMiddleCommand().add(ajst);
                     DwellType dwell = new DwellType();
-                    dwell.setDwellTime(BigDecimal.valueOf(0.25));
+                    dwell.setDwellTime(0.25);
                     cmdId = cmdId.add(BigInteger.ONE);
                     dwell.setCommandID(cmdId);
                     testProgram.getMiddleCommand().add(dwell);
@@ -2301,7 +2297,7 @@ public class PendantClientInner {
                 xPlusPos.setPoint(new PointType());
                 xPlusPos.setXAxis(new VectorType());
                 xPlusPos.setZAxis(new VectorType());
-                xPlusPos.getPoint().setX(pose.getPoint().getX().add(xyzAxisIncrement));
+                xPlusPos.getPoint().setX(pose.getPoint().getX() + xyzAxisIncrement);
                 xPlusPos.getPoint().setY(pose.getPoint().getY());
                 xPlusPos.getPoint().setZ(pose.getPoint().getZ());
                 xPlusPos.getXAxis().setI(pose.getXAxis().getI());
@@ -2315,7 +2311,7 @@ public class PendantClientInner {
                 moveToXPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToXPlus);
                 DwellType dwell = new DwellType();
-                dwell.setDwellTime(BigDecimal.valueOf(0.25));
+                dwell.setDwellTime(0.25);
                 cmdId = cmdId.add(BigInteger.ONE);
                 dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
@@ -2328,7 +2324,7 @@ public class PendantClientInner {
                 yPlusPos.setXAxis(new VectorType());
                 yPlusPos.setZAxis(new VectorType());
                 yPlusPos.getPoint().setX(pose.getPoint().getX());
-                yPlusPos.getPoint().setY(pose.getPoint().getY().add(xyzAxisIncrement));
+                yPlusPos.getPoint().setY(pose.getPoint().getY() + xyzAxisIncrement);
                 yPlusPos.getPoint().setZ(pose.getPoint().getZ());
                 yPlusPos.getXAxis().setI(pose.getXAxis().getI());
                 yPlusPos.getXAxis().setJ(pose.getXAxis().getJ());
@@ -2341,7 +2337,7 @@ public class PendantClientInner {
                 moveToYPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToYPlus);
                 dwell = new DwellType();
-                dwell.setDwellTime(BigDecimal.valueOf(0.25));
+                dwell.setDwellTime(0.25);
                 cmdId = cmdId.add(BigInteger.ONE);
                 dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
@@ -2355,7 +2351,7 @@ public class PendantClientInner {
                 zPlusPos.setZAxis(new VectorType());
                 zPlusPos.getPoint().setX(pose.getPoint().getX());
                 zPlusPos.getPoint().setY(pose.getPoint().getY());
-                zPlusPos.getPoint().setZ(pose.getPoint().getZ().add(xyzAxisIncrement));
+                zPlusPos.getPoint().setZ(pose.getPoint().getZ() + xyzAxisIncrement);
                 zPlusPos.getXAxis().setI(pose.getXAxis().getI());
                 zPlusPos.getXAxis().setJ(pose.getXAxis().getJ());
                 zPlusPos.getXAxis().setK(pose.getXAxis().getK());
@@ -2367,7 +2363,7 @@ public class PendantClientInner {
                 moveToZPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToZPlus);
                 dwell = new DwellType();
-                dwell.setDwellTime(BigDecimal.valueOf(0.25));
+                dwell.setDwellTime(0.25);
                 cmdId = cmdId.add(BigInteger.ONE);
                 dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
@@ -2418,36 +2414,37 @@ public class PendantClientInner {
         return cmdName + " with ID = " + cmd.getCommandID() + ", \txml: " + this.getTempCRCLSocket().commandToString(cmd, false);
     }
 
-    public BigDecimal getJointPosition(BigInteger jointNumber) {
-        if (null == status || null == status.getJointStatuses()) {
-            return null;
+    public double getJointPosition(BigInteger jointNumber) {
+        if (null == status) {
+            throw new IllegalStateException("status = null");
+        }
+        if ( null == status.getJointStatuses()) {
+            throw new IllegalStateException("status.getJointStatuses() == null");
         }
         List<JointStatusType> jsl = status.getJointStatuses().getJointStatus();
         if (null == jsl) {
-            return null;
+            throw new IllegalStateException("status.getJointStatuses().getJointStatus() == null");
         }
         for (JointStatusType js : jsl) {
             if (js.getJointNumber().compareTo(jointNumber) == 0) {
                 return js.getJointPosition();
             }
         }
-        return null;
+        throw new IllegalStateException("No match for jointNumber "+jointNumber+ " on JointStatus list "+jsl);
     }
 
     private long getTimeoutForAcuateJoints(ActuateJointsType ajst) {
         List<ActuateJointType> ajl = ajst.getActuateJoint();
         double maxDiff = 0;
         for (ActuateJointType aj : ajl) {
-            BigDecimal jp = getJointPosition(aj.getJointNumber());
-            if (null == jp) {
-                continue;
-            }
-            double thisDiff = jp.subtract(aj.getJointPosition()).abs().doubleValue();
+            double jp = getJointPosition(aj.getJointNumber());
+//            double thisDiff = jp.subtract(aj.getJointPosition()).abs();
+            double thisDiff = Math.abs(jp - aj.getJointPosition());
             JointDetailsType jd = aj.getJointDetails();
             if (jd instanceof JointSpeedAccelType) {
                 JointSpeedAccelType jas = (JointSpeedAccelType) jd;
                 if (jas.getJointSpeed() != null) {
-                    double vel = jas.getJointSpeed().doubleValue();
+                    double vel = jas.getJointSpeed();
                     if (vel <= 0) {
                         throw new RuntimeException("Invalid value of " + jas.getJointSpeed());
                     }
@@ -2463,7 +2460,7 @@ public class PendantClientInner {
                         throw new RuntimeException(e);
                     }
                     if (null != jas.getJointAccel()) {
-                        double accel = jas.getJointAccel().doubleValue();
+                        double accel = jas.getJointAccel();
                         thisDiff += Math.abs(2 * vel / accel);
                     }
                 }
@@ -2486,7 +2483,7 @@ public class PendantClientInner {
     }
 
     private long getTimeoutForDwell(DwellType cmd) {
-        return (long) (1500 + cmd.getDwellTime().doubleValue() * 1000);
+        return (long) (1500 + cmd.getDwellTime() * 1000);
     }
 
     private long getTimeout(CRCLCommandType cmd) {

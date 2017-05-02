@@ -80,7 +80,7 @@
         FractionType is a number between zero and 1 representing a fraction.
       </xs:documentation>
     </xs:annotation>
-    <xs:restriction base="xs:decimal">
+    <xs:restriction base="xs:double">
       <xs:minInclusive value="0.0"/>
       <xs:maxInclusive value="1.0"/>
     </xs:restriction>
@@ -117,11 +117,11 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="X"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="Y"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="Z"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -158,7 +158,7 @@
   </xs:complexType>
 
   <xs:simpleType name="PositiveDecimalType">
-    <xs:restriction base="xs:decimal">
+    <xs:restriction base="xs:double">
       <xs:minExclusive value="0"/>
     </xs:restriction>
   </xs:simpleType>
@@ -219,11 +219,11 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="I"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="J"
-            type="xs:decimal"/>
+            type="xs:double"/>
           <xs:element name="K"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -279,19 +279,19 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="XPointTolerance"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="YPointTolerance"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="ZPointTolerance"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="XAxisTolerance"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="ZAxisTolerance"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -345,7 +345,7 @@
       <xs:extension base="RotAccelType">
         <xs:sequence>
           <xs:element name="Setting"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -410,7 +410,7 @@
       <xs:extension base="RotSpeedType">
         <xs:sequence>
           <xs:element name="Setting"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -477,7 +477,7 @@
       <xs:extension base="TransAccelType">
         <xs:sequence>
           <xs:element name="Setting"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -542,7 +542,7 @@
       <xs:extension base="TransSpeedType">
         <xs:sequence>
           <xs:element name="Setting"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

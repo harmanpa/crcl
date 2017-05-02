@@ -685,19 +685,19 @@ public class CrclExiSocketTest {
         status.setCommandStatus(cst);
         PoseType p = new PoseType();
         PointType pt = new PointType();
-        pt.setX(BigDecimal.ONE);
-        pt.setY(BigDecimal.ONE);
-        pt.setZ(BigDecimal.ONE);
+        pt.setX(1.0);
+        pt.setY(1.0);
+        pt.setZ(1.0);
         p.setPoint(pt);
         VectorType xAxis = new VectorType();
-        xAxis.setI(BigDecimal.ONE);
-        xAxis.setJ(BigDecimal.ZERO);
-        xAxis.setK(BigDecimal.ZERO);
+        xAxis.setI(1.0);
+        xAxis.setJ(0.0);
+        xAxis.setK(0.0);
         p.setXAxis(xAxis);
         VectorType zAxis = new VectorType();
-        zAxis.setI(BigDecimal.ZERO);
-        zAxis.setJ(BigDecimal.ZERO);
-        zAxis.setK(BigDecimal.ONE);
+        zAxis.setI(0.0);
+        zAxis.setJ(0.0);
+        zAxis.setK(1.0);
         p.setZAxis(zAxis);
         CRCLPosemath.setPose(status, p);
         CrclExiSocket instance = new CrclExiSocket();
@@ -712,8 +712,11 @@ public class CrclExiSocketTest {
                 statusCopy.getCommandStatus().getCommandID());
         assertEquals(status.getCommandStatus().getStatusID(),
                 statusCopy.getCommandStatus().getStatusID());
-        assertTrue(CRCLPosemath.getPoint(status).getX().subtract(
-                CRCLPosemath.getPoint(statusCopy).getX()).abs().compareTo(BigDecimal.valueOf(1e-6)) < 0);
+        assertTrue(
+                Math.abs(
+                        CRCLPosemath.getPoint(status).getX()
+                        - CRCLPosemath.getPoint(statusCopy).getX()
+                ) < 1e-6);
     }
 
     /**

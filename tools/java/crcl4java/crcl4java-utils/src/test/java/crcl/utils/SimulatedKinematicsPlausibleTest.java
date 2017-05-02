@@ -75,13 +75,13 @@ public class SimulatedKinematicsPlausibleTest {
         assertEquals(-Math.toDegrees(rpyOut1.r), jtest[5],0.1);
         double jout1[] = sk.poseToJoints(null, pose);
         assertArrayEquals(jout1, jtest, 0.1);
-        pose.getPoint().setZ(pose.getPoint().getZ().add(BigDecimal.ONE));
+        pose.getPoint().setZ(pose.getPoint().getZ() + 1.0);
         double jout2[] = sk.poseToJoints(null, pose);
         assertEquals(jout2[5], jtest[5], 0.1);
         PoseType poseOut1 = sk.jointsToPose(jout2);
-        assertEquals(poseOut1.getPoint().getX().doubleValue(), pose.getPoint().getX().doubleValue(), 0.1);
-        assertEquals(poseOut1.getPoint().getY().doubleValue(), pose.getPoint().getY().doubleValue(), 0.1);
-        assertEquals(poseOut1.getPoint().getZ().doubleValue(), pose.getPoint().getZ().doubleValue(), 0.1);
+        assertEquals(poseOut1.getPoint().getX(), pose.getPoint().getX(), 0.1);
+        assertEquals(poseOut1.getPoint().getY(), pose.getPoint().getY(), 0.1);
+        assertEquals(poseOut1.getPoint().getZ(), pose.getPoint().getZ(), 0.1);
                 
         Random r = new Random(RANDOM_SEED);
         for (int i = 0; i < 100; i++) {
@@ -94,21 +94,21 @@ public class SimulatedKinematicsPlausibleTest {
                 switch (index) {
                     case 0:
                         //System.err.println("pt.getX().doubleValue() = " + pt.getX().doubleValue());
-                        pt.setX(pt.getX().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                        pt.setX(pt.getX() + r.nextDouble() * 20.0 - 10.0);
                         //System.err.println("pt.getX().doubleValue() = " + pt.getX().doubleValue());
                         pose.setPoint(pt);
                         break;
 
                     case 1:
                         //System.err.println("pt.getY().doubleValue() = " + pt.getY().doubleValue());
-                        pt.setY(pt.getY().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                        pt.setY(pt.getY()+ r.nextDouble() * 20.0 - 10.0);
                         //System.err.println("pt.getY().doubleValue() = " + pt.getY().doubleValue());
                         pose.setPoint(pt);
                         break;
 
                     case 2:
                         //System.err.println("pt.getZ().doubleValue() = " + pt.getZ().doubleValue());
-                        pt.setZ(pt.getZ().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                        pt.setZ(pt.getZ() + r.nextDouble() * 20.0 - 10.0);
                         //System.err.println("pt.getZ().doubleValue() = " + pt.getZ().doubleValue());
                         pose.setPoint(pt);
                         break;
@@ -158,9 +158,9 @@ public class SimulatedKinematicsPlausibleTest {
 //                        pt2.getY().doubleValue(),
 //                        pt2.getZ().doubleValue()
 //                );
-                assertEquals(pt1.getX().doubleValue(), pt2.getX().doubleValue(), 5.0);
-                assertEquals(pt1.getY().doubleValue(), pt2.getY().doubleValue(), 5.0);
-                assertEquals(pt1.getZ().doubleValue(), pt2.getZ().doubleValue(), 5.0);
+                assertEquals(pt1.getX(), pt2.getX(), 5.0);
+                assertEquals(pt1.getY(), pt2.getY(), 5.0);
+                assertEquals(pt1.getZ(), pt2.getZ(), 5.0);
                 double diffRot = CRCLPosemath.diffPosesRot(pose, pose2);
                 assertTrue(diffRot >= 0);
                 assertTrue(Math.abs(diffRot) < Math.toRadians(0.1));

@@ -121,9 +121,9 @@ public class TransformJPanel extends javax.swing.JPanel {
     static public PointType getPointFromTable(JTable table) {
         final TableModel model = table.getModel();
         PointType pt = new PointType();
-        pt.setX(new BigDecimal(model.getValueAt(0, 1).toString()));
-        pt.setY(new BigDecimal(model.getValueAt(1, 1).toString()));
-        pt.setZ(new BigDecimal(model.getValueAt(2, 1).toString()));
+        pt.setX(Double.parseDouble(model.getValueAt(0, 1).toString()));
+        pt.setY(Double.parseDouble(model.getValueAt(1, 1).toString()));
+        pt.setZ(Double.parseDouble(model.getValueAt(2, 1).toString()));
         return pt;
     }
 
@@ -155,9 +155,9 @@ public class TransformJPanel extends javax.swing.JPanel {
     public synchronized void updatePointTable(JTable table, PointType pt) {
         ignoreModelUpdates = true;
         final TableModel model = table.getModel();
-        model.setValueAt(pt.getX().doubleValue(), 0, 1);
-        model.setValueAt(pt.getY().doubleValue(), 1, 1);
-        model.setValueAt(pt.getZ().doubleValue(), 2, 1);
+        model.setValueAt(pt.getX(), 0, 1);
+        model.setValueAt(pt.getY(), 1, 1);
+        model.setValueAt(pt.getZ(), 2, 1);
         ignoreModelUpdates = false;
     }
 

@@ -55,9 +55,9 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
     static public PointType getPointFromTable(JTable table) {
         final TableModel model = table.getModel();
         PointType pt = new PointType();
-        pt.setX(new BigDecimal(model.getValueAt(0, 1).toString()));
-        pt.setY(new BigDecimal(model.getValueAt(1, 1).toString()));
-        pt.setZ(new BigDecimal(model.getValueAt(2, 1).toString()));
+        pt.setX(Double.parseDouble(model.getValueAt(0, 1).toString()));
+        pt.setY(Double.parseDouble(model.getValueAt(1, 1).toString()));
+        pt.setZ(Double.parseDouble(model.getValueAt(2, 1).toString()));
         return pt;
     }
     

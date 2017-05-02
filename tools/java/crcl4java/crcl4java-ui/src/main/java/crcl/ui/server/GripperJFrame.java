@@ -464,16 +464,16 @@ public class GripperJFrame extends javax.swing.JFrame {
                             this.threeFingerGripperStatus.setFinger1Position(seeCmd.getSetting());
                             this.threeFingerGripperStatus.setFinger2Position(seeCmd.getSetting());
                             this.threeFingerGripperStatus.setFinger3Position(seeCmd.getSetting());
-                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting().doubleValue(), 0, 1);
-                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting().doubleValue(), 1, 1);
-                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting().doubleValue(), 2, 1);
+                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting(), 0, 1);
+                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting(), 1, 1);
+                            this.jTableThreeFinger.getModel().setValueAt(seeCmd.getSetting(), 2, 1);
                             break;
 
                         case "Vacuum":
                             if (null == this.vacuumGripperStatus) {
                                 this.vacuumGripperStatus = new VacuumGripperStatusType();
                             }
-                            vacuumGripperStatus.setIsPowered(seeCmd.getSetting().compareTo(BigDecimal.valueOf(0.5)) < 0);
+                            vacuumGripperStatus.setIsPowered(seeCmd.getSetting()< 0.5);
                             this.jCheckBoxVacuumPower.setSelected(vacuumGripperStatus.isIsPowered());
                             break;
 
@@ -482,7 +482,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                                 this.parallelGripperStatus = new ParallelGripperStatusType();
                             }
                             parallelGripperStatus.setSeparation(seeCmd.getSetting());
-                            this.jTextFieldParallelSeperation.setText(seeCmd.getSetting().toString());
+                            this.jTextFieldParallelSeperation.setText(Double.toString(seeCmd.getSetting()));
                             break;
 
                         default:
@@ -510,16 +510,16 @@ public class GripperJFrame extends javax.swing.JFrame {
                 }
                 this.status.setGripperStatus(threeFingerGripperStatus);
                 Double f1pos = (Double) this.jTableThreeFinger.getModel().getValueAt(0, 1);
-                threeFingerGripperStatus.setFinger1Position(BigDecimal.valueOf(f1pos));
+                threeFingerGripperStatus.setFinger1Position(f1pos);
                 Double f2pos = (Double) this.jTableThreeFinger.getModel().getValueAt(1, 1);
-                threeFingerGripperStatus.setFinger2Position(BigDecimal.valueOf(f2pos));
+                threeFingerGripperStatus.setFinger2Position(f2pos);
                 Double f3pos = (Double) this.jTableThreeFinger.getModel().getValueAt(2, 1);
-                threeFingerGripperStatus.setFinger3Position(BigDecimal.valueOf(f3pos));
+                threeFingerGripperStatus.setFinger3Position(f3pos);
                 Object f1forceObj = this.jTableThreeFinger.getModel().getValueAt(0, 2);
                 if (null != f1forceObj) {
                     try {
                         double f1force = Double.parseDouble(f1forceObj.toString());
-                        threeFingerGripperStatus.setFinger1Force(BigDecimal.valueOf(f1force));
+                        threeFingerGripperStatus.setFinger1Force(f1force);
                     } catch (NumberFormatException numberFormatException) {
                     }
                 }
@@ -527,7 +527,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 if (null != f2forceObj) {
                     try {
                         double f2force = Double.parseDouble(f2forceObj.toString());
-                        threeFingerGripperStatus.setFinger2Force(BigDecimal.valueOf(f2force));
+                        threeFingerGripperStatus.setFinger2Force(f2force);
                     } catch (NumberFormatException numberFormatException) {
                     }
                 }
@@ -535,7 +535,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 if (null != f3forceObj) {
                     try {
                         double f3force = Double.parseDouble(f3forceObj.toString());
-                        threeFingerGripperStatus.setFinger3Force(BigDecimal.valueOf(f3force));
+                        threeFingerGripperStatus.setFinger3Force(f3force);
                     } catch (NumberFormatException numberFormatException) {
                     }
                 }
@@ -555,7 +555,7 @@ public class GripperJFrame extends javax.swing.JFrame {
                 }
                 try {
                     double sep = Double.parseDouble(this.jTextFieldParallelSeperation.getText());
-                    parallelGripperStatus.setSeparation(BigDecimal.valueOf(sep));
+                    parallelGripperStatus.setSeparation(sep);
 
                 } catch (NumberFormatException numberFormatException) {
                 }

@@ -134,17 +134,17 @@ public class SimulatedKinematicsPlausible {
         }
         PointType pt = pose.getPoint();
         Point2D.Double endPtXY = new Point2D.Double(
-                pt.getX().doubleValue(),
-                pt.getY().doubleValue());
+                pt.getX(),
+                pt.getY());
 //        double r = Math.sqrt(
 //                endPtXY.x * endPtXY.x
 //                + endPtXY.y * endPtXY.y
 //        );
 //        double z = pt.getZ().doubleValue();
         VectorType xv = pose.getXAxis();
-        double xvi = xv.getI().doubleValue();
-        double xvj = xv.getJ().doubleValue();
-        double xvk = xv.getK().doubleValue();
+        double xvi = xv.getI();
+        double xvj = xv.getJ();
+        double xvk = xv.getK();
         //System.err.println("xvi="+xvi+",xvj="+xvj+",xvk="+xvk);
 
         //System.err.println("zvi="+zvi+",zvj="+zvj+",zvk="+zvk);
@@ -154,7 +154,7 @@ public class SimulatedKinematicsPlausible {
         Point2D.Double j4PointXY = new Point2D.Double(
                 endPtXY.x - sl[3] * xvi,
                 endPtXY.y - sl[3] * xvj);
-        double j4z = pt.getZ().doubleValue() - sl[3] * xvk;
+        double j4z = pt.getZ() - sl[3] * xvk;
         double a1 = Math.atan2(j4PointXY.y, j4PointXY.x);
         jv[0] = Math.toDegrees(a1);
         jv[4] = Math.toDegrees(Math.atan2(xvj, xvi) - a1);
@@ -270,9 +270,9 @@ public class SimulatedKinematicsPlausible {
         if (null == p) {
             p = new PointType();
         }
-        p.setX(BigDecimal.valueOf(x));
-        p.setY(BigDecimal.valueOf(y));
-        p.setZ(BigDecimal.valueOf(z));
+        p.setX(x);
+        p.setY(y);
+        p.setZ(z);
         pose.setPoint(p);
         double cz = Math.cos(Math.toRadians(jv[0] + jv[4]));
         double sz = Math.sin(Math.toRadians(jv[0] + jv[4]));
@@ -298,9 +298,9 @@ public class SimulatedKinematicsPlausible {
         if (null == xunitv) {
             xunitv = new VectorType();
         }
-        xunitv.setI(BigDecimal.valueOf(Ryz[0][0]));
-        xunitv.setJ(BigDecimal.valueOf(Ryz[0][1]));
-        xunitv.setK(BigDecimal.valueOf(Ryz[0][2]));
+        xunitv.setI(Ryz[0][0]);
+        xunitv.setJ(Ryz[0][1]);
+        xunitv.setK(Ryz[0][2]);
 
         pose.setXAxis(xunitv);
         VectorType zunitv = pose.getZAxis();
@@ -315,9 +315,9 @@ public class SimulatedKinematicsPlausible {
                     {0.0, cx, -sx},
                     {0.0, sx, cx},};
         double[][] R = rot9x9mult(rx, Ryz);
-        zunitv.setI(BigDecimal.valueOf(R[2][0]));
-        zunitv.setJ(BigDecimal.valueOf(R[2][1]));
-        zunitv.setK(BigDecimal.valueOf(R[2][2]));
+        zunitv.setI(R[2][0]);
+        zunitv.setJ(R[2][1]);
+        zunitv.setK(R[2][2]);
         pose.setZAxis(zunitv);
         return pose;
     }

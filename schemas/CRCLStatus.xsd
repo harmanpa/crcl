@@ -294,13 +294,13 @@
           <xs:element name="JointNumber"
             type="xs:positiveInteger"/>
           <xs:element name="JointPosition"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointTorqueOrForce"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointVelocity"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -328,16 +328,16 @@
           <xs:element name="JointNumber"
             type="xs:positiveInteger"/>
           <xs:element name="JointMinPosition"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointMaxPosition"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointMaxTorqueOrForce"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="JointMaxVelocity"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -363,7 +363,7 @@
       <xs:extension base="GripperStatusType">
         <xs:sequence>
           <xs:element name="Separation"
-            type="xs:decimal"/>
+            type="xs:double"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -622,13 +622,13 @@
             type="FractionType"
             minOccurs="0"/>
           <xs:element name="Finger1Force"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="Finger2Force"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
           <xs:element name="Finger3Force"
-            type="xs:decimal"
+            type="xs:double"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>

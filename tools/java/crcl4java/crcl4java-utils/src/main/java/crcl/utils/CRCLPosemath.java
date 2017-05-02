@@ -124,9 +124,9 @@ public class CRCLPosemath {
      */
     static public PointType point(BigDecimal x, BigDecimal y, BigDecimal z) {
         PointType point = new PointType();
-        point.setX(x);
-        point.setY(y);
-        point.setZ(z);
+        point.setX(x.doubleValue());
+        point.setY(y.doubleValue());
+        point.setZ(z.doubleValue());
         return point;
     }
 
@@ -146,9 +146,9 @@ public class CRCLPosemath {
             throw new IllegalArgumentException("point("+x+","+y+","+z+") contains NaN or Infinity");
         }
         PointType point = new PointType();
-        point.setX(BigDecimal.valueOf(x));
-        point.setY(BigDecimal.valueOf(y));
-        point.setZ(BigDecimal.valueOf(z));
+        point.setX(x);
+        point.setY(y);
+        point.setZ(z);
         return point;
     }
 
@@ -163,11 +163,12 @@ public class CRCLPosemath {
      */
     static public VectorType vector(BigDecimal i, BigDecimal j, BigDecimal k) {
         VectorType vector = new VectorType();
-        vector.setI(i);
-        vector.setJ(j);
-        vector.setK(k);
+        vector.setI(i.doubleValue());
+        vector.setJ(j.doubleValue());
+        vector.setK(k.doubleValue());
         return vector;
     }
+    
 
     /**
      * Create a new VectorType object from the given double i,j,k vector
@@ -180,9 +181,9 @@ public class CRCLPosemath {
      */
     static public VectorType vector(double i, double j, double k) {
         VectorType vector = new VectorType();
-        vector.setI(BigDecimal.valueOf(i));
-        vector.setJ(BigDecimal.valueOf(j));
-        vector.setK(BigDecimal.valueOf(k));
+        vector.setI(i);
+        vector.setJ(j);
+        vector.setK(k);
         return vector;
     }
 
@@ -252,8 +253,8 @@ public class CRCLPosemath {
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double xyPoint2D(PointType pt) {
-        return new Point2D.Double(pt.getX().doubleValue(),
-                pt.getY().doubleValue());
+        return new Point2D.Double(pt.getX(),
+                pt.getY());
     }
 
     /**
@@ -605,9 +606,9 @@ public class CRCLPosemath {
         }
         VectorType newXAxis = new VectorType();
         final BigDecimal MINUS_ONE = BigDecimal.valueOf(-1);
-        newXAxis.setI(pose.getXAxis().getI().multiply(MINUS_ONE));
-        newXAxis.setJ(pose.getXAxis().getJ().multiply(MINUS_ONE));
-        newXAxis.setK(pose.getXAxis().getK().multiply(MINUS_ONE));
+        newXAxis.setI(pose.getXAxis().getI()* -1.0);
+        newXAxis.setJ(pose.getXAxis().getJ()* -1.0);
+        newXAxis.setK(pose.getXAxis().getK()* -1.0);
         newPose.setXAxis(newXAxis);
         VectorType zAxis = copy(pose.getZAxis());
         if (null != zAxis) {
@@ -623,9 +624,9 @@ public class CRCLPosemath {
      */
     public static PointType newZeroedPoint() {
         PointType pt = new PointType();
-        pt.setX(BigDecimal.ZERO);
-        pt.setY(BigDecimal.ZERO);
-        pt.setZ(BigDecimal.ZERO);
+        pt.setX(0.0);
+        pt.setY(0.0);
+        pt.setZ(0.0);
         return pt;
     }
 
@@ -1057,27 +1058,27 @@ public class CRCLPosemath {
      */
     public static PmCartesian toPmCartesian(final PointType pt) {
         return new PmCartesian(
-                pt.getX().doubleValue(),
-                pt.getY().doubleValue(),
-                pt.getZ().doubleValue());
+                pt.getX(),
+                pt.getY(),
+                pt.getZ());
     }
 
     public static PoseType identityPose() {
         PoseType newPose = new PoseType();
         PointType pt = new PointType();
-        pt.setX(BigDecimal.ZERO);
-        pt.setY(BigDecimal.ZERO);
-        pt.setZ(BigDecimal.ZERO);
+        pt.setX(0.0);
+        pt.setY(0.0);
+        pt.setZ(0.0);
         newPose.setPoint(pt);
         VectorType xAxis = new VectorType();
-        xAxis.setI(BigDecimal.ONE);
-        xAxis.setJ(BigDecimal.ZERO);
-        xAxis.setK(BigDecimal.ZERO);
+        xAxis.setI(1.0);
+        xAxis.setJ(0.0);
+        xAxis.setK(0.0);
         newPose.setXAxis(xAxis);
         VectorType zAxis = new VectorType();
-        zAxis.setI(BigDecimal.ZERO);
-        zAxis.setJ(BigDecimal.ZERO);
-        zAxis.setK(BigDecimal.ONE);
+        zAxis.setI(0.0);
+        zAxis.setJ(0.0);
+        zAxis.setK(1.0);
         newPose.setZAxis(zAxis);
         return newPose;
     }
@@ -1098,17 +1099,17 @@ public class CRCLPosemath {
 
     public static PointType add(PointType p1, PointType p2) {
         PointType sum = new PointType();
-        sum.setX(p1.getX().add(p2.getX()));
-        sum.setY(p1.getY().add(p2.getY()));
-        sum.setZ(p1.getZ().add(p2.getZ()));
+        sum.setX(p1.getX() + p2.getX());
+        sum.setY(p1.getY() + p2.getY());
+        sum.setZ(p1.getZ() + p2.getZ());
         return sum;
     }
 
     public static PointType subtract(PointType p1, PointType p2) {
         PointType sum = new PointType();
-        sum.setX(p1.getX().subtract(p2.getX()));
-        sum.setY(p1.getY().subtract(p2.getY()));
-        sum.setZ(p1.getZ().subtract(p2.getZ()));
+        sum.setX(p1.getX() - p2.getX());
+        sum.setY(p1.getY() - p2.getY());
+        sum.setZ(p1.getZ() - p2.getZ());
         return sum;
     }
 
@@ -1154,39 +1155,41 @@ public class CRCLPosemath {
     }
 
     public static PointType multiply(final BigDecimal dist, final VectorType v) {
-        PointType out = new PointType();
-        out.setX(v.getI().multiply(dist));
-        out.setY(v.getJ().multiply(dist));
-        out.setZ(v.getK().multiply(dist));
-        return out;
+        return multiply(dist.doubleValue(),v);
     }
 
     public static PointType multiply(double dist, VectorType v) {
-        return multiply(BigDecimal.valueOf(dist), v);
-    }
-
-    public static PointType multiply(BigDecimal dist, PointType p) {
         PointType out = new PointType();
-        out.setX(p.getX().multiply(dist));
-        out.setY(p.getY().multiply(dist));
-        out.setZ(p.getZ().multiply(dist));
+        
+        out.setX(v.getI()* dist);
+        out.setY(v.getJ()* dist);
+        out.setZ(v.getK()* dist);
         return out;
     }
 
+    public static PointType multiply(BigDecimal dist, PointType p) {
+        return multiply(dist.doubleValue(), p);
+    }
+
     public static PointType multiply(double dist, PointType p) {
-        return multiply(BigDecimal.valueOf(dist), p);
+        PointType out = new PointType();
+        out.setX(p.getX()* dist);
+        out.setY(p.getY()* dist);
+        out.setZ(p.getZ()* dist);
+        return out;
     }
 
-    public static BigDecimal dot(VectorType v1, VectorType v2) {
-        return v1.getI().multiply(v2.getI())
-                .add(v1.getJ().multiply(v2.getJ()))
-                .add(v1.getK().multiply(v2.getK()));
+    
+    public static double dot(VectorType v1, VectorType v2) {
+        return v1.getI()* v2.getI()
+                + v1.getJ()* v2.getJ()
+                + v1.getK() * v2.getK();
     }
 
-    public static BigDecimal dot(VectorType v1, PointType p2) {
-        return v1.getI().multiply(p2.getX())
-                .add(v1.getJ().multiply(p2.getY()))
-                .add(v1.getK().multiply(p2.getZ()));
+    public static double dot(VectorType v1, PointType p2) {
+        return v1.getI()* p2.getX()
+                + v1.getJ() * p2.getY()
+                + v1.getK() * p2.getZ();
     }
 
     /**
@@ -1199,9 +1202,9 @@ public class CRCLPosemath {
     public static double norm(VectorType v1) {
         // FIXME(maybe?) It is difficult to take sqrt(BigDecimal) so
         // I punted and just hope double precision is good enough.
-        double i = v1.getI().doubleValue();
-        double j = v1.getJ().doubleValue();
-        double k = v1.getK().doubleValue();
+        double i = v1.getI();
+        double j = v1.getJ();
+        double k = v1.getK();
         return Math.sqrt(i * i + j * j + k * k);
     }
 
@@ -1219,10 +1222,11 @@ public class CRCLPosemath {
         if (normv < Double.MIN_VALUE) {
             throw new CRCLException(new IllegalArgumentException("Can't normalize vector with zero magnitude."));
         }
-        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)), MathContext.DECIMAL64);
-        vout.setI(v.getI().multiply(normInv));
-        vout.setJ(v.getJ().multiply(normInv));
-        vout.setK(v.getK().multiply(normInv));
+//        BigDecimal normInv = BigDecimal.ONE.divide(BigDecimal.valueOf(norm(v)), MathContext.DECIMAL64);
+        double normInv = 1.0 / norm(v);
+        vout.setI(v.getI() * normInv);
+        vout.setJ(v.getJ() * normInv);
+        vout.setK(v.getK() * normInv);
         return vout;
     }
 
@@ -1239,9 +1243,16 @@ public class CRCLPosemath {
 //        vout.x = v1.y * v2.z - v1.z * v2.y;
 //        vout.y = v1.z * v2.x - v1.x * v2.z;
 //        vout.z = v1.x * v2.y - v1.y * v2.x;
-        vout.setI(v1.getJ().multiply(v2.getK()).subtract(v1.getK().multiply(v2.getJ())));
-        vout.setJ(v1.getK().multiply(v2.getI()).subtract(v1.getI().multiply(v2.getK())));
-        vout.setK(v1.getI().multiply(v2.getJ()).subtract(v1.getJ().multiply(v2.getI())));
+//        vout.setI(v1.getJ().multiply(v2.getK()).subtract(v1.getK().multiply(v2.getJ())));
+//        vout.setJ(v1.getK().multiply(v2.getI()).subtract(v1.getI().multiply(v2.getK())));
+//        vout.setK(v1.getI().multiply(v2.getJ()).subtract(v1.getJ().multiply(v2.getI())));
+
+        double i = v1.getJ() * v2.getK() - v1.getK() * v2.getJ();
+        double j = v1.getK() * v2.getI() - v1.getI() * v2.getK();
+        double k = v1.getI() * v2.getJ() - v1.getJ() * v2.getI();
+        vout.setI(i);
+        vout.setJ(j);
+        vout.setK(k);
         return vout;
     }
 
@@ -1261,19 +1272,19 @@ public class CRCLPosemath {
         }
         PoseType newPose = new PoseType();
         PointType pt = new PointType();
-        pt.setX(BigDecimal.valueOf(mat[0][3]));
-        pt.setY(BigDecimal.valueOf(mat[1][3]));
-        pt.setZ(BigDecimal.valueOf(mat[2][3]));
+        pt.setX(mat[0][3]);
+        pt.setY(mat[1][3]);
+        pt.setZ(mat[2][3]);
         newPose.setPoint(pt);
         VectorType xAxis = new VectorType();
-        xAxis.setI(BigDecimal.valueOf(mat[0][0]));
-        xAxis.setJ(BigDecimal.valueOf(mat[1][0]));
-        xAxis.setK(BigDecimal.valueOf(mat[2][0]));
+        xAxis.setI(mat[0][0]);
+        xAxis.setJ(mat[1][0]);
+        xAxis.setK(mat[2][0]);
         newPose.setXAxis(xAxis);
         VectorType zAxis = new VectorType();
-        zAxis.setI(BigDecimal.valueOf(mat[0][2]));
-        zAxis.setJ(BigDecimal.valueOf(mat[1][2]));
-        zAxis.setK(BigDecimal.valueOf(mat[2][2]));
+        zAxis.setI(mat[0][2]);
+        zAxis.setJ(mat[1][2]);
+        zAxis.setK(mat[2][2]);
         newPose.setZAxis(zAxis);
         return newPose;
     }
@@ -1286,21 +1297,21 @@ public class CRCLPosemath {
             {0.0, 0.0, 0.0, 1.0}
         };
         PointType pt = poseIn.getPoint();
-        mat[0][3] = pt.getX().doubleValue();
-        mat[1][3] = pt.getY().doubleValue();
-        mat[2][3] = pt.getZ().doubleValue();
+        mat[0][3] = pt.getX();
+        mat[1][3] = pt.getY();
+        mat[2][3] = pt.getZ();
         VectorType xAxis = poseIn.getXAxis();
-        mat[0][0] = xAxis.getI().doubleValue();
-        mat[0][1] = xAxis.getJ().doubleValue();
-        mat[0][2] = xAxis.getK().doubleValue();
+        mat[0][0] = xAxis.getI();
+        mat[0][1] = xAxis.getJ();
+        mat[0][2] = xAxis.getK();
         VectorType yAxis = cross(poseIn.getZAxis(), poseIn.getXAxis());
-        mat[1][0] = yAxis.getI().doubleValue();
-        mat[1][1] = yAxis.getJ().doubleValue();
-        mat[1][2] = yAxis.getK().doubleValue();
+        mat[1][0] = yAxis.getI();
+        mat[1][1] = yAxis.getJ();
+        mat[1][2] = yAxis.getK();
         VectorType zAxis = poseIn.getZAxis();
-        mat[2][0] = zAxis.getI().doubleValue();
-        mat[2][1] = zAxis.getJ().doubleValue();
-        mat[2][2] = zAxis.getK().doubleValue();
+        mat[2][0] = zAxis.getI();
+        mat[2][1] = zAxis.getJ();
+        mat[2][2] = zAxis.getK();
         return mat;
     }
 
@@ -1322,9 +1333,9 @@ public class CRCLPosemath {
 //        VectorType yAxisOut = cross(zAxisOut,xAxisOut);
 
         PointType pt = new PointType();
-        pt.setX(dot(xAxisIn, p.getPoint()).negate());
-        pt.setY(dot(yAxisIn, p.getPoint()).negate());
-        pt.setZ(dot(zAxisIn, p.getPoint()).negate());
+        pt.setX(dot(xAxisIn, p.getPoint()) * -1.0);
+        pt.setY(dot(yAxisIn, p.getPoint()) * -1.0);
+        pt.setZ(dot(zAxisIn, p.getPoint()) * -1.0);
         pOut.setPoint(pt);
 
         return pOut;
@@ -1337,17 +1348,17 @@ public class CRCLPosemath {
         VectorType zAxisOut = new VectorType();
         PointType pt2 = p2.getPoint();
         PointType pt2rot = new PointType();
-        pt2rot.setX(p1.getXAxis().getI().multiply(pt2.getX())
-                .add(yAxis1.getI().multiply(pt2.getY()))
-                .add(p1.getZAxis().getI().multiply(pt2.getZ()))
+        pt2rot.setX(p1.getXAxis().getI()* pt2.getX()
+                 + yAxis1.getI() * pt2.getY()
+                 + p1.getZAxis().getI() * pt2.getZ()
         );
-        pt2rot.setY(p1.getXAxis().getJ().multiply(pt2.getX())
-                .add(yAxis1.getJ().multiply(pt2.getY()))
-                .add(p1.getZAxis().getJ().multiply(pt2.getZ()))
+        pt2rot.setY(p1.getXAxis().getJ()* pt2.getX()
+                + yAxis1.getJ() * pt2.getY()
+                + p1.getZAxis().getJ() * pt2.getZ()
         );
-        pt2rot.setZ(p1.getXAxis().getK().multiply(pt2.getX())
-                .add(yAxis1.getK().multiply(pt2.getY()))
-                .add(p1.getZAxis().getK().multiply(pt2.getZ()))
+        pt2rot.setZ(p1.getXAxis().getK()* pt2.getX()
+                + yAxis1.getK() * pt2.getY()
+                + p1.getZAxis().getK() * pt2.getZ()
         );
         PointType pt = add(p1.getPoint(), pt2rot);
         poseOut.setPoint(pt);
@@ -1367,36 +1378,36 @@ public class CRCLPosemath {
 //                .add(p1.getXAxis().getK().multiply(p2.getZAxis().getK()))
 //                );
         xAxisOut.setI(
-                p1.getXAxis().getI().multiply(p2.getXAxis().getI())
-                .add(yAxis1.getI().multiply(p2.getXAxis().getJ()))
-                .add(p1.getZAxis().getI().multiply(p2.getXAxis().getK()))
+                p1.getXAxis().getI()* p2.getXAxis().getI()
+                + yAxis1.getI() * p2.getXAxis().getJ()
+                + p1.getZAxis().getI() * p2.getXAxis().getK()
         );
         xAxisOut.setJ(
-                p1.getXAxis().getJ().multiply(p2.getXAxis().getI())
-                .add(yAxis1.getJ().multiply(p2.getXAxis().getJ()))
-                .add(p1.getZAxis().getJ().multiply(p2.getXAxis().getK()))
+                p1.getXAxis().getJ()* p2.getXAxis().getI()
+                + yAxis1.getJ() * p2.getXAxis().getJ()
+                + p1.getZAxis().getJ() * p2.getXAxis().getK()
         );
         xAxisOut.setK(
-                p1.getXAxis().getK().multiply(p2.getXAxis().getI())
-                .add(yAxis1.getK().multiply(p2.getXAxis().getJ()))
-                .add(p1.getZAxis().getK().multiply(p2.getXAxis().getK()))
+                p1.getXAxis().getK() * p2.getXAxis().getI()
+                + yAxis1.getK() * p2.getXAxis().getJ()
+                + p1.getZAxis().getK() * p2.getXAxis().getK()
         );
 
         poseOut.setXAxis(xAxisOut);
         zAxisOut.setI(
-                p1.getXAxis().getI().multiply(p2.getZAxis().getI())
-                .add(yAxis1.getI().multiply(p2.getZAxis().getJ()))
-                .add(p1.getZAxis().getI().multiply(p2.getZAxis().getK()))
+                p1.getXAxis().getI()* p2.getZAxis().getI()
+                + yAxis1.getI() * p2.getZAxis().getJ()
+                + p1.getZAxis().getI() * p2.getZAxis().getK()
         );
         zAxisOut.setJ(
-                p1.getXAxis().getJ().multiply(p2.getZAxis().getI())
-                .add(yAxis1.getJ().multiply(p2.getZAxis().getJ()))
-                .add(p1.getZAxis().getJ().multiply(p2.getZAxis().getK()))
+                p1.getXAxis().getJ()* p2.getZAxis().getI()
+                + yAxis1.getJ() * p2.getZAxis().getJ()
+                + p1.getZAxis().getJ() * p2.getZAxis().getK()
         );
         zAxisOut.setK(
-                p1.getXAxis().getK().multiply(p2.getZAxis().getI())
-                .add(yAxis1.getK().multiply(p2.getZAxis().getJ()))
-                .add(p1.getZAxis().getK().multiply(p2.getZAxis().getK()))
+                p1.getXAxis().getK()* p2.getZAxis().getI()
+                + yAxis1.getK() * p2.getZAxis().getJ()
+                + p1.getZAxis().getK() * p2.getZAxis().getK()
         );
         poseOut.setZAxis(zAxisOut);
         return poseOut;
@@ -1450,9 +1461,9 @@ public class CRCLPosemath {
      * @return PmCartesian equivalent of v
      */
     public static PmCartesian vectorToPmCartesian(VectorType v) {
-        return new PmCartesian(v.getI().doubleValue(),
-                v.getJ().doubleValue(),
-                v.getK().doubleValue());
+        return new PmCartesian(v.getI(),
+                v.getJ(),
+                v.getK());
     }
 
     /**
@@ -1472,14 +1483,14 @@ public class CRCLPosemath {
         pose.setPoint(toPointType(tran));
         PmRotationMatrix mat = Posemath.toMat(v);
         VectorType xVec = new VectorType();
-        xVec.setI(BigDecimal.valueOf(mat.x.x));
-        xVec.setJ(BigDecimal.valueOf(mat.x.y));
-        xVec.setK(BigDecimal.valueOf(mat.x.z));
+        xVec.setI(mat.x.x);
+        xVec.setJ(mat.x.y);
+        xVec.setK(mat.x.z);
         pose.setXAxis(xVec);
         VectorType zVec = new VectorType();
-        zVec.setI(BigDecimal.valueOf(mat.z.x));
-        zVec.setJ(BigDecimal.valueOf(mat.z.y));
-        zVec.setK(BigDecimal.valueOf(mat.z.z));
+        zVec.setI(mat.z.x);
+        zVec.setJ(mat.z.y);
+        zVec.setK(mat.z.z);
         pose.setZAxis(zVec);
         return pose;
     }
@@ -1502,14 +1513,14 @@ public class CRCLPosemath {
         pose.setPoint(toPointType(tran));
         PmRotationMatrix mat = Posemath.toMat(v);
         VectorType xVec = new VectorType();
-        xVec.setI(BigDecimal.valueOf(mat.x.x));
-        xVec.setJ(BigDecimal.valueOf(mat.x.y));
-        xVec.setK(BigDecimal.valueOf(mat.x.z));
+        xVec.setI(mat.x.x);
+        xVec.setJ(mat.x.y);
+        xVec.setK(mat.x.z);
         pose.setXAxis(xVec);
         VectorType zVec = new VectorType();
-        zVec.setI(BigDecimal.valueOf(mat.z.x));
-        zVec.setJ(BigDecimal.valueOf(mat.z.y));
-        zVec.setK(BigDecimal.valueOf(mat.z.z));
+        zVec.setI(mat.z.x);
+        zVec.setJ(mat.z.y);
+        zVec.setK(mat.z.z);
         pose.setZAxis(zVec);
         return pose;
     }
@@ -1621,9 +1632,9 @@ public class CRCLPosemath {
      */
     public static PointType toPointType(PmCartesian c) {
         PointType pt = new PointType();
-        pt.setX(BigDecimal.valueOf(c.x));
-        pt.setY(BigDecimal.valueOf(c.y));
-        pt.setZ(BigDecimal.valueOf(c.z));
+        pt.setX(c.x);
+        pt.setY(c.y);
+        pt.setZ(c.z);
         return pt;
     }
     private static final Logger LOG = Logger.getLogger(CRCLPosemath.class.getName());

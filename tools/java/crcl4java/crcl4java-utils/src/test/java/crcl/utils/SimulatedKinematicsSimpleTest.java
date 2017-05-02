@@ -141,21 +141,21 @@ public class SimulatedKinematicsSimpleTest {
             switch (index) {
                 case 0:
                     //System.err.println("pt.getX().doubleValue() = " + pt.getX().doubleValue());
-                    pt.setX(pt.getX().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                    pt.setX(pt.getX() + r.nextDouble() * 20.0 - 10.0);
                     //System.err.println("pt.getX().doubleValue() = " + pt.getX().doubleValue());
                     pose.setPoint(pt);
                     break;
 
                 case 1:
                     //System.err.println("pt.getY().doubleValue() = " + pt.getY().doubleValue());
-                    pt.setY(pt.getY().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                    pt.setY(pt.getY()+ r.nextDouble() * 20.0 - 10.0);
                     //System.err.println("pt.getY().doubleValue() = " + pt.getY().doubleValue());
                     pose.setPoint(pt);
                     break;
 
                 case 2:
                     //System.err.println("pt.getZ().doubleValue() = " + pt.getZ().doubleValue());
-                    pt.setZ(pt.getZ().add(BigDecimal.valueOf(r.nextDouble() * 20.0 - 10.0)));
+                    pt.setZ(pt.getZ() + r.nextDouble() * 20.0 - 10.0);
                     //System.err.println("pt.getZ().doubleValue() = " + pt.getZ().doubleValue());
                     pose.setPoint(pt);
                     break;
@@ -219,9 +219,9 @@ public class SimulatedKinematicsSimpleTest {
                 }
             }
             assertArrayEquals(j2, jtest, 1.0);
-            assertEquals(pt1.getX().doubleValue(), pt2.getX().doubleValue(), 5.0);
-            assertEquals(pt1.getY().doubleValue(), pt2.getY().doubleValue(), 5.0);
-            assertEquals(pt1.getZ().doubleValue(), pt2.getZ().doubleValue(), 5.0);
+            assertEquals(pt1.getX(), pt2.getX(), 5.0);
+            assertEquals(pt1.getY(), pt2.getY(), 5.0);
+            assertEquals(pt1.getZ(), pt2.getZ(), 5.0);
             double diffRot = CRCLPosemath.diffPosesRot(pose, pose2);
             assertTrue(diffRot >= 0);
             assertTrue(Math.abs(diffRot) < Math.toRadians(0.1));

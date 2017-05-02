@@ -822,7 +822,7 @@ public class SimServerInner {
                 break;
 
             case 2:
-                if (moveScrew.getAxialDistanceFree() != null && moveScrew.getAxialDistanceFree().compareTo(BigDecimal.ZERO) > 0) {
+                if (moveScrew.getAxialDistanceFree() != null && moveScrew.getAxialDistanceFree()  > 0) {
                     goalPose = shift(getPose(),
                             multiply(moveScrew.getAxialDistanceFree(), getXAxis()));
                     setMoveStraight(true);
@@ -1488,13 +1488,13 @@ public class SimServerInner {
                             if (null != cjrt) {
                                 if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
                                     if (cjrt.isReportPosition()) {
-                                        js.setJointPosition(BigDecimal.valueOf(jointPositions[i]));
+                                        js.setJointPosition(jointPositions[i]);
                                     }
                                     if (cjrt.isReportVelocity()) {
-                                        js.setJointVelocity(BigDecimal.valueOf(jointVelocites[i]));
+                                        js.setJointVelocity(jointVelocites[i]);
                                     }
                                     if (cjrt.isReportTorqueOrForce()) {
-                                        js.setJointTorqueOrForce(BigDecimal.TEN);
+                                        js.setJointTorqueOrForce(10.0);
                                     }
                                 }
                             }
@@ -1503,7 +1503,7 @@ public class SimServerInner {
                                 this.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         } else {
-                            js.setJointPosition(BigDecimal.valueOf(jointPositions[i]));
+                            js.setJointPosition(jointPositions[i]);
                         }
                     }
                     if (jointschanged
@@ -2019,7 +2019,7 @@ public class SimServerInner {
                 }
                 if (cmd instanceof SetEndEffectorType) {
                     SetEndEffectorType seet = (SetEndEffectorType) cmd;
-                    outer.updateEndEffector(seet.getSetting().toString());
+                    outer.updateEndEffector(Double.toString(seet.getSetting()));
                     setCommandState(CommandStateEnumType.CRCL_DONE);
                     settingsStatus.setEndEffectorSetting(seet.getSetting());
                 } else if (cmd instanceof CloseToolChangerType) {
@@ -2056,11 +2056,11 @@ public class SimServerInner {
                     TransSpeedType ts = sts.getTransSpeed();
                     if (ts instanceof TransSpeedAbsoluteType) {
                         TransSpeedAbsoluteType tsa = (TransSpeedAbsoluteType) ts;
-                        this.setCommandedTransSpeed(tsa.getSetting().doubleValue());
+                        this.setCommandedTransSpeed(tsa.getSetting());
                         settingsStatus.setTransSpeedAbsolute(tsa);
                     } else if (ts instanceof TransSpeedRelativeType) {
                         TransSpeedRelativeType tsr = (TransSpeedRelativeType) ts;
-                        this.setCommandedTransSpeed(tsr.getFraction().doubleValue() * maxTransSpeed);
+                        this.setCommandedTransSpeed(tsr.getFraction() * maxTransSpeed);
                         settingsStatus.setTransSpeedRelative(tsr);
                     } else {
                         outer.showMessage("Unrecognized type of TransSpeed in SetTransSpeedType");
@@ -2073,11 +2073,11 @@ public class SimServerInner {
                     TransAccelType ts = sts.getTransAccel();
                     if (ts instanceof TransAccelAbsoluteType) {
                         TransAccelAbsoluteType taa = (TransAccelAbsoluteType) ts;
-                        this.setCommandedTransAccel(taa.getSetting().doubleValue());
+                        this.setCommandedTransAccel(taa.getSetting());
                         settingsStatus.setTransAccelAbsolute(taa);
                     } else if (ts instanceof TransAccelRelativeType) {
                         TransAccelRelativeType tar = (TransAccelRelativeType) ts;
-                        this.setCommandedTransAccel(tar.getFraction().doubleValue() * maxTransAccel);
+                        this.setCommandedTransAccel(tar.getFraction() * maxTransAccel);
                         settingsStatus.setTransAccelRelative(tar);
                     } else {
                         outer.showMessage("Unrecognized type of TransAccel in SetTransAccelType");
@@ -2090,11 +2090,11 @@ public class SimServerInner {
                     RotSpeedType ts = sts.getRotSpeed();
                     if (ts instanceof RotSpeedAbsoluteType) {
                         RotSpeedAbsoluteType rsa = (RotSpeedAbsoluteType) ts;
-                        this.setCommandedRotSpeed(rsa.getSetting().doubleValue());
+                        this.setCommandedRotSpeed(rsa.getSetting());
                         settingsStatus.setRotSpeedAbsolute(rsa);
                     } else if (ts instanceof RotSpeedRelativeType) {
                         RotSpeedRelativeType rsr = (RotSpeedRelativeType) ts;
-                        this.setCommandedRotSpeed(rsr.getFraction().doubleValue() * maxRotSpeed);
+                        this.setCommandedRotSpeed(rsr.getFraction() * maxRotSpeed);
                         settingsStatus.setRotSpeedRelative(rsr);
                     } else {
                         outer.showMessage("Unrecognized type of RotSpeed in SetRotSpeedType");
@@ -2107,11 +2107,11 @@ public class SimServerInner {
                     RotAccelType ts = sts.getRotAccel();
                     if (ts instanceof RotAccelAbsoluteType) {
                         RotAccelAbsoluteType raa = (RotAccelAbsoluteType) ts;
-                        this.setCommandedRotAccel(raa.getSetting().doubleValue());
+                        this.setCommandedRotAccel(raa.getSetting());
                         settingsStatus.setRotAccelAbsolute(raa);
                     } else if (ts instanceof RotAccelRelativeType) {
                         RotAccelRelativeType rar = (RotAccelRelativeType) ts;
-                        this.setCommandedRotAccel(rar.getFraction().doubleValue() * maxRotAccel);
+                        this.setCommandedRotAccel(rar.getFraction() * maxRotAccel);
                         settingsStatus.setRotAccelRelative(rar);
                     } else {
                         outer.showMessage("Unrecognized type of RotAccel in SetRotAccelType");
@@ -2171,26 +2171,26 @@ public class SimServerInner {
                             break;
                         }
                         if (index >= 0 && index < this.jointPositions.length) {
-                            this.commandedJointPositions[index] = aj.getJointPosition().doubleValue();
+                            this.commandedJointPositions[index] = aj.getJointPosition();
                         }
                         JointDetailsType jd = aj.getJointDetails();
                         if (jd instanceof JointSpeedAccelType) {
                             JointSpeedAccelType jsa = (JointSpeedAccelType) jd;
-                            BigDecimal vel = jsa.getJointSpeed();
+                            Double vel = jsa.getJointSpeed();
                             if (null != vel) {
                                 if (null == this.commandedJointVelocities) {
                                     this.commandedJointVelocities = new double[this.commandedJointPositions.length];
                                     Arrays.setAll(this.commandedJointVelocities, i -> Double.POSITIVE_INFINITY);
                                 }
-                                this.commandedJointVelocities[index] = vel.doubleValue();
+                                this.commandedJointVelocities[index] = vel;
                             }
-                            BigDecimal acc = jsa.getJointAccel();
+                            Double acc = jsa.getJointAccel();
                             if (null != acc) {
                                 if (null == this.commandedJointAccellerations) {
                                     this.commandedJointAccellerations = new double[this.commandedJointPositions.length];
                                     Arrays.setAll(this.commandedJointAccellerations, i -> Double.POSITIVE_INFINITY);
                                 }
-                                this.commandedJointAccellerations[index] = acc.doubleValue();
+                                this.commandedJointAccellerations[index] = acc;
                             }
                         }
                     }
@@ -2237,7 +2237,7 @@ public class SimServerInner {
                     settingsStatus.setIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
                 } else if (cmd instanceof DwellType) {
                     DwellType dwellCmd = (DwellType) cmd;
-                    double dwellTime = dwellCmd.getDwellTime().doubleValue() * 1000.0;
+                    double dwellTime = dwellCmd.getDwellTime() * 1000.0;
                     if (dwellTime > maxDwell) {
                         LOGGER.warning("dwellTime of " + dwellTime + " exceeded max of " + maxDwell);
                         dwellTime = maxDwell;
