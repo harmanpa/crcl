@@ -147,9 +147,9 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="CommandID"
-            type="xs:nonNegativeInteger"/>
+            type="xs:long"/>
           <xs:element name="StatusID"
-            type="xs:positiveInteger"/>
+            type="xs:long"/>
           <xs:element name="CommandState"
             type="CommandStateEnumType"/>
           <xs:element name="StateDescription"
@@ -159,10 +159,10 @@
             type="xs:string"
             minOccurs="0"/>
           <xs:element name="ProgramIndex"
-            type="xs:nonNegativeInteger"
+            type="xs:int"
             minOccurs="0"/>
           <xs:element name="ProgramLength"
-            type="xs:nonNegativeInteger"
+            type="xs:int"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
@@ -292,7 +292,7 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="JointNumber"
-            type="xs:positiveInteger"/>
+            type="xs:int"/>
           <xs:element name="JointPosition"
             type="xs:double"
             minOccurs="0"/>
@@ -326,7 +326,7 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="JointNumber"
-            type="xs:positiveInteger"/>
+            type="xs:int"/>
           <xs:element name="JointMinPosition"
             type="xs:double"
             minOccurs="0"/>

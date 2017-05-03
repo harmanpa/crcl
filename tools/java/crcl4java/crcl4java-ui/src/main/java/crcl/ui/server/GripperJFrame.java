@@ -498,11 +498,8 @@ public class GripperJFrame extends javax.swing.JFrame {
     private void updateStatus() {
         this.prepStatus();
         CommandStatusType cst = status.getCommandStatus();
-        BigInteger statusId = cst.getStatusID();
-        if (null == statusId) {
-            statusId = BigInteger.ONE;
-        }
-        cst.setStatusID(statusId.add(BigInteger.ONE));
+        long statusId = cst.getStatusID();
+        cst.setStatusID(statusId + 1);
         switch (this.jTabbedPane1.getSelectedComponent().getName()) {
             case "ThreeFinger":
                 if (null == this.threeFingerGripperStatus) {
@@ -603,11 +600,11 @@ public class GripperJFrame extends javax.swing.JFrame {
             cst = new CommandStatusType();
             status.setCommandStatus(cst);
         }
-        if (null == cst.getCommandID()) {
-            cst.setCommandID(BigInteger.ONE);
+        if (cst.getCommandID() < 1) {
+            cst.setCommandID(1);
         }
-        if (null == cst.getStatusID()) {
-            cst.setStatusID(BigInteger.ONE);
+        if (cst.getStatusID() < 1) {
+            cst.setStatusID(1);
         }
         if (null == cst.getCommandState()) {
             cst.setCommandState(CommandStateEnumType.CRCL_DONE);

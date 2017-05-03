@@ -65,7 +65,7 @@ public class CRCLSocketIT {
         boolean validate = false;
         CRCLSocket instance = new CRCLSocket();
         CRCLCommandInstanceType result = instance.stringToCommand(str, validate);
-        assertTrue(result.getCRCLCommand().getCommandID().compareTo(BigInteger.ONE) == 0);
+        assertTrue(result.getCRCLCommand().getCommandID() == 1);
         assertTrue(result.getCRCLCommand() instanceof InitCanonType);
 //        fail("forced failure");
     }
@@ -1091,9 +1091,9 @@ public class CRCLSocketIT {
         boolean validate = false;
         CRCLSocket instance = new CRCLSocket();
         CRCLProgramType result = instance.stringToProgram(str, validate);
-        assertTrue(result.getInitCanon().getCommandID().compareTo(BigInteger.ONE) == 0);
+        assertTrue(result.getInitCanon().getCommandID()== 1);
         assertEquals(result.getMiddleCommand().size(), 39);
-        assertTrue(result.getEndCanon().getCommandID().compareTo(BigInteger.valueOf(41)) == 0);
+        assertTrue(result.getEndCanon().getCommandID() == 41);
 
     }
 

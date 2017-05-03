@@ -151,7 +151,7 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="JointNumber"
-            type="xs:positiveInteger"/>
+            type="xs:int"/>
           <xs:element name="JointPosition"
             type="xs:double"/>
           <xs:element name="JointDetails"
@@ -250,7 +250,7 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="JointNumber"
-            type="xs:positiveInteger"/>
+            type="xs:int"/>
           <xs:element name="ReportPosition"
             type="xs:boolean"/>
           <xs:element name="ReportTorqueOrForce"
@@ -279,7 +279,7 @@
       <xs:extension base="DataThingType">
         <xs:sequence>
           <xs:element name="CommandID"
-            type="xs:positiveInteger"/>
+            type="xs:long"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -614,7 +614,7 @@
             minOccurs="2"
             maxOccurs="unbounded"/>
           <xs:element name="NumPositions"
-            type="xs:positiveInteger"/>
+            type="xs:int"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

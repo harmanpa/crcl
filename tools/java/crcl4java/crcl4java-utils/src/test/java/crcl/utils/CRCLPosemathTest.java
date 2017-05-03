@@ -1436,15 +1436,15 @@ public class CRCLPosemathTest {
         System.out.println("copy(CRCLStatusType)");
         CRCLStatusType status = new CRCLStatusType();
         CommandStatusType commandStatus = new CommandStatusType();
-        commandStatus.setCommandID(BigInteger.valueOf(233));
-        commandStatus.setStatusID(BigInteger.valueOf(2343));
+        commandStatus.setCommandID(233);
+        commandStatus.setStatusID(2343);
         status.setCommandStatus(commandStatus);
         PoseStatusType poseStatus = new PoseStatusType();
         poseStatus.setPose(pose123);
         status.setPoseStatus(poseStatus);
         JointStatusesType jointStatuses = new JointStatusesType();
         JointStatusType js1 = new JointStatusType();
-        js1.setJointNumber(BigInteger.ONE);
+        js1.setJointNumber(1);
         js1.setJointPosition(DOUBLE_1);
         jointStatuses.getJointStatus().add(js1);
         status.setJointStatuses(jointStatuses);
@@ -1535,7 +1535,7 @@ public class CRCLPosemathTest {
         System.out.println("copy(JointStatusesType)");
         JointStatusesType status = new JointStatusesType();
         JointStatusType js1 = new JointStatusType();
-        js1.setJointNumber(BigInteger.ONE);
+        js1.setJointNumber(1);
         js1.setJointPosition(DOUBLE_1);
         status.getJointStatus().add(js1);
         JointStatusesType expResult = status;
@@ -1556,7 +1556,7 @@ public class CRCLPosemathTest {
     public void testCopy_JointStatusType() {
         System.out.println("copy(JointStatusType)");
         JointStatusType status = new JointStatusType();
-        status.setJointNumber(BigInteger.ONE);
+        status.setJointNumber(1);
         status.setJointPosition(DOUBLE_1);
         status.setJointTorqueOrForce(DOUBLE_2);
         status.setJointVelocity(DOUBLE_3);
@@ -1575,9 +1575,9 @@ public class CRCLPosemathTest {
     public void testCopy_CommandStatusType() {
         System.out.println("copy(CommandStatusType)");
         CommandStatusType status = new CommandStatusType();
-        status.setCommandID(BigInteger.ONE);
+        status.setCommandID(1);
         status.setCommandState(CommandStateEnumType.CRCL_DONE);
-        status.setStatusID(BigInteger.ONE);
+        status.setStatusID(1);
         CommandStatusType expResult = status;
         CommandStatusType result = CRCLPosemath.copy(status);
         assertEquals(expResult.getCommandID(), result.getCommandID());
@@ -1593,21 +1593,21 @@ public class CRCLPosemathTest {
     public void testGetMaxId() {
         System.out.println("getMaxId");
         CRCLProgramType prog = new CRCLProgramType();
-        BigInteger expResult = BigInteger.ONE;
-        BigInteger result = CRCLPosemath.getMaxId(prog);
+        long expResult = 1;
+        long result = CRCLPosemath.getMaxId(prog);
         assertEquals(expResult, result);
 
         InitCanonType initCmd = new InitCanonType();
-        initCmd.setCommandID(BigInteger.valueOf(2));
+        initCmd.setCommandID(2);
         prog.setInitCanon(initCmd);
         result = CRCLPosemath.getMaxId(prog);
-        assertEquals(BigInteger.valueOf(2), result);
+        assertEquals(2, result);
 
         MoveToType moveCmd = new MoveToType();
-        moveCmd.setCommandID(BigInteger.valueOf(3));
+        moveCmd.setCommandID(3);
         prog.getMiddleCommand().add(moveCmd);
         result = CRCLPosemath.getMaxId(prog);
-        assertEquals(BigInteger.valueOf(3), result);
+        assertEquals(3, result);
 
     }
 

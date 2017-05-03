@@ -47,8 +47,8 @@ public class CRCLServerSocketPollingExample {
 
         final CRCLStatusType status = new CRCLStatusType();
         final CommandStatusType cmdStatus = new CommandStatusType();
-        cmdStatus.setCommandID(BigInteger.ONE);
-        cmdStatus.setStatusID(BigInteger.ONE);
+        cmdStatus.setCommandID(1);
+        cmdStatus.setStatusID(1);
         status.setCommandStatus(cmdStatus);
         final PoseStatusType poseStatus = new PoseStatusType();
 
@@ -71,7 +71,7 @@ public class CRCLServerSocketPollingExample {
                             if (requestCount > 3) {
                                 cmdStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
-                            cmdStatus.setStatusID(BigInteger.valueOf(requestCount));
+                            cmdStatus.setStatusID(requestCount);
                             crclSocket.writeStatus(status, true);
                         } else {
                             requestCount = 1;

@@ -57,9 +57,9 @@ public class CRCLPosemathCommons {
      */
     public static Vector3D toCommonsVector3D(VectorType vIn) {
         return new Vector3D(
-                vIn.getI().doubleValue(),
-                vIn.getJ().doubleValue(),
-                vIn.getK().doubleValue());
+                vIn.getI(),
+                vIn.getJ(),
+                vIn.getK());
     }
 
     /**
@@ -70,9 +70,9 @@ public class CRCLPosemathCommons {
      */
     public static Vector3D toCommonsVector3D(PointType ptIn) {
         return new Vector3D(
-                ptIn.getX().doubleValue(),
-                ptIn.getY().doubleValue(),
-                ptIn.getZ().doubleValue());
+                ptIn.getX(),
+                ptIn.getY(),
+                ptIn.getZ());
     }
 
     /**
@@ -99,9 +99,9 @@ public class CRCLPosemathCommons {
             vOut = new VectorType();
         }
         try {
-            vOut.setI(BigDecimal.valueOf(vIn.getX()));
-            vOut.setJ(BigDecimal.valueOf(vIn.getY()));
-            vOut.setK(BigDecimal.valueOf(vIn.getZ()));
+            vOut.setI(vIn.getX());
+            vOut.setJ(vIn.getY());
+            vOut.setK(vIn.getZ());
         } catch (org.apache.commons.math3.exception.MathArithmeticException ex) {
             // If the input vector had zero magnitude return magnitude vector.
         }
@@ -132,9 +132,9 @@ public class CRCLPosemathCommons {
         }
         try {
             Vector3D vInUnit = vIn.normalize();
-            vOut.setI(BigDecimal.valueOf(vInUnit.getX()));
-            vOut.setJ(BigDecimal.valueOf(vInUnit.getY()));
-            vOut.setK(BigDecimal.valueOf(vInUnit.getZ()));
+            vOut.setI(vInUnit.getX());
+            vOut.setJ(vInUnit.getY());
+            vOut.setK(vInUnit.getZ());
         } catch (org.apache.commons.math3.exception.MathArithmeticException ex) {
             // If the input vector had zero magnitude return magnitude vector.
         }
@@ -177,9 +177,9 @@ public class CRCLPosemathCommons {
         if (null == ptOut) {
             ptOut = new PointType();
         }
-        ptOut.setX(BigDecimal.valueOf(vIn.getX()));
-        ptOut.setY(BigDecimal.valueOf(vIn.getY()));
-        ptOut.setZ(BigDecimal.valueOf(vIn.getZ()));
+        ptOut.setX(vIn.getX());
+        ptOut.setY(vIn.getY());
+        ptOut.setZ(vIn.getZ());
         return ptOut;
     }
 

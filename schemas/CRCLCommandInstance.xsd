@@ -56,10 +56,10 @@
             type="xs:string"
             minOccurs="0"/>
           <xs:element name="ProgramIndex"
-            type="xs:nonNegativeInteger"
+            type="xs:int"
             minOccurs="0"/>
           <xs:element name="ProgramLength"
-            type="xs:nonNegativeInteger"
+            type="xs:int"
             minOccurs="0"/>
         </xs:sequence>
       </xs:extension>

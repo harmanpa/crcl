@@ -19,7 +19,6 @@
  * 
  */
 
-
 import com.github.wshackle.crcl4java.commons.math.CRCLPosemathCommons;
 import crcl.base.PointType;
 import crcl.base.PoseType;
@@ -34,7 +33,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
 
 @SuppressWarnings("nullness")
 public class CRCLPosemathCommonsTest {
@@ -65,7 +63,6 @@ public class CRCLPosemathCommonsTest {
         assertEquals(msg, v1, v2, ASSERT_TOLERANCE_DELTA);
     }
 
-
     private void checkEquals(String msg, BigDecimal v1, BigDecimal v2) {
         assertTrue(msg + " both are null or neither is null", (v1 == null) == (v2 == null));
         if (v1 == null) {
@@ -73,7 +70,6 @@ public class CRCLPosemathCommonsTest {
         }
         checkEquals(msg, v1.doubleValue(), v2.doubleValue());
     }
-
 
     private void checkEquals(String msg, PointType pt1, PointType pt2) {
         checkEquals(msg + ".getX()", pt1.getX(), pt2.getX());
@@ -114,19 +110,19 @@ public class CRCLPosemathCommonsTest {
         pt321.setZ(BIG_DECIMAL_1);
 
         xvec = new VectorType();
-        xvec.setI(BigDecimal.ONE);
-        xvec.setJ(BigDecimal.ZERO);
-        xvec.setK(BigDecimal.ZERO);
+        xvec.setI(1.0);
+        xvec.setJ(0.0);
+        xvec.setK(0.0);
 
         yvec = new VectorType();
-        yvec.setI(BigDecimal.ZERO);
-        yvec.setJ(BigDecimal.ONE);
-        yvec.setK(BigDecimal.ZERO);
+        yvec.setI(0.0);
+        yvec.setJ(1.0);
+        yvec.setK(0.0);
 
         zvec = new VectorType();
-        zvec.setI(BigDecimal.ZERO);
-        zvec.setJ(BigDecimal.ZERO);
-        zvec.setK(BigDecimal.ONE);
+        zvec.setI(0.0);
+        zvec.setJ(0.0);
+        zvec.setK(1.0);
 
         pose123 = new PoseType();
         pose123.setPoint(pt123);
@@ -144,10 +140,10 @@ public class CRCLPosemathCommonsTest {
         pose321rot90.setZAxis(zvec);
     }
 
-    private static final BigDecimal BIG_DECIMAL_1 = BigDecimal.ONE;
-    private static final BigDecimal BIG_DECIMAL_2 = new BigDecimal("2");
-    private static final BigDecimal BIG_DECIMAL_3 = new BigDecimal("3");
-    private static final BigDecimal BIG_DECIMAL_4 = new BigDecimal("4");
+    private static final double BIG_DECIMAL_1 = 1.0;
+    private static final double BIG_DECIMAL_2 = 2.0;
+    private static final double BIG_DECIMAL_3 = 3.0;
+    private static final double BIG_DECIMAL_4 = 4.0;
 
     @After
     public void tearDown() {
@@ -254,7 +250,7 @@ public class CRCLPosemathCommonsTest {
         PointType result = CRCLPosemathCommons.toCRCLPoint(vIn);
         checkEquals("pt123", result, expResult);
     }
-    
+
     private static final Logger LOG = Logger.getLogger(CRCLPosemathCommonsTest.class.getName());
 
 }

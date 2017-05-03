@@ -679,8 +679,8 @@ public class CrclExiSocketTest {
         LOGGER.log(Level.INFO, "statusToEXI");
         CRCLStatusType status = new CRCLStatusType();
         CommandStatusType cst = new CommandStatusType();
-        cst.setCommandID(BigInteger.ONE);
-        cst.setStatusID(BigInteger.TEN);
+        cst.setCommandID(1);
+        cst.setStatusID(10);
         cst.setCommandState(CommandStateEnumType.CRCL_DONE);
         status.setCommandStatus(cst);
         PoseType p = new PoseType();
@@ -729,7 +729,7 @@ public class CrclExiSocketTest {
         LOGGER.log(Level.INFO, "commandToEXI");
         CRCLCommandInstanceType initCmdInstance = new CRCLCommandInstanceType();
         crcl.base.InitCanonType init = new InitCanonType();
-        init.setCommandID(BigInteger.valueOf(100));
+        init.setCommandID(100);
         initCmdInstance.setCRCLCommand(init);
         CrclExiSocket instance = new CrclExiSocket();
         byte[] initBytes = instance.commandToEXI(initCmdInstance);
@@ -739,7 +739,7 @@ public class CrclExiSocketTest {
                 returnCmd.getCRCLCommand().getCommandID());
         CRCLCommandInstanceType getStatusCmdInstance = new CRCLCommandInstanceType();
         GetStatusType getStatus = new GetStatusType();
-        getStatus.setCommandID(BigInteger.valueOf(101));
+        getStatus.setCommandID(101);
         getStatusCmdInstance.setCRCLCommand(getStatus);
         byte[] getStatusBytes = instance.commandToEXI(getStatusCmdInstance);
         //        LOGGER.log(Level.INFO,"result = " + Arrays.toString(result));
@@ -907,8 +907,8 @@ public class CrclExiSocketTest {
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
-        assertEquals(new BigInteger("2"), c.getCommandID());
-        assertEquals(new BigInteger("2"), moveCommand.getNumPositions());
+        assertEquals(2, c.getCommandID());
+        assertEquals(2, moveCommand.getNumPositions());
     }
 
     /**
@@ -923,8 +923,8 @@ public class CrclExiSocketTest {
         boolean validate = false;
         CrclExiSocket instance = new CrclExiSocket();
         CRCLStatusType result = instance.readStatusFromStream(is, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
     }
 
 }

@@ -318,7 +318,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 if (row > 0 && row < dtm.getRowCount() - 1) {
                     long id = (Long) dtm.getValueAt(row, 0);
                     if (program.getMiddleCommand().size() < line - 1
-                            || id != program.getMiddleCommand().get(line - 1).getCommandID().longValue()) {
+                            || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
                         try {
                             showProgram(program);
                         } catch (JAXBException ex) {
@@ -333,7 +333,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                                ? internal.getRunEndMillis() : System.currentTimeMillis();
+                        ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 if (line == 0) {
@@ -548,18 +548,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -568,18 +568,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -595,7 +595,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-                    ))
+            ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -881,10 +881,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             if (recordPointsProgram == null) {
                 recordPointsProgram = new CRCLProgramType();
                 InitCanonType initCmd = new InitCanonType();
-                initCmd.setCommandID(BigInteger.ONE);
+                initCmd.setCommandID(1);
                 recordPointsProgram.setInitCanon(initCmd);
                 EndCanonType endCmd = new EndCanonType();
-                initCmd.setCommandID(BigInteger.valueOf(3));
+                initCmd.setCommandID(3);
                 recordPointsProgram.setEndCanon(endCmd);
             }
             MoveToType moveToCmd = new MoveToType();
@@ -894,9 +894,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             endPose.setZAxis(pose.getZAxis());
             moveToCmd.setEndPosition(endPose);
             moveToCmd.setMoveStraight(this.jCheckBoxStraight.isSelected());
-            moveToCmd.setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size() + 1));
+            moveToCmd.setCommandID(recordPointsProgram.getMiddleCommand().size() + 1);
             recordPointsProgram.getMiddleCommand().add(moveToCmd);
-            recordPointsProgram.getEndCanon().setCommandID(moveToCmd.getCommandID().add(BigInteger.ONE));
+            recordPointsProgram.getEndCanon().setCommandID(moveToCmd.getCommandID() + 1);
             internal.setProgram(recordPointsProgram);
             showProgram(recordPointsProgram);
         } catch (JAXBException ex) {
@@ -1187,11 +1187,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
         if (null != recordPointsProgram) {
-            recordPointsProgram.getInitCanon().setCommandID(BigInteger.ONE);
+            recordPointsProgram.getInitCanon().setCommandID(1);
             for (int i = 0; i < recordPointsProgram.getMiddleCommand().size(); i++) {
-                recordPointsProgram.getMiddleCommand().get(i).setCommandID(BigInteger.valueOf(i + 1));
+                recordPointsProgram.getMiddleCommand().get(i).setCommandID(i + 1);
             }
-            recordPointsProgram.getEndCanon().setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size()));
+            recordPointsProgram.getEndCanon().setCommandID(recordPointsProgram.getMiddleCommand().size());
             internal.setProgram(recordPointsProgram);
             this.showProgram(recordPointsProgram);
         }
@@ -1516,7 +1516,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     double last_t_pos_logged = 0;
 
-    final Map<BigInteger, Double> last_joints = new HashMap<>();
+    final Map<Integer, Double> last_joints = new HashMap<>();
 
     private boolean jointsChanged(List<JointStatusType> jsl) {
         if (jsl.size() != last_joints.values().size()) {
@@ -1621,9 +1621,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             CommandStatusType ccst = curInternalStatus.getCommandStatus();
             if (null != ccst) {
-                if (null != ccst.getCommandID()) {
-                    this.jTextFieldStatCmdID.setText(ccst.getCommandID().toString());
-                }
+                this.jTextFieldStatCmdID.setText("" + ccst.getCommandID());
                 String stateDescription = ccst.getStateDescription();
                 Container container = this.getOuterContainer();
                 JFrame frame = null;
@@ -1688,7 +1686,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         }
                     }
                 }
-                this.jTextFieldStatusID.setText(ccst.getStatusID().toString());
+                this.jTextFieldStatusID.setText("" + ccst.getStatusID());
                 if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
                     this.jTextAreaStateDescription.setText(stateDescription);
                     lastStateDescription = stateDescription;
@@ -1734,7 +1732,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     boolean hasForce = false;
                     boolean hasVel = false;
                     for (JointStatusType js : jsl) {
-                        int jn = js.getJointNumber().intValue();
+                        int jn = js.getJointNumber();
                         if (null != js.getJointVelocity()) {
                             if (tm.getColumnCount() < 3) {
                                 tm.setColumnCount(3);
@@ -1794,9 +1792,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             PoseType p
                     = Optional.ofNullable(internal)
-                    .map(PendantClientInner::getStatus)
-                    .map(CRCLPosemath::getPose)
-                    .orElse(null);
+                            .map(PendantClientInner::getStatus)
+                            .map(CRCLPosemath::getPose)
+                            .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -2060,7 +2058,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         }
                         return;
                     }
-                    if (internal.getStatus().getCommandStatus().getCommandID().compareTo(internal.getCmdId()) < 0) {
+                    if (internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId()) {
                         if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
                                 || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
                             System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
@@ -2185,7 +2183,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             }
                             return;
                         }
-                        if (internal.getStatus().getCommandStatus().getCommandID().compareTo(internal.getCmdId()) < 0) {
+                        if (internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId()) {
                             if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
                                     || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
                                 System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
@@ -2570,16 +2568,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void showProgram(CRCLProgramType program) throws JAXBException {
         try {
             DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
-            BigInteger maxCmdId = BigInteger.ONE;
+            long maxCmdId = 1;
             InitCanonType init = program.getInitCanon();
             List<MiddleCommandType> middleCommands = program.getMiddleCommand();
             dtm.setRowCount(2 + middleCommands.size());
-            if (init.getCommandID() == null) {
-                init.setCommandID(maxCmdId);
-            } else {
-                maxCmdId = maxCmdId.max(init.getCommandID());
-            }
-            dtm.setValueAt(init.getCommandID().longValue(), 0, 0);
+            maxCmdId = Math.max(maxCmdId, init.getCommandID());
+            dtm.setValueAt(init.getCommandID(), 0, 0);
             try {
                 dtm.setValueAt(tableCommandString(init), 0, 1);
             } catch (JAXBException ex) {
@@ -2593,21 +2587,21 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     showDebugMessage("middleCommands contains null at " + i);
                     continue;
                 }
-                maxCmdId = maxCmdId.add(BigInteger.ONE);
+                maxCmdId = maxCmdId + 1;
                 middleCommand.setCommandID(maxCmdId);
-                maxCmdId = maxCmdId.max(middleCommand.getCommandID());
-                dtm.setValueAt(middleCommand.getCommandID().longValue(), i + 1, 0);
+                maxCmdId = Math.max(maxCmdId, middleCommand.getCommandID());
+                dtm.setValueAt(middleCommand.getCommandID(), i + 1, 0);
                 dtm.setValueAt(tableCommandString(middleCommand), i + 1, 1);
                 dtm.setValueAt(-1, i + 1, 2);
                 dtm.setValueAt(0.0, i + 1, 3);
                 dtm.setValueAt(false, i + 1, 4);
             }
             EndCanonType endCommand = program.getEndCanon();
-            maxCmdId = maxCmdId.add(BigInteger.ONE);
-            if (endCommand.getCommandID() == null || endCommand.getCommandID().compareTo(maxCmdId) < 0) {
+            maxCmdId = maxCmdId + 1;
+            if (endCommand.getCommandID() < maxCmdId) {
                 endCommand.setCommandID(maxCmdId);
             }
-            dtm.setValueAt(endCommand.getCommandID().longValue(), 1 + middleCommands.size(), 0);
+            dtm.setValueAt(endCommand.getCommandID(), 1 + middleCommands.size(), 0);
             dtm.setValueAt(tableCommandString(endCommand), 1 + middleCommands.size(), 1);
             dtm.setValueAt(-1, 1 + middleCommands.size(), 2);
             dtm.setValueAt(0.0, 1 + middleCommands.size(), 3);
@@ -3996,7 +3990,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
 
         InitCanonType init = new InitCanonType();
-        init.setCommandID(BigInteger.ONE);
+        init.setCommandID(1);
         final CountDownLatch latch = new CountDownLatch(1);
         XFuture<Boolean> newProgramFutureInternal = XFuture.runAsync("continueCurrentProgram.step1", () -> {
             try {
@@ -4072,7 +4066,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jPanelJogMinusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelJogMinusMousePressed
         //        ActuateJointsType jog = new ActuateJointsType();
-        //        cmdId = cmdId.shift(BigInteger.ONE);
+        //        cmdId = cmdId.shift(1);
         //        jog.setCommandID(cmdId);
         //        ActuateJointType joint = new ActuateJointType();
         //        List<ActuateJointType> l = jog.getActuateJoint();

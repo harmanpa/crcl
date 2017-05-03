@@ -88,13 +88,13 @@ public class CRCLSocketBlockingClientExample {
 
             // Create and send init command.
             InitCanonType init = new InitCanonType();
-            init.setCommandID(BigInteger.valueOf(7));
+            init.setCommandID(7);
             instance.setCRCLCommand(init);
             s.writeCommand(instance);
 
             // Create and send MoveTo command.
             MoveToType moveTo = new MoveToType();
-            moveTo.setCommandID(BigInteger.valueOf(8));
+            moveTo.setCommandID(8);
             PoseType pose = pose(point(1.1, 0.0, 0.1), vector(1, 0, 0), vector(0, 0, 1));
             moveTo.setEndPosition(pose);
             moveTo.setMoveStraight(false);
@@ -103,12 +103,12 @@ public class CRCLSocketBlockingClientExample {
 
             CommandStatusType cmdStat;
             CommandStateEnumType state;
-            BigInteger IDback;
+            long IDback =1;
             
             do {
                 // Create and send getStatus request.
                 GetStatusType getStat = new GetStatusType();
-                getStat.setCommandID(BigInteger.valueOf(9));
+                getStat.setCommandID(9);
                 instance.setCRCLCommand(getStat);
                 s.writeCommand(instance);
 
@@ -134,7 +134,7 @@ public class CRCLSocketBlockingClientExample {
                         System.out.println("Num=" + js.getJointNumber() + " Pos=" + js.getJointPosition());
                     }
                 }
-            } while(!moveTo.getCommandID().equals(IDback) || CommandStateEnumType.CRCL_WORKING.equals(state));
+            } while(moveTo.getCommandID() != IDback || CommandStateEnumType.CRCL_WORKING.equals(state));
         
         } catch (CRCLException | IOException ex) {
             Logger.getLogger(CRCLSocketBlockingClientExample.class.getName()).log(Level.SEVERE, "Example Main failed.", ex);

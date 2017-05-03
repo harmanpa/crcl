@@ -650,17 +650,17 @@ public class CRCLSocketTest {
         CRCLSocket instance = new CRCLSocket();
         String str = instance.readUntilEndTag("CRCLStatus", bais);
         CRCLStatusType result = instance.stringToStatus(str, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
         bais = new ByteArrayInputStream((STATUS_XML + STATUS_XML).getBytes());
         str = instance.readUntilEndTag("CRCLStatus", bais);
         result = instance.stringToStatus(str, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
         str = instance.readUntilEndTag("CRCLStatus", bais);
         result = instance.stringToStatus(str, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
         str = instance.readUntilEndTag("CRCLStatus",
                 new ByteArrayInputStream("  <CRCLStatus name=\"foo\" /> ".getBytes()));
         assertEquals(str, "<CRCLStatus name=\"foo\" />");
@@ -685,17 +685,17 @@ public class CRCLSocketTest {
 //        CRCLSocket instance = new CRCLSocket();
 //        String str = instance.readUntilEndTagOld("CRCLStatus", bais);
 //        CRCLStatusType result = instance.stringToStatus(str, validate);
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+//        assertEquals(1, result.getCommandStatus().getCommandID());
+//        assertEquals(1, result.getCommandStatus().getStatusID());
 //        bais = new ByteArrayInputStream((STATUS_XML + STATUS_XML).getBytes());
 //        str = instance.readUntilEndTagOld("CRCLStatus", bais);
 //        result = instance.stringToStatus(str, validate);
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+//        assertEquals(1, result.getCommandStatus().getCommandID());
+//        assertEquals(1, result.getCommandStatus().getStatusID());
 //        str = instance.readUntilEndTagOld("CRCLStatus", bais);
 //        result = instance.stringToStatus(str, validate);
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-//        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+//        assertEquals(1, result.getCommandStatus().getCommandID());
+//        assertEquals(1, result.getCommandStatus().getStatusID());
 //        str = instance.readUntilEndTagOld("CRCLStatus",
 //                new ByteArrayInputStream("  <CRCLStatus name=\"foo\" /> ".getBytes()));
 //        assertEquals(str, "<CRCLStatus name=\"foo\" />");
@@ -718,8 +718,8 @@ public class CRCLSocketTest {
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
-        assertEquals(new BigInteger("2"), c.getCommandID());
-        assertEquals(new BigInteger("2"), moveCommand.getNumPositions());
+        assertEquals(2, c.getCommandID());
+        assertEquals(2, moveCommand.getNumPositions());
     }
 
     /**
@@ -741,8 +741,8 @@ public class CRCLSocketTest {
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
-        assertEquals(new BigInteger("2"), c.getCommandID());
-        assertEquals(new BigInteger("2"), moveCommand.getNumPositions());
+        assertEquals(2, c.getCommandID());
+        assertEquals(2, moveCommand.getNumPositions());
     }
 
     /**
@@ -757,8 +757,8 @@ public class CRCLSocketTest {
         boolean validate = true;
         CRCLSocket instance = new CRCLSocket();
         CRCLStatusType result = instance.stringToStatus(str, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
     }
 
     /**
@@ -773,8 +773,8 @@ public class CRCLSocketTest {
         boolean validate = false;
         CRCLSocket instance = new CRCLSocket();
         CRCLStatusType result = instance.readStatusFromStream(is, validate);
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getCommandID());
-        assertEquals(BigInteger.ONE, result.getCommandStatus().getStatusID());
+        assertEquals(1, result.getCommandStatus().getCommandID());
+        assertEquals(1, result.getCommandStatus().getStatusID());
     }
 
 }

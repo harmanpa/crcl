@@ -143,7 +143,7 @@ public class JbrParser {
     public CRCLProgramType getProgram(String progName) {
         CRCLProgramType program = new CRCLProgramType();
         InitCanonType initCanon = new InitCanonType();
-        initCanon.setCommandID(BigInteger.ONE);
+        initCanon.setCommandID(1);
         program.setInitCanon(initCanon);
         EndCanonType endCanon = new EndCanonType();
         List<String> l = progMap.get(progName);
@@ -153,7 +153,7 @@ public class JbrParser {
                 JbrPose jbPose = getPose(fa[1]);
                 System.out.println("jbPose = " + jbPose);
                 MoveToType moveTo = new MoveToType();
-                moveTo.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
+                moveTo.setCommandID(program.getMiddleCommand().size() + 2);
                 moveTo.setEndPosition(jbPose.getPose());
                 program.getMiddleCommand().add(moveTo);
 
@@ -163,7 +163,7 @@ public class JbrParser {
                     System.out.println("jbPose = " + jbPose);
                     MoveToType moveTo = new MoveToType();
                     moveTo.setMoveStraight(true);
-                    moveTo.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
+                    moveTo.setCommandID(program.getMiddleCommand().size() + 2);
                     moveTo.setEndPosition(jbPose.getPose());
                     program.getMiddleCommand().add(moveTo);
             } else if (line.startsWith("SET")) {
@@ -178,24 +178,24 @@ public class JbrParser {
                 jbPose1.setPose(CRCLPosemath.multiply(jbPose1.getPose(),jbPose2.getPose()));
             } else if (line.equals("CALL JOB:GRIPCLOSE")) {
                 SetEndEffectorType seeCmd = new SetEndEffectorType();
-                seeCmd.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
-                seeCmd.setSetting(BigDecimal.ZERO);
+                seeCmd.setCommandID(program.getMiddleCommand().size() + 2);
+                seeCmd.setSetting(0.0);
                 program.getMiddleCommand().add(seeCmd);
             } else if (line.equals("CALL JOB:GRIPPEROPEN")) {
                 SetEndEffectorType seeCmd = new SetEndEffectorType();
-                seeCmd.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
-                seeCmd.setSetting(BigDecimal.ONE);
+                seeCmd.setCommandID(program.getMiddleCommand().size() + 2);
+                seeCmd.setSetting(1.0);
                 program.getMiddleCommand().add(seeCmd);
             } else if (line.equals("CALL JOB:HOME")) {
                 JbrPose jbPose = jbrNameMap.get("HOMEPOS");
                 System.out.println("jbPose = " + jbPose);
                 MoveToType moveTo = new MoveToType();
-                moveTo.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
+                moveTo.setCommandID(program.getMiddleCommand().size() + 2);
                 moveTo.setEndPosition(jbPose.getPose());
                 program.getMiddleCommand().add(moveTo);
             }
         }
-        endCanon.setCommandID(BigInteger.valueOf(program.getMiddleCommand().size() + 2));
+        endCanon.setCommandID(program.getMiddleCommand().size() + 2);
         program.setEndCanon(endCanon);
         return program;
     }
@@ -204,57 +204,58 @@ public class JbrParser {
         return jbrNameMap.get(name);
     }
 
-    public static void main(String[] args) throws IOException, PmException, CRCLException, JAXBException {
-
-        JbrParser jp = new JbrParser();
-        jp.parse(new File(System.getProperty("user.home"), "MOVELGEAR.JBR"));
-
-        System.out.println("Generating program");
-        CRCLProgramType program = jp.getProgram("MOVELGEAR");
-        String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, true);
-        System.out.println("programString = " + programString);
-        Files.write(Paths.get(System.getProperty("user.home"), "MOVELGEAR_CRLC.xml"),
-                programString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
-        if (true) {
-            return;
-        }
-//        CRCLProgramType program = new CRCLProgramType();
-        InitCanonType initCanon = new InitCanonType();
-        initCanon.setCommandID(BigInteger.ONE);
-        program.setInitCanon(initCanon);
-        EndCanonType endCanon = new EndCanonType();
-        MoveToType moveTo = new MoveToType();
-        moveTo.setCommandID(BigInteger.valueOf(2));
-        PoseType pose = jp.getByName("HOMEPOS").getPose();
-        moveTo.setEndPosition(pose);
-        endCanon.setCommandID(BigInteger.valueOf(3));
-        program.setEndCanon(endCanon);
-
-        CRCLSocket socket = new CRCLSocket("localhost", CRCLSocket.DEFAULT_PORT);
-        CRCLCommandInstanceType inst = new CRCLCommandInstanceType();
-        inst.setCRCLCommand(initCanon);
-        socket.writeCommand(inst);
-        CRCLStatusType status = null;
-        while (status == null || status.getCommandStatus().getCommandState() == CRCL_WORKING) {
-            CRCLCommandInstanceType getStatusInst = new CRCLCommandInstanceType();
-            GetStatusType getStatus = new GetStatusType();
-            getStatus.setCommandID(BigInteger.valueOf(4));
-            getStatusInst.setCRCLCommand(getStatus);
-            socket.writeCommand(getStatusInst);
-            status = socket.readStatus();
-//            System.out.println("status = " + socket.statusToPrettyString(status, true));
-        }
-        inst.setCRCLCommand(moveTo);
-        socket.writeCommand(inst);
-        status = null;
-        while (status == null || status.getCommandStatus().getCommandState() == CRCL_WORKING) {
-            CRCLCommandInstanceType getStatusInst = new CRCLCommandInstanceType();
-            GetStatusType getStatus = new GetStatusType();
-            getStatus.setCommandID(BigInteger.valueOf(4));
-            getStatusInst.setCRCLCommand(getStatus);
-            socket.writeCommand(getStatusInst);
-            status = socket.readStatus();
-//            System.out.println("status = " + socket.statusToPrettyString(status, true));
-        }
-    }
+//    public static void main(String[] args) throws IOException, PmException, CRCLException, JAXBException {
+//
+//        JbrParser jp = new JbrParser();
+//        jp.parse(new File(System.getProperty("user.home"), "MOVELGEAR.JBR"));
+//
+//        System.out.println("Generating program");
+//        CRCLProgramType program = jp.getProgram("MOVELGEAR");
+//        String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, true);
+//        System.out.println("programString = " + programString);
+//        Files.write(Paths.get(System.getProperty("user.home"), "MOVELGEAR_CRLC.xml"),
+//                programString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
+//        if (true) {
+//            return;
+//        }
+////        CRCLProgramType program = new CRCLProgramType();
+//        InitCanonType initCanon = new InitCanonType();
+//        initCanon.setCommandID(1);
+//        program.setInitCanon(initCanon);
+//        EndCanonType endCanon = new EndCanonType();
+//        MoveToType moveTo = new MoveToType();
+//        moveTo.setCommandID(2);
+//        PoseType pose = jp.getByName("HOMEPOS").getPose();
+//        moveTo.setEndPosition(pose);
+//        endCanon.setCommandID(3);
+//        program.setEndCanon(endCanon);
+//
+//        CRCLSocket socket = new CRCLSocket("localhost", CRCLSocket.DEFAULT_PORT);
+//        CRCLCommandInstanceType inst = new CRCLCommandInstanceType();
+//        inst.setCRCLCommand(initCanon);
+//        socket.writeCommand(inst);
+//        CRCLStatusType status = null;
+//        while (status == null || status.getCommandStatus().getCommandState() == CRCL_WORKING) {
+//            CRCLCommandInstanceType getStatusInst = new CRCLCommandInstanceType();
+//            GetStatusType getStatus = new GetStatusType();
+//            getStatus.setCommandID(4);
+//            getStatusInst.setCRCLCommand(getStatus);
+//            socket.writeCommand(getStatusInst);
+//            status = socket.readStatus();
+////            System.out.println("status = " + socket.statusToPrettyString(status, true));
+//        }
+//        moveTo.setCommandID(5);
+//        inst.setCRCLCommand(moveTo);
+//        socket.writeCommand(inst);
+//        status = null;
+//        while (status == null || status.getCommandStatus().getCommandState() == CRCL_WORKING) {
+//            CRCLCommandInstanceType getStatusInst = new CRCLCommandInstanceType();
+//            GetStatusType getStatus = new GetStatusType();
+//            getStatus.setCommandID(6);
+//            getStatusInst.setCRCLCommand(getStatus);
+//            socket.writeCommand(getStatusInst);
+//            status = socket.readStatus();
+////            System.out.println("status = " + socket.statusToPrettyString(status, true));
+//        }
+//    }
 }

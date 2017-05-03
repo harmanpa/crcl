@@ -69,8 +69,8 @@ public class PerfTest {
     private static CRCLStatusType createStatus() {
         CRCLStatusType stat = new CRCLStatusType();
         CommandStatusType cst = new CommandStatusType();
-        cst.setCommandID(BigInteger.ONE);
-        cst.setStatusID(BigInteger.ONE);
+        cst.setCommandID(1);
+        cst.setStatusID(1);
         cst.setCommandState(CommandStateEnumType.CRCL_WORKING);
         stat.setCommandStatus(cst);
         PoseType pose = new PoseType();
@@ -96,7 +96,7 @@ public class PerfTest {
         JointStatusesType jst = new JointStatusesType();
         for (int i = 1; i <= 6; i++) {
             JointStatusType js = new JointStatusType();
-            js.setJointNumber(BigInteger.valueOf(i));
+            js.setJointNumber(i);
             js.setJointPosition(i * 0.1);
             jst.getJointStatus().add(js);
         }
@@ -211,7 +211,7 @@ public class PerfTest {
                                             CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
                                             CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                                             status.getCommandStatus().setCommandID(cmd.getCommandID());
-                                            status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID().add(BigInteger.ONE));
+                                            status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
                                             cs.writeStatus(status, validate);
                                         }
                                     } catch (Exception ex) {
@@ -251,17 +251,17 @@ public class PerfTest {
                 cs.setEXIEnabled(enableEXI);
                 CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
                 GetStatusType getStatus = new GetStatusType();
-                getStatus.setCommandID(BigInteger.ONE);
+                getStatus.setCommandID(1);
                 cmdInstance.setCRCLCommand(getStatus);
                 start = System.nanoTime();
                 for (int i = 0; i < repeats; i++) {
                     long t1 = System.nanoTime();
-                    getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
+                    getStatus.setCommandID(getStatus.getCommandID() + 1);
 //                    System.out.println("getStatus.getCommandID() = " + getStatus.getCommandID());
                     cs.writeCommand(cmdInstance, validate);
                     CRCLStatusType stat = cs.readStatus(validate);
 //                    System.out.println("stat.getCommandStatus().getCommandID() = " + stat.getCommandStatus().getCommandID());
-                    if (stat.getCommandStatus().getCommandID().compareTo(getStatus.getCommandID()) != 0) {
+                    if (stat.getCommandStatus().getCommandID() != getStatus.getCommandID()) {
                         throw new RuntimeException("Command ID doesn't match : "
                                 + stat.getCommandStatus().getCommandID() + " != " + getStatus.getCommandID());
                     }

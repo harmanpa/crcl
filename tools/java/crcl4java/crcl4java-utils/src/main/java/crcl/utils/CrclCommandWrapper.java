@@ -105,13 +105,13 @@ public class CrclCommandWrapper extends MessageType {
     }
 
     @Override
-    public void setCommandID(BigInteger value) {
+    public void setCommandID(long value) {
         wrappedCommand.setCommandID(value);
         this.commandID = wrappedCommand.getCommandID();
     }
 
     @Override
-    public BigInteger getCommandID() {
+    public long getCommandID() {
         return wrappedCommand.getCommandID();
     }
 

@@ -448,7 +448,7 @@ public class SimServerInner {
     private final Map<CRCLSocket, Thread> clientThreadMap = new ConcurrentHashMap<>();
     Thread simThread = null;
     private volatile int close_count = 0;
-    BigInteger maxCmdId = BigInteger.ONE;
+    long maxCmdId = 1;
     Map<CRCLSocket, LastStatusInfo> lastStatusMap = null;
     private boolean executingMoveCommand = false;
     long debugUpdateStatusTime = 0;
@@ -675,14 +675,6 @@ public class SimServerInner {
                     commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
                     this.goalPose = null;
                     this.setWaypoints(null);
-                    CommandStatusType cst = this.getStatus().getCommandStatus();
-                    if (cst == null) {
-                        cst = new CommandStatusType();
-                    }
-                    if (null == cst.getStatusID()) {
-                        cst.setStatusID(BigInteger.ONE);
-                    }
-
                     setCommandState(CommandStateEnumType.CRCL_DONE);
                 }
             }
@@ -745,14 +737,6 @@ public class SimServerInner {
             commandedJointPositions = Arrays.copyOf(jointPositions, jointPositions.length);
             this.goalPose = null;
             this.setWaypoints(null);
-            CommandStatusType cst = this.getStatus().getCommandStatus();
-            if (cst == null) {
-                cst = new CommandStatusType();
-            }
-            if (null == cst.getStatusID()) {
-                cst.setStatusID(BigInteger.ONE);
-            }
-
             setCommandState(CommandStateEnumType.CRCL_DONE);
         } catch (PmException ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
@@ -822,7 +806,7 @@ public class SimServerInner {
                 break;
 
             case 2:
-                if (moveScrew.getAxialDistanceFree() != null && moveScrew.getAxialDistanceFree()  > 0) {
+                if (moveScrew.getAxialDistanceFree() != null && moveScrew.getAxialDistanceFree() > 0) {
                     goalPose = shift(getPose(),
                             multiply(moveScrew.getAxialDistanceFree(), getXAxis()));
                     setMoveStraight(true);
@@ -870,9 +854,9 @@ public class SimServerInner {
             CommandStatusType cst = status.getCommandStatus();
             if (null == cst) {
                 cst = new CommandStatusType();
-                status.setCommandStatus(cst);
             }
             cst.setCommandState(state);
+            status.setCommandStatus(cst);
         }
     }
 
@@ -1208,14 +1192,6 @@ public class SimServerInner {
                 if (null == getCommandState()) {
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 }
-                BigInteger sid = cst.getStatusID();
-                if (sid == null) {
-                    cst.setStatusID(BigInteger.ONE);
-                }
-                BigInteger cid = cst.getCommandID();
-                if (cid == null) {
-                    cst.setCommandID(BigInteger.ONE);
-                }
                 if (null != socket) {
                     try {
                         socket.appendTrailingZero = menuOuter().isAppendZeroSelected();
@@ -1230,10 +1206,9 @@ public class SimServerInner {
                         if (null != this.lastStatusMap) {
                             LastStatusInfo lsi = this.lastStatusMap.get(socket);
                             new_state = (null == lsi
-                                    || null == lsi.lastSentCid
                                     || null == lsi.lastSentState
-                                    || !lsi.lastSentCid.equals(status.getCommandStatus().getCommandID())
-                                    || !lsi.lastSentState.equals(status.getCommandStatus().getCommandState()));
+                                    || lsi.lastSentCid != status.getCommandStatus().getCommandID()
+                                    || lsi.lastSentState.equals(status.getCommandStatus().getCommandState()));
                         }
                         if (menuOuter().isDebugSendStatusSelected() && new_state) {
                             outer.showDebugMessage("Status sent to " + socket.getInetAddress() + ":" + socket.getPort()
@@ -1286,9 +1261,8 @@ public class SimServerInner {
                 if (null != this.lastStatusMap) {
                     LastStatusInfo lsi = this.lastStatusMap.get(curSocket);
                     new_state = (null == lsi
-                            || null == lsi.lastSentCid
                             || null == lsi.lastSentState
-                            || !lsi.lastSentCid.equals(status.getCommandStatus().getCommandID())
+                            || lsi.lastSentCid != status.getCommandStatus().getCommandID()
                             || !lsi.lastSentState.equals(status.getCommandStatus().getCommandState()));
                 }
                 if (menuOuter().isDebugSendStatusSelected() && new_state) {
@@ -1378,11 +1352,7 @@ public class SimServerInner {
         synchronized (status) {
             CommandStatusType cst = status.getCommandStatus();
             if (null != cst) {
-                cst.setStatusID(
-                        Optional.ofNullable(cst.getStatusID())
-                                .orElse(BigInteger.ZERO)
-                                .add(BigInteger.ONE)
-                );
+                cst.setStatusID(cst.getStatusID() + 1);
             }
             if (null != cmdLog && cmdLog.size() > 0) {
                 if (cst.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
@@ -1414,8 +1384,8 @@ public class SimServerInner {
                     }
                     if (null == status.getCommandStatus()) {
                         CommandStatusType cst = new CommandStatusType();
-                        cst.setCommandID(BigInteger.ONE);
-                        cst.setStatusID(BigInteger.ONE);
+                        cst.setCommandID(1);
+                        cst.setStatusID(1);
                         cst.setCommandState(CommandStateEnumType.CRCL_WORKING);
                         status.setCommandStatus(new CommandStatusType());
                     }
@@ -1479,14 +1449,14 @@ public class SimServerInner {
                             js = new JointStatusType();
                             jsl.add(i, js);
                         }
-                        js.setJointNumber(BigInteger.valueOf(i + 1));
+                        js.setJointNumber(i + 1);
                         if (null != cjrMap && cjrMap.size() > 0) {
                             js.setJointPosition(null);
                             js.setJointVelocity(null);
                             js.setJointTorqueOrForce(null);
-                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
                             if (null != cjrt) {
-                                if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                if (cjrt.getJointNumber() == js.getJointNumber()) {
                                     if (cjrt.isReportPosition()) {
                                         js.setJointPosition(jointPositions[i]);
                                     }
@@ -1664,7 +1634,8 @@ public class SimServerInner {
                         state.getStatusRequests++;
                         state.lastStatRequestTime = System.currentTimeMillis();
                         GetStatusType getStatus = (GetStatusType) cmd;
-                        if (debug_this_command || menuOuter().isDebugReadCommandSelected() && !getStatus.getCommandID().equals(state.getStatusCmdId)) {
+                        if (debug_this_command || menuOuter().isDebugReadCommandSelected() 
+                                && getStatus.getCommandID() != state.getStatusCmdId) {
                             outer.showDebugMessage("SimServerInner.readCommandsRepeatedly() :  (getStatus=" + getStatus + " ID=" + getStatus.getCommandID() + ") state = " + state);
                         }
                         state.getStatusCmdId = getStatus.getCommandID();
@@ -1681,7 +1652,7 @@ public class SimServerInner {
                                 cst = new CommandStatusType();
                                 setCommandState(CommandStateEnumType.CRCL_WORKING);
                                 cst.setCommandID(cmd.getCommandID());
-                                cst.setStatusID(BigInteger.ONE);
+                                cst.setStatusID(1);
                                 status.setCommandStatus(cst);
                             }
                             SimServerInner.this.sendStatus(cs);
@@ -2040,8 +2011,7 @@ public class SimServerInner {
                         this.cjrMap = new HashMap<>();
                     }
                     for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
-                        this.cjrMap.put(cjr.getJointNumber().intValue(),
-                                cjr);
+                        this.cjrMap.put(cjr.getJointNumber(),cjr);
                     }
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                     setReportJointStatus(true);
@@ -2130,7 +2100,7 @@ public class SimServerInner {
                     this.executingMoveCommand = true;
                     MoveThroughToType mv = (MoveThroughToType) cmd;
                     List<PoseType> wpts = mv.getWaypoint();
-                    int numpositions = mv.getNumPositions().intValue();
+                    int numpositions = mv.getNumPositions();
                     if (numpositions < 2) {
                         throw new RuntimeException("MoveThroughToType must set NumPositions to at-least 2 but NumPositions=" + numpositions + ".");
                     }
@@ -2164,7 +2134,7 @@ public class SimServerInner {
                     this.goalPose = null;
                     List<ActuateJointType> ajl = ajst.getActuateJoint();
                     for (ActuateJointType aj : ajl) {
-                        int index = aj.getJointNumber().intValue() - 1;
+                        int index = aj.getJointNumber() - 1;
                         if (index < 0 || index > this.jointPositions.length) {
                             setCommandState(CommandStateEnumType.CRCL_ERROR);
                             showMessage("Bad joint index:" + index);
@@ -2481,7 +2451,7 @@ public class SimServerInner {
 
     private static class LastStatusInfo {
 
-        BigInteger lastSentCid = null;
+        long lastSentCid = -999;
         CommandStateEnumType lastSentState = null;
     }
 
@@ -2492,8 +2462,8 @@ public class SimServerInner {
         public int cmdsRecieved = 0;
         public long lastCmdTime = 0;
         public long lastStatRequestTime = 0;
-        BigInteger getStatusCmdId = null;
-        BigInteger cmdId = null;
+        long getStatusCmdId = -999;
+        long cmdId = -999;
 
         ClientState(CRCLSocket cs) {
             this.cs = cs;

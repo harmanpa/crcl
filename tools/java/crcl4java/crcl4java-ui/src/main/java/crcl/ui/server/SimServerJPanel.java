@@ -758,7 +758,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 public void run() {
                     try {
                         GetStatusType getStatus = new GetStatusType();
-                        getStatus.setCommandID(BigInteger.ONE);
+                        getStatus.setCommandID(1);
                         CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
                         cmdInstance.setCRCLCommand(getStatus);
                         while (!Thread.currentThread().isInterrupted()) {
@@ -768,7 +768,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             }
                             if (sendGripperStatusRequests) {
                                 Thread.sleep(inner.getDelayMillis());
-                                getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
+                                getStatus.setCommandID(getStatus.getCommandID() + 1);
                                 gripperSocket.writeCommand(cmdInstance, false);
                             }
                             checkMenuOuter();
@@ -810,8 +810,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 }
                 List<JointStatusType> jsl = jsst.getJointStatus();
                 for (JointStatusType jst : jsl) {
-                    int jvindex = jst.getJointNumber().intValue() - 1;
-                    double pos = jst.getJointPosition().doubleValue();
+                    int jvindex = jst.getJointNumber() - 1;
+                    double pos = jst.getJointPosition();
                     inner.setJointPosition(pos, jvindex);
                     inner.setCommandedJointPosition(pos, jvindex);
                 }

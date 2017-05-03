@@ -23,7 +23,6 @@
 package crcl.utils;
 
 import crcl.base.CRCLStatusType;
-import java.math.BigInteger;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmPose;
@@ -33,7 +32,7 @@ public class AnnotatedPose extends PmPose {
     private static final Logger LOG = Logger.getLogger(AnnotatedPose.class.getName());
 
     private final long time;
-    private final BigInteger lastCommandIdSent;
+    private final long lastCommandIdSent;
     private final String commandName;
     private final CRCLStatusType status;
 
@@ -47,7 +46,7 @@ public class AnnotatedPose extends PmPose {
      * @param status the value of status
      */
     public AnnotatedPose(
-            long time, BigInteger lastCommandIdSent, String commandName, PmCartesian starttran, PmQuaternion startrot, CRCLStatusType status) {
+            long time, long lastCommandIdSent, String commandName, PmCartesian starttran, PmQuaternion startrot, CRCLStatusType status) {
         super(starttran, startrot);
         this.time = time;
         this.lastCommandIdSent = lastCommandIdSent;
@@ -59,7 +58,7 @@ public class AnnotatedPose extends PmPose {
         return time;
     }
 
-    public BigInteger getLastCommandIdSent() {
+    public long getLastCommandIdSent() {
         return lastCommandIdSent;
     }
 

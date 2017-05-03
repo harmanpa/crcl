@@ -83,8 +83,8 @@ public class CRCLPosemath {
     }
 
     /**
-     * Create a new PoseType object set to refer the the given pt with xaxis = 1,0,0,
-     * and zaxis = 0,0,1
+     * Create a new PoseType object set to refer the the given pt with xaxis =
+     * 1,0,0, and zaxis = 0,0,1
      *
      * @param pt point to refer t
      * @return new PoseType object.
@@ -92,11 +92,11 @@ public class CRCLPosemath {
     static public PoseType pose(PointType pt) {
         PoseType pose = new PoseType();
         pose.setPoint(pt);
-        pose.setXAxis(vector(1.0,0.0,0.0));
-        pose.setZAxis(vector(0.0,0.0,1.0));
+        pose.setXAxis(vector(1.0, 0.0, 0.0));
+        pose.setZAxis(vector(0.0, 0.0, 1.0));
         return pose;
     }
-    
+
     /**
      * Create a new PoseType object set to refer the the given pt, xAxis, and
      * zAxis.
@@ -140,10 +140,10 @@ public class CRCLPosemath {
      * @return new PointType object.
      */
     static public PointType point(double x, double y, double z) {
-        if(Double.isInfinite(x) || Double.isNaN(x)
+        if (Double.isInfinite(x) || Double.isNaN(x)
                 || Double.isInfinite(y) || Double.isNaN(y)
                 || Double.isInfinite(z) || Double.isNaN(z)) {
-            throw new IllegalArgumentException("point("+x+","+y+","+z+") contains NaN or Infinity");
+            throw new IllegalArgumentException("point(" + x + "," + y + "," + z + ") contains NaN or Infinity");
         }
         PointType point = new PointType();
         point.setX(x);
@@ -168,7 +168,6 @@ public class CRCLPosemath {
         vector.setK(k.doubleValue());
         return vector;
     }
-    
 
     /**
      * Create a new VectorType object from the given double i,j,k vector
@@ -195,21 +194,19 @@ public class CRCLPosemath {
      * @return the maximum commandID of any command in the program or
      * BigInteger.ONE if the program is empty or all commandId values are null.
      */
-    static public BigInteger getMaxId(CRCLProgramType prog) {
-        BigInteger max = BigInteger.ONE;
+    static public long getMaxId(CRCLProgramType prog) {
+        long max = 1;
         if (null != prog) {
             InitCanonType initCmd = prog.getInitCanon();
-            if (null != initCmd && null != initCmd.getCommandID()) {
-                max = max.max(initCmd.getCommandID());
+            if (null != initCmd) {
+                max = Math.max(max, initCmd.getCommandID());
             }
             for (MiddleCommandType cmd : prog.getMiddleCommand()) {
-                if (null != cmd.getCommandID()) {
-                    max = max.max(cmd.getCommandID());
-                }
+                max = Math.max(max, cmd.getCommandID());
             }
             EndCanonType endCmd = prog.getEndCanon();
-            if (null != endCmd && null != endCmd.getCommandID()) {
-                max = max.max(endCmd.getCommandID());
+            if (null != endCmd) {
+                max = Math.max(max, endCmd.getCommandID());
             }
         }
         return max;
@@ -233,7 +230,7 @@ public class CRCLPosemath {
      * @return PointType with same initial values as pt but can be independently
      * modified.
      */
-    public static /*@Nullable*/ PointType copy(/*@Nullable*/ PointType pt) {
+    public static /*@Nullable*/ PointType copy(/*@Nullable*/PointType pt) {
         if (null == pt) {
             return null;
         }
@@ -300,7 +297,7 @@ public class CRCLPosemath {
      * @return VectorType with same initial values as vec but can be
      * independently modified.
      */
-    public static /*@Nullable*/ VectorType copy( /*@Nullable*/ VectorType vec) {
+    public static /*@Nullable*/ VectorType copy( /*@Nullable*/VectorType vec) {
         if (null == vec) {
             return null;
         }
@@ -370,12 +367,12 @@ public class CRCLPosemath {
             newStatus.setGripperStatus(gripperStatus);
         }
         SettingsStatusType settingsStatus = copy(status.getSettingsStatus());
-        if(null != settingsStatus) {
+        if (null != settingsStatus) {
             newStatus.setSettingsStatus(settingsStatus);
         }
         return newStatus;
     }
-    
+
     /**
      * Copy or clone a settings status.
      *
@@ -422,7 +419,7 @@ public class CRCLPosemath {
      * @return GripperStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ GripperStatusType copy(/*@Nullable*/ GripperStatusType status) {
+    public static /*@Nullable*/ GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
         if (null == status) {
             return null;
         }
@@ -464,7 +461,7 @@ public class CRCLPosemath {
      * @return PoseStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ PoseStatusType copy(/*@Nullable*/ PoseStatusType status) {
+    public static /*@Nullable*/ PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
         if (null == status) {
             return null;
         }
@@ -490,7 +487,7 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ TwistType copy(/*@Nullable*/ TwistType twist) {
+    public static /*@Nullable*/ TwistType copy(/*@Nullable*/TwistType twist) {
         if (null == twist) {
             return null;
         }
@@ -577,7 +574,7 @@ public class CRCLPosemath {
      * @return CommandStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ CommandStatusType copy(/*@Nullable*/ CommandStatusType status) {
+    public static /*@Nullable*/ CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
         if (null == status) {
             return null;
         }
@@ -606,9 +603,9 @@ public class CRCLPosemath {
         }
         VectorType newXAxis = new VectorType();
         final BigDecimal MINUS_ONE = BigDecimal.valueOf(-1);
-        newXAxis.setI(pose.getXAxis().getI()* -1.0);
-        newXAxis.setJ(pose.getXAxis().getJ()* -1.0);
-        newXAxis.setK(pose.getXAxis().getK()* -1.0);
+        newXAxis.setI(pose.getXAxis().getI() * -1.0);
+        newXAxis.setJ(pose.getXAxis().getJ() * -1.0);
+        newXAxis.setK(pose.getXAxis().getK() * -1.0);
         newPose.setXAxis(newXAxis);
         VectorType zAxis = copy(pose.getZAxis());
         if (null != zAxis) {
@@ -645,7 +642,7 @@ public class CRCLPosemath {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
-        BigInteger id = BigInteger.ONE;
+        long id = 1;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
@@ -655,11 +652,7 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                if (null != moveToCmdIn.getCommandID()) {
-                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-                } else {
-                    moveToCmdOut.setCommandID(id);
-                }
+                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
                     moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 } else {
@@ -670,20 +663,12 @@ public class CRCLPosemath {
             } else {
                 programOut.getMiddleCommand().add(cmd);
             }
-            if (null != cmd.getCommandID()) {
-                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
-            } else {
-                id = id.add(BigInteger.ONE);
-            }
+            id = Math.max(id, cmd.getCommandID()) + 1;
         }
         EndCanonType endCmdOut = new EndCanonType();
         EndCanonType endCmdIn = programIn.getEndCanon();
         if (null != endCmdIn) {
             endCmdOut.setCommandID(endCmdIn.getCommandID());
-        }
-        if (null == endCmdOut.getCommandID()) {
-            id = id.add(BigInteger.ONE);
-            endCmdOut.setCommandID(id);
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;
@@ -693,13 +678,10 @@ public class CRCLPosemath {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
-        BigInteger id = BigInteger.ONE;
+        long id = 1;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
-            if (null == id) {
-                id = BigInteger.ONE;
-            }
             programOut.setInitCanon(initCmdOut);
         }
 
@@ -707,31 +689,19 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                if (null != moveToCmdIn.getCommandID()) {
-                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-                } else {
-                    moveToCmdOut.setCommandID(id);
-                }
+                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
                 moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
             } else {
                 programOut.getMiddleCommand().add(cmd);
             }
-            if (null != cmd.getCommandID()) {
-                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
-            } else {
-                id = id.add(BigInteger.ONE);
-            }
+            id = Math.max(id, cmd.getCommandID()) + 1;
         }
         EndCanonType endCmdOut = new EndCanonType();
         EndCanonType endCmdIn = programIn.getEndCanon();
         if (null != endCmdIn) {
             endCmdOut.setCommandID(endCmdIn.getCommandID());
-        }
-        if (null == endCmdOut.getCommandID()) {
-            id = id.add(BigInteger.ONE);
-            endCmdOut.setCommandID(id);
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;
@@ -741,44 +711,29 @@ public class CRCLPosemath {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
-        BigInteger id = BigInteger.ONE;
+        long id = 1;
         if (null != initCmdIn) {
             initCmdOut.setCommandID(initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
-            if (null == id) {
-                id = BigInteger.ONE;
-            }
             programOut.setInitCanon(initCmdOut);
         }
         for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                if (null != moveToCmdIn.getCommandID()) {
-                    moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-                } else {
-                    moveToCmdOut.setCommandID(id);
-                }
+                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
                 moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
             } else {
                 programOut.getMiddleCommand().add(cmd);
             }
-            if (null != cmd.getCommandID()) {
-                id = id.max(cmd.getCommandID()).add(BigInteger.ONE);
-            } else {
-                id = id.add(BigInteger.ONE);
-            }
+            id = Math.max(id, cmd.getCommandID()) + 1;
         }
         EndCanonType endCmdOut = new EndCanonType();
         EndCanonType endCmdIn = programIn.getEndCanon();
         if (null != endCmdIn) {
             endCmdOut.setCommandID(endCmdIn.getCommandID());
-        }
-        if (null == endCmdOut.getCommandID()) {
-            id = id.add(BigInteger.ONE);
-            endCmdOut.setCommandID(id);
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;
@@ -998,7 +953,6 @@ public class CRCLPosemath {
         }
     }
 
-
     private static String dataTypeThingToStartString(DataThingType dtt) {
         return "{"
                 + ((dtt.getName() != null) ? "name=" + dtt.getName() + "," : "");
@@ -1155,15 +1109,15 @@ public class CRCLPosemath {
     }
 
     public static PointType multiply(final BigDecimal dist, final VectorType v) {
-        return multiply(dist.doubleValue(),v);
+        return multiply(dist.doubleValue(), v);
     }
 
     public static PointType multiply(double dist, VectorType v) {
         PointType out = new PointType();
-        
-        out.setX(v.getI()* dist);
-        out.setY(v.getJ()* dist);
-        out.setZ(v.getK()* dist);
+
+        out.setX(v.getI() * dist);
+        out.setY(v.getJ() * dist);
+        out.setZ(v.getK() * dist);
         return out;
     }
 
@@ -1173,21 +1127,20 @@ public class CRCLPosemath {
 
     public static PointType multiply(double dist, PointType p) {
         PointType out = new PointType();
-        out.setX(p.getX()* dist);
-        out.setY(p.getY()* dist);
-        out.setZ(p.getZ()* dist);
+        out.setX(p.getX() * dist);
+        out.setY(p.getY() * dist);
+        out.setZ(p.getZ() * dist);
         return out;
     }
 
-    
     public static double dot(VectorType v1, VectorType v2) {
-        return v1.getI()* v2.getI()
-                + v1.getJ()* v2.getJ()
+        return v1.getI() * v2.getI()
+                + v1.getJ() * v2.getJ()
                 + v1.getK() * v2.getK();
     }
 
     public static double dot(VectorType v1, PointType p2) {
-        return v1.getI()* p2.getX()
+        return v1.getI() * p2.getX()
                 + v1.getJ() * p2.getY()
                 + v1.getK() * p2.getZ();
     }
@@ -1348,15 +1301,15 @@ public class CRCLPosemath {
         VectorType zAxisOut = new VectorType();
         PointType pt2 = p2.getPoint();
         PointType pt2rot = new PointType();
-        pt2rot.setX(p1.getXAxis().getI()* pt2.getX()
-                 + yAxis1.getI() * pt2.getY()
-                 + p1.getZAxis().getI() * pt2.getZ()
+        pt2rot.setX(p1.getXAxis().getI() * pt2.getX()
+                + yAxis1.getI() * pt2.getY()
+                + p1.getZAxis().getI() * pt2.getZ()
         );
-        pt2rot.setY(p1.getXAxis().getJ()* pt2.getX()
+        pt2rot.setY(p1.getXAxis().getJ() * pt2.getX()
                 + yAxis1.getJ() * pt2.getY()
                 + p1.getZAxis().getJ() * pt2.getZ()
         );
-        pt2rot.setZ(p1.getXAxis().getK()* pt2.getX()
+        pt2rot.setZ(p1.getXAxis().getK() * pt2.getX()
                 + yAxis1.getK() * pt2.getY()
                 + p1.getZAxis().getK() * pt2.getZ()
         );
@@ -1378,12 +1331,12 @@ public class CRCLPosemath {
 //                .add(p1.getXAxis().getK().multiply(p2.getZAxis().getK()))
 //                );
         xAxisOut.setI(
-                p1.getXAxis().getI()* p2.getXAxis().getI()
+                p1.getXAxis().getI() * p2.getXAxis().getI()
                 + yAxis1.getI() * p2.getXAxis().getJ()
                 + p1.getZAxis().getI() * p2.getXAxis().getK()
         );
         xAxisOut.setJ(
-                p1.getXAxis().getJ()* p2.getXAxis().getI()
+                p1.getXAxis().getJ() * p2.getXAxis().getI()
                 + yAxis1.getJ() * p2.getXAxis().getJ()
                 + p1.getZAxis().getJ() * p2.getXAxis().getK()
         );
@@ -1395,17 +1348,17 @@ public class CRCLPosemath {
 
         poseOut.setXAxis(xAxisOut);
         zAxisOut.setI(
-                p1.getXAxis().getI()* p2.getZAxis().getI()
+                p1.getXAxis().getI() * p2.getZAxis().getI()
                 + yAxis1.getI() * p2.getZAxis().getJ()
                 + p1.getZAxis().getI() * p2.getZAxis().getK()
         );
         zAxisOut.setJ(
-                p1.getXAxis().getJ()* p2.getZAxis().getI()
+                p1.getXAxis().getJ() * p2.getZAxis().getI()
                 + yAxis1.getJ() * p2.getZAxis().getJ()
                 + p1.getZAxis().getJ() * p2.getZAxis().getK()
         );
         zAxisOut.setK(
-                p1.getXAxis().getK()* p2.getZAxis().getI()
+                p1.getXAxis().getK() * p2.getZAxis().getI()
                 + yAxis1.getK() * p2.getZAxis().getJ()
                 + p1.getZAxis().getK() * p2.getZAxis().getK()
         );
