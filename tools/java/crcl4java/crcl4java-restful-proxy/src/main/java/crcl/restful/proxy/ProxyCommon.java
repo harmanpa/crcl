@@ -51,7 +51,7 @@ public class ProxyCommon {
     private CRCLStatusType status;
     private long last_status_recv_time = -1;
     private long last_status_request_time = -1;
-    private BigInteger cmdId = BigInteger.ONE;
+    private long cmdId = 1;
     private static final int PORT = Integer.parseInt(System.getProperty("crcl.restful.proxy.port", "" + CRCLSocket.DEFAULT_PORT));
     private static final String HOST = System.getProperty("crcl.restful.proxy.host", "localhost");
     private CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
@@ -63,7 +63,7 @@ public class ProxyCommon {
     public synchronized void setCmdInstance(CRCLCommandInstanceType newCmdInstance) throws CRCLException, IOException {
         try {
             if (Objects.equals(cmdId, newCmdInstance.getCRCLCommand().getCommandID())) {
-                cmdId = cmdId.add(BigInteger.ONE);
+                cmdId = cmdId + 1;
                 newCmdInstance.getCRCLCommand().setCommandID(cmdId);
             }
             cmdId = newCmdInstance.getCRCLCommand().getCommandID();
