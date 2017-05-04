@@ -579,7 +579,7 @@ public class FanucCRCLMain {
     }
 
     public static PoseType lastDoneMovePose = null;
-    public static BigInteger lastDoneMoveCommandID = null;
+    public static long lastDoneMoveCommandID = -582;
 
     private boolean holdingObject;
 
@@ -653,8 +653,8 @@ public class FanucCRCLMain {
                     status.setCommandStatus(new CommandStatusType());
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 }
-                if (null == status.getCommandStatus().getCommandID()) {
-                    status.getCommandStatus().setCommandID(BigInteger.ONE);
+                if (status.getCommandStatus().getCommandID() < 1) {
+                    status.getCommandStatus().setCommandID(1);
                 }
                 if (null == status.getCommandStatus().getCommandState()) {
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -673,10 +673,10 @@ public class FanucCRCLMain {
                 if (null != status.getGripperStatus()) {
                     if (status.getGripperStatus() instanceof ParallelGripperStatusType) {
                         ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status.getGripperStatus();
-                        parallelGripperStatus.setSeparation(BigDecimal.valueOf(gripperSeperation));
+                        parallelGripperStatus.setSeparation(gripperSeperation);
                     }
                 }
-                status.getCommandStatus().setStatusID(BigInteger.ONE.add(status.getCommandStatus().getStatusID()));
+                status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID()+1);
                 if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
                     if (prevCmd != null) {
                         if (prevCmd instanceof MoveToType) {
@@ -718,7 +718,7 @@ public class FanucCRCLMain {
                             }
                         } else if (prevCmd instanceof MoveThroughToType) {
                             MoveThroughToType mtt = (MoveThroughToType) prevCmd;
-                            if (currentWaypointNumber >= mtt.getNumPositions().intValue()
+                            if (currentWaypointNumber >= mtt.getNumPositions()
                                     || currentWaypointNumber >= mtt.getWaypoint().size()) {
                                 try {
                                     PoseType pose = mtt.getWaypoint().get(mtt.getWaypoint().size() - 1);
@@ -786,11 +786,11 @@ public class FanucCRCLMain {
                                 ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
                                 double maxDiff = 0;
                                 for (ActuateJointType aj : actJoints.getActuateJoint()) {
-                                    int num = aj.getJointNumber().intValue();
+                                    int num = aj.getJointNumber();
                                     assert (jointStatuses != null);
                                     for (JointStatusType jst : jointStatuses.getJointStatus()) {
-                                        if (num == jst.getJointNumber().intValue()) {
-                                            double diff = Math.abs(jst.getJointPosition().doubleValue() - aj.getJointPosition().doubleValue());
+                                        if (num == jst.getJointNumber()) {
+                                            double diff = Math.abs(jst.getJointPosition() - aj.getJointPosition());
                                             if (diff > maxDiff) {
                                                 maxDiff = diff;
                                             }
@@ -837,7 +837,7 @@ public class FanucCRCLMain {
                 jointStatuses.getJointStatus().clear();
                 for (short i = 1; i <= joint_pos.count(); i++) {
                     JointStatusType js = new JointStatusType();
-                    js.setJointNumber(BigInteger.valueOf(i));
+                    js.setJointNumber(i);
                     double cur_joint_pos = joint_pos.item(i);
                     double last_joint_pos = lastJointPosArray[i];
                     long last_joint_pos_time = lastJointPosTimeArray[i];
@@ -845,24 +845,23 @@ public class FanucCRCLMain {
                     double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
                     lastJointPosArray[i] = cur_joint_pos;
                     lastJointPosTimeArray[i] = cur_time;
-                    BigDecimal jointPosition = BigDecimal.valueOf(cur_joint_pos);
-                    js.setJointPosition(jointPosition);
+                    js.setJointPosition(cur_joint_pos);
                     try {
                         if (null != cjrMap && cjrMap.size() > 0) {
                             js.setJointPosition(null);
                             js.setJointVelocity(null);
                             js.setJointTorqueOrForce(null);
-                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber().intValue());
+                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
                             if (null != cjrt) {
-                                if (cjrt.getJointNumber().compareTo(js.getJointNumber()) == 0) {
+                                if (cjrt.getJointNumber() == js.getJointNumber()) {
                                     if (cjrt.isReportPosition()) {
-                                        js.setJointPosition(jointPosition);
+                                        js.setJointPosition(cur_joint_pos);
                                     }
                                     if (cjrt.isReportVelocity()) {
-                                        js.setJointVelocity(BigDecimal.valueOf(joint_vel));
+                                        js.setJointVelocity(joint_vel);
                                     }
                                     if (cjrt.isReportTorqueOrForce()) {
-                                        js.setJointTorqueOrForce(BigDecimal.ZERO);
+                                        js.setJointTorqueOrForce(0.0);
                                     }
                                 }
                             }
@@ -1167,7 +1166,7 @@ public class FanucCRCLMain {
 
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
         setCommandState(CommandStateEnumType.CRCL_DONE);
-        if (seeCmd.getSetting().compareTo(BigDecimal.valueOf(0.5)) > 0) {
+        if (seeCmd.getSetting() > 0.5) {
             open_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
             setGripperSeperation(1.0);
         } else {
@@ -1198,7 +1197,7 @@ public class FanucCRCLMain {
         if (null != status) {
             if (null == status.getCommandStatus()) {
                 status.setCommandStatus(new CommandStatusType());
-                status.getCommandStatus().setCommandID(BigInteger.ONE);
+                status.getCommandStatus().setCommandID(1);
             }
 
             setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1220,7 +1219,7 @@ public class FanucCRCLMain {
         if (null != status) {
             if (null == status.getCommandStatus()) {
                 status.setCommandStatus(new CommandStatusType());
-                status.getCommandStatus().setCommandID(BigInteger.ONE);
+                status.getCommandStatus().setCommandID(1);
             }
 
 //            status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1241,8 +1240,9 @@ public class FanucCRCLMain {
         TransSpeedType ts = stsCmd.getTransSpeed();
         if (ts instanceof TransSpeedRelativeType) {
             TransSpeedRelativeType tsRel = (TransSpeedRelativeType) ts;
-            transSpeed = tsRel.getFraction().doubleValue() * 200.0;
-            int val = ((TransSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
+            transSpeed = tsRel.getFraction() * 200.0;
+//            int val = ((TransSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
+             int val = (int) (tsRel.getFraction() * maxRelativeSpeed);
             overrideVar.value(Integer.valueOf(val));
             if (null != displayInterface) {
                 displayInterface.getjSliderOverride().setValue(val);
@@ -1251,7 +1251,7 @@ public class FanucCRCLMain {
             settingsStatus.setTransSpeedRelative(tsRel);
         } else if (ts instanceof TransSpeedAbsoluteType) {
             TransSpeedAbsoluteType tsAbs = (TransSpeedAbsoluteType) ts;
-            transSpeed = tsAbs.getSetting().doubleValue() * lengthScale;
+            transSpeed = tsAbs.getSetting() * lengthScale;
             regNumeric98.regFloat((float) transSpeed);
             showInfo("R[98] = transSpeed = "+transSpeed);
 //            reg98Var.update();
@@ -1264,7 +1264,7 @@ public class FanucCRCLMain {
         RotSpeedType rs = stsCmd.getRotSpeed();
         if (rs instanceof RotSpeedRelativeType) {
             RotSpeedRelativeType rsRel = (RotSpeedRelativeType) rs;
-            int val = rsRel.getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
+            int val = (int) (rsRel.getFraction() * maxRelativeSpeed);
             overrideVar.value(val);
             if (null != displayInterface) {
                 displayInterface.getjSliderOverride().setValue(val);
@@ -1273,7 +1273,7 @@ public class FanucCRCLMain {
             settingsStatus.setRotSpeedRelative(rsRel);
         } else if (rs instanceof RotSpeedAbsoluteType) {
             RotSpeedAbsoluteType rsAbs = (RotSpeedAbsoluteType) rs;
-            rotSpeed = rsAbs.getSetting().doubleValue() * lengthScale;
+            rotSpeed = rsAbs.getSetting() * lengthScale;
             setCommandState(CommandStateEnumType.CRCL_DONE);
             settingsStatus.setRotSpeedAbsolute(rsAbs);
         }
@@ -1363,9 +1363,9 @@ public class FanucCRCLMain {
         endCart.z = posReg98XyzWpr.z();
         double cartDiff = distTransFrom(moveCmd.getEndPosition());
         double rotDiff = distRotFrom(moveCmd.getEndPosition());
-        moveCmdEndPt.setX(BigDecimal.valueOf(endCart.x / lengthScale));
-        moveCmdEndPt.setY(BigDecimal.valueOf(endCart.y / lengthScale));
-        moveCmdEndPt.setZ(BigDecimal.valueOf(endCart.z / lengthScale));
+        moveCmdEndPt.setX(endCart.x / lengthScale);
+        moveCmdEndPt.setY(endCart.y / lengthScale);
+        moveCmdEndPt.setZ(endCart.z / lengthScale);
         double cartMoveTime = cartDiff / transSpeed;
         double rotMoveTime = rotDiff / rotSpeed;
         if (rotMoveTime > cartMoveTime) {
@@ -1540,7 +1540,7 @@ public class FanucCRCLMain {
         moveCount++;
         moveThread = new Thread(() -> {
             try {
-                for (currentWaypointNumber = 0; currentWaypointNumber < moveCmd.getNumPositions().intValue() && currentWaypointNumber < moveCmd.getWaypoint().size(); currentWaypointNumber++) {
+                for (currentWaypointNumber = 0; currentWaypointNumber < moveCmd.getNumPositions() && currentWaypointNumber < moveCmd.getWaypoint().size(); currentWaypointNumber++) {
                     PoseType pose = moveCmd.getWaypoint().get(currentWaypointNumber);
                     PmCartesian cart = CRCLPosemath.toPmCartesian(pose.getPoint());
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
@@ -1606,7 +1606,7 @@ public class FanucCRCLMain {
     long dwellEndTime = 0;
 
     private void handleDwell(DwellType dwellCmd) {
-        dwellEndTime = System.currentTimeMillis() + ((long) (dwellCmd.getDwellTime().doubleValue() * 1000.0 + 1.0));
+        dwellEndTime = System.currentTimeMillis() + ((long) (dwellCmd.getDwellTime() * 1000.0 + 1.0));
 //        System.out.println("dwellEndTime = " + dwellEndTime);
         setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
@@ -1638,7 +1638,7 @@ public class FanucCRCLMain {
             ConfigureJointReportType cjr = new ConfigureJointReportType();
             cjr.setReportPosition(true);
             cjr.setReportVelocity(true);
-            cjr.setJointNumber(BigInteger.valueOf(i));
+            cjr.setJointNumber(i);
             this.cjrMap.put(i,
                     cjr);
         }
@@ -1665,7 +1665,7 @@ public class FanucCRCLMain {
             this.cjrMap = new HashMap<>();
         }
         for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
-            this.cjrMap.put(cjr.getJointNumber().intValue(),
+            this.cjrMap.put(cjr.getJointNumber(),
                     cjr);
         }
         setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -1758,9 +1758,9 @@ public class FanucCRCLMain {
         final IJoint posReg97Joint = posReg97.formats(FRETypeCodeConstants.frJoint).queryInterface(IJoint.class);
         long max_time = 0;
         for (ActuateJointType aj : ajCmd.getActuateJoint()) {
-            double val = aj.getJointPosition().doubleValue();
+            double val = aj.getJointPosition();
             final double origval = val;
-            short number = aj.getJointNumber().shortValue();
+            short number = (short) aj.getJointNumber();
             if (number < 1) {
                 System.err.println("bad joint number : " + number);
                 return;
@@ -1888,11 +1888,11 @@ public class FanucCRCLMain {
                 }
                 CommandStatusType commandStatus = status.getCommandStatus();
                 if (null != commandStatus) {
-                    if (null == commandStatus.getCommandID()) {
-                        commandStatus.setCommandID(BigInteger.ONE);
+                    if (commandStatus.getCommandID() < 1) {
+                        commandStatus.setCommandID(1);
                     }
-                    if (null == commandStatus.getStatusID()) {
-                        commandStatus.setStatusID(BigInteger.ONE);
+                    if (commandStatus.getStatusID() < 1) {
+                        commandStatus.setStatusID(1);
                     }
                     if (null == status.getCommandStatus().getCommandState()) {
                         setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -2024,7 +2024,7 @@ public class FanucCRCLMain {
                         setCommandState(CommandStateEnumType.CRCL_WORKING);
                     }
                     cst.setCommandID(cmd.getCommandID());
-                    cst.setStatusID(BigInteger.ONE);
+                    cst.setStatusID(1);
                     cst.setProgramFile(cmdInstance.getProgramFile());
                     cst.setProgramIndex(cmdInstance.getProgramIndex());
                     cst.setProgramLength(cmdInstance.getProgramLength());
@@ -2255,9 +2255,9 @@ public class FanucCRCLMain {
             lowerJointLimits[i] = min[i];
             upperJointLimits[i] = max[i];
             JointLimitType jointLimit = new JointLimitType();
-            jointLimit.setJointNumber(BigInteger.valueOf(i + 1));
-            jointLimit.setJointMaxPosition(BigDecimal.valueOf(upperJointLimits[i]));
-            jointLimit.setJointMinPosition(BigDecimal.valueOf(lowerJointLimits[i]));
+            jointLimit.setJointNumber(i + 1);
+            jointLimit.setJointMaxPosition(Double.valueOf(upperJointLimits[i]));
+            jointLimit.setJointMinPosition(Double.valueOf(lowerJointLimits[i]));
             settingsStatus.getJointLimits().add(jointLimit);
         }
     }
