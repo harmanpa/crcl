@@ -265,9 +265,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button jointJogInc1Button = new Button("1 deg");
     private final Button jointJogInc10Button = new Button("10 deg");
     private final Button jointJogInc100Button = new Button("100 deg");
-    public BigDecimal jointJogIncrement = BigDecimal.TEN;
+    public double jointJogIncrement = 10.0;
 
-    private final Label jointJogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+    private final Label jointJogIncLabel = new Label(" Increment: " + String.format("%+6.1f ", jointJogIncrement) + " deg");
     final ProgressBar jointJogIncProgressBar = new ProgressBar(0.0f);
 
     private final Button openGripperButton = new Button("Open Gripper");
@@ -369,13 +369,13 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        info(()->"tempDir = " + tempDir);
+        info(() -> "tempDir = " + tempDir);
         sideImageDir = new File(tempDir, "simserver/side");
         boolean made_side_dir = sideImageDir.mkdirs();
         Logger.getLogger(CrclClientUI.class.getName()).finest(() -> sideImageDir + "mkdirs() returned " + made_side_dir);
-        info(()->"sideImageDir = " + sideImageDir);
+        info(() -> "sideImageDir = " + sideImageDir);
         for (File f : sideImageDir.listFiles()) {
-            info(()->"f = " + f);
+            info(() -> "f = " + f);
             boolean deleted = f.delete();
             if (!deleted) {
                 warning(() -> f + " not deleted");
@@ -384,9 +384,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         overheadImageDir = new File(tempDir, "simserver/overhead");
         boolean made_overhead_dir = overheadImageDir.mkdirs();
         Logger.getLogger(CrclClientUI.class.getName()).finest(() -> overheadImageDir + "mkdirs() returned " + made_overhead_dir);
-        info(()->"overheadImageDir = " + overheadImageDir);
+        info(() -> "overheadImageDir = " + overheadImageDir);
         for (File f : overheadImageDir.listFiles()) {
-            info(()->"f = " + f);
+            info(() -> "f = " + f);
             boolean deleted = f.delete();
             if (!deleted) {
                 warning(() -> f + " not deleted");
@@ -395,9 +395,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         transformGroupSideImageDir = new File(tempDir, "transformGroup/side");
         boolean made_tg_dir = transformGroupSideImageDir.mkdirs();
         Logger.getLogger(CrclClientUI.class.getName()).finest(() -> transformGroupSideImageDir + "mkdirs() returned " + made_tg_dir);
-        info(()->"sideImageDir = " + transformGroupSideImageDir);
+        info(() -> "sideImageDir = " + transformGroupSideImageDir);
         for (File f : transformGroupSideImageDir.listFiles()) {
-            info(()->"f = " + f);
+            info(() -> "f = " + f);
             boolean deleted = f.delete();
             if (!deleted) {
                 warning(() -> f + " not deleted");
@@ -420,11 +420,11 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private static void info(Supplier<String> messageSupplier) {
         Logger.getLogger(CrclClientUI.class.getName()).info(messageSupplier);
     }
-    
+
     private static void warning(Supplier<String> messageSupplier) {
         Logger.getLogger(CrclClientUI.class.getName()).warning(messageSupplier);
     }
-    
+
     private String recordPointsProgramName = null;
     transient private CRCLProgramType recordPointsProgram = null;
 
@@ -432,10 +432,10 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         if (null == recordPointsProgram) {
             recordPointsProgram = new CRCLProgramType();
             InitCanonType initcmd = new InitCanonType();
-            initcmd.setCommandID(BigInteger.ONE);
+            initcmd.setCommandID(1);
             recordPointsProgram.setInitCanon(initcmd);
             EndCanonType endcmd = new EndCanonType();
-            endcmd.setCommandID(BigInteger.valueOf(2));
+            endcmd.setCommandID(2);
             recordPointsProgram.setEndCanon(endcmd);
         }
         MoveToType moveToCmd = new MoveToType();
@@ -456,9 +456,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         zAxis.setK(currentPose.getZAxis().getK());
         pose.setZAxis(zAxis);
         moveToCmd.setEndPosition(pose);
-        moveToCmd.setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size() + 1));
+        moveToCmd.setCommandID(recordPointsProgram.getMiddleCommand().size() + 1);
         recordPointsProgram.getMiddleCommand().add(moveToCmd);
-        recordPointsProgram.getEndCanon().setCommandID(BigInteger.valueOf(recordPointsProgram.getMiddleCommand().size() + 2));
+        recordPointsProgram.getEndCanon().setCommandID(recordPointsProgram.getMiddleCommand().size() + 2);
     }
 
     public void recordAndSaveCurrentPoint() {
@@ -486,8 +486,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     public void openGripper() {
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
-            seeCmd.setSetting(BigDecimal.ONE);
-            BigInteger nextId = lastCmdIdSent.and(BigInteger.ONE);
+            seeCmd.setSetting(1.0);
+            long nextId = lastCmdIdSent + 1;
             seeCmd.setCommandID(nextId);
             sendCommand(seeCmd);
             this.recordCurrentPoint();
@@ -501,8 +501,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     public void closeGripper() {
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
-            seeCmd.setSetting(BigDecimal.ZERO);
-            BigInteger nextId = lastCmdIdSent.and(BigInteger.ONE);
+            seeCmd.setSetting(0.0);
+            long nextId = lastCmdIdSent + 1;
             seeCmd.setCommandID(nextId);
             sendCommand(seeCmd);
             this.recordCurrentPoint();
@@ -791,12 +791,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     static private boolean acceptPose(PmCartesian min, PmCartesian max, PoseType pose) {
         PointType pt = pose.getPoint();
-        return pt.getX().doubleValue() >= min.x
-                && pt.getX().doubleValue() <= max.x
-                && pt.getY().doubleValue() >= min.y
-                && pt.getY().doubleValue() <= max.y
-                && pt.getZ().doubleValue() >= min.z
-                && pt.getZ().doubleValue() <= max.z;
+        return pt.getX() >= min.x
+                && pt.getX() <= max.x
+                && pt.getY() >= min.y
+                && pt.getY() <= max.y
+                && pt.getZ() >= min.z
+                && pt.getZ() <= max.z;
     }
 
     private void transformProgram() {
@@ -868,8 +868,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 if (commonInfo.getProgramIndex() < 1) {
                     CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
                     instance.setCRCLCommand(program.getInitCanon());
-                    if (null == instance.getCRCLCommand().getCommandID()) {
-                        instance.getCRCLCommand().setCommandID(BigInteger.ONE);
+                    if (instance.getCRCLCommand().getCommandID() < 1) {
+                        instance.getCRCLCommand().setCommandID(1);
                     }
                     socket.writeCommand(instance);
                     lastCmdIdSent = instance.getCRCLCommand().getCommandID();
@@ -1390,7 +1390,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 cmdQueue.clear();
                 SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
                 TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
-                relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                relSpeed.setFraction(speedFraction);
                 setSpeedCmd.setTransSpeed(relSpeed);
                 cmdQueue.offer(setSpeedCmd);
                 running = false;
@@ -1562,32 +1562,32 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         incrementButtonLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
         jogIncPoint1Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(0.1);
-            jogWorldTransInc = BigDecimal.valueOf(0.1);
+            jogWorldTransInc = 0.1;
             jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
         });
         incrementButtonLine.addComponent(jogIncPoint1Button);
         jogInc1Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(1.0);
-            jogWorldTransInc = BigDecimal.ONE;
+            jogWorldTransInc = 1.0;
             jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
         });
         incrementButtonLine.addComponent(jogInc1Button);
         jogInc10Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(10.0);
-            jogWorldTransInc = BigDecimal.TEN;
+            jogWorldTransInc = 10.0;
             jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm");
         });
         incrementButtonLine.addComponent(jogInc10Button);
         jogInc100Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(100.0);
-            jogWorldTransInc = BigDecimal.valueOf(100.0);
+            jogWorldTransInc = 100.0;
             jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc) + " mm,");
         });
         incrementButtonLine.addComponent(jogInc100Button);
         jogInc1000Button.addClickListener(e -> {
             worldAngleIncrementRad = Math.toRadians(1000.0);
-            jogWorldTransInc = BigDecimal.valueOf(1000.0);
-            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc.doubleValue() / 1000.0) + "m");
+            jogWorldTransInc = 1000.0;
+            jogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jogWorldTransInc / 1000.0) + "m");
         });
         incrementButtonLine.addComponent(jogInc1000Button);
         jogWorldRightLayout.addComponent(incrementButtonLine);
@@ -1660,23 +1660,23 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         jointIncrementButtonLine.setSpacing(true);
         jointIncrementButtonLine.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
         jointJogIncPoint1Button.addClickListener(e -> {
-            jointJogIncrement = BigDecimal.valueOf(0.1);
-            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+            jointJogIncrement = 0.1;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement) + " deg");
         });
         jointIncrementButtonLine.addComponent(jointJogIncPoint1Button);
         jointJogInc1Button.addClickListener(e -> {
-            jointJogIncrement = BigDecimal.ONE;
-            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+            jointJogIncrement = 1.0;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement) + " deg");
         });
         jointIncrementButtonLine.addComponent(jointJogInc1Button);
         jointJogInc10Button.addClickListener(e -> {
-            jointJogIncrement = BigDecimal.TEN;
-            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+            jointJogIncrement = 10.0;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement) + " deg");
         });
         jointIncrementButtonLine.addComponent(jointJogInc10Button);
         jointJogInc100Button.addClickListener(e -> {
-            jointJogIncrement = BigDecimal.valueOf(100.0);
-            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement.doubleValue()) + " deg");
+            jointJogIncrement = 100.0;
+            jointJogIncLabel.setValue(" Increment: " + String.format("%+6.1f ", jointJogIncrement) + " deg");
         });
         jointIncrementButtonLine.addComponent(jointJogInc100Button);
         jogJointRightLayout.addComponent(jointIncrementButtonLine);
@@ -1718,11 +1718,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         sb.append("programFile=");
         sb.append(commonInfo.getCurrentFileName());
         sb.append(STATUS_SEPERATOR);
-        if (null != lastCmdIdSent) {
-            sb.append("lastCmdIdSent=");
-            sb.append(lastCmdIdSent);
-            sb.append(STATUS_SEPERATOR);
-        }
+        sb.append("lastCmdIdSent=");
+        sb.append(lastCmdIdSent);
+        sb.append(STATUS_SEPERATOR);
         if (stat != null) {
             CommandStatusType cmdStat = stat.getCommandStatus();
             if (null != cmdStat) {
@@ -1814,7 +1812,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             curJogState = JogState.NONE;
             StopMotionType stopMotionCmd = new StopMotionType();
             stopMotionCmd.setStopCondition(StopConditionEnumType.IMMEDIATE);
-            BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
+            long nextId = lastCmdIdSent + 1;
             stopMotionCmd.setCommandID(nextId);
             sendCommand(stopMotionCmd);
             cmdQueue.clear();
@@ -1826,16 +1824,16 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     public void sendCommand(CRCLCommandType cmd) throws CRCLException {
-        if (cmd.getCommandID() == null) {
-            BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
+        if (cmd.getCommandID() < 1) {
+            long nextId = lastCmdIdSent + 1;
             cmd.setCommandID(nextId);
         }
         if (null != instance && null != socket) {
             instance.setCRCLCommand(cmd);
             if (running) {
                 instance.setProgramFile(commonInfo.getCurrentFileName());
-                instance.setProgramIndex(BigInteger.valueOf(commonInfo.getProgramIndex()));
-                instance.setProgramLength(BigInteger.valueOf(commonInfo.getCurrentProgram().getMiddleCommand().size()));
+                instance.setProgramIndex(commonInfo.getProgramIndex());
+                instance.setProgramLength(commonInfo.getCurrentProgram().getMiddleCommand().size());
             } else {
                 instance.setProgramFile(null);
                 instance.setProgramIndex(null);
@@ -1864,7 +1862,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             speedFraction = fraction;
             SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
             TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
-            relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+            relSpeed.setFraction(speedFraction);
             setSpeedCmd.setTransSpeed(relSpeed);
             sendCommand(setSpeedCmd);
             mySyncAccess(() -> {
@@ -1919,7 +1917,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     public void sendInit() throws CRCLException {
         InitCanonType initCmd = new InitCanonType();
-        BigInteger nextId = lastCmdIdSent.add(BigInteger.ONE);
+        long nextId = lastCmdIdSent + 1;
         initCmd.setCommandID(nextId);
         sendCommand(initCmd);
     }
@@ -1964,7 +1962,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 Thread.sleep(200);
                 CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
                 GetStatusType getStatus = new GetStatusType();
-                getStatus.setCommandID(BigInteger.ONE);
+                getStatus.setCommandID(1);
                 instance.setCRCLCommand(getStatus);
                 socket.writeCommand(instance);
                 stat = socket.readStatus();
@@ -1986,15 +1984,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             && program_index < program.getMiddleCommand().size()
                             && (skip_wait_for_done
                             || (stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE
-                            && (program_index < 1 || program_index + 1 <= stat.getCommandStatus().getCommandID().intValue())))) {
+                            && (program_index < 1 || program_index + 1 <= stat.getCommandStatus().getCommandID())))) {
                         runOneProgramStep(program_index + 1);
                         cmdQueue.clear();
                     }
-                    if (stat.getCommandStatus().getCommandID().compareTo(lastCmdIdSent) >= 0
+                    if (stat.getCommandStatus().getCommandID() >= lastCmdIdSent
                             && stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
                         MiddleCommandType cmd = cmdQueue.poll();
                         if (null != cmd) {
-                            BigInteger id = lastCmdIdSent.add(BigInteger.ONE);
+                            long id = lastCmdIdSent + 1;
                             cmd.setCommandID(id);
                             instance.setCRCLCommand(cmd);
                             socket.writeCommand(instance);
@@ -2057,31 +2055,25 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         if (null == pt) {
             return;
         }
-        if (null != pt.getX()) {
-            Item it = tbl.getItem(0);
-            if (null != it) {
-                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                if (null != ip) {
-                    ip.setValue(pt.getX().doubleValue());
-                }
+        Item it = tbl.getItem(0);
+        if (null != it) {
+            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+            if (null != ip) {
+                ip.setValue(pt.getX());
             }
         }
-        if (null != pt.getY()) {
-            Item it = tbl.getItem(1);
-            if (null != it) {
-                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                if (null != ip) {
-                    ip.setValue(pt.getY().doubleValue());
-                }
+        it = tbl.getItem(1);
+        if (null != it) {
+            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+            if (null != ip) {
+                ip.setValue(pt.getY());
             }
         }
-        if (null != pt.getZ()) {
-            Item it = tbl.getItem(2);
-            if (null != it) {
-                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                if (null != ip) {
-                    ip.setValue(pt.getZ().doubleValue());
-                }
+        it = tbl.getItem(2);
+        if (null != it) {
+            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+            if (null != ip) {
+                ip.setValue(pt.getZ());
             }
         }
     }
@@ -2091,13 +2083,13 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
         PmCartesian cart = getPmPointFromTable(tbl);
         VectorType xAxis = new VectorType();
-        xAxis.setI(new BigDecimal(tbl.getItem(3).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
-        xAxis.setJ(new BigDecimal(tbl.getItem(4).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
-        xAxis.setK(new BigDecimal(tbl.getItem(5).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        xAxis.setI(Double.valueOf(tbl.getItem(3).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        xAxis.setJ(Double.valueOf(tbl.getItem(4).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        xAxis.setK(Double.valueOf(tbl.getItem(5).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
         VectorType zAxis = new VectorType();
-        zAxis.setI(new BigDecimal(tbl.getItem(6).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
-        zAxis.setJ(new BigDecimal(tbl.getItem(7).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
-        zAxis.setK(new BigDecimal(tbl.getItem(8).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        zAxis.setI(Double.valueOf(tbl.getItem(6).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        zAxis.setJ(Double.valueOf(tbl.getItem(7).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
+        zAxis.setK(Double.valueOf(tbl.getItem(8).getItemProperty(VALUE_ITEM_PROPERTY).getValue().toString()));
         pose.setPoint(CRCLPosemath.toPointType(cart));
         pose.setXAxis(xAxis);
         pose.setZAxis(zAxis);
@@ -2113,76 +2105,64 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         loadPointToTable(pt, tbl);
         VectorType xAxis = pose.getXAxis();
         if (null != xAxis) {
-            if (null != xAxis.getI()) {
-                Item it = tbl.getItem(3);
-                if (null != it) {
-                    Property<Double> ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(xAxis.getI().doubleValue());
-                    }
+            Item it = tbl.getItem(3);
+            if (null != it) {
+                Property<Double> ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(xAxis.getI());
                 }
             }
-            if (null != xAxis.getJ()) {
-                Item it = tbl.getItem(4);
-                if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(xAxis.getJ().doubleValue());
-                    }
+            it = tbl.getItem(4);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(xAxis.getJ());
                 }
             }
-            if (null != xAxis.getK()) {
-                Item it = tbl.getItem(5);
-                if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(xAxis.getK().doubleValue());
-                    }
+            it = tbl.getItem(5);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(xAxis.getK());
                 }
             }
         }
         VectorType zAxis = pose.getZAxis();
         if (null != zAxis) {
-            if (null != zAxis.getI()) {
-                Item it = tbl.getItem(6);
-                if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(zAxis.getI().doubleValue());
-                    }
+            Item it = tbl.getItem(6);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(zAxis.getI());
                 }
             }
-            if (null != zAxis.getJ()) {
-                Item it = tbl.getItem(7);
-                if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(zAxis.getJ().doubleValue());
-                    }
+            it = tbl.getItem(7);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(zAxis.getJ());
                 }
             }
-            if (null != zAxis.getK()) {
-                Item it = tbl.getItem(8);
-                if (null != it) {
-                    Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                    if (null != ip) {
-                        ip.setValue(zAxis.getK().doubleValue());
-                    }
+            it = tbl.getItem(8);
+            if (null != it) {
+                Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                if (null != ip) {
+                    ip.setValue(zAxis.getK());
                 }
             }
         }
     }
-    private static BigDecimal jogWorldTransInc = BigDecimal.valueOf(100.0);
-    private static BigDecimal jogWorldRotInc = BigDecimal.valueOf(100.0);
+    private static double jogWorldTransInc = 100.0;
+    private static double jogWorldRotInc = 100.0;
 
-    private static float computeFraction(BigDecimal goal, BigDecimal current, BigDecimal inc) {
-        return (float) (Math.abs(inc.doubleValue() - Math.abs(goal.doubleValue() - current.doubleValue())) / inc.doubleValue());
+    private static float computeFraction(double goal, double current, double inc) {
+        return (float) (Math.abs(inc - Math.abs(goal - current)) / inc);
     }
 
     transient private PoseType currentPose = null;
     private static PoseType globalCurrentPose = null;
 
-    private BigDecimal jointJogSpeed = BigDecimal.valueOf(5.0);
+    private double jointJogSpeed = 5.0;
 
     private String lastProgramFile = null;
     private int lastProgramIndex = -1;
@@ -2234,7 +2214,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                 if (null != pt) {
                     this.currentPoint = pt;
                     if (cst.getCommandState() == CommandStateEnumType.CRCL_DONE
-                            && cst.getCommandID().compareTo(lastCmdIdSent) >= 0) {
+                            && cst.getCommandID() >= lastCmdIdSent) {
                         prevJogState = JogState.NONE;
                         MoveToType moveToCmd = new MoveToType();
                         ActuateJointsType actuateJointsCmd = new ActuateJointsType();
@@ -2252,46 +2232,46 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                         moveToCmd.getEndPosition().getZAxis().setI(pose.getZAxis().getI());
                         moveToCmd.getEndPosition().getZAxis().setJ(pose.getZAxis().getJ());
                         moveToCmd.getEndPosition().getZAxis().setK(pose.getZAxis().getK());
-                        BigInteger nextId;
+                        long nextId;
                         switch (curJogState) {
                             case X_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().subtract(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX() - jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
 
                             case X_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX().add(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setX(pose.getPoint().getX() + jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
 
                             case Y_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().subtract(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY() - jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
 
                             case Y_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY().add(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setY(pose.getPoint().getY() + jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
 
                             case Z_MINUS:
-                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().subtract(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ() - jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
 
                             case Z_PLUS:
-                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ().add(jogWorldTransInc));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                moveToCmd.getEndPosition().getPoint().setZ(pose.getPoint().getZ() + jogWorldTransInc);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                                 break;
@@ -2300,7 +2280,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.r -= worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2310,7 +2290,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.r += worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2320,7 +2300,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.p -= worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2330,7 +2310,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.p += worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2340,7 +2320,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.y -= worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2350,7 +2330,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                 PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                                 rpy.y += worldAngleIncrementRad;
                                 moveToCmd.setEndPosition(CRCLPosemath.toPoseType(CRCLPosemath.toPmCartesian(pt), rpy));
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 moveToCmd.setCommandID(nextId);
                                 sendCommand(moveToCmd);
                             }
@@ -2361,15 +2341,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     ActuateJointType actuateJoint = new ActuateJointType();
                                     actuateJoint.setJointNumber(js.getJointNumber());
                                     actuateJoint.setJointPosition(js.getJointPosition());
-                                    if (jogJointNumber == js.getJointNumber().intValue() - 1) {
-                                        actuateJoint.setJointPosition(js.getJointPosition().subtract(jointJogIncrement));
+                                    if (jogJointNumber == js.getJointNumber() - 1) {
+                                        actuateJoint.setJointPosition(js.getJointPosition() - jointJogIncrement);
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
                                     jas.setJointSpeed(jointJogSpeed);
                                     actuateJoint.setJointDetails(jas);
                                     actuateJointsCmd.getActuateJoint().add(actuateJoint);
                                 }
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 actuateJointsCmd.setCommandID(nextId);
                                 sendCommand(actuateJointsCmd);
                             }
@@ -2380,15 +2360,15 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     ActuateJointType actuateJoint = new ActuateJointType();
                                     actuateJoint.setJointNumber(js.getJointNumber());
                                     actuateJoint.setJointPosition(js.getJointPosition());
-                                    if (jogJointNumber == js.getJointNumber().intValue() - 1) {
-                                        actuateJoint.setJointPosition(js.getJointPosition().add(jointJogIncrement));
+                                    if (jogJointNumber == js.getJointNumber() - 1) {
+                                        actuateJoint.setJointPosition(js.getJointPosition() + jointJogIncrement);
                                     }
                                     JointSpeedAccelType jas = new JointSpeedAccelType();
                                     jas.setJointSpeed(jointJogSpeed);
                                     actuateJoint.setJointDetails(jas);
                                     actuateJointsCmd.getActuateJoint().add(actuateJoint);
                                 }
-                                nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                nextId = lastCmdIdSent + 1;
                                 actuateJointsCmd.setCommandID(nextId);
                                 sendCommand(actuateJointsCmd);
                             }
@@ -2399,9 +2379,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     speedFraction -= 0.01;
                                     SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
                                     TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
-                                    relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                                    relSpeed.setFraction(speedFraction);
                                     setSpeedCmd.setTransSpeed(relSpeed);
-                                    nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                    nextId = lastCmdIdSent + 1;
                                     setSpeedCmd.setCommandID(nextId);
                                     sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
@@ -2415,9 +2395,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                                     speedFraction += 0.01;
                                     SetTransSpeedType setSpeedCmd = new SetTransSpeedType();
                                     TransSpeedRelativeType relSpeed = new TransSpeedRelativeType();
-                                    relSpeed.setFraction(BigDecimal.valueOf(speedFraction));
+                                    relSpeed.setFraction(speedFraction);
                                     setSpeedCmd.setTransSpeed(relSpeed);
-                                    nextId = lastCmdIdSent.add(BigInteger.ONE);
+                                    nextId = lastCmdIdSent + 1;
                                     setSpeedCmd.setCommandID(nextId);
                                     sendCommand(setSpeedCmd);
                                     speedJogLabel.setValue(" Speed: " + String.format("%+6.1f ", speedFraction * 100) + " % ");
@@ -2471,24 +2451,29 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             case JOINT_MINUS:
                             case JOINT_PLUS:
                                 if (null != prevActuateJoints) {
-                                    BigDecimal curPosition = null;
-                                    BigDecimal goalPosition = null;
-                                    BigInteger jointNumber = BigInteger.valueOf(jogJointNumber + 1); //jogJointNumber;//prevActuateJoints.getActuateJoint().get(0).getJointNumber();
+                                    double curPosition = Double.NaN;
+                                    double goalPosition = Double.NaN;
+                                    boolean curPositionSet = false;
+                                    boolean goalPositionSet = false;
+
+                                    long jointNumber = jogJointNumber + 1; //jogJointNumber;//prevActuateJoints.getActuateJoint().get(0).getJointNumber();
                                     for (int i = 0; i < stat.getJointStatuses().getJointStatus().size(); i++) {
                                         JointStatusType js = stat.getJointStatuses().getJointStatus().get(i);
-                                        if (js.getJointNumber().compareTo(jointNumber) == 0) {
+                                        if (js.getJointNumber() == jointNumber) {
                                             curPosition = js.getJointPosition();
+                                            curPositionSet = true;
                                             break;
                                         }
                                     }
                                     for (int i = 0; i < prevActuateJoints.getActuateJoint().size(); i++) {
                                         ActuateJointType aj = prevActuateJoints.getActuateJoint().get(i);
-                                        if (aj.getJointNumber().compareTo(jointNumber) == 0) {
+                                        if (aj.getJointNumber() == jointNumber) {
                                             goalPosition = aj.getJointPosition();
+                                            goalPositionSet = true;
                                             break;
                                         }
                                     }
-                                    if (null != curPosition && goalPosition != null) {
+                                    if (curPositionSet && goalPositionSet && Double.isFinite(curPosition) && Double.isFinite(goalPosition)) {
                                         float fraction
                                                 = computeFraction(goalPosition,
                                                         curPosition, jointJogIncrement);
@@ -2503,36 +2488,33 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                             // this should nev
                         }
                     }
-                    if (null != pt.getX()) {
-                        Item it = posCurrentTable.getItem(0);
-                        if (null != it) {
-                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                            if (null != ip) {
-                                ip.setValue(pt.getX().doubleValue());
-                            }
+
+                    Item it = posCurrentTable.getItem(0);
+                    if (null != it) {
+                        Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                        if (null != ip) {
+                            ip.setValue(pt.getX());
                         }
-                        xJogLabel.setValue(" X: " + String.format("%+6.1f ", pt.getX().doubleValue()) + " mm ");
                     }
-                    if (null != pt.getY()) {
-                        Item it = posCurrentTable.getItem(1);
-                        if (null != it) {
-                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                            if (null != ip) {
-                                ip.setValue(pt.getY().doubleValue());
-                            }
+                    xJogLabel.setValue(" X: " + String.format("%+6.1f ", pt.getX()) + " mm ");
+
+                    it = posCurrentTable.getItem(1);
+                    if (null != it) {
+                        Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                        if (null != ip) {
+                            ip.setValue(pt.getY());
                         }
-                        yJogLabel.setValue(" Y: " + String.format("%+6.1f ", pt.getY().doubleValue()) + " mm ");
                     }
-                    if (null != pt.getZ()) {
-                        Item it = posCurrentTable.getItem(2);
-                        if (null != it) {
-                            Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
-                            if (null != ip) {
-                                ip.setValue(pt.getZ().doubleValue());
-                            }
+                    yJogLabel.setValue(" Y: " + String.format("%+6.1f ", pt.getY()) + " mm ");
+
+                    it = posCurrentTable.getItem(2);
+                    if (null != it) {
+                        Property ip = it.getItemProperty(VALUE_ITEM_PROPERTY);
+                        if (null != ip) {
+                            ip.setValue(pt.getZ());
                         }
-                        zJogLabel.setValue(" Z: " + String.format("%+6.1f ", pt.getZ().doubleValue()) + " mm ");
                     }
+                    zJogLabel.setValue(" Z: " + String.format("%+6.1f ", pt.getZ()) + " mm ");
                     PmRpy rpy = CRCLPosemath.toPmRpy(pose);
                     rollJogLabel.setValue(" Roll: " + String.format("%+6.1f ", Math.toDegrees(rpy.r)) + " degrees ");
                     pitchJogLabel.setValue(" Pitch: " + String.format("%+6.1f ", Math.toDegrees(rpy.p)) + " degrees  ");
@@ -2540,7 +2522,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                     JointStatusesType jointStatuses = stat.getJointStatuses();
                     if (null != jointStatuses) {
                         for (JointStatusType js : jointStatuses.getJointStatus()) {
-                            jogJointLabels[js.getJointNumber().intValue() - 1].setValue("Joint" + js.getJointNumber() + " " + String.format("%+6.1f ", js.getJointPosition().doubleValue()));
+                            jogJointLabels[js.getJointNumber() - 1].setValue("Joint" + js.getJointNumber() + " " + String.format("%+6.1f ", js.getJointPosition()));
                         }
                     }
                 }
@@ -2583,18 +2565,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     @SuppressWarnings("unchecked")
     public void setAxisItem(VectorType xAxis, Item xItem) throws Property.ReadOnlyException {
-        BigDecimal I = xAxis.getI();
-        if (null != I) {
-            xItem.getItemProperty("I").setValue(I.doubleValue());
-        }
-        BigDecimal J = xAxis.getJ();
-        if (null != J) {
-            xItem.getItemProperty("J").setValue(J.doubleValue());
-        }
-        BigDecimal K = xAxis.getK();
-        if (null != K) {
-            xItem.getItemProperty("K").setValue(K.doubleValue());
-        }
+        xItem.getItemProperty("I").setValue(xAxis.getI());
+        xItem.getItemProperty("J").setValue(xAxis.getJ());
+        xItem.getItemProperty("K").setValue(xAxis.getK());
     }
 
     @SuppressWarnings("unchecked")
@@ -2608,18 +2581,18 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
             pose.setXAxis(xAxis);
         }
         Item xItem = rotTable.getItem("X");
-        xAxis.setI(new BigDecimal(xItem.getItemProperty("I").getValue().toString()));
-        xAxis.setJ(new BigDecimal(xItem.getItemProperty("J").getValue().toString()));
-        xAxis.setK(new BigDecimal(xItem.getItemProperty("K").getValue().toString()));
+        xAxis.setI(Double.valueOf(xItem.getItemProperty("I").getValue().toString()));
+        xAxis.setJ(Double.valueOf(xItem.getItemProperty("J").getValue().toString()));
+        xAxis.setK(Double.valueOf(xItem.getItemProperty("K").getValue().toString()));
         VectorType zAxis = pose.getZAxis();
         if (null == zAxis) {
             zAxis = new VectorType();
             pose.setZAxis(zAxis);
         }
         Item zItem = rotTable.getItem("Z");
-        zAxis.setI(new BigDecimal(zItem.getItemProperty("I").getValue().toString()));
-        zAxis.setJ(new BigDecimal(zItem.getItemProperty("J").getValue().toString()));
-        zAxis.setK(new BigDecimal(zItem.getItemProperty("K").getValue().toString()));
+        zAxis.setI(Double.valueOf(zItem.getItemProperty("I").getValue().toString()));
+        zAxis.setJ(Double.valueOf(zItem.getItemProperty("J").getValue().toString()));
+        zAxis.setK(Double.valueOf(zItem.getItemProperty("K").getValue().toString()));
     }
 
     public void checkImageDirs() {
@@ -2762,18 +2735,18 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
     transient private MoveToType prevMoveTo = null;
     transient private ActuateJointsType prevActuateJoints = null;
-    transient private BigInteger lastCmdIdSent = BigInteger.ONE;
+    transient private long lastCmdIdSent = 1;
 
     @SuppressWarnings("unchecked")
     private void runOneProgramStep(final int new_program_index) throws CRCLException {
         final int program_index = commonInfo.getProgramIndex();
         final CRCLProgramType program = commonInfo.getCurrentProgram();
         instance.setCRCLCommand(program.getMiddleCommand().get(program_index));
-        instance.getCRCLCommand().setCommandID(BigInteger.valueOf(program_index + 2));
+        instance.getCRCLCommand().setCommandID(program_index + 2);
         lastCmdIdSent = instance.getCRCLCommand().getCommandID();
         instance.setProgramFile(commonInfo.getCurrentFileName());
-        instance.setProgramIndex(BigInteger.valueOf(commonInfo.getProgramIndex()));
-        instance.setProgramLength(BigInteger.valueOf(commonInfo.getCurrentProgram().getMiddleCommand().size()));
+        instance.setProgramIndex(commonInfo.getProgramIndex());
+        instance.setProgramLength(commonInfo.getCurrentProgram().getMiddleCommand().size());
 
         socket.writeCommand(instance);
 
