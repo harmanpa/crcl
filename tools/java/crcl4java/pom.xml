@@ -261,6 +261,14 @@
             </modules>
         </profile>
         <profile> 
+            <id>all_linux</id>
+            <modules>
+                <module>crcl4java-restful-proxy</module>
+                <module>crcl4java-vaadin-webapp</module>
+                <module>crcl4java-zeroc-ice</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>allexceptice</id>
             <modules>
                 <module>crcl4java-restful-proxy</module>

@@ -69,10 +69,19 @@ public class Java2SliceMain {
         if (String.class.isAssignableFrom(clss)) {
             return "string";
         }
+        if (Integer.class.isAssignableFrom(clss)) {
+            return "int";
+        }
         if (BigInteger.class.isAssignableFrom(clss)) {
             return "long";
         }
+        if (Long.class.isAssignableFrom(clss)) {
+            return "long";
+        }
         if (BigDecimal.class.isAssignableFrom(clss)) {
+            return "double";
+        }
+        if (Double.class.isAssignableFrom(clss)) {
             return "double";
         }
         if (Boolean.class.isAssignableFrom(clss)) {
@@ -82,6 +91,15 @@ public class Java2SliceMain {
             return "bool";
         }
 
+        if (double.class.isAssignableFrom(clss)) {
+            return "double";
+        }
+        if (int.class.isAssignableFrom(clss)) {
+            return "int";
+        }
+        if (long.class.isAssignableFrom(clss)) {
+            return "long";
+        }
         return clss.getName().replace(".", "::") + "Ice";
     }
 
@@ -552,7 +570,11 @@ public class Java2SliceMain {
                         }
                         if (BigInteger.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "().longValue();");
+                        } else if (Integer.class.isAssignableFrom(propClass)) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "();");
                         } else if (BigDecimal.class.isAssignableFrom(propClass)) {
+                            toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "().doubleValue();");
+                        } else if (Double.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.get" + propname + "().doubleValue();");
                         } else if (Boolean.class.isAssignableFrom(propClass)) {
                             toFilePw.println(toFileTabs + "out." + e.getKey() + " =  in.is" + propname + "().booleanValue();");
@@ -586,6 +608,8 @@ public class Java2SliceMain {
     private static boolean isRefToPrimitive(Class c) {
         return BigDecimal.class.isAssignableFrom(c)
                 || BigInteger.class.isAssignableFrom(c)
+                || Double.class.isAssignableFrom(c)
+                || Integer.class.isAssignableFrom(c)
                 || Boolean.class.equals(c)
                 || String.class.isAssignableFrom(c);
     }
@@ -702,8 +726,12 @@ public class Java2SliceMain {
                         }
                         if (BigInteger.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(BigInteger.valueOf(in." + e.getKey() + "));");
+                        } else if (Integer.class.isAssignableFrom(propClass)) {
+                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(Integer.valueOf( (int) in." + e.getKey() + "));");
                         } else if (BigDecimal.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(BigDecimal.valueOf(in." + e.getKey() + "));");
+                        } else if (Double.class.isAssignableFrom(propClass)) {
+                            fromFilePw.println(fromFileTabs + "out.set" + propname + "(Double.valueOf(in." + e.getKey() + "));");
                         } else if (Boolean.class.isAssignableFrom(propClass)) {
                             fromFilePw.println(fromFileTabs + "out.set" + propname + "(in." + e.getKey() + ");");
                         } else if (List.class.isAssignableFrom(propClass)) {

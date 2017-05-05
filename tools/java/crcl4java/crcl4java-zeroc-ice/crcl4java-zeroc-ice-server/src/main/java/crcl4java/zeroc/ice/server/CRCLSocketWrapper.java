@@ -60,13 +60,13 @@ public class CRCLSocketWrapper extends _CRCLSocketWrapperDisp {
         getStatus = new GetStatusType();
         getStatusInstance = new CRCLCommandInstanceType();
         getStatusInstance.setCRCLCommand(getStatus);
-        getStatus.setCommandID(BigInteger.ONE);
+        getStatus.setCommandID(1);
     }
     
     @Override
     public CRCLStatusTypeIce readStatus(Current __current) {
         try {
-            getStatus.setCommandID(getStatus.getCommandID().add(BigInteger.ONE));
+            getStatus.setCommandID(getStatus.getCommandID() + 1);
             crclSocket.writeCommand(getStatusInstance);
             CRCLStatusType status = crclSocket.readStatus();
             CRCLStatusTypeIce iceStatus = toIce(status);

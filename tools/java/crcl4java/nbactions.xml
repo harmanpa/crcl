@@ -51,4 +51,17 @@
                 <activatedProfile>release</activatedProfile>
             </activatedProfiles>
         </action>
+    <action>
+            <actionName>CUSTOM-deploy_all_linux</actionName>
+            <displayName>deploy_all_linux</displayName>
+            <goals>
+                <goal>deploy</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>all_linux</activatedProfile>
+                <activatedProfile>release</activatedProfile>
+                <activatedProfile>tomcat_embed</activatedProfile>
+                <activatedProfile>skip_tests</activatedProfile>
+            </activatedProfiles>
+        </action>
 </actions>
