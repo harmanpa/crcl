@@ -887,21 +887,21 @@ public class PendantClientInner {
             if (menuOuter().isDebugSendCommandSelected()) {
                 showDebugMessage("PendantClientInner.sendCommand() : ret = " + ret);
             }
-        } else if (getCommandState().filter(st -> st == CommandStateEnumType.CRCL_DONE).isPresent()) {
+        } else if (getCommandState() == CommandStateEnumType.CRCL_DONE) {
             setCommandState(CommandStateEnumType.CRCL_WORKING);
         }
         return ret;
     }
 
-    public Optional<CommandStateEnumType> getCommandState() {
-        if (null != status) {
-            CommandStatusType commandStatus = status.getCommandStatus();
-            if (null != commandStatus) {
-                return Optional.of(commandStatus.getCommandState());
-            }
-        }
-        return Optional.empty();
-    }
+//    public Optional<CommandStateEnumType> getCommandState() {
+//        if (null != status) {
+//            CommandStatusType commandStatus = status.getCommandStatus();
+//            if (null != commandStatus) {
+//                return Optional.of(commandStatus.getCommandState());
+//            }
+//        }
+//        return Optional.empty();
+//    }
 
     public void setCommandState(CommandStateEnumType state) {
         if (null != status) {
@@ -1099,6 +1099,22 @@ public class PendantClientInner {
     public CRCLStatusType getStatus() {
         return this.status;
     }
+    
+    public CommandStatusType getCommandStatus() {
+        CRCLStatusType s = this.getStatus();
+        if(null != s) {
+            return s.getCommandStatus();
+        }
+        return null;
+    }
+    public CommandStateEnumType getCommandState() {
+        CommandStatusType cs = getCommandStatus();
+        if(null != cs) {
+            return cs.getCommandState();
+        }
+        return CommandStateEnumType.CRCL_ERROR;
+    }
+    
 
     public PoseType getPose() {
         return CRCLPosemath.getPose(status);
