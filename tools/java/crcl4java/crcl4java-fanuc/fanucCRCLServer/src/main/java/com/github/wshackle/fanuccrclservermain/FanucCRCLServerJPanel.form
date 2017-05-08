@@ -285,8 +285,11 @@
     </Component>
     <Component class="javax.swing.JTextField" name="jTextFieldHostName">
       <Properties>
-        <Property name="text" type="java.lang.String" value="129.6.78.111"/>
+        <Property name="text" type="java.lang.String" value="192.168.1.34"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextFieldHostNameActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JRadioButton" name="jRadioButtonUseDirectIP">
       <Properties>

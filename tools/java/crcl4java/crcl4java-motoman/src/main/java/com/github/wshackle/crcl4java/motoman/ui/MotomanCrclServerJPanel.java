@@ -99,7 +99,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
         jLabel2.setText("Motoman Motoplus TCP Host:");
 
-        jTextFieldMotoplusHost.setText("10.0.0.2");
+        jTextFieldMotoplusHost.setText("192.168.1.33");
 
         jCheckBoxConnect.setText("Connected");
         jCheckBoxConnect.addActionListener(new java.awt.event.ActionListener() {
@@ -135,7 +135,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)

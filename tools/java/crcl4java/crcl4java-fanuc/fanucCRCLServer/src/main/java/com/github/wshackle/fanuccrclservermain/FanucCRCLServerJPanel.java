@@ -1094,7 +1094,12 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         jSliderMaxOverride.setPaintTrack(false);
         jSliderMaxOverride.setValue(100);
 
-        jTextFieldHostName.setText("129.6.78.111");
+        jTextFieldHostName.setText("192.168.1.34");
+        jTextFieldHostName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldHostNameActionPerformed(evt);
+            }
+        });
 
         buttonGroupConnectionMethod.add(jRadioButtonUseDirectIP);
         jRadioButtonUseDirectIP.setText("Use Direct Hostname/IP Address:");
@@ -1529,6 +1534,10 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             }
         }
     }//GEN-LAST:event_jRadioButtonUseDirectIPActionPerformed
+
+    private void jTextFieldHostNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldHostNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextFieldHostNameActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

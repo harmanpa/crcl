@@ -2731,7 +2731,7 @@ public class FanucCRCLMain {
     public static void main(String[] args) throws IOException, CRCLException {
         main = new FanucCRCLMain();
         String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";
-        String host = args.length > 1 ? args[1] : "129.6.78.111";
+        String host = args.length > 1 ? args[1] : "192.168.1.34"; //"129.6.78.111";
         int port = args.length > 2 ? Integer.valueOf(args[2]) : CRCLSocket.DEFAULT_PORT;
         boolean prefRNN = (args.length > 3) ? Boolean.valueOf(args[3]) : false;
         main.startDisplayInterface();

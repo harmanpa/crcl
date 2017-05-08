@@ -137,7 +137,7 @@ public class TelnetJPanel extends javax.swing.JPanel {
 
         jLabel2.setText("Host: ");
 
-        jTextFieldHostName.setText("10.0.0.2");
+        jTextFieldHostName.setText("192.168.1.33");
 
         jLabel3.setText("Port: ");
 
