@@ -262,23 +262,71 @@ namespace ConsoleClient
 	    
 
 		public static void showStatus() {
-			Console.WriteLine ("status = " + status);
 			if (null != status) {
+				Console.WriteLine ("");
+				Console.WriteLine ("status = " + status);
 				Schemas.CRCL.Status.CommandStatusType cst = status.CommandStatus;
 				if (null != cst) {
 					Console.WriteLine ("CommandId = " + cst.CommandID);
 					Console.WriteLine ("State = " + cst.CommandState);
 					Console.WriteLine ("StatusId = " + cst.StatusID);
 				}
-				Schemas.CRCL.Status.PoseType pose = status.PoseStatus.Pose;
-				if (null != pose) {
-					Console.WriteLine ("Pose.Point = " + pose.Point.X + "," + pose.Point.Y + "," + pose.Point.Z);
-					Console.WriteLine ("Pose.XAxis = " + pose.XAxis.I + "," + pose.XAxis.J + "," + pose.XAxis.K);
-					Console.WriteLine ("Pose.ZAxis = " + pose.ZAxis.I + "," + pose.ZAxis.J + "," + pose.ZAxis.K);
+				Schemas.CRCL.Status.PoseStatusType poseStatus = status.PoseStatus;
+				if (null != poseStatus) {
+					Schemas.CRCL.Status.PoseType pose = poseStatus.Pose;
+					if (null != pose) {
+						Console.WriteLine ("Pose.Point = " + pose.Point.X + "," + pose.Point.Y + "," + pose.Point.Z);
+						Console.WriteLine ("Pose.XAxis = " + pose.XAxis.I + "," + pose.XAxis.J + "," + pose.XAxis.K);
+						Console.WriteLine ("Pose.ZAxis = " + pose.ZAxis.I + "," + pose.ZAxis.J + "," + pose.ZAxis.K);
+					}
+				}
+				Console.WriteLine ("");
+			}
+
+		}
+
+
+		public static void showHelp() {
+			Console.WriteLine ("");
+			Console.WriteLine ("Available commands:");
+			Console.WriteLine ("");
+			Console.WriteLine ("quit");
+			Console.WriteLine ("\t-- quits the client");
+			Console.WriteLine ("");
+
+			Console.WriteLine ("init");
+			Console.WriteLine ("\t-- sends InitCanonType command.");
+			Console.WriteLine ("");
+
+
+			Console.WriteLine ("end");
+			Console.WriteLine ("\t-- sends EndCanonType command.");
+			Console.WriteLine ("");
+
+			Console.WriteLine ("move [Point.X] [Point.Y] [Point.Z] [XAxis.I] [XAxis.J] [XAxis.K] [ZAxis.I] [ZAxis.J] [ZAxis.K]");
+			Console.WriteLine ("\t-- sends MoveToType command (arguments are optional)");
+			Console.WriteLine ("examples:");
+			double px = 0;
+			double py = 0;
+			double pz = 0;
+			if (null != status) {
+				Schemas.CRCL.Status.PoseStatusType poseStatus = status.PoseStatus;
+				if (null != poseStatus) {
+					Schemas.CRCL.Status.PoseType pose = poseStatus.Pose;
+
+					if (null != pose) {
+						px = pose.Point.X;
+						py = pose.Point.Y;
+						pz = pose.Point.Z;
+					}
 				}
 			}
+			Console.WriteLine ("move  " + px + " " + py + " " + pz);
+			Console.WriteLine ("move  " + px + " " + py + " " + pz + " 1 0 0 0 0 -1");
+			Console.WriteLine ("");
+			Console.WriteLine("Press enter on empty line to see status.");
+			Console.WriteLine ("");
 		}
-		
 		public static void Main (string[] args)
 		{
 			AsynchronousClient ac = null;
@@ -308,6 +356,11 @@ namespace ConsoleClient
 				Console.WriteLine ("Use -p [port] to change port.");
 				Console.WriteLine ("Use -h [host] to change host.");
 				Console.WriteLine ("Use -d to set debug flag.");
+				Console.WriteLine ("");
+
+				showStatus();
+				showHelp();
+
 				String l = null;
 				long cid = 1;
 				while (!"quit".Equals(l = Console.ReadLine ())) {
@@ -346,26 +399,21 @@ namespace ConsoleClient
 						moveCmd.EndPosition.Point.Y = fields.Length > 2 ? Double.Parse(fields[2]) : 0;
 						moveCmd.EndPosition.Point.Z = fields.Length > 3 ? Double.Parse(fields[3]) : 0;
 						moveCmd.EndPosition.XAxis = new Schemas.CRCL.CommandInstance.VectorType();
-						moveCmd.EndPosition.XAxis.I = fields.Length > 4 ? Double.Parse(fields[4]) : 0;
+						moveCmd.EndPosition.XAxis.I = fields.Length > 4 ? Double.Parse(fields[4]) : 1;
 						moveCmd.EndPosition.XAxis.J = fields.Length > 5 ? Double.Parse(fields[5]) : 0;
 						moveCmd.EndPosition.XAxis.K = fields.Length > 6 ? Double.Parse(fields[6]) : 0;
 						moveCmd.EndPosition.ZAxis = new Schemas.CRCL.CommandInstance.VectorType();
 						moveCmd.EndPosition.ZAxis.I = fields.Length > 7 ? Double.Parse(fields[7]) : 0;
 						moveCmd.EndPosition.ZAxis.J = fields.Length > 8 ? Double.Parse(fields[8]) : 0;
-						moveCmd.EndPosition.ZAxis.K = fields.Length > 9 ? Double.Parse(fields[9]) : 0;
+						moveCmd.EndPosition.ZAxis.K = fields.Length > 9 ? Double.Parse(fields[9]) : -1;
 						moveCmd.CommandID = cid;
 						String cmdXml = Schemas.CRCL.Utils.ToXML (cmdInstance);
 						ac.Send (cmdXml);
 						ac.sendDoneWaitOne();
 					} else {
 						Console.WriteLine("Command not recognized: "+l);
-						Console.WriteLine("Commands include:");
-						Console.WriteLine("init");
-						Console.WriteLine("end");
-						Console.WriteLine("quit");
-						Console.WriteLine("move [x] [y] [z] [x.i] [x.j] [x.z] [z.i] [z.j] [z.k]");
-						Console.WriteLine("");
-						Console.WriteLine("Press enter on empty line to see status.");
+						showHelp();
+
 					}
 					if(debug) {
 						Console.WriteLine("cid = "+cid);
