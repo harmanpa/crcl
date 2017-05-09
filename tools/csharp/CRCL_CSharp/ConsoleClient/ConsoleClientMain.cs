@@ -309,7 +309,7 @@ namespace ConsoleClient
 				Console.WriteLine ("Use -h [host] to change host.");
 				Console.WriteLine ("Use -d to set debug flag.");
 				String l = null;
-				int cid = 1;
+				long cid = 1;
 				while (!"quit".Equals(l = Console.ReadLine ())) {
 					if(l == null) {
 						Console.WriteLine("Console.ReadLine() returned null. (Bad Terminal ??)");
@@ -317,21 +317,21 @@ namespace ConsoleClient
 					}
 					if (l.Length == 0) {
 						getStatusCmdInstance.CRCLCommand = getStatusCmd;
-						getStatusCmd.CommandID = cid.ToString ();
+						getStatusCmd.CommandID = cid;
 						String statusRequestXml = Schemas.CRCL.Utils.ToXML (getStatusCmdInstance);
 						ac.Send (statusRequestXml);
 						ac.sendDoneWaitOne ();
 					} else if(l.StartsWith("init")) {
 						Schemas.CRCL.CommandInstance.InitCanonType initCmd = new Schemas.CRCL.CommandInstance.InitCanonType();
 						cmdInstance.CRCLCommand = initCmd;
-						initCmd.CommandID = cid.ToString();
+						initCmd.CommandID = cid;
 						String cmdXml = Schemas.CRCL.Utils.ToXML (cmdInstance);
 						ac.Send (cmdXml);
 						ac.sendDoneWaitOne();
 					} else if(l.StartsWith("end")) {
 						Schemas.CRCL.CommandInstance.EndCanonType endCmd = new Schemas.CRCL.CommandInstance.EndCanonType();
 						cmdInstance.CRCLCommand = endCmd;
-						endCmd.CommandID = cid.ToString();
+						endCmd.CommandID = cid;
 						String cmdXml = Schemas.CRCL.Utils.ToXML (cmdInstance);
 						ac.Send (cmdXml);
 						ac.sendDoneWaitOne();
@@ -342,18 +342,18 @@ namespace ConsoleClient
 						string[] fields = l.Split(" ".ToCharArray(),10);
 						moveCmd.EndPosition = new Schemas.CRCL.CommandInstance.PoseType();
 						moveCmd.EndPosition.Point = new Schemas.CRCL.CommandInstance.PointType();
-						moveCmd.EndPosition.Point.X = fields.Length > 1 ? decimal.Parse(fields[1]) : 0;
-						moveCmd.EndPosition.Point.Y = fields.Length > 2 ? decimal.Parse(fields[2]) : 0;
-						moveCmd.EndPosition.Point.Z = fields.Length > 3 ? decimal.Parse(fields[3]) : 0;
+						moveCmd.EndPosition.Point.X = fields.Length > 1 ? Double.Parse(fields[1]) : 0;
+						moveCmd.EndPosition.Point.Y = fields.Length > 2 ? Double.Parse(fields[2]) : 0;
+						moveCmd.EndPosition.Point.Z = fields.Length > 3 ? Double.Parse(fields[3]) : 0;
 						moveCmd.EndPosition.XAxis = new Schemas.CRCL.CommandInstance.VectorType();
-						moveCmd.EndPosition.XAxis.I = fields.Length > 4 ? decimal.Parse(fields[4]) : 0;
-						moveCmd.EndPosition.XAxis.J = fields.Length > 5 ? decimal.Parse(fields[5]) : 0;
-						moveCmd.EndPosition.XAxis.K = fields.Length > 6 ? decimal.Parse(fields[6]) : 0;
+						moveCmd.EndPosition.XAxis.I = fields.Length > 4 ? Double.Parse(fields[4]) : 0;
+						moveCmd.EndPosition.XAxis.J = fields.Length > 5 ? Double.Parse(fields[5]) : 0;
+						moveCmd.EndPosition.XAxis.K = fields.Length > 6 ? Double.Parse(fields[6]) : 0;
 						moveCmd.EndPosition.ZAxis = new Schemas.CRCL.CommandInstance.VectorType();
-						moveCmd.EndPosition.ZAxis.I = fields.Length > 7 ? decimal.Parse(fields[7]) : 0;
-						moveCmd.EndPosition.ZAxis.J = fields.Length > 8 ? decimal.Parse(fields[8]) : 0;
-						moveCmd.EndPosition.ZAxis.K = fields.Length > 9 ? decimal.Parse(fields[9]) : 0;
-						moveCmd.CommandID = cid.ToString();
+						moveCmd.EndPosition.ZAxis.I = fields.Length > 7 ? Double.Parse(fields[7]) : 0;
+						moveCmd.EndPosition.ZAxis.J = fields.Length > 8 ? Double.Parse(fields[8]) : 0;
+						moveCmd.EndPosition.ZAxis.K = fields.Length > 9 ? Double.Parse(fields[9]) : 0;
+						moveCmd.CommandID = cid;
 						String cmdXml = Schemas.CRCL.Utils.ToXML (cmdInstance);
 						ac.Send (cmdXml);
 						ac.sendDoneWaitOne();

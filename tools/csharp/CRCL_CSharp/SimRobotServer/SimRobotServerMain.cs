@@ -250,18 +250,18 @@ namespace SimRobotServer
 //			Console.WriteLine("The Elapsed event was raised at {0}", e.SignalTime);
 			if (null == status.CommandStatus) {
 				status.CommandStatus = new Schemas.CRCL.Status.CommandStatusType ();
-				status.CommandStatus.CommandID = "1";
-				status.CommandStatus.StatusID = "1";
+				status.CommandStatus.CommandID = 1;
+				status.CommandStatus.StatusID = 1;
 				status.CommandStatus.CommandState = Schemas.CRCL.Status.CommandStateEnumType.CRCL_Working;
 			}
-			int statId = 1;
+			long statId = 1;
 			try {
 				statId = Convert.ToInt32(status.CommandStatus.StatusID);
 			} catch(Exception ex) {
 				Console.WriteLine(ex.ToString());
 			}
 			statId++;
-			status.CommandStatus.StatusID = statId.ToString ();
+			status.CommandStatus.StatusID = statId;
 			if (cmdInstance.CRCLCommand != null
 				&& !status.CommandStatus.CommandID.Equals(cmdInstance.CRCLCommand.CommandID)) {
 				status.CommandStatus.CommandID = cmdInstance.CRCLCommand.CommandID;

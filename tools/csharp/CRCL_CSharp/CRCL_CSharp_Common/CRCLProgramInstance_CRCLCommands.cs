@@ -14,12 +14,30 @@
 namespace Schemas.CRCL.Program {
     
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        CRCLProgramType is derived from DataThingType.
+///        An instance of CRCLProgramType has the following elements:
+///          Name (inherited, optional)
+///          InitCanon
+///          MiddleCommand (optional, multiple)
+///          EndCanon.
+///
+///        CRCLProgramType defines a CRCL program as a sequence of CRCL
+///        commands. The CRCL commands in an instance of CRCLProgramType
+///        must be executed in the order given. Using a CRCL program is
+///        intended for testing and demos, not normal operation.
+///
+///        A CRCL program must start with an InitCanon command and end
+///        with an EndCanon command. It may have zero to many middle
+///        commands between the InitCanon and the EndCanon.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlRootAttribute("CRCLProgram", Namespace="", IsNullable=false)]
+    [System.Xml.Serialization.XmlRootAttribute("CRCLProgram")]
     public partial class CRCLProgramType : DataThingType {
         
         private InitCanonType initCanonField;
@@ -60,55 +78,80 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        InitCanonType is derived from CRCLCommandType.
+///        An instance of InitCanonType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        An instance of InitCanonType is used to indicate that the robot
+///        should be prepared to execute further canonical robot commands.
+///        When a robot is ready to execute commands, the first CRCL command
+///        it should be sent is an instance of InitCanonType. Any CRCL
+///        commands received before an instance of InitCanonType must not be
+///        executed. Other robot-specific actions may be taken in preparation
+///        for executing CRCL commands.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     public partial class InitCanonType : CRCLCommandType {
     }
     
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MiddleCommandType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(InitCanonType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EndCanonType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        The abstract CRCLCommandType is derived from DataThingType.
+///        An instance of CRCLCommandType has the following elements:
+///          Name (inherited, optional)
+///          CommandID.
+///
+///        CRCLCommandType is an abstract type from which all other
+///        CRCL commands are derived.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class CRCLCommandType : DataThingType {
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(InitCanonType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MiddleCommandType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureStatusReportType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EndCanonType))]
+    public partial class CRCLCommandType : DataThingType {
         
-        private string commandIDField;
+        private long commandIDField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="positiveInteger")]
-        public string CommandID {
+        public long CommandID {
             get {
                 return this.commandIDField;
             }
@@ -118,68 +161,69 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CRCLProgramType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ParameterSettingType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CRCLCommandType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MiddleCommandType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(InitCanonType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EndCanonType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointDetailsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointSpeedAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointForceTorqueType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(WrenchType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TwistType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelAbsoluteType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelAbsoluteType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedAbsoluteType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedAbsoluteType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(VectorType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseAndSetType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PointType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        An instance of DataThingType has the following elements:
+///          Name (optional)
+///          .
+///
+///        DataThingType is an abstract type from which more specific types
+///        of data thing are derived. That includes all complex data
+///        types such as Vector, PoseType, etc.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class DataThingType {
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CRCLProgramType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CRCLCommandType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(InitCanonType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MiddleCommandType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureStatusReportType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EndCanonType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointDetailsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointForceTorqueType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointSpeedAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseAndSetType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PointType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ParameterSettingType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(VectorType))]
+    public partial class DataThingType {
         
         private string nameField;
         
@@ -195,48 +239,255 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        ActuateJointType is derived from DataThingType.
+///        An instance of ActuateJointType has the following elements:
+///          Name (inherited, optional)
+///          JointNumber
+///          JointPosition
+///          JointDetails.
+///
+///        JointPosition is the target position for the joint. JointDetails
+///        provides either (1) the speed and acceleration to use in getting to
+///        the position or (2) the force or torque and rate of change of force
+///        or torque to use in getting to the position.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class ParameterSettingType : DataThingType {
+    public partial class ActuateJointType : DataThingType {
         
-        private string parameterNameField;
+        private int jointNumberField;
         
-        private string parameterValueField;
+        private double jointPositionField;
+        
+        private JointDetailsType jointDetailsField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="token")]
-        public string ParameterName {
+        public int JointNumber {
             get {
-                return this.parameterNameField;
+                return this.jointNumberField;
             }
             set {
-                this.parameterNameField = value;
+                this.jointNumberField = value;
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="token")]
-        public string ParameterValue {
+        public double JointPosition {
             get {
-                return this.parameterValueField;
+                return this.jointPositionField;
             }
             set {
-                this.parameterValueField = value;
+                this.jointPositionField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public JointDetailsType JointDetails {
+            get {
+                return this.jointDetailsField;
+            }
+            set {
+                this.jointDetailsField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        The abstract JointDetailsType is derived from DataThingType.
+///        An instance of JointDetailsType has the following elements:
+///          Name (inherited, optional)
+///          .
+///
+///        JointDetailsType is an abstract type used as the parent type of:
+///          JointSpeedAccelType
+///          JointForceTorqueType
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointForceTorqueType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointSpeedAccelType))]
+    public partial class JointDetailsType : DataThingType {
+    }
+    
+    /// <remarks>
+///
+///        JointForceTorqueType is derived from JointDetailsType.
+///        An instance of JointForceTorqueType has the following elements:
+///          Name (inherited, optional)
+///          Setting (optional)
+///          ChangeRate (optional).
+///
+///        JointForceTorqueType specifies the force or torque and the rate of
+///        change of force or torque for a joint. For a translational joint,
+///        Setting is in current force units, and ChangeRate is in current
+///        force units per second. For a rotational joint, Setting is in
+///        current torque units, and ChangeRate is in current torque units per
+///        second.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class JointForceTorqueType : JointDetailsType {
+        
+        private double settingField;
+        
+        private bool settingSpecifiedField;
+        
+        private double changeRateField;
+        
+        private bool changeRateSpecifiedField;
+        
+        /// <remarks/>
+        public double Setting {
+            get {
+                return this.settingField;
+            }
+            set {
+                this.settingField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool SettingSpecified {
+            get {
+                return this.settingSpecifiedField;
+            }
+            set {
+                this.settingSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double ChangeRate {
+            get {
+                return this.changeRateField;
+            }
+            set {
+                this.changeRateField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool ChangeRateSpecified {
+            get {
+                return this.changeRateSpecifiedField;
+            }
+            set {
+                this.changeRateSpecifiedField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        JointSpeedAccelType is derived from JointDetailsType.
+///        An instance of JointSpeedAccelType has the following elements:
+///          Name (inherited, optional)
+///          JointSpeed (optional)
+///          JointAccel (optional).
+///
+///        JointSpeedAccelType specifies the speed and acceleration for a
+///        joint. For a rotational joint, the speed units are the current
+///        angle units per second, and the acceleration units are the current
+///        angle units per second per second. For a translational joint, the
+///        speed units are the current length units per second, and the
+///        acceleration units are the current length units per second per
+///        second.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class JointSpeedAccelType : JointDetailsType {
+        
+        private double jointSpeedField;
+        
+        private bool jointSpeedSpecifiedField;
+        
+        private double jointAccelField;
+        
+        private bool jointAccelSpecifiedField;
+        
+        /// <remarks/>
+        public double JointSpeed {
+            get {
+                return this.jointSpeedField;
+            }
+            set {
+                this.jointSpeedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool JointSpeedSpecified {
+            get {
+                return this.jointSpeedSpecifiedField;
+            }
+            set {
+                this.jointSpeedSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double JointAccel {
+            get {
+                return this.jointAccelField;
+            }
+            set {
+                this.jointAccelField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool JointAccelSpecified {
+            get {
+                return this.jointAccelSpecifiedField;
+            }
+            set {
+                this.jointAccelSpecifiedField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        ConfigureJointReportType is derived from DataThingType. 
+///        An instance of ConfigureJointReportType has the following elements:
+///          Name (inherited, optional)
+///          JointNumber
+///          ReportPosition
+///          ReportTorqueOrForce
+///          ReportVelocity
+///
+///        ConfigureJointReportType is used to specify whether and how status
+///        reporting should be done for the joint identified by its joint
+///        number. For each ReportXXX element, true means XXX data should be
+///        reported and false means XXX data should not be reported.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     public partial class ConfigureJointReportType : DataThingType {
         
-        private string jointNumberField;
+        private int jointNumberField1;
         
         private bool reportPositionField;
         
@@ -245,13 +496,12 @@ namespace Schemas.CRCL.Program {
         private bool reportVelocityField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="positiveInteger")]
-        public string JointNumber {
+        public int JointNumber {
             get {
-                return this.jointNumberField;
+                return this.jointNumberField1;
             }
             set {
-                this.jointNumberField = value;
+                this.jointNumberField1 = value;
             }
         }
         
@@ -286,624 +536,410 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointSpeedAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(JointForceTorqueType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        The abstract MiddleCommandType is derived from CRCLCommandType.
+///        MiddleCommandType has  the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        MiddleCommandType is the abstract parent type of specific CRCL
+///        command types. Only derived types of MiddleCommandType may be
+///        instantiated.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class JointDetailsType : DataThingType {
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureStatusReportType))]
+    public partial class MiddleCommandType : CRCLCommandType {
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        ActuateJointsType is derived from MiddleCommandType.
+///        An instance of ActuateJointsType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ActuateJoint (multiple).
+///
+///        Each joint may appear in at most one ActuateJoint element. If
+///        a joint appears in no ActuateJoint element, its actuation should
+///        be as previously set.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class JointSpeedAccelType : JointDetailsType {
+    public partial class ActuateJointsType : MiddleCommandType {
         
-        private decimal jointSpeedField;
-        
-        private bool jointSpeedFieldSpecified;
-        
-        private decimal jointAccelField;
-        
-        private bool jointAccelFieldSpecified;
+        private ActuateJointType[] actuateJointField;
         
         /// <remarks/>
-        public decimal JointSpeed {
+        [System.Xml.Serialization.XmlElementAttribute("ActuateJoint")]
+        public ActuateJointType[] ActuateJoint {
             get {
-                return this.jointSpeedField;
+                return this.actuateJointField;
             }
             set {
-                this.jointSpeedField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool JointSpeedSpecified {
-            get {
-                return this.jointSpeedFieldSpecified;
-            }
-            set {
-                this.jointSpeedFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal JointAccel {
-            get {
-                return this.jointAccelField;
-            }
-            set {
-                this.jointAccelField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool JointAccelSpecified {
-            get {
-                return this.jointAccelFieldSpecified;
-            }
-            set {
-                this.jointAccelFieldSpecified = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class JointForceTorqueType : JointDetailsType {
-        
-        private decimal settingField;
-        
-        private bool settingFieldSpecified;
-        
-        private decimal changeRateField;
-        
-        private bool changeRateFieldSpecified;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool SettingSpecified {
-            get {
-                return this.settingFieldSpecified;
-            }
-            set {
-                this.settingFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal ChangeRate {
-            get {
-                return this.changeRateField;
-            }
-            set {
-                this.changeRateField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ChangeRateSpecified {
-            get {
-                return this.changeRateFieldSpecified;
-            }
-            set {
-                this.changeRateFieldSpecified = value;
+                this.actuateJointField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        CloseToolChangerType is derived from MiddleCommandType. 
+///        An instance of CloseToolChangerType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        After an instance of CloseToolChangerType is executed, it is
+///        understood that if the tool changer was in position to acquire an
+///        end effector, the end effector will be mounted on the robot. In
+///        that case, the controlled point will change.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class ActuateJointType : DataThingType {
+    public partial class CloseToolChangerType : MiddleCommandType {
+    }
+    
+    /// <remarks>
+///
+///        ConfigureJointReportsType is derived from MiddleCommandType. 
+///        An instance of ConfigureJointReportsType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ResetAll
+///          ConfigureJointReport (multiple).
+///
+///        ConfigureJointReportsType is used to specify how the status of the
+///        robot joints should be reported. The ConfigureJointReports command
+///        may be used more than once during a session to change joint status
+///        reporting.
+///
+///        If ResetAll is set to true, an instance of
+///        ConfigureJointReportsType resets the joint reporting of all
+///        joints, and, in that case, if there is no ConfigureJointReport
+///        element for a joint in the instance, the status of that joint
+///        should not be reported. Thus, an instance of
+///        ConfigureJointReportsType with ResetAll set to true and no
+///        ConfigureJointReport elements turns off all joint reporting.
+///
+///        If ResetAll is set to false, status reporting is changed for only
+///        those joints given in a ConfigureJointReport element. Status
+///        reporting for other joints remains the same.
+///
+///        No joint may appear in more than one ConfigureJointReport element.
+///        Joint numbers in ConfigureJointReport elements must be given in
+///        increasing order.
+///
+///        See the in-line documentation of CRCLStatus.xsd for further
+///        information.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class ConfigureJointReportsType : MiddleCommandType {
         
-        private string jointNumberField;
+        private bool resetAllField;
         
-        private decimal jointPositionField;
-        
-        private JointDetailsType jointDetailsField;
+        private ConfigureJointReportType[] configureJointReportField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="positiveInteger")]
-        public string JointNumber {
+        public bool ResetAll {
             get {
-                return this.jointNumberField;
+                return this.resetAllField;
             }
             set {
-                this.jointNumberField = value;
+                this.resetAllField = value;
             }
         }
         
         /// <remarks/>
-        public decimal JointPosition {
+        [System.Xml.Serialization.XmlElementAttribute("ConfigureJointReport")]
+        public ConfigureJointReportType[] ConfigureJointReport {
             get {
-                return this.jointPositionField;
+                return this.configureJointReportField;
             }
             set {
-                this.jointPositionField = value;
-            }
-        }
-        
-        /// <remarks/>
-        public JointDetailsType JointDetails {
-            get {
-                return this.jointDetailsField;
-            }
-            set {
-                this.jointDetailsField = value;
+                this.configureJointReportField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        DwellType is derived from MiddleCommandType.
+///        An instance of DwellType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          DwellTime.
+///
+///        The DwellTime is an amount of time, in seconds, that the robot
+///        should wait before executing the next command.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class WrenchType : DataThingType {
+    public partial class DwellType : MiddleCommandType {
         
-        private VectorType forceField;
-        
-        private VectorType momentField;
+        private double dwellTimeField;
         
         /// <remarks/>
-        public VectorType Force {
+        public double DwellTime {
             get {
-                return this.forceField;
+                return this.dwellTimeField;
             }
             set {
-                this.forceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        public VectorType Moment {
-            get {
-                return this.momentField;
-            }
-            set {
-                this.momentField = value;
+                this.dwellTimeField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        GetStatusType is derived from MiddleCommandType.
+///        An instance of GetStatusType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        An instance of GetStatusType is used to indicate that the robot
+///        should report status immediately. The joint status portion of
+///        the status report must be as set by the most recent
+///        ConfigureJointReports command.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class VectorType : DataThingType {
+    public partial class GetStatusType : MiddleCommandType {
+    }
+    
+    /// <remarks>
+///
+///        MessageType is derived from MiddleCommandType.
+///        An instance of MessageType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          Message.
+///
+///        Message is a string that should be displayed by the robot
+///        controller.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class MessageType : MiddleCommandType {
         
-        private decimal iField;
-        
-        private decimal jField;
-        
-        private decimal kField;
-        
-        /// <remarks/>
-        public decimal I {
-            get {
-                return this.iField;
-            }
-            set {
-                this.iField = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal J {
-            get {
-                return this.jField;
-            }
-            set {
-                this.jField = value;
-            }
-        }
+        private string messageField;
         
         /// <remarks/>
-        public decimal K {
+        public string Message {
             get {
-                return this.kField;
+                return this.messageField;
             }
             set {
-                this.kField = value;
+                this.messageField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        MoveScrewType is derived from MiddleCommandType.
+///        An instance of MoveScrewType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          StartPosition (optional)
+///          AxisPoint (optional)
+///          AxialDistanceFree (optional)
+///          AxialDistanceScrew
+///          Turn.
+///
+///        This command is designed for attaching screws, nuts, and bolts.
+///        It might also be used for drilling.
+///
+///        The command is executed as follows.
+///
+///        First, if the StartPosition exists, the controlled point and axis
+///        are moved to the StartPosition along any convenient trajectory.
+///
+///        Second, if the AxialDistanceFree exists and is not zero, the
+///        controlled point is moved along the axis by the given
+///        AxialDistanceFree.
+///
+///        Third and finally, a screwing motion is made. If there is no
+///        AxisPoint (or if an AxisPoint is given that is at the controlled
+///        point), the gripper rotates around its axis through the angle given
+///        by Turn at a constant rate while simultaneously translating along
+///        the axis at a constant rate (the currently set speed) through the
+///        AxialDistanceScrew so that the rotation and translation finish at
+///        the same time. If there is an AxisPoint and it differs from the
+///        location of the controlled point, the controlled point
+///        simultaneously (1) rotates as above, (2) revolves around an axis
+///        through the AxisPoint parallel to the controlled axis, and (3)
+///        translates as above. That makes a helical motion of the controlled
+///        point. The motion along the helix is done at the currently set
+///        speed.
+///
+///        A positive value of AxialDistanceFree or AxialDistanceScrew means
+///        to move away from the end effector. A negative value means to move
+///        toward the end effector.
+///
+///        A positive value of Turn means to rotate (and possibly revolve) in
+///        a counterclockwise sense as viewed from the positive Z axis of the
+///        gripper (the region extending away from the gripper).
+///
+///        The robot must reach the EndPosition within the tolerance
+///        established (1) by the tolerance given for the pose in the
+///        EndPosition, if there is a tolerance in the EndPosition, or if not
+///        (2) by the most recently executed instance of
+///        SetEndPoseToleranceType. The speed and acceleration to use are set
+///        either in the EndPosition or by previously executed CRCL commands.
+///
+///        In an instance file, the type of StartPosition may be either
+///        PoseType or PoseAndSetType, which is derived from PoseType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class TwistType : DataThingType {
+    public partial class MoveScrewType : MiddleCommandType {
         
-        private VectorType linearVelocityField;
+        private PoseType startPositionField;
         
-        private VectorType angularVelocityField;
+        private PointType axisPointField;
+        
+        private double axialDistanceFreeField;
+        
+        private bool axialDistanceFreeSpecifiedField;
+        
+        private double axialDistanceScrewField;
+        
+        private double turnField;
         
         /// <remarks/>
-        public VectorType LinearVelocity {
+        public PoseType StartPosition {
             get {
-                return this.linearVelocityField;
+                return this.startPositionField;
             }
             set {
-                this.linearVelocityField = value;
+                this.startPositionField = value;
             }
         }
         
         /// <remarks/>
-        public VectorType AngularVelocity {
+        public PointType AxisPoint {
             get {
-                return this.angularVelocityField;
+                return this.axisPointField;
             }
             set {
-                this.angularVelocityField = value;
+                this.axisPointField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double AxialDistanceFree {
+            get {
+                return this.axialDistanceFreeField;
+            }
+            set {
+                this.axialDistanceFreeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool AxialDistanceFreeSpecified {
+            get {
+                return this.axialDistanceFreeSpecifiedField;
+            }
+            set {
+                this.axialDistanceFreeSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double AxialDistanceScrew {
+            get {
+                return this.axialDistanceScrewField;
+            }
+            set {
+                this.axialDistanceScrewField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double Turn {
+            get {
+                return this.turnField;
+            }
+            set {
+                this.turnField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        PoseType is derived from DataThingType.
+///        An instance of PoseType has the following elements:
+///          Name (inherited, optional)
+///          Point
+///          XAxis
+///          ZAxis.
+/// 
+///        The Point locates the origin of a coordinate system. The XAxis and
+///        ZAxis give the orientation of the coordinate system. The data for
+///        the Point, the ZAxis and the XAxis are expressed relative to another
+///        coordinate system.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class PoseToleranceType : DataThingType {
-        
-        private decimal xPointToleranceField;
-        
-        private bool xPointToleranceFieldSpecified;
-        
-        private decimal yPointToleranceField;
-        
-        private bool yPointToleranceFieldSpecified;
-        
-        private decimal zPointToleranceField;
-        
-        private bool zPointToleranceFieldSpecified;
-        
-        private decimal xAxisToleranceField;
-        
-        private bool xAxisToleranceFieldSpecified;
-        
-        private decimal zAxisToleranceField;
-        
-        private bool zAxisToleranceFieldSpecified;
-        
-        /// <remarks/>
-        public decimal XPointTolerance {
-            get {
-                return this.xPointToleranceField;
-            }
-            set {
-                this.xPointToleranceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool XPointToleranceSpecified {
-            get {
-                return this.xPointToleranceFieldSpecified;
-            }
-            set {
-                this.xPointToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal YPointTolerance {
-            get {
-                return this.yPointToleranceField;
-            }
-            set {
-                this.yPointToleranceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool YPointToleranceSpecified {
-            get {
-                return this.yPointToleranceFieldSpecified;
-            }
-            set {
-                this.yPointToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal ZPointTolerance {
-            get {
-                return this.zPointToleranceField;
-            }
-            set {
-                this.zPointToleranceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ZPointToleranceSpecified {
-            get {
-                return this.zPointToleranceFieldSpecified;
-            }
-            set {
-                this.zPointToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal XAxisTolerance {
-            get {
-                return this.xAxisToleranceField;
-            }
-            set {
-                this.xAxisToleranceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool XAxisToleranceSpecified {
-            get {
-                return this.xAxisToleranceFieldSpecified;
-            }
-            set {
-                this.xAxisToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal ZAxisTolerance {
-            get {
-                return this.zAxisToleranceField;
-            }
-            set {
-                this.zAxisToleranceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ZAxisToleranceSpecified {
-            get {
-                return this.zAxisToleranceFieldSpecified;
-            }
-            set {
-                this.zAxisToleranceFieldSpecified = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotAccelAbsoluteType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class RotAccelType : DataThingType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class RotAccelRelativeType : RotAccelType {
-        
-        private decimal fractionField;
-        
-        /// <remarks/>
-        public decimal Fraction {
-            get {
-                return this.fractionField;
-            }
-            set {
-                this.fractionField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class RotAccelAbsoluteType : RotAccelType {
-        
-        private decimal settingField;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransAccelAbsoluteType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class TransAccelType : DataThingType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class TransAccelRelativeType : TransAccelType {
-        
-        private decimal fractionField;
-        
-        /// <remarks/>
-        public decimal Fraction {
-            get {
-                return this.fractionField;
-            }
-            set {
-                this.fractionField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class TransAccelAbsoluteType : TransAccelType {
-        
-        private decimal settingField;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RotSpeedAbsoluteType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class RotSpeedType : DataThingType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class RotSpeedRelativeType : RotSpeedType {
-        
-        private decimal fractionField;
-        
-        /// <remarks/>
-        public decimal Fraction {
-            get {
-                return this.fractionField;
-            }
-            set {
-                this.fractionField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class RotSpeedAbsoluteType : RotSpeedType {
-        
-        private decimal settingField;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedRelativeType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(TransSpeedAbsoluteType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class TransSpeedType : DataThingType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class TransSpeedRelativeType : TransSpeedType {
-        
-        private decimal fractionField;
-        
-        /// <remarks/>
-        public decimal Fraction {
-            get {
-                return this.fractionField;
-            }
-            set {
-                this.fractionField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class TransSpeedAbsoluteType : TransSpeedType {
-        
-        private decimal settingField;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(PoseAndSetType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
     public partial class PoseType : DataThingType {
         
         private PointType pointField;
@@ -943,21 +979,32 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        PointType is derived from DataThingType.
+///        An instance of PointType has the following elements:
+///          Name (inherited, optional)
+///          X
+///          Y
+///          Z.
+/// 
+///        X, Y, and Z are the Cartesian coordinates of the Point.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     public partial class PointType : DataThingType {
         
-        private decimal xField;
+        private double xField;
         
-        private decimal yField;
+        private double yField;
         
-        private decimal zField;
+        private double zField;
         
         /// <remarks/>
-        public decimal X {
+        public double X {
             get {
                 return this.xField;
             }
@@ -967,7 +1014,7 @@ namespace Schemas.CRCL.Program {
         }
         
         /// <remarks/>
-        public decimal Y {
+        public double Y {
             get {
                 return this.yField;
             }
@@ -977,7 +1024,7 @@ namespace Schemas.CRCL.Program {
         }
         
         /// <remarks/>
-        public decimal Z {
+        public double Z {
             get {
                 return this.zField;
             }
@@ -987,8 +1034,93 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        VectorType is derived from DataThingType.
+///        An instance of VectorType has the following elements:
+///          Name (inherited, optional)
+///          I
+///          J
+///          K.
+/// 
+///        I, J, and K represent the usual i, j, and k components of a 3D
+///        vector.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class VectorType : DataThingType {
+        
+        private double iField;
+        
+        private double jField;
+        
+        private double kField;
+        
+        /// <remarks/>
+        public double I {
+            get {
+                return this.iField;
+            }
+            set {
+                this.iField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double J {
+            get {
+                return this.jField;
+            }
+            set {
+                this.jField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double K {
+            get {
+                return this.kField;
+            }
+            set {
+                this.kField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        PoseAndSetType is derived from PoseType. 
+///        An instance of PoseAndSetType has the following elements:
+///          Name (inherited, optional)
+///          Point (inherited)
+///          XAxis (inherited)
+///          ZAxis  (inherited)
+///          Coordinated
+///          TransSpeed (optional)
+///          RotSpeed (optional)
+///          TransAccel (optional)
+///          RotAccel (optional)
+///          Tolerance (optional).
+///
+///        PoseAndSetType is used for waypoints of move commands. The
+///        TransSpeed and TransAccel elements are the target translational
+///        speed and acceleration for the controlled point as it moves to the
+///        given pose. The RotSpeed and RotAccel elements are the target
+///        rotational speed and acceleration for the single axis rotation
+///        required to move from the initial pose to the target pose. The
+///        Tolerance is the tolerance for the given pose. The TransSpeed,
+///        TransAccel, RotSpeed, RotAccel, and Tolerance temporarily override
+///        any set values. The set values apply again once the given pose is
+///        reached. If the Coordinated element is set to true, translation and
+///        rotation should finish simultaneously. If Coordinated is false,
+///        either translation or rotation may finish first.
+///        
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1067,473 +1199,269 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(StopMotionType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTransAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetTorqueUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotSpeedType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRotAccelType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetRobotParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetMotionCoordinationType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetLengthUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetIntermediatePoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetForceUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndPoseToleranceType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetEndEffectorParametersType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SetAngleUnitsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(RunProgramType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(OpenToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveThroughToType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MoveScrewType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(MessageType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(GetStatusType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(DwellType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ConfigureJointReportsType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CloseToolChangerType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ActuateJointsType))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        The abstract TransSpeedType is derived from DataThingType.
+///        An instance of TransSpeedType has the following
+///        elements:
+///          Name (inherited, optional)
+///          .
+///
+///        TransSpeedType is an abstract type used as the parent type of: 
+///          TransSpeedAbsoluteType
+///          TransSpeedRelativeType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public abstract partial class MiddleCommandType : CRCLCommandType {
+    public partial class TransSpeedType : DataThingType {
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        The abstract RotSpeedType is derived from DataThingType.
+///        An instance of RotSpeedType has the following
+///        elements:
+///          Name (inherited, optional)
+///          .
+///
+///        RotSpeedType is an abstract type used as the parent type of: 
+///          RotSpeedAbsoluteType
+///          RotSpeedRelativeType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class StopMotionType : MiddleCommandType {
+    public partial class RotSpeedType : DataThingType {
+    }
+    
+    /// <remarks>
+///
+///        The abstract TransAccelType is derived from DataThingType.
+///        An instance of TransAccelType has the following elements:
+///          Name (inherited, optional)
+///          .
+///
+///        TransAccelType is an abstract type used as the parent type of: 
+///          TransAccelAbsoluteType
+///          TransAccelRelativeType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class TransAccelType : DataThingType {
+    }
+    
+    /// <remarks>
+///
+///        The abstract RotAccelType is derived from DataThingType.
+///        An instance of RotAccelType has the following
+///        elements:
+///          Name (inherited, optional)
+///          .
+///
+///        RotAccelType is an abstract type used as the parent type of:
+///          RotAccelAbsoluteType
+///          RotAccelRelativeType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class RotAccelType : DataThingType {
+    }
+    
+    /// <remarks>
+///
+///        PoseToleranceType is derived from DataThingType. 
+///        An instance of PoseToleranceType has the following elements:
+///          Name (inherited, optional)
+///          XPointTolerance (optional)
+///          YPointTolerance (optional)
+///          ZPointTolerance (optional)
+///          XAxisTolerance (optional)
+///          ZAxisTolerance (optional).
+///
+///        The XPointTolerance is the distance along the XAxis in current
+///        length units within which the controlled point must come from the X
+///        value of the point given in the pose with which the pose tolerance
+///        is associated. The YPointTolerance and ZPointTolerance are similar.
+///        The XAxisTolerance is the angle in current angle units within which
+///        the XAxis must come from the given XAxis. The ZAxisTolerance is
+///        similar. All five tolerances must be satisfied at the same instant.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class PoseToleranceType : DataThingType {
         
-        private StopConditionEnumType stopConditionField;
+        private double xPointToleranceField;
+        
+        private bool xPointToleranceSpecifiedField;
+        
+        private double yPointToleranceField;
+        
+        private bool yPointToleranceSpecifiedField;
+        
+        private double zPointToleranceField;
+        
+        private bool zPointToleranceSpecifiedField;
+        
+        private double xAxisToleranceField;
+        
+        private bool xAxisToleranceSpecifiedField;
+        
+        private double zAxisToleranceField;
+        
+        private bool zAxisToleranceSpecifiedField;
         
         /// <remarks/>
-        public StopConditionEnumType StopCondition {
+        public double XPointTolerance {
             get {
-                return this.stopConditionField;
+                return this.xPointToleranceField;
             }
             set {
-                this.stopConditionField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    public enum StopConditionEnumType {
-        
-        /// <remarks/>
-        Immediate,
-        
-        /// <remarks/>
-        Fast,
-        
-        /// <remarks/>
-        Normal,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetTransSpeedType : MiddleCommandType {
-        
-        private TransSpeedType transSpeedField;
-        
-        /// <remarks/>
-        public TransSpeedType TransSpeed {
-            get {
-                return this.transSpeedField;
-            }
-            set {
-                this.transSpeedField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetTransAccelType : MiddleCommandType {
-        
-        private TransAccelType transAccelField;
-        
-        /// <remarks/>
-        public TransAccelType TransAccel {
-            get {
-                return this.transAccelField;
-            }
-            set {
-                this.transAccelField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetTorqueUnitsType : MiddleCommandType {
-        
-        private TorqueUnitEnumType unitNameField;
-        
-        /// <remarks/>
-        public TorqueUnitEnumType UnitName {
-            get {
-                return this.unitNameField;
-            }
-            set {
-                this.unitNameField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    public enum TorqueUnitEnumType {
-        
-        /// <remarks/>
-        newtonMeter,
-        
-        /// <remarks/>
-        footPound,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetRotSpeedType : MiddleCommandType {
-        
-        private RotSpeedType rotSpeedField;
-        
-        /// <remarks/>
-        public RotSpeedType RotSpeed {
-            get {
-                return this.rotSpeedField;
-            }
-            set {
-                this.rotSpeedField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetRotAccelType : MiddleCommandType {
-        
-        private RotAccelType rotAccelField;
-        
-        /// <remarks/>
-        public RotAccelType RotAccel {
-            get {
-                return this.rotAccelField;
-            }
-            set {
-                this.rotAccelField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetRobotParametersType : MiddleCommandType {
-        
-        private ParameterSettingType[] parameterSettingField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ParameterSetting")]
-        public ParameterSettingType[] ParameterSetting {
-            get {
-                return this.parameterSettingField;
-            }
-            set {
-                this.parameterSettingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetMotionCoordinationType : MiddleCommandType {
-        
-        private bool coordinatedField;
-        
-        /// <remarks/>
-        public bool Coordinated {
-            get {
-                return this.coordinatedField;
-            }
-            set {
-                this.coordinatedField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetLengthUnitsType : MiddleCommandType {
-        
-        private LengthUnitEnumType unitNameField;
-        
-        /// <remarks/>
-        public LengthUnitEnumType UnitName {
-            get {
-                return this.unitNameField;
-            }
-            set {
-                this.unitNameField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    public enum LengthUnitEnumType {
-        
-        /// <remarks/>
-        meter,
-        
-        /// <remarks/>
-        millimeter,
-        
-        /// <remarks/>
-        inch,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetIntermediatePoseToleranceType : MiddleCommandType {
-        
-        private PoseToleranceType toleranceField;
-        
-        /// <remarks/>
-        public PoseToleranceType Tolerance {
-            get {
-                return this.toleranceField;
-            }
-            set {
-                this.toleranceField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetForceUnitsType : MiddleCommandType {
-        
-        private ForceUnitEnumType unitNameField;
-        
-        /// <remarks/>
-        public ForceUnitEnumType UnitName {
-            get {
-                return this.unitNameField;
-            }
-            set {
-                this.unitNameField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    public enum ForceUnitEnumType {
-        
-        /// <remarks/>
-        newton,
-        
-        /// <remarks/>
-        pound,
-        
-        /// <remarks/>
-        ounce,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetEndPoseToleranceType : MiddleCommandType {
-        
-        private PoseToleranceType toleranceField;
-        
-        /// <remarks/>
-        public PoseToleranceType Tolerance {
-            get {
-                return this.toleranceField;
-            }
-            set {
-                this.toleranceField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetEndEffectorType : MiddleCommandType {
-        
-        private decimal settingField;
-        
-        /// <remarks/>
-        public decimal Setting {
-            get {
-                return this.settingField;
-            }
-            set {
-                this.settingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetEndEffectorParametersType : MiddleCommandType {
-        
-        private ParameterSettingType[] parameterSettingField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ParameterSetting")]
-        public ParameterSettingType[] ParameterSetting {
-            get {
-                return this.parameterSettingField;
-            }
-            set {
-                this.parameterSettingField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class SetAngleUnitsType : MiddleCommandType {
-        
-        private AngleUnitEnumType unitNameField;
-        
-        /// <remarks/>
-        public AngleUnitEnumType UnitName {
-            get {
-                return this.unitNameField;
-            }
-            set {
-                this.unitNameField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    public enum AngleUnitEnumType {
-        
-        /// <remarks/>
-        degree,
-        
-        /// <remarks/>
-        radian,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class RunProgramType : MiddleCommandType {
-        
-        private string programTextField;
-        
-        /// <remarks/>
-        public string ProgramText {
-            get {
-                return this.programTextField;
-            }
-            set {
-                this.programTextField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class OpenToolChangerType : MiddleCommandType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class MoveToType : MiddleCommandType {
-        
-        private bool moveStraightField;
-        
-        private PoseType endPositionField;
-        
-        /// <remarks/>
-        public bool MoveStraight {
-            get {
-                return this.moveStraightField;
-            }
-            set {
-                this.moveStraightField = value;
+                this.xPointToleranceField = value;
             }
         }
         
         /// <remarks/>
-        public PoseType EndPosition {
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool XPointToleranceSpecified {
             get {
-                return this.endPositionField;
+                return this.xPointToleranceSpecifiedField;
             }
             set {
-                this.endPositionField = value;
+                this.xPointToleranceSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double YPointTolerance {
+            get {
+                return this.yPointToleranceField;
+            }
+            set {
+                this.yPointToleranceField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool YPointToleranceSpecified {
+            get {
+                return this.yPointToleranceSpecifiedField;
+            }
+            set {
+                this.yPointToleranceSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double ZPointTolerance {
+            get {
+                return this.zPointToleranceField;
+            }
+            set {
+                this.zPointToleranceField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool ZPointToleranceSpecified {
+            get {
+                return this.zPointToleranceSpecifiedField;
+            }
+            set {
+                this.zPointToleranceSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double XAxisTolerance {
+            get {
+                return this.xAxisToleranceField;
+            }
+            set {
+                this.xAxisToleranceField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool XAxisToleranceSpecified {
+            get {
+                return this.xAxisToleranceSpecifiedField;
+            }
+            set {
+                this.xAxisToleranceSpecifiedField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public double ZAxisTolerance {
+            get {
+                return this.zAxisToleranceField;
+            }
+            set {
+                this.zAxisToleranceField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnore()]
+        public virtual bool ZAxisToleranceSpecified {
+            get {
+                return this.zAxisToleranceSpecifiedField;
+            }
+            set {
+                this.zAxisToleranceSpecifiedField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        MoveThroughToType is derived from MiddleCommandType. 
+///        An instance of MoveThroughToType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          MoveStraight
+///          Waypoint (multiple)
+///          NumPositions.
+///
+///        Each Waypoint before the last is a Pose that the robot should move
+///        through. The last Waypoint is the Pose the robot should be in after
+///        the command is fully executed. NumPositions is the number of
+///        instances of the Waypoint element. The robot must pass each point
+///        within the tolerance established (1) by the tolerance given for the
+///        pose in the Waypoint, if there is a tolerance in the Waypoint, or
+///        if not (2) by the most recently executed instance of
+///        SetIntermediatePoseToleranceType (or by SetEndPoseToleranceType for
+///        the final Waypoint). The speed and acceleration to use are set
+///        either in the Waypoint or by previously executed CRCL commands.
+///
+///        If the value of MoveStraight is true, the controlled point must be
+///        moved in a straight line between Waypoints. If the value of
+///        MoveStraight is false, the controlled point may be moved along any
+///        convenient trajectory between Waypoints. In either case, there are
+///        no restrictions on the values of XAxis and ZAxis between waypoints.
+///
+///        The type of each Waypoint may be either PoseType or
+///        PoseAndSetType, which is derived from PoseType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -1543,7 +1471,7 @@ namespace Schemas.CRCL.Program {
         
         private PoseType[] waypointField;
         
-        private string numPositionsField;
+        private int numPositionsField;
         
         /// <remarks/>
         public bool MoveStraight {
@@ -1567,8 +1495,7 @@ namespace Schemas.CRCL.Program {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="positiveInteger")]
-        public string NumPositions {
+        public int NumPositions {
             get {
                 return this.numPositionsField;
             }
@@ -1578,199 +1505,854 @@ namespace Schemas.CRCL.Program {
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        MoveToType is derived from MiddleCommandType.
+///        An instance of MoveToType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          MoveStraight
+///          EndPosition.
+///
+///        EndPosition is a Pose to which the robot will move. If the value of
+///        MoveStraight is true, the controlled point must be moved in a
+///        straight line. If the value of MoveStraight is false, the
+///        controlled point may be moved along any convenient trajectory.
+///
+///        The robot must reach the EndPosition within the tolerance
+///        established (1) by the tolerance given for the pose in the
+///        EndPosition, if there is a tolerance in the EndPosition, or if not
+///        (2) by the most recently executed instance of
+///        SetEndPoseToleranceType. The speed and acceleration to use are set
+///        either in the EndPosition or by previously executed CRCL commands.
+///
+///        The type of EndPosition may be either PoseType or
+///        PoseAndSetType, which is derived from PoseType.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class MoveScrewType : MiddleCommandType {
+    public partial class MoveToType : MiddleCommandType {
         
-        private PoseType startPositionField;
+        private bool moveStraightField1;
         
-        private PointType axisPointField;
-        
-        private decimal axialDistanceFreeField;
-        
-        private bool axialDistanceFreeFieldSpecified;
-        
-        private decimal axialDistanceScrewField;
-        
-        private decimal turnField;
+        private PoseType endPositionField;
         
         /// <remarks/>
-        public PoseType StartPosition {
+        public bool MoveStraight {
             get {
-                return this.startPositionField;
+                return this.moveStraightField1;
             }
             set {
-                this.startPositionField = value;
+                this.moveStraightField1 = value;
             }
         }
         
         /// <remarks/>
-        public PointType AxisPoint {
+        public PoseType EndPosition {
             get {
-                return this.axisPointField;
+                return this.endPositionField;
             }
             set {
-                this.axisPointField = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal AxialDistanceFree {
-            get {
-                return this.axialDistanceFreeField;
-            }
-            set {
-                this.axialDistanceFreeField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool AxialDistanceFreeSpecified {
-            get {
-                return this.axialDistanceFreeFieldSpecified;
-            }
-            set {
-                this.axialDistanceFreeFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal AxialDistanceScrew {
-            get {
-                return this.axialDistanceScrewField;
-            }
-            set {
-                this.axialDistanceScrewField = value;
-            }
-        }
-        
-        /// <remarks/>
-        public decimal Turn {
-            get {
-                return this.turnField;
-            }
-            set {
-                this.turnField = value;
+                this.endPositionField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        OpenToolChangerType is derived from MiddleCommandType. 
+///        An instance of OpenToolChangerType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        After an instance of OpenToolChangerType is executed, it is
+///        understood that if a gripper was mounted on the robot, the
+///        gripper is no longer mounted on the robot. In that case,
+///        the controlled point will change.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class MessageType : MiddleCommandType {
+    public partial class OpenToolChangerType : MiddleCommandType {
+    }
+    
+    /// <remarks>
+///
+///        RunProgramType is derived from MiddleCommandType.
+///        An instance of RunProgramType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ProgramText.
+///
+///        The RunProgramType is used to instruct the low level controller to
+///        run a program written in a non-CRCL language that controller
+///        understands. The ProgramText element gives the text of the program.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class RunProgramType : MiddleCommandType {
         
-        private string messageField;
+        private string programTextField;
         
         /// <remarks/>
-        public string Message {
+        public string ProgramText {
             get {
-                return this.messageField;
+                return this.programTextField;
             }
             set {
-                this.messageField = value;
+                this.programTextField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        SetAngleUnits is derived from MiddleCommandType.
+///        An instance of SetAngleUnits has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          UnitName.
+///
+///        UnitName is a string that can be only the literals 'radian' or
+///        'degree'. This tells the robot that all further commands
+///        giving angle values will implicitly use the named unit.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class GetStatusType : MiddleCommandType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class DwellType : MiddleCommandType {
+    public partial class SetAngleUnitsType : MiddleCommandType {
         
-        private decimal dwellTimeField;
+        private AngleUnitEnumType unitNameField;
         
         /// <remarks/>
-        public decimal DwellTime {
+        public AngleUnitEnumType UnitName {
             get {
-                return this.dwellTimeField;
+                return this.unitNameField;
             }
             set {
-                this.dwellTimeField = value;
+                this.unitNameField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        AngleUnitEnumType enumerates angle units. This might be used,
+///        for example, in a command that sets angle units.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class ConfigureJointReportsType : MiddleCommandType {
-        
-        private bool resetAllField;
-        
-        private ConfigureJointReportType[] configureJointReportField;
+    public enum AngleUnitEnumType {
         
         /// <remarks/>
-        public bool ResetAll {
-            get {
-                return this.resetAllField;
-            }
-            set {
-                this.resetAllField = value;
-            }
-        }
+        degree,
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ConfigureJointReport")]
-        public ConfigureJointReportType[] ConfigureJointReport {
-            get {
-                return this.configureJointReportField;
-            }
-            set {
-                this.configureJointReportField = value;
-            }
-        }
+        radian,
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        SetEndEffectorParametersType is derived from MiddleCommandType.
+///        An instance of SetEndEffectorParametersType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ParameterSetting (multiple).
+///
+///        SetEndEffectorParametersType is for setting parameters of end
+///        effectors that have parameters. The meaning of the parameter
+///        settings is not part of CRCL. It is expected that this command will
+///        be used only to send parameter values that can be used by the end
+///        effector currently in use.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class CloseToolChangerType : MiddleCommandType {
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    public partial class ActuateJointsType : MiddleCommandType {
+    public partial class SetEndEffectorParametersType : MiddleCommandType {
         
-        private ActuateJointType[] actuateJointField;
+        private ParameterSettingType[] parameterSettingField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ActuateJoint")]
-        public ActuateJointType[] ActuateJoint {
+        [System.Xml.Serialization.XmlElementAttribute("ParameterSetting")]
+        public ParameterSettingType[] ParameterSetting {
             get {
-                return this.actuateJointField;
+                return this.parameterSettingField;
             }
             set {
-                this.actuateJointField = value;
+                this.parameterSettingField = value;
             }
         }
     }
     
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "0.0.0.0")]
+    /// <remarks>
+///
+///        ParameterSettingType is derived from DataThingType. 
+///        An instance of ParameterSettingType has the following elements:
+///          Name (inherited, optional)
+///          ParameterName
+///          ParameterValue.
+///
+///        ParameterSettingType is used to set values of parameters. The
+///        ParameterName and ParameterValue are both strings. The
+///        ParameterValue string may represent a data type known to the
+///        receiving system.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class ParameterSettingType : DataThingType {
+        
+        private string parameterNameField;
+        
+        private string parameterValueField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="token")]
+        public string ParameterName {
+            get {
+                return this.parameterNameField;
+            }
+            set {
+                this.parameterNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="token")]
+        public string ParameterValue {
+            get {
+                return this.parameterValueField;
+            }
+            set {
+                this.parameterValueField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetEndEffectorType is derived from MiddleCommandType.
+///        An instance of SetEndEffectorType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          Setting.
+///
+///        SetEndEffectorType is for setting the effectivity of end effectors.
+///        If an end effector has multiple control modes, the control mode
+///        must be set using a SetEndEffectorParameters command, so that the
+///        meaning of SetEndEffector commands is unambiguous.
+///
+///        For end effectors that have a continuously variable setting, the
+///        Setting means a fraction of maximum openness, force, torque, power,
+///        etc.
+///
+///        For end effectors that have only two choices (powered or unpowered,
+///        open or closed, on or off), a positive Setting value means powered,
+///        open, or on, while a zero Setting value means unpowered, closed, or
+///        off.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetEndEffectorType : MiddleCommandType {
+        
+        private double settingField1;
+        
+        /// <remarks/>
+        public double Setting {
+            get {
+                return this.settingField1;
+            }
+            set {
+                this.settingField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetEndPoseToleranceType is derived from MiddleCommandType.
+///        An instance of SetEndPoseToleranceType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          Tolerance.
+///
+///        The Tolerance element indicates to the robot the precision with
+///        which it must reach its end location.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetEndPoseToleranceType : MiddleCommandType {
+        
+        private PoseToleranceType toleranceField1;
+        
+        /// <remarks/>
+        public PoseToleranceType Tolerance {
+            get {
+                return this.toleranceField1;
+            }
+            set {
+                this.toleranceField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetForceUnitsType is derived from MiddleCommandType.
+///        An instance of SetForceUnitsType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          UnitName.
+///
+///        UnitName is a string that can be only the literals 'newton',
+///        'pound', or 'ounce'. This tells the robot that all further commands
+///        giving force values will implicitly use the named unit.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetForceUnitsType : MiddleCommandType {
+        
+        private ForceUnitEnumType unitNameField1;
+        
+        /// <remarks/>
+        public ForceUnitEnumType UnitName {
+            get {
+                return this.unitNameField1;
+            }
+            set {
+                this.unitNameField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        ForceUnitEnumType enumerates force units. This might be used,
+///        for example, in a command that sets force units.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    public enum ForceUnitEnumType {
+        
+        /// <remarks/>
+        newton,
+        
+        /// <remarks/>
+        pound,
+        
+        /// <remarks/>
+        ounce,
+    }
+    
+    /// <remarks>
+///
+///        SetIntermediatePoseToleranceType is derived from MiddleCommandType.
+///        An instance of SetIntermediatePoseToleranceType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          Tolerance.
+///
+///        The Tolerance element indicates to the robot the precision with
+///        which it must reach each intermediate waypoint.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetIntermediatePoseToleranceType : MiddleCommandType {
+        
+        private PoseToleranceType toleranceField2;
+        
+        /// <remarks/>
+        public PoseToleranceType Tolerance {
+            get {
+                return this.toleranceField2;
+            }
+            set {
+                this.toleranceField2 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetLengthUnitsType is derived from MiddleCommandType.
+///        An instance of SetLengthUnitsType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          UnitName.
+///
+///        UnitName is a string that can be only the literals 'meter',
+///        'millimeter', or 'inch'. This tells the robot that all further
+///        commands giving position or length values will implicitly use the
+///        named unit. 
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetLengthUnitsType : MiddleCommandType {
+        
+        private LengthUnitEnumType unitNameField2;
+        
+        /// <remarks/>
+        public LengthUnitEnumType UnitName {
+            get {
+                return this.unitNameField2;
+            }
+            set {
+                this.unitNameField2 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        LengthUnitEnumType enumerates length units. This might be used,
+///        for example, in a command that sets length units.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    public enum LengthUnitEnumType {
+        
+        /// <remarks/>
+        meter,
+        
+        /// <remarks/>
+        millimeter,
+        
+        /// <remarks/>
+        inch,
+    }
+    
+    /// <remarks>
+///
+///        SetMotionCoordinationType is derived from MiddleCommandType.
+///        An instance of SetMotionCoordinationType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          Coordinated.
+///
+///        Coordinated is a boolean. If the value is true, rotational and
+///        translational motion must finish simultaneously in motion commands
+///        (including each segment in a multiple segment motion command),
+///        except as possibly temporarily overridden in the the motion
+///        command. If the value is false, there is no such requirement.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetMotionCoordinationType : MiddleCommandType {
+        
+        private bool coordinatedField1;
+        
+        /// <remarks/>
+        public bool Coordinated {
+            get {
+                return this.coordinatedField1;
+            }
+            set {
+                this.coordinatedField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetRobotParametersType is derived from MiddleCommandType.
+///        An instance of SetRobotParametersType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ParameterSetting (multiple).
+///
+///        SetRobotParametersType is for setting robot parameters that
+///        cannot be set by any other CRCL command. The meaning of the
+///        parameter settings is not part of CRCL.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetRobotParametersType : MiddleCommandType {
+        
+        private ParameterSettingType[] parameterSettingField1;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ParameterSetting")]
+        public ParameterSettingType[] ParameterSetting {
+            get {
+                return this.parameterSettingField1;
+            }
+            set {
+                this.parameterSettingField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetRotAccelType is derived from MiddleCommandType.
+///        An instance of SetRotAccelType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          RotAccel.
+///
+///        RotAccel specifies the rotational acceleration that should
+///        be used.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetRotAccelType : MiddleCommandType {
+        
+        private RotAccelType rotAccelField1;
+        
+        /// <remarks/>
+        public RotAccelType RotAccel {
+            get {
+                return this.rotAccelField1;
+            }
+            set {
+                this.rotAccelField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetRotSpeedType is derived from MiddleCommandType.
+///        An instance of SetRotSpeedType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          RotSpeed.
+///
+///        RotSpeed specifies the rotational speed that should be used.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetRotSpeedType : MiddleCommandType {
+        
+        private RotSpeedType rotSpeedField1;
+        
+        /// <remarks/>
+        public RotSpeedType RotSpeed {
+            get {
+                return this.rotSpeedField1;
+            }
+            set {
+                this.rotSpeedField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetTorqueUnitsType is derived from MiddleCommandType.
+///        An instance of SetTorqueUnitsType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          UnitName.
+///
+///        UnitName is a string that can be only the literals 'newtonMeter'
+///        or 'footPound'. This tells the robot that all further commands
+///        giving torque values will implicitly use the named unit.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetTorqueUnitsType : MiddleCommandType {
+        
+        private TorqueUnitEnumType unitNameField3;
+        
+        /// <remarks/>
+        public TorqueUnitEnumType UnitName {
+            get {
+                return this.unitNameField3;
+            }
+            set {
+                this.unitNameField3 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        TorqueUnitEnumType enumerates torque units. This might be used,
+///        for example in a command that sets torque units.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    public enum TorqueUnitEnumType {
+        
+        /// <remarks/>
+        newtonMeter,
+        
+        /// <remarks/>
+        footPound,
+    }
+    
+    /// <remarks>
+///
+///        The SetTransAccelType is derived from MiddleCommandType.
+///        An instance of SetTransAccelType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          TransAccel.
+///
+///        TransAccel specifies the translational acceleration that should
+///        be used.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetTransAccelType : MiddleCommandType {
+        
+        private TransAccelType transAccelField1;
+        
+        /// <remarks/>
+        public TransAccelType TransAccel {
+            get {
+                return this.transAccelField1;
+            }
+            set {
+                this.transAccelField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        SetTransSpeedType is derived from MiddleCommandType.
+///        An instance of SetTransSpeedType has the following
+///        elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          TransSpeed.
+///
+///        TransSpeed specifies the translational speed that should be used.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class SetTransSpeedType : MiddleCommandType {
+        
+        private TransSpeedType transSpeedField1;
+        
+        /// <remarks/>
+        public TransSpeedType TransSpeed {
+            get {
+                return this.transSpeedField1;
+            }
+            set {
+                this.transSpeedField1 = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        StopMotionType is derived from MiddleCommandType.
+///        An instance of StopMotionType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          StopCondition.
+///
+///        StopCondition is an enumerated value indicating how the stop
+///        should occur.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class StopMotionType : MiddleCommandType {
+        
+        private StopConditionEnumType stopConditionField;
+        
+        /// <remarks/>
+        public StopConditionEnumType StopCondition {
+            get {
+                return this.stopConditionField;
+            }
+            set {
+                this.stopConditionField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        The StopConditionEnumType enumerates types of commanded stops. Any
+///        physical devices or built-in control methods of the robot
+///        controller for stopping the robot are in addition to these
+///        commanded stop types.
+///  
+///        Immediate means the robot's drives are deactivated immediately and
+///        the brakes are applied. This may result in the controlled point
+///        being off the commanded path when the robot stops.
+///
+///        Fast means the robot and any external axes are brought to a fast,
+///        controlled stop. The drives are deactivated after one second, and
+///        the brakes are applied. The controlled point must be kept on the
+///        on the commanded path as the robot stops.
+///
+///        Normal means the robot and any external drives are stopped using
+///        a normal braking ramp. The drives are not deactivated, and the
+///        brakes are not applied. The controlled point must be kept on the
+///        on the commanded path as the robot stops.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    public enum StopConditionEnumType {
+        
+        /// <remarks/>
+        Immediate,
+        
+        /// <remarks/>
+        Fast,
+        
+        /// <remarks/>
+        Normal,
+    }
+    
+    /// <remarks>
+///
+///        ConfigureStatusReportType is derived from MiddleCommandType. 
+///        An instance of ConfigureStatusReportType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited)
+///          ReportJointStatuses
+///          ReportPoseStatus
+///          ReportGripperStatus
+///          ReportSettingsStatus.
+///
+///        ConfigureStatusReportType is used to specify how the status of the
+///        robot should be reported. 
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    public partial class ConfigureStatusReportType : MiddleCommandType {
+        
+        private bool reportJointStatusesField;
+        
+        private bool reportPoseStatusField;
+        
+        private bool reportGripperStatusField;
+        
+        private bool reportSettingsStatusField;
+        
+        /// <remarks/>
+        public bool ReportJointStatuses {
+            get {
+                return this.reportJointStatusesField;
+            }
+            set {
+                this.reportJointStatusesField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ReportPoseStatus {
+            get {
+                return this.reportPoseStatusField;
+            }
+            set {
+                this.reportPoseStatusField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ReportGripperStatus {
+            get {
+                return this.reportGripperStatusField;
+            }
+            set {
+                this.reportGripperStatusField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ReportSettingsStatus {
+            get {
+                return this.reportSettingsStatusField;
+            }
+            set {
+                this.reportSettingsStatusField = value;
+            }
+        }
+    }
+    
+    /// <remarks>
+///
+///        EndCanonType is derived from CRCLCommandType.
+///        An instance of EndCanonType has the following elements:
+///          Name (inherited, optional)
+///          CommandID (inherited).
+///
+///        An instance of EndCanonType is used to indicate that the robot
+///        should not execute any further CRCL commands other than an
+///        instance of InitCanonType until an InitCanonType command is
+///        received. Other robot-specific actions may be taken in
+///        preparation for shutting down.
+///      
+///</remarks>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.17020")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]

@@ -1,9 +1,9 @@
 ﻿<Properties VersionControlDisabled="True" StartupItem="SimRobotServer/SimRobotServer.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ConsoleClient/ConsoleClientMain.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="SimRobotServer/SimRobotServerMain.cs">
     <Files>
-      <File FileName="SimRobotServer/SimRobotServerMain.cs" Line="1" Column="1" />
-      <File FileName="ConsoleClient/ConsoleClientMain.cs" Line="282" Column="42" />
+      <File FileName="ConsoleClient/ConsoleClientMain.cs" Line="358" Column="24" />
+      <File FileName="SimRobotServer/SimRobotServerMain.cs" Line="338" Column="28" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
