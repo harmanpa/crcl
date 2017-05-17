@@ -79,6 +79,8 @@ private.xml
 /tools/java/crcl4java/crcl4java-ui/run.bat
 /tools/java/crcl4java/crcl4java-ui/setCrclUiEnvVars.sh
 /tools/java/crcl4java/crcl4java-vaadin-webapp/src/main/webapp/VAADIN/themes/default_theme/addons.scss
+tools/java/crcl4java/crcl4java-ui/run.bat
+tools/java/crcl4java/crcl4java-ui/setCrclUiEnvVars.sh
 
 
 
