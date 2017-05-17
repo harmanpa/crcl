@@ -769,7 +769,7 @@ public class PendantClientInner {
 
     private void incCommandID(CRCLCommandType cmd) {
         long id = commandId.incrementAndGet();
-        long sid = getStatusCommandId();
+        long sid = statusCommandId();
         if (sid <= 1 && id <= 1) {
             if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
                 status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_READY);
@@ -800,7 +800,7 @@ public class PendantClientInner {
 //        }
     }
 
-    public long getStatusCommandId() {
+    public long statusCommandId() {
         CRCLStatusType s = getStatus();
         if (null != s) {
             CommandStatusType cs = s.getCommandStatus();
@@ -829,7 +829,7 @@ public class PendantClientInner {
 
     public boolean incAndSendCommand(CRCLCommandType cmd) throws JAXBException {
         this.incCommandID(cmd);
-        long sid = getStatusCommandId();
+        long sid = statusCommandId();
         if (cmd.getCommandID() == sid) {
             String cmdString = commandToSimpleString(cmd);
             String lastCommandString = commandToSimpleString(lastCommandSent);
