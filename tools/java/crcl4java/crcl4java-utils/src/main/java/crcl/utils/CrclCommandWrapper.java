@@ -38,7 +38,7 @@ public class CrclCommandWrapper extends MessageType {
 
         public void accept(CrclCommandWrapper wrapper);
     }
-    private final MiddleCommandType wrappedCommand;
+    private MiddleCommandType wrappedCommand;
     private CRCLProgramType curProgram = null;
     private int curProgramIndex = -1;
 
@@ -102,6 +102,10 @@ public class CrclCommandWrapper extends MessageType {
 
     public MiddleCommandType getWrappedCommand() {
         return wrappedCommand;
+    }
+
+    public void setWrappedCommand(MiddleCommandType wrappedCommand) {
+        this.wrappedCommand = wrappedCommand;
     }
 
     @Override
