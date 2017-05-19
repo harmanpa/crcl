@@ -1529,10 +1529,10 @@ public class PendantClientInner {
         if (cmd instanceof DwellType) {
             return testDwellEffect((DwellType) cmd, cmdStartTime);
         }
-        if (cmd instanceof SetEndEffectorType) {
-            SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
-            this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
-        }
+//        if (cmd instanceof SetEndEffectorType) {
+//            SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
+//            this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
+//        }
         return true;
     }
 
