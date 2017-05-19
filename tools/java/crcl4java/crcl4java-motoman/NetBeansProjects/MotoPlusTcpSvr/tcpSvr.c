@@ -12,7 +12,7 @@ extern void *malloc(size_t);
 
 // for API & FUNCTIONS
 void runAcceptTcpClientsTask(ULONG portNo);
-#define PORT        11000
+#define PORT        12222
 
 void tcpSvr(void) {
 

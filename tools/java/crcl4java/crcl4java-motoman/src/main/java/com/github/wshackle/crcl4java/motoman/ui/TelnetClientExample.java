@@ -56,7 +56,7 @@ public class TelnetClientExample implements Runnable, TelnetNotificationHandler
 
      private static final String DEFAULT_HOST = "192.168.1.33"; //"10.0.0.2";
 //    private static final String DEFAULT_HOST = "localhost";
-     private static final int DEFAULT_PORT = 11000;
+     private static final int DEFAULT_PORT = 12222;
 
     /***
      * Main for the TelnetClientExample.

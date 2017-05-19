@@ -42,7 +42,7 @@ public class OpenCloseJFrame extends javax.swing.JFrame {
     public OpenCloseJFrame() {
         try {
             initComponents();
-            mpc = new MotoPlusConnection(new Socket("192.168.1.33"/*"10.0.0.2" */, 11000));
+            mpc = new MotoPlusConnection(new Socket("192.168.1.33"/*"10.0.0.2" */, 12222));
         } catch (IOException ex) {
             Logger.getLogger(OpenCloseJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

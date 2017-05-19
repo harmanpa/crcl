@@ -46,7 +46,7 @@ public class TestMotoPlusConnection {
 
     public static void main(String[] args) throws Exception {
         System.out.println("host = " + host);
-        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 11000))) {
+        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
 
 //            testMoveZ(mpc);
             testMoveJointS(mpc);

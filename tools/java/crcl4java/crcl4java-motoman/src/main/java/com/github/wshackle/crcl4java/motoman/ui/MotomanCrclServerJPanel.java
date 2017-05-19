@@ -110,7 +110,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
         jLabel3.setText("Port:");
 
-        jTextFieldMotoplusPort.setText("11000");
+        jTextFieldMotoplusPort.setText("12222  ");
 
         jCheckBoxDebug.setText("Debug");
         jCheckBoxDebug.addActionListener(new java.awt.event.ActionListener() {
