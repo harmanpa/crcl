@@ -140,7 +140,7 @@ import rcs.posemath.Posemath;
 public class PendantClientInner {
 
     //    public static final BigDecimal BIG_DECIMAL_POINT_01 = new BigDecimal("0.01");
-    public static final double FIVE_DEGREES_IN_RADIANS = Math.PI / 36;
+    public static final double FIVE_DEGREES_IN_RADIANS = Math.toRadians(5.0);
     public static final Logger LOGGER = Logger.getLogger(PendantClientInner.class.getName());
     public static final String PROP_LENGTHUNIT = "lengthUnit";
 
@@ -306,15 +306,15 @@ public class PendantClientInner {
         this.outer = outer;
         this.xpu = new XpathUtils();
         this.expectedEndPoseTolerance = new PoseToleranceType();
-        this.expectedEndPoseTolerance.setXAxisTolerance(FIVE_DEGREES_IN_RADIANS);
-        this.expectedEndPoseTolerance.setZAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedEndPoseTolerance.setXAxisTolerance(5.0 /* degrees */);
+        this.expectedEndPoseTolerance.setZAxisTolerance(5.0 /* degrees */);
         this.expectedEndPoseTolerance.setXPointTolerance(3.0);
         this.expectedEndPoseTolerance.setYPointTolerance(3.0);
         this.expectedEndPoseTolerance.setZPointTolerance(3.0);
 
         this.expectedIntermediatePoseTolerance = new PoseToleranceType();
-        this.expectedIntermediatePoseTolerance.setXAxisTolerance(FIVE_DEGREES_IN_RADIANS);
-        this.expectedIntermediatePoseTolerance.setZAxisTolerance(FIVE_DEGREES_IN_RADIANS);
+        this.expectedIntermediatePoseTolerance.setXAxisTolerance(5.0 /* degrees */);
+        this.expectedIntermediatePoseTolerance.setZAxisTolerance(5.0 /* degrees */);
         this.expectedIntermediatePoseTolerance.setXPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setYPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setZPointTolerance(3.0);
