@@ -2512,9 +2512,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    public File getTempLogDir() {
+        return internal.getTempLogDir();
+    }
+
+    public void setTempLogDir(File tempLogDir) {
+        this.internal.setTempLogDir(tempLogDir);
+    }
+    
     public void showStatusLog() {
         try {
-            File tmpFile = File.createTempFile("poseList", ".csv");
+            File tmpFile =
+                    (internal.getTempLogDir() != null)
+                    ? File.createTempFile("poseList", ".csv",internal.getTempLogDir())
+                    : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
         } catch (IOException ex) {

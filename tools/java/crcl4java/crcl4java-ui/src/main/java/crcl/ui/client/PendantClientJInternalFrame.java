@@ -1095,4 +1095,12 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public XFuture<Boolean> continueCurrentProgram() {
         return pendantClientJPanel1.continueCurrentProgram();
     }
+    
+    public File getTempLogDir() {
+        return pendantClientJPanel1.getTempLogDir();
+    }
+
+    public void setTempLogDir(File tempLogDir) {
+        this.pendantClientJPanel1.setTempLogDir(tempLogDir);
+    }
 }

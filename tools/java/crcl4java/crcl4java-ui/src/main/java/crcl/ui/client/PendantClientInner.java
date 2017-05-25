@@ -107,7 +107,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -465,9 +464,33 @@ public class PendantClientInner {
 
     private PrintStream logStream = null;
 
+    private File tempLogDir;
+
+    /**
+     * Get the value of tempLogDir
+     *
+     * @return the value of tempLogDir
+     */
+    public File getTempLogDir() {
+        return tempLogDir;
+    }
+
+    /**
+     * Set the value of tempLogDir
+     *
+     * @param tempLogDir new value of tempLogDir
+     */
+    public void setTempLogDir(File tempLogDir) {
+        this.tempLogDir = tempLogDir;
+    }
+
     public void openLogStream() {
         try {
-            logFile = File.createTempFile("crcl.client.", ".log.txt");
+            if (null != tempLogDir) {
+                logFile = File.createTempFile("crcl.client.", ".log.txt", tempLogDir);
+            } else {
+                logFile = File.createTempFile("crcl.client.", ".log.txt");
+            }
             logStream = new PrintStream(new FileOutputStream(logFile));
         } catch (IOException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
@@ -675,7 +698,11 @@ public class PendantClientInner {
             program.setName(fname);
         }
         this.setProgram(program);
-        logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt");
+        if (null != tempLogDir) {
+            logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt", tempLogDir);
+        } else {
+            logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt");
+        }
         logStream = new PrintStream(new FileOutputStream(logFile));
         outer.showDebugMessage("Logging to " + logFile.getCanonicalPath());
         outer.finishOpenXmlProgramFile(f, program, addRecent);
@@ -902,7 +929,6 @@ public class PendantClientInner {
 //        }
 //        return Optional.empty();
 //    }
-
     public void setCommandState(CommandStateEnumType state) {
         if (null != status) {
             CommandStatusType commandStatus = status.getCommandStatus();
@@ -1099,22 +1125,22 @@ public class PendantClientInner {
     public CRCLStatusType getStatus() {
         return this.status;
     }
-    
+
     public CommandStatusType getCommandStatus() {
         CRCLStatusType s = this.getStatus();
-        if(null != s) {
+        if (null != s) {
             return s.getCommandStatus();
         }
         return null;
     }
+
     public CommandStateEnumType getCommandState() {
         CommandStatusType cs = getCommandStatus();
-        if(null != cs) {
+        if (null != cs) {
             return cs.getCommandState();
         }
         return CommandStateEnumType.CRCL_ERROR;
     }
-    
 
     public PoseType getPose() {
         return CRCLPosemath.getPose(status);
@@ -1536,7 +1562,8 @@ public class PendantClientInner {
         return true;
     }
 
-    private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
+//    private double maxDwell = getDoubleProperty("crcl4java.maxdwell", 6000.0);
+    private double maxDwellEffectDifference = getDoubleProperty("crcl4java.ui.maxDwellEffectDifference", 20000.0);
 
     private static double getDoubleProperty(String propName, double defaultVal) {
         return Double.parseDouble(System.getProperty(propName, Double.toString(defaultVal)));
@@ -1639,13 +1666,15 @@ public class PendantClientInner {
     private boolean testDwellEffect(DwellType dwell, long startTime) {
         long elapsed = System.currentTimeMillis() - startTime;
         double dwellTime = dwell.getDwellTime() * 1000.0;
-        if (dwellTime > maxDwell) {
-            LOGGER.warning("dwellTime of " + dwellTime + " exceeded max of " + maxDwell);
-            return true;
-        }
+//        if (dwellTime > maxDwell) {
+//            effectFailedMessage = "dwellTime of " + dwellTime + " exceeded max of " + maxDwell;
+//            LOGGER.warning(effectFailedMessage);
+//            return true;
+//        }
         long expected = (long) (dwellTime);
-        if (Math.abs(elapsed - expected) > 3500) {
-            outer.showMessage("Dwell expected to take " + expected + " ms but took " + elapsed + " ms.");
+        if (Math.abs(elapsed - expected) > maxDwellEffectDifference) {
+            effectFailedMessage = "Dwell expected to take " + expected + " ms but took " + elapsed + " ms.";
+            outer.showMessage(effectFailedMessage);
             return false;
         }
         return true;
@@ -2396,7 +2425,9 @@ public class PendantClientInner {
             testProgram.setEndCanon(endCmd);
             String progString
                     = getTempCRCLSocket().programToPrettyDocString(testProgram, true);
-            File testProgramFile = File.createTempFile("crclTest", ".xml");
+            File testProgramFile = (null != tempLogDir)
+                    ? File.createTempFile("crclTest", ".xml", tempLogDir)
+                    : File.createTempFile("crclTest", ".xml");
             Files.write(testProgramFile.toPath(), progString.getBytes());
             this.openXmlProgramFile(testProgramFile, false);
             outer.showDebugMessage("Test program saved to " + testProgramFile.getCanonicalPath());
@@ -2445,7 +2476,7 @@ public class PendantClientInner {
             throw new IllegalStateException("status.getJointStatuses().getJointStatus() == null");
         }
         for (JointStatusType js : jsl) {
-            if (js.getJointNumber() ==  jointNumber) {
+            if (js.getJointNumber() == jointNumber) {
                 return js.getJointPosition();
             }
         }
@@ -2883,7 +2914,10 @@ public class PendantClientInner {
                 }
                 curTime = System.currentTimeMillis();
                 if (null != this.getPoseList()) {
-                    File tmpFile = File.createTempFile("poseList", ".csv");
+                    File tmpFile
+                            = (null != tempLogDir)
+                                    ? File.createTempFile("poseList", ".csv", tempLogDir)
+                                    : File.createTempFile("poseList", ".csv");
                     poseListSaveFileName = tmpFile.getCanonicalPath();
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
