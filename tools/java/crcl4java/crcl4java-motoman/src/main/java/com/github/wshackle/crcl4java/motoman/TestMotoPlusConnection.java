@@ -31,9 +31,15 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import crcl.utils.CRCLPosemath;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
+import rcs.posemath.PmCartesian;
+import rcs.posemath.PmRotationMatrix;
+import rcs.posemath.PmRotationVector;
+import rcs.posemath.PmRpy;
+import rcs.posemath.Posemath;
 
 /**
  *
@@ -48,8 +54,44 @@ public class TestMotoPlusConnection {
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
 
-//            testMoveZ(mpc);
-            testMoveJointS(mpc);
+            MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
+            PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) );
+            System.out.println("rpy = " + rpy);
+            double rx = pos.rx();
+            double ry = pos.ry();
+            double rz = pos.rz();
+            System.out.println("rx = " + rx);
+            System.out.println("ry = " + ry);
+            System.out.println("rz = " + rz);
+//            double rotMag = Math.max(rx, Math.max(ry, rz));
+            double rotMag = Math.toRadians(Math.sqrt(rx * rx + ry * ry + rz * rz));
+            
+            PmRotationVector rv = new PmRotationVector(rotMag, rx / rotMag, ry / rotMag, rz / rotMag);
+            
+            System.out.println("rv.s*rv.x = " + rv.s*rv.x);
+            System.out.println("rv = " + rv);
+            PmRpy rpy2 = Posemath.toRpy(rv);
+            System.out.println("rpy2 = " + rpy2);
+//            PmRotationMatrix mat = Posemath.toMat(rpy);
+//            System.out.println("mat = " + mat);
+            double srx = Math.sin(Math.toRadians(rx));
+            double sry = Math.sin(Math.toRadians(ry));
+            double srz = Math.sin(Math.toRadians(rz));
+            double crx = Math.cos(Math.toRadians(rx));
+            double cry = Math.cos(Math.toRadians(ry));
+            double crz = Math.cos(Math.toRadians(rz));
+            PmRotationMatrix mat2 = new PmRotationMatrix(
+                    Math.sqrt(1 - srz*cry*srz*cry-sry*crz*sry*crz), srz*cry,sry*crx, 
+                    srz*crx,Math.sqrt(1 - srz*crx*srz*crx-srx*crz*srx*crz),sry*crz, 
+                    sry*crx,srx*cry,Math.sqrt(1 - srx*cry*srx*cry-sry*crx*sry*crx));
+            System.out.println("mat2 = " + mat2);
+            
+            double rx2 = Math.toDegrees(Math.atan2(mat2.z.y, mat2.z.z));
+            double ry2 = Math.toDegrees(Math.atan2(mat2.z.x*Math.signum(Math.cos(Math.toRadians(rx2))), mat2.z.z*Math.signum(Math.cos(Math.toRadians(rx2)))));
+            double rz2 = Math.toDegrees(Math.atan2(mat2.x.y, mat2.x.x));
+            System.out.println("rx2 = " + rx2);
+            System.out.println("ry2 = " + ry2);
+            System.out.println("rz2 = " + rz2);
             if (true) {
                 return;
             }
@@ -440,7 +482,7 @@ public class TestMotoPlusConnection {
         int[] recvId = new int[1];
         final int MAX_WAIT = mpc.mpGetMaxWait();
         System.out.println("MAX_WAIT = " + MAX_WAIT);
-        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,"+MAX_WAIT+",0)");
+        System.out.println("Calling mpMotTargetReceive(0," + coordTarget.getId() + ",...," + MAX_WAIT + ",0)");
         mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, mpc.mpGetMaxWait(), 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
         Thread.sleep(2000);
@@ -476,7 +518,7 @@ public class TestMotoPlusConnection {
         Thread.sleep(200);
 
         recvId = new int[1];
-        System.out.println("Calling mpMotTargetReceive(0,"+coordTarget.getId()+",...,"+MAX_WAIT+",0)");
+        System.out.println("Calling mpMotTargetReceive(0," + coordTarget.getId() + ",...," + MAX_WAIT + ",0)");
         mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, MAX_WAIT, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
 //
@@ -492,7 +534,7 @@ public class TestMotoPlusConnection {
         on = mpc.mpGetServoPower();
         System.out.println("on = " + on);
     }
-    
+
     private static void testMoveJointS(final MotoPlusConnection mpc) throws InterruptedException, IOException, MotoPlusConnection.MotoPlusConnectionException {
         System.out.println("Calling mpMotStop(0)");
         MotCtrlReturnEnum motStopRet = mpc.mpMotStop(0);
@@ -517,7 +559,7 @@ public class TestMotoPlusConnection {
         spd.vr = 1;
         int grp = 0;
         int dist = 20000;
-        
+
         MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
         pulseData[0] = new MP_PULSE_POS_RSP_DATA();
         System.out.println("Calling mpGetCartPos(0,...)");
@@ -534,7 +576,7 @@ public class TestMotoPlusConnection {
         aux[0] += dist;
 
         System.out.println("jointTarget = " + jointTarget);
-        System.out.println("Calling mpMotSetSpeed("+grp+"," + spd + ")");
+        System.out.println("Calling mpMotSetSpeed(" + grp + "," + spd + ")");
         mpc.mpMotSetSpeed(grp, spd);
         System.out.println("Calling mpMotTargetJointSend(0,(...),0)\n");
         MotCtrlReturnEnum motTargeJointRet = mpc.mpMotTargetJointSend(1, jointTarget, 0);
@@ -549,8 +591,8 @@ public class TestMotoPlusConnection {
         int[] recvId = new int[1];
         final int MAX_WAIT = mpc.mpGetMaxWait();
         System.out.println("MAX_WAIT = " + MAX_WAIT);
-        System.out.println("Calling mpMotTargetReceive(0,"+jointTarget.getId()+",...,MAX_WAIT,0)");
-        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, MAX_WAIT+1000, 0);
+        System.out.println("Calling mpMotTargetReceive(0," + jointTarget.getId() + ",...,MAX_WAIT,0)");
+        mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, MAX_WAIT + 1000, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
         Thread.sleep(2000);
 
@@ -563,7 +605,7 @@ public class TestMotoPlusConnection {
         System.arraycopy(pulseData[0].lPos, 0, aux, 0, aux.length);
         jointTarget.setId(27);
 
-        System.out.println("Calling mpMotSetSpeed("+grp+"," + spd + ")");
+        System.out.println("Calling mpMotSetSpeed(" + grp + "," + spd + ")");
         mpc.mpMotSetSpeed(grp, spd);
         System.out.println("jointTarget = " + jointTarget);
         System.out.println("Calling mpMotTargetCoordSend(0,(...),0)\n");
@@ -577,7 +619,7 @@ public class TestMotoPlusConnection {
         Thread.sleep(2000);
 
         recvId = new int[1];
-        System.out.println("Calling mpMotTargetReceive(0,"+jointTarget.getId()+",...,WAIT_FOREVER,0)");
+        System.out.println("Calling mpMotTargetReceive(0," + jointTarget.getId() + ",...,WAIT_FOREVER,0)");
         mpc.mpMotTargetReceive(0, jointTarget.getId(), recvId, MAX_WAIT, 0);
         System.out.println("recvId = " + Arrays.toString(recvId));
 //

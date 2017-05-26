@@ -147,12 +147,12 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                 }
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
                 PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
-                PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) + Math.PI);
-                double rx = pos.rx();
-                double ry = pos.ry();
-                double rz = pos.rz();
-                double rotMag = Math.sqrt(rx * rx + ry * ry + rz * rz);
-                PmRotationVector rv = new PmRotationVector(Math.toRadians(rotMag), rx / rotMag, ry / rotMag, rz / rotMag);
+                PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()));
+//                double rx = pos.rx();
+//                double ry = pos.ry();
+//                double rz = pos.rz();
+//                double rotMag = Math.toRadians(Math.sqrt(rx * rx + ry * ry + rz * rz));
+                PmRotationVector rv = Posemath.toRot(rpy);//new PmRotationVector(rotMag, rx / rotMag, ry / rotMag, rz / rotMag);
                 crclStatus.getPoseStatus().setPose(CRCLPosemath.toPoseType(cart, rv, crclStatus.getPoseStatus().getPose()));
 //                crclStatus.getPoseStatus().getPose().setPoint(point(cartData[0].x(), cartData[0].y(), cartData[0].z()));
                 MP_PULSE_POS_RSP_DATA pulseData = mpc.getPulsePos(0);
@@ -427,8 +427,9 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 //        int e = Posemath.pmMatRpyConvert(rotMat, rpy);
 //        System.out.println("rpy = " + Math.toDegrees(rpy.r) + ", " + Math.toDegrees(rpy.p) + "," + Math.toDegrees(rpy.y));
         PmRotationVector rv = Posemath.toRot(rotMat);
-        double rotMatDeg = Math.toDegrees(rv.s);
-
+//        double rotMatDeg = Math.toDegrees(rv.s);
+        PmRpy rpy = Posemath.toRpy(rotMat);
+        
 //        PmEulerZyx zyx = new PmEulerZyx();
 //        e = Posemath.pmRpyZyxConvert(rpy, zyx);
 //        System.out.println("e = " + e);
@@ -445,12 +446,14 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
 //        PmRpy rpy = CRCLPosemath.toPmRpy(cmd.getEndPosition());
 //        MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
 
-        tgt.getDst().rx = (int) (rotMatDeg * rv.x * 10000.0);
-        tgt.getDst().ry = (int) (rotMatDeg * rv.y * 10000.0);
-        tgt.getDst().rz = (int) (rotMatDeg * rv.z * 10000.0);
-        tgt.getAux().rx = (int) (rotMatDeg * rv.x * 10000.0);
-        tgt.getAux().ry = (int) (rotMatDeg * rv.y * 10000.0);
-        tgt.getAux().rz = (int) (rotMatDeg * rv.z * 10000.0);
+        double rx = Math.atan2(cmd.getEndPosition().getZAxis().getK(),
+                Math.hypot(cmd.getEndPosition().getZAxis().getI(), cmd.getEndPosition().getZAxis().getJ()));
+        tgt.getDst().rx = (int) (Math.toDegrees(rpy.y) * 10000.0);
+        tgt.getDst().ry = (int) (Math.toDegrees(rpy.p) * 10000.0);
+        tgt.getDst().rz = (int) (Math.toDegrees(rpy.r) * 10000.0);
+        tgt.getAux().rx = (int) (Math.toDegrees(rpy.y) * 10000.0);
+        tgt.getAux().ry = (int) (Math.toDegrees(rpy.p) * 10000.0);
+        tgt.getAux().rz = (int) (Math.toDegrees(rpy.r)* 10000.0);
 
 //        System.out.println("tgt = " + tgt);
 //        System.out.println("Convert to zyx");
