@@ -1423,6 +1423,34 @@ public class CRCLPosemath {
      * Combine a translation and rotation in a PoseType
      *
      * @param tran translational component of pose
+     * @param mat rotational component of pose
+     * @param pose_in optional pose to be set instead of creating new Pose
+     * @return new Pose creating from combining inputs or pose_in if not null
+     * @throws PmException if rotation vector can not be converted to matrix
+     */
+    static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat, /*@Nullable*/ PoseType pose_in) throws PmException {
+        PoseType pose = pose_in;
+        if (pose == null) {
+            pose = new PoseType();
+        }
+        pose.setPoint(toPointType(tran));
+        VectorType xVec = new VectorType();
+        xVec.setI(mat.x.x);
+        xVec.setJ(mat.x.y);
+        xVec.setK(mat.x.z);
+        pose.setXAxis(xVec);
+        VectorType zVec = new VectorType();
+        zVec.setI(mat.z.x);
+        zVec.setJ(mat.z.y);
+        zVec.setK(mat.z.z);
+        pose.setZAxis(zVec);
+        return pose;
+    }
+    
+    /**
+     * Combine a translation and rotation in a PoseType
+     *
+     * @param tran translational component of pose
      * @param v rotational component of pose
      * @param pose_in optional pose to be set instead of creating new Pose
      * @return new Pose creating from combining inputs or pose_in if not null

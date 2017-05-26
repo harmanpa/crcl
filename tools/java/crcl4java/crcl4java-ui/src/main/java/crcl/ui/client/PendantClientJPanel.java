@@ -128,6 +128,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.xml.sax.SAXException;
+import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.PmRotationVector;
@@ -1945,12 +1946,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private static void updateRxRyRzTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
-        PmRotationVector rv = CRCLPosemath.toPmRotationVector(p);
-        if (null != rv && tm.getRowCount() > 2 + index) {
-            double rotMagDeg = Math.toDegrees(rv.s);
-            tm.setValueAt(rotMagDeg * rv.x, 0 + index, 1);
-            tm.setValueAt(rotMagDeg * rv.y, 1 + index, 1);
-            tm.setValueAt(rotMagDeg * rv.z, 2 + index, 1);
+        PmRotationMatrix mat = CRCLPosemath.toPmRotationMatrix(p);
+        PmEulerZyx zyx = new PmEulerZyx();
+        Posemath.pmMatZyxConvert(mat, zyx);
+        
+        if (tm.getRowCount() > 2 + index) {
+            tm.setValueAt(Math.toDegrees(zyx.x), 0 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.y), 1 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.z), 2 + index, 1);
         }
     }
 

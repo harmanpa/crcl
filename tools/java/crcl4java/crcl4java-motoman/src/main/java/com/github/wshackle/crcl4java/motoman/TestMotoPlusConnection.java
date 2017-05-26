@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
 import rcs.posemath.PmCartesian;
+import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
@@ -55,8 +56,8 @@ public class TestMotoPlusConnection {
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
 
             MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
-            PmRpy rpy = new PmRpy(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) );
-            System.out.println("rpy = " + rpy);
+            PmEulerZyx eulerZyx = new PmEulerZyx(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) );
+            System.out.println("eulerZyx = " + eulerZyx);
             double rx = pos.rx();
             double ry = pos.ry();
             double rz = pos.rz();
@@ -81,9 +82,9 @@ public class TestMotoPlusConnection {
             double cry = Math.cos(Math.toRadians(ry));
             double crz = Math.cos(Math.toRadians(rz));
             PmRotationMatrix mat2 = new PmRotationMatrix(
-                    Math.sqrt(1 - srz*cry*srz*cry-sry*crz*sry*crz), srz*cry,sry*crx, 
-                    srz*crx,Math.sqrt(1 - srz*crx*srz*crx-srx*crz*srx*crz),sry*crz, 
-                    sry*crx,srx*cry,Math.sqrt(1 - srx*cry*srx*cry-sry*crx*sry*crx));
+                    Math.signum(cry*crz)*Math.sqrt(1 - srz*cry*srz*cry-sry*crz*sry*crz), srz*cry,sry*crx, 
+                    srz*crx,Math.signum(crx*crz)*Math.sqrt(1 - srz*crx*srz*crx-srx*crz*srx*crz),sry*crz, 
+                    sry*crx,srx*cry,Math.signum(cry*crx)*Math.sqrt(1 - srx*cry*srx*cry-sry*crx*sry*crx));
             System.out.println("mat2 = " + mat2);
             
             double rx2 = Math.toDegrees(Math.atan2(mat2.z.y, mat2.z.z));
