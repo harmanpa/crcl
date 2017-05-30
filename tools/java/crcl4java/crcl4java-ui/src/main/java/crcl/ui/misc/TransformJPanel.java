@@ -33,8 +33,6 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import java.io.File;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -44,7 +42,6 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import javax.xml.bind.JAXBException;
 
 /**
  *
@@ -883,7 +880,7 @@ public class TransformJPanel extends javax.swing.JPanel {
     }
     private void jButtonTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTransformProgramActionPerformed
         try {
-            PoseType transform = PendantClientJPanel.tableToPose(jTablePose);
+            PoseType transform = PendantClientJPanel.tableToPose(jTablePose,PendantClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS);
             CRCLProgramType inProgram = pendantClient.getProgram();
             if (null != inProgram) {
                 CRCLProgramType newProgram = CRCLPosemath.transformProgram(transform, inProgram);
@@ -907,10 +904,10 @@ public class TransformJPanel extends javax.swing.JPanel {
             } else {
                 pendantClient.showMessage("Can not apply tranform to program when no program is loaded.");
             }
-        } catch (IOException | JAXBException | CRCLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(TransformJPanel.class.getName()).log(Level.SEVERE, null, ex);
             pendantClient.showMessage(ex);
-        }
+        } 
     }//GEN-LAST:event_jButtonTransformProgramActionPerformed
 
     private void jButtonComputeTransformPoint1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonComputeTransformPoint1ActionPerformed

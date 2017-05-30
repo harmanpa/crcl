@@ -753,6 +753,25 @@ public class PendantClientInner {
 
     private long lastCommandIdSent = -999;
 
+    private volatile StackTraceElement lastCommandSentStackTrace[] = null;
+    private volatile StackTraceElement prevLastCommandSentStackTrace[] = null;
+
+    public CRCLCommandType getPrevLastCommandSent() {
+        return prevLastCommandSent;
+    }
+
+    public long getLastCommandIdSent() {
+        return lastCommandIdSent;
+    }
+
+    public StackTraceElement[] getLastCommandSentStackTrace() {
+        return lastCommandSentStackTrace;
+    }
+
+    public StackTraceElement[] getPrevLastCommandSentStackTrace() {
+        return prevLastCommandSentStackTrace;
+    }
+    
     private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
             if (null == crclSocket) {
@@ -764,7 +783,9 @@ public class PendantClientInner {
             cmdInstance.setCRCLCommand(cmd);
             if (!(cmdInstance.getCRCLCommand() instanceof GetStatusType)) {
                 prevLastCommandSent = lastCommandSent;
+                prevLastCommandSentStackTrace = lastCommandSentStackTrace;
                 lastCommandSent = cmdInstance.getCRCLCommand();
+                lastCommandSentStackTrace = Thread.currentThread().getStackTrace();
                 if (recordCommands) {
                     recordedCommandsQueue.add(cmd);
                 }
@@ -882,7 +903,9 @@ public class PendantClientInner {
         if (!(cmd instanceof GetStatusType) && menuOuter().isDebugSendCommandSelected()) {
             showDebugMessage("PendantClientInner.sendCommand() : cmd = " + cmdString(cmd));
         }
-        if (cmd instanceof SetAngleUnitsType) {
+        if (cmd instanceof InitCanonType) {
+            initSent = true;
+        }else if (cmd instanceof SetAngleUnitsType) {
             SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
             this.setAngleType(setAngle.getUnitName());
         } else if (cmd instanceof SetLengthUnitsType) {
@@ -952,6 +975,13 @@ public class PendantClientInner {
         }
     }
 
+    private volatile boolean initSent = false;
+
+    public boolean isInitSent() {
+        return initSent;
+    }
+    
+    
     /**
      * Send a new command to stop motion.
      *
@@ -1446,6 +1476,7 @@ public class PendantClientInner {
 
     public synchronized void disconnect() {
         disconnecting = true;
+        initSent = false;
         if (null != crclSocket) {
             try {
                 crclSocket.close();

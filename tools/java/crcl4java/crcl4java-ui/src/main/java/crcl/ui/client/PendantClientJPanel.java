@@ -47,6 +47,7 @@ import crcl.base.SetLengthUnitsType;
 import crcl.base.SetRotSpeedType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.StopConditionEnumType;
+import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.VectorType;
 import crcl.ui.misc.ListChooserJPanel;
@@ -91,8 +92,6 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -128,6 +127,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.xml.sax.SAXException;
+import rcs.posemath.PmCartesian;
 import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationMatrix;
@@ -145,7 +145,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private static final double RPY_JOG_INCREMENT_DEFAULT = 3.0;
     private double rpyJogIncrement = RPY_JOG_INCREMENT_DEFAULT;
     private long pauseTime = -1;
-    private boolean jogWorldSpeedsSet = false;
+
+    private boolean jogWorldTransSpeedsSet = false;
+    private boolean jogWorldRotSpeedsSet = false;
     private static final Logger LOGGER = Logger.getLogger(PendantClientJPanel.class.getName());
     private XpathQueryJFrame xqJFrame = null;
     private diagapplet.plotter.plotterJFrame xyzPlotter = null;
@@ -175,7 +177,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.pause();
         this.jButtonResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }
 
     public void showJointsPlot() {
@@ -334,7 +337,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                                ? internal.getRunEndMillis() : System.currentTimeMillis();
+                        ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 if (line == 0) {
@@ -554,18 +557,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -574,18 +577,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -601,7 +604,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-                    ))
+            ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -844,25 +847,45 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //            loadPrefsFile(f);
 //        }
 //    }          
-    public static PoseType tableToPose(JTable table) {
-        PoseType p = new PoseType();
+    public static PoseType tableToPose(JTable table, PoseDisplayMode displayMode) throws PmException {
+
         TableModel tm = table.getModel();
-        PointType pt = new PointType();
-        pt.setX((Double) tm.getValueAt(0, 1));
-        pt.setY((Double) tm.getValueAt(1, 1));
-        pt.setZ((Double) tm.getValueAt(2, 1));
-        VectorType xv = new VectorType();
-        xv.setI((Double) tm.getValueAt(3, 1));
-        xv.setJ((Double) tm.getValueAt(4, 1));
-        xv.setK((Double) tm.getValueAt(5, 1));
-        VectorType zv = new VectorType();
-        zv.setI((Double) tm.getValueAt(6, 1));
-        zv.setJ((Double) tm.getValueAt(7, 1));
-        zv.setK((Double) tm.getValueAt(8, 1));
-        p.setPoint(pt);
-        p.setXAxis(xv);
-        p.setZAxis(zv);
-        return p;
+        PmCartesian tran = new PmCartesian((Double) tm.getValueAt(0, 1), (Double) tm.getValueAt(1, 1), (Double) tm.getValueAt(2, 1));
+
+        switch (displayMode) {
+            case XYZ_XAXIS_ZAXIS:
+                PoseType p = new PoseType();
+                PointType pt = CRCLPosemath.toPointType(tran);
+                VectorType xv = new VectorType();
+                xv.setI((Double) tm.getValueAt(3, 1));
+                xv.setJ((Double) tm.getValueAt(4, 1));
+                xv.setK((Double) tm.getValueAt(5, 1));
+                VectorType zv = new VectorType();
+                zv.setI((Double) tm.getValueAt(6, 1));
+                zv.setJ((Double) tm.getValueAt(7, 1));
+                zv.setK((Double) tm.getValueAt(8, 1));
+                p.setPoint(pt);
+                p.setXAxis(xv);
+                p.setZAxis(zv);
+                return p;
+
+            case XYZ_RPY:
+                PmRpy rpy = new PmRpy(
+                        Math.toRadians((Double) tm.getValueAt(3, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(4, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(5, 1)));
+                return CRCLPosemath.toPoseType(tran, rpy);
+
+            case XYZ_RX_RY_RZ:
+                PmEulerZyx zyx = new PmEulerZyx(
+                        Math.toRadians((Double) tm.getValueAt(3, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(4, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(5, 1)));
+                return CRCLPosemath.toPoseType(tran, Posemath.toMat(zyx), null);
+
+            default:
+                throw new IllegalArgumentException("displayMode =" + displayMode);
+        }
     }
 
     public int getProgramRow() {
@@ -1015,7 +1038,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             dtm.setValueAt(false, i, 4);
         }
         programLineShowing = -1;
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }
 
     public PoseType getCurrentPose() {
@@ -1798,9 +1822,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             PoseType p
                     = Optional.ofNullable(internal)
-                    .map(PendantClientInner::getStatus)
-                    .map(CRCLPosemath::getPose)
-                    .orElse(null);
+                            .map(PendantClientInner::getStatus)
+                            .map(CRCLPosemath::getPose)
+                            .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -1915,6 +1939,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public static void updatePoseTable(PoseType p, JTable jTable, PoseDisplayMode displayMode) {
         try {
+            if (null == p) {
+                p = CRCLPosemath.identityPose();
+            }
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
             updatePointTable(p, tm, 0);
             switch (displayMode) {
@@ -1949,11 +1976,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         PmRotationMatrix mat = CRCLPosemath.toPmRotationMatrix(p);
         PmEulerZyx zyx = new PmEulerZyx();
         Posemath.pmMatZyxConvert(mat, zyx);
-        
+
         if (tm.getRowCount() > 2 + index) {
-            tm.setValueAt(Math.toDegrees(zyx.x), 0 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.z), 0 + index, 1);
             tm.setValueAt(Math.toDegrees(zyx.y), 1 + index, 1);
-            tm.setValueAt(Math.toDegrees(zyx.z), 2 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.x), 2 + index, 1);
         }
     }
 
@@ -1993,7 +2020,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
         stopPollTimer();
         internal.disconnect();
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }
 
     @Override
@@ -2016,7 +2044,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jTextFieldHost.setText(_host);
         setPort(_port);
         internal.connect(_host, _port);
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }
 
     private javax.swing.Timer jog_timer = null;
@@ -2127,21 +2156,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 showMessage("Can not send command when not connected.");
                 return;
             }
-            if (!jogWorldSpeedsSet) {
-                SetTransSpeedType stst = new SetTransSpeedType();
-                TransSpeedAbsoluteType tas = new TransSpeedAbsoluteType();
-                tas.setSetting(Double.parseDouble(this.jTextFieldTransSpeed.getText()));
-                stst.setTransSpeed(tas);
-                internal.incAndSendCommand(stst);
-                internal.waitForDone(stst.getCommandID(), 200);
-                SetRotSpeedType srst = new SetRotSpeedType();
-                RotSpeedAbsoluteType ras = new RotSpeedAbsoluteType();
-                ras.setSetting(Double.parseDouble(this.jTextFieldRotationSpeed.getText()));
-                srst.setRotSpeed(ras);
-                internal.incAndSendCommand(srst);
-                internal.waitForDone(srst.getCommandID(), 200);
-                jogWorldSpeedsSet = true;
-            }
+
 //        this.setJointControlModes(JointControlModeEnumType.POSITION);
             final String axis = (String) this.jComboBoxXYZRPY.getSelectedItem();
             double tmpinc = 1.0;
@@ -2171,11 +2186,36 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             jogStopFlag = false;
             ActionListener jogActionListener = new ActionListener() {
 
+                private int actionCount = 0;
+
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
+                        actionCount++;
                         if (jogStopFlag) {
                             return;
+                        }
+                        if (actionCount < 2 && !internal.isInitSent()) {
+                            InitCanonType initCmd = new InitCanonType();
+                            internal.incAndSendCommand(initCmd);
+                            return;
+                        }
+                        if (!jogWorldTransSpeedsSet) {
+                            SetTransSpeedType stst = new SetTransSpeedType();
+                            TransSpeedAbsoluteType tas = new TransSpeedAbsoluteType();
+                            tas.setSetting(Double.parseDouble(jTextFieldTransSpeed.getText()));
+                            stst.setTransSpeed(tas);
+                            internal.incAndSendCommand(stst);
+                            jogWorldTransSpeedsSet = true;
+                            return;
+                        }
+                        if (!jogWorldRotSpeedsSet) {
+                            SetRotSpeedType srst = new SetRotSpeedType();
+                            RotSpeedAbsoluteType ras = new RotSpeedAbsoluteType();
+                            ras.setSetting(Double.parseDouble(jTextFieldRotationSpeed.getText()));
+                            srst.setRotSpeed(ras);
+                            internal.incAndSendCommand(srst);
+                            jogWorldRotSpeedsSet = true;
                         }
                         final CRCLStatusType status = internal.getStatus();
                         if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR) {
@@ -2192,11 +2232,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             return;
                         }
                         if (internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId()) {
-                            if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
-                                    || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
-                                System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
+                            if (jogStopFlag
+                                    || actionCount > 10
+                                    || !(internal.getLastCommandSent() instanceof StopMotionType)) {
+                                if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
+                                        || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
+                                    System.err.println("Jog Timer ActionListener internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId() ");
+                                    System.err.println("internal.getCmdId() = " + internal.getCmdId());
+                                    System.err.println("internal.getStatus().getCommandStatus().getCommandID() = " + internal.getStatus().getCommandStatus().getCommandID());
+                                    System.err.println("internal.getLastCommandSent() = " + internal.getLastCommandSent());
+                                    System.err.println("internal.getLastCommandSentStackTrace() = " + Arrays.toString(internal.getLastCommandSentStackTrace()));
+                                    System.err.println("internal.getPrevLastCommandSent() = " + internal.getPrevLastCommandSent());
+                                }
+                                return;
                             }
-                            return;
                         }
                         MoveToType moveToCmd = new MoveToType();
                         PoseType endPos = new PoseType();
@@ -2293,7 +2342,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             jogActionListener.actionPerformed(null);
             jog_timer = new javax.swing.Timer(internal.getJogInterval(), jogActionListener);
             jog_timer.start();
-        } catch (JAXBException | InterruptedException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, "Can not start world jog.", ex);
         }
     }
@@ -2522,12 +2571,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void setTempLogDir(File tempLogDir) {
         this.internal.setTempLogDir(tempLogDir);
     }
-    
+
     public void showStatusLog() {
         try {
-            File tmpFile =
-                    (internal.getTempLogDir() != null)
-                    ? File.createTempFile("poseList", ".csv",internal.getTempLogDir())
+            File tmpFile
+                    = (internal.getTempLogDir() != null)
+                    ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
                     : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
@@ -2701,6 +2750,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jTableMoveToPose = new javax.swing.JTable();
         jCheckBoxStraight = new javax.swing.JCheckBox();
         jButtonMoveToCurrent = new javax.swing.JButton();
+        jComboBoxMoveToPoseDisplayMode = new javax.swing.JComboBox<>();
         transformJPanel1 = new crcl.ui.misc.TransformJPanel();
         jPanelConnectionTab = new javax.swing.JPanel();
         jTextFieldPort = new javax.swing.JTextField();
@@ -3381,21 +3431,34 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         });
 
+        jComboBoxMoveToPoseDisplayMode.setModel(new javax.swing.DefaultComboBoxModel(PoseDisplayMode.values()));
+        jComboBoxMoveToPoseDisplayMode.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBoxMoveToPoseDisplayModeItemStateChanged(evt);
+            }
+        });
+        jComboBoxMoveToPoseDisplayMode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxMoveToPoseDisplayModeActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelMoveToLayout = new javax.swing.GroupLayout(jPanelMoveTo);
         jPanelMoveTo.setLayout(jPanelMoveToLayout);
         jPanelMoveToLayout.setHorizontalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelMoveToLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jComboBoxMoveToPoseDisplayMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelMoveToLayout.createSequentialGroup()
                         .addComponent(jButtonMoveTo)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jCheckBoxStraight)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToCurrent))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE))
+                .addContainerGap(387, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3407,7 +3470,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .addComponent(jButtonMoveToCurrent))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jComboBoxMoveToPoseDisplayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(318, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("MoveTo", jPanelMoveTo);
@@ -3927,7 +3992,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             XFuture<Boolean> future = internal.startRunProgramThread(0);
             this.jButtonResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-            jogWorldSpeedsSet = false;
+            jogWorldTransSpeedsSet = false;
+            jogWorldRotSpeedsSet = false;
             XFuture<Boolean> ret = checkFutureChange(future);
             lastProgramFuture = future;
             return ret;
@@ -3948,7 +4014,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.unpause();
         this.jButtonResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }//GEN-LAST:event_jButtonResumeActionPerformed
 
     private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
@@ -4192,12 +4259,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jTextFieldTransSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldTransSpeedActionPerformed
         internal.setJogTransSpeed(Double.parseDouble(this.jTextFieldTransSpeed.getText()));
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
     }//GEN-LAST:event_jTextFieldTransSpeedActionPerformed
 
     private void jTextFieldRotationSpeedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldRotationSpeedActionPerformed
         internal.setJogRotSpeed(Double.parseDouble(this.jTextFieldRotationSpeed.getText()));
-        jogWorldSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }//GEN-LAST:event_jTextFieldRotationSpeedActionPerformed
 
     private void jButtonRecordPointActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRecordPointActionPerformed
@@ -4236,14 +4303,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButtonCloseGripperActionPerformed
 
+    private PoseDisplayMode lastMoveToPoseDisplayMode = PoseDisplayMode.XYZ_XAXIS_ZAXIS;
+
     private void jButtonMoveToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToActionPerformed
         try {
             MoveToType moveto = new MoveToType();
-            PoseType p = tableToPose(this.jTableMoveToPose);
+            PoseType p = tableToPose(this.jTableMoveToPose, lastMoveToPoseDisplayMode);
             moveto.setEndPosition(p);
             moveto.setMoveStraight(this.jCheckBoxStraight.isSelected());
             internal.incAndSendCommand(moveto);
-        } catch (JAXBException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
@@ -4253,7 +4322,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
-        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose, getCurrentPoseDisplayMode());
+        lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
+        this.updatePoseTable(internal.getPose(), this.jTableMoveToPose, lastMoveToPoseDisplayMode);
     }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
 
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
@@ -4307,7 +4377,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jTextFieldPollTimeActionPerformed
 
     private void jTabbedPaneLeftUpperStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPaneLeftUpperStateChanged
-        jogWorldSpeedsSet = false;
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
     }//GEN-LAST:event_jTabbedPaneLeftUpperStateChanged
 
     private void jTextAreaErrorsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMousePressed
@@ -4328,8 +4399,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jTextAreaErrorsMouseClicked
 
-    private void setPoseDisplayModelXAxisZAxis() {
-        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+    private void setPoseDisplayModelXAxisZAxis(JTable table,boolean editable) {
+        table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                     {"X", null},
                     {"Y", null},
@@ -4349,7 +4420,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 java.lang.String.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean[]{
-                false, false
+                false, editable
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -4382,8 +4453,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.disableTextPopups = disableTextPopups;
     }
 
-    private void setPoseDisplayModelRpy() {
-        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+    private void setPoseDisplayModelRpy(JTable table, boolean editable) {
+        table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                     {"X", null},
                     {"Y", null},
@@ -4400,7 +4471,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 java.lang.String.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean[]{
-                false, false
+                false, editable
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -4413,8 +4484,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         });
     }
 
-    private void setPoseDisplayModelRxRyRz() {
-        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+    private void setPoseDisplayModelRxRyRz(JTable table, boolean editable) {
+        table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                     {"X", null},
                     {"Y", null},
@@ -4431,7 +4502,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 java.lang.String.class, java.lang.Double.class
             };
             boolean[] canEdit = new boolean[]{
-                false, false
+                false, editable
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -4445,29 +4516,57 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
-        updateDisplayMode();
+        updateDisplayMode(jTablePose,getCurrentPoseDisplayMode(),false);
+        updatePoseTable(internal.getPose(), jTablePose,getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jComboBoxPoseDisplayModeActionPerformed
 
     private void jComboBoxPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeItemStateChanged
-        updateDisplayMode();
+        updateDisplayMode(jTablePose,getCurrentPoseDisplayMode(),false);
+        updatePoseTable(internal.getPose(),  jTablePose,getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jComboBoxPoseDisplayModeItemStateChanged
 
-    private void updateDisplayMode() {
-        PoseDisplayMode displayMode = getCurrentPoseDisplayMode();
-        switch (displayMode) {
+    private void jComboBoxMoveToPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxMoveToPoseDisplayModeItemStateChanged
+        try {
+            PoseDisplayMode newMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
+            if (newMoveToPoseDisplayMode != lastMoveToPoseDisplayMode) {
+                PoseType origPose = tableToPose(jTableMoveToPose, lastMoveToPoseDisplayMode);
+                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode,true);
+                lastMoveToPoseDisplayMode = newMoveToPoseDisplayMode;
+                this.updatePoseTable(origPose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jComboBoxMoveToPoseDisplayModeItemStateChanged
+
+    private void jComboBoxMoveToPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxMoveToPoseDisplayModeActionPerformed
+        try {
+            PoseDisplayMode newMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
+            if (newMoveToPoseDisplayMode != lastMoveToPoseDisplayMode) {
+                PoseType origPose = tableToPose(jTableMoveToPose, lastMoveToPoseDisplayMode);
+                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode,true);
+                lastMoveToPoseDisplayMode = newMoveToPoseDisplayMode;
+                this.updatePoseTable(origPose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jComboBoxMoveToPoseDisplayModeActionPerformed
+
+    private void updateDisplayMode(JTable table, PoseDisplayMode displayMode, boolean editable) {
+         switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
-                setPoseDisplayModelXAxisZAxis();
+                setPoseDisplayModelXAxisZAxis(table,editable);
                 break;
 
             case XYZ_RPY:
-                setPoseDisplayModelRpy();
+                setPoseDisplayModelRpy(table,editable);
                 break;
 
             case XYZ_RX_RY_RZ:
-                setPoseDisplayModelRxRyRz();
+                setPoseDisplayModelRxRyRz(table,editable);
                 break;
         }
-        updatePoseTable(internal.getPose(), jTablePose, displayMode);
     }
 
 
@@ -4496,6 +4595,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JCheckBox jCheckBoxPoll;
     private javax.swing.JCheckBox jCheckBoxStraight;
     private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JComboBox<PoseDisplayMode> jComboBoxMoveToPoseDisplayMode;
     private javax.swing.JComboBox<PoseDisplayMode> jComboBoxPoseDisplayMode;
     private javax.swing.JComboBox jComboBoxXYZRPY;
     private javax.swing.JLabel jLabel1;
