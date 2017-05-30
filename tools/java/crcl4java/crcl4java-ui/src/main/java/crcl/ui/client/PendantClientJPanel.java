@@ -878,9 +878,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
             case XYZ_RX_RY_RZ:
                 PmEulerZyx zyx = new PmEulerZyx(
-                        Math.toRadians((Double) tm.getValueAt(3, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(5, 1)), 
                         Math.toRadians((Double) tm.getValueAt(4, 1)), 
-                        Math.toRadians((Double) tm.getValueAt(5, 1)));
+                        Math.toRadians((Double) tm.getValueAt(3, 1)));
                 return CRCLPosemath.toPoseType(tran, Posemath.toMat(zyx), null);
 
             default:
@@ -1978,9 +1978,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         Posemath.pmMatZyxConvert(mat, zyx);
 
         if (tm.getRowCount() > 2 + index) {
-            tm.setValueAt(Math.toDegrees(zyx.z), 0 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.x), 0 + index, 1);
             tm.setValueAt(Math.toDegrees(zyx.y), 1 + index, 1);
-            tm.setValueAt(Math.toDegrees(zyx.x), 2 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.z), 2 + index, 1);
         }
     }
 
