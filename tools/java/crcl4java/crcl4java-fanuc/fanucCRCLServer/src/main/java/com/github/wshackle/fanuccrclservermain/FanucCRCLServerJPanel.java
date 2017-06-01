@@ -42,6 +42,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PropertiesUtils;
+import java.awt.Desktop;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -492,6 +493,11 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             }
             fingerSensorServerCmd = getProperty("fingerSensorServerCmd", DEFAULT_FINGER_SENSOR_SERVER_COMMAND);
             fingerSensorServerDirectory = getProperty("fingerSensorServerDirectory", DEFAULT_FINGER_SENSOR_SERVER_DIRECTORY);
+            boolean keepMoveLog = Boolean.valueOf(getProperty("keepMoveLog", "false"));
+            jCheckBoxKeepMoveToLog.setSelected(keepMoveLog);
+            if(null != main) {
+                main.setKeepMoveToLog(keepMoveLog);
+            }
 //            jCheckBoxMenuItemStartClient.setSelected(getBooleanProperty("autoStartClient", false));
 //            jCheckBoxMenuItemStartPressureServer.setSelected(getBooleanProperty("autoStartPressureSensorServer", false));
 //            jCheckBoxMenuItemShowPressureOutput.setSelected(getBooleanProperty("showPressureOutput", false));
@@ -705,6 +711,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             main.loadProperties();
             mainNeedsLoadProperties = false;
         }
+        main.setKeepMoveToLog(jCheckBoxKeepMoveToLog.isSelected());
     }
 
     public void updateWatchVar(IRobot2 robot1) {
@@ -909,6 +916,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 webServerCmd = webServerJFrame.getCommandString();
                 webServerDirectory = webServerJFrame.getDirectoryString();
             }
+            props.setProperty("keepMoveToLog", Boolean.toString(main.isKeepMoveToLog()));
             props.setProperty("fingerSensorServerCmd", fingerSensorServerCmd);
             props.setProperty("fingerSensorServerDirectory", fingerSensorServerDirectory);
 //            props.setProperty("autoStartClient", Boolean.toString(jCheckBoxMenuItemStartClient.isSelected()));
@@ -1066,6 +1074,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         jLabel11 = new javax.swing.JLabel();
         jTextFieldCrclPort = new javax.swing.JTextField();
         jCheckBoxEnableCRCL = new javax.swing.JCheckBox();
+        jCheckBoxKeepMoveToLog = new javax.swing.JCheckBox();
+        jButtonShowMoveLog = new javax.swing.JButton();
 
         jSliderOverride.setMajorTickSpacing(10);
         jSliderOverride.setMinorTickSpacing(10);
@@ -1299,6 +1309,20 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             }
         });
 
+        jCheckBoxKeepMoveToLog.setText("Keep MoveTo Log");
+        jCheckBoxKeepMoveToLog.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxKeepMoveToLogActionPerformed(evt);
+            }
+        });
+
+        jButtonShowMoveLog.setText("Show MoveLog");
+        jButtonShowMoveLog.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonShowMoveLogActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -1392,7 +1416,11 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                         .addComponent(jCheckBoxLogAllCommands)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonClearErrors)
-                        .addGap(45, 45, 45)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jCheckBoxKeepMoveToLog)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonShowMoveLog)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addGap(0, 0, 0))
         );
         layout.setVerticalGroup(
@@ -1452,7 +1480,9 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(jCheckBoxLogAllCommands)
-                    .addComponent(jButtonClearErrors))
+                    .addComponent(jButtonClearErrors)
+                    .addComponent(jCheckBoxKeepMoveToLog)
+                    .addComponent(jButtonShowMoveLog))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1539,15 +1569,35 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextFieldHostNameActionPerformed
 
+    private void jCheckBoxKeepMoveToLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxKeepMoveToLogActionPerformed
+        if(null != main) {
+            main.setKeepMoveToLog(jCheckBoxKeepMoveToLog.isSelected());
+        }
+    }//GEN-LAST:event_jCheckBoxKeepMoveToLogActionPerformed
+
+    private void jButtonShowMoveLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonShowMoveLogActionPerformed
+        File f = main.getMoveLogFile();
+        if(f != null) {
+            try {
+                main.closeMoveToLogFile();
+                Desktop.getDesktop().open(f);
+            } catch (Exception ex) {
+                Logger.getLogger(FanucCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonShowMoveLogActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupConnectionMethod;
     private javax.swing.JButton jButtonAbortAllTasks;
     private javax.swing.JButton jButtonClearErrors;
+    private javax.swing.JButton jButtonShowMoveLog;
     private javax.swing.JCheckBox jCheckBoxConnnected;
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
     private javax.swing.JCheckBox jCheckBoxEnableCRCL;
+    private javax.swing.JCheckBox jCheckBoxKeepMoveToLog;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;
     private javax.swing.JCheckBox jCheckBoxMonitorTasks;
     private javax.swing.JCheckBox jCheckBoxShowAborted;
