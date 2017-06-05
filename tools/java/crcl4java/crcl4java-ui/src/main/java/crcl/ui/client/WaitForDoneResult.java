@@ -35,5 +35,6 @@ public enum WaitForDoneResult {
     WFD_PAUSED,
     WFD_HOLDING_ERROR,
     WFD_EXCEPTION,
-    WFD_TIMEOUT;
+    WFD_TIMEOUT,
+    WFD_SOCKET_DISCONNECTED;
 }

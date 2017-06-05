@@ -401,12 +401,12 @@ public class PendantClientInner {
     private final List<StackTraceElement[]> interruptStacks = Collections.synchronizedList(new ArrayList<>());
 
     public void closeTestProgramThread() {
-        close_test_count.incrementAndGet();
         Thread rtpt = runTestProgramThread.getAndSet(null);
         if (null != rtpt) {
             if (rtpt.equals(Thread.currentThread())) {
                 return;
             }
+            close_test_count.incrementAndGet();
             try {
                 rtpt.join(100);
             } catch (InterruptedException ex) {
@@ -771,7 +771,7 @@ public class PendantClientInner {
     public StackTraceElement[] getPrevLastCommandSentStackTrace() {
         return prevLastCommandSentStackTrace;
     }
-    
+
     private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
             if (null == crclSocket) {
@@ -905,7 +905,7 @@ public class PendantClientInner {
         }
         if (cmd instanceof InitCanonType) {
             initSent = true;
-        }else if (cmd instanceof SetAngleUnitsType) {
+        } else if (cmd instanceof SetAngleUnitsType) {
             SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
             this.setAngleType(setAngle.getUnitName());
         } else if (cmd instanceof SetLengthUnitsType) {
@@ -980,8 +980,7 @@ public class PendantClientInner {
     public boolean isInitSent() {
         return initSent;
     }
-    
-    
+
     /**
      * Send a new command to stop motion.
      *
@@ -1003,9 +1002,14 @@ public class PendantClientInner {
         this.sendCommand(stop);
     }
 
-    public boolean waitForStatus(long timeoutMilliSeconds, long delay) throws InterruptedException, JAXBException {
+    public void resendInit() throws JAXBException {
+        InitCanonType init = new InitCanonType();
+        init.setCommandID(Math.max(1, commandId.get() - 1));
+        this.sendCommand(init);
+    }
+
+    public boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
-        int old_pause_count = this.pause_count.get();
         while (null == this.getStatus() && !Thread.currentThread().isInterrupted()) {
             if (timeoutMilliSeconds >= 0
                     && System.currentTimeMillis() - start > timeoutMilliSeconds) {
@@ -1020,7 +1024,7 @@ public class PendantClientInner {
             if (null == readerThread) {
                 readStatus();
             }
-            if (this.pause_count.get() != old_pause_count || this.paused) {
+            if (this.pause_count.get() != starting_pause_count || this.paused) {
                 return false;
             }
         }
@@ -1045,7 +1049,7 @@ public class PendantClientInner {
      * @throws javax.xml.bind.JAXBException when there is a failure creating the
      * XML
      */
-    public WaitForDoneResult waitForDone(final long minCmdId, final long timeoutMilliSeconds)
+    public WaitForDoneResult waitForDone(final long minCmdId, final long timeoutMilliSeconds, final int pause_count_start)
             throws InterruptedException, JAXBException {
 
         try {
@@ -1084,13 +1088,16 @@ public class PendantClientInner {
                 if (waitForDoneDelay > 0) {
                     Thread.sleep(waitForDoneDelay);
                 }
+                if(!isConnected()) {
+                    return WaitForDoneResult.WFD_SOCKET_DISCONNECTED;
+                }
                 if (!requestStatus()) {
                     return WaitForDoneResult.WFD_REQUEST_STATUS_FAILED;
                 }
                 if (null == readerThread) {
                     readStatus();
                 }
-                if (this.pause_count.get() != old_pause_count || this.paused) {
+                if (this.pause_count.get() != pause_count_start || this.paused) {
                     return WaitForDoneResult.WFD_PAUSED;
                 }
                 timeDiff = System.currentTimeMillis() - start;
@@ -1477,6 +1484,8 @@ public class PendantClientInner {
     public synchronized void disconnect() {
         disconnecting = true;
         initSent = false;
+        stopStatusReaderThread();
+        closeTestProgramThread();
         if (null != crclSocket) {
             try {
                 crclSocket.close();
@@ -1486,9 +1495,7 @@ public class PendantClientInner {
             crclSocket = null;
         }
         stopStatusReaderThread();
-        if (null != runTestProgramThread && !runTestProgramThread.equals(Thread.currentThread())) {
-            this.closeTestProgramThread();
-        }
+        closeTestProgramThread();
         outer.finishDisconnect();
     }
 
@@ -1836,8 +1843,13 @@ public class PendantClientInner {
 
     }
 
+    private volatile ProgramState pauseProgramState = null;
+    private volatile Thread pauseRunningProgramThread = null;
+
     public void pause() {
         try {
+            pauseProgramState = programState;
+            pauseRunningProgramThread = runTestProgramThread.get();
             pause_count.incrementAndGet();
             pauseQueue.clear();
             paused = true;
@@ -1857,12 +1869,17 @@ public class PendantClientInner {
         }
     }
 
+    private volatile Thread unpauseRunningProgramThread = null;
+    private volatile ProgramState unpauseProgramState = null;
+
     public void unpause() {
         paused = false;
+        unpauseRunningProgramThread = runTestProgramThread.get();
+        unpauseProgramState = programState;
         for (int i = 0; i < waiting_for_pause_queue.get() + 1; i++) {
             try {
                 if (pauseQueue.isEmpty()) {
-                    pauseQueue.put(this);
+                    pauseQueue.put(Thread.currentThread().getStackTrace());
                 } else {
                     break;
                 }
@@ -1968,6 +1985,51 @@ public class PendantClientInner {
         return runProgram(prog, startLine, null, null);
     }
 
+    public static class ProgramState {
+
+        private final CRCLProgramType program;
+        private final int line;
+        private final CRCLCommandType cmd;
+
+        public ProgramState(CRCLProgramType program, int line, CRCLCommandType cmd) {
+            this.program = program;
+            this.line = line;
+            this.cmd = cmd;
+        }
+
+        public CRCLProgramType getProgram() {
+            return program;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public CRCLCommandType getCmd() {
+            return cmd;
+        }
+    }
+
+    private volatile ProgramState programState;
+
+    /**
+     * Get the value of programState
+     *
+     * @return the value of programState
+     */
+    public ProgramState getProgramState() {
+        return programState;
+    }
+
+    /**
+     * Set the value of programState
+     *
+     * @param programState new value of programState
+     */
+    public void setProgramState(ProgramState programState) {
+        this.programState = programState;
+    }
+
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement[] threadCreateCallStack,
             XFuture<Boolean> future) {
@@ -2014,6 +2076,8 @@ public class PendantClientInner {
                 } else {
                     commandId.set(initCmd.getCommandID());
                 }
+                programState = new ProgramState(program, 0, initCmd);
+
                 if (!testCommand(initCmd)) {
                     return false;
                 }
@@ -2046,10 +2110,13 @@ public class PendantClientInner {
                     wrapper.setCurProgram(program);
                     wrapper.setCurProgramIndex(i - 1);
                 }
+                programState = new ProgramState(program, i, cmd);
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {
-                        stopMotion(StopConditionEnumType.FAST);
+                        if(isConnected()) {
+                            stopMotion(StopConditionEnumType.FAST);
+                        }
                         if (null != future) {
                             future.cancel(false);
                         }
@@ -2096,7 +2163,9 @@ public class PendantClientInner {
             callingRunProgramStackTrace.set(null);
         }
         try {
-            stopMotion(StopConditionEnumType.FAST);
+            if (null != crclSocket) {
+                stopMotion(StopConditionEnumType.FAST);
+            }
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -2887,7 +2956,7 @@ public class PendantClientInner {
      */
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
-        int pause_count_start = this.pause_count.get();
+        final int pause_count_start = this.pause_count.get();
         long testCommandStartTime = System.currentTimeMillis();
         final String cmdString = cmdString(cmd);
         long sendCommandTime = testCommandStartTime;
@@ -2903,9 +2972,8 @@ public class PendantClientInner {
                 return true;
             }
             this.waitForPause();
-            pause_count_start = this.pause_count.get();
             if (null == this.getStatus()) {
-                waitForStatus(2000, 200);
+                waitForStatus(2000, 200, pause_count_start);
             }
             testCommandStartLengthUnitSent = lengthUnitSent;
             testCommandStartLengthUnit = this.getLengthUnit();
@@ -2923,7 +2991,7 @@ public class PendantClientInner {
             }
 
             sendCommandTime = System.currentTimeMillis();
-            WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout);
+            WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start);
             if (cmd instanceof CrclCommandWrapper) {
                 CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                 if (wfdResult == WaitForDoneResult.WFD_DONE) {

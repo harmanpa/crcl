@@ -871,15 +871,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
             case XYZ_RPY:
                 PmRpy rpy = new PmRpy(
-                        Math.toRadians((Double) tm.getValueAt(3, 1)), 
-                        Math.toRadians((Double) tm.getValueAt(4, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(3, 1)),
+                        Math.toRadians((Double) tm.getValueAt(4, 1)),
                         Math.toRadians((Double) tm.getValueAt(5, 1)));
                 return CRCLPosemath.toPoseType(tran, rpy);
 
             case XYZ_RX_RY_RZ:
                 PmEulerZyx zyx = new PmEulerZyx(
-                        Math.toRadians((Double) tm.getValueAt(3, 1)), 
-                        Math.toRadians((Double) tm.getValueAt(4, 1)), 
+                        Math.toRadians((Double) tm.getValueAt(3, 1)),
+                        Math.toRadians((Double) tm.getValueAt(4, 1)),
                         Math.toRadians((Double) tm.getValueAt(5, 1)));
                 return CRCLPosemath.toPoseType(tran, Posemath.toMat(zyx), null);
 
@@ -1076,7 +1076,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             while (!Thread.currentThread().isInterrupted()
                     && this.jCheckBoxPoll.isSelected()
-                    && null != internal.getCRCLSocket()
+                    && internal.isConnected()
                     && startPollStopCount == pollStopCount.get()) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
@@ -4050,61 +4050,75 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private volatile XFuture<Boolean> lastContinueCurrentProgramRet = null;
 
     public XFuture<Boolean> continueCurrentProgram() {
-        XFuture<Boolean> origProgramFutureInternal = programFutureInternal;
-        if (null != origProgramFutureInternal) {
-            System.out.println("origProgramFutureInternal.isDone() = " + origProgramFutureInternal.isDone());
-            System.out.println("origProgramFutureInternal.isCancelled() = " + origProgramFutureInternal.isCancelled());
-        }
-        if (null != lastContinueCurrentProgramRet) {
-            System.out.println("lastContinueCurrentProgramRet.isDone() = " + lastContinueCurrentProgramRet.isDone());
-            System.out.println("lastContinueCurrentProgramRet.isCancelled() = " + lastContinueCurrentProgramRet.isCancelled());
-        }
-        if (!isConnected()) {
-            connectCurrent();
-        }
-        if (null == internal.getProgram()
-                || getCurrentProgramLine() < 0
-                || getCurrentProgramLine() > (internal.getProgram().getMiddleCommand().size() + 1)) {
-            return XFuture.completedFuture(internal.getCommandState() != CommandStateEnumType.CRCL_ERROR);
-        }
-        if (pauseTime > this.internal.runStartMillis) {
-            this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
-        }
-        pauseTime = -1;
-        if (this.getCurrentProgramLine() < 1) {
-            this.internal.runStartMillis = System.currentTimeMillis();
-        }
-
-        InitCanonType init = new InitCanonType();
-        init.setCommandID(1);
-        final CountDownLatch latch = new CountDownLatch(1);
-        XFuture<Boolean> newProgramFutureInternal = XFuture.runAsync("continueCurrentProgram.step1", () -> {
-            try {
-                latch.await();
-                this.internal.closeTestProgramThread();
-                this.internal.setStepMode(false);
-                if (internal.isPaused()) {
-                    internal.unpause();
-                }
-                internal.testCommand(init);
-            } catch (JAXBException | InterruptedException | IOException | PmException | CRCLException ex) {
-                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            XFuture<Boolean> origProgramFutureInternal = programFutureInternal;
+            if (null != origProgramFutureInternal) {
+                System.out.println("origProgramFutureInternal.isDone() = " + origProgramFutureInternal.isDone());
+                System.out.println("origProgramFutureInternal.isCancelled() = " + origProgramFutureInternal.isCancelled());
             }
-        })
-                .thenCompose("continueCurrentProgram.step2", x -> internal.startRunProgramThread(this.getCurrentProgramLine()));
-        XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
-        programFutureInternal = newProgramFutureInternal;
-        latch.countDown();
-        if (null != origProgramFutureInternal) {
-            System.out.println("origProgramFutureInternal.isDone() = " + origProgramFutureInternal.isDone());
-            System.out.println("origProgramFutureInternal.isCancelled() = " + origProgramFutureInternal.isCancelled());
+            if (null != lastContinueCurrentProgramRet) {
+                System.out.println("lastContinueCurrentProgramRet.isDone() = " + lastContinueCurrentProgramRet.isDone());
+                System.out.println("lastContinueCurrentProgramRet.isCancelled() = " + lastContinueCurrentProgramRet.isCancelled());
+            }
+            if (!isConnected()) {
+                connectCurrent();
+            }
+            if (null == internal.getProgram()
+                    || getCurrentProgramLine() < 0
+                    || getCurrentProgramLine() > (internal.getProgram().getMiddleCommand().size() + 1)) {
+                return XFuture.completedFuture(internal.getCommandState() != CommandStateEnumType.CRCL_ERROR);
+            }
+            if (pauseTime > this.internal.runStartMillis) {
+                this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
+            }
+            pauseTime = -1;
+            if (this.getCurrentProgramLine() < 1) {
+                this.internal.runStartMillis = System.currentTimeMillis();
+            }
+
+//            final CountDownLatch latch = new CountDownLatch(1);
+//            XFuture<Boolean> newProgramFutureInternal = 
+//                    XFuture.runAsync("continueCurrentProgram.step1", () -> {
+//                try {
+//                    latch.await();
+//                    this.internal.closeTestProgramThread();
+//                    this.internal.setStepMode(false);
+//                    if (internal.isPaused()) {
+//                        internal.unpause();
+//                    }
+//                    internal.resendInit();
+//                } catch (Exception ex) {
+//                    Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            })
+            
+            this.internal.closeTestProgramThread();
+            this.internal.setStepMode(false);
+            if (internal.isPaused()) {
+                internal.unpause();
+            }
+            internal.resendInit();
+            XFuture<Boolean> newProgramFutureInternal
+                    = internal.startRunProgramThread(this.getCurrentProgramLine());
+            XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
+            programFutureInternal = newProgramFutureInternal;
+//            latch.countDown();
+            if (null != origProgramFutureInternal) {
+                System.out.println("origProgramFutureInternal.isDone() = " + origProgramFutureInternal.isDone());
+                System.out.println("origProgramFutureInternal.isCancelled() = " + origProgramFutureInternal.isCancelled());
+            }
+            if (null != lastContinueCurrentProgramRet) {
+                System.out.println("lastContinueCurrentProgramRet.isDone() = " + lastContinueCurrentProgramRet.isDone());
+                System.out.println("lastContinueCurrentProgramRet.isCancelled() = " + lastContinueCurrentProgramRet.isCancelled());
+            }
+            lastContinueCurrentProgramRet = ret;
+            return ret;
+        } catch (JAXBException ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            XFuture<Boolean> ret = (new XFuture<Boolean>("continueCurrentProgram.exception"));
+            ret.completeExceptionally(ex);
+            return ret;
         }
-        if (null != lastContinueCurrentProgramRet) {
-            System.out.println("lastContinueCurrentProgramRet.isDone() = " + lastContinueCurrentProgramRet.isDone());
-            System.out.println("lastContinueCurrentProgramRet.isCancelled() = " + lastContinueCurrentProgramRet.isCancelled());
-        }
-        lastContinueCurrentProgramRet = ret;
-        return ret;
     }
 
     private XFuture<Boolean> checkFutureChange(XFuture<Boolean> newProgramFutureInternal) {
@@ -4399,7 +4413,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jTextAreaErrorsMouseClicked
 
-    private void setPoseDisplayModelXAxisZAxis(JTable table,boolean editable) {
+    private void setPoseDisplayModelXAxisZAxis(JTable table, boolean editable) {
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                     {"X", null},
@@ -4516,13 +4530,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
-        updateDisplayMode(jTablePose,getCurrentPoseDisplayMode(),false);
-        updatePoseTable(internal.getPose(), jTablePose,getCurrentPoseDisplayMode());
+        updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
+        updatePoseTable(internal.getPose(), jTablePose, getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jComboBoxPoseDisplayModeActionPerformed
 
     private void jComboBoxPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeItemStateChanged
-        updateDisplayMode(jTablePose,getCurrentPoseDisplayMode(),false);
-        updatePoseTable(internal.getPose(),  jTablePose,getCurrentPoseDisplayMode());
+        updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
+        updatePoseTable(internal.getPose(), jTablePose, getCurrentPoseDisplayMode());
     }//GEN-LAST:event_jComboBoxPoseDisplayModeItemStateChanged
 
     private void jComboBoxMoveToPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxMoveToPoseDisplayModeItemStateChanged
@@ -4530,7 +4544,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             PoseDisplayMode newMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
             if (newMoveToPoseDisplayMode != lastMoveToPoseDisplayMode) {
                 PoseType origPose = tableToPose(jTableMoveToPose, lastMoveToPoseDisplayMode);
-                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode,true);
+                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode, true);
                 lastMoveToPoseDisplayMode = newMoveToPoseDisplayMode;
                 this.updatePoseTable(origPose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
             }
@@ -4544,7 +4558,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             PoseDisplayMode newMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
             if (newMoveToPoseDisplayMode != lastMoveToPoseDisplayMode) {
                 PoseType origPose = tableToPose(jTableMoveToPose, lastMoveToPoseDisplayMode);
-                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode,true);
+                updateDisplayMode(jTableMoveToPose, newMoveToPoseDisplayMode, true);
                 lastMoveToPoseDisplayMode = newMoveToPoseDisplayMode;
                 this.updatePoseTable(origPose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
             }
@@ -4554,17 +4568,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jComboBoxMoveToPoseDisplayModeActionPerformed
 
     private void updateDisplayMode(JTable table, PoseDisplayMode displayMode, boolean editable) {
-         switch (displayMode) {
+        switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
-                setPoseDisplayModelXAxisZAxis(table,editable);
+                setPoseDisplayModelXAxisZAxis(table, editable);
                 break;
 
             case XYZ_RPY:
-                setPoseDisplayModelRpy(table,editable);
+                setPoseDisplayModelRpy(table, editable);
                 break;
 
             case XYZ_RX_RY_RZ:
-                setPoseDisplayModelRxRyRz(table,editable);
+                setPoseDisplayModelRxRyRz(table, editable);
                 break;
         }
     }
