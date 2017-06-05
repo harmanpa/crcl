@@ -92,8 +92,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -122,9 +120,19 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Future;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -400,6 +408,7 @@ public class FanucCRCLMain {
     private final CRCLStatusType status = new CRCLStatusType();
     volatile long moveDoneTime = 0;
     volatile boolean lastCheckAtPosition = false;
+    volatile int moveChecksDone = 0;
     private final double lastJointPosArray[] = new double[10];
     private final long lastJointPosTimeArray[] = new long[10];
 
@@ -629,6 +638,18 @@ public class FanucCRCLMain {
         poseStatus.setPose(newPose);
     }
 
+    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss.SSS");
+
+    public static String getDateTimeString() {
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
+    private File moveLogFile = null;
+    private PrintStream moveLogFilePrintStream = null;
+    private AtomicInteger readStatusCount = new AtomicInteger();
+    private List<Long> updateTimes = new ArrayList<>();
+
     private synchronized void readStatusFromRobotInternal() {
         try {
             if (null == robot) {
@@ -648,7 +669,9 @@ public class FanucCRCLMain {
                 return;
             }
             lastRobotIsConnected = true;
+            long start = System.currentTimeMillis();
             synchronized (status) {
+                readStatusCount.incrementAndGet();
                 if (status.getCommandStatus() == null) {
                     status.setCommandStatus(new CommandStatusType());
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -676,7 +699,7 @@ public class FanucCRCLMain {
                         parallelGripperStatus.setSeparation(gripperSeperation);
                     }
                 }
-                status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID()+1);
+                status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
                 if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
                     if (prevCmd != null) {
                         if (prevCmd instanceof MoveToType) {
@@ -684,24 +707,63 @@ public class FanucCRCLMain {
                                 MoveToType mtPrev = (MoveToType) prevCmd;
                                 double dist = distTransFrom(mtPrev.getEndPosition());
                                 double rotDist = distRotFrom(mtPrev.getEndPosition());
-                                if ((dist < distanceTolerance
-                                        && rotDist < distanceRotTolerance
-                                        && System.currentTimeMillis() > expectedEndMoveToTime
-                                        && posReg98.isAtCurPosition()) && (System.currentTimeMillis() - moveTime > 20)
-                                        && !lastMotionProgramRunning()) {
+                                long curTime = System.currentTimeMillis();
+                                if (checkMoveDone(dist, rotDist, curTime)) {
                                     if (!lastCheckAtPosition) {
                                         moveDoneTime = System.currentTimeMillis();
                                     } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
                                         try {
                                             lastDoneMovePose = CRCLPosemath.copy(mtPrev.getEndPosition());
                                             lastDoneMoveCommandID = mtPrev.getCommandID();
-                                            System.out.println("mtPrev.getCommandID() = " + mtPrev.getCommandID());
-                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
-                                            System.out.println("rotDist = " + rotDist);
-                                            System.out.println("dist = " + dist);
-                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
-                                            System.out.println("Move took" + (System.currentTimeMillis() - startMoveTime));
-                                        } catch (CRCLException ex) {
+//                                            System.out.println("mtPrev.getCommandID() = " + mtPrev.getCommandID());
+//                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
+//                                            System.out.println("rotDist = " + rotDist);
+//                                            System.out.println("dist = " + dist);
+                                            double distTransFromStart = distTransFrom(moveToStartPosition);
+//                                            System.out.println("distFromStart = " + distTransFromStart);
+                                            double distRotFromStart = distRotFrom(moveToStartPosition);
+//                                            System.out.println("distRotFromStart = " + distRotFromStart);
+//                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
+                                            long moveTime = (System.currentTimeMillis() - startMoveTime);
+//                                            System.out.println("Move took " + moveTime + " ms.");
+//                                            System.out.println("moveChecksDone = " + moveChecksDone);
+//                                                moveLogFilePrintStream.println("current_time_ms,current_time_string,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
+                                            if (keepMoveToLog) {
+                                                openMoveToLogFile();
+                                            }
+                                            if (null != moveLogFilePrintStream) {
+                                                String stringToLog
+                                                        = curTime + ","
+                                                        + getDateTimeString() + ","
+                                                        + (curTime - expectedEndMoveToTime) + ","
+                                                        + lastDoneMoveCommandID + ","
+                                                        + moveToStartPosition.getPoint().getX() + ","
+                                                        + moveToStartPosition.getPoint().getY() + ","
+                                                        + moveToStartPosition.getPoint().getZ() + ","
+                                                        + mtPrev.getEndPosition().getPoint().getX() + ","
+                                                        + mtPrev.getEndPosition().getPoint().getY() + ","
+                                                        + mtPrev.getEndPosition().getPoint().getZ() + ","
+                                                        + distTransFromStart + ","
+                                                        + distRotFromStart + ","
+                                                        + moveTime + ","
+                                                        + moveChecksDone + ","
+                                                        + transSpeed + ","
+                                                        + rotSpeed + ","
+                                                        + (distTransFromStart / (1e-3 * moveTime)) + ","
+                                                        + (distRotFromStart / (1e-3 * moveTime)) + ","
+                                                        + timeToWaitForLastMotionProgram + ","
+                                                        + timeToStartMotionProgram + ","
+                                                        + lastMotionProgramRunningCount + ","
+                                                        + "\"" + distances + "\","
+                                                        + "\"" + moveReasons + "\","
+                                                        + "\"" + updateTimes + "\",";
+                                                moveLogFilePrintStream.println(stringToLog);
+                                                moveLogFilePrintStream.flush();
+                                            }
+                                            moveChecksDone = 0;
+                                            //start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
+
+                                        } catch (Exception ex) {
                                             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
                                         }
                                         setCommandState(CommandStateEnumType.CRCL_DONE);
@@ -711,6 +773,7 @@ public class FanucCRCLMain {
                                 } else {
                                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                                     lastCheckAtPosition = false;
+                                    moveChecksDone++;
                                 }
                             } catch (PmException ex) {
                                 showError(ex.toString());
@@ -883,11 +946,63 @@ public class FanucCRCLMain {
                         || status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                     checkServoReady();
                 }
+                updateTimes.add(System.currentTimeMillis() - start);
             }
         } catch (PmException ex) {
             showError(ex.toString());
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    static enum moveNotDoneReasons {
+        DIST_OVER_TOLERANCE,
+        ROTDIST_OVER_TOLERANCE,
+        EXPECTED_END_MOVE_TIME,
+        POSREG98_AT_CUR_POSITION,
+        CURTIME_NEAR_MOVETIME,
+        LASTMOTIONPROGGRAMRUNNING,
+    }
+
+    List<moveNotDoneReasons> moveReasons = new ArrayList<>();
+    List<Double> distances = new ArrayList<>();
+
+    private void addMoveReason(moveNotDoneReasons reason) {
+        if (keepMoveToLog && moveReasons.isEmpty() || moveReasons.get(moveReasons.size() - 1) != reason) {
+            moveReasons.add(reason);
+        }
+    }
+
+    private boolean checkForLastMotionProgramRunning = false;
+
+    private boolean checkMoveDone(double dist, double rotDist, long curTime) {
+        if (dist >= distanceTolerance) {
+            addMoveReason(moveNotDoneReasons.DIST_OVER_TOLERANCE);
+            distances.add(dist);
+            return false;
+        }
+        if (rotDist >= distanceRotTolerance) {
+            addMoveReason(moveNotDoneReasons.ROTDIST_OVER_TOLERANCE);
+            return false;
+        }
+        if (curTime < expectedEndMoveToTime) {
+            addMoveReason(moveNotDoneReasons.EXPECTED_END_MOVE_TIME);
+            return false;
+        }
+        if (!posReg98.isAtCurPosition()) {
+            addMoveReason(moveNotDoneReasons.POSREG98_AT_CUR_POSITION);
+            return false;
+        }
+        if ((curTime - moveTime) < 20) {
+            addMoveReason(moveNotDoneReasons.CURTIME_NEAR_MOVETIME);
+            return false;
+        }
+        if (checkForLastMotionProgramRunning) {
+            if (lastMotionProgramRunning()) {
+                addMoveReason(moveNotDoneReasons.LASTMOTIONPROGGRAMRUNNING);
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean lastActivAlarms = false;
@@ -1242,7 +1357,7 @@ public class FanucCRCLMain {
             TransSpeedRelativeType tsRel = (TransSpeedRelativeType) ts;
             transSpeed = tsRel.getFraction() * 200.0;
 //            int val = ((TransSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
-             int val = (int) (tsRel.getFraction() * maxRelativeSpeed);
+            int val = (int) (tsRel.getFraction() * maxRelativeSpeed);
             overrideVar.value(Integer.valueOf(val));
             if (null != displayInterface) {
                 displayInterface.getjSliderOverride().setValue(val);
@@ -1253,7 +1368,7 @@ public class FanucCRCLMain {
             TransSpeedAbsoluteType tsAbs = (TransSpeedAbsoluteType) ts;
             transSpeed = tsAbs.getSetting() * lengthScale;
             regNumeric98.regFloat((float) transSpeed);
-            showInfo("R[98] = transSpeed = "+transSpeed);
+            showInfo("R[98] = transSpeed = " + transSpeed);
 //            reg98Var.update();
             setCommandState(CommandStateEnumType.CRCL_DONE);
             settingsStatus.setTransSpeedAbsolute(tsAbs);
@@ -1339,6 +1454,8 @@ public class FanucCRCLMain {
     long expectedEndMoveToTime = -1;
     long startMoveTime = -1;
 
+    private volatile PoseType moveToStartPosition = null;
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
 //        try {
 //            System.out.println("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
@@ -1346,6 +1463,10 @@ public class FanucCRCLMain {
 //            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 
+        moveReasons = new ArrayList<>();
+        distances = new ArrayList<>();
+        moveChecksDone = 0;
+        moveToStartPosition = CRCLPosemath.copy(status.getPoseStatus().getPose());
         posReg97Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         PointType moveCmdEndPt = moveCmd.getEndPosition().getPoint();
@@ -1371,8 +1492,8 @@ public class FanucCRCLMain {
         if (rotMoveTime > cartMoveTime) {
             double timeNeeded = Math.max(rotMoveTime, cartMoveTime);
             int time_needed_ms = (int) (1000.0 * timeNeeded);
-            showInfo("MoveTo : cartDiff = "+cartDiff+",rotDiff = "+rotDiff+", transSpeed="+transSpeed+", time_needed_ms = " + time_needed_ms);
-            if(time_needed_ms < 10) {
+            showInfo("MoveTo : cartDiff = " + cartDiff + ",rotDiff = " + rotDiff + ", transSpeed=" + transSpeed + ", time_needed_ms = " + time_needed_ms);
+            if (time_needed_ms < 10) {
                 time_needed_ms = 10;
             }
             regNumeric96.regLong(time_needed_ms);
@@ -1380,7 +1501,8 @@ public class FanucCRCLMain {
             runMotionTpProgram(move_w_time_prog);
             expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms;
         } else {
-            showInfo("MoveTo : cartDiff = "+cartDiff+",rotDiff = "+rotDiff);
+            showInfo("MoveTo : cartDiff = " + cartDiff + ",rotDiff = " + rotDiff);
+            expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime));
             runMotionTpProgram(move_linear_prog);
         }
         startMoveTime = System.currentTimeMillis();
@@ -1438,19 +1560,29 @@ public class FanucCRCLMain {
     long lastRunMotionTpTime = 0;
     ITPProgram lastRunMotionProgram = null;
 
+    private volatile long timeToWaitForLastMotionProgram = 0;
+    private volatile long timeToStartMotionProgram = 0;
+    private volatile int lastMotionProgramRunningCount = 0;
+
     public synchronized void runMotionTpProgram(final ITPProgram program) {
         boolean program_started = false;
         int count = 0;
         long start = System.currentTimeMillis();
         CommandStateEnumType state = origState;
-        while (lastMotionProgramRunning()) {
+        int motionProgramRunningCount = 0;
+        if (start - moveDoneTime < 100) {
+            while (lastMotionProgramRunning()) {
 //            System.err.println("waiting for lastMotionProgramRunning");
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                motionProgramRunningCount++;
             }
         }
+        lastMotionProgramRunningCount = motionProgramRunningCount;
+        timeToWaitForLastMotionProgram = System.currentTimeMillis() - start;
         while (!program_started) {
             try {
                 count++;
@@ -1482,6 +1614,7 @@ public class FanucCRCLMain {
         }
         lastRunMotionProgram = program;
         lastRunMotionTpTime = System.currentTimeMillis();
+        timeToStartMotionProgram = lastRunMotionTpTime - start;
     }
     public static final long MOVE_INTERVAL_MILLIS = 100;
     private int currentWaypointNumber = 0;
@@ -1877,6 +2010,62 @@ public class FanucCRCLMain {
         poseStatus.setPose(CRCLPosemath.identityPose());
     }
 
+    private boolean keepMoveToLog = false;
+
+    /**
+     * Get the value of keepMoveToLog
+     *
+     * @return the value of keepMoveToLog
+     */
+    public boolean isKeepMoveToLog() {
+        return keepMoveToLog;
+    }
+
+    /**
+     * Set the value of keepMoveToLog
+     *
+     * @param keepMoveToLog new value of keepMoveToLog
+     */
+    public void setKeepMoveToLog(boolean keepMoveToLog) {
+        this.keepMoveToLog = keepMoveToLog;
+        if (!keepMoveToLog) {
+            closeMoveToLogFile();
+        }
+    }
+
+    private void openMoveToLogFile() {
+        try {
+            File directory = null;
+//            if (null != propertiesFile) {
+//                directory = propertiesFile.getParentFile();
+//            }
+            if (null == moveLogFile || null == moveLogFilePrintStream) {
+                if (null == directory) {
+                    moveLogFile = File.createTempFile("fanucCrclMoveLog_" + getDateTimeString() + "_", ".csv");
+                } else {
+                    moveLogFile = File.createTempFile("fanucCrclMoveLog_" + getDateTimeString() + "_", ".csv", directory);
+                }
+                moveLogFilePrintStream = new PrintStream(new FileOutputStream(moveLogFile));
+                moveLogFilePrintStream.println("current_time_ms,current_time_string,expectedEndMoveTimeDiff,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount,cmdTransSpeed,cmdRotSpeed,realTransSpeed,realRotSpeed,timeToWaitForLastMotionProgram,timeToStartMotionProgram,lastMotionProgramRunningCount,distances,reasons,updateTimes");
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void closeMoveToLogFile() {
+        try {
+            PrintStream ps = moveLogFilePrintStream;
+            moveLogFile = null;
+            moveLogFilePrintStream = null;
+            if (null != ps) {
+                ps.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private long lastUpdateStatusTime = -1;
 
     private synchronized void updateStatus(CRCLSocket cs) {
@@ -2032,6 +2221,11 @@ public class FanucCRCLMain {
             }
 
             lastCheckAtPosition = false;
+            if (cmd instanceof StopMotionType) {
+                handleStopMotion((StopMotionType) cmd);
+                prevCmd = cmd;
+                return;
+            }
             if (null == robot || !robotIsConnected || null == groupPos) {
                 showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
                 return;
@@ -2039,10 +2233,9 @@ public class FanucCRCLMain {
             if (status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
                 status.getCommandStatus().setStateDescription("");
             }
+            updateTimes = new ArrayList<>();
             if (cmd instanceof InitCanonType) {
                 handleInitCanon((InitCanonType) cmd);
-            } else if (cmd instanceof StopMotionType) {
-                handleStopMotion((StopMotionType) cmd);
             } else if (cmd instanceof EndCanonType) {
                 handleEndCanon((EndCanonType) cmd);
             } else if (cmd instanceof MoveToType) {
@@ -2127,6 +2320,10 @@ public class FanucCRCLMain {
             Properties props = new Properties();
             try (FileReader reader = new FileReader(propertiesFile)) {
                 props.load(reader);
+                String keepMoveToLogString = (String) props.get("keepMoveToLog");
+                if (null != keepMoveToLogString) {
+                    keepMoveToLog = Boolean.parseBoolean(keepMoveToLogString);
+                }
             } catch (IOException exception) {
                 exception.printStackTrace();
             }
@@ -2135,9 +2332,14 @@ public class FanucCRCLMain {
         readAndApplyUserJointLimits();
     }
 
+    public File getMoveLogFile() {
+        return moveLogFile;
+    }
+
     public void saveProperties() {
         if (null != this.propertiesFile) {
             Properties props = new Properties();
+            props.put("keepMoveToLog", Boolean.valueOf(keepMoveToLog));
             try (FileWriter fw = new FileWriter(propertiesFile)) {
                 props.store(fw, "");
             } catch (IOException exception) {

@@ -1978,9 +1978,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         Posemath.pmMatZyxConvert(mat, zyx);
 
         if (tm.getRowCount() > 2 + index) {
-            tm.setValueAt(Math.toDegrees(zyx.z), 0 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.x), 0 + index, 1);
             tm.setValueAt(Math.toDegrees(zyx.y), 1 + index, 1);
-            tm.setValueAt(Math.toDegrees(zyx.x), 2 + index, 1);
+            tm.setValueAt(Math.toDegrees(zyx.z), 2 + index, 1);
         }
     }
 

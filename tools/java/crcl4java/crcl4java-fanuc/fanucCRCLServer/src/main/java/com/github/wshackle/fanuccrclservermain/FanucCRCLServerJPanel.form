@@ -136,7 +136,11 @@
                       <Component id="jCheckBoxLogAllCommands" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jButtonClearErrors" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jCheckBoxKeepMoveToLog" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jButtonShowMoveLog" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
@@ -211,6 +215,8 @@
                   <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jCheckBoxLogAllCommands" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jButtonClearErrors" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jCheckBoxKeepMoveToLog" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jButtonShowMoveLog" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jScrollPane1" pref="258" max="32767" attributes="0"/>
@@ -578,6 +584,22 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxEnableCRCLActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBoxKeepMoveToLog">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Keep MoveTo Log"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxKeepMoveToLogActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="jButtonShowMoveLog">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Show MoveLog"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonShowMoveLogActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
