@@ -1044,6 +1044,7 @@ public class PendantClientInner {
      *
      * @param minCmdId the value of minCmdId
      * @param timeoutMilliSeconds the value of timeoutMilliSeconds
+     * @param pause_count_start initial value of pause_count used for comparison to detect pauses
      * @return the boolean
      * @throws InterruptedException when Thread interrupted
      * @throws javax.xml.bind.JAXBException when there is a failure creating the
@@ -1059,7 +1060,6 @@ public class PendantClientInner {
             long start = System.currentTimeMillis();
             long timeDiff = System.currentTimeMillis() - start;
             lastWaitForDoneTimeDiff = timeDiff;
-            int old_pause_count = this.pause_count.get();
             final long fullTimeout = timeoutMilliSeconds
                     + ((waitForDoneDelay > 0) ? 2 * waitForDoneDelay : 0)
                     + WAIT_FOR_DONE_TIMEOUT_EXTENSION;

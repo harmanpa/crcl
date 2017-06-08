@@ -4479,9 +4479,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     /**
-     * Set the value of disableTextPopups
+     * Set the value of enableDebugConnect
      *
-     * @param disableTextPopups new value of disableTextPopups
+     * @param enableDebugConnect should debugging connections be enabled.
      */
     public void setEnableDebugConnect(boolean enableDebugConnect) {
         internal.setDebugConnectDisconnect(enableDebugConnect);
