@@ -145,6 +145,7 @@ import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  *
@@ -444,7 +445,7 @@ public class SimServerInner {
     private double jointSpeedMax = getDoubleProperty("crcl4java.simserver.jointSpeedMax", 200.0);
     private PmRotationVector lastDiffRotv = null;
     private int cycle_count = 0;
-    private final List<ClientState> clientStates = new ArrayList<>();
+    private final ConcurrentLinkedDeque<ClientState> clientStates = new ConcurrentLinkedDeque<>();
     private final Map<CRCLSocket, Thread> clientThreadMap = new ConcurrentHashMap<>();
     Thread simThread = null;
     private volatile int close_count = 0;
@@ -1119,9 +1120,8 @@ public class SimServerInner {
             simThread = null;
         }
         if (null != clientStates) {
-            for (int i = 0; i < clientStates.size(); i++) {
+            for (ClientState s : clientStates) {
                 try {
-                    ClientState s = clientStates.get(i);
                     s.close();
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
@@ -1242,8 +1242,7 @@ public class SimServerInner {
                         } catch (IOException ex1) {
                             LOGGER.log(Level.SEVERE, null, ex1);
                         }
-                        for (int i = 0; i < clientStates.size(); i++) {
-                            ClientState cs = clientStates.get(i);
+                        for (ClientState cs : clientStates) {
                             if (Objects.equals(cs.getCs(), socket)) {
                                 clientStates.remove(cs);
                             }
@@ -1251,7 +1250,7 @@ public class SimServerInner {
                     }
                     return;
                 }
-                curSocket = clientStates.get(0).getCs();
+                curSocket = clientStates.element().getCs();
                 if (menuOuter().isReplaceStateSelected()) {
                     curSocket.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
                 } else {
@@ -1277,7 +1276,7 @@ public class SimServerInner {
                 String xmls = curSocket.statusToString(status, menuOuter().isValidateXMLSelected());
                 int write_count = 0;
                 for (int i = 0; i < clientStates.size(); i++) {
-                    curSocket = clientStates.get(i).getCs();
+                    curSocket = clientStates.element().getCs();
 
                     try {
                         curSocket.appendTrailingZero = menuOuter().isAppendZeroSelected();
@@ -1747,6 +1746,9 @@ public class SimServerInner {
                 final ClientState state = new ClientState(cs);
 //                cs.setEXIEnabled(menuOuter().isEXISelected());
                 clientStates.add(state);
+                if(clientStates.size() > 1) {
+                    System.err.println("More than one simultaneous client : "+clientStates);
+                }
                 Thread t = new Thread(() -> readCommandsRepeatedly(state),
                         "client" + s.getInetAddress().toString() + ":" + s.getPort()
                 );

@@ -992,7 +992,7 @@ public class PendantClientInner {
         Thread rtpt = this.runTestProgramThread.get();
         if (rtpt != null
                 && Thread.currentThread() != rtpt) {
-            Thread.dumpStack();
+//            Thread.dumpStack();
             System.err.println("stopMotion called while program running");
 //            closeTestProgramThread();
         }
@@ -1076,9 +1076,11 @@ public class PendantClientInner {
                     return WaitForDoneResult.WFD_HOLDING_ERROR;
                 }
                 if (Thread.currentThread().isInterrupted()) {
-                    System.out.println("Current Thread is interrupted : " + Thread.currentThread());
-                    Thread.dumpStack();
-                    System.out.println("interruptStacks = " + interruptStacks);
+                    if (debugInterrupts) {
+                        System.out.println("Current Thread is interrupted : " + Thread.currentThread());
+                        Thread.dumpStack();
+                        System.out.println("interruptStacks = " + interruptStacks);
+                    }
                     return WaitForDoneResult.WFD_INTERRUPTED;
                 }
                 if (menuOuter().isDebugWaitForDoneSelected()) {
@@ -1088,7 +1090,7 @@ public class PendantClientInner {
                 if (waitForDoneDelay > 0) {
                     Thread.sleep(waitForDoneDelay);
                 }
-                if(!isConnected()) {
+                if (!isConnected()) {
                     return WaitForDoneResult.WFD_SOCKET_DISCONNECTED;
                 }
                 if (!requestStatus()) {
@@ -1441,10 +1443,41 @@ public class PendantClientInner {
         return null != this.crclSocket && this.crclSocket.isConnected();
     }
 
+    private final AtomicInteger connectCount = new AtomicInteger();
+
+    private boolean debugConnectDisconnect;
+
+    /**
+     * Get the value of debugConnectDisconnect
+     *
+     * @return the value of debugConnectDisconnect
+     */
+    public boolean isDebugConnectDisconnect() {
+        return debugConnectDisconnect;
+    }
+
+    /**
+     * Set the value of debugConnectDisconnect
+     *
+     * @param debugConnectDisconnect new value of debugConnectDisconnect
+     */
+    public void setDebugConnectDisconnect(boolean debugConnectDisconnect) {
+        this.debugConnectDisconnect = debugConnectDisconnect;
+    }
+
     public synchronized void connect(String host, int port) {
         try {
+//            if(null != crclSocket
+//                    && crclSocket.isConnected()
+//                    && crclSocket.)
             disconnect();
             disconnecting = false;
+            if (debugConnectDisconnect) {
+                Thread.dumpStack();
+                System.err.println("port = " + port);
+            }
+            connectCount.incrementAndGet();
+
             boolean exiSelected = menuOuter().isEXISelected();
             if (exiSelected) {
 //                crclSocket = new CrclExiSocket(host, port);
@@ -1452,6 +1485,7 @@ public class PendantClientInner {
             } else {
                 crclSocket = new CRCLSocket(host, port);
             }
+            System.err.println("crclSocket = " + crclSocket);
             startStatusReaderThread();
 
             outer.finishConnect();
@@ -1481,14 +1515,26 @@ public class PendantClientInner {
         }
     }
 
+    private final AtomicInteger disconnectCount = new AtomicInteger();
+
     public synchronized void disconnect() {
+        if (debugConnectDisconnect) {
+            System.err.println("crclSocket = " + crclSocket);
+            Thread.dumpStack();
+        }
+        disconnectCount.incrementAndGet();
+        System.out.println("disconnectCount = " + disconnectCount.get());
         disconnecting = true;
         initSent = false;
         stopStatusReaderThread();
         closeTestProgramThread();
         if (null != crclSocket) {
+            System.err.println("crclSocket = " + crclSocket);
+            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
+            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
             try {
                 crclSocket.close();
+                Thread.sleep(100);
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -1504,10 +1550,12 @@ public class PendantClientInner {
             try {
                 stopStatusReaderFlag = true;
                 if (readerThread.isAlive()) {
-                    Thread.dumpStack();
-                    System.err.println("Interrupting readerThread = " + readerThread);
-                    System.out.println("Interrupting readerThread = " + readerThread);
-                    System.out.println("readerThread.getStackTrace() = " + Arrays.toString(readerThread.getStackTrace()));
+                    if (debugInterrupts) {
+                        Thread.dumpStack();
+                        System.err.println("Interrupting readerThread = " + readerThread);
+                        System.out.println("Interrupting readerThread = " + readerThread);
+                        System.out.println("readerThread.getStackTrace() = " + Arrays.toString(readerThread.getStackTrace()));
+                    }
                     readerThread.interrupt();
                     readerThread.join(1500);
                 }
@@ -2114,7 +2162,7 @@ public class PendantClientInner {
                 boolean result = testCommand(cmd);
                 if (!result) {
                     if (this.isQuitOnTestCommandFailure()) {
-                        if(isConnected()) {
+                        if (isConnected()) {
                             stopMotion(StopConditionEnumType.FAST);
                         }
                         if (null != future) {
@@ -2956,20 +3004,32 @@ public class PendantClientInner {
      */
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
-        final int pause_count_start = this.pause_count.get();
+
         long testCommandStartTime = System.currentTimeMillis();
         final String cmdString = cmdString(cmd);
         long sendCommandTime = testCommandStartTime;
         long curTime = testCommandStartTime;
         String poseListSaveFileName = null;
         this.lastWaitForDoneException = null;
+        final int startingConnectCount = connectCount.get();
+        final int startingDisconnectCount = disconnectCount.get();
+        int pause_count_start = this.pause_count.get();
         do {
+            pause_count_start = this.pause_count.get();
             if (null == crclSocket) {
                 throw new IllegalStateException("crclSocket must not be null");
             }
             if (cmd instanceof GetStatusType) {
                 showDebugMessage("Ignoring command GetStatusType inside a program.");
                 return true;
+            }
+            if (startingConnectCount != connectCount.get()) {
+                System.err.println("Connected while testing command");
+                return false;
+            }
+            if (startingDisconnectCount != disconnectCount.get()) {
+                System.err.println("Disconnected while testing command");
+                return false;
             }
             this.waitForPause();
             if (null == this.getStatus()) {
@@ -3000,6 +3060,14 @@ public class PendantClientInner {
                     wrapper.notifyOnErrorListeners();
                 }
                 cmd = wrapper.getWrappedCommand();
+            }
+            if (startingConnectCount != connectCount.get()) {
+                System.err.println("Connected while testing command");
+                return false;
+            }
+            if (startingDisconnectCount != disconnectCount.get()) {
+                System.err.println("Disconnected while testing command");
+                return false;
             }
             if (cmd instanceof EndCanonType) {
                 return wfdResult != WaitForDoneResult.WFD_ERROR

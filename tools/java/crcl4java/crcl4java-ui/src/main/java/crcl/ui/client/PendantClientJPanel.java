@@ -145,6 +145,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private static final double RPY_JOG_INCREMENT_DEFAULT = 3.0;
     private double rpyJogIncrement = RPY_JOG_INCREMENT_DEFAULT;
     private long pauseTime = -1;
+    private long unpauseTime = -1;
 
     private boolean jogWorldTransSpeedsSet = false;
     private boolean jogWorldRotSpeedsSet = false;
@@ -175,6 +176,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void pauseCrclProgram() {
         pauseTime = System.currentTimeMillis();
         internal.pause();
+        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+        jogWorldTransSpeedsSet = false;
+        jogWorldRotSpeedsSet = false;
+    }
+
+    public void unpauseCrclProgram() {
+        pauseTime = System.currentTimeMillis();
+        internal.unpause();
         this.jButtonResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
@@ -4091,11 +4101,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //                    Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //                }
 //            })
-            
             this.internal.closeTestProgramThread();
             this.internal.setStepMode(false);
             if (internal.isPaused()) {
                 internal.unpause();
+            } else {
+                System.out.println("internal.isPaused() = " + internal.isPaused());
             }
             internal.resendInit();
             XFuture<Boolean> newProgramFutureInternal
@@ -4467,6 +4478,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.disableTextPopups = disableTextPopups;
     }
 
+    /**
+     * Set the value of disableTextPopups
+     *
+     * @param disableTextPopups new value of disableTextPopups
+     */
+    public void setEnableDebugConnect(boolean enableDebugConnect) {
+        internal.setDebugConnectDisconnect(enableDebugConnect);
+    }
+
+    
     private void setPoseDisplayModelRpy(JTable table, boolean editable) {
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{

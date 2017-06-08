@@ -180,4 +180,11 @@ public class CrclCommandWrapper extends MessageType {
             consumer.accept(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "CrclCommandWrapper{" + "wrappedCommand=" + CRCLSocket.cmdToString(wrappedCommand) + ", curProgram=" + curProgram + ", curProgramIndex=" + curProgramIndex + ", onStartListeners=" + onStartListeners + ", onDoneListeners=" + onDoneListeners + ", onErrorListeners=" + onErrorListeners + '}';
+    }
+    
+    
 }

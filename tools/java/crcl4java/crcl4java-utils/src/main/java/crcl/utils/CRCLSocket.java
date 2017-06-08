@@ -2197,6 +2197,15 @@ public class CRCLSocket implements AutoCloseable {
         return commandToSimpleString(cmdInstance.getCRCLCommand());
     }
 
+     public static String cmdToString(CRCLCommandType cmd)  {
+        try {
+            return getUtilSocket().commandToSimpleString(cmd, 9, 50);
+        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
+        }
+    }
+     
     public String commandToSimpleString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException {
         if (cmd instanceof CrclCommandWrapper) {
             CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;

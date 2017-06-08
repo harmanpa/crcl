@@ -78,7 +78,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public String getCrclClientErrorMessage() {
         return pendantClientJPanel1.getCrclClientErrorMessage();
     }
-    
+
     public boolean isPaused() {
         return pendantClientJPanel1.isPaused();
     }
@@ -92,11 +92,15 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     public void clearCrclClientErrorMessage() {
-       pendantClientJPanel1.clearCrclClientErrorMessage();
+        pendantClientJPanel1.clearCrclClientErrorMessage();
     }
-    
+
     public void pauseCrclProgram() {
         pendantClientJPanel1.pauseCrclProgram();
+    }
+
+    public void unpauseCrclProgram() {
+        pendantClientJPanel1.unpauseCrclProgram();
     }
 
     public void connectCurrent() {
@@ -391,6 +395,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugSendCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugInterrupts = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemEnableDebugConnect = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
@@ -626,6 +631,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugInterrupts.setText("Debug Interrupts");
         jMenuOptions.add(jCheckBoxMenuItemDebugInterrupts);
 
+        jCheckBoxMenuItemEnableDebugConnect.setText("Debug Connect/Disconnect");
+        jCheckBoxMenuItemEnableDebugConnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemEnableDebugConnectActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jCheckBoxMenuItemEnableDebugConnect);
+
         jCheckBoxMenuItemUseEXI.setText("USE EXI (Efficient XML Interchange)");
         jCheckBoxMenuItemUseEXI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -825,11 +838,15 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.aboutAction();
     }//GEN-LAST:event_jMenuItemAboutActionPerformed
 
-   
+
     private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
         crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
         this.pendantClientJPanel1.setDisableTextPopups(crcl.ui.misc.MultiLineStringJPanel.disableShowText);
     }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
+    private void jCheckBoxMenuItemEnableDebugConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemEnableDebugConnectActionPerformed
+        this.pendantClientJPanel1.setEnableDebugConnect(jCheckBoxMenuItemEnableDebugConnect.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemEnableDebugConnectActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -838,6 +855,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendCommand;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEnableDebugConnect;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
@@ -1095,7 +1113,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public XFuture<Boolean> continueCurrentProgram() {
         return pendantClientJPanel1.continueCurrentProgram();
     }
-    
+
     public File getTempLogDir() {
         return pendantClientJPanel1.getTempLogDir();
     }

@@ -924,7 +924,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     public static void main(String[] args) {
         java.awt.EventQueue.invokeLater(() -> {
-            Thread.dumpStack();
+//            Thread.dumpStack();
             JFrame frame = new JFrame();
             frame.add(new TransformJPanel());
             frame.pack();

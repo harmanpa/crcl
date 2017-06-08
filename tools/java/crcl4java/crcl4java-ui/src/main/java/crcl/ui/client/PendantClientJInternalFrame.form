@@ -242,6 +242,14 @@
                 <Property name="text" type="java.lang.String" value="Debug Interrupts"/>
               </Properties>
             </MenuItem>
+            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemEnableDebugConnect">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Debug Connect/Disconnect"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxMenuItemEnableDebugConnectActionPerformed"/>
+              </Events>
+            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemUseEXI">
               <Properties>
                 <Property name="text" type="java.lang.String" value="USE EXI (Efficient XML Interchange)"/>
