@@ -700,180 +700,7 @@ public class FanucCRCLMain {
                     }
                 }
                 status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
-                if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                    if (prevCmd != null) {
-                        if (prevCmd instanceof MoveToType) {
-                            try {
-                                MoveToType mtPrev = (MoveToType) prevCmd;
-                                double dist = distTransFrom(mtPrev.getEndPosition());
-                                double rotDist = distRotFrom(mtPrev.getEndPosition());
-                                long curTime = System.currentTimeMillis();
-                                if (checkMoveDone(dist, rotDist, curTime)) {
-                                    if (!lastCheckAtPosition) {
-                                        moveDoneTime = System.currentTimeMillis();
-                                    } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
-                                        try {
-                                            lastDoneMovePose = CRCLPosemath.copy(mtPrev.getEndPosition());
-                                            lastDoneMoveCommandID = mtPrev.getCommandID();
-//                                            System.out.println("mtPrev.getCommandID() = " + mtPrev.getCommandID());
-//                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
-//                                            System.out.println("rotDist = " + rotDist);
-//                                            System.out.println("dist = " + dist);
-                                            double distTransFromStart = distTransFrom(moveToStartPosition);
-//                                            System.out.println("distFromStart = " + distTransFromStart);
-                                            double distRotFromStart = distRotFrom(moveToStartPosition);
-//                                            System.out.println("distRotFromStart = " + distRotFromStart);
-//                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
-                                            long moveTime = (System.currentTimeMillis() - startMoveTime);
-//                                            System.out.println("Move took " + moveTime + " ms.");
-//                                            System.out.println("moveChecksDone = " + moveChecksDone);
-//                                                moveLogFilePrintStream.println("current_time_ms,current_time_string,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
-                                            if (keepMoveToLog) {
-                                                openMoveToLogFile();
-                                            }
-                                            if (null != moveLogFilePrintStream) {
-                                                String stringToLog
-                                                        = curTime + ","
-                                                        + getDateTimeString() + ","
-                                                        + (curTime - expectedEndMoveToTime) + ","
-                                                        + lastDoneMoveCommandID + ","
-                                                        + moveToStartPosition.getPoint().getX() + ","
-                                                        + moveToStartPosition.getPoint().getY() + ","
-                                                        + moveToStartPosition.getPoint().getZ() + ","
-                                                        + mtPrev.getEndPosition().getPoint().getX() + ","
-                                                        + mtPrev.getEndPosition().getPoint().getY() + ","
-                                                        + mtPrev.getEndPosition().getPoint().getZ() + ","
-                                                        + distTransFromStart + ","
-                                                        + distRotFromStart + ","
-                                                        + moveTime + ","
-                                                        + moveChecksDone + ","
-                                                        + transSpeed + ","
-                                                        + rotSpeed + ","
-                                                        + (distTransFromStart / (1e-3 * moveTime)) + ","
-                                                        + (distRotFromStart / (1e-3 * moveTime)) + ","
-                                                        + timeToWaitForLastMotionProgram + ","
-                                                        + timeToStartMotionProgram + ","
-                                                        + lastMotionProgramRunningCount + ","
-                                                        + "\"" + distances + "\","
-                                                        + "\"" + moveReasons + "\","
-                                                        + "\"" + updateTimes + "\",";
-                                                moveLogFilePrintStream.println(stringToLog);
-                                                moveLogFilePrintStream.flush();
-                                            }
-                                            moveChecksDone = 0;
-                                            //start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
-
-                                        } catch (Exception ex) {
-                                            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-                                        }
-                                        setCommandState(CommandStateEnumType.CRCL_DONE);
-                                        prevCmd = null;
-                                    }
-                                    lastCheckAtPosition = true;
-                                } else {
-                                    setCommandState(CommandStateEnumType.CRCL_WORKING);
-                                    lastCheckAtPosition = false;
-                                    moveChecksDone++;
-                                }
-                            } catch (PmException ex) {
-                                showError(ex.toString());
-                                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        } else if (prevCmd instanceof MoveThroughToType) {
-                            MoveThroughToType mtt = (MoveThroughToType) prevCmd;
-                            if (currentWaypointNumber >= mtt.getNumPositions()
-                                    || currentWaypointNumber >= mtt.getWaypoint().size()) {
-                                try {
-                                    PoseType pose = mtt.getWaypoint().get(mtt.getWaypoint().size() - 1);
-                                    double dist = distTransFrom(pose);
-                                    double rotDist = distRotFrom(pose);
-                                    if (dist < distanceTolerance
-                                            && rotDist < distanceRotTolerance
-                                            && groupPos.isAtCurPosition() && (System.currentTimeMillis() - moveTime > 10)) {
-                                        if (!lastCheckAtPosition) {
-                                            moveDoneTime = System.currentTimeMillis();
-                                        } else if ((System.currentTimeMillis() - moveDoneTime) > 10) {
-                                            setCommandState(CommandStateEnumType.CRCL_DONE);
-                                        }
-                                        lastCheckAtPosition = true;
-                                    } else {
-                                        setCommandState(CommandStateEnumType.CRCL_WORKING);
-                                        lastCheckAtPosition = false;
-                                    }
-                                } catch (PmException ex) {
-                                    showError(ex.toString());
-                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                            }
-                        } else if (prevCmd instanceof DwellType) {
-                            long diff = System.currentTimeMillis() - dwellEndTime;
-                            if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-//                                if(diff > 5) {
-//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
-//                                }
-                                setCommandState(CommandStateEnumType.CRCL_DONE);
-                            }
-                        } else if (prevCmd instanceof InitCanonType) {
-                            long diff = System.currentTimeMillis() - dwellEndTime;
-//                            System.out.println("(prevCmd instanceof InitCanonType) diff = " + diff);
-//                            System.out.println("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
-                            if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-//                                if(diff > 5) {
-//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
-//                                }
-                                lastServoReady = true;
-//                                System.out.println("robotResetCount = " + robotResetCount);
-                                boolean secondInitSafetyStatError = checkSafetyStatError();
-//                                System.out.println("secondInitSafetyStatError = " + secondInitSafetyStatError);
-                                if (secondInitSafetyStatError) {
-                                    setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                } else if (robotResetCount < 3) {
-                                    boolean secondInitCheckServoReady = checkServoReady();
-                                    System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
-                                    if (!secondInitCheckServoReady) {
-                                        robot.alarms().reset();
-                                        robot.tasks().abortAll(true);
-                                        dwellEndTime = System.currentTimeMillis() + 2000;
-                                        robotResetCount++;
-                                        setCommandState(CommandStateEnumType.CRCL_WORKING);
-                                    } else {
-                                        setCommandState(CommandStateEnumType.CRCL_DONE);
-                                    }
-                                } else {
-                                    setCommandState(CommandStateEnumType.CRCL_DONE);
-                                }
-                            }
-                        } else if (prevCmd instanceof ActuateJointsType) {
-                            posReg97.update();
-                            if (posReg97.isAtCurPosition()) {
-                                ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
-                                double maxDiff = 0;
-                                for (ActuateJointType aj : actJoints.getActuateJoint()) {
-                                    int num = aj.getJointNumber();
-                                    assert (jointStatuses != null);
-                                    for (JointStatusType jst : jointStatuses.getJointStatus()) {
-                                        if (num == jst.getJointNumber()) {
-                                            double diff = Math.abs(jst.getJointPosition() - aj.getJointPosition());
-                                            if (diff > maxDiff) {
-                                                maxDiff = diff;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
-                                    setCommandState(CommandStateEnumType.CRCL_DONE);
-                                }
-                                lastMaxJointDiff = maxDiff;
-                            }
-
-                        }
-                    } else {
-                        lastCheckAtPosition = false;
-                    }
-                } else {
-                    lastCheckAtPosition = false;
-                }
+                
                 if (status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                     lastCheckAtPosition = false;
                 }
@@ -941,6 +768,7 @@ public class FanucCRCLMain {
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
                     }
                     jointStatuses.getJointStatus().add(js);
+                    checkDonePrevCmd();
                 }
                 if (null == prevCmd || !(prevCmd instanceof InitCanonType)
                         || status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
@@ -951,6 +779,183 @@ public class FanucCRCLMain {
         } catch (PmException ex) {
             showError(ex.toString());
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void checkDonePrevCmd() {
+        if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+            if (prevCmd != null) {
+                if (prevCmd instanceof MoveToType) {
+                    try {
+                        MoveToType mtPrev = (MoveToType) prevCmd;
+                        double dist = distTransFrom(mtPrev.getEndPosition());
+                        double rotDist = distRotFrom(mtPrev.getEndPosition());
+                        long curTime = System.currentTimeMillis();
+                        if (checkMoveDone(dist, rotDist, curTime)) {
+                            if (!lastCheckAtPosition) {
+                                moveDoneTime = System.currentTimeMillis();
+                            } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
+                                try {
+                                    lastDoneMovePose = CRCLPosemath.copy(mtPrev.getEndPosition());
+                                    lastDoneMoveCommandID = mtPrev.getCommandID();
+//                                            System.out.println("mtPrev.getCommandID() = " + mtPrev.getCommandID());
+//                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
+//                                            System.out.println("rotDist = " + rotDist);
+//                                            System.out.println("dist = " + dist);
+double distTransFromStart = distTransFrom(moveToStartPosition);
+//                                            System.out.println("distFromStart = " + distTransFromStart);
+double distRotFromStart = distRotFrom(moveToStartPosition);
+//                                            System.out.println("distRotFromStart = " + distRotFromStart);
+//                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
+long moveTime = (System.currentTimeMillis() - startMoveTime);
+//                                            System.out.println("Move took " + moveTime + " ms.");
+//                                            System.out.println("moveChecksDone = " + moveChecksDone);
+//                                                moveLogFilePrintStream.println("current_time_ms,current_time_string,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
+if (keepMoveToLog) {
+    openMoveToLogFile();
+}
+if (null != moveLogFilePrintStream) {
+    String stringToLog
+            = curTime + ","
+            + getDateTimeString() + ","
+            + (curTime - expectedEndMoveToTime) + ","
+            + lastDoneMoveCommandID + ","
+            + moveToStartPosition.getPoint().getX() + ","
+            + moveToStartPosition.getPoint().getY() + ","
+            + moveToStartPosition.getPoint().getZ() + ","
+            + mtPrev.getEndPosition().getPoint().getX() + ","
+            + mtPrev.getEndPosition().getPoint().getY() + ","
+            + mtPrev.getEndPosition().getPoint().getZ() + ","
+            + distTransFromStart + ","
+            + distRotFromStart + ","
+            + moveTime + ","
+            + moveChecksDone + ","
+            + transSpeed + ","
+            + rotSpeed + ","
+            + (distTransFromStart / (1e-3 * moveTime)) + ","
+            + (distRotFromStart / (1e-3 * moveTime)) + ","
+            + timeToWaitForLastMotionProgram + ","
+            + timeToStartMotionProgram + ","
+            + lastMotionProgramRunningCount + ","
+            + "\"" + distances + "\","
+            + "\"" + moveReasons + "\","
+            + "\"" + updateTimes + "\",";
+    moveLogFilePrintStream.println(stringToLog);
+    moveLogFilePrintStream.flush();
+}
+moveChecksDone = 0;
+//start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
+
+                                } catch (Exception ex) {
+                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                setCommandState(CommandStateEnumType.CRCL_DONE);
+                                prevCmd = null;
+                            }
+                            lastCheckAtPosition = true;
+                        } else {
+                            setCommandState(CommandStateEnumType.CRCL_WORKING);
+                            lastCheckAtPosition = false;
+                            moveChecksDone++;
+                        }
+                    } catch (PmException ex) {
+                        showError(ex.toString());
+                        Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else if (prevCmd instanceof MoveThroughToType) {
+                    MoveThroughToType mtt = (MoveThroughToType) prevCmd;
+                    if (currentWaypointNumber >= mtt.getNumPositions()
+                            || currentWaypointNumber >= mtt.getWaypoint().size()) {
+                        try {
+                            PoseType pose = mtt.getWaypoint().get(mtt.getWaypoint().size() - 1);
+                            double dist = distTransFrom(pose);
+                            double rotDist = distRotFrom(pose);
+                            if (dist < distanceTolerance
+                                    && rotDist < distanceRotTolerance
+                                    && groupPos.isAtCurPosition() && (System.currentTimeMillis() - moveTime > 10)) {
+                                if (!lastCheckAtPosition) {
+                                    moveDoneTime = System.currentTimeMillis();
+                                } else if ((System.currentTimeMillis() - moveDoneTime) > 10) {
+                                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
+                                lastCheckAtPosition = true;
+                            } else {
+                                setCommandState(CommandStateEnumType.CRCL_WORKING);
+                                lastCheckAtPosition = false;
+                            }
+                        } catch (PmException ex) {
+                            showError(ex.toString());
+                            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } else if (prevCmd instanceof DwellType) {
+                    long diff = System.currentTimeMillis() - dwellEndTime;
+                    if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+//                                if(diff > 5) {
+//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
+//                                }
+setCommandState(CommandStateEnumType.CRCL_DONE);
+                    }
+                } else if (prevCmd instanceof InitCanonType) {
+                    long diff = System.currentTimeMillis() - dwellEndTime;
+//                            System.out.println("(prevCmd instanceof InitCanonType) diff = " + diff);
+//                            System.out.println("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
+if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+//                                if(diff > 5) {
+//                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
+//                                }
+lastServoReady = true;
+//                                System.out.println("robotResetCount = " + robotResetCount);
+boolean secondInitSafetyStatError = checkSafetyStatError();
+//                                System.out.println("secondInitSafetyStatError = " + secondInitSafetyStatError);
+if (secondInitSafetyStatError) {
+    setCommandState(CommandStateEnumType.CRCL_ERROR);
+} else if (robotResetCount < 3) {
+    boolean secondInitCheckServoReady = checkServoReady();
+    System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
+    if (!secondInitCheckServoReady) {
+        robot.alarms().reset();
+        robot.tasks().abortAll(true);
+        dwellEndTime = System.currentTimeMillis() + 2000;
+        robotResetCount++;
+        setCommandState(CommandStateEnumType.CRCL_WORKING);
+    } else {
+        setCommandState(CommandStateEnumType.CRCL_DONE);
+    }
+} else {
+    setCommandState(CommandStateEnumType.CRCL_DONE);
+}
+}
+                } else if (prevCmd instanceof ActuateJointsType) {
+                    posReg97.update();
+                    if (posReg97.isAtCurPosition()) {
+                        ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
+                        double maxDiff = 0;
+                        for (ActuateJointType aj : actJoints.getActuateJoint()) {
+                            int num = aj.getJointNumber();
+                            assert (jointStatuses != null);
+                            for (JointStatusType jst : jointStatuses.getJointStatus()) {
+                                if (num == jst.getJointNumber()) {
+                                    double diff = Math.abs(jst.getJointPosition() - aj.getJointPosition());
+                                    if (diff > maxDiff) {
+                                        maxDiff = diff;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
+                            setCommandState(CommandStateEnumType.CRCL_DONE);
+                        }
+                        lastMaxJointDiff = maxDiff;
+                    }
+                    
+                }
+            } else {
+                lastCheckAtPosition = false;
+            }
+        } else {
+            lastCheckAtPosition = false;
         }
     }
 
@@ -2588,6 +2593,10 @@ public class FanucCRCLMain {
         public Thread newThread(Runnable r) {
             Thread t = Executors.defaultThreadFactory().newThread(r);
             t.setDaemon(true);
+            String oldname = t.getName();
+            if (!oldname.startsWith("Fanuc")) {
+                t.setName("FanucCRCL." + oldname);
+            }
             return t;
         }
     };

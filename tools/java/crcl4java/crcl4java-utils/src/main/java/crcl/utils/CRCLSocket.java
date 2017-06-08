@@ -1522,7 +1522,7 @@ public class CRCLSocket implements AutoCloseable {
     public CRCLCommandInstanceType readCommand() throws CRCLException {
         try {
             return readCommand(false);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new CRCLException(ex);
         }
     }

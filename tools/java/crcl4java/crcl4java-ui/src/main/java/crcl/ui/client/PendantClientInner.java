@@ -3090,7 +3090,7 @@ public class PendantClientInner {
                 }
                 String intString = this.createInterrupStackString();
                 String lastCmdString = commandToSimpleString(lastCommandSent);
-                String messageString = cmd.getClass().getName() + " timed out waiting for DONE " + NEW_LINE
+                String messageString = cmd.getClass().getName() + ((wfdResult!=WaitForDoneResult.WFD_TIMEOUT)?" failed. ":" timed out. ") + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
