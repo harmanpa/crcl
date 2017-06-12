@@ -27,8 +27,10 @@ import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import java.io.File;
+import java.util.Deque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
@@ -287,6 +289,11 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     @Override
     public void saveProperties() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
+        System.out.println("log = " + log);
     }
 
 }

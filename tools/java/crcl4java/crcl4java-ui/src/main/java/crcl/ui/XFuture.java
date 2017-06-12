@@ -142,8 +142,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
             @Override
             public Thread newThread(Runnable r) {
-                Thread newThraed = new Thread(r);
-                newThraed.setName("XFutureThread_" + count.incrementAndGet());
+                Thread newThraed = new Thread(r,"XFutureThread_" + count.incrementAndGet());
                 return newThraed;
             }
         };

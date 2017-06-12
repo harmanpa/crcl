@@ -33,6 +33,7 @@ import crcl.ui.misc.TransformSetupJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
+import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import java.awt.GraphicsConfiguration;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1001,5 +1003,10 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     @Override
     public void saveProperties() {
         pendantClientJPanel1.saveProperties();
+    }
+    
+    @Override
+    public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
+        this.pendantClientJPanel1.updateCommandStatusLog(log);
     }
 }

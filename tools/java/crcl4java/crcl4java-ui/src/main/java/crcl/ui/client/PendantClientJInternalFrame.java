@@ -34,6 +34,7 @@ import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import java.awt.Container;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1120,5 +1122,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     public void setTempLogDir(File tempLogDir) {
         this.pendantClientJPanel1.setTempLogDir(tempLogDir);
+    }
+    
+    @Override
+    public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
+        this.pendantClientJPanel1.updateCommandStatusLog(log);
     }
 }

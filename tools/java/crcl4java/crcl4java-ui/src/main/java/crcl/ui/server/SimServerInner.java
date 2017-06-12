@@ -1618,6 +1618,7 @@ public class SimServerInner {
                 .orElse(false);
     }
 
+    
     private void readCommandsRepeatedly(ClientState state) {
         final int start_close_count = this.close_count;
         final CRCLSocket cs = state.getCs();
@@ -1750,7 +1751,7 @@ public class SimServerInner {
                     System.err.println("More than one simultaneous client : "+clientStates);
                 }
                 Thread t = new Thread(() -> readCommandsRepeatedly(state),
-                        "client" + s.getInetAddress().toString() + ":" + s.getPort()
+                        "SimServer.client" + s.getInetAddress().toString() + ":" + s.getPort()+"="+ssock
                 );
                 clientThreadMap.put(cs, t);
                 t.start();
@@ -1954,6 +1955,9 @@ public class SimServerInner {
                 cmdLog = new ArrayList<>();
             }
             cmdLog.add(cmd);
+            while(cmdLog.size() > 100) {
+                cmdLog.remove(0);
+            }
             String cmdName = getCheckerCRCLSocket().commandToSimpleString(cmd);
             outer.updateCurrentCommandType(cmdName);
             synchronized (status) {

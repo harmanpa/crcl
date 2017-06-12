@@ -67,9 +67,11 @@ import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.ProgramPlotter;
+import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dialog;
@@ -89,15 +91,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +111,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -121,7 +126,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -2762,6 +2770,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jButtonMoveToCurrent = new javax.swing.JButton();
         jComboBoxMoveToPoseDisplayMode = new javax.swing.JComboBox<>();
         transformJPanel1 = new crcl.ui.misc.TransformJPanel();
+        jPanelCommandStatusLogOuter = new javax.swing.JPanel();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        jTableCommandStatusLog = new javax.swing.JTable();
+        jCheckBoxPauseCommandStatusLog = new javax.swing.JCheckBox();
         jPanelConnectionTab = new javax.swing.JPanel();
         jTextFieldPort = new javax.swing.JTextField();
         jButtonConnect = new javax.swing.JButton();
@@ -2986,11 +2998,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
@@ -3328,7 +3340,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(146, Short.MAX_VALUE))
+                .addContainerGap(157, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3382,7 +3394,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldJogInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
-                .addContainerGap(261, Short.MAX_VALUE))
+                .addContainerGap(265, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("Jog", jPanelJogging);
@@ -3482,11 +3494,72 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jComboBoxMoveToPoseDisplayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(318, Short.MAX_VALUE))
+                .addContainerGap(320, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("MoveTo", jPanelMoveTo);
         jTabbedPaneLeftUpper.addTab("Transform Setup", transformJPanel1);
+
+        jScrollPane7.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        jTableCommandStatusLog.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "Text"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Boolean.class, java.lang.Double.class, java.lang.Long.class, java.lang.Double.class, java.lang.Object.class, java.lang.Long.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane7.setViewportView(jTableCommandStatusLog);
+
+        jCheckBoxPauseCommandStatusLog.setSelected(true);
+        jCheckBoxPauseCommandStatusLog.setText("Pause Log");
+        jCheckBoxPauseCommandStatusLog.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxPauseCommandStatusLogActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanelCommandStatusLogOuterLayout = new javax.swing.GroupLayout(jPanelCommandStatusLogOuter);
+        jPanelCommandStatusLogOuter.setLayout(jPanelCommandStatusLogOuterLayout);
+        jPanelCommandStatusLogOuterLayout.setHorizontalGroup(
+            jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 669, Short.MAX_VALUE)
+                    .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
+                        .addComponent(jCheckBoxPauseCommandStatusLog)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanelCommandStatusLogOuterLayout.setVerticalGroup(
+            jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelCommandStatusLogOuterLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jCheckBoxPauseCommandStatusLog)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 547, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jTabbedPaneLeftUpper.addTab("Command Status Log", jPanelCommandStatusLogOuter);
 
         jPanelConnectionTab.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
@@ -3753,7 +3826,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3771,11 +3844,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 124, Short.MAX_VALUE)
+            .addGap(0, 129, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 231, Short.MAX_VALUE)
+            .addGap(0, 232, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout jPanelOverheadProgramPlotLayout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot);
@@ -3805,7 +3878,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         );
         programPlotterJPanelSideLayout.setVerticalGroup(
             programPlotterJPanelSideLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 232, Short.MAX_VALUE)
+            .addGap(0, 233, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout jPanelOverheadProgramPlot1Layout = new javax.swing.GroupLayout(jPanelOverheadProgramPlot1);
@@ -3888,7 +3961,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .addComponent(jTabbedPaneRightUpper)
                     .addComponent(jTabbedPaneLeftUpper))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 48, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -4487,7 +4560,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.setDebugConnectDisconnect(enableDebugConnect);
     }
 
-    
     private void setPoseDisplayModelRpy(JTable table, boolean editable) {
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -4588,6 +4660,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jComboBoxMoveToPoseDisplayModeActionPerformed
 
+    private boolean pauseCommandStatusLog = true;
+    private void jCheckBoxPauseCommandStatusLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxPauseCommandStatusLogActionPerformed
+        pauseCommandStatusLog = jCheckBoxPauseCommandStatusLog.isSelected();
+    }//GEN-LAST:event_jCheckBoxPauseCommandStatusLogActionPerformed
+
     private void updateDisplayMode(JTable table, PoseDisplayMode displayMode, boolean editable) {
         switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
@@ -4604,6 +4681,97 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    private static final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+
+    public static String getTimeString(long ms) {
+        Date date = new Date(ms);
+        return timeFormat.format(date);
+    }
+
+    
+
+    public static void autoResizeTableColWidths(JTable table) {
+
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        int fullsize = 0;
+        Container parent = table.getParent();
+        if (null != parent) {
+            fullsize = Math.max(parent.getPreferredSize().width, parent.getSize().width);
+        }
+        int sumWidths = 0;
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            DefaultTableColumnModel colModel = (DefaultTableColumnModel) table.getColumnModel();
+            TableColumn col = colModel.getColumn(i);
+            int width = 0;
+
+            TableCellRenderer renderer = col.getHeaderRenderer();
+            if (renderer == null) {
+                renderer = table.getTableHeader().getDefaultRenderer();
+            }
+            Component headerComp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(),
+                    false, false, 0, i);
+            width = Math.max(width, headerComp.getPreferredSize().width);
+            for (int r = 0; r < table.getRowCount(); r++) {
+                renderer = table.getCellRenderer(r, i);
+                Component comp = renderer.getTableCellRendererComponent(table, table.getValueAt(r, i),
+                        false, false, r, i);
+                width = Math.max(width, comp.getPreferredSize().width);
+            }
+            if (i == table.getColumnCount() - 1) {
+                if (width < fullsize - sumWidths) {
+                    width = fullsize - sumWidths;
+                }
+            }
+            col.setPreferredWidth(width + 2);
+            sumWidths += width + 2;
+        }
+    }
+
+    
+
+    
+    
+    public void printCommandStatusLog() {
+        internal.printCommandStatusLog(System.out);
+    }
+
+    public void printCommandStatusLog(PrintStream ps) {
+        internal.printCommandStatusLog(ps);
+    }
+    
+    public String commandStatusLogToString() {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        internal.printCommandStatusLog(pw);
+        return sw.toString();
+    }
+    
+    public Object[] logElementToArray(CommandStatusLogElement el) {
+        return internal.logElementToArray(el);
+    }
+    
+    @Override
+    public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
+        if (!pauseCommandStatusLog && !log.isEmpty()) {
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                if (!log.isEmpty() && !jCheckBoxPauseCommandStatusLog.isSelected()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) jTableCommandStatusLog.getModel();
+                    while (!log.isEmpty()) {
+                        while (tableModel.getRowCount() > 100) {
+                            tableModel.removeRow(0);
+                        }
+                        CommandStatusLogElement el = log.pollFirst();
+                        Object []data = logElementToArray(el);
+                        if(null != data) {
+                            tableModel.addRow(data);
+                        }
+                    }
+                    autoResizeTableColWidths(jTableCommandStatusLog);
+                }
+            });
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAddProgramItem;
@@ -4627,6 +4795,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JButton jButtonStepBack;
     private javax.swing.JButton jButtonStepFwd;
     private javax.swing.JCheckBox jCheckBoxMonitorHoldingOutput;
+    private javax.swing.JCheckBox jCheckBoxPauseCommandStatusLog;
     private javax.swing.JCheckBox jCheckBoxPoll;
     private javax.swing.JCheckBox jCheckBoxStraight;
     private javax.swing.JComboBox jComboBox1;
@@ -4658,6 +4827,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JLabel jLabelJogMinus1;
     private javax.swing.JLabel jLabelJogPlus;
     private javax.swing.JLabel jLabelJogPlus1;
+    private javax.swing.JPanel jPanelCommandStatusLogOuter;
     private javax.swing.JPanel jPanelConnectionTab;
     private javax.swing.JPanel jPanelJogMinus;
     private javax.swing.JPanel jPanelJogMinus1;
@@ -4676,9 +4846,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JScrollPane jScrollPaneProgram;
     private javax.swing.JTabbedPane jTabbedPaneLeftUpper;
     private javax.swing.JTabbedPane jTabbedPaneRightUpper;
+    private javax.swing.JTable jTableCommandStatusLog;
     private javax.swing.JTable jTableJoints;
     private javax.swing.JTable jTableMoveToPose;
     private javax.swing.JTable jTablePose;

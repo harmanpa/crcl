@@ -27,6 +27,7 @@ import crcl.base.PoseType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import java.io.File;
+import java.util.Deque;
 import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBException;
 
@@ -95,5 +96,7 @@ public interface PendantClientOuter {
     public void loadProperties();
     
     public void saveProperties();
+    
+    public void updateCommandStatusLog(Deque<CommandStatusLogElement> log);
     
 }
