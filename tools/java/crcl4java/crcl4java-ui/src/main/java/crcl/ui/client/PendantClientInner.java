@@ -110,6 +110,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -129,6 +130,8 @@ import java.util.stream.Stream;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
@@ -812,7 +815,7 @@ public class PendantClientInner {
             if (!(cmd instanceof GetStatusType)) {
                 commandStatusLog.add(new CommandLogElement(cmd, System.currentTimeMillis()));
             }
-            while (commandStatusLog.size() > 100) {
+            while (commandStatusLog.size() > maxLogSize) {
                 commandStatusLog.pollFirst();
             }
             crclSocket.writeCommand(cmdInstance, menuOuter().validateXmlSelected());
@@ -1377,7 +1380,7 @@ public class PendantClientInner {
         }
         return CRCLPosemath.diffPoints(lastMoveToCmdPoint, pt);
     }
-    
+
     public Object[] logElementToArray(CommandStatusLogElement el) {
         if (null == el) {
             return null;
@@ -1432,31 +1435,81 @@ public class PendantClientInner {
             throw new IllegalStateException("log contains " + el);
         }
     }
-    public void printCommandStatusLog() {
-        printCommandStatusLog(System.out);
+
+    public void printCommandStatusLog() throws IOException {
+        printCommandStatusLog(System.out,false);
     }
 
-    public void printCommandStatusLog(PrintStream ps) {
-        for (CommandStatusLogElement el : commandStatusLog) {
-            ps.println(Arrays.toString(logElementToArray(el)));
+    private volatile Appendable lastPrintCommandStatusAppendable = null;
+
+    public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
+        CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
+        if (!Objects.equals(lastPrintCommandStatusAppendable, appendable)) {
+            printer.printRecord(new String[]{
+                "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "Text"
+            });
+            lastPrintCommandStatusAppendable = appendable;
+        }
+        printCommandStatusLog(appendable, clearLog);
+    }
+
+    public void printCommandStatusLogNoHeader(Appendable appendable, boolean clearLog) throws IOException {
+        CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
+        if (clearLog) {
+            CommandStatusLogElement el = commandStatusLog.pollFirst();
+            while (el != null) {
+                printer.printRecord(logElementToArray(el));
+                el = commandStatusLog.pollFirst();
+            }
+        } else {
+            for (CommandStatusLogElement el : commandStatusLog) {
+                printer.printRecord(logElementToArray(el));
+//            pw.println(Arrays.toString(logElementToArray(el)));
+            }
+        }
+
+    }
+
+    public void printCommandStatusLogNoHeader(File f, boolean append, boolean clearLog) throws IOException {
+        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+            if (clearLog) {
+                CommandStatusLogElement el = commandStatusLog.pollFirst();
+                while (el != null) {
+                    printer.printRecord(logElementToArray(el));
+                    el = commandStatusLog.pollFirst();
+                }
+            } else {
+                for (CommandStatusLogElement el : commandStatusLog) {
+                    printer.printRecord(logElementToArray(el));
+//            pw.println(Arrays.toString(logElementToArray(el)));
+                }
+            }
         }
     }
 
-    public void printCommandStatusLog(PrintWriter pw) {
-        for (CommandStatusLogElement el : commandStatusLog) {
-            pw.println(Arrays.toString(logElementToArray(el)));
-        }
-    }
-    
     public String commandStatusLogToString() {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        printCommandStatusLog(pw);
+        try {
+            printCommandStatusLog(pw,false);
+        } catch (IOException ex) {
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return sw.toString();
     }
-    
+
     private final ConcurrentLinkedDeque<CommandStatusLogElement> commandStatusLog
             = new ConcurrentLinkedDeque<>();
+
+    private volatile int maxLogSize = 200;
+
+    public int getMaxLogSize() {
+        return maxLogSize;
+    }
+
+    public void setMaxLogSize(int maxLogSize) {
+        this.maxLogSize = maxLogSize;
+    }
 
     public void readStatus() {
         try {
@@ -1471,7 +1524,7 @@ public class PendantClientInner {
             final CRCLStatusType curStatus
                     = crclSocket.readStatus(menuOuter().validateXmlSelected());
             commandStatusLog.add(new StatusLogElement(curStatus, System.currentTimeMillis()));
-            while (commandStatusLog.size() > 100) {
+            while (commandStatusLog.size() > maxLogSize) {
                 commandStatusLog.pollFirst();
             }
             outer.updateCommandStatusLog(commandStatusLog);

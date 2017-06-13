@@ -196,7 +196,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         Future<?> f = es.submit(() -> {
             try {
                 String tname = Thread.currentThread().getName();
-                Thread.currentThread().setName(name);
+                Thread.currentThread().setName("XFuture_"+name);
                 r.run();
                 Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
@@ -231,9 +231,22 @@ public class XFuture<T> extends CompletableFuture<T> {
         return supplyAsync(name, c, getDefaultThreadPool());
     }
 
+    private static void setTName(String name) {
+        if(Thread.currentThread().getName().startsWith("XFuture")) {
+            Thread.currentThread().setName("XFuture_"+name);
+        }
+    }
+    
+    private static <FR,FT> Function<FR,FT> fname(Function<FR,FT> fn, String name) {
+        return fn.compose(x -> {
+           setTName(name);
+           return x;
+        });
+    }
+    
     @Override
     public <U> XFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn) {
-        return this.thenCompose(name + ".thenCompose", fn);
+        return this.thenCompose(name + ".thenCompose",fn);
     }
 
     public boolean complete(T value) {
@@ -245,7 +258,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
 
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApply(fn)
+        CompletableFuture<U> f = super.thenApply(fname(fn,name))
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);
@@ -267,7 +280,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApplyAsync(fn, executor)
+        CompletableFuture<U> f = super.thenApplyAsync(fname(fn,name), executor)
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);
@@ -289,7 +302,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApplyAsync(fn, getDefaultThreadPool())
+        CompletableFuture<U> f = super.thenApplyAsync(fname(fn,name), getDefaultThreadPool())
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);

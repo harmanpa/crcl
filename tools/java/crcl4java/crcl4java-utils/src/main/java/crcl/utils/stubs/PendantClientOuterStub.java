@@ -293,7 +293,10 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
-        System.out.println("log = " + log);
+        CommandStatusLogElement el;
+        while(null != (el = log.pollFirst()))  {
+            System.out.println(el.toString());
+        }
     }
 
 }
