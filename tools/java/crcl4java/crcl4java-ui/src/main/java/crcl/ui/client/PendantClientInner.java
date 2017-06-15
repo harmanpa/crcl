@@ -3186,7 +3186,7 @@ public class PendantClientInner {
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         final long timeout = getTimeout(cmd);
 
-        long testCommandStartTime = System.currentTimeMillis();
+        final long testCommandStartTime = System.currentTimeMillis();
         final String cmdString = cmdString(cmd);
         long sendCommandTime = testCommandStartTime;
         long curTime = testCommandStartTime;
@@ -3195,6 +3195,7 @@ public class PendantClientInner {
         final int startingConnectCount = connectCount.get();
         final int startingDisconnectCount = disconnectCount.get();
         int pause_count_start = this.pause_count.get();
+        final int orig_pause_count_start = pause_count_start;
         do {
             if (pause_count_start != this.pause_count.get()) {
                 do {
@@ -3236,6 +3237,7 @@ public class PendantClientInner {
                 showMessage("testCommand can not get starting status");
                 return false;
             }
+            sendCommandTime = System.currentTimeMillis();
             if (!incAndSendCommand(cmd)) {
                 if (pause_count_start != this.pause_count.get()) {
                     continue;
@@ -3345,7 +3347,7 @@ public class PendantClientInner {
             }
         } while (pause_count_start != this.pause_count.get());
 
-        boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
+        boolean effectOk = testCommandEffect(cmd, sendCommandTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
             String lastCmdString = commandToSimpleString(lastCommandSent);
