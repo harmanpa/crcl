@@ -1266,12 +1266,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1279,21 +1279,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1437,7 +1437,7 @@ public class PendantClientInner {
     }
 
     public void printCommandStatusLog() throws IOException {
-        printCommandStatusLog(System.out,false);
+        printCommandStatusLog(System.out, false);
     }
 
     private volatile Appendable lastPrintCommandStatusAppendable = null;
@@ -1450,7 +1450,7 @@ public class PendantClientInner {
             });
             lastPrintCommandStatusAppendable = appendable;
         }
-        printCommandStatusLog(appendable, clearLog);
+        printCommandStatusLogNoHeader(appendable, clearLog);
     }
 
     public void printCommandStatusLogNoHeader(Appendable appendable, boolean clearLog) throws IOException {
@@ -1491,7 +1491,7 @@ public class PendantClientInner {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         try {
-            printCommandStatusLog(pw,false);
+            printCommandStatusLog(pw, false);
         } catch (IOException ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -2404,10 +2404,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -2549,26 +2549,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             cmdId = cmdId + 1;
             setTransSpeed.setCommandID(cmdId);
@@ -3244,7 +3244,31 @@ public class PendantClientInner {
                 return false;
             }
             if (cmd.getCommandID() == testCommandStartStatus.getCommandStatus().getCommandID()) {
-                System.err.println("Id of command to send already matches status id. cmd=" + CRCLSocket.cmdToString(cmd));
+                String commandLogString = commandStatusLogToString();
+                System.err.println("commandLogString = " + commandLogString);
+                String lastCmdString = commandToSimpleString(lastCommandSent);
+                String intString = this.createInterrupStackString();
+                String messageString
+                        = "Id of command to send already matches status id. cmd=" + CRCLSocket.cmdToString(cmd) + NEW_LINE
+                        + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
+                        + "cmd=" + cmdString + "." + NEW_LINE
+                        + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
+                        + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
+                        + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
+                        + "sendCommandTime=" + sendCommandTime + NEW_LINE
+                        + "curTime = " + curTime + NEW_LINE
+                        + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
+                        + "timeout=" + timeout + NEW_LINE
+                        + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
+                        + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
+                        + ((status == null || status.getCommandStatus() == null)
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        + "intString=" + intString + NEW_LINE
+                        + "commandLogString = " + commandLogString + NEW_LINE;
+                System.out.println(messageString);
+                showErrorMessage(messageString);
             }
             sendCommandTime = System.currentTimeMillis();
             WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start);
@@ -3300,9 +3324,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -3324,8 +3348,12 @@ public class PendantClientInner {
         boolean effectOk = testCommandEffect(cmd, testCommandStartTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
+            String lastCmdString = commandToSimpleString(lastCommandSent);
+            String commandLogString = commandStatusLogToString();
+            System.err.println("commandLogString = " + commandLogString);
             String messageString = cmd.getClass().getName() + " testCommandEffect failed " + NEW_LINE
                     + "cmd=" + cmdString + "." + NEW_LINE
+                    + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
                     + "effectFailedMessage=" + effectFailedMessage + "." + NEW_LINE
                     + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(testCommandStartStatus, false) + "." + NEW_LINE
                     + "current status=" + getTempCRCLSocket().statusToString(status, false) + "." + NEW_LINE
@@ -3336,10 +3364,11 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
-                    + "intString=" + intString + NEW_LINE;
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                    + "intString=" + intString + NEW_LINE
+                    + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
             showErrorMessage(messageString);
         }
