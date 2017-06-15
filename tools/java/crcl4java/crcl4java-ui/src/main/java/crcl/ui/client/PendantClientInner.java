@@ -3243,7 +3243,7 @@ public class PendantClientInner {
                 showMessage("Can not send " + cmdString + ".");
                 return false;
             }
-            if (cmd.getCommandID() == testCommandStartStatus.getCommandStatus().getCommandID()) {
+            if (cmd.getCommandID() == testCommandStartStatus.getCommandStatus().getCommandID() && cmd.getCommandID() > 1) {
                 String commandLogString = commandStatusLogToString();
                 System.err.println("commandLogString = " + commandLogString);
                 String lastCmdString = commandToSimpleString(lastCommandSent);
