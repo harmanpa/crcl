@@ -108,6 +108,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -811,14 +812,25 @@ public class PendantClientInner {
                     cmdInstance.setProgramLength(outgoingProgramLength);
                 }
             }
-            long id = cmd.getCommandID();
+            final long id = cmd.getCommandID();
             if (!(cmd instanceof GetStatusType)) {
-                commandStatusLog.add(new CommandLogElement(cmd, System.currentTimeMillis()));
+                if (cmd instanceof MoveToType) {
+                    lastMoveToCmdPoint = CRCLPosemath.copy(((MoveToType) cmd).getEndPosition().getPoint());
+                }
+                CommandLogElement cmdLogEl = new CommandLogElement(cmd, System.currentTimeMillis());
+                lastCommandStatusLogElement = cmdLogEl;
+                commandStatusLog.add(cmdLogEl);
             }
             while (commandStatusLog.size() > maxLogSize) {
                 commandStatusLog.pollFirst();
             }
             crclSocket.writeCommand(cmdInstance, menuOuter().validateXmlSelected());
+            if (id != cmd.getCommandID()) {
+                throw new IllegalStateException("id(" + id + ") != cmd.getCommandID() " + cmd.getCommandID());
+            }
+            if (id != cmdInstance.getCRCLCommand().getCommandID()) {
+                throw new IllegalStateException("id(" + id + ") != cmdInstance.getCRCLCommand().getCommandID() " + cmdInstance.getCRCLCommand().getCommandID());
+            }
             lastCommandIdSent = id;
             return true;
         } catch (Exception ex) {
@@ -1266,12 +1278,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                .stream()
-                .map((x) -> x.getStatus())
-                .filter((x) -> x != null)
-                .map((x) -> x.getJointStatuses())
-                .filter((x) -> x != null)
-                .collect(Collectors.toList());
+                        .stream()
+                        .map((x) -> x.getStatus())
+                        .filter((x) -> x != null)
+                        .map((x) -> x.getJointStatuses())
+                        .filter((x) -> x != null)
+                        .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1279,21 +1291,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                .map((x) -> x.getJointStatus())
-                .map((x) -> x.stream().findAny())
-                .orElse(Optional.empty());
+                        .map((x) -> x.getJointStatus())
+                        .map((x) -> x.stream().findAny())
+                        .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                .map((x) -> x.getJointPosition() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointPosition() != null)
+                        .orElse(false);
         final boolean haveVel
                 = exampleJs
-                .map((x) -> x.getJointVelocity() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointVelocity() != null)
+                        .orElse(false);
         final boolean haveForce
                 = exampleJs
-                .map((x) -> x.getJointTorqueOrForce() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointTorqueOrForce() != null)
+                        .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1368,17 +1380,30 @@ public class PendantClientInner {
     private int holdingErrorRepCount = 0;
 
     private volatile long lastLogCmdTime = System.currentTimeMillis();
-    private volatile PointType lastMoveToCmdPoint = null;
+    private volatile PointType lastLogMoveToCmdPoint = null;
 
-    private Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
-        if (null == lastMoveToCmdPoint) {
+    private Double distFromLastLogMoveToCmdPoint(CRCLStatusType status) {
+        if (null == lastLogMoveToCmdPoint) {
             return null;
         }
         PointType pt = CRCLPosemath.getPoint(status);
         if (null == pt) {
             return null;
         }
-        return CRCLPosemath.diffPoints(lastMoveToCmdPoint, pt);
+        return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, pt);
+    }
+
+    private volatile PointType lastMoveToCmdPoint = null;
+
+    private Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
+        if (null == lastLogMoveToCmdPoint) {
+            return null;
+        }
+        PointType pt = CRCLPosemath.getPoint(status);
+        if (null == pt) {
+            return null;
+        }
+        return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, pt);
     }
 
     public Object[] logElementToArray(CommandStatusLogElement el) {
@@ -1394,7 +1419,7 @@ public class PendantClientInner {
             lastLogCmdTime = cel.getTime();
             if (cmd instanceof MoveToType) {
                 MoveToType moveTo = (MoveToType) cmd;
-                lastMoveToCmdPoint = moveTo.getEndPosition().getPoint();
+                lastLogMoveToCmdPoint = moveTo.getEndPosition().getPoint();
                 return new Object[]{
                     getTimeString(cel.getTime()),
                     true,
@@ -1426,7 +1451,7 @@ public class PendantClientInner {
                 false,
                 sel.getTime() - lastLogCmdTime,
                 sel.getId(),
-                distFromLastMoveToCmdPoint(status),
+                distFromLastLogMoveToCmdPoint(status),
                 status.getCommandStatus().getCommandState(),
                 sel.getTime(),
                 status.getCommandStatus().getStateDescription()
@@ -1523,10 +1548,7 @@ public class PendantClientInner {
             }
             final CRCLStatusType curStatus
                     = crclSocket.readStatus(menuOuter().validateXmlSelected());
-            commandStatusLog.add(new StatusLogElement(curStatus, System.currentTimeMillis()));
-            while (commandStatusLog.size() > maxLogSize) {
-                commandStatusLog.pollFirst();
-            }
+            addStatusToCommandStatusLog(curStatus);
             outer.updateCommandStatusLog(commandStatusLog);
             if (menuOuter().isDebugReadStatusSelected()) {
                 //outer.showDebugMessage("curStatus = "+curStatus);
@@ -1617,6 +1639,48 @@ public class PendantClientInner {
                 }
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+        }
+    }
+
+    private volatile CommandStatusLogElement lastCommandStatusLogElement = null;
+
+    private CommandStatusLogElement getLastCommandStatusLogElement() {
+        CommandStatusLogElement lastEl = commandStatusLog.peekLast();
+        if (lastEl == null) {
+            return lastCommandStatusLogElement;
+        }
+        lastCommandStatusLogElement = lastEl;
+        return lastEl;
+    }
+
+    public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
+        CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
+        if (lastEl != null
+                && lastEl.getId() == curStatus.getCommandStatus().getCommandID()
+                && (lastEl instanceof StatusLogElement)
+                && System.currentTimeMillis() - lastEl.getTime() < 2000) {
+            StatusLogElement statLastEl = (StatusLogElement) lastEl;
+            if (statLastEl.getStatus().getCommandStatus().getCommandState() == curStatus.getCommandStatus().getCommandState()
+                    && Objects.equals(statLastEl.getStatus().getCommandStatus().getStateDescription(),
+                            curStatus.getCommandStatus().getStateDescription())) {
+                Double curDist = distFromLastMoveToCmdPoint(curStatus);
+                Double lastDist = distFromLastMoveToCmdPoint(statLastEl.getStatus());
+                if (curDist == null && lastDist == null) {
+                    // skipping add to status log of almost identical status
+                    return;
+                }
+
+                if (curDist != null && lastDist != null && Math.abs(curDist - lastDist) < 0.01) {
+                    // skipping add to status log of almost identical status
+                    return;
+                }
+            }
+        }
+        StatusLogElement statEl = new StatusLogElement(curStatus, System.currentTimeMillis());
+        lastCommandStatusLogElement = statEl;
+        commandStatusLog.add(statEl);
+        while (commandStatusLog.size() > maxLogSize) {
+            commandStatusLog.pollFirst();
         }
     }
 
@@ -2404,10 +2468,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                .map(CRCLPosemath::getPoint)
-                .filter(x -> x != null)
-                .map(CRCLPosemath::toPmCartesian)
-                .orElse(new PmCartesian());
+                        .map(CRCLPosemath::getPoint)
+                        .filter(x -> x != null)
+                        .map(CRCLPosemath::toPmCartesian)
+                        .orElse(new PmCartesian());
         return p0;
     }
 
@@ -2549,26 +2613,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointPosIncrement"))
-                    .map(Double::parseDouble)
-                    .orElse(jogIncrement);
+                            .map(m -> m.get("jointPosIncrement"))
+                            .map(Double::parseDouble)
+                            .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveSpeed"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveSpeed"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveAccel"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveAccel"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("xyzAxisIncrement"))
-                    .map(Double::valueOf)
-                    .orElse(this.getXyzJogIncrement());
+                            .map(m -> m.get("xyzAxisIncrement"))
+                            .map(Double::valueOf)
+                            .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             cmdId = cmdId + 1;
             setTransSpeed.setCommandID(cmdId);
@@ -3135,16 +3199,21 @@ public class PendantClientInner {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < this.interruptStacks.size(); i++) {
             StackTraceElement[] stack = interruptStacks.get(i);
+            sb.append(NEW_LINE);
             sb.append("stack ");
             sb.append(i);
             sb.append(":");
             sb.append(NEW_LINE);
+            sb.append(NEW_LINE);
+            sb.append("java.lang.Exception: Stack trace");
+            sb.append(NEW_LINE);
             for (StackTraceElement el : stack) {
-                sb.append(el.toString());
+                sb.append("\tat " + el.toString());
                 sb.append(NEW_LINE);
             }
         }
         interruptStacks.clear();
+        java.util.Collections.unmodifiableCollection(poseList);
         return sb.toString();
     }
 
@@ -3264,9 +3333,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -3326,9 +3395,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -3366,9 +3435,9 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                            ? "status.getCommandStatus()=null\n"
-                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                    ? "status.getCommandStatus()=null\n"
+                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
