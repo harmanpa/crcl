@@ -1654,15 +1654,21 @@ public class PendantClientInner {
     }
 
     public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
+        long curTime = System.currentTimeMillis();
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
         if (lastEl != null
                 && lastEl.getId() == curStatus.getCommandStatus().getCommandID()
                 && (lastEl instanceof StatusLogElement)
-                && System.currentTimeMillis() - lastEl.getTime() < 2000) {
+                && curTime - lastEl.getTime() < 200000) {
             StatusLogElement statLastEl = (StatusLogElement) lastEl;
-            if (statLastEl.getStatus().getCommandStatus().getCommandState() == curStatus.getCommandStatus().getCommandState()
-                    && Objects.equals(statLastEl.getStatus().getCommandStatus().getStateDescription(),
-                            curStatus.getCommandStatus().getStateDescription())) {
+            CommandStatusType curCmdStatus = curStatus.getCommandStatus();
+            CommandStateEnumType curState =  curCmdStatus.getCommandState();
+            CommandStatusType lastCmdStatus = statLastEl.getStatus().getCommandStatus();
+            CommandStateEnumType lastState =  lastCmdStatus.getCommandState();
+            
+            if (curState == lastState
+                    && Objects.equals(curCmdStatus.getStateDescription(),
+                            lastCmdStatus.getStateDescription())) {
                 Double curDist = distFromLastMoveToCmdPoint(curStatus);
                 Double lastDist = distFromLastMoveToCmdPoint(statLastEl.getStatus());
                 if (curDist == null && lastDist == null) {

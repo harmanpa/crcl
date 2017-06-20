@@ -25,6 +25,7 @@ package crcl.ui.client;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.base.CRCLStatusType;
 import crcl.utils.CRCLException;
+import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 
 /**
@@ -35,7 +36,7 @@ public class StatusLogElement extends CommandStatusLogElement {
     
     public StatusLogElement(CRCLStatusType status, long time) {
         super(status.getCommandStatus().getCommandID(), time);
-        this.status = status;
+        this.status = CRCLPosemath.copy(status);
     }
     final CRCLStatusType status;
 
@@ -49,7 +50,7 @@ public class StatusLogElement extends CommandStatusLogElement {
     }
 
     public String toString() {
-        return " ["+getTime()+","+status.getCommandStatus().getCommandState()+","+status.getCommandStatus().getCommandID()+"] ";
+        return " ["+getTime()+","+status.getCommandStatus().getCommandState()+","+status.getCommandStatus().getCommandID()+","+status.getCommandStatus().getStateDescription()+"] ";
     }
     
 }
