@@ -50,7 +50,7 @@ public class StatusLogElement extends CommandStatusLogElement {
     }
 
     public String toString() {
-        return " ["+getTime()+","+status.getCommandStatus().getCommandState()+","+status.getCommandStatus().getCommandID()+","+status.getCommandStatus().getStateDescription()+"] ";
+        return " ["+getTimeString()+","+status.getCommandStatus().getCommandState()+","+status.getCommandStatus().getCommandID()+","+status.getCommandStatus().getStateDescription()+"] ";
     }
     
 }

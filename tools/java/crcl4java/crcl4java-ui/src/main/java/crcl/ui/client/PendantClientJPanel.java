@@ -1163,7 +1163,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        });
 //        pollTimer.start();
         this.stopPollTimer();
-        pollingThread = new Thread(this::pollStatus, "PendantClient.pollStatus");
+        pollingThread = new Thread(this::pollStatus, "PendantClient.pollStatus.socket="+internal.getCRCLSocket());
         pollingThread.start();
     }
 

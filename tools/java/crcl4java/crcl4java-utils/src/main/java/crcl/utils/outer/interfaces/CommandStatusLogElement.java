@@ -22,6 +22,10 @@
  */
 package crcl.utils.outer.interfaces;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -53,10 +57,18 @@ public abstract class CommandStatusLogElement {
     public long getTime() {
         return time;
     }
+    
+    private static final DateFormat timeFormat = new SimpleDateFormat("HHmmss.SSS");
+    
+    public  String getTimeString() {
+        Date date = new Date(time);
+        return timeFormat.format(date);
+    }
 
+    
     @Override
     public String toString() {
-        return "CommandStatusLogElement{" + "id=" + id + ", time=" + time + '}';
+        return "CommandStatusLogElement{" + "id=" + id + ", time=" + getTimeString() + '}';
     }
 
 }

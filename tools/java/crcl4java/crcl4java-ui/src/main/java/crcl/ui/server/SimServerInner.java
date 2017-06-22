@@ -1751,7 +1751,7 @@ public class SimServerInner {
                     System.err.println("More than one simultaneous client : "+clientStates);
                 }
                 Thread t = new Thread(() -> readCommandsRepeatedly(state),
-                        "SimServer.client" + s.getInetAddress().toString() + ":" + s.getPort()+"="+ssock
+                        "SimServer.client=" + cs+".ssock="+ssock
                 );
                 clientThreadMap.put(cs, t);
                 t.start();
@@ -2369,7 +2369,7 @@ public class SimServerInner {
             }
             ssock.setReuseAddress(true);
             acceptClientsThread = new Thread(this::runAcceptClients,
-                    "acceptClientsThread");
+                    "SimServerInner.acceptClientsThread.sssock="+ssock);
             acceptClientsThread.setDaemon(true);
             acceptClientsThread.start();
             final int start_close_count = this.close_count;
@@ -2430,7 +2430,7 @@ public class SimServerInner {
                         Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            }, "simThread");
+            }, "simThread.ssock="+ssock);
             simThread.setDaemon(true);
             simThread.start();
             SimServerInner.runningServers.add(this);
