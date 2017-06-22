@@ -20,6 +20,7 @@
  */
 package crcl.utils;
 
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStatusType;
@@ -636,6 +637,16 @@ public class CRCLPosemath {
         return transformProgramWithFilter(pose, programIn, null);
     }
 
+//    private static String createAssertErrorString(CRCLCommandType cmd, long id) {
+//        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+//    }
+
+    private static void setCommandId(CRCLCommandType cmd, long id) {
+//        assert cmd.getCommandID() <= id :
+//                createAssertErrorString(cmd,id);
+        cmd.setCommandID(id);
+    }
+    
     public static CRCLProgramType transformProgramWithFilter(PoseType pose,
             CRCLProgramType programIn,
             /*@Nullable*/ PoseFilter filter) {
@@ -644,7 +655,7 @@ public class CRCLPosemath {
         InitCanonType initCmdIn = programIn.getInitCanon();
         long id = 1;
         if (null != initCmdIn) {
-            initCmdOut.setCommandID(initCmdIn.getCommandID());
+            setCommandId(initCmdOut,initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
@@ -652,7 +663,7 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                setCommandId(moveToCmdOut,moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
                     moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 } else {
@@ -668,7 +679,7 @@ public class CRCLPosemath {
         EndCanonType endCmdOut = new EndCanonType();
         EndCanonType endCmdIn = programIn.getEndCanon();
         if (null != endCmdIn) {
-            endCmdOut.setCommandID(endCmdIn.getCommandID());
+            setCommandId(endCmdOut, endCmdIn.getCommandID());
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;
@@ -680,7 +691,7 @@ public class CRCLPosemath {
         InitCanonType initCmdIn = programIn.getInitCanon();
         long id = 1;
         if (null != initCmdIn) {
-            initCmdOut.setCommandID(initCmdIn.getCommandID());
+            setCommandId(initCmdOut,initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
@@ -689,7 +700,7 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                setCommandId(moveToCmdOut,moveToCmdIn.getCommandID());
                 moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
@@ -701,7 +712,7 @@ public class CRCLPosemath {
         EndCanonType endCmdOut = new EndCanonType();
         EndCanonType endCmdIn = programIn.getEndCanon();
         if (null != endCmdIn) {
-            endCmdOut.setCommandID(endCmdIn.getCommandID());
+            setCommandId(endCmdOut, endCmdIn.getCommandID());
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;

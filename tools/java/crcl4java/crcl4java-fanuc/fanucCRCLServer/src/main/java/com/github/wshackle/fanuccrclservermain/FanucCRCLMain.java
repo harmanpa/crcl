@@ -700,7 +700,7 @@ public class FanucCRCLMain {
                     }
                 }
                 status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
-                
+
                 if (status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                     lastCheckAtPosition = false;
                 }
@@ -802,48 +802,48 @@ public class FanucCRCLMain {
 //                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
 //                                            System.out.println("rotDist = " + rotDist);
 //                                            System.out.println("dist = " + dist);
-double distTransFromStart = distTransFrom(moveToStartPosition);
+                                    double distTransFromStart = distTransFrom(moveToStartPosition);
 //                                            System.out.println("distFromStart = " + distTransFromStart);
-double distRotFromStart = distRotFrom(moveToStartPosition);
+                                    double distRotFromStart = distRotFrom(moveToStartPosition);
 //                                            System.out.println("distRotFromStart = " + distRotFromStart);
 //                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
-long moveTime = (System.currentTimeMillis() - startMoveTime);
+                                    long moveTime = (System.currentTimeMillis() - startMoveTime);
 //                                            System.out.println("Move took " + moveTime + " ms.");
 //                                            System.out.println("moveChecksDone = " + moveChecksDone);
 //                                                moveLogFilePrintStream.println("current_time_ms,current_time_string,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
-if (keepMoveToLog) {
-    openMoveToLogFile();
-}
-if (null != moveLogFilePrintStream) {
-    String stringToLog
-            = curTime + ","
-            + getDateTimeString() + ","
-            + (curTime - expectedEndMoveToTime) + ","
-            + lastDoneMoveCommandID + ","
-            + moveToStartPosition.getPoint().getX() + ","
-            + moveToStartPosition.getPoint().getY() + ","
-            + moveToStartPosition.getPoint().getZ() + ","
-            + mtPrev.getEndPosition().getPoint().getX() + ","
-            + mtPrev.getEndPosition().getPoint().getY() + ","
-            + mtPrev.getEndPosition().getPoint().getZ() + ","
-            + distTransFromStart + ","
-            + distRotFromStart + ","
-            + moveTime + ","
-            + moveChecksDone + ","
-            + transSpeed + ","
-            + rotSpeed + ","
-            + (distTransFromStart / (1e-3 * moveTime)) + ","
-            + (distRotFromStart / (1e-3 * moveTime)) + ","
-            + timeToWaitForLastMotionProgram + ","
-            + timeToStartMotionProgram + ","
-            + lastMotionProgramRunningCount + ","
-            + "\"" + distances + "\","
-            + "\"" + moveReasons + "\","
-            + "\"" + updateTimes + "\",";
-    moveLogFilePrintStream.println(stringToLog);
-    moveLogFilePrintStream.flush();
-}
-moveChecksDone = 0;
+                                    if (keepMoveToLog) {
+                                        openMoveToLogFile();
+                                    }
+                                    if (null != moveLogFilePrintStream) {
+                                        String stringToLog
+                                                = curTime + ","
+                                                + getDateTimeString() + ","
+                                                + (curTime - expectedEndMoveToTime) + ","
+                                                + lastDoneMoveCommandID + ","
+                                                + moveToStartPosition.getPoint().getX() + ","
+                                                + moveToStartPosition.getPoint().getY() + ","
+                                                + moveToStartPosition.getPoint().getZ() + ","
+                                                + mtPrev.getEndPosition().getPoint().getX() + ","
+                                                + mtPrev.getEndPosition().getPoint().getY() + ","
+                                                + mtPrev.getEndPosition().getPoint().getZ() + ","
+                                                + distTransFromStart + ","
+                                                + distRotFromStart + ","
+                                                + moveTime + ","
+                                                + moveChecksDone + ","
+                                                + transSpeed + ","
+                                                + rotSpeed + ","
+                                                + (distTransFromStart / (1e-3 * moveTime)) + ","
+                                                + (distRotFromStart / (1e-3 * moveTime)) + ","
+                                                + timeToWaitForLastMotionProgram + ","
+                                                + timeToStartMotionProgram + ","
+                                                + lastMotionProgramRunningCount + ","
+                                                + "\"" + distances + "\","
+                                                + "\"" + moveReasons + "\","
+                                                + "\"" + updateTimes + "\",";
+                                        moveLogFilePrintStream.println(stringToLog);
+                                        moveLogFilePrintStream.flush();
+                                    }
+                                    moveChecksDone = 0;
 //start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
 
                                 } catch (Exception ex) {
@@ -894,38 +894,38 @@ moveChecksDone = 0;
 //                                if(diff > 5) {
 //                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
 //                                }
-setCommandState(CommandStateEnumType.CRCL_DONE);
+                        setCommandState(CommandStateEnumType.CRCL_DONE);
                     }
                 } else if (prevCmd instanceof InitCanonType) {
                     long diff = System.currentTimeMillis() - dwellEndTime;
 //                            System.out.println("(prevCmd instanceof InitCanonType) diff = " + diff);
 //                            System.out.println("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
-if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                    if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
 //                                if(diff > 5) {
 //                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
 //                                }
-lastServoReady = true;
+                        lastServoReady = true;
 //                                System.out.println("robotResetCount = " + robotResetCount);
-boolean secondInitSafetyStatError = checkSafetyStatError();
+                        boolean secondInitSafetyStatError = checkSafetyStatError();
 //                                System.out.println("secondInitSafetyStatError = " + secondInitSafetyStatError);
-if (secondInitSafetyStatError) {
-    setCommandState(CommandStateEnumType.CRCL_ERROR);
-} else if (robotResetCount < 3) {
-    boolean secondInitCheckServoReady = checkServoReady();
-    System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
-    if (!secondInitCheckServoReady) {
-        robot.alarms().reset();
-        robot.tasks().abortAll(true);
-        dwellEndTime = System.currentTimeMillis() + 2000;
-        robotResetCount++;
-        setCommandState(CommandStateEnumType.CRCL_WORKING);
-    } else {
-        setCommandState(CommandStateEnumType.CRCL_DONE);
-    }
-} else {
-    setCommandState(CommandStateEnumType.CRCL_DONE);
-}
-}
+                        if (secondInitSafetyStatError) {
+                            setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        } else if (robotResetCount < 3) {
+                            boolean secondInitCheckServoReady = checkServoReady();
+                            System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
+                            if (!secondInitCheckServoReady) {
+                                robot.alarms().reset();
+                                robot.tasks().abortAll(true);
+                                dwellEndTime = System.currentTimeMillis() + 2000;
+                                robotResetCount++;
+                                setCommandState(CommandStateEnumType.CRCL_WORKING);
+                            } else {
+                                setCommandState(CommandStateEnumType.CRCL_DONE);
+                            }
+                        } else {
+                            setCommandState(CommandStateEnumType.CRCL_DONE);
+                        }
+                    }
                 } else if (prevCmd instanceof ActuateJointsType) {
                     posReg97.update();
                     if (posReg97.isAtCurPosition()) {
@@ -949,7 +949,7 @@ if (secondInitSafetyStatError) {
                         }
                         lastMaxJointDiff = maxDiff;
                     }
-                    
+
                 }
             } else {
                 lastCheckAtPosition = false;
@@ -2183,14 +2183,16 @@ if (secondInitSafetyStatError) {
 
     public void startCrclServer() throws IOException {
         stopCrclServer();
-        es = Executors.newWorkStealingPool();
+        es = Executors.newCachedThreadPool(daemonThreadFactory);
         ss = new ServerSocket(localPort);
         crclServerFuture = es.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
+                    Thread.currentThread().setName("FanucCRCL.acceptClients.ss=" + ss);
                     CRCLSocket cs = new CRCLSocket(ss.accept());
                     clients.add(cs);
                     es.submit(() -> {
+                        Thread.currentThread().setName("FanucCRCL.handleClient.cs=" + cs);
                         handleClient(cs);
                     });
                 } catch (IOException ex) {

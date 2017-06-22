@@ -743,6 +743,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.showMessage(string);
     }
 
+    private static String createAssertErrorString(CRCLCommandType cmd, long id) {
+        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+    }
+
+    private void setCommandId(CRCLCommandType cmd, long id) {
+        assert cmd.getCommandID() <= id :
+                createAssertErrorString(cmd,id);
+        cmd.setCommandID(id);
+    }
+    
     public void setIncludeGripperAction() {
         try {
             this.closeGripperSocket();
@@ -758,7 +768,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 public void run() {
                     try {
                         GetStatusType getStatus = new GetStatusType();
-                        getStatus.setCommandID(1);
+                        setCommandId(getStatus,1);
                         CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
                         cmdInstance.setCRCLCommand(getStatus);
                         while (!Thread.currentThread().isInterrupted()) {
@@ -768,7 +778,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             }
                             if (sendGripperStatusRequests) {
                                 Thread.sleep(inner.getDelayMillis());
-                                getStatus.setCommandID(getStatus.getCommandID() + 1);
+                                setCommandId(getStatus,getStatus.getCommandID() + 1);
                                 gripperSocket.writeCommand(cmdInstance, false);
                             }
                             checkMenuOuter();

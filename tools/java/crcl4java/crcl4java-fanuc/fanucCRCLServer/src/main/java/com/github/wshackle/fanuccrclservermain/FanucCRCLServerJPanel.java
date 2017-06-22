@@ -19,6 +19,7 @@ import com.github.wshackle.fanuc.robotserver.IVars;
 import com.github.wshackle.fanuc.robotserver.IXyzWpr;
 import com4j.Com4jObject;
 import com4j.ComException;
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.DwellType;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
@@ -591,15 +593,16 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         public String toString() {
             return "PmXyzWpr{" + "cart=" + cart + ", rpy=" + rpy + '}';
         }
-
     }
 
+    private final AtomicInteger commandId = new AtomicInteger(1);
+    
+   
     public void ConvertProgram(ITPProgram prog) {
         try {
             CRCLProgramType crclProg = new CRCLProgramType();
             InitCanonType initCmd = new InitCanonType();
-            long cmdId = 1;
-            initCmd.setCommandID(cmdId);
+            setCommandId(initCmd);
             crclProg.setInitCanon(initCmd);
             Map<Integer, PmXyzWpr> posMap = new TreeMap<>();
             IRobot2 robot = main.getRobot();
@@ -614,13 +617,12 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                         .ifPresent(p -> posMap.put(pos.id(), p));
             }
             SetLengthUnitsType sluCmd = new SetLengthUnitsType();
-            sluCmd.setCommandID(cmdId);
+            setCommandId(sluCmd);
             sluCmd.setUnitName(LengthUnitEnumType.MILLIMETER);
-            cmdId = cmdId + 1;
             crclProg.getMiddleCommand().add(sluCmd);
             SetEndPoseToleranceType sepCmd = new SetEndPoseToleranceType();
 
-            sepCmd.setCommandID(cmdId);
+            setCommandId(sepCmd);
             PoseToleranceType poseTol = new PoseToleranceType();
             poseTol.setXPointTolerance(0.1);
             poseTol.setYPointTolerance(0.1);
@@ -629,27 +631,18 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             poseTol.setXAxisTolerance(ZERO_POINT_ONE_DEG);
             poseTol.setZAxisTolerance(ZERO_POINT_ONE_DEG);
             sepCmd.setTolerance(poseTol);
-            cmdId = cmdId + 1;
             crclProg.getMiddleCommand().add(sepCmd);
             for (Com4jObject lineObj : prog.lines()) {
                 try {
-                    if (ConvertProgramLine(lineObj, cmdId, crclProg, prog, posMap)) {
+                    if (ConvertProgramLine(lineObj, commandId.incrementAndGet(), crclProg, prog, posMap)) {
                         continue;
                     }
-                    if (crclProg.getMiddleCommand().size() > 0) {
-                        cmdId = crclProg.getMiddleCommand().get(crclProg.getMiddleCommand().size() - 1).getCommandID();
-                    }
-                    cmdId = cmdId + 1;
                 } catch (PmException ex) {
                     Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             EndCanonType end = new EndCanonType();
-            if (crclProg.getMiddleCommand().size() > 0) {
-                cmdId = crclProg.getMiddleCommand().get(crclProg.getMiddleCommand().size() - 1).getCommandID();
-            }
-            cmdId = cmdId + 1;
-            end.setCommandID(cmdId);
+            setCommandId(end);
             crclProg.setEndCanon(end);
             String crclProgText = new CRCLSocket().programToPrettyString(crclProg, true);
             JFileChooser chooser = new JFileChooser();
@@ -663,6 +656,20 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, ex);
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+     private static String createAssertErrorString(CRCLCommandType cmd, long id) {
+        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+    }
+     
+    private void setCommandId(CRCLCommandType cmd, long id) {
+        assert cmd.getCommandID() <= id :
+                createAssertErrorString(cmd,id);
+        cmd.setCommandID(id);
+    }
+    
+    private void setCommandId(CRCLCommandType cmd) {
+        setCommandId(cmd, commandId.incrementAndGet());
     }
 
 //    private IRobot2 robot = null;
@@ -824,13 +831,13 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 if (progToCallName.equalsIgnoreCase("GRIPPER_OPEN") || progToCallName.equalsIgnoreCase("OPEN_GRIPPER")) {
                     SetEndEffectorType seet = new SetEndEffectorType();
                     seet.setSetting(1.0);
-                    seet.setCommandID(cmdId);
+                    setCommandId(seet, cmdId);
                     seet.setName(cmdName);
                     crclProg.getMiddleCommand().add(seet);
                 } else if (progToCallName.equalsIgnoreCase("GRIPPER_CLOSE") || progToCallName.equalsIgnoreCase("CLOSE_GRIPPER")) {
                     SetEndEffectorType seet = new SetEndEffectorType();
                     seet.setSetting(0.0);
-                    seet.setCommandID(cmdId);
+                    setCommandId(seet, cmdId);
                     seet.setName(cmdName);
                     crclProg.getMiddleCommand().add(seet);
                 } else {
@@ -840,7 +847,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 }
             } else if (parts.length > 1 && parts[0].equalsIgnoreCase("WAIT")) {
                 DwellType dwellCmd = new DwellType();
-                dwellCmd.setCommandID(cmdId);
+                setCommandId(dwellCmd, cmdId);
                 String timeString = parts[1];
                 double timeScale = 1.0;
                 if (timeString.endsWith("(sec)")) {
@@ -863,13 +870,13 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                             String spdString = parts[2].substring(0, parts[2].length() - "mm/sec".length()).trim();
                             transSpeed.setSetting(Double.parseDouble(spdString));
                             setSpeedCmd.setTransSpeed(transSpeed);
-                            setSpeedCmd.setCommandID(cmdId);
+                            setCommandId(setSpeedCmd, cmdId);
                             crclProg.getMiddleCommand().add(setSpeedCmd);
                             cmdId = cmdId + 1;
                         }
                         MoveToType mtt = new MoveToType();
                         mtt.setEndPosition(pose);
-                        mtt.setCommandID(cmdId);
+                        setCommandId(mtt, cmdId);
                         mtt.setName(cmdName);
                         crclProg.getMiddleCommand().add(mtt);
                         cmdId = cmdId + 1;

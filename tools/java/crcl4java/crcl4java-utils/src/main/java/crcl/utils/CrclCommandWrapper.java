@@ -22,6 +22,7 @@
  */
 package crcl.utils;
 
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
@@ -108,10 +109,22 @@ public class CrclCommandWrapper extends MessageType {
         this.wrappedCommand = wrappedCommand;
     }
 
+    private static String createAssertErrorString(CRCLCommandType cmd, long id) {
+        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+    }
+
+    private static void setCommandId(CRCLCommandType cmd, long id) {
+        assert cmd.getCommandID() <= id :
+                createAssertErrorString(cmd,id);
+        cmd.setCommandID(id);
+    }
+    
     @Override
-    public void setCommandID(long value) {
-        wrappedCommand.setCommandID(value);
-        this.commandID = wrappedCommand.getCommandID();
+    public void setCommandID(long id) {
+        setCommandId(wrappedCommand, id);
+        assert this.getCommandID() <= id :
+                createAssertErrorString(this,id);
+        this.commandID = id;
     }
 
     @Override

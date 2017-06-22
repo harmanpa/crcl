@@ -120,6 +120,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -452,6 +455,20 @@ public class PendantClientInner {
                 && this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_ERROR;
     }
 
+    private static String createAssertErrorString(CRCLCommandType cmd, long id) {
+        return "command id being reduced id=" + id + ", cmd=" + CRCLSocket.cmdToString(cmd);
+    }
+
+    private void setCommandId(CRCLCommandType cmd, long id) {
+        assert cmd.getCommandID() <= id :
+                createAssertErrorString(cmd, id);
+        cmd.setCommandID(id);
+    }
+
+    private void setCommandId(CRCLCommandType cmd) {
+        setCommandId(cmd, commandId.incrementAndGet());
+    }
+
     public boolean requestStatus() throws JAXBException {
 //        try {
 //            Thread.sleep(100);
@@ -461,10 +478,7 @@ public class PendantClientInner {
         request_status_count++;
         LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
         boolean result = false;
-        getStatusMsg.setCommandID(commandId.get());
-        if (getStatusMsg.getCommandID() <= 1) {
-            getStatusMsg.setCommandID(System.currentTimeMillis());
-        }
+        setCommandId(getStatusMsg, commandId.get());
         result = this.sendCommand(getStatusMsg);
         LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : returning from RequestStatus() " + request_status_count);
         return result;
@@ -825,11 +839,15 @@ public class PendantClientInner {
                 commandStatusLog.pollFirst();
             }
             crclSocket.writeCommand(cmdInstance, menuOuter().validateXmlSelected());
-            if (id != cmd.getCommandID()) {
-                throw new IllegalStateException("id(" + id + ") != cmd.getCommandID() " + cmd.getCommandID());
-            }
-            if (id != cmdInstance.getCRCLCommand().getCommandID()) {
-                throw new IllegalStateException("id(" + id + ") != cmdInstance.getCRCLCommand().getCommandID() " + cmdInstance.getCRCLCommand().getCommandID());
+            if (!(cmd instanceof StopMotionType) && !(cmd instanceof InitCanonType)) {
+                if (id != cmd.getCommandID()) {
+                    printIncCommandInfo(System.err);
+                    throw new IllegalStateException("id(" + id + ") != cmd.getCommandID() " + cmd.getCommandID());
+                }
+                if (id != cmdInstance.getCRCLCommand().getCommandID()) {
+                    printIncCommandInfo(System.err);
+                    throw new IllegalStateException("id(" + id + ") != cmdInstance.getCRCLCommand().getCommandID() " + cmdInstance.getCRCLCommand().getCommandID());
+                }
             }
             lastCommandIdSent = id;
             return true;
@@ -843,10 +861,46 @@ public class PendantClientInner {
         return false;
     }
 
-    private final AtomicLong commandId = new AtomicLong(0);
+    private void printIncCommandInfo(PrintStream ps) {
+        ps.println("secondLastIncCommandThread = " + secondLastIncCommandThread);
+        ps.println("secondLastIncCommandThreadStackTrace = " + Arrays.toString(secondLastIncCommandThreadStackTrace));
+        ps.println("lastIncCommandThreadStackId = " + lastIncCommandThreadStackId);
+        ps.println("lastIncCommandThreadStackTime = " + lastIncCommandThreadStackTime);
+        ps.println("secondLastIncCommandThreadStackTrace = " + Arrays.toString(secondLastIncCommandThreadStackTrace));
+        ps.println("lastIncCommandThread = " + lastIncCommandThread);
+        ps.println("lastIncCommandThreadStackTrace = " + Arrays.toString(lastIncCommandThreadStackTrace));
+    }
+
+    private final AtomicLong commandId = new AtomicLong(3);
+
+    private volatile Thread lastIncCommandThread = null;
+    private volatile StackTraceElement lastIncCommandThreadStackTrace[] = null;
+    private volatile long lastIncCommandThreadStackId;
+    private volatile long lastIncCommandThreadStackTime;
+    private volatile Thread secondLastIncCommandThread = null;
+    private volatile StackTraceElement secondLastIncCommandThreadStackTrace[] = null;
+    private volatile long secondLastIncCommandThreadStackId;
+    private volatile long secondLastIncCommandThreadStackTime;
 
     private void incCommandID(CRCLCommandType cmd) {
-        long id = commandId.incrementAndGet();
+        long id;
+        Thread incCommandThread = Thread.currentThread();
+        StackTraceElement ste[] = incCommandThread.getStackTrace();
+        long incCommandTime = System.currentTimeMillis();
+        if (null != lastIncCommandThread && incCommandThread != lastIncCommandThread && lastIncCommandThread.isAlive()) {
+            System.err.println("Commands being incremented by two threads : incCommandTread = " + incCommandThread + ", lastIncCommandThred=" + lastIncCommandThread);
+        }
+        secondLastIncCommandThread = lastIncCommandThread;
+        secondLastIncCommandThreadStackTrace = lastIncCommandThreadStackTrace;
+        lastIncCommandThread = incCommandThread;
+        lastIncCommandThreadStackTrace = ste;
+        synchronized (cmd) {
+            id = commandId.incrementAndGet();
+            setCommandId(cmd, id);
+            if (cmd instanceof CrclCommandWrapper) {
+                setCommandId(((CrclCommandWrapper) cmd).getWrappedCommand(), id);
+            }
+        }
         long sid = statusCommandId();
         if (sid <= 1 && id <= 1) {
             if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
@@ -854,11 +908,10 @@ public class PendantClientInner {
             }
             status.getCommandStatus().setCommandID(System.currentTimeMillis());
         }
-        cmd.setCommandID(id);
-        if (cmd instanceof CrclCommandWrapper) {
-            ((CrclCommandWrapper) cmd).getWrappedCommand().setCommandID(id);
-        }
-
+        secondLastIncCommandThreadStackId = lastIncCommandThreadStackId;
+        secondLastIncCommandThreadStackTime = lastIncCommandThreadStackTime;
+        lastIncCommandThreadStackId = id;
+        lastIncCommandThreadStackTime = incCommandTime;
 //        if (null == cmdId) {
 //            cmdId = 1;
 //        }
@@ -1278,12 +1331,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1291,21 +1344,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1662,10 +1715,10 @@ public class PendantClientInner {
                 && curTime - lastEl.getTime() < 200000) {
             StatusLogElement statLastEl = (StatusLogElement) lastEl;
             CommandStatusType curCmdStatus = curStatus.getCommandStatus();
-            CommandStateEnumType curState =  curCmdStatus.getCommandState();
+            CommandStateEnumType curState = curCmdStatus.getCommandState();
             CommandStatusType lastCmdStatus = statLastEl.getStatus().getCommandStatus();
-            CommandStateEnumType lastState =  lastCmdStatus.getCommandState();
-            
+            CommandStateEnumType lastState = lastCmdStatus.getCommandState();
+
             if (curState == lastState
                     && Objects.equals(curCmdStatus.getStateDescription(),
                             lastCmdStatus.getStateDescription())) {
@@ -2344,6 +2397,9 @@ public class PendantClientInner {
             throw new IllegalArgumentException("prog == null");
         }
         try {
+            long id = commandId.get();
+            InitCanonType initCmd = prog.getInitCanon();
+            long progId = initCmd.getCommandID();
             if (null != prog && null != prog.getMiddleCommand()) {
                 setOutgoingProgramLength(prog.getMiddleCommand().size());
             } else {
@@ -2367,9 +2423,13 @@ public class PendantClientInner {
                 this.runEndMillis = -1;
             }
             if (startLine == 0) {
+                while (progId > id
+                        && !commandId.compareAndSet(id, progId)) {
+                    id = commandId.get();
+                    progId = initCmd.getCommandID();
+                }
                 setOutgoingProgramIndex(0);
                 outer.showCurrentProgramLine(startLine, prog, getStatus());
-                InitCanonType initCmd = prog.getInitCanon();
 //                if (initCmd.getCommandID() <= 1) {
 //                    initCmd.setCommandID(commandId.incrementAndGet());
 //                } else {
@@ -2404,6 +2464,11 @@ public class PendantClientInner {
                 programCommandStartTime = System.currentTimeMillis();
                 setOutgoingProgramIndex(i);
                 MiddleCommandType cmd = middleCommands.get(i - 1);
+                do {
+                    id = commandId.get();
+                    progId = cmd.getCommandID();
+                } while (progId > id
+                        && !commandId.compareAndSet(id, progId));
                 if (cmd instanceof CrclCommandWrapper) {
                     CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                     wrapper.setCurProgram(program);
@@ -2474,10 +2539,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -2587,18 +2652,12 @@ public class PendantClientInner {
             }
             outer.stopPollTimer();
             InitCanonType initCmd = new InitCanonType();
-            long cmdId = commandId.incrementAndGet();
-            initCmd.setCommandID(cmdId);
             testCommand(initCmd);
             SetLengthUnitsType setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(this.lengthUnit);
-            cmdId = cmdId + 1;
-            setUnitType.setCommandID(cmdId);
             testCommand(setUnitType);
             if (null != status.getJointStatuses()) {
                 ConfigureJointReportsType cjrs = new ConfigureJointReportsType();
-                cmdId = cmdId + 1;
-                cjrs.setCommandID(cmdId);
                 List<JointStatusType> jointList = status.getJointStatuses().getJointStatus();
                 cjrs.getConfigureJointReport().clear();
                 for (int i = 0; i < jointList.size(); i++) {
@@ -2619,29 +2678,27 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
-            cmdId = cmdId + 1;
-            setTransSpeed.setCommandID(cmdId);
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
             setTransSpeed.setTransSpeed(transRel);
@@ -2650,8 +2707,6 @@ public class PendantClientInner {
 
                 List<JointStatusType> jointList = status.getJointStatuses().getJointStatus();
                 ConfigureJointReportsType cjrs = new ConfigureJointReportsType();
-                cmdId = cmdId + 1;
-                cjrs.setCommandID(cmdId);
                 cjrs.getConfigureJointReport().clear();
                 for (int i = 0; i < jointList.size(); i++) {
                     ConfigureJointReportType cjr = new ConfigureJointReportType();
@@ -2679,8 +2734,6 @@ public class PendantClientInner {
                     }
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
-                    cmdId = cmdId + 1;
-                    ajst.setCommandID(cmdId);
                     testProgram.getMiddleCommand().add(ajst);
                     ajst = new ActuateJointsType();
                     ajl = ajst.getActuateJoint();
@@ -2691,30 +2744,20 @@ public class PendantClientInner {
                     jsa.setJointSpeed(jointTol);
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
-                    cmdId = cmdId + 1;
-                    ajst.setCommandID(cmdId);
                     testProgram.getMiddleCommand().add(ajst);
                     DwellType dwell = new DwellType();
                     dwell.setDwellTime(0.25);
-                    cmdId = cmdId + 1;
-                    dwell.setCommandID(cmdId);
                     testProgram.getMiddleCommand().add(dwell);
                 }
             }
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.INCH);
-            cmdId = cmdId + 1;
-            setUnitType.setCommandID(cmdId);
             testProgram.getMiddleCommand().add(setUnitType);
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.METER);
-            cmdId = cmdId + 1;
-            setUnitType.setCommandID(cmdId);
             testProgram.getMiddleCommand().add(setUnitType);
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.MILLIMETER);
-            cmdId = cmdId + 1;
-            setUnitType.setCommandID(cmdId);
             testProgram.getMiddleCommand().add(setUnitType);
             PoseType pose = Optional.ofNullable(this)
                     .map(PendantClientInner::getStatus)
@@ -2736,8 +2779,6 @@ public class PendantClientInner {
                 origEndPos.getZAxis().setJ(pose.getZAxis().getJ());
                 origEndPos.getZAxis().setK(pose.getZAxis().getK());
                 moveToOrig.setEndPosition(origEndPos);
-                cmdId = cmdId + 1;
-                moveToOrig.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToOrig);
                 MoveToType moveToXPlus = new MoveToType();
                 PoseType xPlusPos = new PoseType();
@@ -2754,16 +2795,10 @@ public class PendantClientInner {
                 xPlusPos.getZAxis().setJ(pose.getZAxis().getJ());
                 xPlusPos.getZAxis().setK(pose.getZAxis().getK());
                 moveToXPlus.setEndPosition(xPlusPos);
-                cmdId = cmdId + 1;
-                moveToXPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToXPlus);
                 DwellType dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                cmdId = cmdId + 1;
-                dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
-                cmdId = cmdId + 1;
-                moveToOrig.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToOrig);
                 MoveToType moveToYPlus = new MoveToType();
                 PoseType yPlusPos = new PoseType();
@@ -2780,16 +2815,10 @@ public class PendantClientInner {
                 yPlusPos.getZAxis().setJ(pose.getZAxis().getJ());
                 yPlusPos.getZAxis().setK(pose.getZAxis().getK());
                 moveToYPlus.setEndPosition(yPlusPos);
-                cmdId = cmdId + 1;
-                moveToYPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToYPlus);
                 dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                cmdId = cmdId + 1;
-                dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
-                cmdId = cmdId + 1;
-                moveToOrig.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToOrig);
                 MoveToType moveToZPlus = new MoveToType();
                 PoseType zPlusPos = new PoseType();
@@ -2806,21 +2835,13 @@ public class PendantClientInner {
                 zPlusPos.getZAxis().setJ(pose.getZAxis().getJ());
                 zPlusPos.getZAxis().setK(pose.getZAxis().getK());
                 moveToZPlus.setEndPosition(zPlusPos);
-                cmdId = cmdId + 1;
-                moveToZPlus.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToZPlus);
                 dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                cmdId = cmdId + 1;
-                dwell.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(dwell);
-                cmdId = cmdId + 1;
-                moveToOrig.setCommandID(cmdId);
                 testProgram.getMiddleCommand().add(moveToOrig);
             }
             EndCanonType endCmd = new EndCanonType();
-            cmdId = cmdId + 1;
-            endCmd.setCommandID(cmdId);
             testProgram.setEndCanon(endCmd);
             String progString
                     = getTempCRCLSocket().programToPrettyDocString(testProgram, true);
@@ -3339,9 +3360,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -3401,9 +3422,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -3441,9 +3462,9 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
@@ -3452,27 +3473,46 @@ public class PendantClientInner {
         return effectOk;
     }
 
+    final static private AtomicInteger runProgramThreadCount = new AtomicInteger();
+
+    private final ExecutorService runProgramService
+            = Executors.newSingleThreadExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread thread = new Thread(r, "PendantClientInner.runProgram" + runProgramThreadCount.incrementAndGet());
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
+
     public XFuture<Boolean> startRunProgramThread(final int startLine) {
+
         if (null == program) {
             throw new IllegalStateException("program is null");
         }
         if (startLine < 0) {
             throw new IllegalArgumentException("startLine=" + startLine + " (must be atleast 0)");
         }
-        final XFuture<Boolean> future = new XFuture<>("startRunProgramThread(" + startLine + ")");
+
         this.closeTestProgramThread();
         final StackTraceElement[] callingStackTrace = Thread.currentThread().getStackTrace();
-        Thread rtpt = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                future.complete(runProgram(program, startLine, callingStackTrace, future));
-
-            }
-
-        }, "PendantClientInner.runProgram");
-        rtpt.start();
-        runTestProgramThread.set(rtpt);
+        final XFuture<Boolean> future
+                = XFuture.supplyAsync("startRunProgramThread(" + startLine + ").socket=" + getCRCLSocket(), () -> {
+                    this.closeTestProgramThread();
+                    return runProgram(program, startLine, callingStackTrace, null);
+                },
+                        runProgramService);
+//        Thread rtpt = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                future.complete(runProgram(program, startLine, callingStackTrace, future));
+//
+//            }
+//
+//        }, "PendantClientInner.runProgram");
+//        rtpt.start();
+//        runTestProgramThread.set(rtpt);
         return future;
     }
 
