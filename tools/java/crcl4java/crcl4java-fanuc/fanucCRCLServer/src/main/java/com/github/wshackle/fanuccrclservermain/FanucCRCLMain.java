@@ -133,6 +133,21 @@ import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.point;
 import java.util.concurrent.atomic.AtomicInteger;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.point;
 
 /**
  *
@@ -782,6 +797,13 @@ public class FanucCRCLMain {
         }
     }
 
+    private volatile double distToGoal = 0.0;
+
+    public double getDistToGoal() {
+        return distToGoal;
+    }
+    
+    
     private void checkDonePrevCmd() {
         if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
             if (prevCmd != null) {
@@ -789,6 +811,7 @@ public class FanucCRCLMain {
                     try {
                         MoveToType mtPrev = (MoveToType) prevCmd;
                         double dist = distTransFrom(mtPrev.getEndPosition());
+                        distToGoal = dist;
                         double rotDist = distRotFrom(mtPrev.getEndPosition());
                         long curTime = System.currentTimeMillis();
                         if (checkMoveDone(dist, rotDist, curTime)) {
@@ -850,7 +873,7 @@ public class FanucCRCLMain {
                                     Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
-                                prevCmd = null;
+                                setPrevCmd(null);
                             }
                             lastCheckAtPosition = true;
                         } else {
@@ -959,55 +982,83 @@ public class FanucCRCLMain {
         }
     }
 
-    static enum moveNotDoneReasons {
+    public static enum MoveStatus {
         DIST_OVER_TOLERANCE,
         ROTDIST_OVER_TOLERANCE,
         EXPECTED_END_MOVE_TIME,
         POSREG98_AT_CUR_POSITION,
         CURTIME_NEAR_MOVETIME,
         LASTMOTIONPROGGRAMRUNNING,
+        MOVE_DONE,
+        MOVE_STATUS_NOT_SET
     }
 
-    List<moveNotDoneReasons> moveReasons = new ArrayList<>();
+    private volatile MoveStatus moveStatus = MoveStatus.MOVE_STATUS_NOT_SET;
+
+    public MoveStatus getMoveStatus() {
+        return moveStatus;
+    }
+
+    List<MoveStatus> moveReasons = new ArrayList<>();
     List<Double> distances = new ArrayList<>();
 
-    private void addMoveReason(moveNotDoneReasons reason) {
-        if (keepMoveToLog && moveReasons.isEmpty() || moveReasons.get(moveReasons.size() - 1) != reason) {
-            moveReasons.add(reason);
+    private void addMoveReason(MoveStatus reason) {
+        moveStatus = reason;
+        if (keepMoveToLog) {
+            if (moveReasons.isEmpty() || moveReasons.get(moveReasons.size() - 1) != reason) {
+                moveReasons.add(reason);
+            }
         }
     }
 
     private boolean checkForLastMotionProgramRunning = false;
 
     private boolean checkMoveDone(double dist, double rotDist, long curTime) {
+        if ((curTime - expectedEndMoveToTime) > 2000) {
+            warnMoveTime(curTime);
+        }
         if (dist >= distanceTolerance) {
-            addMoveReason(moveNotDoneReasons.DIST_OVER_TOLERANCE);
+            addMoveReason(MoveStatus.DIST_OVER_TOLERANCE);
             distances.add(dist);
             return false;
         }
         if (rotDist >= distanceRotTolerance) {
-            addMoveReason(moveNotDoneReasons.ROTDIST_OVER_TOLERANCE);
+            addMoveReason(MoveStatus.ROTDIST_OVER_TOLERANCE);
             return false;
         }
         if (curTime < expectedEndMoveToTime) {
-            addMoveReason(moveNotDoneReasons.EXPECTED_END_MOVE_TIME);
+            addMoveReason(MoveStatus.EXPECTED_END_MOVE_TIME);
             return false;
         }
         if (!posReg98.isAtCurPosition()) {
-            addMoveReason(moveNotDoneReasons.POSREG98_AT_CUR_POSITION);
+            addMoveReason(MoveStatus.POSREG98_AT_CUR_POSITION);
             return false;
         }
         if ((curTime - moveTime) < 20) {
-            addMoveReason(moveNotDoneReasons.CURTIME_NEAR_MOVETIME);
+            addMoveReason(MoveStatus.CURTIME_NEAR_MOVETIME);
             return false;
         }
         if (checkForLastMotionProgramRunning) {
             if (lastMotionProgramRunning()) {
-                addMoveReason(moveNotDoneReasons.LASTMOTIONPROGGRAMRUNNING);
+                addMoveReason(MoveStatus.LASTMOTIONPROGGRAMRUNNING);
                 return false;
             }
         }
+        moveStatus = MoveStatus.MOVE_DONE;
         return true;
+    }
+
+    private long lastWarnMoveTime = 0;
+
+    private void warnMoveTime(long curTime) {
+        if (curTime - lastWarnMoveTime > 1000) {
+            System.err.println("move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime));
+            lastWarnMoveTime = curTime;
+        }
+    }
+
+    public CRCLCommandType getPrevCmd() {
+        return prevCmd;
     }
 
     private boolean lastActivAlarms = false;
@@ -2005,7 +2056,11 @@ public class FanucCRCLMain {
         this.displayInterface = displayInterface;
     }
 
-    private CRCLCommandType prevCmd = null;
+    private volatile CRCLCommandType prevCmd = null;
+
+    private void setPrevCmd(CRCLCommandType cmd) {
+        this.prevCmd = cmd;
+    }
 
     final CRCLSocket utilCrclSocket;
 
@@ -2230,7 +2285,7 @@ public class FanucCRCLMain {
             lastCheckAtPosition = false;
             if (cmd instanceof StopMotionType) {
                 handleStopMotion((StopMotionType) cmd);
-                prevCmd = cmd;
+                setPrevCmd(cmd);
                 return;
             }
             if (null == robot || !robotIsConnected || null == groupPos) {
@@ -2282,7 +2337,7 @@ public class FanucCRCLMain {
             showError(ex.getMessage());
             Logger.getLogger(FanucCRCLMain.class.getCanonicalName()).log(Level.SEVERE, "handle command", ex);
         }
-        prevCmd = cmd;
+        setPrevCmd(cmd);
     }
 
     private IRobot2 robot;
