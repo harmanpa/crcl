@@ -1097,10 +1097,11 @@ public class PendantClientInner {
         this.sendCommand(stop);
     }
 
-    public long resendInit() throws JAXBException {
+    public long resendInit() throws JAXBException, InterruptedException {
         InitCanonType init = new InitCanonType();
-        init.setCommandID(Math.max(1, commandId.get() - 1));
+        init.setCommandID(Math.max(1, commandId.get() - 3));
         this.sendCommand(init);
+        waitForDone(init.getCommandID(), 2000, this.pause_count.get());
         return init.getCommandID();
     }
 

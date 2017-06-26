@@ -4298,7 +4298,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             } else {
                 System.out.println("internal.isPaused() = " + internal.isPaused());
             }
-            internal.resendInit();
+            try {
+                internal.resendInit();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
             XFuture<Boolean> newProgramFutureInternal
                     = internal.startRunProgramThread(this.getCurrentProgramLine());
             XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
