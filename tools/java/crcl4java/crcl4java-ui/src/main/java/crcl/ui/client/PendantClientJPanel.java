@@ -343,7 +343,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 final int row = getProgramRow();
                 if (row > 0 && row < dtm.getRowCount() - 1) {
                     long id = (Long) dtm.getValueAt(row, 0);
-                    if (program.getMiddleCommand().size() < line - 1
+                    if (program.getMiddleCommand().size() <= line - 1
                             || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
                         try {
                             showProgram(program);
