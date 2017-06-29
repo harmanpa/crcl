@@ -529,6 +529,26 @@ public class PendantClientInner {
         crclClientErrorMessage = null;
     }
 
+    private volatile boolean skipWrappedMessageCommands = true;
+
+    /**
+     * Get the value of skipWrappedMessageCommands
+     *
+     * @return the value of skipWrappedMessageCommands
+     */
+    public boolean isSkipWrappedMessageCommands() {
+        return skipWrappedMessageCommands;
+    }
+
+    /**
+     * Set the value of skipWrappedMessageCommands
+     *
+     * @param skipWrappedMessageCommands new value of skipWrappedMessageCommands
+     */
+    public void setSkipWrappedMessageCommands(boolean skipWrappedMessageCommands) {
+        this.skipWrappedMessageCommands = skipWrappedMessageCommands;
+    }
+
     private void showErrorMessage(String s) {
         Thread.dumpStack();
         crclClientErrorMessage = s;
@@ -3281,6 +3301,17 @@ public class PendantClientInner {
      * @throws crcl.utils.CRCLException CRCL utility failed.
      */
     public boolean testCommand(CRCLCommandType cmd) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+
+        if (cmd instanceof CrclCommandWrapper) {
+            CrclCommandWrapper wrapped = (CrclCommandWrapper) cmd;
+            CRCLCommandType wcmd = wrapped.getWrappedCommand();
+            if (wcmd instanceof MessageType && skipWrappedMessageCommands) {
+                incCommandID(cmd);
+                wrapped.notifyOnStartListeners();
+                wrapped.notifyOnDoneListeners();
+                return true;
+            }
+        }
         final long timeout = getTimeout(cmd);
 
         final long testCommandStartTime = System.currentTimeMillis();
@@ -3294,6 +3325,7 @@ public class PendantClientInner {
         int pause_count_start = this.pause_count.get();
         final int orig_pause_count_start = pause_count_start;
         do {
+
             if (pause_count_start != this.pause_count.get()) {
                 do {
                     long id = resendInit();
