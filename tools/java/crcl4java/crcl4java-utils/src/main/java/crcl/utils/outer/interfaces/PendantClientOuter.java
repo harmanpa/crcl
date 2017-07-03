@@ -28,6 +28,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import java.io.File;
 import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.xml.bind.JAXBException;
 
@@ -59,9 +60,9 @@ public interface PendantClientOuter {
 
     public void checkPollSelected();
 
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status,List<ProgramRunData> programRunData);
 
-    public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result);
+    public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd);
 
     public void finishOpenXmlProgramFile(File f, CRCLProgramType program, boolean addRecent);
 

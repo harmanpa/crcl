@@ -36,6 +36,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
+import crcl.utils.outer.interfaces.ProgramRunData;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -874,13 +875,13 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @Override
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
-        pendantClientJPanel1.showCurrentProgramLine(line,program,status);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData>  progRunDataList) {
+        pendantClientJPanel1.showCurrentProgramLine(line,program,status,progRunDataList);
     }
 
     @Override
-    public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result) {
-        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(millis, dist, result);
+    public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd) {
+        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(row,prd);
     }
 
     @Override

@@ -29,8 +29,10 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
+import crcl.utils.outer.interfaces.ProgramRunData;
 import java.io.File;
 import java.util.Deque;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
@@ -128,7 +130,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status) {
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status,List<ProgramRunData> progRunDataList) {
     }
 
     @Override
@@ -141,7 +143,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public void showLastProgramLineExecTimeMillisDists(long millis, double dist, boolean result) {
+    public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd) {
     }
 
     private final boolean recordPose;
