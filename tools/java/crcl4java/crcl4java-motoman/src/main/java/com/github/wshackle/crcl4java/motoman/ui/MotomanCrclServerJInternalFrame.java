@@ -78,6 +78,10 @@ public class MotomanCrclServerJInternalFrame extends javax.swing.JInternalFrame 
     }// </editor-fold>//GEN-END:initComponents
 
 
+    public boolean isCrclMotoplusConnected() {
+        return motomanCrclServerJPanel1.isCrclMotoplusConnected();
+    }
+    
      public void connectCrclMotoplus() throws IOException {
 
        this.motomanCrclServerJPanel1.connectCrclMotoplus();

@@ -218,8 +218,16 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         return socket;
     }
 
+    public boolean isCrclMotoplusConnected() {
+        return jCheckBoxConnect.isSelected()
+                && null != motomanCrclServer
+                && null != crclThread
+                && crclThread.isAlive()
+                && motomanCrclServer.mpcConnected();
+    }
+    
     public void connectCrclMotoplus() throws IOException {
-
+        internalDisconnect();
         motomanCrclServer = new MotomanCrclServer(
                 new CRCLServerSocket(crclPort),
                 new MotoPlusConnection(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis)));
@@ -235,6 +243,10 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         if (jCheckBoxConnect.isSelected()) {
             jCheckBoxConnect.setSelected(false);
         }
+        internalDisconnect();
+    }
+
+    private void internalDisconnect() {
         if (null != motomanCrclServer) {
             try {
                 motomanCrclServer.close();
@@ -245,7 +257,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         }
         if (null != crclThread) {
             if (crclThread.isAlive()) {
-                System.err.println("Interrupting CRCL thread");
+                System.err.println("Interrupting Motoman CRCL server thread");
                 try {
                     crclThread.join(100);
                 } catch (InterruptedException ex) {

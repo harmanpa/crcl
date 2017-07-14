@@ -106,6 +106,7 @@ public class CrclCommandWrapper extends MessageType {
     }
 
     public void setWrappedCommand(MiddleCommandType wrappedCommand) {
+        wrappedCommand.setCommandID(this.commandID);
         this.wrappedCommand = wrappedCommand;
     }
 

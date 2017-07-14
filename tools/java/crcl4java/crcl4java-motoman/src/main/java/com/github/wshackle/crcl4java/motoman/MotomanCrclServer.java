@@ -76,8 +76,6 @@ import crcl.utils.CRCLServerSocketEvent;
 import crcl.utils.CRCLServerSocketEventListener;
 import crcl.utils.CRCLSocket;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
@@ -110,6 +108,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         this.svrSocket.addListener(this);
     }
 
+    public boolean mpcConnected() {
+        return mpc.isConnected();
+    }
+    
     @Override
     public void close() throws Exception {
         svrSocket.close();
