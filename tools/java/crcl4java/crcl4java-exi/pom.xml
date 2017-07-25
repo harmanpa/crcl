@@ -8,7 +8,7 @@
         <relativePath>..</relativePath>
         <artifactId>crcl4java</artifactId>
         <groupId>com.github.wshackle</groupId>
-        <version>1.4</version>
+        <version>1.4-SNAPSHOT</version>
     </parent>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
