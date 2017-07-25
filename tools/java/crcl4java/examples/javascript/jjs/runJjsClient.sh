@@ -7,12 +7,15 @@
 
 set -x;
 
-jarfile="crcl4java-utils-1.3-jar-with-dependencies.jar"
-if ! test -f "${jarfile}" ; then
+
+export CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar ../../../crcl4java-utils/target/crcl4java-utils*with-dependencies.jar | head -n 1`;
+if test "x${CRCL4JAVA_UTILS_JAR}" = "x" ; then 
     remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar";
     echo "Downloading ${remotejarurl}";
     wget "${remotejarurl}"
+    export CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
 fi
+
 
 jjscmd="jjs"
 
@@ -48,4 +51,4 @@ if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
     exit 1;
 fi
 
-"${jjscmd}" -cp "${jarfile}":.  crclJjsClient.js
+"${jjscmd}" -cp "${CRCL4JAVA_UTILS_JAR}":.  crclJjsClient.js

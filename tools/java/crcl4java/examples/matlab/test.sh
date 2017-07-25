@@ -13,7 +13,7 @@ echo "Testing Matlab Example ..."
 
 sh ./killJavaServer.sh
 sh ./clean.sh || (echo "Clean Failed" ; exit 1) || exit 1;
-sh ./runJavaServer.sh &
+sh ./runCmdLineJavaServer.sh &
 sleep 1
 sh ./runMatlabClient.sh || (sh ./killJavaServer.sh;  echo "Run Client Failed"; exit 1) || exit 1;
 sh ./killJavaServer.sh

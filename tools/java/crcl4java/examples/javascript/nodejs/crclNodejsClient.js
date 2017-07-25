@@ -1,5 +1,6 @@
 var java = require("java");
-java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
+//java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
+java.classpath.push(process.env.CRCL4JAVA_UTILS_JAR);
 
 
 // By default for node-java, you have to put "Sync" after everything for the normal function 
@@ -47,13 +48,13 @@ console.log("instance=" + instance);
 
 // Create and send init command
 var init = new InitCanonType();
-init.setCommandID(BigInteger.valueOf(7));
+init.setCommandID(7);
 instance.setCRCLCommand(init);
 socket.writeCommand(instance);
 
 // Create and send MoveTo command.
 var moveTo = new MoveToType();
-moveTo.setCommandID(BigInteger.valueOf(8));
+moveTo.setCommandID(8);
 var pose = pose(point(0.65,0.05,0.15),vector(1,0,0),vector(0,0,1));
 moveTo.setEndPosition(pose);
 moveTo.setMoveStraight(false);
@@ -69,7 +70,7 @@ do {
     
     // Create and send getStatus request.
     var getStat = java.newInstanceSync("crcl.base.GetStatusType");
-    getStat.setCommandID(BigInteger.valueOf(9));
+    getStat.setCommandID(9);
     instance.setCRCLCommand(getStat);
     socket.writeCommand(instance);
 
@@ -94,7 +95,7 @@ do {
         }
     }
     // Keep sending requests and getting and printing status until the moveTo is completed.
-} while((!IDback.equals(moveTo.getCommandID())) || (cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING)));
+} while(((IDback - moveTo.getCommandID()) !=0) || (cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING)));
 
 console.log("Closing socket");
 socket.close();

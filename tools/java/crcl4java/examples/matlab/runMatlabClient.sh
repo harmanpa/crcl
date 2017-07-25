@@ -15,5 +15,17 @@ which matlab
 
 mfile=`pwd`/crclclient.m
 
+rm -f crcl4java-utils.jar;
+
+export CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar ../../crcl4java-utils/target/crcl4java-utils*with-dependencies.jar | head -n 1`;
+if test "x${CRCL4JAVA_UTILS_JAR}" = "x" ; then 
+    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar";
+    echo "Downloading ${remotejarurl}";
+    wget "${remotejarurl}"
+    export CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
+fi
+
+ln -s "${CRCL4JAVA_UTILS_JAR}" crcl4java-utils.jar;
+
 echo "Starting up matlab . . . (This may take a minute.)"
 time matlab -nodisplay -nosplash -nodesktop -r "try, run('${mfile}'), catch, exit(1), end, exit(0);"

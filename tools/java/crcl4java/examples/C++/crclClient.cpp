@@ -22,68 +22,109 @@ int main(int argc, const char **argv) {
 
         // Create and send init command.
         InitCanonType initCmd;
-        initCmd.setCommandID(BigInteger::valueOf(7));
+        initCmd.setCommandID(7);
         instance.setCRCLCommand(initCmd);
         s.writeCommand(instance);
 
-        // Create and send MoveTo command.
-        MoveToType moveTo;
-        moveTo.setCommandID(BigInteger::valueOf(8));
-        PoseType pose;
-        PointType pt;
-        pt.setX(BigDecimal::valueOf(0.6));
-        pt.setY(BigDecimal::valueOf(0.1));
-        pt.setZ(BigDecimal::valueOf(0.1));
-        PrintObject("pt.getX()=",pt.getX());
-        PrintObject("BigDecimal::valueOf(0.6)=",BigDecimal::valueOf(0.6));
-        pose.setPoint(pt);
-        VectorType xAxis;
-        xAxis.setI(BigDecimal::getONE());
-        xAxis.setJ(BigDecimal::getZERO());
-        xAxis.setK(BigDecimal::getZERO());
-        pose.setXAxis(xAxis);
-        VectorType zAxis;
-        zAxis.setI(BigDecimal::getZERO());
-        zAxis.setJ(BigDecimal::getZERO());
-        zAxis.setK(BigDecimal::getONE());
-        pose.setZAxis(zAxis);
-        moveTo.setEndPosition(pose);
-        moveTo.setMoveStraight(false);
-        instance.setCRCLCommand(moveTo);
-        s.writeCommand(instance, JNI_TRUE);
-
-        BigInteger IDback= BigInteger::getONE();
+        GetStatusType getStat;
+        long IDback=-1;
         CommandStatusType cmdStat;
-
+        
         do {
-            GetStatusType getStat;
-            getStat.setCommandID(BigInteger::valueOf(9));
+            
+            getStat.setCommandID(9);
             instance.setCRCLCommand(getStat);
             s.writeCommand(instance);
 
             CRCLStatusType stat = s.readStatus();
             cmdStat = stat.getCommandStatus();
             IDback = cmdStat.getCommandID();
-            PrintObject("Command ID=", IDback);
+            cout << "Command ID=" <<  IDback;
+            PrintObject("stat=", stat);
+            PrintObject("cmdStat.getCommandState()=",cmdStat.getCommandState());
+            
+        } while (!IDback == initCmd.getCommandID() || cmdStat.getCommandState().equals(CommandStateEnumType::getCRCL_WORKING()));
+        
+        // Create and send MoveTo command.
+        MoveToType moveTo;
+        moveTo.setCommandID(8);
+        PoseType pose;
+        PointType pt;
+        pt.setX(248.5);
+        pt.setY(2.5);
+        pt.setZ(0.1);
+        
+        pose.setPoint(pt);
+        VectorType xAxis;
+        xAxis.setI(1.0);
+        xAxis.setJ(0.0);
+        xAxis.setK(0.0);
+        pose.setXAxis(xAxis);
+        VectorType zAxis;
+        zAxis.setI(0.0);
+        zAxis.setJ(0.0);
+        zAxis.setK(1.0);
+        pose.setZAxis(zAxis);
+        moveTo.setEndPosition(pose);
+        moveTo.setMoveStraight(false);
+        instance.setCRCLCommand(moveTo);
+        s.writeCommand(instance, JNI_TRUE);
+       
+        
+        IDback=-1;
+        
+        do {
+            
+            getStat.setCommandID(9);
+            instance.setCRCLCommand(getStat);
+            s.writeCommand(instance);
+
+            CRCLStatusType stat = s.readStatus();
+            cmdStat = stat.getCommandStatus();
+            IDback = cmdStat.getCommandID();
+            cout << "Command ID=" <<  IDback;
             PrintObject("stat=", stat);
             PrintObject("cmdStat.getCommandState()=",cmdStat.getCommandState());
             pose = stat.getPoseStatus().getPose();
             PrintObject("pose=", pose);
             pt = pose.getPoint();
-            PrintObject("X:", pt.getX());
-            PrintObject("Y:", pt.getY());
-            PrintObject("Z:", pt.getZ());
+            cout << "X:" << pt.getX() << endl;
+            cout << "Y:" << pt.getY() << endl;
+            cout << "Z:" << pt.getZ() << endl;
             JointStatusesType jst = stat.getJointStatuses();
             if (jst.jthis != NULL) {
                 List l = jst.getJointStatus();
                 for (int i = 0; i < l.size(); i++) {
                     JointStatusType elem;
                     elem = JointStatusType::cast(l.get(i));
-                    PrintObject("Joint Number :", elem.getJointNumber());
+                    cout << "Joint Number :" << elem.getJointNumber() <<" ";
                     PrintObject("Joint Position :", elem.getJointPosition());
                 }
             }
-        } while (!IDback.equals(moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType::getCRCL_WORKING()));
+        } while (!IDback == moveTo.getCommandID() || cmdStat.getCommandState().equals(CommandStateEnumType::getCRCL_WORKING()));
+        
+        
+        MessageType message;
+        message.setCommandID(11);
+        message.setMessage("some message");
+        instance.setCRCLCommand(message);
+        s.writeCommand(instance, JNI_TRUE);
+        
+        do {
+            
+            getStat.setCommandID(12);
+            instance.setCRCLCommand(getStat);
+            s.writeCommand(instance);
+
+            CRCLStatusType stat = s.readStatus();
+            cmdStat = stat.getCommandStatus();
+            IDback = cmdStat.getCommandID();
+            cout << "Command ID=" <<  IDback;
+            PrintObject("stat=", stat);
+            PrintObject("cmdStat.getCommandState()=",cmdStat.getCommandState());
+            
+        } while (!IDback == message.getCommandID() || cmdStat.getCommandState().equals(CommandStateEnumType::getCRCL_WORKING()));
+        
         cout << " End of C++ main() reached. " << endl;
     } catch (jthrowable t) {
         PrintJThrowable("Exception Thrown : ", t);

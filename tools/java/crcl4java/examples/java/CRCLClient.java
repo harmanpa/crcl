@@ -33,26 +33,29 @@ public class CRCLClient {
 
             // Create and send init command.
             InitCanonType init = new InitCanonType();
-            init.setCommandID(BigInteger.valueOf(7));
+            init.setCommandID(7);
             instance.setCRCLCommand(init);
             s.writeCommand(instance);
 
             // Create and send MoveTo command.
             MoveToType moveTo = new MoveToType();
-            moveTo.setCommandID(BigInteger.valueOf(8));
+            moveTo.setCommandID(8);
             PoseType pose = pose(point(0.65, 0.05, 0.15), vector(1, 0, 0), vector(0, 0, 1));
             moveTo.setEndPosition(pose);
             moveTo.setMoveStraight(false);
             instance.setCRCLCommand(moveTo);
             s.writeCommand(instance, true);
 
-            BigInteger IDback = null;
+            MessageType message = new MessageType();
+            message.setCommandID(9);
+            message.setMessage("some message");
+            long IDback = 1;
             CommandStatusType cmdStat = null;
 
             do {
                 // Create and send getStatus request.
                 GetStatusType getStat = new GetStatusType();
-                getStat.setCommandID(BigInteger.valueOf(9));
+                getStat.setCommandID(9);
                 instance.setCRCLCommand(getStat);
                 s.writeCommand(instance);
 
@@ -75,7 +78,7 @@ public class CRCLClient {
                         System.out.println("Num=" + js.getJointNumber() + " Pos=" + js.getJointPosition());
                     }
                 }
-            } while (!IDback.equals(moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING));
+            } while (!(IDback == moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING));
         } catch (Exception ex) {
             Logger.getLogger(CRCLClient.class.getName()).log(Level.SEVERE, null, ex);
         }

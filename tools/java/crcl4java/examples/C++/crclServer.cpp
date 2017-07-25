@@ -22,8 +22,8 @@ int main(int argc, const char **argv) {
         // Create a status message for sending to clients.
         CRCLStatusType status;
         CommandStatusType cmdStatus;
-        cmdStatus.setCommandID(BigInteger::getONE());
-        cmdStatus.setStatusID(BigInteger::getONE());
+        cmdStatus.setCommandID(1);
+        cmdStatus.setStatusID(1);
         status.setCommandStatus(cmdStatus);
         PoseStatusType poseStatus;
 
@@ -68,7 +68,7 @@ int main(int argc, const char **argv) {
                     if (requestCount > 3) {
                         cmdStatus.setCommandState(CommandStateEnumType::getCRCL_DONE());
                     }
-                    cmdStatus.setStatusID(BigInteger::valueOf(requestCount));
+                    cmdStatus.setStatusID(requestCount);
                     crclSocket.writeStatus(status, true);
                 } else {
                     requestCount = 1;
@@ -83,6 +83,13 @@ int main(int argc, const char **argv) {
                         // reached.
                         poseStatus.setPose(MoveToType::cast(cmd).getEndPosition());
                         status.setPoseStatus(poseStatus);
+                    } else if(MessageType::instanceof(cmd)) {
+                        MessageType messageCmd = MessageType::cast(cmd);
+                        jstring msgJString = messageCmd.getMessage();
+                        jboolean isCopy = false;
+                        const char *msgCString = GetStringUTFChars(msgJString,&isCopy);
+                        cout << "message=" << msgCString <<endl;
+                        ReleaseStringUTFChars(msgJString,msgCString);
                     }
                 }
             }

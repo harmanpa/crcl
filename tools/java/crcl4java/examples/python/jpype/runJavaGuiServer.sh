@@ -13,31 +13,25 @@
 #
 set -x;
 
-# Change to the directory this script is stored in. 
-DIR=$(dirname $0 )
-if test "x${DIR}" != "x" ; then
-    if test -d "${DIR}" ; then
-        cd "$DIR";
-    fi
-fi
 
-jarfile="crcl4java-ui-1.3-jar-with-dependencies.jar"
-if ! test -f "${jarfile}" ; then
-    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar";
-    echo "Downloading ${remotejarurl}";
-    wget "${remotejarurl}"
-fi
 
 jjscmd="jjs"
 javacmd="java"
 
-if ! which jjs >/dev/null 2>/dev/null ; then
-    printenv JAVA_HOME
-    if test "x${JAVA_HOME}" != "x" ; then
-        jjscmd="${JAVA_HOME}/bin/jjs";
-        echo jjscmd="${jjscmd}";
-        javacmd="${JAVA_HOME}/bin/java";
-    fi
+printenv JAVA_HOME
+if test "x${JAVA_HOME}" != "x" ; then
+    jjscmd="${JAVA_HOME}/bin/jjs";
+    echo jjscmd="${jjscmd}";
+    javacmd="${JAVA_HOME}/bin/java";
+    echo javacmd="${javacmd}";
+fi
+
+export CRCL4JAVA_UI_JAR=`ls -1t crcl4java-ui*.jar ../../../crcl4java-ui/target/crcl4java-ui*with-dependencies.jar | head -n 1`;
+if test "x${CRCL4JAVA_UI_JAR}" = "x" ; then 
+    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar";
+    echo "Downloading ${remotejarurl}";
+    wget "${remotejarurl}"
+    export CRCL4JAVA_UI_JAR=`ls -1t crcl4java-ui*.jar | head -n 1`
 fi
 
 if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
@@ -64,4 +58,4 @@ if ! which "${jjscmd}" >/dev/null 2>/dev/null ; then
     exit 1;
 fi
 
-"${javacmd}" -jar "${jarfile}" --mode GraphicalServer
+"${javacmd}" -jar "${CRCL4JAVA_UI_JAR}" --mode GraphicalServer

@@ -19,8 +19,14 @@
  */
 package crcl.ui.server;
 
+import crcl.base.CommandStateEnumType;
+import crcl.base.CommandStatusType;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.stubs.SimServerOuterStub;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
@@ -54,10 +60,27 @@ public class CmdLineSimServer {
     }
 
     public static void main(String[] args) {
+        testMain(args,false);
+//        try {
+//            new BufferedReader(new InputStreamReader(System.in)).readLine();
+//        } catch (IOException ex) {
+//            Logger.getLogger(CmdLineSimServer.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+    }
+    
+    public static void testMain(String[] args) {
+        testMain(args,true);
+    }
+    
+    public static void testMain(String[] args, boolean asDaemon) {
         try {
             double initPose[][] = null;
             for (int i = 0; i < args.length - 1; i++) {
                 switch (args[i]) {
+                    case "--mode":
+                        i++;
+                        break;
+                        
                     case "--delayMillis":
                         System.setProperty("SimServer.delayMillis", args[i + 1]);
                         i++;
@@ -84,7 +107,8 @@ public class CmdLineSimServer {
                         break;
 
                     default:
-                        System.err.println("Unrecognized argument: " + args[i]);
+                        System.err.println("Unrecognized argument for CmdLineSimServer: " + args[i]);
+                        System.err.println("args = " + Arrays.toString(args));
                         break;
                 }
             }
@@ -93,7 +117,8 @@ public class CmdLineSimServer {
             if (null != initPose) {
                 simServerInner.simulatedTeleportToPose(CRCLPosemath.toPose(initPose));
             }
-            simServerInner.restartServer();
+            simServerInner.restartServer(asDaemon);
+            
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(CmdLineSimServer.class.getName()).log(Level.SEVERE, null, ex);
         }

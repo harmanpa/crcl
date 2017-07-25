@@ -60,7 +60,7 @@ execService.submit(new (Java.extend(Runnable, {
                             if(requestCount > 3) {
                                 cmdStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
-                            cmdStatus.setStatusID(BigInteger.valueOf(requestCount));
+                            cmdStatus.setStatusID(requestCount);
                             
                             // Send the request. The second parameter asks the 
                             // system to validate the composed status against 

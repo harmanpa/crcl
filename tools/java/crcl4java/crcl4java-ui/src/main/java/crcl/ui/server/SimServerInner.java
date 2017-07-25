@@ -694,6 +694,12 @@ public class SimServerInner {
         return false;
     }
 
+    private boolean serverIsDaemon = true;
+    
+    public boolean getServerIsDaemon() {
+        return serverIsDaemon;
+    }
+    
     /**
      * Set the value of port
      *
@@ -702,7 +708,7 @@ public class SimServerInner {
     public void setPort(int port) {
         this.port = port;
         if (null != this.ssock) {
-            this.restartServer();
+            this.restartServer(serverIsDaemon);
         }
     }
 
@@ -2354,7 +2360,7 @@ public class SimServerInner {
         }
     }
 
-    public void restartServer() {
+    public void restartServer(boolean asDaemon) {
         try {
             closeServer();
             ssock = new ServerSocket(port);
@@ -2431,7 +2437,8 @@ public class SimServerInner {
                     }
                 }
             }, "simThread.ssock="+ssock);
-            simThread.setDaemon(true);
+            simThread.setDaemon(asDaemon);
+            this.serverIsDaemon = asDaemon;
             simThread.start();
             SimServerInner.runningServers.add(this);
         } catch (IOException ex) {

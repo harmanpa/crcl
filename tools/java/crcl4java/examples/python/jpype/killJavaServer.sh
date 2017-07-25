@@ -11,10 +11,13 @@
 # or 
 # http://www.java.com/
 #
-set -x;
 
-jps -l
+if test "x${DEBUG_KILL_JAVA}" != "x" ; then
+    set -x;
+    jps -l
+fi
 
-PID=`jps -l | grep crcl4java | awk '{print $1}'`
+
+PID=`jps -l | grep -i crcl | awk '{print $1}'`
 
 kill -KILL ${PID}

@@ -18,3 +18,5 @@ fi
 ( cd python/jython; sh test.sh ) || (echo "Python jython test failed"; exit 1) || exit 1
 
 sh clean.sh
+
+echo "ALL tests ok."

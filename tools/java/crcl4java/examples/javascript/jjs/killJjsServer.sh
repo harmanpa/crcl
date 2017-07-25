@@ -11,8 +11,10 @@
 # or 
 # http://www.java.com/
 #
-set -x;
 
-jps -lv
+if test "x${DEBUG_KLL_JAVA}" != "x" ; then
+    set -x;
+    jps -lv
+fi
 
 killall -KILL jjs

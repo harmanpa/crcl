@@ -6,14 +6,20 @@ set -x;
 DIR=$(dirname $0 )
 if test "x${DIR}" != "x" ; then
     if test -d "${DIR}" ; then
-        cd "$DIR";
+        echo "Changing directory to ${DIR}";
+        cd "${DIR}";
     fi
 fi
 
 echo "Testing Jpype Example ..."
 
 sh ./clean.sh || (echo "Clean Failed" ; exit 1) || exit 1;
-sh ./runJavaServer.sh &
+
+if test !  -f setup.ok  ; then
+    sudo -n sh ./setup.sh || (echo "Setup Failed. Please run sudo setup.sh." ; exit 1) || exit 1;
+fi
+
+sh ./runJavaCmdLineServer.sh &
 sleep 1
 sh ./run.sh || (sh ./killJavaServer.sh;  echo "Run Client Failed"; exit 1) || exit 1;
 sh ./killJavaServer.sh

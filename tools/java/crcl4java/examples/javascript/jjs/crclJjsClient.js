@@ -39,13 +39,13 @@ var instance = new CRCLCommandInstanceType();
 //        CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
 //        // Create and send init command
 var init = new InitCanonType();
-init.setCommandID(BigInteger.valueOf(7));
+init.setCommandID(7);
 instance.setCRCLCommand(init);
 socket.writeCommand(instance);
 
 // Create and send MoveTo command.
 var moveTo = new MoveToType();
-moveTo.setCommandID(BigInteger.valueOf(8));
+moveTo.setCommandID(8);
 var pose = pose(point(0.65, 0.05, 0.15), vector(1, 0, 0), vector(0, 0, 1));
 moveTo.setEndPosition(pose);
 moveTo.setMoveStraight(false);
@@ -60,7 +60,7 @@ do {
 
     // Create and send getStatus request.
     var getStat = new GetStatusType();
-    getStat.setCommandID(BigInteger.valueOf(9));
+    getStat.setCommandID(9);
     instance.setCRCLCommand(getStat);
     socket.writeCommand(instance);
     
@@ -85,7 +85,7 @@ do {
         }
     }
     // Repeat sending getstatus requets and printing status until the commandID is the moveTo commandID and the state is not WORKING
-} while (!IDback.equals(moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING));
+} while (!(IDback == moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING));
 
 print("Closing socket");
 socket.close();

@@ -2,7 +2,7 @@
 
 // Import all the Java types we will need.
 var urls = java.lang.reflect.Array.newInstance(java.net.URL, 1);
-urls[0] = new java.net.URL("file:crcl4java-utils-1.3-jar-with-dependencies.jar");
+urls[0] = new java.net.URL("file:crcl4java-utils-copy.jar");
 var classloader = new java.net.URLClassLoader(urls);
 var CRCLSocket = classloader.loadClass("crcl.utils.CRCLSocket");
 var CRCLPosemath = classloader.loadClass("crcl.utils.CRCLPosemath");
@@ -51,13 +51,13 @@ var instance = CRCLCommandInstanceType.newInstance();
 print("instance=" + instance);
 
 var init = InitCanonType.newInstance();
-init.setCommandID(BigInteger.valueOf(7));
+init.setCommandID(7);
 instance.setCRCLCommand(init);
 socket.writeCommand(instance);
 
 // Create and send MoveTo command.
 var moveTo = MoveToType.newInstance();
-moveTo.setCommandID(BigInteger.valueOf(8));
+moveTo.setCommandID(8);
 var pose = pose(point(0.65, 0.05, 0.15), vector(1, 0, 0), vector(0, 0, 1));
 moveTo.setEndPosition(pose);
 moveTo.setMoveStraight(false);
@@ -65,13 +65,13 @@ instance.setCRCLCommand(moveTo);
 socket.writeCommand(instance);
 print("moveTo=" + moveTo);
 
-var IDback = null;
+var IDback = 1;
 var cmdStat = null;
 
 do {
     // Create and send getStatus request.
     var getStat = GetStatusType.newInstance();
-    getStat.setCommandID(BigInteger.valueOf(9));
+    getStat.setCommandID(9);
     instance.setCRCLCommand(getStat);
     socket.writeCommand(instance);
 
@@ -97,7 +97,7 @@ do {
         }
     }
     // Repeat sending getstatus requets and printing status until the commandID is the moveTo commandID and the state is not WORKING
-} while (!IDback.equals(moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.getField("CRCL_WORKING").get(null)));
+} while ((IDback != moveTo.getCommandID()) || cmdStat.getCommandState().equals(CommandStateEnumType.getField("CRCL_WORKING").get(null)));
 
 print("Closing socket");
 socket.close();

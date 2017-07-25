@@ -139,7 +139,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     public void restartServer() {
-        inner.restartServer();
+        inner.restartServer(inner.getServerIsDaemon());
     }
 
     public void closeServer() {
@@ -1127,7 +1127,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private void jTextFieldPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPortActionPerformed
         int new_port = Integer.parseInt(this.jTextFieldPort.getText());
         inner.setPort(new_port);
-        inner.restartServer();
+        inner.restartServer(inner.getServerIsDaemon());
     }//GEN-LAST:event_jTextFieldPortActionPerformed
 
     private void jTextFieldCycleTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCycleTimeActionPerformed
@@ -1150,7 +1150,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         int new_port = Integer.parseInt(this.jTextFieldPort.getText());
         new Thread(() -> {
             inner.setPort(new_port);
-            inner.restartServer();
+            inner.restartServer(inner.getServerIsDaemon());
         }).start();
     }//GEN-LAST:event_jButtonRestartServerActionPerformed
 

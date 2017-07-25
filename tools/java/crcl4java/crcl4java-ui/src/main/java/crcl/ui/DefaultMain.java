@@ -70,6 +70,7 @@ public class DefaultMain {
             if (args[i].startsWith("-")) {
                 if(!"--help".equals(args[i])) {
                     System.err.println("Unrecognized argument : " + args[i]);
+                    System.err.println("args="+Arrays.toString(args));
                 }
                 System.err.println("Options are:");
                 System.err.println("\t--help\tPrint this help message.");
@@ -105,6 +106,7 @@ public class DefaultMain {
                 System.exit(1);
             }
         }
+        System.out.println("mode = " + mode);
         switch (mode) {
             case "Launcher":
                 LauncherJFrame.main(args);

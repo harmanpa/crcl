@@ -10,6 +10,11 @@ if test "x${DIR}" != "x" ; then
     fi
 fi
 
-rm -rf node_modules build
+if test ! -d node_modules  ; then
+    \rm -f setup.ok
+fi
+
+#rm -rf node_modules
+\rm -rf build
 \rm -f crcl4java*.jar*
 \rm -f crcl4java*.jar

@@ -1,6 +1,7 @@
 
 var java = require("java");
-java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
+//java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
+java.classpath.push(process.env.CRCL4JAVA_UTILS_JAR);
 
 
 // By default for node-java, you have to put "Sync" after everything for the normal function 
@@ -39,7 +40,7 @@ var SERVER_PORT_NUM = CRCLSocket.DEFAULT_PORT;
 var status = new CRCLStatusType();
 var cmdStatus = new CommandStatusType();
 var poseStatus = new PoseStatusType();
-cmdStatus.setCommandID(BigInteger.valueOf(1));
+cmdStatus.setCommandID(1);
 status.setCommandStatus(cmdStatus);
 
 
@@ -77,7 +78,7 @@ server.on('connection', function (socket) {
                     if(reqnumber > 3) {
                         cmdStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
                     }
-                    cmdStatus.setStatusID(BigInteger.valueOf(reqnumber));
+                    cmdStatus.setStatusID(reqnumber);
                     
                     // Send the request. The second parameter asks the 
                     // system to validate the composed status against 

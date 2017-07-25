@@ -7,8 +7,6 @@
 from crcl.base import *
 from crcl.utils import CRCLSocket
 from crcl.utils import CRCLPosemath
-from java.math import BigInteger
-from java.math import BigDecimal
 import java.lang.Boolean
 
 print "Connect"
@@ -19,15 +17,47 @@ instance = CRCLCommandInstanceType()
 ## Create and send InitCanon command
 print "Send InitCanon"
 init = InitCanonType()
-init.setCommandID(BigInteger.valueOf(7))
+init.setCommandID(7)
 instance.setCRCLCommand(init)
 s.writeCommand(instance)
+
+
+
+## Create and send getStatus request.
+print "Send GetStatus"
+getStat = GetStatusType()
+getStat.setCommandID(9)
+instance.setCRCLCommand(getStat)
+s.writeCommand(instance)
+
+## Read status from server
+stat = s.readStatus()
+cmdStat = stat.getCommandStatus()
+IDback = -1
+
+while IDback != init.getCommandID() or cmdStat.getCommandState() != CommandStateEnumType.CRCL_DONE:
+
+    ## Create and send getStatus request.
+    print "Send GetStatus"
+    getStat.setCommandID(getStat.getCommandID()+1)
+    instance.setCRCLCommand(getStat)
+    s.writeCommand(instance)
+
+    ## Read status from server
+    ## Print out the status details.
+    stat = s.readStatus()
+    cmdStat = stat.getCommandStatus()
+    IDback = cmdStat.getCommandID()
+    print "Status:"
+    print("CommandID = " + str(IDback))
+    print("State = " + cmdStat.getCommandState().toString())
+
 #    
 ## Create and send MoveTo command.
 print "Send MoveTo"
 moveTo = MoveToType()
-moveTo.setCommandID(BigInteger.valueOf(8))
-pt = CRCLPosemath.point(0.6,0.1,0.1)
+moveTo.setCommandID(8)
+pt = CRCLPosemath.point(248.5,2.5,0.1)
 xaxis = CRCLPosemath.vector(1.0,0.0,0.0)
 zaxis = CRCLPosemath.vector(0.0,0.0,1.0)
 pose = CRCLPosemath.pose(pt,xaxis,zaxis)
@@ -40,25 +70,37 @@ s.writeCommand(instance)
 ## Create and send getStatus request.
 print "Send GetStatus"
 getStat = GetStatusType()
-getStat.setCommandID(BigInteger.valueOf(9))
+getStat.setCommandID(9)
 instance.setCRCLCommand(getStat)
 s.writeCommand(instance)
 
 ## Read status from server
 stat = s.readStatus()
-
-
-## Print out the status details.
 cmdStat = stat.getCommandStatus()
-IDback = cmdStat.getCommandID()
-print "Status:"
-print("CommandID = " + IDback.toString())
-print("State = " + cmdStat.getCommandState().toString())
-pt = stat.getPoseStatus().getPose().getPoint()
-print("pose = " + pt.getX().toString() + "," + pt.getY().toString() + "," + pt.getZ().toString())
-jst = stat.getJointStatuses()
-l = jst.getJointStatus()
-print "Joints:" 
-for i in range(0,l.size()):
-    js = l.get(i)
-    print("Num="+js.getJointNumber().toString()+" Pos="+js.getJointPosition().toString())
+IDback = -1
+
+while IDback != moveTo.getCommandID() or cmdStat.getCommandState() != CommandStateEnumType.CRCL_DONE:
+
+    ## Create and send getStatus request.
+    print "Send GetStatus"
+    getStat.setCommandID(getStat.getCommandID()+1)
+    instance.setCRCLCommand(getStat)
+    s.writeCommand(instance)
+
+    ## Read status from server
+    ## Print out the status details.
+    stat = s.readStatus()
+    cmdStat = stat.getCommandStatus()
+    IDback = cmdStat.getCommandID()
+    print "Status:"
+    print("CommandID = " + str(IDback))
+    print("State = " + cmdStat.getCommandState().toString())
+    pt = stat.getPoseStatus().getPose().getPoint()
+    print("pose = " + str(pt.getX()) + "," + str(pt.getY()) + "," + str(pt.getZ()))
+    jst = stat.getJointStatuses()
+    l = jst.getJointStatus()
+    print "Joints:" 
+    for i in range(0,l.size()):
+        js = l.get(i)
+        print("Num="+str(js.getJointNumber())+" Pos="+str(js.getJointPosition()))
+
