@@ -22,7 +22,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>rcslib</artifactId>
-            <version>2016.11.19-SNAPSHOT</version>
+            <version>2017.07.19</version>
         </dependency>
     </dependencies>
     <properties>
