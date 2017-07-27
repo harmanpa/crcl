@@ -4,21 +4,21 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java-zeroc-ice</artifactId>
-        <version>1.5-SNAPSHOT</version>
+        <version>1.4</version>
     </parent>
     <artifactId>crcl4java-zeroc-ice-baselib</artifactId>
     <packaging>jar</packaging>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <ice.include.path></ice.include.path>
+        <ice.include.path />
     </properties>
     <build>
         <plugins>
             <plugin>
                 <groupId>com.github.wshackle</groupId>
                 <artifactId>java2slice-maven-plugin</artifactId>
-                <version>1.5-SNAPSHOT</version>
+                <version>1.4</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -60,20 +60,20 @@
                             <target name="slice2java-custom">
                                 <mkdir dir="${basedir}/src/generated/java/" />
                                 <fileset id="fileset" dir="${basedir}/src/main/resources/">
-                                    <include name="*.ice"/>
+                                    <include name="*.ice" />
                                 </fileset>
                                 <fileset id="generatedfileset" dir="${basedir}/src/generated/resources/">
-                                    <include name="*.ice"/>
+                                    <include name="*.ice" />
                                 </fileset>
-                                <pathconvert refid="fileset" pathsep=" " property="icefiles"/>
-                                <echo message="Running ${slice2java.path} --underscore --output-dir ${basedir}/src/generated/java/ ${icefiles}"/>
+                                <pathconvert refid="fileset" pathsep=" " property="icefiles" />
+                                <echo message="Running ${slice2java.path} --underscore --output-dir ${basedir}/src/generated/java/ ${icefiles}" />
                                 <apply executable="${slice2java.path}">
-                                    <arg value="--underscore"/>
-                                    <arg value="-I${basedir}/src/generated/resources/"/>
-                                    <arg value="--output-dir"/>
-                                    <arg value="${basedir}/src/generated/java/"/>
-                                    <fileset refid="generatedfileset"/>
-                                    <fileset refid="fileset"/>
+                                    <arg value="--underscore" />
+                                    <arg value="-I${basedir}/src/generated/resources/" />
+                                    <arg value="--output-dir" />
+                                    <arg value="${basedir}/src/generated/java/" />
+                                    <fileset refid="generatedfileset" />
+                                    <fileset refid="fileset" />
                                     
                                 </apply>
                             </target>
@@ -141,8 +141,7 @@
         
         eg
         
-            <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
                               http://maven.apache.org/xsd/settings-1.0.0.xsd">
             <profiles>
