@@ -68,10 +68,10 @@ public class Java2SliceMojo extends AbstractMojo {
 //        String[] args = new String[]{
 //            "--verbose",
 //            //            "--jar", "../ice-testinlib/target/ice-testinlib-1.0-SNAPSHOT.jar",
-//            //            "--jar", "../crcl4java-base/target/crcl4java-base-1.4-SNAPSHOT.jar",
+//            //            "--jar", "../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar",
 //            "--out-slice", "src/generated/resources/crcl4java.ice",
 //            "--out-converters-dir", "src/generated/java",
-//            "../../crcl4java-base/target/crcl4java-base-1.4-SNAPSHOT.jar"
+//            "../../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar"
 //        };
         getLog().info("args=" + Arrays.toString(args));
         getLog().info("project = " + project);

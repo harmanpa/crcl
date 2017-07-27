@@ -33,9 +33,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  * 
- * http://localhost:8080/crcl4java-restful-proxy-1.4-SNAPSHOT/webresources/xmlStatus
+ * http://localhost:8080/crcl4java-restful-proxy-1.5-SNAPSHOT/webresources/xmlStatus
  * 
- * http://localhost:8080/crcl4java-restful-proxy-1.4-SNAPSHOT/webresources/xmlStatus
+ * http://localhost:8080/crcl4java-restful-proxy-1.5-SNAPSHOT/webresources/xmlStatus
  * 
  * 
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}

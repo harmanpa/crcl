@@ -45,11 +45,11 @@ public class Java2SliceMainTest {
         String[] args = new String[]{
             "--verbose",
             //            "--jar", "../ice-testinlib/target/ice-testinlib-1.0-SNAPSHOT.jar",
-            //            "--jar", "../crcl4java-base/target/crcl4java-base-1.4-SNAPSHOT.jar",
+            //            "--jar", "../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar",
             "--out-slice", "../ice-testoutlib/src/main/resources/crcl4java.ice",
             "--out-converters-dir", "../ice-testoutlib/src/main/java",
             "../ice-testinlib/target/ice-testinlib-1.0-SNAPSHOT.jar",
-            "../../crcl4java-base/target/crcl4java-base-1.4-SNAPSHOT.jar"
+            "../../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar"
         };
 //            "src/test/resources/converters/toice/TestClassToIceConverter.java",
 //            "converters.toice",

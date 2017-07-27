@@ -44,7 +44,7 @@ eg.
 
         mvn -Ptomcat_embed package
 
-        java -jar target/crcl4java-restful-proxy-1.4-SNAPSHOT-war-exec.jar 
+        java -jar target/crcl4java-restful-proxy-1.5-SNAPSHOT-war-exec.jar 
 
 
 Once the program is started one can access the API's and their documentation 

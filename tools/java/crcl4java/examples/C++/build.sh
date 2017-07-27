@@ -41,7 +41,7 @@ fi
 CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar ../../crcl4java-utils/target/crcl4java-utils*with-dependencies.jar | head -n 1`;
 if test "x${CRCL4JAVA_UTILS_JAR}" = "x" ; then 
     #wget "https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar"
-    wget "https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.4-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar"
+    wget "https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.5-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar"
     CRCL4JAVA_UTILS_JAR=`ls -1t crcl4java-utils*.jar | head -n 1`
 fi
 

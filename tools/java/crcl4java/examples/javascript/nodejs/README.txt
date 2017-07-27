@@ -36,7 +36,7 @@ On other platforms you will need to manually download the jar files below and
 install nodejs, and use "npm java" to install the java bindings as described
 in https://www.npmjs.com/package/java :
 
-    https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.4-SNAPSHOT/crcl4java-utils-1.4-20160422.130648-1-jar-with-dependencies.jar
+    https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.5-SNAPSHOT/crcl4java-utils-1.4-20160422.130648-1-jar-with-dependencies.jar
     https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar
     https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.3/crcl4java-utils-1.3-jar-with-dependencies.jar
 

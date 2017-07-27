@@ -12,7 +12,7 @@ set JVM_DLLDIR=%JAVA_HOME%\jre\bin\server
 set PATH=%JAVA_HOME%\bin:%JVM_DLLDIR%:%PATH%
 
 set crcljarfile=crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar
-set remotecrcljarfile=https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.4-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar
+set remotecrcljarfile=https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.5-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar
 
 if NOT exist %crcljarfile% (
     echo Downloading  %crcljarfile%
