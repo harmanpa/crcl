@@ -84,3 +84,5 @@ tools/java/crcl4java/crcl4java-ui/setCrclUiEnvVars.sh
 
 
 
+/tools/java/crcl4java/examples/C++/NetBeansProjects/crclGenerated/build/
+/tools/java/crcl4java/examples/C++/NetBeansProjects/crclGenerated/dist/
