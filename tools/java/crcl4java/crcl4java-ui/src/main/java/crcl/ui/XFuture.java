@@ -79,6 +79,15 @@ public class XFuture<T> extends CompletableFuture<T> {
         ps.println();
     }
 
+    private Object printEx(Throwable t, PrintStream ps) {
+        if (!(t instanceof CancellationException) || printCancellationExceptions) {
+            System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
+            t.printStackTrace(ps);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
     private void internalPrintStatus(PrintStream ps) {
 
         if (isCompletedExceptionally()) {
@@ -105,9 +114,16 @@ public class XFuture<T> extends CompletableFuture<T> {
                 xf.internalPrintStatus(ps);
             }
         }
-        for (CompletableFuture f : alsoCancel) {
+        Function<Throwable, Object> exPrinter = (Throwable t) -> {
+            return printEx(t, ps);
+        };
+        for (CompletableFuture<?> f : alsoCancel) {
             if (!(f instanceof XFuture)) {
                 ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + f.toString());
+                if (f.isCompletedExceptionally()) {
+                    CompletableFuture<Object> fob = (CompletableFuture<Object>) f;
+                    fob.exceptionally(exPrinter);
+                }
             }
         }
         ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + this.toString());
@@ -142,7 +158,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
             @Override
             public Thread newThread(Runnable r) {
-                Thread newThraed = new Thread(r,"XFutureThread_" + count.incrementAndGet());
+                Thread newThraed = new Thread(r, "XFutureThread_" + count.incrementAndGet());
                 return newThraed;
             }
         };
@@ -167,7 +183,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret.wrap(name, orig);
     }
 
-    private final ConcurrentLinkedDeque<CompletableFuture> alsoCancel = new ConcurrentLinkedDeque<>();
+    private final ConcurrentLinkedDeque<CompletableFuture<?>> alsoCancel = new ConcurrentLinkedDeque<>();
 
     public static <T> XFuture<T> supplyAsync(String name, Callable<T> c, ExecutorService es) {
         XFuture<T> myf = new XFuture<>(name);
@@ -196,7 +212,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         Future<?> f = es.submit(() -> {
             try {
                 String tname = Thread.currentThread().getName();
-                Thread.currentThread().setName("XFuture_"+name);
+                Thread.currentThread().setName("XFuture_" + name);
                 r.run();
                 Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
@@ -232,21 +248,21 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private static void setTName(String name) {
-        if(Thread.currentThread().getName().startsWith("XFuture")) {
-            Thread.currentThread().setName("XFuture_"+name);
+        if (Thread.currentThread().getName().startsWith("XFuture")) {
+            Thread.currentThread().setName("XFuture_" + name);
         }
     }
-    
-    private static <FR,FT> Function<FR,FT> fname(Function<FR,FT> fn, String name) {
+
+    private static <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
         return fn.compose(x -> {
-           setTName(name);
-           return x;
+            setTName(name);
+            return x;
         });
     }
-    
+
     @Override
     public <U> XFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn) {
-        return this.thenCompose(name + ".thenCompose",fn);
+        return this.thenCompose(name + ".thenCompose", fn);
     }
 
     public boolean complete(T value) {
@@ -254,11 +270,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         this.alsoCancel.clear();
         return ret;
     }
-    
+
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
 
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApply(fname(fn,name))
+        CompletableFuture<U> f = super.thenApply(fname(fn, name))
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);
@@ -280,7 +296,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApplyAsync(fname(fn,name), executor)
+        CompletableFuture<U> f = super.thenApplyAsync(fname(fn, name), executor)
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);
@@ -302,7 +318,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
         XFuture<U> myF = new XFuture<>(name);
-        CompletableFuture<U> f = super.thenApplyAsync(fname(fn,name), getDefaultThreadPool())
+        CompletableFuture<U> f = super.thenApplyAsync(fname(fn, name), getDefaultThreadPool())
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
                         myF.alsoCancel.add((CompletableFuture) stage);
@@ -622,6 +638,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(this.name + ".thenApply", super.thenApply(fn));
     }
 
+    public <U> XFuture<U> thenApply(String name,Function<? super T, ? extends U> fn) {
+        return wrap(name, super.thenApply(fn));
+    }
+    
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         TestClass.main(args);
     }

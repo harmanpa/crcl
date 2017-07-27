@@ -2976,7 +2976,7 @@ public class FanucCRCLMain {
     }
 
     public static String morSafetyStatToString(int val) {
-        return val + " : "
+        String ret =  val + " : "
                 + ((val & MOR_SAFETY_STAT_ESTOP_SOP_FLAG) == MOR_SAFETY_STAT_ESTOP_SOP_FLAG ? " Main E-Stop | " : "")
                 + ((val & MOR_SAFETY_STAT_ESTOP_TP_FLAG) == MOR_SAFETY_STAT_ESTOP_TP_FLAG ? " Teach-Pendant E-Stop | " : "")
                 + ((val & MOR_SAFETY_STAT_TP_DEADMAN_FLAG) == MOR_SAFETY_STAT_TP_DEADMAN_FLAG ? " Teach-Pendant Deadman ( Need to set switch to Auto and Turn off Pendant) | " : "")
@@ -2987,8 +2987,14 @@ public class FanucCRCLMain {
                 + ((val & MOR_SAFETY_STAT_BELT_BROKEN_FLAG) == MOR_SAFETY_STAT_BELT_BROKEN_FLAG ? " Belt Broken | " : "")
                 + ((val & MOR_SAFETY_STAT_TP_ENABLE_FLAG) == MOR_SAFETY_STAT_TP_ENABLE_FLAG ? " TP Enable | " : "")
                 + ((val & MOR_SAFETY_STAT_ALARM_FLAG) == MOR_SAFETY_STAT_ALARM_FLAG ? " Alarm | " : "")
-                + " 0 ";
+                + "  ";
+        ret = ret.trim();
+        if(ret.endsWith("|")) {
+            return ret.substring(0, ret.length()-1).trim();
+        }
+        return ret;
     }
+    
 
     private static FanucCRCLMain main = null;
 
