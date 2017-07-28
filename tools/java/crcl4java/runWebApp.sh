@@ -12,7 +12,7 @@ fi
 JARFILE=`find . -name crcl4java-vaadin-webapp\*war-exec.jar | head -n 1`;
 
 if test "x${JARFILE}" = "x" ; then
-    export JARFILE=crcl4java-vaadin-webapp/target/crcl4java-vaadin-webapp-1.3-SNAPSHOT-war-exec.jar
+    export JARFILE=crcl4java-vaadin-webapp/target/crcl4java-vaadin-webapp-1.5-SNAPSHOT-war-exec.jar
 fi
 
 if test ! -f "${JARFILE}" ; then

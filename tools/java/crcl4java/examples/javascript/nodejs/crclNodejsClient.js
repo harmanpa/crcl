@@ -1,3 +1,9 @@
+console.log("");
+console.log("Staring clrclNodejsClient.js");
+console.log("process.env.CRCL4JAVA_UTILS_JAR = " + process.env.CRCL4JAVA_UTILS_JAR);
+console.log("");
+
+
 var java = require("java");
 //java.classpath.push("crcl4java-utils-1.3-jar-with-dependencies.jar");
 java.classpath.push(process.env.CRCL4JAVA_UTILS_JAR);
@@ -86,7 +92,7 @@ do {
     pt = stat.getPoseStatus().getPose().getPoint();
     console.log("pt = " + pt.getX() + "," + pt.getY() + "," + pt.getZ());
     var jst = stat.getJointStatuses();
-    if(jst != null) {
+    if(jst !== null) {
         var l = jst.getJointStatus();
         console.log("Joints:");
         for (index=0; index<l.size(); index++) {
@@ -95,7 +101,7 @@ do {
         }
     }
     // Keep sending requests and getting and printing status until the moveTo is completed.
-} while(((IDback - moveTo.getCommandID()) !=0) || (cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING)));
+} while(((IDback - moveTo.getCommandID()) !== 0) || (cmdStat.getCommandState().equals(CommandStateEnumType.CRCL_WORKING)));
 
 console.log("Closing socket");
 socket.close();

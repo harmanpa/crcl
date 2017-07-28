@@ -23,7 +23,7 @@ echo mypath %mypath%
 start "" http://localhost:8080/crcl4java-vaadin-webapp/
 jps
 
-java -jar crcl4java-vaadin-webapp\target\crcl4java-vaadin-webapp-1.3-SNAPSHOT-war-exec.jar
+java -jar crcl4java-vaadin-webapp\target\crcl4java-vaadin-webapp-1.4-SNAPSHOT-war-exec.jar
 @REM start "" http://localhost:8080/crcl4java-vaadin-webapp/
 
 

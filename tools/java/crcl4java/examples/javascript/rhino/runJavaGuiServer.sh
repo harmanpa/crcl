@@ -13,9 +13,9 @@
 #
 set -x;
 
-jarfile="crcl4java-ui-1.3-jar-with-dependencies.jar"
+jarfile="crcl4java-ui-1.4-jar-with-dependencies.jar"
 if ! test -f "${jarfile}" ; then
-    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar";
+    remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.4/crcl4java-ui-1.4-jar-with-dependencies.jar";
     echo "Downloading ${remotejarurl}";
     wget "${remotejarurl}"
 fi

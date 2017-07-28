@@ -1,5 +1,5 @@
-set jarfile=crcl4java-ui-1.3-jar-with-dependencies.jar
-set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.3/crcl4java-ui-1.3-jar-with-dependencies.jar
+set jarfile=crcl4java-ui-1.4-jar-with-dependencies.jar
+set remotejarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-ui/1.4/crcl4java-ui-1.4-jar-with-dependencies.jar
 
 if NOT exist %jarfile% (
     echo Downloading  %jarfile%
