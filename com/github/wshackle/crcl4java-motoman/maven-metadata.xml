@@ -3,9 +3,11 @@
   <groupId>com.github.wshackle</groupId>
   <artifactId>crcl4java-motoman</artifactId>
   <versioning>
+    <release>1.4</release>
     <versions>
       <version>1.5-SNAPSHOT</version>
+      <version>1.4</version>
     </versions>
-    <lastUpdated>20170728133927</lastUpdated>
+    <lastUpdated>20170728140102</lastUpdated>
   </versioning>
 </metadata>
