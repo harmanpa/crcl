@@ -11,8 +11,8 @@ set JVM_DLLDIR=%JAVA_HOME%\jre\bin\server
 
 set PATH=%JAVA_HOME%\bin:%JVM_DLLDIR%:%PATH%
 
-set crcljarfile=crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar
-set remotecrcljarfile=https://oss.sonatype.org/content/repositories/snapshots/com/github/wshackle/crcl4java-utils/1.5-SNAPSHOT/crcl4java-utils-1.4-20160505.202933-4-jar-with-dependencies.jar
+set crcljarfile=crcl4java-utils-1.4-jar-with-dependencies.jar
+set remotecrcljarfile=https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-utils/1.4/crcl4java-utils-1.4-jar-with-dependencies.jar
 
 if NOT exist %crcljarfile% (
     echo Downloading  %crcljarfile%
@@ -20,7 +20,7 @@ if NOT exist %crcljarfile% (
 )
 
 set java4cppjarfile=java4cpp-1.4-jar-with-dependencies.jar
-set java4cppremotejarfile=http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.4/java4cpp-1.4-jar-with-dependencies.jar
+set java4cppremotejarfile=http://repo.maven.apache.org/maven2/com/github/wshackle/java4cpp/1.5/java4cpp-1.5-jar-with-dependencies.jar
 if NOT exist %java4cppjarfile% (
     echo Downloading  %java4cppjarfile%
     powershell -Command "(New-Object Net.WebClient).DownloadFile('%java4cppremotejarfile%', '%java4cppjarfile%')"

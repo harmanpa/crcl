@@ -6,3 +6,6 @@ jvm_lib_dir
 *.so
 *.o
 *.jar
+*.exe
+*.dll
+
