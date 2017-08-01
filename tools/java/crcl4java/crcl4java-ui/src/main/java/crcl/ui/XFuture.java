@@ -87,6 +87,15 @@ public class XFuture<T> extends CompletableFuture<T> {
         return null;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public ConcurrentLinkedDeque<CompletableFuture<?>> getAlsoCancel() {
+        return alsoCancel;
+    }
+
+    
     @SuppressWarnings("unchecked")
     private void internalPrintStatus(PrintStream ps) {
 
