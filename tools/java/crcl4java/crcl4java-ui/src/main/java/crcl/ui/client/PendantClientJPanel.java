@@ -4391,7 +4391,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private XFuture<Boolean> checkFutureChange(XFuture<Boolean> newProgramFutureInternal) {
         XFuture<Boolean> ret;
         ret = newProgramFutureInternal
-                .thenCompose(x -> (null != programFutureInternal && newProgramFutureInternal != programFutureInternal) ? checkFutureChange(programFutureInternal) : XFuture.completedFuture(x));
+                .thenCompose("PendantClient.checkFutureChange",
+                        x -> (null != programFutureInternal && newProgramFutureInternal != programFutureInternal) ? checkFutureChange(programFutureInternal) : XFuture.completedFuture(x));
         return ret;
     }
 

@@ -179,17 +179,17 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public static XFuture<Void> allOf(String name, CompletableFuture<?>... cfs) {
-        XFuture<Void> ret = new XFuture<>(name);
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
+        XFuture<Void> ret = staticwrap(name, orig);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
-        return ret.wrap(name, orig);
+        return ret;
     }
 
     public static XFuture<Object> anyOf(String name, CompletableFuture<?>... cfs) {
-        XFuture<Object> ret = new XFuture<>(name);
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
+        XFuture<Object> ret = staticwrap(name, orig);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
-        return ret.wrap(name, orig);
+        return ret;
     }
 
     private final ConcurrentLinkedDeque<CompletableFuture<?>> alsoCancel = new ConcurrentLinkedDeque<>();
@@ -438,6 +438,21 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
+    private static  <T> XFuture<T> staticwrap(String name, CompletableFuture<T> future) {
+        if (future instanceof XFuture) {
+            return (XFuture<T>) future;
+        }
+        XFuture<T> newFuture = new XFuture<>(name);
+        future.handle(newFuture::logException)
+                .thenAccept(x -> {
+                    newFuture.complete(x);
+//                    XFuture.this.alsoCancel.clear();
+//                    newFuture.alsoCancel.clear();
+                });
+        newFuture.alsoCancel.add(future);
+        return newFuture;
+    }
+    
     public <T> XFuture<T> wrap(String name, CompletableFuture<T> future) {
         if (future instanceof XFuture) {
             if (this != future) {
@@ -585,17 +600,41 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
-        return wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
+        XFuture<V> ret =   wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
+        if(other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture)other);
+        }
+//        this.alsoCancel.add(other);
+        return ret;
     }
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        return wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
+        XFuture<V> ret =   wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
+        if(other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture)other);
+        }
+//        this.alsoCancel.add(other);
+        return ret;
     }
 
     @Override
     public <U, V> XFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        return wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
+        XFuture<V> ret =  wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
+        if(other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture)other);
+        }
+//        this.alsoCancel.add(other);
+        return ret;
+    }
+    
+    public <U, V> XFuture<V> thenCombine(String name, CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
+        XFuture<V> ret =  wrap(name, super.thenCombine(other, fn));
+        if(other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture)other);
+        }
+//        this.alsoCancel.add(other);
+        return ret;
     }
 
     @Override
