@@ -32,8 +32,8 @@ import crcl.utils.CRCLSocket;
  */
 public class CommandLogElement extends CommandStatusLogElement {
     
-    public CommandLogElement(CRCLCommandType cmd, long time) {
-        super(cmd.getCommandID(), time);
+    public CommandLogElement(CRCLCommandType cmd, long time, String progName, int progIndex, String svrString) {
+        super(cmd.getCommandID(), time,progName, progIndex,svrString);
         this.cmd = cmd;
     }
     final CRCLCommandType cmd;

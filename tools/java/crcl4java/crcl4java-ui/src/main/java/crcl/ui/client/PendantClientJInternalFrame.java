@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -85,11 +86,45 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public boolean isPaused() {
         return pendantClientJPanel1.isPaused();
     }
+    
+    public Thread getRunProgramThread() {
+        return pendantClientJPanel1.getRunProgramThread();
+    }
 
+    public XFuture<Boolean> getRunProgramFuture() {
+        return pendantClientJPanel1.getRunProgramFuture();
+    }
+    
     public boolean isRunningProgram() {
         return pendantClientJPanel1.isRunningProgram();
     }
 
+    public boolean isBlockPrograms() {
+        return pendantClientJPanel1.isBlockPrograms();
+    }
+
+    public int startBlockingPrograms() {
+        return pendantClientJPanel1.startBlockingPrograms();
+    }
+    
+    public int stopBlockingPrograms(int count) {
+        return pendantClientJPanel1.stopBlockingPrograms(count);
+    }
+
+    
+    public boolean isIgnoreTimeouts() {
+        return pendantClientJPanel1.isIgnoreTimeouts();
+    }
+
+    /**
+     * Set the value of ignoreTimeouts
+     *
+     * @param ignoreTimeouts new value of ignoreTimeouts
+     */
+    public void setIgnoreTimeouts(boolean ignoreTimeouts) {
+        pendantClientJPanel1.setIgnoreTimeouts(ignoreTimeouts);
+    }
+    
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }
@@ -146,6 +181,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         readRecentPrograms();
 //        this.setIconImage(DISCONNECTED_IMAGE);
         this.setTitle("CRCL Client: Disconnected");
+        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
+        
 //        try {
 //            this.setIconImage(IconImages.BASE_IMAGE);
 //        } catch (Exception ex) {
@@ -176,6 +213,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.removeCurrentPoseListener(l);
     }
 
+    public String getLastMessage() {
+        return pendantClientJPanel1.getLastMessage();
+    }
+    
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);
@@ -404,6 +445,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemIgnoreTimeouts = new javax.swing.JCheckBoxMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
 
         setIconifiable(true);
@@ -684,6 +726,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         });
         jMenuOptions.add(jCheckBoxMenuItemDisableTextPopups);
 
+        jCheckBoxMenuItemIgnoreTimeouts.setText("Ignore Timeouts");
+        jCheckBoxMenuItemIgnoreTimeouts.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemIgnoreTimeoutsActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jCheckBoxMenuItemIgnoreTimeouts);
+
         jMenuItemAbout.setText("About");
         jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -851,6 +901,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         this.pendantClientJPanel1.setEnableDebugConnect(jCheckBoxMenuItemEnableDebugConnect.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemEnableDebugConnectActionPerformed
 
+    private void jCheckBoxMenuItemIgnoreTimeoutsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemIgnoreTimeoutsActionPerformed
+        setIgnoreTimeouts(jCheckBoxMenuItemIgnoreTimeouts.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemIgnoreTimeoutsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugInterrupts;
@@ -859,6 +913,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEnableDebugConnect;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIgnoreTimeouts;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
@@ -1021,11 +1076,16 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.getLastOpenedProgramFile();
     }
 
-    public XFuture<Boolean> runCurrentProgram() {
+    public boolean runCurrentProgram() {
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
         return pendantClientJPanel1.runCurrentProgram();
     }
 
+    public XFuture<Boolean> runCurrentProgramAsync() {
+        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
+        return pendantClientJPanel1.runCurrentProgramAsync();
+    }
+    
     @Override
     public void setProgram(CRCLProgramType program) throws JAXBException {
         pendantClientJPanel1.setProgram(program);
@@ -1101,13 +1161,29 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.setPropertiesFile(propertiesFile);
     }
 
+    
+    public ExecutorService getRunProgramService() {
+        return pendantClientJPanel1.getRunProgramService();
+    }
+
+    public void setRunProgramService(ExecutorService runProgramService) {
+        pendantClientJPanel1.setRunProgramService(runProgramService);
+    }
+
+    public void resetRunProgramServiceToDefault() {
+        pendantClientJPanel1.resetRunProgramServiceToDefault();
+    }
+    
     @Override
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
         jCheckBoxMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
         jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
+        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
     }
 
+    
+    
     @Override
     public void saveProperties() {
         pendantClientJPanel1.saveProperties();

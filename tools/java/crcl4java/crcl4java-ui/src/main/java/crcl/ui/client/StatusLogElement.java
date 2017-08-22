@@ -34,8 +34,8 @@ import crcl.utils.CRCLSocket;
  */
 public class StatusLogElement extends CommandStatusLogElement {
     
-    public StatusLogElement(CRCLStatusType status, long time) {
-        super(status.getCommandStatus().getCommandID(), time);
+    public StatusLogElement(CRCLStatusType status, long time,String progName, int progIndex,String svrString) {
+        super(status.getCommandStatus().getCommandID(), time,progName,progIndex,svrString);
         this.status = CRCLPosemath.copy(status);
     }
     final CRCLStatusType status;

@@ -32,11 +32,31 @@ import java.util.Date;
  */
 public abstract class CommandStatusLogElement {
 
-    public CommandStatusLogElement(long id, long time) {
+    public CommandStatusLogElement(long id, long time,String progName, int progIndex,String svrSocket) {
         this.id = id;
         this.time = time;
+        this.progName = progName;
+        this.progIndex = progIndex;
+        this.svrSocket = svrSocket;
     }
 
+    private final String progName;
+    private final int progIndex;
+    private final String svrSocket;
+
+    public String getSvrSocket() {
+        return svrSocket;
+    }
+    
+    public String getProgName() {
+        return progName;
+    }
+
+    public int getProgIndex() {
+        return progIndex;
+    }
+    
+    
     private final long id;
 
     /**

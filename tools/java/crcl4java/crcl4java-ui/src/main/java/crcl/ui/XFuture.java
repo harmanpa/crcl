@@ -52,9 +52,20 @@ public class XFuture<T> extends CompletableFuture<T> {
     private volatile Runnable onCancelAllRunnable = null;
 
     private final String name;
+    private final long startTime;
+    private long completeTime = -1;
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getCompleteTime() {
+        return completeTime;
+    }
 
     public XFuture(String name) {
         this.name = name;
+        this.startTime = System.currentTimeMillis();
     }
 
     public void printStatus() {
@@ -95,7 +106,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         return alsoCancel;
     }
 
-    
     @SuppressWarnings("unchecked")
     private void internalPrintStatus(PrintStream ps) {
 
@@ -140,7 +150,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public String toString() {
-        return super.toString() + "{name=" + name + "}";
+        return super.toString() + "{name=" + name + "} (" + getRunTime() + " s) " + cancelString();
     }
 
     public Runnable getOnCancelAllRunnable() {
@@ -178,16 +188,30 @@ public class XFuture<T> extends CompletableFuture<T> {
         return Hider.DEFAULT_EXECUTOR_SERVICE;
     }
 
-    public static XFuture<Void> allOf(String name, CompletableFuture<?>... cfs) {
+    public static XFuture<Void> allOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFuture<Void> ret = staticwrap(name, orig);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
         return ret;
     }
 
-    public static XFuture<Object> anyOf(String name, CompletableFuture<?>... cfs) {
+    public static XFuture<Object> anyOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
         XFuture<Object> ret = staticwrap(name, orig);
+        ret.alsoCancel.addAll(Arrays.asList(cfs));
+        return ret;
+    }
+
+    public static XFuture<Void> allOf(CompletableFuture<?>... cfs) {
+        CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
+        XFuture<Void> ret = staticwrap("allOfWithName", orig);
+        ret.alsoCancel.addAll(Arrays.asList(cfs));
+        return ret;
+    }
+
+    public static XFuture<Object> anyOf(CompletableFuture<?>... cfs) {
+        CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
+        XFuture<Object> ret = staticwrap("anyOfWithName", orig);
         ret.alsoCancel.addAll(Arrays.asList(cfs));
         return ret;
     }
@@ -199,7 +223,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         Future<T> f = es.submit(() -> {
             try {
                 String tname = Thread.currentThread().getName();
-                Thread.currentThread().setName(name);
+                int cindex = tname.indexOf(':');
+                String tname_sub = tname;
+                if (cindex > 0) {
+                    tname_sub = tname.substring(0, cindex);
+                }
+                Thread.currentThread().setName(tname_sub + ":" + name);
                 T result = c.call();
                 myf.complete(result);
 //                myf.alsoCancel.clear();
@@ -221,7 +250,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         Future<?> f = es.submit(() -> {
             try {
                 String tname = Thread.currentThread().getName();
-                Thread.currentThread().setName("XFuture_" + name);
+                int cindex = tname.indexOf(':');
+                String tname_sub = tname;
+                if (cindex > 0) {
+                    tname_sub = tname.substring(0, cindex);
+                }
+                Thread.currentThread().setName(tname_sub + ":" + name);
                 r.run();
                 Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
@@ -257,9 +291,13 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private static void setTName(String name) {
-        if (Thread.currentThread().getName().startsWith("XFuture")) {
-            Thread.currentThread().setName("XFuture_" + name);
+        String tname = Thread.currentThread().getName();
+        int cindex = tname.indexOf(':');
+        String tname_sub = tname;
+        if (cindex > 0) {
+            tname_sub = tname.substring(0, cindex);
         }
+        Thread.currentThread().setName(tname_sub + ":" + name);
     }
 
     private static <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
@@ -274,10 +312,41 @@ public class XFuture<T> extends CompletableFuture<T> {
         return this.thenCompose(name + ".thenCompose", fn);
     }
 
+    @Override
     public boolean complete(T value) {
         boolean ret = super.complete(value);
         this.alsoCancel.clear();
+        if (this.completeTime < 0) {
+            this.completeTime = System.currentTimeMillis();
+        }
         return ret;
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        boolean ret = super.cancel(mayInterruptIfRunning);
+        this.alsoCancel.clear();
+        if (this.completeTime < 0) {
+            this.completeTime = System.currentTimeMillis();
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean completeExceptionally(Throwable ex) {
+        boolean ret = super.completeExceptionally(ex);
+        this.alsoCancel.clear();
+        if (this.completeTime < 0) {
+            this.completeTime = System.currentTimeMillis();
+        }
+        return ret;
+    }
+
+    public long getRunTime() {
+        long startTime = this.getStartTime();
+        long completeTime = this.getCompleteTime();
+        long endTime = (completeTime > 0) ? completeTime : System.currentTimeMillis();
+        return endTime - startTime;
     }
 
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
@@ -342,8 +411,22 @@ public class XFuture<T> extends CompletableFuture<T> {
         return myF;
     }
 
+    private volatile Thread cancelThread = null;
+    private volatile long cancelTime = -1;
+    private volatile StackTraceElement cancelStack[] = null;
+
+    public String cancelString() {
+        if (null == cancelThread || null == cancelStack) {
+            return "";
+        }
+        return " Canceled by " + cancelThread + " at " + Arrays.toString(cancelStack) + " at " + (new Date(cancelTime));
+    }
+
     public void cancelAll(boolean mayInterrupt) {
         try {
+            cancelThread = Thread.currentThread();
+            cancelStack = cancelThread.getStackTrace();
+            cancelTime = System.currentTimeMillis();
 
             try {
                 if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
@@ -438,7 +521,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
-    private static  <T> XFuture<T> staticwrap(String name, CompletableFuture<T> future) {
+    private static <T> XFuture<T> staticwrap(String name, CompletableFuture<T> future) {
         if (future instanceof XFuture) {
             return (XFuture<T>) future;
         }
@@ -452,7 +535,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         newFuture.alsoCancel.add(future);
         return newFuture;
     }
-    
+
     public <T> XFuture<T> wrap(String name, CompletableFuture<T> future) {
         if (future instanceof XFuture) {
             if (this != future) {
@@ -600,9 +683,9 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
-        XFuture<V> ret =   wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
-        if(other instanceof CompletableFuture) {
-            ret.alsoCancel.add((CompletableFuture)other);
+        XFuture<V> ret = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
+        if (other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture) other);
         }
 //        this.alsoCancel.add(other);
         return ret;
@@ -610,9 +693,9 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret =   wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
-        if(other instanceof CompletableFuture) {
-            ret.alsoCancel.add((CompletableFuture)other);
+        XFuture<V> ret = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
+        if (other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture) other);
         }
 //        this.alsoCancel.add(other);
         return ret;
@@ -620,21 +703,25 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U, V> XFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret =  wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
-        if(other instanceof CompletableFuture) {
-            ret.alsoCancel.add((CompletableFuture)other);
+        XFuture<V> ret = wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
+        if (other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture) other);
         }
 //        this.alsoCancel.add(other);
         return ret;
     }
-    
+
     public <U, V> XFuture<V> thenCombine(String name, CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret =  wrap(name, super.thenCombine(other, fn));
-        if(other instanceof CompletableFuture) {
-            ret.alsoCancel.add((CompletableFuture)other);
+        XFuture<V> ret = wrap(name, super.thenCombine(other, fn));
+        if (other instanceof CompletableFuture) {
+            ret.alsoCancel.add((CompletableFuture) other);
         }
 //        this.alsoCancel.add(other);
         return ret;
+    }
+
+    public XFuture<Void> thenRunAsync(String name, Runnable action, Executor executor) {
+        return wrap(name, super.thenRunAsync(action, executor));
     }
 
     @Override
@@ -686,10 +773,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(this.name + ".thenApply", super.thenApply(fn));
     }
 
-    public <U> XFuture<U> thenApply(String name,Function<? super T, ? extends U> fn) {
+    public <U> XFuture<U> thenApply(String name, Function<? super T, ? extends U> fn) {
         return wrap(name, super.thenApply(fn));
     }
-    
+
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         TestClass.main(args);
     }
