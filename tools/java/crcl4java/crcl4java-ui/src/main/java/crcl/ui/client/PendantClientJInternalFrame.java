@@ -95,6 +95,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.getRunProgramFuture();
     }
     
+    public int getCurrentProgramLine() {
+        return pendantClientJPanel1.getCurrentProgramLine();
+    }
+    
     public boolean isRunningProgram() {
         return pendantClientJPanel1.isRunningProgram();
     }

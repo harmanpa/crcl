@@ -307,6 +307,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public int getCurrentProgramLine() {
+        if(internal.isRunningProgram()) {
+            return internal.getCurrentProgramLine();
+        }
         return jTableProgram.getSelectionModel().getMinSelectionIndex();
     }
 

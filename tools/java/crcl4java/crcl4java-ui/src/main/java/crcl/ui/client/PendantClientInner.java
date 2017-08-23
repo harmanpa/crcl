@@ -2594,6 +2594,10 @@ public class PendantClientInner {
     public XFuture<Boolean> getRunProgramFuture() {
         return runProgramFuture;
     }
+    
+    public int getCurrentProgramLine() {
+        return lastShowCurrentProgramLine;
+    }
 
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement[] threadCreateCallStack,
