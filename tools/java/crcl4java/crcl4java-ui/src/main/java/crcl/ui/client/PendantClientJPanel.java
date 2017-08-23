@@ -2833,7 +2833,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 dtm.setValueAt(middleCommand.getCommandID(), i + 1, 1);
                 dtm.setValueAt(tableCommandString(middleCommand), i + 1, 2);
                 if (null != progRunDataList) {
-                    prd = progRunDataList.get(0);
+                    prd = progRunDataList.get(i+1);
                 }
                 if (null != prd) {
 //                    if (prd.getId() != ((long) dtm.getValueAt(i + 1, 0))) {
@@ -2864,9 +2864,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             dtm.setValueAt(endCommand.getCommandID(), 1 + middleCommands.size(), 1);
             dtm.setValueAt(tableCommandString(endCommand), 1 + middleCommands.size(), 2);
             if (null != prd) {
-                dtm.setValueAt(prd.getTime(), 0, 3);
-                dtm.setValueAt(prd.getDist(), 0, 4);
-                dtm.setValueAt(prd.isResult(), 0, 5);
+                dtm.setValueAt(prd.getTime(),  1 + middleCommands.size(), 3);
+                dtm.setValueAt(prd.getDist(),  1 + middleCommands.size(), 4);
+                dtm.setValueAt(prd.isResult(),  1 + middleCommands.size(), 5);
             } else {
                 dtm.setValueAt(-1L, 1 + middleCommands.size(), 3);
                 dtm.setValueAt(0.0, 1 + middleCommands.size(), 4);
