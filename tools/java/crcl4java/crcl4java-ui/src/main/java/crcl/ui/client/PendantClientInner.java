@@ -962,10 +962,15 @@ public class PendantClientInner {
             return true;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
-            showMessage(ex);
-            showErrorMessage(ex.toString());
+            if (!(cmd instanceof GetStatusType)) {
+                showMessage(ex);
+                showErrorMessage(ex.toString());
+            }
             if (null != ex.getCause() && ex.getCause() instanceof SocketException) {
                 disconnect();
+            }
+            if(cmd instanceof GetStatusType) {
+                throw new RuntimeException(ex);
             }
         }
         return false;
@@ -1976,6 +1981,7 @@ public class PendantClientInner {
         initSent = false;
         stopStatusReaderThread();
         closeTestProgramThread();
+        outer.stopPollTimer();
         if (null != crclSocket) {
             System.err.println("crclSocket = " + crclSocket);
             System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
@@ -2594,7 +2600,7 @@ public class PendantClientInner {
     public XFuture<Boolean> getRunProgramFuture() {
         return runProgramFuture;
     }
-    
+
     public int getCurrentProgramLine() {
         return lastShowCurrentProgramLine;
     }

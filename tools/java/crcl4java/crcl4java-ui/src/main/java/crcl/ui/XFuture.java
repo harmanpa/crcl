@@ -563,7 +563,65 @@ public class XFuture<T> extends CompletableFuture<T> {
     public XFuture<T> exceptionally(String name, Function<Throwable, ? extends T> fn) {
         return wrap(name, super.exceptionally(fn));
     }
+    
+    public XFuture<T> always(Runnable r) {
+        return wrap(name+".always",super.handle((x,t) -> {
+            r.run();
+            if(null != t) {
+                if(t instanceof RuntimeException) {
+                    throw ((RuntimeException)t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }));
+    }
 
+    
+    public XFuture<T> always(String name, Runnable r) {
+        return wrap(name,super.handle((x,t) -> {
+            r.run();
+            if(null != t) {
+                if(t instanceof RuntimeException) {
+                    throw ((RuntimeException)t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }));
+    }
+    
+    public XFuture<T> alwaysAsync(String name, Runnable r, ExecutorService service) {
+        return wrap(name,super.handleAsync((x,t) -> {
+            r.run();
+            if(null != t) {
+                if(t instanceof RuntimeException) {
+                    throw ((RuntimeException)t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        },service));
+    }
+    
+    public XFuture<T> alwaysAsync( Runnable r, ExecutorService service) {
+        return wrap(this.name +".alwaysAsync",super.handleAsync((x,t) -> {
+            r.run();
+            if(null != t) {
+                if(t instanceof RuntimeException) {
+                    throw ((RuntimeException)t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        },service));
+    }
+    
+    
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
         return wrap(this.name + ".handleAsync", super.handleAsync(fn, executor));
