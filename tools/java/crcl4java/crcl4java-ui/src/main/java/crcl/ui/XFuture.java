@@ -507,8 +507,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                         if (null != cause) {
                             cause.printStackTrace(ps);
                         }
-                    }
-                    if (isCancellationException && !printCancellationExceptions) {
+                    } else {
                         if (thrown instanceof RuntimeException) {
                             RuntimeException re = (RuntimeException) thrown;
                             throw re;
