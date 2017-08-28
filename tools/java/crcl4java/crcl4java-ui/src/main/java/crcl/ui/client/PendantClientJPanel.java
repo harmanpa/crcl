@@ -1150,8 +1150,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private final AtomicInteger pollStopCount = new AtomicInteger();
 
-    private void pollStatus() {
-        final int startPollStopCount = pollStopCount.get();
+    private void pollStatus(int startPollStopCount) {
+//        final int startPollStopCount = pollStopCount.get();
         try {
             while (!Thread.currentThread().isInterrupted()
                     && this.jCheckBoxPoll.isSelected()
@@ -1210,7 +1210,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        });
 //        pollTimer.start();
         this.stopPollTimer();
-        pollingThread = new Thread(this::pollStatus, "PendantClient.pollStatus.socket=" + internal.getCRCLSocket());
+        int startPollStopCount = pollStopCount.incrementAndGet();
+        pollingThread = new Thread(() -> pollStatus(startPollStopCount), "PendantClient.pollStatus.socket=" + internal.getCRCLSocket());
         pollingThread.start();
     }
 
@@ -4319,6 +4320,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (!isConnected()) {
             connectCurrent();
         }
+        stopPollTimer();
         this.clearProgramTimesDistances();
         int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
         internal.setQuitOnTestCommandFailure(true);
