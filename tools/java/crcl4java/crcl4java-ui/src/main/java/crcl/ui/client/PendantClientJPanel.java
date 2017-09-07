@@ -2099,8 +2099,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
         this.jTextFieldStatus.setBackground(Color.GRAY);
         Window window = this.getOuterWindow();
-        if (window instanceof JFrame) {
-            JFrame frm = (JFrame) window;
+        if (window instanceof PendantClientJFrame) {
+            PendantClientJFrame frm = (PendantClientJFrame) window;
             if (null != frm) {
                 frm.setIconImage(DISCONNECTED_IMAGE);
                 frm.setTitle("CRCL Client: Disconnected?");

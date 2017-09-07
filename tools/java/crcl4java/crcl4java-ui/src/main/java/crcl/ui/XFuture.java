@@ -820,6 +820,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, executor));
     }
 
+    public <U> XFuture<U> thenApplyAsync(String name, Function<? super T, ? extends U> fn, Executor executor) {
+        return wrap(name, super.thenApplyAsync(fn, executor));
+    }
+
+    
     @Override
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn) {
         return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, getDefaultThreadPool()));
