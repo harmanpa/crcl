@@ -421,7 +421,16 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
         return " Canceled by " + cancelThread + " at " + Arrays.toString(cancelStack) + " at " + (new Date(cancelTime));
     }
+    
+    private static volatile boolean globalAllowInterupts=false;
 
+    public static boolean getGlobalAllowInterrupts() {
+        return globalAllowInterupts;
+    }
+    public static void setGlobalAllowInterrupts(boolean b) {
+        globalAllowInterupts = b;
+    }
+    
     public void cancelAll(boolean mayInterrupt) {
         try {
             cancelThread = Thread.currentThread();
@@ -441,7 +450,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             if (null != futureFromExecSubmit) {
                 futureFromExecSubmit.cancel(mayInterrupt);
             }
-            if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() == threadToInterrupt) {
+            if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() != threadToInterrupt && globalAllowInterupts) {
+                Thread.dumpStack();
+                System.err.println(toString()+"interrupting thread "+threadToInterrupt);
                 threadToInterrupt.interrupt();
             }
 
