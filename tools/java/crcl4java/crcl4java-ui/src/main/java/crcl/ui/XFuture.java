@@ -44,6 +44,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class XFuture<T> extends CompletableFuture<T> {
 
@@ -54,6 +55,8 @@ public class XFuture<T> extends CompletableFuture<T> {
     private final String name;
     private final long startTime;
     private long completeTime = -1;
+    private final Thread createThread;
+    private final StackTraceElement createTrace[];
 
     public long getStartTime() {
         return startTime;
@@ -66,6 +69,15 @@ public class XFuture<T> extends CompletableFuture<T> {
     public XFuture(String name) {
         this.name = name;
         this.startTime = System.currentTimeMillis();
+        this.createThread = Thread.currentThread();
+        this.createTrace = this.createThread.getStackTrace();
+    }
+
+    private static String createTraceToString(StackTraceElement stea[]) {
+        return Arrays.stream(stea)
+                .filter(ste -> !ste.getClassName().contains("Future") && !ste.getClassName().startsWith("java.lang"))
+                .map(StackTraceElement::toString)
+                .collect(Collectors.joining(","));
     }
 
     public void printStatus() {
@@ -150,7 +162,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public String toString() {
-        return super.toString() + "{name=" + name + "} (" + getRunTime() + " s) " + cancelString();
+        return super.toString() + "{" + name + "(" + getRunTime() + "ms ago) " + cancelString() + "createThread=" + createThread + ", createTrace=" + createTraceToString(createTrace) + '}';
     }
 
     public Runnable getOnCancelAllRunnable() {
@@ -300,11 +312,21 @@ public class XFuture<T> extends CompletableFuture<T> {
         Thread.currentThread().setName(tname_sub + ":" + name);
     }
 
-    private static <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
-        return fn.compose(x -> {
-            setTName(name);
-            return x;
-        });
+    private <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
+        return x -> {
+            try {
+                setTName(name);
+                return fn.apply(x);
+            } catch (Throwable t) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
+                FT chk = fn.apply(x);
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
     }
 
     @Override
@@ -343,10 +365,10 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public long getRunTime() {
-        long startTime = this.getStartTime();
-        long completeTime = this.getCompleteTime();
-        long endTime = (completeTime > 0) ? completeTime : System.currentTimeMillis();
-        return endTime - startTime;
+        long sTime = this.getStartTime();
+        long cTime = this.getCompleteTime();
+        long endTime = (cTime > 0) ? cTime : System.currentTimeMillis();
+        return endTime - sTime;
     }
 
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
@@ -419,18 +441,19 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (null == cancelThread || null == cancelStack) {
             return "";
         }
-        return " Canceled by " + cancelThread + " at " + Arrays.toString(cancelStack) + " at " + (new Date(cancelTime));
+        return " Canceled by " + cancelThread + " at " + createTraceToString(cancelStack) + " at " + (new Date(cancelTime));
     }
-    
-    private static volatile boolean globalAllowInterupts=false;
+
+    private static volatile boolean globalAllowInterupts = false;
 
     public static boolean getGlobalAllowInterrupts() {
         return globalAllowInterupts;
     }
+
     public static void setGlobalAllowInterrupts(boolean b) {
         globalAllowInterupts = b;
     }
-    
+
     public void cancelAll(boolean mayInterrupt) {
         try {
             cancelThread = Thread.currentThread();
@@ -452,7 +475,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
             if (mayInterrupt && null != threadToInterrupt && Thread.currentThread() != threadToInterrupt && globalAllowInterupts) {
                 Thread.dumpStack();
-                System.err.println(toString()+"interrupting thread "+threadToInterrupt);
+                System.err.println(toString() + "interrupting thread " + threadToInterrupt);
                 threadToInterrupt.interrupt();
             }
 
@@ -565,21 +588,62 @@ public class XFuture<T> extends CompletableFuture<T> {
         return newFuture;
     }
 
+    private <A, R> Function<A, R> fWrap(Function<A, R> f) {
+        return x -> {
+            try {
+                return f.apply(x);
+            } catch (Throwable t) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
+    }
+    
+    private <A,B, R> BiFunction<A,B, R> biWrap(BiFunction<A,B, R> f) {
+        return (A a,B b) -> {
+            try {
+                return (R) f.apply(a,b);
+            } catch (Throwable t) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
+    }
+
     @Override
     public XFuture<T> exceptionally(Function<Throwable, ? extends T> fn) {
-        return wrap(this.name + ".exceptionally", super.exceptionally(fn));
+        return wrap(this.name + ".exceptionally", super.exceptionally(fWrap(fn)));
     }
 
     public XFuture<T> exceptionally(String name, Function<Throwable, ? extends T> fn) {
-        return wrap(name, super.exceptionally(fn));
+        return wrap(name, super.exceptionally(fWrap(fn)));
     }
-    
+
     public XFuture<T> always(Runnable r) {
-        return wrap(name+".always",super.handle((x,t) -> {
-            r.run();
-            if(null != t) {
-                if(t instanceof RuntimeException) {
-                    throw ((RuntimeException)t);
+        return wrap(name + ".always", super.handle((x, t) -> {
+            try {
+                r.run();
+            } catch(Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if(null == t) {
+                    if(t2 instanceof RuntimeException) {
+                        throw ((RuntimeException)t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
                 } else {
                     throw new RuntimeException(t);
                 }
@@ -588,13 +652,23 @@ public class XFuture<T> extends CompletableFuture<T> {
         }));
     }
 
-    
     public XFuture<T> always(String name, Runnable r) {
-        return wrap(name,super.handle((x,t) -> {
-            r.run();
-            if(null != t) {
-                if(t instanceof RuntimeException) {
-                    throw ((RuntimeException)t);
+        return wrap(name, super.handle((x, t) -> {
+            try {
+                r.run();
+            } catch(Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if(null == t) {
+                    if(t2 instanceof RuntimeException) {
+                        throw ((RuntimeException)t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
                 } else {
                     throw new RuntimeException(t);
                 }
@@ -602,61 +676,82 @@ public class XFuture<T> extends CompletableFuture<T> {
             return x;
         }));
     }
-    
+
     public XFuture<T> alwaysAsync(String name, Runnable r, ExecutorService service) {
-        return wrap(name,super.handleAsync((x,t) -> {
-            r.run();
-            if(null != t) {
-                if(t instanceof RuntimeException) {
-                    throw ((RuntimeException)t);
+        return wrap(name, super.handleAsync((x, t) -> {
+            try {
+                r.run();
+            } catch(Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if(null == t) {
+                    if(t2 instanceof RuntimeException) {
+                        throw ((RuntimeException)t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
                 } else {
                     throw new RuntimeException(t);
                 }
             }
             return x;
-        },service));
+        }, service));
     }
-    
-    public XFuture<T> alwaysAsync( Runnable r, ExecutorService service) {
-        return wrap(this.name +".alwaysAsync",super.handleAsync((x,t) -> {
-            r.run();
-            if(null != t) {
-                if(t instanceof RuntimeException) {
-                    throw ((RuntimeException)t);
+
+    public XFuture<T> alwaysAsync(Runnable r, ExecutorService service) {
+        return wrap(this.name + ".alwaysAsync", super.handleAsync((x, t) -> {
+            try {
+                r.run();
+            } catch(Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if(null == t) {
+                    if(t2 instanceof RuntimeException) {
+                        throw ((RuntimeException)t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
                 } else {
                     throw new RuntimeException(t);
                 }
             }
             return x;
-        },service));
+        }, service));
     }
-    
-    
+
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
-        return wrap(this.name + ".handleAsync", super.handleAsync(fn, executor));
+        return wrap(this.name + ".handleAsync", super.handleAsync(biWrap(fn), executor));
     }
 
     public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
-        return wrap(name, super.handleAsync(fn, executor));
+        return wrap(name, super.handleAsync(biWrap(fn), executor));
     }
 
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(this.name + ".handleAsync", super.handleAsync(fn));
+        return wrap(this.name + ".handleAsync", super.handleAsync(biWrap(fn)));
     }
 
     public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(name, super.handleAsync(fn));
+        return wrap(name, super.handleAsync(biWrap(fn)));
     }
 
     @Override
     public <U> XFuture<U> handle(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(this.name + ".handle", super.handle(fn));
+        return wrap(this.name + ".handle", super.handle(biWrap(fn)));
     }
 
     public <U> XFuture<U> handle(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(name, super.handle(fn));
+        return wrap(name, super.handle(biWrap(fn)));
     }
 
     @Override
@@ -789,26 +884,41 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<Void> thenRunAsync(String name, Runnable action, Executor executor) {
-        return wrap(name, super.thenRunAsync(action, executor));
+        return wrap(name, super.thenRunAsync(runWrap(action), executor));
     }
 
     @Override
     public XFuture<Void> thenRunAsync(Runnable action, Executor executor) {
-        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(action, executor));
+        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(runWrap(action), executor));
     }
 
     @Override
     public XFuture<Void> thenRunAsync(Runnable action) {
-        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(action, getDefaultThreadPool()));
+        return wrap(this.name + ".thenRunAsync", super.thenRunAsync(runWrap(action), getDefaultThreadPool()));
     }
 
+    private Runnable runWrap(Runnable r) {
+        return () -> {
+            try {
+                r.run();
+            } catch (Throwable t) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
+    }
+    
     @Override
     public XFuture<Void> thenRun(Runnable action) {
-        return wrap(this.name + ".thenRun", super.thenRun(action));
+        return wrap(this.name + ".thenRun", super.thenRun(runWrap(action)));
     }
 
     public XFuture<Void> thenRun(String name, Runnable action) {
-        return wrap(name, super.thenRun(action));
+        return wrap(name, super.thenRun(runWrap(action)));
     }
 
     @Override
@@ -835,7 +945,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name, super.thenApplyAsync(fn, executor));
     }
 
-    
     @Override
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn) {
         return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, getDefaultThreadPool()));
