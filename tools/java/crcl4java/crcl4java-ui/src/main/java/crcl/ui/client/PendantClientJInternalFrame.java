@@ -111,8 +111,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.startBlockingPrograms();
     }
     
-    public int stopBlockingPrograms(int count) {
-        return pendantClientJPanel1.stopBlockingPrograms(count);
+    public void stopBlockingPrograms(int count) throws PendantClientInner.ConcurrentBlockProgramsException {
+         pendantClientJPanel1.stopBlockingPrograms(count);
     }
 
     

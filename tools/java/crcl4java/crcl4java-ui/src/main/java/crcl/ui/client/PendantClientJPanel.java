@@ -467,14 +467,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             return;
         }
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
-            finishShowCurrentProgramLine(line, program, status, progRunDataList);
+            finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), status, progRunDataList);
         } else {
             final CRCLStatusType curInternalStatus = CRCLPosemath.copy(status);
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
-                    finishShowCurrentProgramLine(line, program, curInternalStatus, progRunDataList);
+                    finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), curInternalStatus, progRunDataList);
                 }
             });
         }
@@ -1287,7 +1287,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.clearProgramTimesDistances();
             this.clearRecordedPoints();
             internal.openXmlProgramFile(f, true);
-        } catch (SAXException | IOException | CRCLException | XPathExpressionException | ParserConfigurationException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             showMessage(ex);
         }
@@ -2787,7 +2787,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             long maxCmdId = 1;
             InitCanonType init = program.getInitCanon();
-            List<MiddleCommandType> middleCommands = program.getMiddleCommand();
+            List<MiddleCommandType> middleCommands = 
+                    new ArrayList<>(program.getMiddleCommand());
+            EndCanonType endCommand = program.getEndCanon();
             dtm.setRowCount(2 + middleCommands.size());
             maxCmdId = Math.max(maxCmdId, init.getCommandID());
             dtm.setValueAt(-1, 0, 0);
@@ -2802,12 +2804,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 prd = progRunDataList.get(0);
             }
             if (null != prd) {
-//                if (prd.getId() != ((long) dtm.getValueAt(0, 0))) {
-//                    System.err.println("Ids do not match at i=" + 0 + ", prd.getId()=" + prd.getId() + ", dtm.getValueAt(0, 0)=" + dtm.getValueAt(0, 0));
-//                }
-//                if (!prd.getCmdString().equals(dtm.getValueAt(0, 1))) {
-//                    System.err.println("Command Strings do not match at i=" + 0 + ", prd.getCmdString()=" + prd.getCmdString() + ", dtm.getValueAt(0, 1)=" + dtm.getValueAt(0, 1));
-//                }
                 dtm.setValueAt(prd.getTime(), 0, 3);
                 dtm.setValueAt(prd.getDist(), 0, 4);
                 dtm.setValueAt(prd.isResult(), 0, 5);
@@ -2826,21 +2822,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 if (maxCmdId > middleCommand.getCommandID()) {
                     showDebugMessage("middleCommands contains command with too small command id  at " + i);
                 }
-//                setCommandId(middleCommand,maxCmdId);
                 maxCmdId = Math.max(maxCmdId, middleCommand.getCommandID());
                 dtm.setValueAt(i, i + 1, 0);
                 dtm.setValueAt(middleCommand.getCommandID(), i + 1, 1);
                 dtm.setValueAt(tableCommandString(middleCommand), i + 1, 2);
-                if (null != progRunDataList) {
+                if (null != progRunDataList && progRunDataList.size() > i+1) {
                     prd = progRunDataList.get(i + 1);
                 }
                 if (null != prd) {
-//                    if (prd.getId() != ((long) dtm.getValueAt(i + 1, 0))) {
-//                        System.err.println("Ids do not match at i=" + i + ", prd.getId()=" + prd.getId() + ", dtm.getValueAt(i+1, 0)=" + dtm.getValueAt(i + 1, 0));
-//                    }
-//                    if (!prd.getCmdString().equals(dtm.getValueAt(i + 1, 1))) {
-//                        System.err.println("Command Strings do not match at i=" + i + ", prd.getCmdString()=" + prd.getCmdString() + ", dtm.getValueAt(i+1, 1)=" + dtm.getValueAt(i + 1, 1));
-//                    }
                     dtm.setValueAt(prd.getTime(), i + 1, 3);
                     dtm.setValueAt(prd.getDist(), i + 1, 4);
                     dtm.setValueAt(prd.isResult(), i + 1, 5);
@@ -2850,7 +2839,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     dtm.setValueAt(false, i + 1, 5);
                 }
             }
-            EndCanonType endCommand = program.getEndCanon();
             maxCmdId = maxCmdId + 1;
             if (endCommand.getCommandID() < maxCmdId) {
                 showDebugMessage("middleCommands contains command with too small command id  at emd ");
@@ -4388,8 +4376,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.startBlockingPrograms();
     }
 
-    public int stopBlockingPrograms(int count) {
-        return internal.stopBlockingPrograms(count);
+    public void stopBlockingPrograms(int count) throws PendantClientInner.ConcurrentBlockProgramsException {
+        internal.stopBlockingPrograms(count);
     }
 
     public boolean isIgnoreTimeouts() {

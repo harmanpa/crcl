@@ -23,8 +23,10 @@
 package crcl.ui;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -456,6 +458,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public void cancelAll(boolean mayInterrupt) {
         try {
+            List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
             cancelThread = Thread.currentThread();
             cancelStack = cancelThread.getStackTrace();
             cancelTime = System.currentTimeMillis();
@@ -482,15 +485,30 @@ public class XFuture<T> extends CompletableFuture<T> {
             for (CompletableFuture f : alsoCancel) {
                 if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
                     try {
-                        f.cancel(false);
+                        if (f instanceof XFuture) {
+                            ((XFuture) f).cancelAll(mayInterrupt);
+                        } else {
+                            f.cancel(mayInterrupt && globalAllowInterupts);
+                        }
                     } catch (Exception e) {
                         System.err.println("Cancel all ignoring " + e.toString());
                     }
-                    if (f instanceof XFuture) {
-                        ((XFuture) f).cancelAll(mayInterrupt);
+                }
+            }
+            for (CompletableFuture f : alsoCancelCopy) {
+                if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
+                    try {
+                        if (f instanceof XFuture) {
+                            ((XFuture) f).cancelAll(mayInterrupt);
+                        } else {
+                            f.cancel(mayInterrupt && globalAllowInterupts);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Cancel all ignoring " + e.toString());
                     }
                 }
             }
+
         } catch (Exception e) {
             System.err.println("Cancel all ignoring " + e.toString());
         }
@@ -602,11 +620,11 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         };
     }
-    
-    private <A,B, R> BiFunction<A,B, R> biWrap(BiFunction<A,B, R> f) {
-        return (A a,B b) -> {
+
+    private <A, B, R> BiFunction<A, B, R> biWrap(BiFunction<A, B, R> f) {
+        return (A a, B b) -> {
             try {
-                return (R) f.apply(a,b);
+                return (R) f.apply(a, b);
             } catch (Throwable t) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
                 if (t instanceof RuntimeException) {
@@ -631,11 +649,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name + ".always", super.handle((x, t) -> {
             try {
                 r.run();
-            } catch(Throwable t2) {
+            } catch (Throwable t2) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
-                if(null == t) {
-                    if(t2 instanceof RuntimeException) {
-                        throw ((RuntimeException)t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
                     } else {
                         throw new RuntimeException(t2);
                     }
@@ -656,11 +674,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name, super.handle((x, t) -> {
             try {
                 r.run();
-            } catch(Throwable t2) {
+            } catch (Throwable t2) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
-                if(null == t) {
-                    if(t2 instanceof RuntimeException) {
-                        throw ((RuntimeException)t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
                     } else {
                         throw new RuntimeException(t2);
                     }
@@ -681,11 +699,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name, super.handleAsync((x, t) -> {
             try {
                 r.run();
-            } catch(Throwable t2) {
+            } catch (Throwable t2) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
-                if(null == t) {
-                    if(t2 instanceof RuntimeException) {
-                        throw ((RuntimeException)t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
                     } else {
                         throw new RuntimeException(t2);
                     }
@@ -706,11 +724,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(this.name + ".alwaysAsync", super.handleAsync((x, t) -> {
             try {
                 r.run();
-            } catch(Throwable t2) {
+            } catch (Throwable t2) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
-                if(null == t) {
-                    if(t2 instanceof RuntimeException) {
-                        throw ((RuntimeException)t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
                     } else {
                         throw new RuntimeException(t2);
                     }
@@ -911,7 +929,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         };
     }
-    
+
     @Override
     public XFuture<Void> thenRun(Runnable action) {
         return wrap(this.name + ".thenRun", super.thenRun(runWrap(action)));

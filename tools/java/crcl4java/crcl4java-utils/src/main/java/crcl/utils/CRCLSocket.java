@@ -50,12 +50,14 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
-import java.net.SocketException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -344,15 +346,13 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    
-
     /*@Nullable*/
     public static JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
         return getJointStatus(_status, bi.intValue());
     }
-    
+
     /*@Nullable*/
-    public static JointStatusType getJointStatus(CRCLStatusType _status, int  bi) {
+    public static JointStatusType getJointStatus(CRCLStatusType _status, int bi) {
         if (null == _status) {
             return null;
         }
@@ -984,6 +984,32 @@ public class CRCLSocket implements AutoCloseable {
                 throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
             }
             final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
+//            try {
+//                if (cl instanceof URLClassLoader) {
+//                    URL urls[] = ((URLClassLoader) cl).getURLs();
+//                    System.out.println("urls = " + Arrays.toString(urls));
+//                    for (URL url : urls) {
+//                        URLClassLoader testCl = new URLClassLoader(new URL[]{url});
+//                        try {
+//                            Class testClass = testCl.loadClass("javax.xml.bind.JAXBContext");
+//                            if (null != testClass) {
+//                                System.out.println("url = " + url);
+//                                System.out.println("testClass = " + testClass);
+//                            }
+//                        } catch (ClassNotFoundException ex) {
+//                            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, e);
+//            }
+            ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+            System.out.println("proDeom = " + proDeom);
+            System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+//            System.out.println("System.getProperty(\"javax.xml.bind.JAXBContextFactory\") = " + System.getProperty("javax.xml.bind.JAXBContextFactory"));
+//            
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
             u_cmd = context.createUnmarshaller();
@@ -1011,8 +1037,10 @@ public class CRCLSocket implements AutoCloseable {
             bufferedInputStream = null;
         } catch (JAXBException ex) {
             LOGGER.log(Level.SEVERE, "", ex);
+            System.exit(0);
             throw new RuntimeException(ex);
         }
+//        System.exit(0);
     }
 
     public CRCLSocket(/*@Nullable*/Socket socket) {
@@ -2197,7 +2225,7 @@ public class CRCLSocket implements AutoCloseable {
         return commandToSimpleString(cmdInstance.getCRCLCommand());
     }
 
-    public static String cmdToString(CRCLCommandType cmd)  {
+    public static String cmdToString(CRCLCommandType cmd) {
         try {
             return getUtilSocket().commandToSimpleString(cmd, 12, 60);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -2205,8 +2233,8 @@ public class CRCLSocket implements AutoCloseable {
             return ex.toString();
         }
     }
-    
-     public static String cmdToString(CRCLCommandType cmd,int max_fields, int max_length)  {
+
+    public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
         try {
             return getUtilSocket().commandToSimpleString(cmd, max_fields, max_length);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -2214,7 +2242,7 @@ public class CRCLSocket implements AutoCloseable {
             return ex.toString();
         }
     }
-     
+
     public String commandToSimpleString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException {
         if (cmd instanceof CrclCommandWrapper) {
             CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
@@ -2272,8 +2300,8 @@ public class CRCLSocket implements AutoCloseable {
         if (lpindex > 0 && lpindex < cmdName.length() - 1) {
             cmdName = cmdName.substring(lpindex + 1);
         }
-        if(cmdName.endsWith("Type")) {
-            cmdName = cmdName.substring(0, cmdName.length()-4);
+        if (cmdName.endsWith("Type")) {
+            cmdName = cmdName.substring(0, cmdName.length() - 4);
         }
         String content = handler.toString();
         content = content.trim();

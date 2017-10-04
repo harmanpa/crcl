@@ -449,14 +449,25 @@ public class PendantClientInner {
         return blockProgramsSetCount.incrementAndGet();
     }
 
-    public int stopBlockingPrograms(int count) {
+    public static class ConcurrentBlockProgramsException extends Exception {
+        
+        public ConcurrentBlockProgramsException(String s) {
+            super(s);
+        }
+        
+        public ConcurrentBlockProgramsException(Throwable t) {
+            super(t);
+        }
+    }
+    public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         int c = blockProgramsSetCount.get();
         if (c != count) {
-            throw new IllegalArgumentException("wrong count " + count + "!= " + c);
+            throw new ConcurrentBlockProgramsException("wrong count " + count + "!= " + c);
         }
         this.blockPrograms = false;
-        return blockProgramsSetCount.incrementAndGet();
+        blockProgramsSetCount.incrementAndGet();
     }
+    
 
     public void closeTestProgramThread() {
         if (!isRunningProgram()) {
