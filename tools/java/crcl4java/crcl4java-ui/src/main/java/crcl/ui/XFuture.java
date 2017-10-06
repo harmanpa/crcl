@@ -349,6 +349,11 @@ public class XFuture<T> extends CompletableFuture<T> {
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         boolean ret = super.cancel(mayInterruptIfRunning);
+        if (null != cancelThread) {
+            cancelThread = Thread.currentThread();
+            cancelStack = cancelThread.getStackTrace();
+            cancelTime = System.currentTimeMillis();
+        }
         this.alsoCancel.clear();
         if (this.completeTime < 0) {
             this.completeTime = System.currentTimeMillis();
@@ -439,6 +444,23 @@ public class XFuture<T> extends CompletableFuture<T> {
     private volatile long cancelTime = -1;
     private volatile StackTraceElement cancelStack[] = null;
 
+    public StackTraceElement[] getCancelStack() {
+        return cancelStack;
+    }
+    
+    public XFuture<?> getCanceledDependant() {
+        for(CompletableFuture<?> f : alsoCancel) {
+            if(f instanceof XFuture) {
+                XFuture<?> xf = (XFuture<?>) f;
+                if(xf.cancelStack != null && xf.cancelThread != null) {
+                    return xf;
+                }
+            }
+        }
+        return null;
+    }
+    
+    
     public String cancelString() {
         if (null == cancelThread || null == cancelStack) {
             return "";
@@ -446,6 +468,14 @@ public class XFuture<T> extends CompletableFuture<T> {
         return " Canceled by " + cancelThread + " at " + createTraceToString(cancelStack) + " at " + (new Date(cancelTime));
     }
 
+    public String cancelDependantString() {
+        XFuture<?> xf = getCanceledDependant();
+        if(null != xf) {
+            return xf.cancelString();
+        }
+        return "";
+     }
+    
     private static volatile boolean globalAllowInterupts = false;
 
     public static boolean getGlobalAllowInterrupts() {
@@ -459,10 +489,11 @@ public class XFuture<T> extends CompletableFuture<T> {
     public void cancelAll(boolean mayInterrupt) {
         try {
             List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
-            cancelThread = Thread.currentThread();
-            cancelStack = cancelThread.getStackTrace();
-            cancelTime = System.currentTimeMillis();
-
+            if (null != cancelThread) {
+                cancelThread = Thread.currentThread();
+                cancelStack = cancelThread.getStackTrace();
+                cancelTime = System.currentTimeMillis();
+            }
             try {
                 if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
                     this.cancel(false);
@@ -635,14 +666,36 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         };
     }
+    
+    private volatile Throwable throwable = null;
+    public Throwable getThrowable() {
+        if(!isCompletedExceptionally()) {
+            return null;
+        }
+        if(null != throwable) {
+            return throwable;
+        }
+        super.exceptionally(t -> {
+            throwable = t;
+            if(null != t) {
+                if(t instanceof RuntimeException) {
+                    throw (RuntimeException) t;
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return null;
+        });
+        return throwable;
+    }
 
     @Override
     public XFuture<T> exceptionally(Function<Throwable, ? extends T> fn) {
-        return wrap(this.name + ".exceptionally", super.exceptionally(fWrap(fn)));
+        return wrap(this.name + ".exceptionally", super.exceptionally(fn));
     }
 
     public XFuture<T> exceptionally(String name, Function<Throwable, ? extends T> fn) {
-        return wrap(name, super.exceptionally(fWrap(fn)));
+        return wrap(name, super.exceptionally(fn));
     }
 
     public XFuture<T> always(Runnable r) {
