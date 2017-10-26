@@ -469,7 +469,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), status, progRunDataList);
         } else {
-            final CRCLStatusType curInternalStatus = CRCLPosemath.copy(status);
+            final CRCLStatusType curInternalStatus = (null == status)?null:CRCLPosemath.copy(status);
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 @Override
