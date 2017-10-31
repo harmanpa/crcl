@@ -43,6 +43,7 @@ import crcl.base.ActuateJointsType;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CloseToolChangerType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
@@ -62,6 +63,7 @@ import crcl.base.LengthUnitEnumType;
 import crcl.base.MessageType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
+import crcl.base.OpenToolChangerType;
 import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
@@ -1334,7 +1336,15 @@ public class FanucCRCLMain {
     public void setGripperSeperation(double gripperSeperation) {
         this.gripperSeperation = gripperSeperation;
     }
+    
+    private void handleCloseToolChanger(CloseToolChangerType closeToolCmd) {
+        this.runTPProgram(tool_close_prog);
+    }
 
+     private void handleOpenToolChanger(OpenToolChangerType openToolCmd) {
+        this.runTPProgram(tool_close_prog);
+    }
+     
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
         setCommandState(CommandStateEnumType.CRCL_DONE);
         if (seeCmd.getSetting() > 0.5) {
@@ -2306,12 +2316,14 @@ public class FanucCRCLMain {
                 handleMoveThroughTo((MoveThroughToType) cmd);
             } else if (cmd instanceof SetEndEffectorType) {
                 handleSetEndEffector((SetEndEffectorType) cmd);
+            } else if (cmd instanceof OpenToolChangerType) {
+                handleOpenToolChanger((OpenToolChangerType) cmd);
+            } else if (cmd instanceof CloseToolChangerType) {
+                handleCloseToolChanger((CloseToolChangerType) cmd);
             } else if (cmd instanceof SetAngleUnitsType) {
                 handleSetAngleUnits((SetAngleUnitsType) cmd);
             } else if (cmd instanceof SetForceUnitsType) {
                 handleSetForceUnits((SetForceUnitsType) cmd);
-            } else if (cmd instanceof SetEndEffectorType) {
-                handleSetEndEffector((SetEndEffectorType) cmd);
             } else if (cmd instanceof SetTransSpeedType) {
                 handleSetTransSpeed((SetTransSpeedType) cmd);
             } else if (cmd instanceof SetRotSpeedType) {
@@ -2347,6 +2359,8 @@ public class FanucCRCLMain {
     private ITPProgram move_linear_prog;
     private ITPProgram move_w_time_prog;
     private ITPProgram move_joint_prog;
+    private ITPProgram tool_open_prog;
+    private ITPProgram tool_close_prog;
     private IVar overrideVar = null;
     private IVar morSafetyStatVar = null;
     private IVar moveGroup1RobMoveVar = null;
@@ -2748,6 +2762,14 @@ public class FanucCRCLMain {
                         if (null != program && program.name().equalsIgnoreCase("MOVE_JOINT")) {
                             System.out.println("Found MOVE_JOINT program.");
                             move_joint_prog = program;
+                        }
+                        if (null != program && program.name().equalsIgnoreCase("TOOL_OPEN")) {
+                            System.out.println("Found MOVE_JOINT program.");
+                            tool_open_prog = program;
+                        }
+                        if (null != program && program.name().equalsIgnoreCase("TOOL_CLOSE")) {
+                            System.out.println("Found MOVE_JOINT program.");
+                            tool_close_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("GRIPPER_CLOSE")) {
                             System.out.println("Found close_gripper program.");
