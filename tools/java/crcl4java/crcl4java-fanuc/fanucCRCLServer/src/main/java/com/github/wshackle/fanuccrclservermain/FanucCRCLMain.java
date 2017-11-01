@@ -121,7 +121,6 @@ import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
-import static crcl.utils.CRCLPosemath.point;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.PrintStream;
@@ -130,25 +129,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Future;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
 import java.util.concurrent.atomic.AtomicInteger;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
-import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.point;
 
 /**
@@ -1339,14 +1320,15 @@ public class FanucCRCLMain {
     
     private void handleCloseToolChanger(CloseToolChangerType closeToolCmd) {
         this.runTPProgram(tool_close_prog);
+        setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
      private void handleOpenToolChanger(OpenToolChangerType openToolCmd) {
-        this.runTPProgram(tool_close_prog);
+        this.runTPProgram(tool_open_prog);
+        setCommandState(CommandStateEnumType.CRCL_DONE);
     }
      
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
-        setCommandState(CommandStateEnumType.CRCL_DONE);
         if (seeCmd.getSetting() > 0.5) {
             open_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
             setGripperSeperation(1.0);
@@ -1355,6 +1337,7 @@ public class FanucCRCLMain {
             setGripperSeperation(0.0);
         }
         settingsStatus.setEndEffectorSetting(seeCmd.getSetting());
+        setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
     private void handleSetAngleUnits(SetAngleUnitsType sauCmd) {
