@@ -59,6 +59,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -1362,7 +1364,6 @@ public class MotoPlusConnection implements AutoCloseable {
     public boolean openGripper() throws IOException {
         MP_IO_DATA ioData[] = new MP_IO_DATA[3];
         ioData[0] = new MP_IO_DATA();
-        ioData[0] = new MP_IO_DATA();
         ioData[0].ulAddr = 10010;
         ioData[0].ulValue = 1;
         ioData[1] = new MP_IO_DATA();
@@ -1377,11 +1378,55 @@ public class MotoPlusConnection implements AutoCloseable {
     public boolean closeGripper() throws IOException {
         MP_IO_DATA ioData[] = new MP_IO_DATA[3];
         ioData[0] = new MP_IO_DATA();
-        ioData[0] = new MP_IO_DATA();
         ioData[0].ulAddr = 10010;
         ioData[0].ulValue = 0;
         ioData[1] = new MP_IO_DATA();
         ioData[1].ulAddr = 10011;
+        ioData[1].ulValue = 1;
+        ioData[2] = new MP_IO_DATA();
+        ioData[2].ulAddr = 10012;
+        ioData[2].ulValue = 1;
+        return mpWriteIO(ioData, 3);
+    }
+    
+    
+    public boolean openToolChanger() throws IOException {
+        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+        ioData[0] = new MP_IO_DATA();
+        ioData[0].ulAddr = 10013;
+        ioData[0].ulValue = 1;
+        ioData[1] = new MP_IO_DATA();
+        ioData[1].ulAddr = 10014;
+        ioData[1].ulValue = 0;
+        ioData[2] = new MP_IO_DATA();
+        ioData[2].ulAddr = 10012;
+        ioData[2].ulValue = 1;
+        boolean a=  mpWriteIO(ioData, 3);
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        ioData[0] = new MP_IO_DATA();
+        ioData[0].ulAddr = 10013;
+        ioData[0].ulValue = 1;
+        ioData[1] = new MP_IO_DATA();
+        ioData[1].ulAddr = 10014;
+        ioData[1].ulValue = 0;
+        ioData[2] = new MP_IO_DATA();
+        ioData[2].ulAddr = 10012;
+        ioData[2].ulValue = 0;
+        boolean b=  mpWriteIO(ioData, 3);
+        return a&& b;
+    }
+
+    public boolean closeToolChanger() throws IOException {
+        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+        ioData[0] = new MP_IO_DATA();
+        ioData[0].ulAddr = 10013;
+        ioData[0].ulValue = 0;
+        ioData[1] = new MP_IO_DATA();
+        ioData[1].ulAddr = 10014;
         ioData[1].ulValue = 1;
         ioData[2] = new MP_IO_DATA();
         ioData[2].ulAddr = 10012;

@@ -39,6 +39,7 @@ import crcl.base.AngleUnitEnumType;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CloseToolChangerType;
 import crcl.base.CommandStateEnumType;
 import static crcl.base.CommandStateEnumType.CRCL_DONE;
 import static crcl.base.CommandStateEnumType.CRCL_ERROR;
@@ -57,6 +58,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.MessageType;
 import crcl.base.MoveToType;
+import crcl.base.OpenToolChangerType;
 import crcl.base.PoseStatusType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
@@ -375,6 +377,16 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         } else {
             mpc.closeGripper();
         }
+    }
+
+    
+    private void openToolChanger(OpenToolChangerType see) throws IOException {
+        mpc.openToolChanger();
+    }
+
+    
+    private void closeToolChanger(CloseToolChangerType see) throws IOException {
+        mpc.closeToolChanger();
     }
 
     AngleUnitEnumType currentAngleUnit = AngleUnitEnumType.DEGREE;
@@ -708,6 +720,12 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof SetEndEffectorType) {
                         setEndEffector((SetEndEffectorType) cmd);
+                        setStateDescription(CRCL_DONE, "");
+                    } else if (cmd instanceof OpenToolChangerType) {
+                        openToolChanger((OpenToolChangerType) cmd);
+                        setStateDescription(CRCL_DONE, "");
+                    } else if (cmd instanceof CloseToolChangerType) {
+                        closeToolChanger((CloseToolChangerType) cmd);
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof EndCanonType) {
                         setStateDescription(CRCL_DONE, "");
