@@ -914,6 +914,8 @@ public class PendantClientInner {
         return prevLastCommandSentStackTrace;
     }
 
+    private volatile boolean lastCmdTriedWasStop = false;
+    
     private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
             if (null == crclSocket) {
@@ -925,6 +927,7 @@ public class PendantClientInner {
                     throw new IllegalArgumentException("((CrclCommandWrapper) cmd).getWrappedCommand().getCommandID() " + ((CrclCommandWrapper) cmd).getWrappedCommand().getCommandID() + " != cmd.getCommandID() " + cmd.getCommandID());
                 }
             }
+            lastCmdTriedWasStop = (cmd instanceof StopMotionType);
             CRCLCommandInstanceType cmdInstance
                     = new CRCLCommandInstanceType();
             cmdInstance.setCRCLCommand(cmd);
@@ -2386,7 +2389,7 @@ public class PendantClientInner {
             pause_count.incrementAndGet();
             pauseQueue.clear();
             paused = true;
-            if (isConnected()) {
+            if (isConnected() && !lastCmdTriedWasStop) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (JAXBException ex) {

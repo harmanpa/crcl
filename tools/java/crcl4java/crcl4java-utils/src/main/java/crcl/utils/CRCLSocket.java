@@ -50,6 +50,7 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
@@ -2007,6 +2008,14 @@ public class CRCLSocket implements AutoCloseable {
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) with str = {2} called from Thread: {3}", new Object[]{cc, cc.getCommandID(), str, threadName});
             writeWithFill(str);
             this.lastCommandString = str;
+        } catch(SocketException socketException) {
+            try {
+               close();
+            } catch (IOException ex) {
+                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+                throw new CRCLException(ex);
+            }
+            throw new CRCLException(socketException);
         } catch (IOException | InterruptedException ex) {
             throw new CRCLException(ex);
         }
