@@ -29,6 +29,7 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CloseToolChangerType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.EndCanonType;
@@ -40,6 +41,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
+import crcl.base.OpenToolChangerType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.RotSpeedAbsoluteType;
@@ -469,7 +471,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), status, progRunDataList);
         } else {
-            final CRCLStatusType curInternalStatus = (null == status)?null:CRCLPosemath.copy(status);
+            final CRCLStatusType curInternalStatus = (null == status) ? null : CRCLPosemath.copy(status);
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 @Override
@@ -2787,8 +2789,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             long maxCmdId = 1;
             InitCanonType init = program.getInitCanon();
-            List<MiddleCommandType> middleCommands = 
-                    new ArrayList<>(program.getMiddleCommand());
+            List<MiddleCommandType> middleCommands
+                    = new ArrayList<>(program.getMiddleCommand());
             EndCanonType endCommand = program.getEndCanon();
             dtm.setRowCount(2 + middleCommands.size());
             maxCmdId = Math.max(maxCmdId, init.getCommandID());
@@ -2826,7 +2828,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 dtm.setValueAt(i, i + 1, 0);
                 dtm.setValueAt(middleCommand.getCommandID(), i + 1, 1);
                 dtm.setValueAt(tableCommandString(middleCommand), i + 1, 2);
-                if (null != progRunDataList && progRunDataList.size() > i+1) {
+                if (null != progRunDataList && progRunDataList.size() > i + 1) {
                     prd = progRunDataList.get(i + 1);
                 }
                 if (null != prd) {
@@ -2945,6 +2947,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jButtonOpenGripper = new javax.swing.JButton();
         jButtonCloseGripper = new javax.swing.JButton();
         jLabelHoldingObject = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jPanelMoveTo = new javax.swing.JPanel();
         jButtonMoveTo = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -3178,7 +3182,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jButtonStepFwd)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabelExpectHoldingObject)))
-                        .addGap(0, 85, Short.MAX_VALUE)))
+                        .addGap(0, 133, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelProgramLayout.setVerticalGroup(
@@ -3472,6 +3476,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
         jLabelHoldingObject.setText("HoldingObject: Unknown");
 
+        jButton1.setText("Open Tool Changer");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Close Tool Changer");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelJoggingLayout = new javax.swing.GroupLayout(jPanelJogging);
         jPanelJogging.setLayout(jPanelJoggingLayout);
         jPanelJoggingLayout.setHorizontalGroup(
@@ -3524,10 +3542,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addComponent(jTextFieldRotationSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanelJoggingLayout.createSequentialGroup()
+                                .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton2))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(157, Short.MAX_VALUE))
+                .addContainerGap(25, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3554,7 +3577,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(jTextFieldXYZJogIncrement, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldTransSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -3667,7 +3692,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToCurrent))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE))
-                .addContainerGap(387, Short.MAX_VALUE))
+                .addContainerGap(394, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3753,7 +3778,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 669, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 676, Short.MAX_VALUE)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4022,7 +4047,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)))
                         .addGap(10, 10, 10))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addContainerGap()
@@ -4067,7 +4092,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 129, Short.MAX_VALUE)
+            .addGap(0, 122, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4171,7 +4196,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .addComponent(jScrollPane1)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTabbedPaneLeftUpper)
+                        .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 694, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTabbedPaneRightUpper)
                         .addGap(11, 11, 11))))
@@ -4955,6 +4980,36 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         pauseCommandStatusLog = true;
     }//GEN-LAST:event_jCheckBoxLogCommandStatusToFileActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            OpenToolChangerType otcCmd = new OpenToolChangerType();
+            internal.incAndSendCommand(otcCmd);
+            if (null != recordPointsProgram) {
+                this.recordCurrentPoint();
+                recordPointsProgram.getMiddleCommand().add(otcCmd);
+                internal.setProgram(recordPointsProgram);
+                showProgram(recordPointsProgram, null, -1);
+            }
+        } catch (JAXBException ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        try {
+            CloseToolChangerType ctcCmd = new CloseToolChangerType();
+            internal.incAndSendCommand(ctcCmd);
+            if (null != recordPointsProgram) {
+                this.recordCurrentPoint();
+                recordPointsProgram.getMiddleCommand().add(ctcCmd);
+                internal.setProgram(recordPointsProgram);
+                showProgram(recordPointsProgram, null, -1);
+            }
+        } catch (JAXBException ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
     public Thread getRunProgramThread() {
         return internal.getRunProgramThread();
     }
@@ -5080,6 +5135,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButtonAddProgramItem;
     private javax.swing.JButton jButtonCloseGripper;
     private javax.swing.JButton jButtonConnect;
