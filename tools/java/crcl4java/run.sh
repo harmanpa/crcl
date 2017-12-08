@@ -14,6 +14,7 @@ export JARFILE=`find crcl4java-ui -name crcl4java-ui\*jar-with-dependencies.jar 
 if test ! -f "${JARFILE}" ; then
     mvn -version || ( echo "Please install maven." && false)
     mvn -Pskip_tests package
+    export JARFILE=`find crcl4java-ui -name crcl4java-ui\*jar-with-dependencies.jar | head -n 1`;
 fi;
 
 \rm -f run[0-9]*.log run[0-9]*.err >/dev/null 2>/dev/null || true
