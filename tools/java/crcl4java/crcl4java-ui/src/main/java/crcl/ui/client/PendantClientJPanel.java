@@ -1727,6 +1727,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private int lastProgramIndex = 0;
 
+    public List<ProgramRunData> getLastProgRunDataList() {
+        return internal.getLastProgRunDataList();
+    }
+
+    public void saveProgramRunDataListToCsv(File f,List<ProgramRunData> list) throws IOException {
+        internal.saveProgramRunDataListToCsv(f, list);
+    }
+    
+    public void saveLastProgramRunDataListToCsv(File f) throws IOException {
+        internal.saveLastProgramRunDataListToCsv(f);
+    }
+    
     private void finishSetStatusPriv(final CRCLStatusType curInternalStatus, final CRCLCommandType lastCommandSent, boolean isHoldingObject) {
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             CommandStatusType ccst = curInternalStatus.getCommandStatus();
@@ -2802,7 +2814,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
             ProgramRunData prd = null;
-            if (null != progRunDataList) {
+            if (null != progRunDataList && !progRunDataList.isEmpty()) {
                 prd = progRunDataList.get(0);
             }
             if (null != prd) {
