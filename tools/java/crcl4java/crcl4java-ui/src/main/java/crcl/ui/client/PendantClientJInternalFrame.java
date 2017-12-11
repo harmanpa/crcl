@@ -119,6 +119,18 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public boolean isIgnoreTimeouts() {
         return pendantClientJPanel1.isIgnoreTimeouts();
     }
+    
+    public List<ProgramRunData> getLastProgRunDataList() {
+        return pendantClientJPanel1.getLastProgRunDataList();
+    }
+
+    public void saveProgramRunDataListToCsv(File f,List<ProgramRunData> list) throws IOException {
+        pendantClientJPanel1.saveProgramRunDataListToCsv(f, list);
+    }
+    
+    public void saveLastProgramRunDataListToCsv(File f) throws IOException {
+        pendantClientJPanel1.saveLastProgramRunDataListToCsv(f);
+    }
 
     /**
      * Set the value of ignoreTimeouts

@@ -2656,7 +2656,7 @@ public class PendantClientInner {
     }
 
     public void saveLastProgramRunDataListToCsv(File f) throws IOException {
-        if (null != lastProgRunDataList) {
+        if (null == lastProgRunDataList) {
             return;
         }
         saveProgramRunDataListToCsv(f, lastProgRunDataList);
