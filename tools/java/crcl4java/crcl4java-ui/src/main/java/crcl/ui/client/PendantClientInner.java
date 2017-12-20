@@ -3365,7 +3365,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
             }
             maxDiff = Math.max(maxDiff, thisDiff);
         }
-        return 2000 + (long) (maxDiff * 1500.0);
+        return 2000 + (long) (maxDiff * 15000.0);
     }
 
     private long getTimeoutForMoveThroughTo(MoveThroughToType cmd) {

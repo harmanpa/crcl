@@ -73,16 +73,16 @@ public class MotoPlusConnection implements AutoCloseable {
     private DataInputStream dis;
     public static final int NO_WAIT = 0;
     private static final int WAIT_FOREVER = -1; // This is not allowed to avoid hanging server.
-    
+
     private volatile int maxWait = -99;
-    
-    public synchronized  int mpGetMaxWait() throws IOException, MotoPlusConnectionException {
-        if(maxWait == -99) {
-            maxWait = 5000/mpGetRtc();
+
+    public synchronized int mpGetMaxWait() throws IOException, MotoPlusConnectionException {
+        if (maxWait == -99) {
+            maxWait = 5000 / mpGetRtc();
         }
         return maxWait;
     }
-    
+
     public MotoPlusConnection(Socket socket) throws IOException {
         this.socket = socket;
         dos = new DataOutputStream(socket.getOutputStream());
@@ -92,10 +92,10 @@ public class MotoPlusConnection implements AutoCloseable {
     public boolean isConnected() {
         return null != socket && socket.isConnected();
     }
-    
+
     private String host;
     private int port;
-    
+
     public void connect(String host, int port) throws IOException {
         this.host = host;
         this.port = port;
@@ -108,12 +108,12 @@ public class MotoPlusConnection implements AutoCloseable {
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
     }
-    public  void reconnect() throws IOException {
-        if(!isConnected() && null != host && port > 0) {
-            connect(host,port);
+
+    public void reconnect() throws IOException {
+        if (!isConnected() && null != host && port > 0) {
+            connect(host, port);
         }
     }
-    
 
     @Override
     public void close() throws Exception {
@@ -1188,6 +1188,7 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     public boolean mpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
+        ioClear = false;
         starter.startMpWriteIO(sData, num);
         return returner.getSysOkReturn();
     }
@@ -1361,77 +1362,180 @@ public class MotoPlusConnection implements AutoCloseable {
         return ret;
     }
 
-    public boolean openGripper() throws IOException {
-        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
-        ioData[0] = new MP_IO_DATA();
-        ioData[0].ulAddr = 10010;
-        ioData[0].ulValue = 1;
-        ioData[1] = new MP_IO_DATA();
-        ioData[1].ulAddr = 10011;
-        ioData[1].ulValue = 0;
-        ioData[2] = new MP_IO_DATA();
-        ioData[2].ulAddr = 10012;
-        ioData[2].ulValue = 1;
-        return mpWriteIO(ioData, 3);
-    }
-
-    public boolean closeGripper() throws IOException {
-        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
-        ioData[0] = new MP_IO_DATA();
-        ioData[0].ulAddr = 10010;
-        ioData[0].ulValue = 0;
-        ioData[1] = new MP_IO_DATA();
-        ioData[1].ulAddr = 10011;
-        ioData[1].ulValue = 1;
-        ioData[2] = new MP_IO_DATA();
-        ioData[2].ulAddr = 10012;
-        ioData[2].ulValue = 1;
-        return mpWriteIO(ioData, 3);
-    }
-    
-    
-    public boolean openToolChanger() throws IOException {
-        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
-        ioData[0] = new MP_IO_DATA();
-        ioData[0].ulAddr = 10013;
-        ioData[0].ulValue = 1;
-        ioData[1] = new MP_IO_DATA();
-        ioData[1].ulAddr = 10014;
-        ioData[1].ulValue = 0;
-        ioData[2] = new MP_IO_DATA();
-        ioData[2].ulAddr = 10012;
-        ioData[2].ulValue = 1;
-        boolean a=  mpWriteIO(ioData, 3);
+    public boolean openGripper() throws Exception {
+        boolean a = clearToolChangerGripperIOAndWait();
+        
+        boolean b = writeConsecutiveI0(10010, 1,0,1);
+//        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10010;
+//        ioData[0].ulValue = 1;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10011;
+//        ioData[1].ulValue = 0;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 1;
+//        boolean b = mpWriteIO(ioData, 3);
         try {
             Thread.sleep(200);
         } catch (InterruptedException ex) {
             Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ioData[0] = new MP_IO_DATA();
-        ioData[0].ulAddr = 10013;
-        ioData[0].ulValue = 1;
-        ioData[1] = new MP_IO_DATA();
-        ioData[1].ulAddr = 10014;
-        ioData[1].ulValue = 0;
-        ioData[2] = new MP_IO_DATA();
-        ioData[2].ulAddr = 10012;
-        ioData[2].ulValue = 0;
-        boolean b=  mpWriteIO(ioData, 3);
-        return a&& b;
+        boolean c = clearToolChangerGripperIO();
+        return a && b && c;
     }
 
-    public boolean closeToolChanger() throws IOException {
-        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
-        ioData[0] = new MP_IO_DATA();
-        ioData[0].ulAddr = 10013;
-        ioData[0].ulValue = 0;
-        ioData[1] = new MP_IO_DATA();
-        ioData[1].ulAddr = 10014;
-        ioData[1].ulValue = 1;
-        ioData[2] = new MP_IO_DATA();
-        ioData[2].ulAddr = 10012;
-        ioData[2].ulValue = 1;
-        return mpWriteIO(ioData, 3);
+    public boolean closeGripper() throws Exception {
+        boolean a = clearToolChangerGripperIOAndWait();
+        boolean b = writeConsecutiveI0(10010, 0, 1, 1);
+//        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10010;
+//        ioData[0].ulValue = 0;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10011;
+//        ioData[1].ulValue = 1;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 1;
+//        boolean b = mpWriteIO(ioData, 3);
+//        try {
+//            Thread.sleep(200);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        boolean c = clearToolChangerGripperIO();
+        return a && b;
+    }
+
+    private boolean clearToolChangerGripperIO() throws IOException {
+//        MP_IO_DATA[] ioData = new MP_IO_DATA[5];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10010;
+//        ioData[0].ulValue = 0;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10011;
+//        ioData[1].ulValue = 0;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 0;
+//        ioData[3] = new MP_IO_DATA();
+//        ioData[3].ulAddr = 10013;
+//        ioData[3].ulValue = 0;
+//        ioData[4] = new MP_IO_DATA();
+//        ioData[4].ulAddr = 10014;
+//        ioData[4].ulValue = 0;
+//        boolean b = mpWriteIO(ioData, 5);
+//        return b;
+        ioClear = writeConsecutiveI0(10010, 0, 0, 0, 0, 0);
+        return ioClear;
+    }
+
+    public boolean openToolChanger() throws Exception {
+        boolean a = clearToolChangerGripperIOAndWait();
+
+        boolean b = writeConsecutiveI0(10012, 1,1,0);
+//        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10013;
+//        ioData[0].ulValue = 1;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10014;
+//        ioData[1].ulValue = 0;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 1;
+//        boolean b = mpWriteIO(ioData, 3);
+        
+            Thread.sleep(200);
+//        ioData = new MP_IO_DATA[5];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10010;
+//        ioData[0].ulValue = 0;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10011;
+//        ioData[1].ulValue = 0;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 0;
+//        ioData[3] = new MP_IO_DATA();
+//        ioData[3].ulAddr = 10013;
+//        ioData[3].ulValue = 1;
+//        ioData[4] = new MP_IO_DATA();
+//        ioData[4].ulAddr = 10014;
+//        ioData[4].ulValue = 0;
+//        boolean c = mpWriteIO(ioData, 5);
+//        try {
+//            Thread.sleep(200);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        boolean c = clearToolChangerGripperIO();
+        return a && b && c;
+    }
+
+    private volatile boolean ioClear = false;
+    
+    private boolean clearToolChangerGripperIOAndWait() throws IOException, InterruptedException {
+        if(ioClear) {
+            return true;
+        }
+        boolean a = clearToolChangerGripperIO();
+        Thread.sleep(200);
+        ioClear = a;
+        return a;
+    }
+
+    private boolean writeConsecutiveI0(int address, int... values) throws IOException {
+        MP_IO_DATA ioData[] = new MP_IO_DATA[values.length];
+        for (int i = 0; i < values.length; i++) {
+            ioData[i] = new MP_IO_DATA();
+            ioData[i].ulAddr = address + i;
+            ioData[i].ulValue = values[i];
+        }
+        return mpWriteIO(ioData, values.length);
+    }
+
+    public boolean closeToolChanger() throws Exception {
+        boolean a = clearToolChangerGripperIOAndWait();
+        boolean b = writeConsecutiveI0(10012, 1, 0, 1);
+//        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10013;
+//        ioData[0].ulValue = 0;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10014;
+//        ioData[1].ulValue = 1;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 1;
+//        boolean b = mpWriteIO(ioData, 3);
+        Thread.sleep(200);
+//        ioData = new MP_IO_DATA[5];
+//        ioData[0] = new MP_IO_DATA();
+//        ioData[0].ulAddr = 10010;
+//        ioData[0].ulValue = 0;
+//        ioData[1] = new MP_IO_DATA();
+//        ioData[1].ulAddr = 10011;
+//        ioData[1].ulValue = 0;
+//        ioData[2] = new MP_IO_DATA();
+//        ioData[2].ulAddr = 10012;
+//        ioData[2].ulValue = 0;
+//        ioData[3] = new MP_IO_DATA();
+//        ioData[3].ulAddr = 10013;
+//        ioData[3].ulValue = 0;
+//        ioData[4] = new MP_IO_DATA();
+//        ioData[4].ulAddr = 10014;
+//        ioData[4].ulValue = 1;
+//        boolean c = mpWriteIO(ioData, 5);
+//        try {
+//            Thread.sleep(200);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        boolean c = clearToolChangerGripperIO();
+        return a && b && c;
     }
 
     public byte[] readFullFileByName(String fname) throws IOException, MotoPlusConnectionException {

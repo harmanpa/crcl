@@ -371,7 +371,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
 
-    private void setEndEffector(SetEndEffectorType see) throws IOException {
+    private void setEndEffector(SetEndEffectorType see) throws Exception {
         if (see.getSetting() > 0.5) {
             mpc.openGripper();
         } else {
@@ -380,12 +380,12 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     }
 
     
-    private void openToolChanger(OpenToolChangerType see) throws IOException {
+    private void openToolChanger(OpenToolChangerType see) throws Exception {
         mpc.openToolChanger();
     }
 
     
-    private void closeToolChanger(CloseToolChangerType see) throws IOException {
+    private void closeToolChanger(CloseToolChangerType see) throws Exception {
         mpc.closeToolChanger();
     }
 
@@ -741,7 +741,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                     }
                 }
             }
-        } catch (CRCLException | IOException | MotoPlusConnection.MotoPlusConnectionException | PmException ex) {
+        } catch (Exception ex) {
             setStateDescription(CRCL_ERROR, ex.getMessage());
             logException(ex);
         }

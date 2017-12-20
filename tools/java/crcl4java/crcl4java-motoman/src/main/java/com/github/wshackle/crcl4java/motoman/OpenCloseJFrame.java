@@ -106,7 +106,7 @@ public class OpenCloseJFrame extends javax.swing.JFrame {
 
         try {
             mpc.openGripper();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(OpenCloseJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonOpenActionPerformed
@@ -114,7 +114,7 @@ public class OpenCloseJFrame extends javax.swing.JFrame {
     private void jButtonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseActionPerformed
         try {
             mpc.closeGripper();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(OpenCloseJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonCloseActionPerformed

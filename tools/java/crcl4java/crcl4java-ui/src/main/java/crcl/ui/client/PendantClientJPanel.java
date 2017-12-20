@@ -1731,14 +1731,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.getLastProgRunDataList();
     }
 
-    public void saveProgramRunDataListToCsv(File f,List<ProgramRunData> list) throws IOException {
+    public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
         internal.saveProgramRunDataListToCsv(f, list);
     }
-    
+
     public void saveLastProgramRunDataListToCsv(File f) throws IOException {
         internal.saveLastProgramRunDataListToCsv(f);
     }
-    
+
     private void finishSetStatusPriv(final CRCLStatusType curInternalStatus, final CRCLCommandType lastCommandSent, boolean isHoldingObject) {
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             CommandStatusType ccst = curInternalStatus.getCommandStatus();
@@ -2188,28 +2188,32 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         showMessage("Can't when status commandState = " + CommandStateEnumType.CRCL_ERROR);
                         jogStop();
                     }
-                    if (internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_DONE) {
-                        if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
-                                || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
-                            System.err.println("Jog Timer ActionListener waiting for DONE");
+                    double pos = js.getJointPosition();
+                    if (apCount > 1) {
+                        if (internal.getStatus().getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_DONE) {
+                            if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
+                                    || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
+                                System.err.println("Jog Timer ActionListener waiting for DONE");
+                            }
+                            return;
                         }
-                        return;
-                    }
-                    if (internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId()) {
-                        if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
-                                || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
-                            System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
+                        if (internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId()) {
+                            if (PendantClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
+                                    || PendantClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
+                                System.err.println("Jog Timer ActionListener waiting for ID greater than " + internal.getCmdId());
+                            }
+                            return;
                         }
-                        return;
+                        if (Math.abs(pos - lastJogJointPos) <= Math.abs((increment) * 0.001)) {
+                            System.err.println("Position unchanged from last jog attempt. pos="+pos);
+                        }
                     }
                     ActuateJointsType ajst = new ActuateJointsType();
                     List<ActuateJointType> ajl = ajst.getActuateJoint();
                     ActuateJointType aj = new ActuateJointType();
                     aj.setJointNumber(js.getJointNumber());
-                    double pos = js.getJointPosition();
-                    if (Math.abs(pos - lastJogJointPos) <= Math.abs((increment) * 0.001)) {
-                        return;
-                    }
+
+//                    
                     lastJogJointPos = pos;
                     aj.setJointPosition(js.getJointPosition() + increment);
                     JointSpeedAccelType jsa = new JointSpeedAccelType();
@@ -2217,7 +2221,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
                     internal.incAndSendCommand(ajst);
-                    apCount = 0;
+//                    apCount = 0;
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     jogStop();

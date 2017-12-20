@@ -785,8 +785,7 @@ public class FanucCRCLMain {
     public double getDistToGoal() {
         return distToGoal;
     }
-    
-    
+
     private void checkDonePrevCmd() {
         if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
             if (prevCmd != null) {
@@ -952,8 +951,12 @@ public class FanucCRCLMain {
                         }
                         if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
                             setCommandState(CommandStateEnumType.CRCL_DONE);
+                            System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
+                            long time_running = System.currentTimeMillis() - actuateJointStartTime;
+                            System.out.println("time_running = " + time_running);
                         }
                         lastMaxJointDiff = maxDiff;
+
                     }
 
                 }
@@ -1317,17 +1320,17 @@ public class FanucCRCLMain {
     public void setGripperSeperation(double gripperSeperation) {
         this.gripperSeperation = gripperSeperation;
     }
-    
+
     private void handleCloseToolChanger(CloseToolChangerType closeToolCmd) {
         this.runTPProgram(tool_close_prog);
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
 
-     private void handleOpenToolChanger(OpenToolChangerType openToolCmd) {
+    private void handleOpenToolChanger(OpenToolChangerType openToolCmd) {
         this.runTPProgram(tool_open_prog);
         setCommandState(CommandStateEnumType.CRCL_DONE);
     }
-     
+
     private void handleSetEndEffector(SetEndEffectorType seeCmd) {
         if (seeCmd.getSetting() > 0.5) {
             open_gripper_prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
@@ -1932,6 +1935,9 @@ public class FanucCRCLMain {
         }
     }
 
+    private volatile long actuateJointMaxTime = -1;
+    private volatile long actuateJointStartTime = -1;
+
     private void handleActuateJoints(ActuateJointsType ajCmd) throws PmException, InterruptedException {
         posReg98Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -1939,6 +1945,8 @@ public class FanucCRCLMain {
         posReg97.refresh();
         final IJoint posReg97Joint = posReg97.formats(FRETypeCodeConstants.frJoint).queryInterface(IJoint.class);
         long max_time = 0;
+        double diffs[] = new double[ajCmd.getActuateJoint().size()];
+        int diffindex = 0;
         for (ActuateJointType aj : ajCmd.getActuateJoint()) {
             double val = aj.getJointPosition();
             final double origval = val;
@@ -1965,6 +1973,10 @@ public class FanucCRCLMain {
             }
             float curVal = (float) posReg97Joint.item(number);
             double absDiff = (double) Math.abs(val - curVal);
+            if(diffindex < diffs.length) {
+                diffs[diffindex] = absDiff;
+                diffindex++;
+            }
             double speed = DEFAULT_JOINT_SPEED;
 
             JointDetailsType jd = aj.getJointDetails();
@@ -1990,11 +2002,15 @@ public class FanucCRCLMain {
                 System.err.println("chkval = " + chkval);
             }
         }
-        if (max_time < 50) {
-            max_time = 50;
+        if (max_time < 10) {
+            max_time = 10;
         }
         regNumeric97.regLong((int) max_time);
         posReg97.update();
+        actuateJointMaxTime = max_time;
+        System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
+        System.out.println("diffs = " + Arrays.toString(diffs));
+        actuateJointStartTime = System.currentTimeMillis();
         this.runTPProgram(move_joint_prog);
 
         if (moveThread != null) {
@@ -2155,11 +2171,19 @@ public class FanucCRCLMain {
     private long maxUpdateStatusTime = 0;
     private long handleCommandCount = 0;
     private long updateStatusCount = 0;
+    private volatile long cmdStartTime = -1;
 
     private void updatePerformance() {
         if (handleCommandCount > 0 && updateStatusCount > 0) {
+            String extra = "";
+            if (prevCmd instanceof ActuateJointsType) {
+//                System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
+                long time_running = System.currentTimeMillis() - actuateJointStartTime;
+//                System.out.println("time_running = " + time_running);
+                extra = "actuateJointMaxTime = " + actuateJointMaxTime + ",time_running = " + time_running;
+            }
             displayInterface.updatePerformanceString("Performance: Commands: " + handleCommandCount + " maxTime=" + maxHandleCommandTime + " (ms), avgTime=" + (totalHandleCommandTime / handleCommandCount) + "(ms)"
-                    + " Status: " + updateStatusCount + " maxTime=" + maxUpdateStatusTime + "(ms), avgTime=" + (totalUpdateStatusTime / updateStatusCount) + "(ms)");
+                    + " Status: " + updateStatusCount + " maxTime=" + maxUpdateStatusTime + "(ms), avgTime=" + (totalUpdateStatusTime / updateStatusCount) + "(ms), TimeSinceCommandStart=" + (System.currentTimeMillis() - cmdStartTime) + extra);
         }
     }
 
@@ -2255,6 +2279,7 @@ public class FanucCRCLMain {
 
     public synchronized void handleCommand(CRCLCommandInstanceType cmdInstance) {
         CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+        cmdStartTime = System.currentTimeMillis();
         try {
             synchronized (status) {
                 if (null == status.getCommandStatus()) {
@@ -2981,7 +3006,7 @@ public class FanucCRCLMain {
     }
 
     public static String morSafetyStatToString(int val) {
-        String ret =  val + " : "
+        String ret = val + " : "
                 + ((val & MOR_SAFETY_STAT_ESTOP_SOP_FLAG) == MOR_SAFETY_STAT_ESTOP_SOP_FLAG ? " Main E-Stop | " : "")
                 + ((val & MOR_SAFETY_STAT_ESTOP_TP_FLAG) == MOR_SAFETY_STAT_ESTOP_TP_FLAG ? " Teach-Pendant E-Stop | " : "")
                 + ((val & MOR_SAFETY_STAT_TP_DEADMAN_FLAG) == MOR_SAFETY_STAT_TP_DEADMAN_FLAG ? " Teach-Pendant Deadman ( Need to set switch to Auto and Turn off Pendant) | " : "")
@@ -2994,12 +3019,11 @@ public class FanucCRCLMain {
                 + ((val & MOR_SAFETY_STAT_ALARM_FLAG) == MOR_SAFETY_STAT_ALARM_FLAG ? " Alarm | " : "")
                 + "  ";
         ret = ret.trim();
-        if(ret.endsWith("|")) {
-            return ret.substring(0, ret.length()-1).trim();
+        if (ret.endsWith("|")) {
+            return ret.substring(0, ret.length() - 1).trim();
         }
         return ret;
     }
-    
 
     private static FanucCRCLMain main = null;
 
