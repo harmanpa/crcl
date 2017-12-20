@@ -63,8 +63,7 @@ public class XmlCommandResource {
     /**
      * Retrieves representation of the last command sent through this server.
      *
-     * @return A JAXBElement<CRCLCommandInstanceType> created from the last
-     * command.
+     * @return A Response for JAXBElement of CRCLCommandInstanceType created from the last command.
      */
     @GET
     @Produces(MediaType.APPLICATION_XML)

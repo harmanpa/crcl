@@ -59,7 +59,7 @@ public class XmlStatusResource {
     /**
      * Retrieves the current status of the robot.
      * 
-     * @return a JAXBElement<crcl.base.CRCLStatusType> created from the current robot status.
+     * @return a Response of  JAXBElement of crcl.base.CRCLStatusType created from the current robot status.
      * @throws crcl.utils.CRCLException XML is invalid.
      * @throws java.io.IOException Network connection to robot failed.
      */

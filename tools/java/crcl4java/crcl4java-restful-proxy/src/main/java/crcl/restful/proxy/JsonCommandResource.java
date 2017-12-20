@@ -63,8 +63,7 @@ public class JsonCommandResource {
     /**
      * Retrieves representation of the last command sent through this server.
      *
-     * @return A JAXBElement<CRCLCommandInstanceType> created from the last
-     * command.
+     * @return A Response built from a JAXBElement of CRCLCommandInstanceType created from the last command.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
