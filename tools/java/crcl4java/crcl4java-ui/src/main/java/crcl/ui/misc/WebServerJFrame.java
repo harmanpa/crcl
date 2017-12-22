@@ -427,7 +427,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         jTextAreaConsoleOutput.setText(txt);
         jTextAreaConsoleOutput.setCaretPosition(txt.length());
     }
-    private int maxLoggedStrings = 50;
+    private int maxLoggedStrings = 250;
 
     public int getMaxLoggedStrings() {
         return maxLoggedStrings;
@@ -442,7 +442,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     private synchronized PrintWriter getLogger() throws IOException {
         if (logger == null) {
-            logFile = File.createTempFile("webserverlog", "txt");
+            logFile = File.createTempFile("webserverlog", ".txt");
             System.out.println("logFile = " + logFile);
             logger = new PrintWriter(new FileWriter(logFile));
         }
@@ -469,6 +469,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);
+                getLogger().println("#ERROR "+line);
                 final String s = line;
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend("\nERROR:" + s + "\n"));
             }

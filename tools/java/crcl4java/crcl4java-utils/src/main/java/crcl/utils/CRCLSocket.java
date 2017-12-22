@@ -1054,7 +1054,12 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
-        this(new Socket(hostname, port));
+        try {
+            this.socket = new Socket(hostname, port);
+        } catch (IOException iOException) {
+            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
+            throw iOException;
+        }
     }
 
     public boolean isConnected() {
