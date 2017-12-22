@@ -1378,7 +1378,7 @@ public class MotoPlusConnection implements AutoCloseable {
 //        ioData[2].ulValue = 1;
 //        boolean b = mpWriteIO(ioData, 3);
         try {
-            Thread.sleep(200);
+            Thread.sleep(100);
         } catch (InterruptedException ex) {
             Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -1482,7 +1482,7 @@ public class MotoPlusConnection implements AutoCloseable {
             return true;
         }
         boolean a = clearToolChangerGripperIO();
-        Thread.sleep(200);
+        Thread.sleep(50);
         ioClear = a;
         return a;
     }
