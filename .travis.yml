@@ -1,14 +1,12 @@
 language: java
 
-sudo: required
 
 jdk:
   - oraclejdk8
-
-install: true
+  - oraclejdk9
+  
 
 script:
-  - sudo apt-get update && sudo apt-get install oracle-java8-installer
   - java -version
   - cd tools/java/crcl4java/
   - mvn -U test
