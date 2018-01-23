@@ -921,7 +921,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (other instanceof CompletableFuture) {
             ret.alsoCancel.add((CompletableFuture) other);
         }
-//        this.alsoCancel.add(other);
         return ret;
     }
 
@@ -931,7 +930,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (other instanceof CompletableFuture) {
             ret.alsoCancel.add((CompletableFuture) other);
         }
-//        this.alsoCancel.add(other);
         return ret;
     }
 
@@ -941,7 +939,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (other instanceof CompletableFuture) {
             ret.alsoCancel.add((CompletableFuture) other);
         }
-//        this.alsoCancel.add(other);
         return ret;
     }
 
@@ -950,7 +947,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (other instanceof CompletableFuture) {
             ret.alsoCancel.add((CompletableFuture) other);
         }
-//        this.alsoCancel.add(other);
         return ret;
     }
 
@@ -1080,62 +1076,17 @@ class TestClass {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws InterruptedException, ExecutionException {
-
-//        CompletableFuture cf  = new CompletableFuture();
-//        System.out.println("cf = " + cf);
-//        cf.complete(null);
-//        System.out.println("cf = " + cf);
-//        
-//        XFuture xf = new XFuture("xf");
-//        System.out.println("xf = " + xf);
-//        xf.complete(null);
-//        System.out.println("xf = " + xf);
         AtomicReference<Thread> at = new AtomicReference<>();
         ExecutorService es = Executors.newCachedThreadPool();
         XFuture<Void> f = startT1().thenCompose(x -> startT2()).thenCompose(x -> startT1());
-//        CompletableFuture f = CompletableFuture.runAsync(() -> {
-//            System.out.println("Step 1 started");
-//            try {
-//                Thread t = Thread.currentThread();
-//                at.set(t);
-//                System.out.println("t = " + t);
-//                boolean isInterrupted = t.isInterrupted();
-//                System.out.println("isInterrupted = " + isInterrupted);
-//                Thread.sleep(5000);
-//                System.out.println(new Date());
-//                System.out.println("Step 1 ended");
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(JavaApplication2.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }, es);//.thenRunAsync(() -> {
-//            System.out.println("Step 2 started");
-//            try {
-//                Thread.sleep(5000);
-//                System.out.println("Step 2 ended");
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(JavaApplication2.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//            
-//        });
         try {
             Thread.sleep(500);
         } catch (InterruptedException ex) {
             Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, ex);
         }
         f.cancelAll(true);
-//        f.get();
         System.out.println("f.isCancelled() = " + f.isCancelled());
         System.out.println(new Date());
-//        try {
-//            Thread.sleep(1000);
-//        } catch (InterruptedException ex) {
-//            Logger.getLogger(JavaApplication2.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        if (null != at.get()) {
-//            at.get().interrupt();
-//            System.out.println("Interrupting = " + f.isCancelled());
-//            System.out.println(new Date());
-//        }
 
     }
 

@@ -973,6 +973,8 @@ public class CRCLSocket implements AutoCloseable {
     /*@Nullable*/ private String last_orig_first_tag = null;
     private boolean replaceHeader;
 
+    private static volatile boolean protectionDomainChecked = false;
+
     public CRCLSocket() {
         this.socket = null;
     }
@@ -985,55 +987,21 @@ public class CRCLSocket implements AutoCloseable {
                 throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
             }
             final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
-//            try {
-//                if (cl instanceof URLClassLoader) {
-//                    URL urls[] = ((URLClassLoader) cl).getURLs();
-//                    System.out.println("urls = " + Arrays.toString(urls));
-//                    for (URL url : urls) {
-//                        URLClassLoader testCl = new URLClassLoader(new URL[]{url});
-//                        try {
-//                            Class testClass = testCl.loadClass("javax.xml.bind.JAXBContext");
-//                            if (null != testClass) {
-//                                System.out.println("url = " + url);
-//                                System.out.println("testClass = " + testClass);
-//                            }
-//                        } catch (ClassNotFoundException ex) {
-//                            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//
-//                        }
-//                    }
-//                }
-//            } catch (Exception e) {
-//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, e);
-//            }
-            ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-            System.out.println("proDeom = " + proDeom);
-            System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
-//            System.out.println("System.getProperty(\"javax.xml.bind.JAXBContextFactory\") = " + System.getProperty("javax.xml.bind.JAXBContextFactory"));
-//            
+
+            if (!protectionDomainChecked) {
+                ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
+                System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+                protectionDomainChecked=true;
+            }
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
             u_cmd = context.createUnmarshaller();
             m_cmd = context.createMarshaller();
-//            cmdSchema = getDefaultCmdSchema();
-//            if (null != cmdSchema) {
-//                u_cmd.setSchema(cmdSchema);
-//                m_cmd.setSchema(cmdSchema);
-//            }
             u_stat = context.createUnmarshaller();
             m_stat = context.createMarshaller();
-//            statSchema = getDefaultStatSchema();
-//            if (null != statSchema) {
-//                u_stat.setSchema(statSchema);
-//                m_stat.setSchema(statSchema);
-//            }
             u_prog = context.createUnmarshaller();
             m_prog = context.createMarshaller();
-//            programSchema = getDefaultProgramSchema();
-//            if (null != programSchema) {
-//                u_prog.setSchema(programSchema);
-//                m_prog.setSchema(programSchema);
-//            }
 
             bufferedInputStream = null;
         } catch (JAXBException ex) {
@@ -2013,9 +1981,9 @@ public class CRCLSocket implements AutoCloseable {
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) with str = {2} called from Thread: {3}", new Object[]{cc, cc.getCommandID(), str, threadName});
             writeWithFill(str);
             this.lastCommandString = str;
-        } catch(SocketException socketException) {
+        } catch (SocketException socketException) {
             try {
-               close();
+                close();
             } catch (IOException ex) {
                 Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
                 throw new CRCLException(ex);

@@ -553,7 +553,7 @@ public class PendantClientInner {
 //        try {
 //            Thread.sleep(100);
 //        } catch (InterruptedException ex) {
-//            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+//            LOGGER.log(Level.SEVERE, null, ex);
 //        }
         request_status_count++;
         LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
@@ -595,7 +595,7 @@ public class PendantClientInner {
             }
             logStream = new PrintStream(new FileOutputStream(logFile));
         } catch (IOException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -825,7 +825,7 @@ public class PendantClientInner {
                 logStream.flush();
                 logStream.close();
             } catch (Exception e) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
+                LOGGER.log(Level.FINEST, "", e);
             }
             logStream = null;
         }
@@ -921,7 +921,7 @@ public class PendantClientInner {
     private final AtomicReference<StackTraceElement[]> initTrace0 = new AtomicReference<>();
     private final AtomicReference<StackTraceElement[]> initTrace1 = new AtomicReference<>();
     private final AtomicReference<StackTraceElement[]> initTrace2 = new AtomicReference<>();
-private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicReference<>();
+    private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicReference<>();
 
     private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
@@ -942,11 +942,11 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     case 2:
                         initTrace2.set(Thread.currentThread().getStackTrace());
                         break;
-                        
-                        case 3:
+
+                    case 3:
                         initTrace3.set(Thread.currentThread().getStackTrace());
                         break;
-                        
+
                     default:
                         break;
                 }
@@ -1138,7 +1138,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
             try {
                 return getTempCRCLSocket().commandToSimpleString(cmd);
             } catch (ParserConfigurationException | SAXException | IOException ex) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
                 return ex.toString();
             }
         } else {
@@ -1265,7 +1265,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
             this.closeTestProgramThread();
             stopMotion(StopConditionEnumType.FAST);
         } catch (JAXBException | InterruptedException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1536,12 +1536,12 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
         }
         List<JointStatusesType> jss
                 = poselist
-                .stream()
-                .map((x) -> x.getStatus())
-                .filter((x) -> x != null)
-                .map((x) -> x.getJointStatuses())
-                .filter((x) -> x != null)
-                .collect(Collectors.toList());
+                        .stream()
+                        .map((x) -> x.getStatus())
+                        .filter((x) -> x != null)
+                        .map((x) -> x.getJointStatuses())
+                        .filter((x) -> x != null)
+                        .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1549,21 +1549,21 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                .map((x) -> x.getJointStatus())
-                .map((x) -> x.stream().findAny())
-                .orElse(Optional.empty());
+                        .map((x) -> x.getJointStatus())
+                        .map((x) -> x.stream().findAny())
+                        .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                .map((x) -> x.getJointPosition() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointPosition() != null)
+                        .orElse(false);
         final boolean haveVel
                 = exampleJs
-                .map((x) -> x.getJointVelocity() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointVelocity() != null)
+                        .orElse(false);
         final boolean haveForce
                 = exampleJs
-                .map((x) -> x.getJointTorqueOrForce() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointTorqueOrForce() != null)
+                        .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1785,7 +1785,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
         try {
             printCommandStatusLog(pw, false);
         } catch (IOException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         return sw.toString();
     }
@@ -1878,7 +1878,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         try {
                             PendantClientInner.this.disconnect();
                         } catch (Exception e) {
-                            Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
+                            LOGGER.log(Level.FINEST, "", e);
                         }
                     }
                 });
@@ -1896,7 +1896,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         try {
                             disconnect();
                         } catch (Exception e) {
-                            Logger.getLogger(PendantClientInner.class.getName()).log(Level.FINEST, "", e);
+                            LOGGER.log(Level.FINEST, "", e);
                         }
                     }
                 });
@@ -2464,7 +2464,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (JAXBException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -2644,8 +2644,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
     }
 
     private boolean commandIdCompareAndSet(long expect, long update) {
-        System.out.println("update = " + update);
-        System.out.println("expect = " + expect);
+        LOGGER.log(Level.FINE, "commandIdCompareAndSet: update = {0}, expect = {1}", new Object[]{update, expect});
         return commandId.compareAndSet(expect, update);
     }
 
@@ -2797,10 +2796,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     this.runEndMillis = -1;
                 }
                 if (startLine == 0) {
-//                if (progId != id) {
-//                    System.err.println("progId  != id: progId=" + progId + ", id=" + id);
-//                }
-                    System.out.println("runProgram(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + program.getName() + ", progId = " + progId);
+                    logRunProgramDebugInfo(startLine, id, progId);
                     while ((progId - 1) > id
                             && !commandIdCompareAndSet(id, (progId - 1))) {
                         id = commandId.get();
@@ -2808,11 +2804,6 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     }
                     setOutgoingProgramIndex(0);
                     showCurrentProgramLine(startLine, prog, getStatus(), getProgRunDataList());
-//                if (initCmd.getCommandID() <= 1) {
-//                    initCmd.setCommandID(commandId.incrementAndGet());
-//                } else {
-//                    commandId.set(initCmd.getCommandID());
-//                }
                     programState = new ProgramState(program, 0, initCmd);
                     programName = program.getName();
                     programIndex = 0;
@@ -2844,7 +2835,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         try {
                             stopMotion(StopConditionEnumType.FAST);
                         } catch (JAXBException ex) {
-                            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                            LOGGER.log(Level.SEVERE, null, ex);
                         }
                         System.err.println("runProgram() stopped when future.isCancelled() returned true");
                         return false;
@@ -2857,7 +2848,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         id = commandId.get();
                         progId = cmd.getCommandID();
                         if (i == startLine) {
-                            System.out.println("runProgram(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + program.getName() + ", progId = " + progId);
+                            logRunProgramDebugInfo(startLine, id, progId);
                         }
                     } while ((progId - 1) > id
                             && !commandIdCompareAndSet(id, (progId - 1)));
@@ -2937,7 +2928,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
             } catch (Throwable ex) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
                 System.err.println("startLine=" + startLine);
                 System.err.println("i=" + i);
                 System.err.println("threadCreateCallStack=" + Arrays.toString(threadCreateCallStack));
@@ -2952,7 +2943,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     stopMotion(StopConditionEnumType.FAST);
                 }
             } catch (JAXBException ex) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         } finally {
             lastProgRunDataList = new ArrayList<>(progRunDataList);
@@ -2961,13 +2952,21 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
         return false;
     }
 
+    private void logRunProgramDebugInfo(int startLine, long id, long progId) {
+        if (debugConnectDisconnect || debugInterrupts) {
+            System.out.println("runProgram(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + program.getName() + ", progId = " + progId);
+        } else {
+            LOGGER.log(Level.FINE, "runProgram(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + program.getName() + ", progId = " + progId);
+        }
+    }
+
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                .map(CRCLPosemath::getPoint)
-                .filter(x -> x != null)
-                .map(CRCLPosemath::toPmCartesian)
-                .orElse(new PmCartesian());
+                        .map(CRCLPosemath::getPoint)
+                        .filter(x -> x != null)
+                        .map(CRCLPosemath::toPmCartesian)
+                        .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3106,26 +3105,26 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointPosIncrement"))
-                    .map(Double::parseDouble)
-                    .orElse(jogIncrement);
+                            .map(m -> m.get("jointPosIncrement"))
+                            .map(Double::parseDouble)
+                            .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveSpeed"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveSpeed"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveAccel"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveAccel"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("xyzAxisIncrement"))
-                    .map(Double::valueOf)
-                    .orElse(this.getXyzJogIncrement());
+                            .map(m -> m.get("xyzAxisIncrement"))
+                            .map(Double::valueOf)
+                            .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -3281,7 +3280,7 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
             outer.showDebugMessage("Test program saved to " + testProgramFile.getCanonicalPath());
             return runProgram(testProgram, 0);
         } catch (CRCLException | InterruptedException | IOException | JAXBException | ParserConfigurationException | XPathExpressionException | SAXException | PmException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
             outer.showMessage(ex);
         } finally {
             outer.checkPollSelected();
@@ -3828,9 +3827,9 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -3890,9 +3889,9 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -3930,9 +3929,9 @@ private final AtomicReference<StackTraceElement[]> initTrace3 = new AtomicRefere
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                            ? "status.getCommandStatus()=null\n"
-                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                    ? "status.getCommandStatus()=null\n"
+                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
