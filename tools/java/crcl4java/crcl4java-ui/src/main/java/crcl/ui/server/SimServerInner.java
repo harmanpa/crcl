@@ -89,7 +89,6 @@ import crcl.utils.XpathUtils;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -128,21 +127,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import static crcl.utils.CRCLPosemath.toPmCartesian;
 import java.util.Objects;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
-import static crcl.utils.CRCLPosemath.multiply;
-import static crcl.utils.CRCLPosemath.toPoseType;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -454,8 +439,59 @@ public class SimServerInner {
     private boolean executingMoveCommand = false;
     long debugUpdateStatusTime = 0;
     private int currentWaypoint;
-//    private final boolean enableGetStatusIDCheck
-//            = Boolean.valueOf(System.getProperty("crcl4java.simserver.enableGetStatusIDCheck", "false"));
+
+    private void cleanupClientStatesThreadMap() {
+        List<ClientState> clientStatesToRemove = new ArrayList<>();
+        for (ClientState cs : clientStates) {
+            CRCLSocket crclSocket = cs.getCs();
+            if (null == crclSocket) {
+                clientStatesToRemove.add(cs);
+                continue;
+            }
+            Socket socket = crclSocket.getSocket();
+            if (null == socket) {
+                clientStatesToRemove.add(cs);
+                continue;
+            }
+            if (socket.isClosed()) {
+                clientStatesToRemove.add(cs);
+            }
+        }
+        clientStates.removeAll(clientStatesToRemove);
+        List<CRCLSocket> crclSocketsToRemove = new ArrayList<>();
+        for (Map.Entry<CRCLSocket, Thread> entry : clientThreadMap.entrySet()) {
+            CRCLSocket key = entry.getKey();
+            Thread value = entry.getValue();
+            Socket socket = key.getSocket();
+            if (null == socket) {
+                crclSocketsToRemove.add(key);
+                if (null != value) {
+                    value.interrupt();
+                }
+                continue;
+            }
+            if (socket.isClosed()) {
+                crclSocketsToRemove.add(key);
+                if (null != value) {
+                    value.interrupt();
+                }
+                continue;
+            }
+            if (!value.isAlive()) {
+                try {
+                    key.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                crclSocketsToRemove.add(key);
+                continue;
+            }
+        }
+        for (int i = 0; i < crclSocketsToRemove.size(); i++) {
+            clientThreadMap.remove(crclSocketsToRemove.get(i));
+        }
+    }
+
     private final Set<Class<? extends CRCLCommandType>> gripperCommands = new HashSet<>(
             Arrays.asList(
                     InitCanonType.class,
@@ -695,11 +731,11 @@ public class SimServerInner {
     }
 
     private boolean serverIsDaemon = true;
-    
+
     public boolean getServerIsDaemon() {
         return serverIsDaemon;
     }
-    
+
     /**
      * Set the value of port
      *
@@ -1008,6 +1044,7 @@ public class SimServerInner {
     public void setCmdSchema(File[] fa) {
         try {
             CRCLSocket.filesToCmdSchema(fa);
+            cleanupClientStatesThreadMap();
             for (ClientState state : this.clientStates) {
                 state.getCs().setCmdSchema(CRCLSocket.getDefaultCmdSchema());
             }
@@ -1019,6 +1056,7 @@ public class SimServerInner {
     public void setStatSchema(File[] fa) {
         try {
             CRCLSocket.filesToStatSchema(fa);
+            cleanupClientStatesThreadMap();
             for (ClientState state : this.clientStates) {
                 state.getCs().setStatSchema(CRCLSocket.getDefaultStatSchema());
             }
@@ -1134,6 +1172,8 @@ public class SimServerInner {
                 }
             }
             clientStates.clear();
+            clientStatesSize = clientStates.size();
+            System.out.println("clientStates.size()=" + clientStatesSize);
         }
         if (null != ssock) {
             try {
@@ -1248,9 +1288,12 @@ public class SimServerInner {
                         } catch (IOException ex1) {
                             LOGGER.log(Level.SEVERE, null, ex1);
                         }
+                        cleanupClientStatesThreadMap();
                         for (ClientState cs : clientStates) {
                             if (Objects.equals(cs.getCs(), socket)) {
+                                checkClientStateSize(1);
                                 clientStates.remove(cs);
+                                checkClientStateSize(0);
                             }
                         }
                     }
@@ -1281,8 +1324,11 @@ public class SimServerInner {
                 }
                 String xmls = curSocket.statusToString(status, menuOuter().isValidateXMLSelected());
                 int write_count = 0;
-                for (int i = 0; i < clientStates.size(); i++) {
-                    curSocket = clientStates.element().getCs();
+                cleanupClientStatesThreadMap();
+                List<ClientState> clientStatesList = new ArrayList<>(clientStates);
+                for (int i = 0; i < clientStatesList.size(); i++) {
+                    ClientState clientState = clientStatesList.get(i);
+                    curSocket = clientState.getCs();
 
                     try {
                         curSocket.appendTrailingZero = menuOuter().isAppendZeroSelected();
@@ -1293,7 +1339,9 @@ public class SimServerInner {
                     } catch (IOException ex) {
                         try {
                             LOGGER.log(Level.SEVERE, null, ex);
-                            clientStates.remove(i);
+                            checkClientStateSize(1);
+                            clientStates.remove(clientState);
+                            checkClientStateSize(0);
                             Thread t = null;
                             synchronized (clientThreadMap) {
                                 t = clientThreadMap.get(curSocket);
@@ -1333,6 +1381,21 @@ public class SimServerInner {
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex + "\n" + ((curSocket != null) ? curSocket.getLastStatusString() : ""));
+        }
+    }
+
+    private void checkClientStateSize(int maxSize) {
+        clientStatesSize = clientStates.size();
+        System.out.println("clientStates.size()=" + clientStatesSize);
+        if (clientStatesSize > maxSize) {
+//            Map<Integer, List<CRCLSocket.CrclSocketCreatorInfo>> map = CRCLSocket.getCreatorMap();
+//            CRCLSocket.printCreatorMap();
+            List<ClientState> origClientStateList = new ArrayList<>(clientStates);
+            System.out.println("origClientStateList = " + origClientStateList);
+            System.err.println("More than one simultaneous client : " + clientStates);
+            this.cleanupClientStatesThreadMap();
+            List<ClientState> cleanedClientStateList = new ArrayList<>(clientStates);
+            System.out.println("cleanedClientStateList = " + cleanedClientStateList);
         }
     }
 
@@ -1624,7 +1687,6 @@ public class SimServerInner {
                 .orElse(false);
     }
 
-    
     private void readCommandsRepeatedly(ClientState state) {
         final int start_close_count = this.close_count;
         final CRCLSocket cs = state.getCs();
@@ -1640,7 +1702,7 @@ public class SimServerInner {
                         state.getStatusRequests++;
                         state.lastStatRequestTime = System.currentTimeMillis();
                         GetStatusType getStatus = (GetStatusType) cmd;
-                        if (debug_this_command || menuOuter().isDebugReadCommandSelected() 
+                        if (debug_this_command || menuOuter().isDebugReadCommandSelected()
                                 && getStatus.getCommandID() != state.getStatusCmdId) {
                             outer.showDebugMessage("SimServerInner.readCommandsRepeatedly() :  (getStatus=" + getStatus + " ID=" + getStatus.getCommandID() + ") state = " + state);
                         }
@@ -1701,6 +1763,8 @@ public class SimServerInner {
             } catch (IOException ex1) {
             }
             this.clientStates.remove(state);
+            clientStatesSize = clientStates.size();
+            System.out.println("clientStates.size()=" + clientStatesSize);
         } catch (CRCLException ex) {
             if (ex.getCause() instanceof EOFException) {
                 try {
@@ -1709,6 +1773,8 @@ public class SimServerInner {
                     LOGGER.log(Level.SEVERE, null, ex1);
                 }
                 this.clientStates.remove(state);
+                clientStatesSize = clientStates.size();
+                System.out.println("clientStates.size()=" + clientStatesSize);
                 return;
             }
             if (null != ex.getCause() && ex.getCause().getCause() instanceof EOFException) {
@@ -1718,6 +1784,8 @@ public class SimServerInner {
                     LOGGER.log(Level.SEVERE, null, ex1);
                 }
                 this.clientStates.remove(state);
+                clientStatesSize = clientStates.size();
+                System.out.println("clientStates.size()=" + clientStatesSize);
                 return;
             }
             if (close_count <= start_close_count) {
@@ -1734,35 +1802,49 @@ public class SimServerInner {
                 LOGGER.log(Level.SEVERE, "ReadInProgressString:{0}", str);
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+            clientStatesSize = clientStates.size();
+            System.out.println("clientStates.size()=" + clientStatesSize);
+        } finally {
             try {
                 cs.close();
             } catch (IOException ex1) {
-                LOGGER.log(Level.SEVERE, null, ex1);
             }
             this.clientStates.remove(state);
+            clientStatesSize = clientStates.size();
+            System.out.println("clientStates.size()=" + clientStatesSize);
         }
     }
+    private volatile int clientStatesSize = 0;
 
     public void runAcceptClients() {
         final int start_close_count = this.close_count;
         try {
             while (!Thread.currentThread().isInterrupted()) {
 
+                List<ClientState> origClientStates = new ArrayList<>(clientStates);
+                int startingClientStatesSize = origClientStates.size();
+                cleanupClientStatesThreadMap();
                 final Socket s = ssock.accept();
+                if (startingClientStatesSize > 0) {
+                    System.out.println("origClientStates = " + origClientStates);
+                    int lport = s.getLocalPort();
+                    System.out.println("lport = " + lport);
+                    int rport = s.getPort();
+                    System.out.println("rport = " + rport);
+                    cleanupClientStatesThreadMap();
+                }
                 final CRCLSocket cs = new CRCLSocket(s);
                 final ClientState state = new ClientState(cs);
 //                cs.setEXIEnabled(menuOuter().isEXISelected());
+                cleanupClientStatesThreadMap();
                 clientStates.add(state);
-                if(clientStates.size() > 1) {
-                    System.err.println("More than one simultaneous client : "+clientStates);
-                }
+                checkClientStateSize(1);
                 Thread t = new Thread(() -> readCommandsRepeatedly(state),
-                        "SimServer.client=" + cs+".ssock="+ssock
+                        "SimServer.client=" + cs + ".ssock=" + ssock
                 );
                 clientThreadMap.put(cs, t);
                 t.start();
                 this.updateConnectedClients();
-
             }
         } catch (Exception ex) {
             if (close_count <= start_close_count) {
@@ -1961,7 +2043,7 @@ public class SimServerInner {
                 cmdLog = new ArrayList<>();
             }
             cmdLog.add(cmd);
-            while(cmdLog.size() > 100) {
+            while (cmdLog.size() > 100) {
                 cmdLog.remove(0);
             }
             String cmdName = getCheckerCRCLSocket().commandToSimpleString(cmd);
@@ -2023,7 +2105,7 @@ public class SimServerInner {
                         this.cjrMap = new HashMap<>();
                     }
                     for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
-                        this.cjrMap.put(cjr.getJointNumber(),cjr);
+                        this.cjrMap.put(cjr.getJointNumber(), cjr);
                     }
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                     setReportJointStatus(true);
@@ -2375,7 +2457,7 @@ public class SimServerInner {
             }
             ssock.setReuseAddress(true);
             acceptClientsThread = new Thread(this::runAcceptClients,
-                    "SimServerInner.acceptClientsThread.sssock="+ssock);
+                    "SimServerInner.acceptClientsThread.sssock=" + ssock);
             acceptClientsThread.setDaemon(true);
             acceptClientsThread.start();
             final int start_close_count = this.close_count;
@@ -2436,7 +2518,7 @@ public class SimServerInner {
                         Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            }, "simThread.ssock="+ssock);
+            }, "simThread.ssock=" + ssock);
             simThread.setDaemon(asDaemon);
             this.serverIsDaemon = asDaemon;
             simThread.start();

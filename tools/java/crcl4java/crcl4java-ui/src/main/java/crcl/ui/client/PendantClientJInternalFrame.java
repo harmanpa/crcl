@@ -188,7 +188,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     private void init() {
-        initComponents();
         pendantClientJPanel1.setOuterFrame(this.findParentJFrame());
         pendantClientJPanel1.setMenuOuter(this);
         addCommandsMenu();

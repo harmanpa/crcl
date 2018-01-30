@@ -136,6 +136,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.validation.Schema;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -195,7 +196,7 @@ public class PendantClientInner {
 
 //    private final AtomicReference<Thread> runTestProgramThread = new AtomicReference<>(null);
     private CRCLStatusType status;
-    private CRCLSocket crclSocket = null;
+    private volatile CRCLSocket crclSocket = null;
 
     private final PendantClientOuter outer;
     private static final double JOG_INCREMENT_DEFAULT = 3.0;
@@ -752,37 +753,40 @@ public class PendantClientInner {
         return XFuture.completedFuture(false);
     }
 
+    private volatile Schema statSchema = null;
+    
     public synchronized void setStatSchema(File[] fa) {
         try {
-            CRCLSocket.filesToStatSchema(fa);
+            statSchema = CRCLSocket.filesToStatSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setStatSchema(CRCLSocket.getDefaultStatSchema());
+                this.crclSocket.setStatSchema(statSchema);
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
-//    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
-//        return xpu.queryXml(cmdSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
-//    }
+
+    private volatile Schema cmdSchema = null;
+    
     public void setCmdSchema(File[] fa) {
         try {
-            CRCLSocket.filesToCmdSchema(fa);
+            cmdSchema = CRCLSocket.filesToCmdSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setStatSchema(CRCLSocket.getDefaultCmdSchema());
+                this.crclSocket.setCmdSchema(cmdSchema);
             }
-//            cmdSchemaFiles = fa;
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
+    private volatile Schema progSchema = null;
+    
     public synchronized void setProgramSchema(File[] fa) {
         try {
-            CRCLSocket.filesToProgramSchema(fa);
+            progSchema = CRCLSocket.filesToProgramSchema(fa);
             if (null != this.crclSocket) {
-                this.crclSocket.setProgramSchema(CRCLSocket.getDefaultProgramSchema());
+                this.crclSocket.setProgramSchema(progSchema);
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1986,13 +1990,17 @@ public class PendantClientInner {
     private volatile Thread connectThread = null;
     private volatile StackTraceElement connectTrace[] = null;
     private volatile long connnectTime = -1;
+    private volatile int lastSocketLocalPort = -1;
+    private volatile int lastSocketRemotePort = -1;
+    private volatile int socketLocalPort = -1;
+    private volatile int socketRemotePort = -1;
+    
 
     public synchronized void connect(String host, int port) {
         try {
-//            if(null != crclSocket
-//                    && crclSocket.isConnected()
-//                    && crclSocket.)
-//            disconnect();
+            if(isConnected()) {
+                throw new IllegalStateException("Already connected :  "+this.crclSocket);
+            }
             disconnecting = false;
             connectThread = Thread.currentThread();
             connectTrace = connectThread.getStackTrace();
@@ -2008,7 +2016,16 @@ public class PendantClientInner {
 //                crclSocket = new CrclExiSocket(host, port);
 //                ((CrclExiSocket)crclSocket).setEXIEnabled(true);
             } else {
-                crclSocket = new CRCLSocket(host, port);
+                CRCLSocket origCrclSocket  = this.crclSocket;
+                CRCLSocket newCrclSocket  = new CRCLSocket(host, port,cmdSchema,statSchema,progSchema);
+                this.crclSocket = newCrclSocket;
+                lastSocketLocalPort = socketLocalPort;
+                lastSocketRemotePort = socketRemotePort;
+                socketLocalPort = crclSocket.getSocket().getLocalPort();
+                socketRemotePort = crclSocket.getSocket().getPort();
+            }
+            if(null != cmdSchema) {
+                crclSocket.setCmdSchema(cmdSchema);
             }
             System.err.println("crclSocket = " + crclSocket);
             startStatusReaderThread();

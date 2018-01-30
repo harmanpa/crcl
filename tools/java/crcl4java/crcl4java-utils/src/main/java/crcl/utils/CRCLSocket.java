@@ -51,8 +51,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
@@ -68,6 +66,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,6 +120,90 @@ import org.checkerframework.checker.nullness.qual.*;
 public class CRCLSocket implements AutoCloseable {
 
     public static final int DEFAULT_PORT = 64444;
+
+//    public static class CrclSocketCreatorInfo {
+//
+//        final StackTraceElement[] trace;
+//        final String threadName;
+//        final long time;
+//        final int clientPort;
+//        final boolean isServer;
+//        volatile boolean closed = false;
+//
+//        public CrclSocketCreatorInfo(int clientPort, boolean isServer) {
+//            this.clientPort = clientPort;
+//            this.isServer = isServer;
+//            Thread t = Thread.currentThread();
+//            this.trace = t.getStackTrace();
+//            this.threadName = t.getName();
+//            this.time = System.currentTimeMillis();
+//        }
+//
+//    }
+    
+//    private final CrclSocketCreatorInfo creatorInfo;
+//
+//    private static final ConcurrentMap<Integer, ConcurrentLinkedDeque<CrclSocketCreatorInfo>> creatorMap = new ConcurrentHashMap<>();
+//
+//    private static CrclSocketCreatorInfo addCrclSocketCreator(int serverPort, int clientPort, boolean isServer) {
+//        int notClosedCount = 0;
+//        CrclSocketCreatorInfo ret;
+//        synchronized (creatorMap) {
+//            ConcurrentLinkedDeque<CrclSocketCreatorInfo> deque = creatorMap.get(serverPort);
+//            if (null == deque) {
+//                deque = new ConcurrentLinkedDeque<>();
+//            }
+//            for(CrclSocketCreatorInfo info : deque) {
+//                if(!info.closed) {
+//                    notClosedCount++;
+//                }
+//            }
+//            ret = new CrclSocketCreatorInfo(clientPort,isServer);
+//            deque.add(ret);
+//            creatorMap.put(serverPort, deque);
+//        }
+//        if (notClosedCount > 1 && serverPort > 0) {
+//            printCreatorMap();
+//            System.out.println("debug me");
+//        }
+//        return ret;
+//    }
+//
+//    public static Map<Integer, List<CrclSocketCreatorInfo>> getCreatorMap() {
+//        Map<Integer, List<CrclSocketCreatorInfo>> map = new TreeMap<>();
+//        synchronized (creatorMap) {
+//            for (Integer key : creatorMap.keySet()) {
+//                map.put(key, new ArrayList<>(creatorMap.get(key)));
+//            }
+//        }
+//        return map;
+//    }
+//
+//    public static void printCreatorMap() {
+//        Map<Integer, List<CrclSocketCreatorInfo>> map = getCreatorMap();
+//        long t0 = System.currentTimeMillis();
+//        for (Integer key : map.keySet()) {
+//            System.out.println("key = " + key);
+//            List<CrclSocketCreatorInfo> l = map.get(key);
+//            int closedCount = 0;
+//            int nonClosedCount = 0;
+//            for (CrclSocketCreatorInfo info : l) {
+//                if(info.closed) {
+//                    System.out.println("already closed : clientPort="+info.clientPort+",isServer="+info.isServer+", time="+ (t0 - info.time)+", " + info.threadName);
+//                    closedCount++;
+//                    continue;
+//                }
+//                System.out.println("info.isServer = " + info.isServer);
+//                System.out.println("info.clientPort = " + info.clientPort);
+//                System.out.println("info.time = " + (t0 - info.time));
+//                System.out.println("info.threadName = " + info.threadName);
+//                System.out.println("traceArray = " + Arrays.toString(info.trace));
+//                nonClosedCount++;
+//            }
+//            System.out.println("closedCount = " + closedCount);
+//            System.out.println("nonClosedCount = " + nonClosedCount);
+//        }
+//    }
 
     static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
 
@@ -977,6 +1063,7 @@ public class CRCLSocket implements AutoCloseable {
 
     public CRCLSocket() {
         this.socket = null;
+//        creatorInfo = addCrclSocketCreator(-1,-1,false);
     }
 
     // Instance initializer called by all constructors , but not seperately callable.
@@ -992,7 +1079,7 @@ public class CRCLSocket implements AutoCloseable {
                 ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
                 LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
                 System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
-                protectionDomainChecked=true;
+                protectionDomainChecked = true;
             }
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
@@ -1014,20 +1101,38 @@ public class CRCLSocket implements AutoCloseable {
 
     public CRCLSocket(/*@Nullable*/Socket socket) {
         this.socket = socket;
+//        creatorInfo = addCrclSocketCreator(socket.getLocalPort(),socket.getPort(),true);
     }
 
     public CRCLSocket(/*@Nullable*/SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
         this.socket = socketChannel.socket();
+//        creatorInfo = addCrclSocketCreator(socket.getPort(),socket.getLocalPort(),true);
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
+        
         try {
             this.socket = new Socket(hostname, port);
         } catch (IOException iOException) {
             LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
             throw iOException;
         }
+//        creatorInfo = addCrclSocketCreator(port,socket.getLocalPort(),false);
+    }
+
+    public CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
+       
+        try {
+            this.socket = new Socket(hostname, port);
+            this.cmdSchema = cmdSchema;
+            this.statSchema = statSchema;
+            this.programSchema = programSchema;
+        } catch (IOException iOException) {
+            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
+            throw iOException;
+        }
+//         creatorInfo = addCrclSocketCreator(port,socket.getLocalPort(),false);
     }
 
     public boolean isConnected() {
@@ -1223,7 +1328,7 @@ public class CRCLSocket implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-
+//        creatorInfo.closed = true;
         exiCommandInSaxSource = null;
         if (null != bufferedInputStream) {
             bufferedInputStream.close();
@@ -1383,7 +1488,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    private void setUnmarshallerSchema(/*@Nullable*/Unmarshaller u, /*@Nullable*/ Schema schema) {
+    private static void setUnmarshallerSchema(/*@Nullable*/Unmarshaller u, /*@Nullable*/ Schema schema) {
         // we need to be able to set the schema to null but since 
         // the setSchema method is not annotated there is no way 
         // for a nullness checker to know this is safe.
