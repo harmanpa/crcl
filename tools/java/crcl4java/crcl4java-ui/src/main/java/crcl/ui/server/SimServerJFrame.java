@@ -50,6 +50,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         this.setIconImage(SERVER_IMAGE);
         this.simServerJPanel1.setMenuOuter(this);
         this.simServerJPanel1.restartServer();
+        jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
 
     /**
@@ -131,6 +132,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
 
         jCheckBoxMenuItemValidateXML.setSelected(true);
         jCheckBoxMenuItemValidateXML.setText("Validate XML with Schema(s)");
+        jCheckBoxMenuItemValidateXML.addActionListener(formListener);
         jMenu3.add(jCheckBoxMenuItemValidateXML);
 
         jMenuBar1.add(jMenu3);
@@ -238,6 +240,9 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
             else if (evt.getSource() == jCheckBoxMenuItemIncludeGripperStatus) {
                 SimServerJFrame.this.jCheckBoxMenuItemIncludeGripperStatusActionPerformed(evt);
             }
+            else if (evt.getSource() == jCheckBoxMenuItemDisableTextPopups) {
+                SimServerJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+            }
             else if (evt.getSource() == jCheckBoxMenuItemEXI) {
                 SimServerJFrame.this.jCheckBoxMenuItemEXIActionPerformed(evt);
             }
@@ -253,8 +258,8 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
             else if (evt.getSource() == jMenuItemViewCommandLogFull) {
                 SimServerJFrame.this.jMenuItemViewCommandLogFullActionPerformed(evt);
             }
-            else if (evt.getSource() == jCheckBoxMenuItemDisableTextPopups) {
-                SimServerJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+            else if (evt.getSource() == jCheckBoxMenuItemValidateXML) {
+                SimServerJFrame.this.jCheckBoxMenuItemValidateXMLActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -287,7 +292,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
 
 
     private void jMenuItemViewCommandLogBriefActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemViewCommandLogBriefActionPerformed
-       simServerJPanel1.viewCommandLogBriefAction();
+        simServerJPanel1.viewCommandLogBriefAction();
     }//GEN-LAST:event_jMenuItemViewCommandLogBriefActionPerformed
 
     private void jMenuItemViewCommandLogFullActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemViewCommandLogFullActionPerformed
@@ -307,7 +312,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
 
     private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
         JFileChooser chooser = new JFileChooser();
-        if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             setPropertiesFile(chooser.getSelectedFile());
             try {
                 saveProperties();
@@ -318,20 +323,24 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
     }//GEN-LAST:event_jMenuItemSavePropertiesActionPerformed
 
     private void jMenuItemLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPropertiesActionPerformed
-       JFileChooser chooser = new JFileChooser();
-        if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+        JFileChooser chooser = new JFileChooser();
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             setPropertiesFile(chooser.getSelectedFile());
-           try {
-               loadProperties();
-           } catch (IOException ex) {
-               Logger.getLogger(SimServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-           }
+            try {
+                loadProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
 
     private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
         crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
     }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
+    private void jCheckBoxMenuItemValidateXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXMLActionPerformed
+        simServerJPanel1.setValidateXMLSelected(jCheckBoxMenuItemValidateXML.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemValidateXMLActionPerformed
 
     /**
      * @param args the command line arguments
@@ -514,11 +523,10 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         return jCheckBoxMenuItemEXI.isSelected();
     }
 
-    @Override
     public boolean isValidateXMLSelected() {
         return jCheckBoxMenuItemValidateXML.isSelected();
     }
-    
+
     public int getPort() {
         return simServerJPanel1.getPort();
     }
@@ -531,14 +539,16 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
     public File getPropertiesFile() {
         return simServerJPanel1.getPropertiesFile();
     }
-    
+
     public void setPropertiesFile(File f) {
         simServerJPanel1.setPropertiesFile(f);
     }
-    
+
     public void loadProperties() throws IOException {
         simServerJPanel1.loadProperties();
+        jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
+
     public void saveProperties() throws IOException {
         simServerJPanel1.saveProperties();
     }

@@ -1097,14 +1097,14 @@ public class CRCLSocket implements AutoCloseable {
 //        System.exit(0);
     }
 
-    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
-        this.socket = null;
+    public CRCLSocket(Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
+        this.socket = socket;
         this.cmdSchema = cmdSchema;
         this.statSchema = statSchema;
         this.programSchema = programSchema;
     }
 
-    public CRCLSocket(/*@Nullable*/Socket socket) {
+    public CRCLSocket(/*@Nullable*/ Socket socket) {
         this.socket = socket;
 //        creatorInfo = addCrclSocketCreator(socket.getLocalPort(),socket.getPort(),true);
     }
@@ -1361,6 +1361,9 @@ public class CRCLSocket implements AutoCloseable {
             socket.close();
         } catch (IOException iOException) {
         }
+        cmdSchema = null;
+        statSchema = null;
+        programSchema = null;
     }
 
     @Override

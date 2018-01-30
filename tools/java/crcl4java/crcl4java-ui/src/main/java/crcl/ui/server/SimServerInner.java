@@ -131,6 +131,7 @@ import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import javax.xml.validation.Schema;
 
 /**
  *
@@ -1051,25 +1052,30 @@ public class SimServerInner {
         }
         return this.commandedJointPositions;
     }
+    
+    private volatile Schema cmdSchema = null;
 
     public void setCmdSchema(File[] fa) {
         try {
-            CRCLSocket.filesToCmdSchema(fa);
+            Schema newCmdSchema = CRCLSocket.filesToCmdSchema(fa);
+            this.cmdSchema = newCmdSchema;
             cleanupClientStatesThreadMap();
             for (ClientState state : this.clientStates) {
-                state.getCs().setCmdSchema(CRCLSocket.getDefaultCmdSchema());
+                state.getCs().setCmdSchema(newCmdSchema);
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+    private volatile Schema statSchema = null;
 
     public void setStatSchema(File[] fa) {
         try {
-            CRCLSocket.filesToStatSchema(fa);
+            Schema newStatSchema = CRCLSocket.filesToStatSchema(fa);
+            this.statSchema = newStatSchema;
             cleanupClientStatesThreadMap();
             for (ClientState state : this.clientStates) {
-                state.getCs().setStatSchema(CRCLSocket.getDefaultStatSchema());
+                state.getCs().setStatSchema(newStatSchema);
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1220,6 +1226,17 @@ public class SimServerInner {
 
     }
 
+    private boolean validateXMLSelected = true;
+
+    public boolean isValidateXMLSelected() {
+        return validateXMLSelected;
+    }
+
+    public void setValidateXMLSelected(boolean validateXMLSelected) {
+        this.validateXMLSelected = validateXMLSelected;
+    }
+    
+    
     private SimServerMenuOuter menuOuter() {
         if (null == outer) {
             throw new IllegalStateException("SimServerOuter not set.");
@@ -1276,7 +1293,7 @@ public class SimServerInner {
                                     + " State="
                                     + status.getCommandStatus().getCommandState());
                         }
-                        socket.writeStatus(status, menuOuter().isValidateXMLSelected());
+                        socket.writeStatus(status, validateXMLSelected);
                         if (debugUpdateStatusTime > 0) {
                             debugUpdateStatusTime = 0;
                         }
@@ -1336,7 +1353,7 @@ public class SimServerInner {
                             + " State="
                             + status.getCommandStatus().getCommandState());
                 }
-                String xmls = curSocket.statusToString(status, menuOuter().isValidateXMLSelected());
+                String xmls = curSocket.statusToString(status, validateXMLSelected);
                 int write_count = 0;
                 cleanupClientStatesThreadMap();
                 List<ClientState> clientStatesList = new ArrayList<>(clientStates);
@@ -1707,7 +1724,7 @@ public class SimServerInner {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 final CRCLCommandInstanceType cmdInstance
-                        = cs.readCommand(menuOuter().isValidateXMLSelected());
+                        = cs.readCommand(validateXMLSelected);
                 LOGGER.log(Level.FINER, () -> "cmdInstance = " + cmdInstance);
                 if (null != cmdInstance && null != cmdInstance.getCRCLCommand()) {
                     CRCLCommandType cmd = cmdInstance.getCRCLCommand();
@@ -1847,7 +1864,7 @@ public class SimServerInner {
                     System.out.println("rport = " + rport);
                     cleanupClientStatesThreadMap();
                 }
-                final CRCLSocket cs = new CRCLSocket(s);
+                final CRCLSocket cs = new CRCLSocket(s,cmdSchema,statSchema,null);
                 final ClientState state = new ClientState(cs);
 //                cs.setEXIEnabled(menuOuter().isEXISelected());
                 cleanupClientStatesThreadMap();
@@ -2555,7 +2572,7 @@ public class SimServerInner {
         if (null != checkerCRCLSocket) {
             return checkerCRCLSocket;
         }
-        return (checkerCRCLSocket = new CRCLSocket());
+        return (checkerCRCLSocket = new CRCLSocket(null,cmdSchema,statSchema,null));
     }
 
     private static class LastStatusInfo {

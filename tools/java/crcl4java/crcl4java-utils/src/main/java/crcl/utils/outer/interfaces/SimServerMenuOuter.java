@@ -29,8 +29,6 @@ package crcl.utils.outer.interfaces;
 public interface SimServerMenuOuter {
 
     public boolean isInitializedSelected();
-    
-    public boolean isValidateXMLSelected();
 
     public boolean isSendStatusWithoutRequestSelected();
 

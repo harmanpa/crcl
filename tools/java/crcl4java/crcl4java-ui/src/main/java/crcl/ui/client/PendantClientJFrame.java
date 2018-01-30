@@ -100,6 +100,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         readRecentPrograms();
         this.setIconImage(DISCONNECTED_IMAGE);
         this.setTitle("CRCL Client: Disconnected");
+        jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
         try {
             this.setIconImage(IconImages.BASE_IMAGE);
         } catch (Exception ex) {
@@ -425,6 +426,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
         jCheckBoxMenuItemValidateXml.setSelected(true);
         jCheckBoxMenuItemValidateXml.setText("Validate using Schemas");
+        jCheckBoxMenuItemValidateXml.addActionListener(formListener);
         jMenuXmlSchemas.add(jCheckBoxMenuItemValidateXml);
 
         jMenuBarPendantClient.add(jMenuXmlSchemas);
@@ -576,6 +578,9 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
             else if (evt.getSource() == jMenuItemAbout) {
                 PendantClientJFrame.this.jMenuItemAboutActionPerformed(evt);
             }
+            else if (evt.getSource() == jCheckBoxMenuItemValidateXml) {
+                PendantClientJFrame.this.jCheckBoxMenuItemValidateXmlActionPerformed(evt);
+            }
         }
     }// </editor-fold>//GEN-END:initComponents
 
@@ -726,6 +731,10 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
         this.pendantClientJPanel1.setDisableTextPopups(crcl.ui.misc.MultiLineStringJPanel.disableShowText);
     }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
+    private void jCheckBoxMenuItemValidateXmlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXmlActionPerformed
+        pendantClientJPanel1.setValidateXmlSchema(jCheckBoxMenuItemValidateXml.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemValidateXmlActionPerformed
 
     @Override
     public boolean isEXISelected() {
@@ -886,13 +895,13 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @Override
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData>  progRunDataList) {
-        pendantClientJPanel1.showCurrentProgramLine(line,program,status,progRunDataList);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData> progRunDataList) {
+        pendantClientJPanel1.showCurrentProgramLine(line, program, status, progRunDataList);
     }
 
     @Override
     public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd) {
-        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(row,prd);
+        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(row, prd);
     }
 
     @Override
@@ -960,7 +969,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return jCheckBoxMenuItemPlotXYZ.isSelected();
     }
 
-    @Override
     public boolean validateXmlSelected() {
         return jCheckBoxMenuItemValidateXml.isSelected();
     }
@@ -990,7 +998,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return jCheckBoxMenuItemRecordPoseList.isSelected();
     }
 
-
     @Override
     public PendantClientMenuOuter getMenuOuter() {
         return this;
@@ -1010,13 +1017,14 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
         jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
+        jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
     }
 
     @Override
     public void saveProperties() {
         pendantClientJPanel1.saveProperties();
     }
-    
+
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         this.pendantClientJPanel1.updateCommandStatusLog(log);

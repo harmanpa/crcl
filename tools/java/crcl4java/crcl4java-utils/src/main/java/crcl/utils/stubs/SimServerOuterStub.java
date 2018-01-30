@@ -46,12 +46,6 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
     public void updateConnectedClients(int numClients) {
     }
 
-    private final boolean validateXML;
-    
-    @Override
-    public boolean isValidateXMLSelected() {
-        return this.validateXML;
-    }
 
     private final boolean sendStatusWithoutRequest;
     
@@ -173,7 +167,7 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
             boolean replaceXmlHeader,
             boolean debugSendStatus,
             boolean exiSelected) {
-        this.validateXML = validateXML;
+//        this.validateXML = validateXML;
         this.sendStatusWithoutRequest = sendStatusWithoutRequest;
         this.appendZero = appendZero;
         this.randomPacket = randomPacket;

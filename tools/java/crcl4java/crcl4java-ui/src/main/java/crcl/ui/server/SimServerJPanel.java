@@ -80,8 +80,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     /**
      * Creates new form SimServerJPanel
-     * @throws javax.xml.parsers.ParserConfigurationException when XML schemas not setup correctly.
-     * 
+     *
+     * @throws javax.xml.parsers.ParserConfigurationException when XML schemas
+     * not setup correctly.
+     *
      */
     public SimServerJPanel() throws ParserConfigurationException {
         initComponents();
@@ -171,6 +173,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             Properties props = new Properties();
             int port = Integer.parseInt(jTextFieldPort.getText());
             props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
+            props.put(VALIDATEXML_PROPERTY_NAME, Boolean.toString(inner.isValidateXMLSelected()));
             System.out.println("SimServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
 //            try (FileWriter fw = new FileWriter(propertiesFile)) {
 //                props.store(fw, "");
@@ -194,8 +197,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 inner.setPort(port);
                 restartServer();
             }
+            String validateXmlString = props.getProperty(VALIDATEXML_PROPERTY_NAME);
+            if(null != validateXmlString) {
+                inner.setValidateXMLSelected(Boolean.parseBoolean(validateXmlString));
+            }
+            
         }
     }
+    private static final String VALIDATEXML_PROPERTY_NAME = "crcl.validateXML";
     private static final String CRCLPORT_PROPERTY_NAME = "crcl.port";
 
     static public boolean LOG_IMAGES_DEFAULT = false;
@@ -263,6 +272,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      */
     public SimServerMenuOuter getMenuOuter() {
         return menuOuter;
+    }
+
+    public boolean isValidateXMLSelected() {
+        return inner.isValidateXMLSelected();
+    }
+
+    public void setValidateXMLSelected(boolean validateXMLSelected) {
+        inner.setValidateXMLSelected(validateXMLSelected);
     }
 
     /**
@@ -744,15 +761,15 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     private static String createAssertErrorString(CRCLCommandType cmd, long id) {
-        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+        return "command id being reduced id=" + id + ", cmd=" + CRCLSocket.cmdToString(cmd);
     }
 
     private void setCommandId(CRCLCommandType cmd, long id) {
         assert cmd.getCommandID() <= id :
-                createAssertErrorString(cmd,id);
+                createAssertErrorString(cmd, id);
         cmd.setCommandID(id);
     }
-    
+
     public void setIncludeGripperAction() {
         try {
             this.closeGripperSocket();
@@ -768,7 +785,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 public void run() {
                     try {
                         GetStatusType getStatus = new GetStatusType();
-                        setCommandId(getStatus,1);
+                        setCommandId(getStatus, 1);
                         CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
                         cmdInstance.setCRCLCommand(getStatus);
                         while (!Thread.currentThread().isInterrupted()) {
@@ -778,12 +795,12 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             }
                             if (sendGripperStatusRequests) {
                                 Thread.sleep(inner.getDelayMillis());
-                                setCommandId(getStatus,getStatus.getCommandID() + 1);
+                                setCommandId(getStatus, getStatus.getCommandID() + 1);
                                 gripperSocket.writeCommand(cmdInstance, false);
                             }
                             checkMenuOuter();
                             CRCLStatusType gripperStatus
-                                    = gripperSocket.readStatus(menuOuter.isValidateXMLSelected());
+                                    = gripperSocket.readStatus(inner.isValidateXMLSelected());
                             SimServerJPanel.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
                         }
                     } catch (CRCLException ex) {
@@ -908,7 +925,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    transient private final Function<CRCLStatusType,XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType,XFuture<Boolean>>() {
+    transient private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
 
         @Override
         public XFuture<Boolean> apply(CRCLStatusType t) {
@@ -1015,7 +1032,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 showing_message = false;
             }
         });
-    } 
+    }
 
     private boolean toolChangerOpen;
 

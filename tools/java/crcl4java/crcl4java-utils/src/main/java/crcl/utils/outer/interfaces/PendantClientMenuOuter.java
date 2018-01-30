@@ -32,8 +32,6 @@ public interface PendantClientMenuOuter {
 
     public boolean isPlotXyzSelected();
 
-    public boolean validateXmlSelected();
-
     public boolean replaceStateSelected();
 
     public boolean isDebugWaitForDoneSelected();

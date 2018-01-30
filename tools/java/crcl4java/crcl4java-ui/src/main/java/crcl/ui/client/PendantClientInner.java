@@ -735,7 +735,7 @@ public class PendantClientInner {
         if (null != checkerCRCLSocket) {
             return checkerCRCLSocket;
         }
-        return (checkerCRCLSocket = new CRCLSocket(cmdSchema,statSchema,progSchema));
+        return (checkerCRCLSocket = new CRCLSocket(null, cmdSchema,statSchema,progSchema));
     }
 
     public XFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
@@ -833,6 +833,18 @@ public class PendantClientInner {
             iOException.printStackTrace();
         }
     }
+    
+    private boolean validateXmlSchema = true;
+
+    public boolean isValidateXmlSchema() {
+        return validateXmlSchema;
+    }
+
+    public void setValidateXmlSchema(boolean validateXmlSchema) {
+        this.validateXmlSchema = validateXmlSchema;
+    }
+    
+    
 
     public void openXmlProgramFile(File f, boolean addRecent) throws SAXException, IOException, CRCLException, XPathExpressionException, ParserConfigurationException {
 
@@ -848,7 +860,7 @@ public class PendantClientInner {
         String s = this.xpu.queryXml(f, "/");
         CRCLSocket cs = getTempCRCLSocket();
         CRCLProgramType program
-                = cs.stringToProgram(s, menuOuter().validateXmlSelected());
+                = cs.stringToProgram(s, isValidateXmlSchema());
         if (null == program.getName() || program.getName().length() < 1) {
             String fname = f.getName();
             if (fname.endsWith(".xml")) {
@@ -882,7 +894,7 @@ public class PendantClientInner {
             program.setName(fname);
         }
         String str
-                = cs.programToPrettyString(program, menuOuter().validateXmlSelected());
+                = cs.programToPrettyString(program, validateXmlSchema);
         try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println(str);
         } catch (IOException ex) {
@@ -1039,7 +1051,7 @@ public class PendantClientInner {
             while (commandStatusLog.size() > maxLogSize) {
                 commandStatusLog.pollFirst();
             }
-            crclSocket.writeCommand(cmdInstance, menuOuter().validateXmlSelected());
+            crclSocket.writeCommand(cmdInstance, validateXmlSchema);
             if (!(cmd instanceof StopMotionType) && !(cmd instanceof InitCanonType)) {
                 if (id != cmd.getCommandID()) {
                     printIncCommandInfo(System.err);
@@ -1836,7 +1848,7 @@ public class PendantClientInner {
                 crclSocket.setStatusStringInputFilter(null);
             }
             final CRCLStatusType curStatus
-                    = crclSocket.readStatus(menuOuter().validateXmlSelected());
+                    = crclSocket.readStatus(validateXmlSchema);
             addStatusToCommandStatusLog(curStatus);
             outer.updateCommandStatusLog(commandStatusLog);
             if (menuOuter().isDebugReadStatusSelected()) {

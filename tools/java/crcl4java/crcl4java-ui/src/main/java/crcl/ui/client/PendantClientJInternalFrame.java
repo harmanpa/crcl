@@ -197,6 +197,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 //        this.setIconImage(DISCONNECTED_IMAGE);
         this.setTitle("CRCL Client: Disconnected");
         jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
+        jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
 
 //        try {
 //            this.setIconImage(IconImages.BASE_IMAGE);
@@ -669,6 +670,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
         jCheckBoxMenuItemValidateXml.setSelected(true);
         jCheckBoxMenuItemValidateXml.setText("Validate using Schemas");
+        jCheckBoxMenuItemValidateXml.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemValidateXmlActionPerformed(evt);
+            }
+        });
         jMenuXmlSchemas.add(jCheckBoxMenuItemValidateXml);
 
         jMenuBarPendantClient.add(jMenuXmlSchemas);
@@ -930,6 +936,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         setIgnoreTimeouts(jCheckBoxMenuItemIgnoreTimeouts.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemIgnoreTimeoutsActionPerformed
 
+    private void jCheckBoxMenuItemValidateXmlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXmlActionPerformed
+        pendantClientJPanel1.setValidateXmlSchema(jCheckBoxMenuItemValidateXml.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemValidateXmlActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugInterrupts;
@@ -1126,7 +1136,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return jCheckBoxMenuItemPlotXYZ.isSelected();
     }
 
-    @Override
     public boolean validateXmlSelected() {
         return jCheckBoxMenuItemValidateXml.isSelected();
     }
@@ -1204,6 +1213,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
         jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
         jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
+        jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
     }
 
     @Override

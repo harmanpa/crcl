@@ -56,12 +56,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return false;
     }
 
-    private final boolean validateXml;
-
-    @Override
-    public boolean validateXmlSelected() {
-        return this.validateXml;
-    }
 
     private final boolean replaceState;
 
@@ -184,7 +178,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
             boolean recordPose,
             boolean exiSelected,
             boolean useReadStatusThreadSelected) {
-        this.validateXml = validateXml;
+//        this.validateXml = validateXml;
         this.replaceState = replaceState;
         this.host = host;
         this.port = port;

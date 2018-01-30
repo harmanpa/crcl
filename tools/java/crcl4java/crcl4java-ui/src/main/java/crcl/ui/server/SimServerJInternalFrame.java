@@ -44,20 +44,22 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         initComponents();
         this.simServerJPanel1.setMenuOuter(this);
         this.simServerJPanel1.restartServer();
+        jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
 
     public SimServerJInternalFrame(boolean startServer) {
         initComponents();
         this.simServerJPanel1.setMenuOuter(this);
-        if(startServer) {
+        if (startServer) {
             this.simServerJPanel1.restartServer();
         }
+        jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
-    
+
     public void restartServer() {
         this.simServerJPanel1.restartServer();
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -156,6 +158,11 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
 
         jCheckBoxMenuItemValidateXML.setSelected(true);
         jCheckBoxMenuItemValidateXML.setText("Validate XML with Schema(s)");
+        jCheckBoxMenuItemValidateXML.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemValidateXMLActionPerformed(evt);
+            }
+        });
         jMenu3.add(jCheckBoxMenuItemValidateXML);
 
         jMenuBar1.add(jMenu3);
@@ -310,7 +317,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
 
     private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
         JFileChooser chooser = new JFileChooser();
-        if(JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             setPropertiesFile(chooser.getSelectedFile());
             try {
                 saveProperties();
@@ -322,7 +329,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
 
     private void jMenuItemLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPropertiesActionPerformed
         JFileChooser chooser = new JFileChooser();
-        if(JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             try {
                 setPropertiesFile(chooser.getSelectedFile());
                 loadProperties();
@@ -333,10 +340,13 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
 
     private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
-       crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+        crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
     }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
 
-    
+    private void jCheckBoxMenuItemValidateXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXMLActionPerformed
+        simServerJPanel1.setValidateXMLSelected(jCheckBoxMenuItemValidateXML.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemValidateXMLActionPerformed
+
     @Override
     public boolean isDebugMoveDoneSelected() {
         return this.jCheckBoxMenuItemDebugMoveDone.isSelected();
@@ -452,11 +462,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         return jCheckBoxMenuItemEXI.isSelected();
     }
 
-    @Override
     public boolean isValidateXMLSelected() {
         return jCheckBoxMenuItemValidateXML.isSelected();
     }
-    
+
     public int getPort() {
         return simServerJPanel1.getPort();
     }
@@ -465,22 +474,24 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     public SimServerMenuOuter getMenuOuter() {
         return this;
     }
-    
+
     public File getPropertiesFile() {
         return simServerJPanel1.getPropertiesFile();
     }
-    
+
     public void setPropertiesFile(File f) {
         simServerJPanel1.setPropertiesFile(f);
     }
-    
+
     public void loadProperties() throws IOException {
         simServerJPanel1.loadProperties();
+        jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
+
     public void saveProperties() throws IOException {
         simServerJPanel1.saveProperties();
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemAppendZero;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugMoveDone;
