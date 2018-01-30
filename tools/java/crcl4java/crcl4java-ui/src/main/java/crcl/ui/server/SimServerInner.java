@@ -431,7 +431,7 @@ public class SimServerInner {
     private PmRotationVector lastDiffRotv = null;
     private int cycle_count = 0;
     private final ConcurrentLinkedDeque<ClientState> clientStates = new ConcurrentLinkedDeque<>();
-    private final Map<CRCLSocket, Thread> clientThreadMap = new ConcurrentHashMap<>();
+    private final Map<CRCLSocket, Thread> clientThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
     Thread simThread = null;
     private volatile int close_count = 0;
     long maxCmdId = 1;
@@ -458,6 +458,13 @@ public class SimServerInner {
             }
         }
         clientStates.removeAll(clientStatesToRemove);
+        for (int i = 0; i < clientStatesToRemove.size(); i++) {
+            ClientState clientState = clientStatesToRemove.get(i);
+            CRCLSocket crclSocket = clientState.getCs();
+            if(null != lastStatusMap && null != crclSocket) {
+                lastStatusMap.remove(crclSocket);
+            }
+        }
         List<CRCLSocket> crclSocketsToRemove = new ArrayList<>();
         for (Map.Entry<CRCLSocket, Thread> entry : clientThreadMap.entrySet()) {
             CRCLSocket key = entry.getKey();
@@ -488,7 +495,11 @@ public class SimServerInner {
             }
         }
         for (int i = 0; i < crclSocketsToRemove.size(); i++) {
-            clientThreadMap.remove(crclSocketsToRemove.get(i));
+            CRCLSocket crclSocket = crclSocketsToRemove.get(i);
+            clientThreadMap.remove(crclSocket);
+            if(null != lastStatusMap) {
+                lastStatusMap.remove(crclSocket);
+            }
         }
     }
 
@@ -1288,6 +1299,9 @@ public class SimServerInner {
                         } catch (IOException ex1) {
                             LOGGER.log(Level.SEVERE, null, ex1);
                         }
+                        if(null != lastStatusMap) {
+                            lastStatusMap.remove(socket);
+                        }
                         cleanupClientStatesThreadMap();
                         for (ClientState cs : clientStates) {
                             if (Objects.equals(cs.getCs(), socket)) {
@@ -1370,7 +1384,7 @@ public class SimServerInner {
                 }
                 if (new_state) {
                     if (null == this.lastStatusMap) {
-                        this.lastStatusMap = new IdentityHashMap<>();
+                        this.lastStatusMap = Collections.synchronizedMap(new IdentityHashMap<>());
                     }
                     LastStatusInfo lsi = new LastStatusInfo();
                     lsi.lastSentCid = status.getCommandStatus().getCommandID();
