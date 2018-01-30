@@ -2630,6 +2630,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void stopStatusReaderThread() {
         internal.stopStatusReaderThread();
     }
+    
+   public int getMaxRecordCommandsCount() {
+        return internal.getMaxRecordCommandsCount();
+    }
+
+    public void setMaxRecordCommandsCount(int maxRecordCommandsCount) {
+        internal.setMaxRecordCommandsCount(maxRecordCommandsCount);
+    }
 
     public void setRecordCommands(boolean recordCommands) {
         internal.setRecordCommands(recordCommands);

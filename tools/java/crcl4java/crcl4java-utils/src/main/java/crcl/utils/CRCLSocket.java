@@ -140,7 +140,6 @@ public class CRCLSocket implements AutoCloseable {
 //        }
 //
 //    }
-    
 //    private final CrclSocketCreatorInfo creatorInfo;
 //
 //    private static final ConcurrentMap<Integer, ConcurrentLinkedDeque<CrclSocketCreatorInfo>> creatorMap = new ConcurrentHashMap<>();
@@ -204,7 +203,6 @@ public class CRCLSocket implements AutoCloseable {
 //            System.out.println("nonClosedCount = " + nonClosedCount);
 //        }
 //    }
-
     static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
 
         @Override
@@ -1099,6 +1097,13 @@ public class CRCLSocket implements AutoCloseable {
 //        System.exit(0);
     }
 
+    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
+        this.socket = null;
+        this.cmdSchema = cmdSchema;
+        this.statSchema = statSchema;
+        this.programSchema = programSchema;
+    }
+
     public CRCLSocket(/*@Nullable*/Socket socket) {
         this.socket = socket;
 //        creatorInfo = addCrclSocketCreator(socket.getLocalPort(),socket.getPort(),true);
@@ -1111,7 +1116,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
-        
+
         try {
             this.socket = new Socket(hostname, port);
         } catch (IOException iOException) {
@@ -1122,7 +1127,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
-       
+
         try {
             this.socket = new Socket(hostname, port);
             this.cmdSchema = cmdSchema;

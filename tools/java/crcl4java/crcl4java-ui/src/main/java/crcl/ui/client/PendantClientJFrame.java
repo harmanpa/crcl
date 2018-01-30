@@ -55,6 +55,7 @@ import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -450,7 +451,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         jCheckBoxMenuItemUseReadStatusThread.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemUseReadStatusThread);
 
-        jCheckBoxMenuItemRecordCommands.setSelected(true);
         jCheckBoxMenuItemRecordCommands.setText("Record Commands");
         jCheckBoxMenuItemRecordCommands.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemRecordCommands);
@@ -662,7 +662,18 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }//GEN-LAST:event_jCheckBoxMenuItemUseReadStatusThreadActionPerformed
 
     private void jCheckBoxMenuItemRecordCommandsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
-        pendantClientJPanel1.setRecordCommands(this.jCheckBoxMenuItemRecordCommands.isSelected());
+        boolean selected = this.jCheckBoxMenuItemRecordCommands.isSelected();
+        try {
+            if (selected) {
+                int oldMaxCount = pendantClientJPanel1.getMaxRecordCommandsCount();
+                String maxCountString = JOptionPane.showInputDialog(this, "Maximum number of commands to keep?", oldMaxCount);
+                int newMaxCount = Integer.parseInt(maxCountString);
+                pendantClientJPanel1.setMaxRecordCommandsCount(newMaxCount);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        pendantClientJPanel1.setRecordCommands(selected);
     }//GEN-LAST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
 
     private void jMenuItemShowCommandLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemShowCommandLogActionPerformed

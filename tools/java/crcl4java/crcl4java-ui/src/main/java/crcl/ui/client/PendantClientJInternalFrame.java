@@ -59,6 +59,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -86,7 +87,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public boolean isPaused() {
         return pendantClientJPanel1.isPaused();
     }
-    
+
     public Thread getRunProgramThread() {
         return pendantClientJPanel1.getRunProgramThread();
     }
@@ -94,11 +95,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public XFuture<Boolean> getRunProgramFuture() {
         return pendantClientJPanel1.getRunProgramFuture();
     }
-    
+
     public int getCurrentProgramLine() {
         return pendantClientJPanel1.getCurrentProgramLine();
     }
-    
+
     public boolean isRunningProgram() {
         return pendantClientJPanel1.isRunningProgram();
     }
@@ -110,24 +111,23 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public int startBlockingPrograms() {
         return pendantClientJPanel1.startBlockingPrograms();
     }
-    
+
     public void stopBlockingPrograms(int count) throws PendantClientInner.ConcurrentBlockProgramsException {
-         pendantClientJPanel1.stopBlockingPrograms(count);
+        pendantClientJPanel1.stopBlockingPrograms(count);
     }
 
-    
     public boolean isIgnoreTimeouts() {
         return pendantClientJPanel1.isIgnoreTimeouts();
     }
-    
+
     public List<ProgramRunData> getLastProgRunDataList() {
         return pendantClientJPanel1.getLastProgRunDataList();
     }
 
-    public void saveProgramRunDataListToCsv(File f,List<ProgramRunData> list) throws IOException {
+    public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
         pendantClientJPanel1.saveProgramRunDataListToCsv(f, list);
     }
-    
+
     public void saveLastProgramRunDataListToCsv(File f) throws IOException {
         pendantClientJPanel1.saveLastProgramRunDataListToCsv(f);
     }
@@ -140,7 +140,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void setIgnoreTimeouts(boolean ignoreTimeouts) {
         pendantClientJPanel1.setIgnoreTimeouts(ignoreTimeouts);
     }
-    
+
     public void disconnect() {
         pendantClientJPanel1.disconnect();
     }
@@ -197,7 +197,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 //        this.setIconImage(DISCONNECTED_IMAGE);
         this.setTitle("CRCL Client: Disconnected");
         jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
-        
+
 //        try {
 //            this.setIconImage(IconImages.BASE_IMAGE);
 //        } catch (Exception ex) {
@@ -231,7 +231,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public String getLastMessage() {
         return pendantClientJPanel1.getLastMessage();
     }
-    
+
     private void readRecentCommandFiles() {
         File fMainDir = new File(System.getProperty("user.home"),
                 recent_files_dir);
@@ -715,7 +715,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         });
         jMenuOptions.add(jCheckBoxMenuItemUseReadStatusThread);
 
-        jCheckBoxMenuItemRecordCommands.setSelected(true);
         jCheckBoxMenuItemRecordCommands.setText("Record Commands");
         jCheckBoxMenuItemRecordCommands.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -895,7 +894,18 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }//GEN-LAST:event_jCheckBoxMenuItemUseReadStatusThreadActionPerformed
 
     private void jCheckBoxMenuItemRecordCommandsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
-        pendantClientJPanel1.setRecordCommands(this.jCheckBoxMenuItemRecordCommands.isSelected());
+        boolean selected = this.jCheckBoxMenuItemRecordCommands.isSelected();
+        try {
+            if (selected) {
+                int oldMaxCount = pendantClientJPanel1.getMaxRecordCommandsCount();
+                String maxCountString = JOptionPane.showInputDialog(this, "Maximum number of commands to keep?", oldMaxCount);
+                int newMaxCount = Integer.parseInt(maxCountString);
+                pendantClientJPanel1.setMaxRecordCommandsCount(newMaxCount);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        pendantClientJPanel1.setRecordCommands(selected);
     }//GEN-LAST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
 
     private void jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed
@@ -1026,12 +1036,12 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     @Override
     public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData> progRunDataList) {
-        pendantClientJPanel1.showCurrentProgramLine(line, program, status,progRunDataList);
+        pendantClientJPanel1.showCurrentProgramLine(line, program, status, progRunDataList);
     }
 
     @Override
     public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd) {
-        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(row,prd);
+        pendantClientJPanel1.showLastProgramLineExecTimeMillisDists(row, prd);
     }
 
     @Override
@@ -1100,7 +1110,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
         return pendantClientJPanel1.runCurrentProgramAsync();
     }
-    
+
     @Override
     public void setProgram(CRCLProgramType program) throws JAXBException {
         pendantClientJPanel1.setProgram(program);
@@ -1176,7 +1186,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.setPropertiesFile(propertiesFile);
     }
 
-    
     public ExecutorService getRunProgramService() {
         return pendantClientJPanel1.getRunProgramService();
     }
@@ -1188,7 +1197,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void resetRunProgramServiceToDefault() {
         pendantClientJPanel1.resetRunProgramServiceToDefault();
     }
-    
+
     @Override
     public void loadProperties() {
         pendantClientJPanel1.loadProperties();
@@ -1197,8 +1206,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
     }
 
-    
-    
     @Override
     public void saveProperties() {
         pendantClientJPanel1.saveProperties();
@@ -1215,7 +1222,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void setTempLogDir(File tempLogDir) {
         this.pendantClientJPanel1.setTempLogDir(tempLogDir);
     }
-    
+
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         this.pendantClientJPanel1.updateCommandStatusLog(log);

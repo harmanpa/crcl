@@ -230,7 +230,19 @@ public class PendantClientInner {
     }
 
     private CRCLCommandType prevLastCommandSent = null;
-    private boolean recordCommands = true;
+    private boolean recordCommands = false;
+    private int maxRecordCommandsCount = 1000;
+
+    public int getMaxRecordCommandsCount() {
+        return maxRecordCommandsCount;
+    }
+
+    public void setMaxRecordCommandsCount(int maxRecordCommandsCount) {
+        this.maxRecordCommandsCount = maxRecordCommandsCount;
+    }
+    
+    
+    
     final private Queue<CRCLCommandType> recordedCommandsQueue
             = new ConcurrentLinkedQueue<>();
     private final List<CRCLCommandType> recordedCommandsList = new ArrayList<>();
@@ -723,7 +735,7 @@ public class PendantClientInner {
         if (null != checkerCRCLSocket) {
             return checkerCRCLSocket;
         }
-        return (checkerCRCLSocket = new CRCLSocket());
+        return (checkerCRCLSocket = new CRCLSocket(cmdSchema,statSchema,progSchema));
     }
 
     public XFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
@@ -996,6 +1008,12 @@ public class PendantClientInner {
                 prevLastCommandSentStackTrace = lastCommandSentStackTrace;
                 lastCommandSent = cmdInstance.getCRCLCommand();
                 lastCommandSentStackTrace = Thread.currentThread().getStackTrace();
+                int currentRecordedCommandsQueueSize = recordedCommandsQueue.size();
+                for (int i = maxRecordCommandsCount; i <currentRecordedCommandsQueueSize; i++) {
+                    if(null == recordedCommandsQueue.poll()) {
+                        break;
+                    }
+                }
                 if (recordCommands) {
                     recordedCommandsQueue.add(cmd);
                 }
