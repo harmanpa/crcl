@@ -4413,18 +4413,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         }
         stopPollTimer();
-        CRCLSocket step3CrclSocket = internal.getCRCLSocket();
-        int step3localPort = -1;
-        int step3RemotePort = -1;
-        if (null != step3CrclSocket) {
-            Socket step3Socket = step3CrclSocket.getSocket();
-            if (null != step3Socket) {
-                step3localPort = step3Socket.getLocalPort();
-                System.out.println("step3localPort = " + step3localPort);
-                step3RemotePort = step3Socket.getPort();
-                System.out.println("step3RemotePort = " + step3RemotePort);
-            }
-        }
+//        CRCLSocket step3CrclSocket = internal.getCRCLSocket();
+//        int step3localPort = -1;
+//        int step3RemotePort = -1;
+//        if (null != step3CrclSocket) {
+//            Socket step3Socket = step3CrclSocket.getSocket();
+//            if (null != step3Socket) {
+//                step3localPort = step3Socket.getLocalPort();
+//                System.out.println("step3localPort = " + step3localPort);
+//                step3RemotePort = step3Socket.getPort();
+//                System.out.println("step3RemotePort = " + step3RemotePort);
+//            }
+//        }
         this.clearProgramTimesDistances();
         int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
         internal.setQuitOnTestCommandFailure(true);
