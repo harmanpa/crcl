@@ -979,25 +979,25 @@ public class PendantClientInner {
                         break;
                 }
                 initCount++;
-                if (initCount > 2) {
-                    StackTraceElement trace0[] = initTrace0.get();
-                    if (null != trace0) {
-                        System.out.println("initTrace0.get() = " + Arrays.toString(trace0));
-                    }
-                    StackTraceElement trace1[] = initTrace1.get();
-                    if (null != trace1) {
-                        System.out.println("initTrace1.get() = " + Arrays.toString(trace1));
-                    }
-                    StackTraceElement trace2[] = initTrace2.get();
-                    if (null != trace2) {
-                        System.out.println("initTrace2.get() = " + Arrays.toString(trace2));
-                    }
-                    StackTraceElement trace3[] = initTrace3.get();
-                    if (null != trace3) {
-                        System.out.println("initTrace3.get() = " + Arrays.toString(trace3));
-                    }
-                    System.out.println("initCount = " + initCount);
-                }
+//                if (initCount > 2) {
+////                    StackTraceElement trace0[] = initTrace0.get();
+////                    if (null != trace0) {
+////                        System.out.println("initTrace0.get() = " + Arrays.toString(trace0));
+////                    }
+////                    StackTraceElement trace1[] = initTrace1.get();
+////                    if (null != trace1) {
+////                        System.out.println("initTrace1.get() = " + Arrays.toString(trace1));
+////                    }
+////                    StackTraceElement trace2[] = initTrace2.get();
+////                    if (null != trace2) {
+////                        System.out.println("initTrace2.get() = " + Arrays.toString(trace2));
+////                    }
+////                    StackTraceElement trace3[] = initTrace3.get();
+////                    if (null != trace3) {
+////                        System.out.println("initTrace3.get() = " + Arrays.toString(trace3));
+////                    }
+////                    System.out.println("initCount = " + initCount);
+//                }
             }
             if (cmd instanceof MoveToType) {
                 initCount = 0;

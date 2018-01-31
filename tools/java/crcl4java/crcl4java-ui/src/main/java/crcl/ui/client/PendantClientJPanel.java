@@ -4382,9 +4382,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void prepRunCurrentProgram() throws NumberFormatException {
         boolean startAsConnected = isConnected();
         int startPollStopCount = pollStopCount.get();
-        System.out.println("startPollStopCount = " + startPollStopCount);
+//        System.out.println("startPollStopCount = " + startPollStopCount);
         Thread startPollThread = pollingThread;
-        System.out.println("startPollThread = " + startPollThread);
+//        System.out.println("startPollThread = " + startPollThread);
         CRCLSocket startCrclSocket = internal.getCRCLSocket();
         int startlocalPort = -1;
         int startRemotePort = -1;
@@ -4392,9 +4392,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             Socket startSocket = startCrclSocket.getSocket();
             if (null != startSocket) {
                 startlocalPort = startSocket.getLocalPort();
-                System.out.println("startlocalPort = " + startlocalPort);
+//                System.out.println("startlocalPort = " + startlocalPort);
                 startRemotePort = startSocket.getPort();
-                System.out.println("startRemotePort = " + startRemotePort);
+//                System.out.println("startRemotePort = " + startRemotePort);
             }
         }
         if (!startAsConnected) {
@@ -4407,9 +4407,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             Socket step2Socket = step2CrclSocket.getSocket();
             if (null != step2Socket) {
                 step2localPort = step2Socket.getLocalPort();
-                System.out.println("step2localPort = " + step2localPort);
+//                System.out.println("step2localPort = " + step2localPort);
                 step2RemotePort = step2Socket.getPort();
-                System.out.println("step2RemotePort = " + step2RemotePort);
+//                System.out.println("step2RemotePort = " + step2RemotePort);
             }
         }
         stopPollTimer();

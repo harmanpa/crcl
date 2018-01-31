@@ -1190,7 +1190,7 @@ public class SimServerInner {
             }
             clientStates.clear();
             clientStatesSize = clientStates.size();
-            System.out.println("clientStates.size()=" + clientStatesSize);
+//            System.out.println("clientStates.size()=" + clientStatesSize);
         }
         if (null != ssock) {
             try {
@@ -1414,11 +1414,13 @@ public class SimServerInner {
             showMessage(ex + "\n" + ((curSocket != null) ? curSocket.getLastStatusString() : ""));
         }
     }
+    
+    private boolean debugClientStateSize = false;
 
     private void checkClientStateSize(int maxSize) {
         clientStatesSize = clientStates.size();
-        System.out.println("clientStates.size()=" + clientStatesSize);
-        if (clientStatesSize > maxSize) {
+        if (debugClientStateSize && clientStatesSize > maxSize) {
+            System.out.println("clientStates.size()=" + clientStatesSize);
 //            Map<Integer, List<CRCLSocket.CrclSocketCreatorInfo>> map = CRCLSocket.getCreatorMap();
 //            CRCLSocket.printCreatorMap();
             List<ClientState> origClientStateList = new ArrayList<>(clientStates);
@@ -1795,7 +1797,7 @@ public class SimServerInner {
             }
             this.clientStates.remove(state);
             clientStatesSize = clientStates.size();
-            System.out.println("clientStates.size()=" + clientStatesSize);
+//            System.out.println("clientStates.size()=" + clientStatesSize);
         } catch (CRCLException ex) {
             if (ex.getCause() instanceof EOFException) {
                 try {
@@ -1805,7 +1807,7 @@ public class SimServerInner {
                 }
                 this.clientStates.remove(state);
                 clientStatesSize = clientStates.size();
-                System.out.println("clientStates.size()=" + clientStatesSize);
+//                System.out.println("clientStates.size()=" + clientStatesSize);
                 return;
             }
             if (null != ex.getCause() && ex.getCause().getCause() instanceof EOFException) {
@@ -1816,7 +1818,7 @@ public class SimServerInner {
                 }
                 this.clientStates.remove(state);
                 clientStatesSize = clientStates.size();
-                System.out.println("clientStates.size()=" + clientStatesSize);
+//                System.out.println("clientStates.size()=" + clientStatesSize);
                 return;
             }
             if (close_count <= start_close_count) {
@@ -1834,7 +1836,7 @@ public class SimServerInner {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
             clientStatesSize = clientStates.size();
-            System.out.println("clientStates.size()=" + clientStatesSize);
+//            System.out.println("clientStates.size()=" + clientStatesSize);
         } finally {
             try {
                 cs.close();
@@ -1842,7 +1844,7 @@ public class SimServerInner {
             }
             this.clientStates.remove(state);
             clientStatesSize = clientStates.size();
-            System.out.println("clientStates.size()=" + clientStatesSize);
+//            System.out.println("clientStates.size()=" + clientStatesSize);
         }
     }
     private volatile int clientStatesSize = 0;
@@ -1857,11 +1859,11 @@ public class SimServerInner {
                 cleanupClientStatesThreadMap();
                 final Socket s = ssock.accept();
                 if (startingClientStatesSize > 0) {
-                    System.out.println("origClientStates = " + origClientStates);
-                    int lport = s.getLocalPort();
-                    System.out.println("lport = " + lport);
-                    int rport = s.getPort();
-                    System.out.println("rport = " + rport);
+//                    System.out.println("origClientStates = " + origClientStates);
+//                    int lport = s.getLocalPort();
+//                    System.out.println("lport = " + lport);
+//                    int rport = s.getPort();
+//                    System.out.println("rport = " + rport);
                     cleanupClientStatesThreadMap();
                 }
                 final CRCLSocket cs = new CRCLSocket(s,cmdSchema,statSchema,null);
