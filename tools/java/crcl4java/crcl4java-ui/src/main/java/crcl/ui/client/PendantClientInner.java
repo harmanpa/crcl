@@ -2057,7 +2057,7 @@ public class PendantClientInner {
             if(null != cmdSchema) {
                 crclSocket.setCmdSchema(cmdSchema);
             }
-            System.err.println("crclSocket = " + crclSocket);
+            LOGGER.log(Level.FINE, "PendantClientInner.connect : crclSocket = " + crclSocket);
             startStatusReaderThread();
 
             outer.finishConnect();
@@ -2115,9 +2115,10 @@ public class PendantClientInner {
         closeTestProgramThread();
         outer.stopPollTimer();
         if (null != crclSocket) {
-            System.err.println("crclSocket = " + crclSocket);
-            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
-            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
+            LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclSocket = " + crclSocket);          
+//            System.err.println("crclSocket = " + crclSocket);
+//            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
+//            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
             try {
                 crclSocket.close();
                 Thread.sleep(100);
