@@ -56,10 +56,13 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     private final String name;
     private final long startTime;
-    private long completeTime = -1;
+    private final int num;
+    private volatile long completeTime = -1;
     private final Thread createThread;
     private final StackTraceElement createTrace[];
 
+    static private final AtomicInteger numCounter = new AtomicInteger();
+    
     public long getStartTime() {
         return startTime;
     }
@@ -71,6 +74,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public XFuture(String name) {
         this.name = name;
         this.startTime = System.currentTimeMillis();
+        this.num = numCounter.incrementAndGet();
         this.createThread = Thread.currentThread();
         this.createTrace = this.createThread.getStackTrace();
     }
@@ -80,6 +84,15 @@ public class XFuture<T> extends CompletableFuture<T> {
                 .filter(ste -> !ste.getClassName().contains("Future") && !ste.getClassName().startsWith("java.lang"))
                 .map(StackTraceElement::toString)
                 .collect(Collectors.joining(","));
+    }
+
+    public void printProfile() {
+        printProfile(System.out);
+    }
+
+    public void printProfile(PrintStream ps) {
+        ps.println("num,start_time,end_time,time_diff,name,exception,cancel,done,trace");
+        internalPrintProfile(ps);
     }
 
     public void printStatus() {
@@ -118,6 +131,63 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public ConcurrentLinkedDeque<CompletableFuture<?>> getAlsoCancel() {
         return alsoCancel;
+    }
+
+    public String getProfileString() {
+        setCompleteTime();
+        if(completeTime < 0 && isDone() ) {
+            System.err.println("wtf");
+        }
+        return joinAny(",", num,startTime, completeTime, (completeTime - startTime),"\""+ name+"\"", isCompletedExceptionally(), isCancelled(), isDone(),"\""+ createTraceToString(createTrace)+"\"");
+    }
+
+    private volatile List<String> prevProfileStrings = null;
+
+    @SuppressWarnings("unchecked")
+    private void getAllProfileString(List<String> listIn) {
+        for (CompletableFuture f : alsoCancel) {
+            if (f instanceof XFuture) {
+                XFuture xf = (XFuture) f;
+                xf.getAllProfileString(listIn);
+            }
+        }
+        List<String> localPrevProfileStrings = this.prevProfileStrings;
+        if(null != localPrevProfileStrings) {
+            listIn.addAll(localPrevProfileStrings);
+        } else {
+            listIn.add(getProfileString());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void internalPrintProfile(PrintStream ps) {
+        for (CompletableFuture f : alsoCancel) {
+            if (f instanceof XFuture) {
+                XFuture xf = (XFuture) f;
+                xf.internalPrintProfile(ps);
+            }
+        }
+        //ps.println("start_time,end_time,time_diff,name,exception,cancel,done");
+        List<String> localPrevPStrings = this.prevProfileStrings;
+        if (null != localPrevPStrings) {
+            for (String profileString : localPrevPStrings) {
+                ps.println(profileString);
+            }
+        }
+        ps.println(getProfileString());
+    }
+
+    private static String joinAny(String delim, Object... objects) {
+        if (null == objects || objects.length < 1) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < objects.length - 1; i++) {
+            sb.append(objects[i].toString());
+            sb.append(delim);
+        }
+        sb.append(objects[objects.length - 1].toString());
+        return sb.toString();
     }
 
     @SuppressWarnings("unchecked")
@@ -160,6 +230,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         }
         ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + this.toString());
+
     }
 
     @Override
@@ -317,6 +388,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     private <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
         return x -> {
             try {
+                setCompleteTime();
                 setTName(name);
                 return fn.apply(x);
             } catch (Throwable t) {
@@ -336,14 +408,35 @@ public class XFuture<T> extends CompletableFuture<T> {
         return this.thenCompose(name + ".thenCompose", fn);
     }
 
+    private static volatile boolean keepOldProfileStrings;
+
+    public static boolean getKeepOldProfileStrings() {
+        return keepOldProfileStrings;
+    }
+
+    public static void setKeepOldProfileStrings(boolean newKeepOldProfileStrings) {
+        keepOldProfileStrings = newKeepOldProfileStrings;
+    }
+
     @Override
     public boolean complete(T value) {
         boolean ret = super.complete(value);
-        this.alsoCancel.clear();
-        if (this.completeTime < 0) {
-            this.completeTime = System.currentTimeMillis();
+        if (keepOldProfileStrings) {
+            List<String> l = new ArrayList<>();
+            getAllProfileString(l);
+            this.prevProfileStrings = l;
         }
+        this.alsoCancel.clear();
+        setCompleteTime();
         return ret;
+    }
+
+    private void setCompleteTime() {
+        if (this.completeTime < 0) {
+            if (isDone() || isCompletedExceptionally() || isCancelled()) {
+                this.completeTime = System.currentTimeMillis();
+            }
+        }
     }
 
     @Override
@@ -355,9 +448,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             cancelTime = System.currentTimeMillis();
         }
         this.alsoCancel.clear();
-        if (this.completeTime < 0) {
-            this.completeTime = System.currentTimeMillis();
-        }
+        setCompleteTime();
         return ret;
     }
 
@@ -365,9 +456,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public boolean completeExceptionally(Throwable ex) {
         boolean ret = super.completeExceptionally(ex);
         this.alsoCancel.clear();
-        if (this.completeTime < 0) {
-            this.completeTime = System.currentTimeMillis();
-        }
+        setCompleteTime();
         return ret;
     }
 
@@ -447,20 +536,19 @@ public class XFuture<T> extends CompletableFuture<T> {
     public StackTraceElement[] getCancelStack() {
         return cancelStack;
     }
-    
+
     public XFuture<?> getCanceledDependant() {
-        for(CompletableFuture<?> f : alsoCancel) {
-            if(f instanceof XFuture) {
+        for (CompletableFuture<?> f : alsoCancel) {
+            if (f instanceof XFuture) {
                 XFuture<?> xf = (XFuture<?>) f;
-                if(xf.cancelStack != null && xf.cancelThread != null) {
+                if (xf.cancelStack != null && xf.cancelThread != null) {
                     return xf;
                 }
             }
         }
         return null;
     }
-    
-    
+
     public String cancelString() {
         if (null == cancelThread || null == cancelStack) {
             return "";
@@ -470,12 +558,12 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public String cancelDependantString() {
         XFuture<?> xf = getCanceledDependant();
-        if(null != xf) {
+        if (null != xf) {
             return xf.cancelString();
         }
         return "";
-     }
-    
+    }
+
     private static volatile boolean globalAllowInterupts = false;
 
     public static boolean getGlobalAllowInterrupts() {
@@ -666,19 +754,20 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         };
     }
-    
+
     private volatile Throwable throwable = null;
+
     public Throwable getThrowable() {
-        if(!isCompletedExceptionally()) {
+        if (!isCompletedExceptionally()) {
             return null;
         }
-        if(null != throwable) {
+        if (null != throwable) {
             return throwable;
         }
         super.exceptionally(t -> {
             throwable = t;
-            if(null != t) {
-                if(t instanceof RuntimeException) {
+            if (null != t) {
+                if (t instanceof RuntimeException) {
                     throw (RuntimeException) t;
                 } else {
                     throw new RuntimeException(t);
