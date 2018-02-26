@@ -751,9 +751,9 @@ public class XFuture<T> extends CompletableFuture<T> {
     private volatile boolean cleared = false;
 
     private void clearAlsoCancel() {
-        if (cleared) {
-            System.err.println("cleared twice");
-        }
+//        if (cleared) {
+//            System.err.println("cleared twice");
+//        }
         if (keepOldProfileStrings) {
             List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
             this.alsoCancel.clear();
