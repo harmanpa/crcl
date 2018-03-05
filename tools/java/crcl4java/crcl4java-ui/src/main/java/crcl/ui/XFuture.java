@@ -167,7 +167,6 @@ public class XFuture<T> extends CompletableFuture<T> {
 //            }
 //        }
 //    }
-
     @SuppressWarnings("unchecked")
     private void getAllProfileString(Iterable<CompletableFuture> localAlsoCancels, List<String> listIn) {
 
@@ -326,6 +325,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             @Override
             public Thread newThread(Runnable r) {
                 Thread newThraed = new Thread(r, "XFutureThread_" + count.incrementAndGet());
+                newThraed.setDaemon(true);
                 return newThraed;
             }
         };
@@ -377,16 +377,20 @@ public class XFuture<T> extends CompletableFuture<T> {
         Future<T> f = es.submit(() -> {
             try {
                 String tname = Thread.currentThread().getName();
-                int cindex = tname.indexOf(':');
-                String tname_sub = tname;
-                if (cindex > 0) {
-                    tname_sub = tname.substring(0, cindex);
+                if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+                    int cindex = tname.indexOf(':');
+                    String tname_sub = tname;
+                    if (cindex > 0) {
+                        tname_sub = tname.substring(0, cindex);
+                    }
+                    Thread.currentThread().setName(tname_sub + ":" + name);
                 }
-                Thread.currentThread().setName(tname_sub + ":" + name);
                 T result = c.call();
                 myf.complete(result);
 //                myf.alsoCancel.clear();
-                Thread.currentThread().setName(tname);
+                if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+                    Thread.currentThread().setName(tname);
+                }
                 return result;
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
@@ -445,13 +449,15 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private static void setTName(String name) {
-        String tname = Thread.currentThread().getName();
-        int cindex = tname.indexOf(':');
-        String tname_sub = tname;
-        if (cindex > 0) {
-            tname_sub = tname.substring(0, cindex);
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            String tname = Thread.currentThread().getName();
+            int cindex = tname.indexOf(':');
+            String tname_sub = tname;
+            if (cindex > 0) {
+                tname_sub = tname.substring(0, cindex);
+            }
+            Thread.currentThread().setName(tname_sub + ":" + name);
         }
-        Thread.currentThread().setName(tname_sub + ":" + name);
     }
 
     private <FR, FT> Function<FR, FT> fname(Function<FR, FT> fn, String name) {
@@ -479,15 +485,15 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     private volatile boolean keepOldProfileStrings;
 
-    public  boolean getKeepOldProfileStrings() {
+    public boolean getKeepOldProfileStrings() {
         return keepOldProfileStrings;
     }
 
-    public  void setKeepOldProfileStrings(boolean newKeepOldProfileStrings) {
+    public void setKeepOldProfileStrings(boolean newKeepOldProfileStrings) {
         keepOldProfileStrings = newKeepOldProfileStrings;
-        if(newKeepOldProfileStrings) {
-            for(CompletableFuture cf : this.alsoCancel) {
-                if(cf instanceof XFuture) {
+        if (newKeepOldProfileStrings) {
+            for (CompletableFuture cf : this.alsoCancel) {
+                if (cf instanceof XFuture) {
                     XFuture xf = (XFuture) cf;
                     xf.setKeepOldProfileStrings(true);
                 }
@@ -687,7 +693,6 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
 //    private volatile List<CompletableFuture<?>> prevAlsoCancel = null;
-
     public void cancelAll(boolean mayInterrupt) {
         try {
             List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
@@ -1137,10 +1142,10 @@ public class XFuture<T> extends CompletableFuture<T> {
     private void alsoCancelAdd(CompletableFuture cf) {
         if (cf instanceof XFuture) {
             XFuture xf = (XFuture) cf;
-            if(xf.keepOldProfileStrings) {
+            if (xf.keepOldProfileStrings) {
                 this.setKeepOldProfileStrings(true);
             }
-            if(this.keepOldProfileStrings) {
+            if (this.keepOldProfileStrings) {
                 xf.setKeepOldProfileStrings(true);
             }
             xFutureAlsoCancelCount.incrementAndGet();

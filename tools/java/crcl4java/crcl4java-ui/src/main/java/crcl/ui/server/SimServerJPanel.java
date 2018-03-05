@@ -1096,11 +1096,12 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     public boolean isInitializedSelected() {
-        if (SwingUtilities.isEventDispatchThread()) {
-            return this.jCheckBoxInitialized.isSelected();
-        } else {
-            return getSwingBoolean(() -> this.jCheckBoxInitialized.isSelected());
-        }
+//        if (SwingUtilities.isEventDispatchThread()) {
+//            return this.jCheckBoxInitialized.isSelected();
+//        } else {
+//            return getSwingBoolean(() -> this.jCheckBoxInitialized.isSelected());
+//        }
+        return jCheckBoxInitialized.isSelected();
     }
 
     @Override

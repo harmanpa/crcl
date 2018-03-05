@@ -2161,6 +2161,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.isConnected();
     }
     
+   
     public void connect(String _host, int _port) {
         this.jTextFieldHost.setText(_host);
         setPort(_port);

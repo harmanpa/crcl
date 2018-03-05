@@ -2020,10 +2020,11 @@ public class PendantClientInner {
     private volatile int socketLocalPort = -1;
     private volatile int socketRemotePort = -1;
 
+    
     public synchronized void connect(String host, int port) {
         try {
             if (isConnected()) {
-                throw new IllegalStateException("Already connected :  " + this.crclSocket);
+                throw new IllegalStateException("Already connected :  " + this.crclSocket +", timeSinceConnect="+(System.currentTimeMillis()-connnectTime)+", connectThread="+connectThread+",connectTrace="+Arrays.toString(connectTrace) );
             }
             disconnecting = false;
             connectThread = Thread.currentThread();
