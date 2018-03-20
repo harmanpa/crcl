@@ -64,4 +64,14 @@
                 <activatedProfile>skip_tests</activatedProfile>
             </activatedProfiles>
         </action>
+    <action>
+            <actionName>CUSTOM-newVersion1.5-1</actionName>
+            <displayName>newVersion1.5-1</displayName>
+            <goals>
+                <goal>versions:set</goal>
+            </goals>
+            <properties>
+                <newVersion>1.5-1</newVersion>
+            </properties>
+        </action>
 </actions>

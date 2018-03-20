@@ -7,7 +7,7 @@
     <parent>
         <relativePath>..</relativePath>
         <artifactId>crcl4java</artifactId>
-        <version>1.4-SNAPSHOT</version>
+        <version>1.5-1</version>
         <groupId>com.github.wshackle</groupId>
     </parent>
     <description>
