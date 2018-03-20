@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java-zeroc-ice</artifactId>
-        <version>1.5-SNAPSHOT</version>
+        <version>1.5</version>
     </parent>
     <artifactId>crcl4java-zeroc-ice-baselib</artifactId>
     <packaging>jar</packaging>
@@ -18,7 +18,7 @@
             <plugin>
                 <groupId>com.github.wshackle</groupId>
                 <artifactId>java2slice-maven-plugin</artifactId>
-                <version>1.5-SNAPSHOT</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -141,8 +141,7 @@
         
         eg
         
-            <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
             <profiles>
                <profile>
                    <id>defaultproperties</id>
