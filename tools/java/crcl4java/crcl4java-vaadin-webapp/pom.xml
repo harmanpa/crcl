@@ -5,7 +5,7 @@
             <relativePath>..</relativePath>
             <artifactId>crcl4java</artifactId>
             <groupId>com.github.wshackle</groupId>
-            <version>1.5</version>
+            <version>1.6-SNAPSHOT</version>
         </parent>
 
 	<artifactId>crcl4java-vaadin-webapp</artifactId>
