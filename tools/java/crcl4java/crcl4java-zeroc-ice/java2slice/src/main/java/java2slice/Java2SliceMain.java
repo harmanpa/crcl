@@ -516,9 +516,6 @@ public class Java2SliceMain {
                     info("propsMap = " + propsMap);
                 }
                 String clssName = splitClassName(clss);
-                if (clssName.contains("CRCLStatus")) {
-                    System.out.println("found it");
-                }
                 String toFileTabs = "\t\t";
                 toFilePw.println();
 

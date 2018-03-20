@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java-zeroc-ice</artifactId>
-        <version>1.6-SNAPSHOT</version>
+        <version>1.4-SNAPSHOT</version>
     </parent>
     <artifactId>crcl4java-zeroc-ice-baselib</artifactId>
     <packaging>jar</packaging>
@@ -28,9 +28,9 @@
                         <configuration>
                             <args>
                                 <param>--out-slice</param>
-                                <param>src/generated/resources/crcl4java.ice</param>
+                                <param>${basedir}/src/generated/resources/crcl4java.ice</param>
                                 <param>--out-converters-dir</param>
-                                <param>src/generated/java</param>
+                                <param>${basedir}/src/generated/java</param>
                             </args>
                             <artifactIds>
                                  <param>crcl4java-base</param>

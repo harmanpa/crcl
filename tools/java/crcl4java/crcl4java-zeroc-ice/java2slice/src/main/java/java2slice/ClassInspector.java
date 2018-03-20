@@ -167,9 +167,6 @@ public class ClassInspector {
         if (null != map) {
             return map;
         }
-        if (clss.getName().contains("CRCLStatus")) {
-            System.out.println("found it");
-        }
         Method methods[] = clss.getDeclaredMethods();
         Map<String, Method> getters = new HashMap<>();
         for (int i = 0; i < methods.length; i++) {
