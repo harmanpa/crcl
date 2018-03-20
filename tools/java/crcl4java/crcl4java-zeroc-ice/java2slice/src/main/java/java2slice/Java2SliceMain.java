@@ -127,6 +127,11 @@ public class Java2SliceMain {
     private static boolean verbose = false;
 
     public static void main(String[] args) {
+        System.out.println("");
+        System.out.println("Running Java2SliceMain");
+        System.out.println("args = " + Arrays.toString(args));
+        String currentDirectory =System.getProperty("user.dir");
+        System.out.println("currentDirectory = " + currentDirectory);
         Options options = new Options();
         try {
             options.addOption(Option.builder("?")
@@ -166,7 +171,7 @@ public class Java2SliceMain {
                 jarpath += jar + File.pathSeparator;
             }
             jarpath += File.pathSeparator + Objects.toString(System.getenv("CLASSPATH"), "");
-            String currentDirectory = System.getProperty("user.dir");
+//            String currentDirectory = System.getProperty("user.dir");
             info("currentDirectory = " + currentDirectory);
             info("args = " + Arrays.toString(args));
             String path[] = jarpath.split(File.pathSeparator);
@@ -182,10 +187,14 @@ public class Java2SliceMain {
                 }
                 jarUrls[i] = new File(path[i]).getCanonicalFile().toURI().toURL();
             }
-            info("urls = " + Arrays.deepToString(jarUrls));
+            String jarUrlsDeepString = Arrays.deepToString(jarUrls);
+            System.out.println("jarUrlsDeepString = " + jarUrlsDeepString);
+            info("urls = " + jarUrlsDeepString);
+            
             URLClassLoader loader = new URLClassLoader(jarUrls);
             ClassInspector inspector = new ClassInspector(loader);
             File outSliceFile = new File(line.getOptionValue("out-slice")).getCanonicalFile();
+            System.out.println("outSliceFile = " + outSliceFile);
             if (verbose) {
                 info("outtSliceFile = " + outSliceFile);
                 info("jars = " + Arrays.toString(jars));
@@ -224,6 +233,8 @@ public class Java2SliceMain {
         } catch (NoSuchMethodException ex) {
             Logger.getLogger(Java2SliceMain.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Java2SliceMain done.");
+        System.out.println("");
     }
 
     private static List<Class> findClasses(String[] jars, URLClassLoader loader) throws ClassNotFoundException, IOException {
@@ -418,9 +429,9 @@ public class Java2SliceMain {
                             String propname = e.getKey().substring(0, 1).toUpperCase() + e.getKey().substring(1);
 
                             if (method.getName().startsWith("get" + propname)) {
-                                System.out.println("method = " + method);
+//                                System.out.println("method = " + method);
                                 ParameterizedType t = (ParameterizedType) method.getGenericReturnType();
-                                System.out.println("t = " + t);
+//                                System.out.println("t = " + t);
                             }
                         }
                     }

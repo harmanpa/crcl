@@ -237,7 +237,7 @@ public class ClassInspector {
 //                .filter((Method m) -> m.getName().startsWith("set"))
 //                .collect(Collectors.toMap((Method m) -> setterNameToPropertyName(m.getName()),
 //                        (m) -> m));
-        System.out.println("setters = " + setters);
+//        System.out.println("setters = " + setters);
         map = new HashMap<>();
         for (Entry<String, Method> entry : getters.entrySet()) {
             ClassInfo ci = new ClassInfo(entry.getValue().getReturnType(),

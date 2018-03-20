@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java-zeroc-ice</artifactId>
-        <version>1.6-SNAPSHOT</version>
+        <version>1.4-SNAPSHOT</version>
     </parent>
     <artifactId>crcl4java-zeroc-ice-baselib</artifactId>
     <packaging>jar</packaging>
@@ -69,7 +69,7 @@
                                 <pathconvert refid="fileset" pathsep=" " property="icefiles" />
                                 <pathconvert refid="generatedfileset" pathsep=" " property="generatedicefiles" />
                                 <echo message="Running ${slice2java.path} --underscore -I${basedir}/src/generated/resources/ --output-dir ${basedir}/src/generated/java/ ${generatedicefiles} ${icefiles}" />
-                                <apply executable="${slice2java.path}" verbose="true">
+                                <apply executable="${slice2java.path}" verbose="true" failonerror="true" logError="true">
                                     <arg value="--underscore" />
                                     <arg value="-I${basedir}/src/generated/resources/" />
                                     <arg value="--output-dir" />
