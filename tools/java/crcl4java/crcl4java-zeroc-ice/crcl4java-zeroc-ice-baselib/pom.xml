@@ -59,6 +59,7 @@
                             </target> -->
                             <target name="slice2java-custom">
                                 <mkdir dir="${basedir}/src/generated/java/" />
+                                <mkdir dir="${basedir}/src/generated/resources/" />
                                 <fileset id="fileset" dir="${basedir}/src/main/resources/">
                                     <include name="*.ice" />
                                 </fileset>
@@ -66,7 +67,8 @@
                                     <include name="*.ice" />
                                 </fileset>
                                 <pathconvert refid="fileset" pathsep=" " property="icefiles" />
-                                <echo message="Running ${slice2java.path} --underscore --output-dir ${basedir}/src/generated/java/ ${icefiles}" />
+                                <pathconvert refid="generatedfileset" pathsep=" " property="generatedicefiles" />
+                                <echo message="Running ${slice2java.path} --underscore -I${basedir}/src/generated/resources/ --output-dir ${basedir}/src/generated/java/ ${generatedicefiles} ${icefiles}" />
                                 <apply executable="${slice2java.path}">
                                     <arg value="--underscore" />
                                     <arg value="-I${basedir}/src/generated/resources/" />
@@ -74,7 +76,7 @@
                                     <arg value="${basedir}/src/generated/java/" />
                                     <fileset refid="generatedfileset" />
                                     <fileset refid="fileset" />
-                                    
+                                    <verbose>true</verbose>
                                 </apply>
                             </target>
                         </configuration>
