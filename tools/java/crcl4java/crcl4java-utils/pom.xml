@@ -8,7 +8,7 @@
         <relativePath>..</relativePath>
         <artifactId>crcl4java</artifactId>
         <groupId>com.github.wshackle</groupId>
-        <version>1.6-SNAPSHOT</version>
+        <version>1.6.dev.branch-SNAPSHOT</version>
     </parent>
     <description>
         Basic Socket and Posemath utilities to make using CRCL easier.

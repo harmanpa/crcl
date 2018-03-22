@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>crcl4java</artifactId>
     <groupId>com.github.wshackle</groupId>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.6.dev.branch-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>crcl4java-base</module>
