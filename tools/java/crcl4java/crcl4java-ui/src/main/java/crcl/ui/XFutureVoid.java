@@ -43,4 +43,8 @@ public class XFutureVoid extends XFuture<Void> {
         ret.complete(null);
         return ret;
     }
+    
+    public boolean complete() {
+        return super.complete(null);
+    }
 }
