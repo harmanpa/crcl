@@ -1264,10 +1264,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
             }
             pollingThread = null;
-            if (statusRequested) {
+            if (statusRequested && !disconnecting) {
                 internal.readStatus();
             }
-
         }
     }
 
@@ -2127,7 +2126,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    private volatile boolean disconnecting = false;
+    
     public void disconnect() {
+        disconnecting = true;
         if (isRunningProgram()) {
             internal.showErrorMessage("diconnect while isRunningProgram");
             throw new IllegalStateException("diconnect while isRunningProgram");
