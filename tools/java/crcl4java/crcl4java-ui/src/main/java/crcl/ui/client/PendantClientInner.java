@@ -1567,12 +1567,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1580,21 +1580,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -2119,7 +2119,7 @@ public class PendantClientInner {
                 crclSocket.close();
                 Thread.sleep(100);
             } catch (Exception ex) {
-                if(!disconnecting) {
+                if (!disconnecting) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
             }
@@ -3015,10 +3015,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3157,26 +3157,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -3810,6 +3810,12 @@ public class PendantClientInner {
                     System.out.println("pause_count_start(" + pause_count_start + ") != pause_check(" + pause_check + ")");
                     long id = resendInit();
                     pause_count_start = this.pause_count.get();
+                    if (!requestStatus()) {
+                        return false;
+                    }
+                    if (null == readerThread) {
+                        readStatus();
+                    }
                     waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
                     WaitForDoneResult wfdResult = waitForDone(id, timeout, pause_count_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
@@ -3882,9 +3888,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -3944,9 +3950,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -3984,9 +3990,9 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
