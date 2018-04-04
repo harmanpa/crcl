@@ -15,7 +15,7 @@ Build
 
 To build one needs:
   * JDK 1.8+ (http://www.oracle.com/technetwork/java/javase/downloads/index.html)  and
-  * maven 3.0.5+ (https://maven.apache.org/download.cgi) 
+  * maven 3.5.0+ (https://maven.apache.org/download.cgi)  (3.0.5 is sufficient for jdk-8 but 3.5.0 is needed for jdk-9+).
   
 Use the command:
 
@@ -127,37 +127,31 @@ Binaries can be downloaded and installed via their maven coordinates:
         <dependency>
             <groupId>com.github.wshackle</groupId>
             <artifactId>crcl4java-base</artifactId>
-            <version>1.2</version>
+            <version>1.5-1</version>
         </dependency>
         <dependency>
             <groupId>com.github.wshackle</groupId>
             <artifactId>crcl4java-utils</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.wshackle</groupId>
-            <artifactId>crcl4java-exi</artifactId>
-            <version>1.2</version>
+            <version>1.5-1</version>
         </dependency>
         <dependency>
             <groupId>com.github.wshackle</groupId>
             <artifactId>crcl4java-ui</artifactId>
-            <version>1.2</version>
+            <version>1.5-1</version>
         </dependency>
     </dependencies>
 
 or with these direct links:  
 
+http://central.maven.org/maven2/com/github/wshackle/crcl4java-ui/1.5-1/crcl4java-ui-1.5-1.jar
 
-http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-base/1.2/crcl4java-base-1.2.jar
+http://central.maven.org/maven2/com/github/wshackle/crcl4java-ui/1.5-1/crcl4java-ui-1.5-1-jar-with-dependencies.jar
 
-http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-utils/1.2/crcl4java-utils-1.2.jar
+http://central.maven.org/maven2/com/github/wshackle/crcl4java-base/1.5-1/crcl4java-base-1.5-1.jar
 
-http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-commons-math/1.2/crcl4java-commons-math-1.2.jar
+http://central.maven.org/maven2/com/github/wshackle/crcl4java-utils/1.5-1/crcl4java-utils-1.5-1.jar
 
-http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-exi/1.2/crcl4java-exi-1.2.jar
-
-http://repo.maven.apache.org/maven2/com/github/wshackle/crcl4java-ui/1.2/crcl4java-ui-1.2-jar-with-dependencies.jar
+http://central.maven.org/maven2/com/github/wshackle/crcl4java-utils/1.5-1/crcl4java-utils-1.5-1-jar-with-dependencies.jar
 
  
 [![Build Status](https://travis-ci.org/usnistgov/crcl.svg?branch=master)](https://travis-ci.org/usnistgov/crcl)
