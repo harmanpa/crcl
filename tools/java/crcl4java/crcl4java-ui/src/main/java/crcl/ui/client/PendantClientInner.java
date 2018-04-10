@@ -2499,8 +2499,19 @@ public class PendantClientInner {
         this.ignoreTimeouts = ignoreTimeouts;
     }
 
+    private volatile Thread pauseThread = null;
+    private volatile long pauseStartTime = -1;
+    private volatile StackTraceElement pauseTrace[] = null;
+    
+    public long timeSincePause() {
+        return System.currentTimeMillis() - pauseStartTime;
+    }
+    
     public void pause() {
         try {
+            pauseThread = Thread.currentThread();
+            pauseTrace = pauseThread.getStackTrace();
+            pauseStartTime = System.currentTimeMillis();
             pauseProgramState = programState;
 //            pauseRunningProgramThread = runTestProgramThread.get();
             pause_count.incrementAndGet();
