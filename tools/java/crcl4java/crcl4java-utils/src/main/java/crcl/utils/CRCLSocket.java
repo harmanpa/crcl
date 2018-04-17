@@ -1104,7 +1104,7 @@ public class CRCLSocket implements AutoCloseable {
         this.programSchema = programSchema;
     }
 
-    public CRCLSocket(/*@Nullable*/ Socket socket) {
+    public CRCLSocket(/*@Nullable*/Socket socket) {
         this.socket = socket;
 //        creatorInfo = addCrclSocketCreator(socket.getLocalPort(),socket.getPort(),true);
     }
@@ -1791,6 +1791,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String commandToString(CRCLCommandType cmd, boolean validate) {
         try {
+            if (null == cmd) {
+                return null;
+            }
             if (cmd instanceof CrclCommandWrapper) {
                 CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
                 cmd = wrapper.getWrappedCommand();
@@ -2293,6 +2296,15 @@ public class CRCLSocket implements AutoCloseable {
         return str;
     }
 
+    public static String statusToPrettyString(CRCLStatusType status) {
+        try {
+            return getUtilSocket().statusToPrettyString(status, false);
+        } catch (Exception e) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, e);
+            return e.getMessage();
+        }
+    }
+
     public String statusToPrettyString(CRCLStatusType status, boolean validate) throws JAXBException {
         JAXBElement<CRCLStatusType> jaxb_status
                 = objectFactory.createCRCLStatus(status);
@@ -2331,6 +2343,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
         try {
+            if (null == cmd) {
+                throw new IllegalArgumentException("cmd == null");
+            }
             return getUtilSocket().commandToSimpleString(cmd, max_fields, max_length);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
@@ -2338,72 +2353,85 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public String commandToSimpleString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException {
-        if (cmd instanceof CrclCommandWrapper) {
-            CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
-            cmd = wrapper.getWrappedCommand();
+    static public String commandToSimpleString(CRCLCommandType cmd) {
+        try {
+            if (null == cmd) {
+                throw new IllegalArgumentException("cmd == null");
+            }
+            return getUtilSocket().commandToSimpleString(cmd, 15, 80);
+        } catch (Exception ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
         }
-        return commandToSimpleString(cmd, 12, 60);
     }
 
     public String commandToSimpleString(CRCLCommandType cmd, final int max_fields, final int max_length) throws ParserConfigurationException, SAXException, IOException {
+        if (null == cmd) {
+            throw new IllegalArgumentException("cmd == null");
+        }
         if (cmd instanceof CrclCommandWrapper) {
             CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
             cmd = wrapper.getWrappedCommand();
         }
         String xmlString = this.commandToString(cmd, false);
-        DefaultHandler handler = new DefaultHandler() {
+        try {
+            DefaultHandler handler = new DefaultHandler() {
 
-            private final StringBuffer buffer = new StringBuffer();
-            private int fields = 0;
-            private int last_end_buffer_length = 0;
+                private final StringBuffer buffer = new StringBuffer();
+                private int fields = 0;
+                private int last_end_buffer_length = 0;
 
-            @Override
-            public void characters(char[] ch, int start, int length) throws SAXException {
-                if (fields <= max_fields) {
-                    buffer.append(ch, start, length);
-                }
-            }
-
-            @Override
-            public void endElement(String uri, String localName, String qName) throws SAXException {
-                final int bl = buffer.length();
-                if (bl > last_end_buffer_length) {
-                    fields++;
-                    if (fields < max_fields) {
-                        buffer.append(",");
-                    } else if (fields == max_fields) {
-                        buffer.append(" ...");
+                @Override
+                public void characters(char[] ch, int start, int length) throws SAXException {
+                    if (fields <= max_fields) {
+                        buffer.append(ch, start, length);
                     }
-                    last_end_buffer_length = buffer.length();
                 }
-            }
 
-            @Override
-            public String toString() {
-                return buffer.toString();
-            }
+                @Override
+                public void endElement(String uri, String localName, String qName) throws SAXException {
+                    final int bl = buffer.length();
+                    if (bl > last_end_buffer_length) {
+                        fields++;
+                        if (fields < max_fields) {
+                            buffer.append(",");
+                        } else if (fields == max_fields) {
+                            buffer.append(" ...");
+                        }
+                        last_end_buffer_length = buffer.length();
+                    }
+                }
 
-        };
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser parser = factory.newSAXParser();
-        XMLReader xmlreader = parser.getXMLReader();
-        xmlreader.setContentHandler(handler);
-        xmlreader.parse(new InputSource(new StringReader(xmlString)));
-        String cmdName = cmd.getClass().getName();
-        int lpindex = cmdName.lastIndexOf('.');
-        if (lpindex > 0 && lpindex < cmdName.length() - 1) {
-            cmdName = cmdName.substring(lpindex + 1);
+                @Override
+                public String toString() {
+                    return buffer.toString();
+                }
+
+            };
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser parser = factory.newSAXParser();
+            XMLReader xmlreader = parser.getXMLReader();
+            xmlreader.setContentHandler(handler);
+            xmlreader.parse(new InputSource(new StringReader(xmlString)));
+            String cmdName = cmd.getClass().getName();
+            int lpindex = cmdName.lastIndexOf('.');
+            if (lpindex > 0 && lpindex < cmdName.length() - 1) {
+                cmdName = cmdName.substring(lpindex + 1);
+            }
+            if (cmdName.endsWith("Type")) {
+                cmdName = cmdName.substring(0, cmdName.length() - 4);
+            }
+            String content = handler.toString();
+            content = content.trim();
+            if (content.length() > max_length) {
+                content = content.substring(0, (max_length - 4)) + " ...";
+            }
+            return cmdName + " " + content;
+        } catch (SAXException sAXException) {
+            throw new SAXException("xmlString=" + xmlString, sAXException);
+        } catch (IOException iOException) {
+            throw new IOException("xmlString=" + xmlString, iOException);
         }
-        if (cmdName.endsWith("Type")) {
-            cmdName = cmdName.substring(0, cmdName.length() - 4);
-        }
-        String content = handler.toString();
-        content = content.trim();
-        if (content.length() > max_length) {
-            content = content.substring(0, (max_length - 4)) + " ...";
-        }
-        return cmdName + " " + content;
     }
 
     public void writeStatus(CRCLStatusType status) throws CRCLException {

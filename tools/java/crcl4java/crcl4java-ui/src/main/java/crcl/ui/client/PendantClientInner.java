@@ -480,6 +480,8 @@ public class PendantClientInner {
         blockProgramsSetCount.incrementAndGet();
     }
 
+    private volatile StackTraceElement [] closeTestProgramRunProgramThreadTrace = null;
+    
     public void closeTestProgramThread() {
         if (!isRunningProgram()) {
             return;
@@ -488,6 +490,10 @@ public class PendantClientInner {
             runProgramFuture.cancelAll(true);
         }
         if (isRunningProgram()) {
+            if(null != runProgramThread) {
+                closeTestProgramRunProgramThreadTrace =runProgramThread.getStackTrace();
+                System.err.println("closeTestProgramRunProgramThreadTrace = " + Arrays.toString(closeTestProgramRunProgramThreadTrace));
+            }
             showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFuture + ", runProgramThread=" + runProgramThread);
         }
 
@@ -641,6 +647,7 @@ public class PendantClientInner {
     }
 
     public void showErrorMessage(String s) {
+        System.err.println(s);
         Thread.dumpStack();
         crclClientErrorMessage = s;
         outer.showMessage(s);
@@ -1168,7 +1175,7 @@ public class PendantClientInner {
         if (null != cmd) {
             try {
                 return getTempCRCLSocket().commandToSimpleString(cmd);
-            } catch (ParserConfigurationException | SAXException | IOException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 return ex.toString();
             }

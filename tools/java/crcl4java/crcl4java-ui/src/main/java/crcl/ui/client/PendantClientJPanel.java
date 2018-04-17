@@ -2132,7 +2132,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         disconnecting = true;
         if (isRunningProgram()) {
             internal.showErrorMessage("diconnect while isRunningProgram");
-            throw new IllegalStateException("diconnect while isRunningProgram");
+            throw new IllegalStateException("disconnect while isRunningProgram");
         }
         this.jTextFieldStatus.setBackground(Color.GRAY);
         Window window = this.getOuterWindow();

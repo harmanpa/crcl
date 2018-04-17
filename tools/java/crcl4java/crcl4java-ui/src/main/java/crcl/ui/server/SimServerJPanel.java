@@ -731,7 +731,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         List<CRCLCommandType> l = inner.getCmdLog();
         final CRCLSocket s = this.inner.getCheckerCRCLSocket();
         String string = l.stream()
-                .map(c -> apply(s::commandToSimpleString, c))
+                .map(c -> apply(CRCLSocket::commandToSimpleString, c))
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("\n"));
         this.showMessage(string);
