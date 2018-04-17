@@ -645,7 +645,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
                         Item item = progTable.getItem(i);
                         item.<String>getItemProperty("Command").setValue(tableCommandString);
                     }
-                } catch (ParserConfigurationException | SAXException | IOException ex) {
+                } catch (Exception ex) {
                     Logger.getLogger(CrclClientUI.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 resetTransformGroup();
