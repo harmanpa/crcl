@@ -785,6 +785,56 @@ public class FanucCRCLMain {
     public double getDistToGoal() {
         return distToGoal;
     }
+    
+    public boolean checkCurrentTasks() {
+       
+        ITasks tasks = robot.tasks();
+        if (null != tasks) {
+            for (Com4jObject c4jo : tasks) {
+                ITask tsk = null;
+                String tskProgName = null;
+                FREProgramTypeConstants pType = null;
+                FRETaskStatusConstants tskStatus = null;
+                try {
+                    tsk = c4jo.queryInterface(ITask.class);
+                    try {
+                        pType = tsk.programType();
+                    } catch (Exception e) {
+                    }
+
+                    try {
+                        IProgram tskProg = tsk.curProgram();
+                        if (null != tskProg) {
+                            tskProgName = tskProg.name();
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    try {
+                        tskStatus = tsk.status();
+                    } catch (Exception e) {
+                    }
+                } catch (ComException e) {
+                    e.printStackTrace();
+                    showError(e.toString());
+                    continue;
+                }
+                if (tskStatus == FRETaskStatusConstants.frStatusAborted) {
+                    continue;
+                }
+                if (null == tskProgName && null == pType && null == tskStatus) {
+                    continue;
+                }
+                if(!programNamesToCheckSet.contains(tskProgName.toUpperCase())) {
+                    continue;
+                }
+                System.out.println("Still running task  = " + tskProgName);
+                return false;
+            }
+            return true;
+        }
+        return true;
+    }
 
     private void checkDonePrevCmd() {
         if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
@@ -877,7 +927,9 @@ public class FanucCRCLMain {
                             double rotDist = distRotFrom(pose);
                             if (dist < distanceTolerance
                                     && rotDist < distanceRotTolerance
-                                    && groupPos.isAtCurPosition() && (System.currentTimeMillis() - moveTime > 10)) {
+                                    && groupPos.isAtCurPosition() 
+                                    && (System.currentTimeMillis() - moveTime > 10)
+                                    && checkCurrentTasks()) {
                                 if (!lastCheckAtPosition) {
                                     moveDoneTime = System.currentTimeMillis();
                                 } else if ((System.currentTimeMillis() - moveDoneTime) > 10) {
@@ -933,7 +985,7 @@ public class FanucCRCLMain {
                     }
                 } else if (prevCmd instanceof ActuateJointsType) {
                     posReg97.update();
-                    if (posReg97.isAtCurPosition()) {
+                    if (posReg97.isAtCurPosition() && checkCurrentTasks()) {
                         ActuateJointsType actJoints = (ActuateJointsType) prevCmd;
                         double maxDiff = 0;
                         for (ActuateJointType aj : actJoints.getActuateJoint()) {
@@ -956,7 +1008,7 @@ public class FanucCRCLMain {
                             System.out.println("time_running = " + time_running);
                         }
                         lastMaxJointDiff = maxDiff;
-
+                       
                     }
 
                 }
@@ -976,7 +1028,8 @@ public class FanucCRCLMain {
         CURTIME_NEAR_MOVETIME,
         LASTMOTIONPROGGRAMRUNNING,
         MOVE_DONE,
-        MOVE_STATUS_NOT_SET
+        MOVE_STATUS_NOT_SET,
+        CHECKED_TASK_STILL_RUNNING,
     }
 
     private volatile MoveStatus moveStatus = MoveStatus.MOVE_STATUS_NOT_SET;
@@ -1018,6 +1071,10 @@ public class FanucCRCLMain {
         }
         if (!posReg98.isAtCurPosition()) {
             addMoveReason(MoveStatus.POSREG98_AT_CUR_POSITION);
+            return false;
+        }
+        if(!checkCurrentTasks()) {
+            addMoveReason(MoveStatus.CHECKED_TASK_STILL_RUNNING);
             return false;
         }
         if ((curTime - moveTime) < 20) {
@@ -1749,7 +1806,8 @@ public class FanucCRCLMain {
                     double distRot = distRotFrom(pose);
                     while (dist > distanceTolerance
                             || distRot > distanceRotTolerance
-                            || !groupPos.isAtCurPosition()) {
+                            || !groupPos.isAtCurPosition()
+                            || !checkCurrentTasks()) {
                         if (Thread.currentThread().isInterrupted()) {
                             return;
                         }
@@ -2686,7 +2744,19 @@ public class FanucCRCLMain {
         }
         robotService.submit(this::connectRemoteRobotInternal);
     }
+    
+    private static final List<String>
+            programNamesToCheckList = Arrays.asList(
+                    "GRIPPER_OPEN",
+                    "MOVE_W_TIME",
+                    "MOVE_JOINT",
+                    "TOOL_OPEN",
+                    "TOOL_CLOSE",
+                    "GRIPPER_CLOSE");
 
+    private static final HashSet<String>
+            programNamesToCheckSet = new HashSet<>(programNamesToCheckList);
+    
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;

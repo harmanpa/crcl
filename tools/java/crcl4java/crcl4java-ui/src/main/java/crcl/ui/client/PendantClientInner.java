@@ -1105,6 +1105,10 @@ public class PendantClientInner {
     private volatile long secondLastIncCommandThreadStackId;
     private volatile long secondLastIncCommandThreadStackTime;
 
+    public void clearLastIncCommandThread() {
+        lastIncCommandThread = null;
+    }
+    
     private void incCommandID(CRCLCommandType cmd) {
         long id;
         Thread incCommandThread = Thread.currentThread();

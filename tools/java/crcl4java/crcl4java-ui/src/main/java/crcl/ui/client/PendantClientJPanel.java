@@ -2245,7 +2245,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     jsa.setJointSpeed(Double.parseDouble(PendantClientJPanel.this.jTextFieldJointJogSpeed.getText()));
                     aj.setJointDetails(jsa);
                     ajl.add(aj);
-                    internal.incAndSendCommand(ajst);
+                    incAndSendCommandFromAwt(ajst);
 //                    apCount = 0;
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -2326,7 +2326,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         }
                         if (actionCount < 2 && !internal.isInitSent()) {
                             InitCanonType initCmd = new InitCanonType();
-                            internal.incAndSendCommand(initCmd);
+                            incAndSendCommandFromAwt(initCmd);
                             return;
                         }
                         if (!jogWorldTransSpeedsSet) {
@@ -2334,7 +2334,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             TransSpeedAbsoluteType tas = new TransSpeedAbsoluteType();
                             tas.setSetting(Double.parseDouble(jTextFieldTransSpeed.getText()));
                             stst.setTransSpeed(tas);
-                            internal.incAndSendCommand(stst);
+                            incAndSendCommandFromAwt(stst);
                             jogWorldTransSpeedsSet = true;
                             return;
                         }
@@ -2343,7 +2343,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             RotSpeedAbsoluteType ras = new RotSpeedAbsoluteType();
                             ras.setSetting(Double.parseDouble(jTextFieldRotationSpeed.getText()));
                             srst.setRotSpeed(ras);
-                            internal.incAndSendCommand(srst);
+                            incAndSendCommandFromAwt(srst);
                             jogWorldRotSpeedsSet = true;
                         }
                         final CRCLStatusType status = internal.getStatus();
@@ -2424,7 +2424,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 default:
                                     throw new IllegalStateException("Invalid axis selected: " + axis);
                             }
-                            internal.incAndSendCommand(moveToCmd);
+                            incAndSendCommandFromAwt(moveToCmd);
                         } else {
                             showMessage("Can't jog when pose == null");
                             jogStop();
@@ -2829,7 +2829,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         CRCLCommandType cmd = cmdInstance.getCRCLCommand();
         cmd = ObjTableJPanel.editObject(cmd, internal.getXpu(), internal.getCmdSchemaFiles(),
                 internal.getCheckCommandValidPredicate());
-        internal.incAndSendCommand(cmd);
+        incAndSendCommandFromAwt(cmd);
         this.saveRecentCommand(cmd);
     }
 
@@ -4737,7 +4737,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             SetLengthUnitsType setLengthUnitsCmd = new SetLengthUnitsType();
             setLengthUnitsCmd.setUnitName(this.lengthUnitComboBoxLengthUnit.getSelectedItem());
             this.updateLengthUnit(setLengthUnitsCmd.getUnitName());
-            internal.incAndSendCommand(setLengthUnitsCmd);
+            incAndSendCommandFromAwt(setLengthUnitsCmd);
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -4765,7 +4765,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
             seeCmd.setSetting(1.0);
-            internal.incAndSendCommand(seeCmd);
+            incAndSendCommandFromAwt(seeCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();
                 recordPointsProgram.getMiddleCommand().add(seeCmd);
@@ -4781,7 +4781,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             SetEndEffectorType seeCmd = new SetEndEffectorType();
             seeCmd.setSetting(0.0);
-            internal.incAndSendCommand(seeCmd);
+            incAndSendCommandFromAwt(seeCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();
                 recordPointsProgram.getMiddleCommand().add(seeCmd);
@@ -4801,7 +4801,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             PoseType p = tableToPose(this.jTableMoveToPose, lastMoveToPoseDisplayMode);
             moveto.setEndPosition(p);
             moveto.setMoveStraight(this.jCheckBoxStraight.isSelected());
-            internal.incAndSendCommand(moveto);
+            incAndSendCommandFromAwt(moveto);
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -4835,16 +4835,24 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void jButtonEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEndActionPerformed
         try {
             EndCanonType end = new EndCanonType();
-            internal.incAndSendCommand(end);
+            incAndSendCommandFromAwt(end);
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonEndActionPerformed
 
+    public boolean incAndSendCommandFromAwt(CRCLCommandType cmd) throws JAXBException {
+        internal.clearLastIncCommandThread();
+        boolean ret = internal.incAndSendCommand(cmd);
+        internal.clearLastIncCommandThread();
+        return ret;
+    }
+    
+    
     private void jButtonInitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonInitActionPerformed
         try {
             InitCanonType init = new InitCanonType();
-            internal.incAndSendCommand(init);
+            incAndSendCommandFromAwt(init);
         } catch (JAXBException ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -5076,7 +5084,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
             OpenToolChangerType otcCmd = new OpenToolChangerType();
-            internal.incAndSendCommand(otcCmd);
+            incAndSendCommandFromAwt(otcCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();
                 recordPointsProgram.getMiddleCommand().add(otcCmd);
@@ -5091,7 +5099,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         try {
             CloseToolChangerType ctcCmd = new CloseToolChangerType();
-            internal.incAndSendCommand(ctcCmd);
+            incAndSendCommandFromAwt(ctcCmd);
             if (null != recordPointsProgram) {
                 this.recordCurrentPoint();
                 recordPointsProgram.getMiddleCommand().add(ctcCmd);
