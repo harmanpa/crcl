@@ -15,7 +15,7 @@
     <name>crcl4java-restful-proxy</name>
 
     <properties>
-        <enunciate.version>2.10.1</enunciate.version>
+        <!-- <enunciate.version>2.10.1</enunciate.version> -->
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jersey.version>2.26</jersey.version> <!--WARNING: version 2.6 and up require jdk 1.7-->
@@ -101,7 +101,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <groupId>com.webcohesion.enunciate</groupId>
                 <artifactId>enunciate-maven-plugin</artifactId>
                 <version>${enunciate.version}</version>
@@ -112,7 +112,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> -->
             <plugin>
                 <groupId>org.codehaus.cargo</groupId>
                 <artifactId>cargo-maven2-plugin</artifactId>
