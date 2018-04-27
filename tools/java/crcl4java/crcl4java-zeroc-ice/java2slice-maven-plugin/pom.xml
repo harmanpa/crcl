@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java-zeroc-ice</artifactId>
-        <version>1.6.dev.branch-SNAPSHOT</version>
+        <version>1.6-SNAPSHOT</version>
     </parent>
     <groupId>com.github.wshackle</groupId>
     <packaging>maven-plugin</packaging>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>java2slice</artifactId>
-            <version>1.6.dev.branch-SNAPSHOT</version>
+            <version>1.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>

@@ -65,13 +65,13 @@
             </activatedProfiles>
         </action>
     <action>
-            <actionName>CUSTOM-newVersion1.5-1</actionName>
-            <displayName>newVersion1.5-1</displayName>
+            <actionName>CUSTOM-newVersion1.6-SNAPSHOT</actionName>
+            <displayName>newVersion1.6-SNAPSHOT</displayName>
             <goals>
                 <goal>versions:set</goal>
             </goals>
             <properties>
-                <newVersion>1.5-1</newVersion>
+                <newVersion>1.6-SNAPSHOT</newVersion>
             </properties>
         </action>
 </actions>
