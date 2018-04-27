@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>crcl4java</artifactId>
     <groupId>com.github.wshackle</groupId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>crcl4java-base</module>
@@ -412,11 +412,13 @@
                 </plugins>
             </build>
         </profile>
-        <profile> 
-            <id>release</id>
-            <modules>
-                <module>crcl4java-vaadin-webapp</module>
-            </modules>
+        <profile>
+            <id>normal_dist</id>
+            <activation>
+                <property>
+                    <name>!github.global.server</name>
+                </property>
+            </activation>
             <distributionManagement>
                 <snapshotRepository>
                     <id>ossrh</id>
@@ -427,6 +429,12 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
+        </profile>
+        <profile> 
+            <id>release</id>
+            <modules>
+                <module>crcl4java-vaadin-webapp</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
