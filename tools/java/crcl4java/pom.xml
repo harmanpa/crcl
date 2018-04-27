@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>crcl4java</artifactId>
     <groupId>com.github.wshackle</groupId>
-    <version>1.6</version>
+    <version>1.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>crcl4java-base</module>
@@ -69,7 +69,7 @@
         <developerConnection>scm:git:https://github.com/usnistgov/crcl.git</developerConnection>
         <!-- <developerConnection>scm:git:git@github.com:usnistgov/crcl.git</developerConnection> -->
         <url>https://github.com/usnistgov/crcl4java</url>
-        <tag>crcl4java-1.6</tag>
+        <tag>crcl4java-1.5</tag>
     </scm>
     
 

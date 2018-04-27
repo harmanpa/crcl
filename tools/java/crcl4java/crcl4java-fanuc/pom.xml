@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>crcl4java-fanuc</artifactId>
     <packaging>pom</packaging>
-    <version>1.6</version>
+    <version>1.7-SNAPSHOT</version>
     <parent>
         <relativePath>..</relativePath>
         <artifactId>crcl4java</artifactId>
         <groupId>com.github.wshackle</groupId>
-        <version>1.6</version>
+        <version>1.7-SNAPSHOT</version>
     </parent>
     <modules>
         <module>fanucCRCLServer</module>
