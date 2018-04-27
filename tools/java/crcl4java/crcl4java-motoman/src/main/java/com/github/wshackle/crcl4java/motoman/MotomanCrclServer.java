@@ -72,7 +72,6 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
-import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.pose;
 import crcl.utils.CRCLServerSocket;
@@ -92,8 +91,6 @@ import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
 import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.PmRotationVector;
@@ -449,7 +446,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         if (debug) {
             try {
                 System.out.println("moveTo(" + CRCLSocket.getUtilSocket().commandToSimpleString(cmd) + ")");
-            } catch (ParserConfigurationException | SAXException ex) {
+            } catch (Exception ex) {
                 logException(ex);
             }
             System.out.println("power = " + power);
@@ -579,7 +576,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         if (debug) {
             try {
                 System.out.println("actuateJoints(" + CRCLSocket.getUtilSocket().commandToSimpleString(ajs) + ")");
-            } catch (ParserConfigurationException | SAXException ex) {
+            } catch (Exception ex) {
                 logException(ex);
             }
             System.out.println("power = " + power);
@@ -735,7 +732,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         setStateDescription(CRCL_ERROR, cmd.getClass().getName() + " not implemented");
                         try {
                             System.err.println("Unrecognized cmd = " + CRCLSocket.getUtilSocket().commandToSimpleString(cmd));
-                        } catch (ParserConfigurationException | SAXException ex) {
+                        } catch (Exception ex) {
                             logException(ex);
                         }
                     }

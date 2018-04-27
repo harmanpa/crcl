@@ -25,6 +25,7 @@ package crcl.utils;
 import crcl.base.CRCLCommandInstanceType;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -182,7 +183,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         this.executorService = executorService;
     }
 
-    private ServerSocketChannel serverSocketChannel;
+    private volatile ServerSocketChannel serverSocketChannel;
 
     private boolean closing = false;
 
@@ -497,11 +498,15 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
 
     private void runSingleThreaded() throws InterruptedException, IOException, ClosedChannelException {
         if (null == serverSocketChannel) {
-            serverSocketChannel = (ServerSocketChannel) ServerSocketChannel.open()
-                    .bind(localAddress)
-                    .setOption(StandardSocketOptions.SO_REUSEADDR, true)
-                    .configureBlocking(false);
-
+            try {
+                serverSocketChannel = (ServerSocketChannel) ServerSocketChannel.open()
+                        .bind(localAddress)
+                        .setOption(StandardSocketOptions.SO_REUSEADDR, true)
+                        .configureBlocking(false);
+            } catch (BindException bindException) {
+                System.err.println("localAdrress = "+((InetSocketAddress) localAddress).getHostString()+":"+((InetSocketAddress) localAddress).getPort());
+                throw new IOException(bindException);
+            }
         }
         if (null == selector) {
             selector = Selector.open();

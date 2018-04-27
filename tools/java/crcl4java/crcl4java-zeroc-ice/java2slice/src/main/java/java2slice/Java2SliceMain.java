@@ -39,6 +39,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -127,10 +128,14 @@ public class Java2SliceMain {
     private static boolean verbose = false;
 
     public static void main(String[] args) {
+
+        ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+        LOGGER.log(Level.INFO, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
+        System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
         System.out.println("");
         System.out.println("Running Java2SliceMain");
         System.out.println("args = " + Arrays.toString(args));
-        String currentDirectory =System.getProperty("user.dir");
+        String currentDirectory = System.getProperty("user.dir");
         System.out.println("currentDirectory = " + currentDirectory);
         Options options = new Options();
         try {
@@ -190,7 +195,7 @@ public class Java2SliceMain {
             String jarUrlsDeepString = Arrays.deepToString(jarUrls);
             System.out.println("jarUrlsDeepString = " + jarUrlsDeepString);
             info("urls = " + jarUrlsDeepString);
-            
+
             URLClassLoader loader = new URLClassLoader(jarUrls);
             ClassInspector inspector = new ClassInspector(loader);
             File outSliceFile = new File(line.getOptionValue("out-slice")).getCanonicalFile();
@@ -275,7 +280,7 @@ public class Java2SliceMain {
                     }
                     String fullClassName
                             = entryName.substring(0, entryName.length() - ".class".length())
-                            .replace("/", ".");
+                                    .replace("/", ".");
                     if (verbose) {
                         info("clssName=" + fullClassName);
                     }

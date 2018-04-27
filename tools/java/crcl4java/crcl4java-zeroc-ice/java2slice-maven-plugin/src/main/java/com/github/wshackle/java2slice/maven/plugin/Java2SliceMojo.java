@@ -24,13 +24,16 @@ package com.github.wshackle.java2slice.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java2slice.Java2SliceMain;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -64,37 +67,41 @@ public class Java2SliceMojo extends AbstractMojo {
     private MavenProject project;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException, MojoFailureException {
-//        String[] args = new String[]{
-//            "--verbose",
-//            //            "--jar", "../ice-testinlib/target/ice-testinlib-1.0-SNAPSHOT.jar",
-//            //            "--jar", "../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar",
-//            "--out-slice", "src/generated/resources/crcl4java.ice",
-//            "--out-converters-dir", "src/generated/java",
-//            "../../crcl4java-base/target/crcl4java-base-1.5-SNAPSHOT.jar"
-//        };
-        getLog().info("args=" + Arrays.toString(args));
-        getLog().info("project = " + project);
-        final Set<Artifact> artifacts = (Set<Artifact>)project.getDependencyArtifacts();
-        getLog().info("artifacts = " + artifacts);
-        getLog().info("artifactIds = " + artifacts);
-        for(Artifact a : artifacts) {
-            if(artifactIds.contains(a.getArtifactId())) {
-                try {
-                    File artifactFile = a.getFile();
-                     getLog().info("artifactFile = " + artifactFile);
-                    String newargs[] = Arrays.copyOf(args, args.length+1);
-                    newargs[args.length] = artifactFile.getCanonicalPath();
-                    getLog().info("newargs=" + Arrays.toString(newargs));
-        
-                    args = newargs;
-                } catch (IOException ex) {
-                    getLog().error(ex);
+
+        Log log = getLog();
+        List<String> newArgsList = new ArrayList<>();
+        newArgsList.addAll(Arrays.asList(args));
+        try {
+            Class<?> jaxbClass = Class.forName("javax.xml.bind.JAXBElement");
+            log.info("jaxbClass=" + jaxbClass);
+            log.info("args=" + Arrays.toString(args));
+            log.info("project = " + project);
+            final Set<Artifact> artifacts = (Set<Artifact>) project.getDependencyArtifacts();
+            log.info("artifacts = " + artifacts);
+            log.info("artifactIds = " + artifacts);
+            
+            for (Artifact a : artifacts) {
+                if (artifactIds.contains(a.getArtifactId())) {
+                    try {
+                        File artifactFile = a.getFile();
+                        log.info("artifactFile = " + artifactFile);
+                        String artifactFileCanonicalPath = artifactFile.getCanonicalPath();
+                        newArgsList.add(artifactFileCanonicalPath);
+                    } catch (IOException ex) {
+                        log.error(ex);
+                    }
                 }
             }
+            log.info("newArgsList=" + newArgsList);
+            String newargs[] = newArgsList.toArray(new String[newArgsList.size()]);
+            log.info("newargs=" + Arrays.toString(newargs));
+            Java2SliceMain.main(newargs);
+        } catch (Exception e) {
+            log.error(e);
+            throw new MojoExecutionException("Java2Slice failed with newArgsList="+newArgsList, e);
         }
-        getLog().info("args=" + Arrays.toString(args));
-        Java2SliceMain.main(args);
         
     }
 

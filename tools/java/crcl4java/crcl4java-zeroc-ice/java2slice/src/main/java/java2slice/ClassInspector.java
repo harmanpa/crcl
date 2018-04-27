@@ -162,72 +162,66 @@ public class ClassInspector {
     };
 
     @SuppressWarnings("unchecked")
-    public Map<String, ClassInfo> getProperties(Class clss) throws ClassNotFoundException {
-        Map<String, ClassInfo> map = propertiesMapMap.get(clss);
-        if (null != map) {
-            return map;
-        }
-        Method methods[] = clss.getDeclaredMethods();
-        Map<String, Method> getters = new HashMap<>();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            if (method.getParameterTypes() != null && method.getParameterTypes().length > 0) {
-                continue;
+    public Map<String, ClassInfo> getProperties(Class clss)  {
+        Map<String, ClassInfo> map = null;
+        try {
+            map = propertiesMapMap.get(clss);
+            if (null != map) {
+                return map;
             }
-            if (!Modifier.isPublic(method.getModifiers())) {
-                continue;
+            map = new HashMap<>();
+            Method methods[] = clss.getDeclaredMethods();
+            Map<String, Method> getters = new HashMap<>();
+            for (int i = 0; i < methods.length; i++) {
+                Method method = methods[i];
+                if (method.getParameterTypes() != null && method.getParameterTypes().length > 0) {
+                    continue;
+                }
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue;
+                }
+                Class<?> returnClass = method.getReturnType();
+                if (returnClass == null) {
+                    continue;
+                }
+                if (returnClass.equals(Void.class)) {
+                    continue;
+                }
+                if (returnClass.equals(void.class)) {
+                    continue;
+                }
+                if (returnClass.equals(java.lang.Class.class)) {
+                    continue;
+                }
+                if (!method.getName().startsWith("get") && !method.getName().startsWith("is")) {
+                    continue;
+                }
+                String propName = getterNameToPropertyName(method.getName());
+                if (propName.equals("class")) {
+                    continue;
+                }
+                getters.put(propName, method);
             }
-            Class<?> returnClass = method.getReturnType();
-            if (returnClass == null) {
-                continue;
+            
+            Map<String, Method> setters = new HashMap<>();
+            for (int i = 0; i < methods.length; i++) {
+                Method method = methods[i];
+                if (method.getParameterTypes() == null || method.getParameterTypes().length != 1) {
+                    continue;
+                }
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue;
+                }
+                Class<?> returnClass = method.getReturnType();
+                if (returnClass != null && !returnClass.equals(Void.class) && !returnClass.equals(void.class)) {
+                    continue;
+                }
+                if (!method.getName().startsWith("set")) {
+                    continue;
+                }
+                String propName = setterNameToPropertyName(method.getName());
+                setters.put(propName, method);
             }
-            if (returnClass.equals(Void.class)) {
-                continue;
-            }
-            if (returnClass.equals(void.class)) {
-                continue;
-            }
-            if (returnClass.equals(java.lang.Class.class)) {
-                continue;
-            }
-            if (!method.getName().startsWith("get") && !method.getName().startsWith("is")) {
-                continue;
-            }
-            String propName = getterNameToPropertyName(method.getName());
-            if(propName.equals("class")) {
-                continue;
-            }
-            getters.put(propName, method);
-        }
-
-//        Map<String, Method> getters = Stream.of(clss.getDeclaredMethods())
-//                .filter((Method m) -> m.getParameterCount() == 0)
-//                .filter((Method m) -> Modifier.isPublic(m.getModifiers()))
-//                .filter((Method m) -> m.getReturnType() != null)
-//                .filter((Method m) -> !m.getReturnType().equals(Void.class))
-//                .filter((Method m) -> !m.getReturnType().equals(void.class))
-//                .filter((Method m) -> m.getName().startsWith("get") || m.getName().startsWith("is"))
-//                .collect(Collectors.toMap((Method m) -> getterNameToPropertyName(m.getName()),
-//                        (m) -> m));
-        Map<String, Method> setters = new HashMap<>();
-        for (int i = 0; i < methods.length; i++) {
-            Method method = methods[i];
-            if (method.getParameterTypes() == null || method.getParameterTypes().length != 1) {
-                continue;
-            }
-            if (!Modifier.isPublic(method.getModifiers())) {
-                continue;
-            }
-            Class<?> returnClass = method.getReturnType();
-            if (returnClass != null && !returnClass.equals(Void.class) && !returnClass.equals(void.class)) {
-                continue;
-            }
-            if (!method.getName().startsWith("set")) {
-                continue;
-            }
-            String propName = setterNameToPropertyName(method.getName());
-            setters.put(propName, method);
-        }
 //        Map<String, Method> setters = Stream.of(clss.getDeclaredMethods())
 //                .filter((Method m) -> m.getParameterCount() == 1)
 //                .filter((Method m) -> Modifier.isPublic(m.getModifiers()))
@@ -235,20 +229,20 @@ public class ClassInspector {
 //                .collect(Collectors.toMap((Method m) -> setterNameToPropertyName(m.getName()),
 //                        (m) -> m));
 //        System.out.println("setters = " + setters);
-        map = new HashMap<>();
-        for (Entry<String, Method> entry : getters.entrySet()) {
-            ClassInfo ci = new ClassInfo(entry.getValue().getReturnType(),
-                    entry.getValue().getGenericReturnType());
-            if (List.class.isAssignableFrom(entry.getValue().getReturnType())) {
-
-                List<Class<?>> paramClasses = (List<Class<?>>) ci.getGenericParamClasses();
-                seqenceClassesNeeded.add((Class<?>) paramClasses.get(0));
-            } else if (!setters.containsKey(entry.getKey())) {
-                continue;
+            
+            for (Entry<String, Method> entry : getters.entrySet()) {
+                ClassInfo ci = new ClassInfo(entry.getValue().getReturnType(),
+                        entry.getValue().getGenericReturnType());
+                if (List.class.isAssignableFrom(entry.getValue().getReturnType())) {
+                    
+                    List<Class<?>> paramClasses = (List<Class<?>>) ci.getGenericParamClasses();
+                    seqenceClassesNeeded.add((Class<?>) paramClasses.get(0));
+                } else if (!setters.containsKey(entry.getKey())) {
+                    continue;
+                }
+                
+                map.put(entry.getKey(), ci);
             }
-
-            map.put(entry.getKey(), ci);
-        }
 //        map = getters.entrySet().stream()
 //                .filter((Entry<String, Method> e)
 //                        -> List.class.isAssignableFrom(e.getValue().getReturnType())
@@ -261,8 +255,15 @@ public class ClassInspector {
 //                                    seqenceClassesNeeded.add((Class<?>) ci.getGenericParamClasses().get(0));
 //                                    return ci;
 //                                }));
+        } catch (Throwable exception) {
+            System.err.println("Can't get properties for class = "+clss);
+            Logger.getLogger(ClassInspector.class.getName()).log(Level.SEVERE, null, exception);
+//            throw new RuntimeException("Can't get properties for class = "+clss, e);
+        }
         if (null != e) {
-            throw e;
+            System.err.println("Can't get properties for class = "+clss);
+            Logger.getLogger(ClassInspector.class.getName()).log(Level.SEVERE, null, e);
+//            throw new RuntimeException("Can't get properties for class = "+clss, e);
         }
         propertiesMapMap.put(clss, map);
         return map;
