@@ -1,4 +1,5 @@
 *.class
+addons.sccs
 
 # Shared library files
 *.so
