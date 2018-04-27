@@ -10,7 +10,12 @@
             <activatedProfile>allexceptice</activatedProfile>
             <activatedProfile>skip_tests</activatedProfile>
             <activatedProfile>tomcat_embed</activatedProfile>
+            <activatedProfile>normal_dist</activatedProfile>
+            <activatedProfile>release</activatedProfile>
         </activatedProfiles>
+        <properties>
+            <resume>false</resume>
+        </properties>
     </action>
     <action>
         <actionName>CUSTOM-quick_all_release_perform</actionName>
@@ -25,6 +30,8 @@
             <activatedProfile>allexceptice</activatedProfile>
             <activatedProfile>skip_tests</activatedProfile>
             <activatedProfile>tomcat_embed</activatedProfile>
+            <activatedProfile>normal_dist</activatedProfile>
+            <activatedProfile>release</activatedProfile>
         </activatedProfiles>
     </action>
     <action>
@@ -42,43 +49,53 @@
         </activatedProfiles>
     </action>
     <action>
-            <actionName>CUSTOM-default_deploy</actionName>
-            <displayName>default_deploy</displayName>
-            <goals>
-                <goal>deploy</goal>
-            </goals>
-            <activatedProfiles>
-                <activatedProfile>release</activatedProfile>
-            </activatedProfiles>
-        </action>
+        <actionName>CUSTOM-default_deploy</actionName>
+        <displayName>default_deploy</displayName>
+        <goals>
+            <goal>deploy</goal>
+        </goals>
+        <activatedProfiles>
+            <activatedProfile>release</activatedProfile>
+        </activatedProfiles>
+    </action>
     <action>
-            <actionName>CUSTOM-deploy_all_linux</actionName>
-            <displayName>deploy_all_linux</displayName>
-            <goals>
-                <goal>deploy</goal>
-            </goals>
-            <activatedProfiles>
-                <activatedProfile>all_linux</activatedProfile>
-                <activatedProfile>release</activatedProfile>
-                <activatedProfile>tomcat_embed</activatedProfile>
-                <activatedProfile>skip_tests</activatedProfile>
-            </activatedProfiles>
-        </action>
+        <actionName>CUSTOM-deploy_all_linux</actionName>
+        <displayName>deploy_all_linux</displayName>
+        <goals>
+            <goal>deploy</goal>
+        </goals>
+        <activatedProfiles>
+            <activatedProfile>all_linux</activatedProfile>
+            <activatedProfile>release</activatedProfile>
+            <activatedProfile>tomcat_embed</activatedProfile>
+            <activatedProfile>skip_tests</activatedProfile>
+        </activatedProfiles>
+    </action>
     <action>
-            <actionName>CUSTOM-newVersion1.6-SNAPSHOT</actionName>
-            <displayName>newVersion1.6-SNAPSHOT</displayName>
-            <goals>
-                <goal>versions:set</goal>
-            </goals>
-            <properties>
-                <newVersion>1.6-SNAPSHOT</newVersion>
-            </properties>
-        </action>
+        <actionName>CUSTOM-newVersion1.6-SNAPSHOT</actionName>
+        <displayName>newVersion1.6-SNAPSHOT</displayName>
+        <goals>
+            <goal>versions:set</goal>
+        </goals>
+        <properties>
+            <newVersion>1.6-SNAPSHOT</newVersion>
+        </properties>
+    </action>
     <action>
-            <actionName>CUSTOM-package_debug</actionName>
-            <displayName>package_debug</displayName>
-            <goals>
-                <goal>package</goal>
-            </goals>
-        </action>
+        <actionName>CUSTOM-package_debug</actionName>
+        <displayName>package_debug</displayName>
+        <goals>
+            <goal>package</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-test2</actionName>
+        <displayName>test2</displayName>
+        <goals>
+            <goal>package</goal>
+        </goals>
+        <properties>
+            <resume>false</resume>
+        </properties>
+    </action>
 </actions>
