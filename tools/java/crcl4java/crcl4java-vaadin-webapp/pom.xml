@@ -246,7 +246,7 @@
                                 </goals>
                                 <phase>package</phase>
                                 <configuration>
-                                    <path>/crcl4java-vaadin-webapp</path>
+                                    <path>/crcl4java-vaadin-webapp/</path>
                                     <warRunDependencies>
                                         <warRunDependency>
                                             <dependency>

@@ -5,7 +5,6 @@ cat $0
 
 set -x;
 
-
 #CRCL4JAVARUNWEB.sh
 if test ! -f ./runWebApp.sh || grep -v '#CRCL4JAVARUNWEB.sh'  ./runWebApp.sh 2>/dev/null >/dev/null ; then 
     cd "${0%%runWebApp.sh}";
@@ -52,6 +51,8 @@ else
 
     echo "Running java -jar ${JARFILE}"
 
+    ls -ld .extract
+    rm -rf .extract
     pwd
     java  -jar "${JARFILE}" > run$$.log 2> run$$.err &
     jpid=$!
