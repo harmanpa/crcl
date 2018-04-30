@@ -1,4 +1,4 @@
-package com.github.wshackle.crcl4java.vaadin.webapp.client;
+package crcl4java.vaadin.client;
 
 import com.vaadin.shared.communication.ServerRpc;
 

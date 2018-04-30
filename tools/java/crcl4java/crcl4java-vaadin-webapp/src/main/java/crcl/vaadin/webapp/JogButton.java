@@ -1,8 +1,8 @@
 package crcl.vaadin.webapp;
 
 
-import com.github.wshackle.crcl4java.vaadin.webapp.client.JogButtonServerRpc;
-import com.github.wshackle.crcl4java.vaadin.webapp.client.JogButtonState;
+import crcl4java.vaadin.client.JogButtonServerRpc;
+import crcl4java.vaadin.client.JogButtonState;
 import com.vaadin.ui.AbstractComponent;
 import java.util.HashSet;
 import java.util.Set;

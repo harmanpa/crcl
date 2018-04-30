@@ -1,4 +1,4 @@
-package com.github.wshackle.crcl4java.vaadin.webapp.client;
+package crcl4java.vaadin.client;
 
 import crcl.vaadin.webapp.JogButton;
 import com.google.gwt.event.dom.client.ClickEvent;

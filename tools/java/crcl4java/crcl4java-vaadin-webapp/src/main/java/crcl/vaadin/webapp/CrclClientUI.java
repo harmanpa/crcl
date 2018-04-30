@@ -103,7 +103,7 @@ import rcs.posemath.Posemath;
  *
  */
 @Theme("default_theme")
-@Widgetset("com.github.wshackle.crcl4java.vaadin.webapp.Crcl4JavaWidgetset")
+@Widgetset("crcl4java.vaadin.webapp.Widgetset")
 @Push
 public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 
