@@ -98,4 +98,30 @@
             <resume>false</resume>
         </properties>
     </action>
+    <action>
+            <actionName>CUSTOM-clean</actionName>
+            <displayName>clean</displayName>
+            <goals>
+                <goal>clean</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>all</activatedProfile>
+            </activatedProfiles>
+        </action>
+    <action>
+            <actionName>CUSTOM-prep</actionName>
+            <displayName>prep</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>test</goal>
+                <goal>generate-sources</goal>
+                <goal>javadoc:javadoc</goal>
+                <goal>package</goal>
+                <goal>install</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>allexceptice</activatedProfile>
+                <activatedProfile>release</activatedProfile>
+            </activatedProfiles>
+        </action>
 </actions>
