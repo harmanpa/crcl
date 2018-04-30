@@ -1131,11 +1131,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                                         classes.add(clss);
 
                                     }
-                                } catch (ClassNotFoundException ex) {
+                                } catch (Exception ex) {
+                                    System.out.println("entry.getName().startsWith(\"crcl\") = " + entry.getName().startsWith("crcl"));
+                                    System.out.println("entry = " + entry);
+                                    System.err.println("name = " + name);
                                     Logger.getLogger(ObjTableJPanel.class
                                             .getName()).log(Level.SEVERE, null, ex);
                                 }
-
                             }
                         }
                     } catch (IOException ex) {
