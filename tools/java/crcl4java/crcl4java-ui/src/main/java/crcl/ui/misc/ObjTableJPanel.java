@@ -1111,7 +1111,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         is = new JarInputStream(new FileInputStream(jar));
                         JarEntry entry;
                         while ((entry = is.getNextJarEntry()) != null) {
-                            if (!entry.getName().startsWith("crcl")) {
+//                            System.out.println("entry.getName() = " + entry.getName());
+                            if (!entry.getName().startsWith("crcl/base/")) {
                                 continue;
                             }
                             if (entry.getName().endsWith(".class")) {
@@ -1131,9 +1132,10 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                                         classes.add(clss);
 
                                     }
-                                } catch (Exception ex) {
-                                    System.out.println("entry.getName().startsWith(\"crcl\") = " + entry.getName().startsWith("crcl"));
-                                    System.out.println("entry = " + entry);
+                                } catch (Throwable ex) {
+                                    System.err.println("entry.getName() = " + entry.getName());
+                                    System.err.println("entry.getName().startsWith(\"crcl\") = " + entry.getName().startsWith("crcl"));
+                                    System.err.println("entry = " + entry);
                                     System.err.println("name = " + name);
                                     Logger.getLogger(ObjTableJPanel.class
                                             .getName()).log(Level.SEVERE, null, ex);
