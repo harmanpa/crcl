@@ -4,12 +4,12 @@
     <parent>
         <artifactId>crcl4java</artifactId>
         <groupId>com.github.wshackle</groupId>
-        <version>1.8-SNAPSHOT</version>
+        <version>1.8</version>
     </parent>
 
     <groupId>com.github.wshackle</groupId>
     <artifactId>crcl4java-restful-proxy</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.8</version>
     <packaging>war</packaging>
 
     <name>crcl4java-restful-proxy</name>
