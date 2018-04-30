@@ -237,7 +237,8 @@
                     <plugin>
                         <groupId>org.apache.tomcat.maven</groupId>
                         <artifactId>tomcat7-maven-plugin</artifactId>
-                        <version>2.2</version>
+                        <version>2.1</version>
+                        <!-- DO NOT Switch to 2.2 It does not work. .extract/webapps/ mkdirs() fails. -->
                         <executions>
                             <execution>
                                 <id>tomcat-run</id>
@@ -246,7 +247,7 @@
                                 </goals>
                                 <phase>package</phase>
                                 <configuration>
-                                    <path>/crcl4java-vaadin-webapp/</path>
+                                    <path>/crcl4java-vaadin-webapp</path>
                                     <warRunDependencies>
                                         <warRunDependency>
                                             <dependency>
