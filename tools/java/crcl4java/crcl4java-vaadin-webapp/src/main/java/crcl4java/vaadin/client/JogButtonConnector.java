@@ -1,6 +1,6 @@
 package crcl4java.vaadin.client;
 
-import crcl.vaadin.webapp.JogButton;
+import crcl.vaadin.ui.JogButton;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;

@@ -1,4 +1,4 @@
-package crcl.vaadin.webapp;
+package crcl.vaadin.ui;
 
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
@@ -103,7 +103,7 @@ import rcs.posemath.Posemath;
  *
  */
 @Theme("default_theme")
-@Widgetset("crcl4java.vaadin.webapp.Widgetset")
+@Widgetset("crcl4java.vaadin.ui.Widgetset")
 @Push
 public class CrclClientUI extends UI implements Consumer<CommonInfo> {
 

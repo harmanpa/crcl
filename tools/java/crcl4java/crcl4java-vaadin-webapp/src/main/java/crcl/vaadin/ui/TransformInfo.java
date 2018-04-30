@@ -20,7 +20,7 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.vaadin.webapp;
+package crcl.vaadin.ui;
 
 import crcl.base.PointType;
 

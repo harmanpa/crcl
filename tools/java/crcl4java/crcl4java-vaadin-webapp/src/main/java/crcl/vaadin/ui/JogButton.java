@@ -1,4 +1,4 @@
-package crcl.vaadin.webapp;
+package crcl.vaadin.ui;
 
 
 import crcl4java.vaadin.client.JogButtonServerRpc;
