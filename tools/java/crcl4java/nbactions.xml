@@ -122,6 +122,7 @@
             <activatedProfiles>
                 <activatedProfile>allexceptice</activatedProfile>
                 <activatedProfile>release</activatedProfile>
+                <activatedProfile>tomcat_embed</activatedProfile>
             </activatedProfiles>
         </action>
 </actions>

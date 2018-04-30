@@ -2,7 +2,7 @@
 
 
 
-set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_66
+set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_92
 set PATH=%JAVA_HOME%\bin;%PATH%
 @REM set PATH=%PATH%;C:\Program Files\NetBeans 8.1\bin;
 echo JAVA_HOME %JAVA_HOME%
@@ -13,7 +13,6 @@ set OLDDIR=%CD%
 echo "OLDDIR=" %OLDDIR%
 SET mypath=%~dp0
 echo mypath %mypath%
-@REM start java -Dsimserver.logimages=true -jar %mypath%\crcl4java-ui\target\crcl4java-ui-1.0-SNAPSHOT-jar-with-dependencies.jar --mode GraphicalServer  %*
 
 @REM cd %mypath%\crcl4java-vaadin-webapp
 @REM start mvn jetty:run
@@ -21,7 +20,7 @@ echo mypath %mypath%
 @REM ping 192.0.2.2 -n 1 -w 10000 > nul
 @REM cd %OLDDIR%
 start "" http://localhost:8080/crcl4java-vaadin-webapp/
-jps
+jps -l
 
 java -jar crcl4java-vaadin-webapp\target\crcl4java-vaadin-webapp-1.8-war-exec.jar
 @REM start "" http://localhost:8080/crcl4java-vaadin-webapp/

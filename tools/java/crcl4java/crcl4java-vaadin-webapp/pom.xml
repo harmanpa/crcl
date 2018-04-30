@@ -228,7 +228,9 @@
         <profile>
             <id>tomcat_embed</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>!no_tomcat_embed</name>
+                </property>
             </activation>
             <build>
                 <plugins>

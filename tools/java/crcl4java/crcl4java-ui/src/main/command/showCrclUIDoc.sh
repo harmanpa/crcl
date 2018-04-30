@@ -7,14 +7,6 @@ set -x;
 dir="${project.name}-javadoc"
 if ! test -f "${dir}/index.html" ; then
     jarfile="${fullpath_javadoc_jar}"
-#    if ! test -f "${jarfile}" ; then
-#        jarfile="${javadoc_jar}";
-#    fi
-#    if ! test -f "${jarfile}" ; then
-#        remotejarurl="https://raw.github.com/usnistgov/crcl/mvn-repo/com/github/wshackle/crcl4java-base/1.5-SNAPSHOT/crcl4java-base-1.4-20160428.123047-1-javadoc.jar";
-#        echo "Downloading ${remotejarurl}";
-#        wget "${remotejarurl}"
-#    fi
     
     mkdir -p "${dir}";
     ( set -x; cd "${dir}"; jar -xf "../${jarfile}" ; )

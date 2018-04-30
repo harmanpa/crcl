@@ -82,7 +82,7 @@ public class DefaultMain {
                 System.err.println("");
                 System.err.println("The following properties can be set with -Dpropertyname=value before the -jar arguments.");
                 System.err.println("eg:");
-                System.err.println("java -Dcrcl4java.simserver.logimages=true -jar crcl4java-ui-1.3-SNAPSHOT-jar-with-dependencies.jar --mode GraphicalServer");
+                System.err.println("java -Dcrcl4java.simserver.logimages=true -jar crcl4java-ui-1.8-jar-with-dependencies.jar --mode GraphicalServer");
                 System.err.println("");
                 System.err.println("crcl4java.simserver.imagelogdir\tDirectory for simserver to log images to. Default=/tmp/ ");
                 System.err.println("");

@@ -13,18 +13,6 @@ export JAVA_HOME=[path_to_jdk_1.8+]
 sudo apt-get install maven
 mvn clean package
 
-To run graphical launcher:
-
-[path_to_jdk_1.8+]/bin/java -jar target/CRCLJava-1.0-SNAPSHOT-jar-with-dependencies.jar 
-
-or use the convenience scripts run.sh or run.bat
-
-./run.sh
-
-or on Windows
-
-run.bat
-
 
 For example to run the server in the background on port 5004
 

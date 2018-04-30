@@ -115,7 +115,7 @@ public class Java2SliceMain {
 
     private static void printHelpAndExit(Options options, String args[]) {
         info("args = " + Arrays.toString(args));
-        new HelpFormatter().printHelp("java -jar target/java2slice-1.5-SNAPSHOT-jar-with-dependencies.jar  [OPTION]... [FILE]...", options, false);
+        new HelpFormatter().printHelp("java -jar target/java2slice-1.8-jar-with-dependencies.jar  [OPTION]... [FILE]...", options, false);
         System.exit(1);
     }
 
