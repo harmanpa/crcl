@@ -44,6 +44,7 @@
             <activatedProfile>allexceptice</activatedProfile>
             <activatedProfile>release</activatedProfile>
             <activatedProfile>tomcat_embed</activatedProfile>
+            <activatedProfile>normal_dist</activatedProfile>
             <activatedProfile>skip_tests</activatedProfile>
             <activatedProfile>windows_with_gpg4win</activatedProfile>
         </activatedProfiles>
