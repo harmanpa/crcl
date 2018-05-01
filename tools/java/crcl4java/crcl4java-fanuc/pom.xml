@@ -10,10 +10,31 @@
         <groupId>com.github.wshackle</groupId>
         <version>1.9.dev2-SNAPSHOT</version>
     </parent>
-    <modules>
-        <module>fanucCRCLServer</module>
-        <module>fanucCom4JBase</module>
-        <module>fanucStatusMonitor</module>
-    </modules>
     <name>crcl4java-fanuc</name>
+    <profiles>
+        <profile>
+            <id>windows-com4j</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <modules>
+                <module>fanucCRCLServer</module>
+                <module>fanucCom4JBase</module>
+                <module>fanucStatusMonitor</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>linux-alt-profile</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                </os>
+            </activation>
+            <modules>
+                <module>fanucCRCLServer</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
