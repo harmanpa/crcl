@@ -131,6 +131,7 @@ import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import static crcl.utils.CRCLPosemath.point;
+import java.util.Iterator;
 
 /**
  *
@@ -785,23 +786,29 @@ public class FanucCRCLMain {
     public double getDistToGoal() {
         return distToGoal;
     }
-    
-    public boolean checkCurrentTasks() {
-       
-        ITasks tasks = robot.tasks();
-        if (null != tasks) {
-            for (Com4jObject c4jo : tasks) {
-                ITask tsk = null;
-                String tskProgName = null;
-                FREProgramTypeConstants pType = null;
-                FRETaskStatusConstants tskStatus = null;
-                try {
-                    tsk = c4jo.queryInterface(ITask.class);
-                    try {
-                        pType = tsk.programType();
-                    } catch (Exception e) {
-                    }
 
+    private final List<ITask> tasksList = new ArrayList<>();
+
+    private final Map<String, ITask> namesToTaskMap = new HashMap<>();
+    private final Set<String> prognamesNeeded = new HashSet<>();
+    private volatile Iterator<Com4jObject> updateTasksListIterator = null;
+
+    private void updateTasksList() {
+        try {
+            System.out.println("prognamesNeeded = " + prognamesNeeded);
+            System.out.println("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
+            if (null == updateTasksListIterator) {
+                ITasks tasks = robot.tasks();
+                if (null != tasks) {
+                    updateTasksListIterator = tasks.iterator();
+                }
+            }
+            if (updateTasksListIterator != null) {
+                if (updateTasksListIterator.hasNext()) {
+                    Com4jObject c4jo = updateTasksListIterator.next();
+                    ITask tsk = null;
+                    String tskProgName = null;
+                    tsk = c4jo.queryInterface(ITask.class);
                     try {
                         IProgram tskProg = tsk.curProgram();
                         if (null != tskProg) {
@@ -809,29 +816,35 @@ public class FanucCRCLMain {
                         }
                     } catch (Exception e) {
                     }
-
-                    try {
-                        tskStatus = tsk.status();
-                    } catch (Exception e) {
+                    String upperTskProgName = tskProgName.toUpperCase();
+                    if (namesToTaskMap.keySet().contains(upperTskProgName)) {
+                        return;
                     }
-                } catch (ComException e) {
-                    e.printStackTrace();
-                    showError(e.toString());
-                    continue;
+                    if (!prognamesNeeded.contains(upperTskProgName)) {
+                        return;
+                    }
+                    tasksList.add(tsk);
+                    namesToTaskMap.put(upperTskProgName, tsk);
+                    System.out.println("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
+                } else {
+                    updateTasksListIterator = null;
                 }
-                if (tskStatus == FRETaskStatusConstants.frStatusAborted) {
-                    continue;
-                }
-                if (null == tskProgName && null == pType && null == tskStatus) {
-                    continue;
-                }
-                if(!programNamesToCheckSet.contains(tskProgName.toUpperCase())) {
-                    continue;
-                }
-                System.out.println("Still running task  = " + tskProgName);
+            }
+        } catch (ComException e) {
+            e.printStackTrace();
+            showError(e.toString());
+        }
+    }
+
+    public boolean checkCurrentTasks() {
+        if (tasksList.size() < prognamesNeeded.size()) {
+            updateTasksList();
+        }
+        for (ITask tsk : tasksList) {
+            FRETaskStatusConstants tskStatus = tsk.status();
+            if (tskStatus == FRETaskStatusConstants.frStatusRun || tskStatus == FRETaskStatusConstants.frStatusRunAccept) {
                 return false;
             }
-            return true;
         }
         return true;
     }
@@ -927,7 +940,7 @@ public class FanucCRCLMain {
                             double rotDist = distRotFrom(pose);
                             if (dist < distanceTolerance
                                     && rotDist < distanceRotTolerance
-                                    && groupPos.isAtCurPosition() 
+                                    && groupPos.isAtCurPosition()
                                     && (System.currentTimeMillis() - moveTime > 10)
                                     && checkCurrentTasks()) {
                                 if (!lastCheckAtPosition) {
@@ -1008,7 +1021,7 @@ public class FanucCRCLMain {
                             System.out.println("time_running = " + time_running);
                         }
                         lastMaxJointDiff = maxDiff;
-                       
+
                     }
 
                 }
@@ -1073,7 +1086,7 @@ public class FanucCRCLMain {
             addMoveReason(MoveStatus.POSREG98_AT_CUR_POSITION);
             return false;
         }
-        if(!checkCurrentTasks()) {
+        if (!checkCurrentTasks()) {
             addMoveReason(MoveStatus.CHECKED_TASK_STILL_RUNNING);
             return false;
         }
@@ -1261,6 +1274,11 @@ public class FanucCRCLMain {
 
     public void disconnectRemoteRobot() {
         try {
+            tasksIterator = null;
+            getTaskListOutput = null;
+            updateTasksListIterator = null;
+            tasksList.clear();
+            namesToTaskMap.clear();
             robotIsConnected = false;
             displayInterface.setConnected(false);
             if (null != robotService) {
@@ -1291,6 +1309,11 @@ public class FanucCRCLMain {
 
     private synchronized void disconnectRemoteRobotInternal() {
 
+        tasksIterator = null;
+        getTaskListOutput = null;
+        updateTasksListIterator = null;
+        tasksList.clear();
+        namesToTaskMap.clear();
         try {
 //            if (null != robot_ec) {
 //                robot_ec.close();
@@ -1617,11 +1640,32 @@ public class FanucCRCLMain {
         startMoveTime = System.currentTimeMillis();
     }
 
+    private volatile Iterator<Com4jObject> tasksIterator = null;
+    private volatile List<Object[]> getTaskListOutput = null;
+
     public Optional<List<Object[]>> getTaskList(boolean showAborted) {
-        ITasks tasks = robot.tasks();
-        final List<Object[]> taskList = new ArrayList<>();
-        if (null != tasks) {
-            for (Com4jObject c4jo : tasks) {
+        if (null == tasksIterator || null == getTaskListOutput) {
+            ITasks tasks = robot.tasks();
+            getTaskListOutput = new ArrayList<>();
+            if (null != tasks) {
+                tasksIterator = tasks.iterator();
+                getTaskListOutput = new ArrayList<>();
+            }
+            return Optional.empty();
+        } else {
+            if (!tasksIterator.hasNext()) {
+                tasksIterator = null;
+                Optional<List<Object[]>> ret = Optional.of(getTaskListOutput);
+                getTaskListOutput = null;
+                return ret;
+            }
+            Com4jObject c4jo = tasksIterator.next();
+            if (null == c4jo) {
+                tasksIterator = null;
+                Optional<List<Object[]>> ret = Optional.of(getTaskListOutput);
+                getTaskListOutput = null;
+                return ret;
+            } else {
                 ITask tsk = null;
                 String tskProgName = null;
                 FREProgramTypeConstants pType = null;
@@ -1629,10 +1673,16 @@ public class FanucCRCLMain {
                 try {
                     tsk = c4jo.queryInterface(ITask.class);
                     try {
+                        tskStatus = tsk.status();
+                    } catch (Exception e) {
+                    }
+                    if (!showAborted && tskStatus == FRETaskStatusConstants.frStatusAborted) {
+                        return Optional.empty();
+                    }
+                    try {
                         pType = tsk.programType();
                     } catch (Exception e) {
                     }
-
                     try {
                         IProgram tskProg = tsk.curProgram();
                         if (null != tskProg) {
@@ -1640,30 +1690,22 @@ public class FanucCRCLMain {
                         }
                     } catch (Exception e) {
                     }
-
-                    try {
-                        tskStatus = tsk.status();
-                    } catch (Exception e) {
-                    }
                 } catch (ComException e) {
                     e.printStackTrace();
                     showError(e.toString());
-                    continue;
+                    return Optional.empty();
                 }
-                if (!showAborted && tskStatus == FRETaskStatusConstants.frStatusAborted) {
-                    continue;
-                }
+
                 if (null == tskProgName && null == pType && null == tskStatus) {
-                    continue;
+                    return Optional.empty();
                 }
-                taskList.add(new Object[]{
+                getTaskListOutput.add(new Object[]{
                     tskProgName == null ? "" : tskProgName,
                     pType == null ? "" : pType.toString(),
                     tskStatus == null ? "" : tskStatus.toString()});
+                return Optional.empty();
             }
-            return Optional.of(taskList);
         }
-        return Optional.empty();
     }
 
     long lastRunMotionTpTime = 0;
@@ -1724,6 +1766,12 @@ public class FanucCRCLMain {
         lastRunMotionProgram = program;
         lastRunMotionTpTime = System.currentTimeMillis();
         timeToStartMotionProgram = lastRunMotionTpTime - start;
+        String progName = program.name();
+        if (null != progName && progName.length() > 1) {
+            prognamesNeeded.add(progName);
+            System.out.println("progName = " + progName);
+            System.out.println("prognamesNeeded = " + prognamesNeeded);
+        }
     }
     public static final long MOVE_INTERVAL_MILLIS = 100;
     private int currentWaypointNumber = 0;
@@ -1916,6 +1964,7 @@ public class FanucCRCLMain {
 
     private void runTPProgram(ITPProgram prog) {
         try {
+            String progName = prog.name();
             for (Com4jObject c4jo : robot.tasks()) {
                 ITask tsk = null;
                 String tskProgName = null;
@@ -1937,7 +1986,7 @@ public class FanucCRCLMain {
                     continue;
                 }
                 try {
-                    if (tsk != null && tskProgName != null && tskProgName.equals(prog.name())) {
+                    if (tsk != null && tskProgName != null && tskProgName.equals(progName)) {
                         FRETaskStatusConstants tskStatus = tsk.status();
 //                        System.out.println("tskStatus = " + tskStatus);
                         if (tskStatus == FRETaskStatusConstants.frStatusRun) {
@@ -1978,6 +2027,11 @@ public class FanucCRCLMain {
             while (!didit && !Thread.currentThread().isInterrupted()) {
                 try {
                     prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
+                    if (null != progName && progName.length() > 1) {
+                        prognamesNeeded.add(progName);
+                        System.out.println("progName = " + progName);
+                        System.out.println("prognamesNeeded = " + prognamesNeeded);
+                    }
                     didit = true;
                 } catch (Exception e) {
                     tries++;
@@ -2031,7 +2085,7 @@ public class FanucCRCLMain {
             }
             float curVal = (float) posReg97Joint.item(number);
             double absDiff = (double) Math.abs(val - curVal);
-            if(diffindex < diffs.length) {
+            if (diffindex < diffs.length) {
                 diffs[diffindex] = absDiff;
                 diffindex++;
             }
@@ -2744,19 +2798,17 @@ public class FanucCRCLMain {
         }
         robotService.submit(this::connectRemoteRobotInternal);
     }
-    
-    private static final List<String>
-            programNamesToCheckList = Arrays.asList(
-                    "GRIPPER_OPEN",
-                    "MOVE_W_TIME",
-                    "MOVE_JOINT",
-                    "TOOL_OPEN",
-                    "TOOL_CLOSE",
-                    "GRIPPER_CLOSE");
 
-    private static final HashSet<String>
-            programNamesToCheckSet = new HashSet<>(programNamesToCheckList);
-    
+    private static final List<String> programNamesToCheckList = Arrays.asList(
+            "GRIPPER_OPEN",
+            "MOVE_W_TIME",
+            "MOVE_JOINT",
+            "TOOL_OPEN",
+            "TOOL_CLOSE",
+            "GRIPPER_CLOSE");
+
+    private static final HashSet<String> programNamesToCheckSet = new HashSet<>(programNamesToCheckList);
+
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
