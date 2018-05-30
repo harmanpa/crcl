@@ -878,6 +878,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     public void finishSetStatus() {
         pendantClientJPanel1.finishSetStatus();
     }
+    
+    @Override
+    public void clearProgramTimesDistances() {
+        pendantClientJPanel1.clearProgramTimesDistances();
+    }
 
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {

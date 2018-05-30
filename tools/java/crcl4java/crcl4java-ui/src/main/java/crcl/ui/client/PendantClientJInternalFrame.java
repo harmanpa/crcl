@@ -456,6 +456,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugInterrupts = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemEnableDebugConnect = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebugShowProgram = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseEXI = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
@@ -705,6 +706,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         });
         jMenuOptions.add(jCheckBoxMenuItemEnableDebugConnect);
 
+        jCheckBoxMenuItemDebugShowProgram.setText("Debug showProgram");
+        jCheckBoxMenuItemDebugShowProgram.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDebugShowProgramActionPerformed(evt);
+            }
+        });
+        jMenuOptions.add(jCheckBoxMenuItemDebugShowProgram);
+
         jCheckBoxMenuItemUseEXI.setText("USE EXI (Efficient XML Interchange)");
         jCheckBoxMenuItemUseEXI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -940,11 +949,16 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.setValidateXmlSchema(jCheckBoxMenuItemValidateXml.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemValidateXmlActionPerformed
 
+    private void jCheckBoxMenuItemDebugShowProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDebugShowProgramActionPerformed
+        pendantClientJPanel1.setDebugShowProgram(jCheckBoxMenuItemDebugShowProgram.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemDebugShowProgramActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugInterrupts;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendCommand;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugShowProgram;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEnableDebugConnect;
@@ -1029,6 +1043,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.finishSetStatus();
     }
 
+    @Override
+    public void clearProgramTimesDistances() {
+        pendantClientJPanel1.clearProgramTimesDistances();
+    }
+    
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
         pendantClientJPanel1.checkXmlQuery(crclSocket);

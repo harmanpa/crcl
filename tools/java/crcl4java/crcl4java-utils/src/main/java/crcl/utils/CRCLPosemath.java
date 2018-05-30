@@ -47,8 +47,6 @@ import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
 import java.util.Objects;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;

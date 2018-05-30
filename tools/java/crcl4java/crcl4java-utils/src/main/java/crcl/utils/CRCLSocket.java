@@ -2353,6 +2353,50 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    
+    public static class XmlToCsvHandler extends DefaultHandler {
+
+        private final StringBuffer buffer = new StringBuffer();
+        private int fields = 0;
+        private int last_end_buffer_length = 0;
+        private int maxFields;
+
+        public int getMaxFields() {
+            return maxFields;
+        }
+
+        public void setMaxFields(int maxFields) {
+            this.maxFields = maxFields;
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            if (fields <= maxFields) {
+                buffer.append(ch, start, length);
+            }
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            final int bl = buffer.length();
+            if (bl > last_end_buffer_length) {
+                fields++;
+                if (fields < maxFields) {
+                    buffer.append(",");
+                } else if (fields == maxFields) {
+                    buffer.append(" ...");
+                }
+                last_end_buffer_length = buffer.length();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return buffer.toString();
+        }
+
+    }
+    
     static public String commandToSimpleString(CRCLCommandType cmd) {
         try {
             if (null == cmd) {
@@ -2375,39 +2419,8 @@ public class CRCLSocket implements AutoCloseable {
         }
         String xmlString = this.commandToString(cmd, false);
         try {
-            DefaultHandler handler = new DefaultHandler() {
-
-                private final StringBuffer buffer = new StringBuffer();
-                private int fields = 0;
-                private int last_end_buffer_length = 0;
-
-                @Override
-                public void characters(char[] ch, int start, int length) throws SAXException {
-                    if (fields <= max_fields) {
-                        buffer.append(ch, start, length);
-                    }
-                }
-
-                @Override
-                public void endElement(String uri, String localName, String qName) throws SAXException {
-                    final int bl = buffer.length();
-                    if (bl > last_end_buffer_length) {
-                        fields++;
-                        if (fields < max_fields) {
-                            buffer.append(",");
-                        } else if (fields == max_fields) {
-                            buffer.append(" ...");
-                        }
-                        last_end_buffer_length = buffer.length();
-                    }
-                }
-
-                @Override
-                public String toString() {
-                    return buffer.toString();
-                }
-
-            };
+            XmlToCsvHandler handler = new XmlToCsvHandler();
+            handler.setMaxFields(max_fields);
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser parser = factory.newSAXParser();
             XMLReader xmlreader = parser.getXMLReader();
@@ -2431,6 +2444,59 @@ public class CRCLSocket implements AutoCloseable {
             throw new SAXException("xmlString=" + xmlString, sAXException);
         } catch (IOException iOException) {
             throw new IOException("xmlString=" + xmlString, iOException);
+        }
+    }
+
+    static public String statusToSimpleString(CRCLStatusType stat) {
+        try {
+            if (null == stat) {
+                throw new IllegalArgumentException("cmd == null");
+            }
+            return " CRCLStatusType{ " + getUtilSocket().statusToSimpleString(stat, 30, 160) + " } ";
+        } catch (Exception ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
+        }
+    }
+
+    
+
+    public String statusToSimpleString(CRCLStatusType stat, final int max_fields, final int max_length) {
+        if (null == stat) {
+            throw new IllegalArgumentException("stat == null");
+        }
+        try {
+            String xmlString = this.statusToString(stat, false);
+            try {
+                XmlToCsvHandler handler = new XmlToCsvHandler();
+                handler.setMaxFields(max_fields);
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                SAXParser parser = factory.newSAXParser();
+                XMLReader xmlreader = parser.getXMLReader();
+                xmlreader.setContentHandler(handler);
+                xmlreader.parse(new InputSource(new StringReader(xmlString)));
+                String cmdName = stat.getClass().getName();
+                int lpindex = cmdName.lastIndexOf('.');
+                if (lpindex > 0 && lpindex < cmdName.length() - 1) {
+                    cmdName = cmdName.substring(lpindex + 1);
+                }
+                if (cmdName.endsWith("Type")) {
+                    cmdName = cmdName.substring(0, cmdName.length() - 4);
+                }
+                String content = handler.toString();
+                content = content.trim();
+                if (content.length() > max_length) {
+                    content = content.substring(0, (max_length - 4)) + " ...";
+                }
+                return cmdName + " " + content;
+            } catch (SAXException sAXException) {
+                throw new SAXException("xmlString=" + xmlString, sAXException);
+            } catch (IOException iOException) {
+                throw new IOException("xmlString=" + xmlString, iOException);
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "stat="+stat, ex);
+            throw new RuntimeException(ex);
         }
     }
 

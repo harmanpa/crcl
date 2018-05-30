@@ -7,6 +7,10 @@ pom.xml.releaseBackup
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Intellij Idea Files
+.idea
+*.iml
+
 # Package Files #
 *.jar
 *.war
