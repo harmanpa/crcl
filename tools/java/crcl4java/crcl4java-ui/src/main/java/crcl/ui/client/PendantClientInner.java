@@ -103,8 +103,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.SocketException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -213,7 +211,7 @@ public class PendantClientInner {
     private static final double XYZ_JOG_INCREMENT_DEFAULT = 3.0;
     private double xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
     private int poll_ms = jogInterval;
-//    private BigInteger cmdId = 1;
+
     private final XpathUtils xpu;
     private CRCLSocket checkerCRCLSocket = null;
     private CRCLCommandInstanceType checkerCommandInstance = null;
@@ -265,8 +263,8 @@ public class PendantClientInner {
     private boolean quitOnTestCommandFailure = !Boolean.getBoolean("crcl4java.client.continueOnTestCommandFailure");
     long runStartMillis = 0;
     long runEndMillis = 0;
-    private BigDecimal jointMoveAccel = null;
-    private BigDecimal jointMoveSpeed = null;
+    private double jointMoveAccel;
+    private double jointMoveSpeed;
     private volatile CRCLStatusType testCommandStartStatus = null;
     private boolean lengthUnitSent = false;
     private LengthUnitEnumType testCommandStartLengthUnit = null;
@@ -1142,26 +1140,6 @@ public class PendantClientInner {
         secondLastIncCommandThreadStackTime = lastIncCommandThreadStackTime;
         lastIncCommandThreadStackId = id;
         lastIncCommandThreadStackTime = incCommandTime;
-//        if (null == cmdId) {
-//            cmdId = 1;
-//        }
-//        if (null != cmd.getCommandID()) {
-//            cmdId = cmd.getCommandID();
-//        }
-//        List<Long> usedIds = new ArrayList<>();
-//        if (null != status
-//                && null != status.getCommandStatus()
-//                && null != status.getCommandStatus().getCommandID()) {
-//            usedIds.add(status.getCommandStatus().getCommandID().longValue());
-//        }
-//        if (null != lastCommandIdSent) {
-//            usedIds.add(lastCommandIdSent.longValue());
-//        }
-//        final long cmdIdInt = cmdId.longValue();
-//        if (null == cmd.getCommandID() || usedIds.stream().anyMatch(i -> i == cmdIdInt)) {
-//            long newCmdIdInt = usedIds.stream().mapToLong(i -> i).max().orElse(cmdIdInt) + 1;
-//            cmd.setCommandID(BigInteger.valueOf(newCmdIdInt));
-//        }
     }
 
     public long statusCommandId() {
@@ -2556,7 +2534,10 @@ public class PendantClientInner {
         for (int i = 0; i < waiting_for_pause_queue.get() + 1; i++) {
             try {
                 if (pauseQueue.isEmpty()) {
+                    paused = false;
                     pauseQueue.put(Thread.currentThread().getStackTrace());
+                    paused = false;
+
                 } else {
                     break;
                 }
@@ -2564,6 +2545,7 @@ public class PendantClientInner {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+        paused = false;
     }
 
     public boolean isStepMode() {
@@ -2858,8 +2840,7 @@ public class PendantClientInner {
                     }
                 }
                 outer.stopPollTimer();
-//            this.stopStatusReaderThread();
-                BigInteger cmdId = BigInteger.ZERO;
+
                 programCommandStartTime = System.currentTimeMillis();
                 PmCartesian p0 = getPoseCart();
                 if (this.runStartMillis < 1 || startLine == 0) {
@@ -3065,10 +3046,10 @@ public class PendantClientInner {
     public Map<String, String> getDefaultTestPropertiesMap() {
         Map<String, String> map = new HashMap<>();
         map.put("jointTol", Double.toString(jointTol));
-        map.put("jointPosIncrement", BigDecimal.valueOf(jogIncrement).toString());
-        map.put("jointMoveSpeed", jointMoveSpeed != null ? jointMoveSpeed.toString() : "");
-        map.put("jointMoveAccel", jointMoveAccel != null ? jointMoveAccel.toString() : "");
-        map.put("xyzAxisIncrement", BigDecimal.valueOf(this.getXyzJogIncrement()).toString());
+        map.put("jointPosIncrement", Double.toString(jogIncrement));
+        map.put("jointMoveSpeed",  "");
+        map.put("jointMoveAccel", "");
+        map.put("xyzAxisIncrement",Double.toString(this.getXyzJogIncrement()));
         map.put("maxJoint", "10");
         return map;
     }
@@ -3078,7 +3059,7 @@ public class PendantClientInner {
      *
      * @return the value of jointMoveAccel
      */
-    public BigDecimal getJointMoveAccel() {
+    public double getJointMoveAccel() {
         return jointMoveAccel;
     }
 
@@ -3087,7 +3068,7 @@ public class PendantClientInner {
      *
      * @param jointMoveAccel new value of jointMoveAccel
      */
-    public void setJointMoveAccel(BigDecimal jointMoveAccel) {
+    public void setJointMoveAccel(double jointMoveAccel) {
         this.jointMoveAccel = jointMoveAccel;
     }
 
@@ -3096,7 +3077,7 @@ public class PendantClientInner {
      *
      * @return the value of jointMoveSpeed
      */
-    public BigDecimal getJointMoveSpeed() {
+    public double getJointMoveSpeed() {
         return jointMoveSpeed;
     }
 
@@ -3126,7 +3107,7 @@ public class PendantClientInner {
      *
      * @param jointMoveSpeed new value of jointMoveSpeed
      */
-    public void setJointMoveSpeed(BigDecimal jointMoveSpeed) {
+    public void setJointMoveSpeed(double jointMoveSpeed) {
         this.jointMoveSpeed = jointMoveSpeed;
     }
 

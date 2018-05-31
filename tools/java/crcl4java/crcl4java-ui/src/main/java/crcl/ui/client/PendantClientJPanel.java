@@ -226,6 +226,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
+        if(isPaused()) {
+            throw new IllegalStateException("still paused after unpauseCrclProgram()");
+        }
     }
 
     public void showJointsPlot() {
