@@ -84,6 +84,7 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import crcl.ui.XFutureVoid;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -155,14 +156,16 @@ public class FanucCRCLMain {
      *
      * @param remoteRobotHost new value of remoteRobotHost
      */
-    public void setRemoteRobotHost(String remoteRobotHost) {
+    public XFutureVoid setRemoteRobotHost(String remoteRobotHost) {
         if (this.remoteRobotHost != remoteRobotHost) {
             this.remoteRobotHost = remoteRobotHost;
             if (null != displayInterface) {
                 displayInterface.getjTextFieldHostName().setText(remoteRobotHost);
             }
             this.disconnectRemoteRobot();
-            this.connectRemoteRobot();
+            return this.connectRemoteRobot();
+        } else {
+            return XFutureVoid.completedFutureWithName("setRemoteRobotHost.nochange");
         }
     }
 
@@ -263,7 +266,8 @@ public class FanucCRCLMain {
         pos.update();
     }
 
-    public void startDisplayInterface() {
+    public XFutureVoid startDisplayInterface() {
+        XFutureVoid ret = new XFutureVoid("startDisplayInterface");
         java.awt.EventQueue.invokeLater(() -> {
             if (null == displayInterface) {
                 displayInterface = new FanucCRCLServerJFrame();
@@ -331,21 +335,24 @@ public class FanucCRCLMain {
                 FanucCRCLMain.this.border1 = Float.valueOf(displayInterface.getjTextFieldLimitSafetyBumper().getText());
             });
             displayInterface.setVisible(true);
+            ret.complete();
         });
+        return ret;
     }
 
-    public void start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
+    public XFutureVoid start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
         try {
             this.preferRobotNeighborhood = preferRobotNeighborhood;
             this.neighborhoodname = neighborhoodname;
             this.remoteRobotHost = remoteRobotHost;
             this.localPort = localPort;
 
-            connectRemoteRobot();
-            startCrclServer();
+            return connectRemoteRobot()
+                    .thenRun(this::wrappedStartCrclServer);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, exception);
             showError(exception.toString());
+            throw new RuntimeException(exception);
         }
     }
 
@@ -567,13 +574,16 @@ public class FanucCRCLMain {
         return (null != robot && robotIsConnected);
     }
 
-    public void setConnected(boolean connected) {
+    public XFutureVoid setConnected(boolean connected) {
         if (connected != isConnected()) {
             if (connected) {
-                connectRemoteRobot();
+                return connectRemoteRobot();
             } else {
                 disconnectRemoteRobot();
+                return XFutureVoid.completedFutureWithName("setConnected.disconnected");
             }
+        } else {
+            return XFutureVoid.completedFutureWithName("setConnected.nochange");
         }
     }
 
@@ -2362,6 +2372,14 @@ public class FanucCRCLMain {
             }
         }
     }
+    private void wrappedStartCrclServer() {
+        try {
+            startCrclServer();
+        } catch (IOException ex) {
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
+        }
+    }
 
     Future<?> crclServerFuture = null;
 
@@ -2580,14 +2598,16 @@ public class FanucCRCLMain {
         return neighborhoodname;
     }
 
-    public void setNeighborhoodname(String neighborhoodname) {
+    public XFutureVoid setNeighborhoodname(String neighborhoodname) {
         if (this.neighborhoodname != neighborhoodname) {
             this.neighborhoodname = neighborhoodname;
             if (null != displayInterface) {
                 displayInterface.getjTextFieldRobotNeighborhoodPath().setText(remoteRobotHost);
             }
             this.disconnectRemoteRobot();
-            this.connectRemoteRobot();
+            return this.connectRemoteRobot();
+        } else {
+            return XFutureVoid.completedFutureWithName("setNeighborhoodname.nochange");
         }
     }
 
@@ -2609,16 +2629,19 @@ public class FanucCRCLMain {
      *
      * @param preferRobotNeighborhood new value of preferRobotNeighborhood
      */
-    public void setPreferRobotNeighborhood(boolean preferRobotNeighborhood) {
+    public XFutureVoid setPreferRobotNeighborhood(boolean preferRobotNeighborhood) {
         if (this.preferRobotNeighborhood != preferRobotNeighborhood) {
             this.preferRobotNeighborhood = preferRobotNeighborhood;
             if (null != displayInterface) {
                 displayInterface.setPreferRobotNeighborhood(preferRobotNeighborhood);
             }
             this.disconnectRemoteRobot();
-            this.connectRemoteRobot();
+            return this.connectRemoteRobot();
+        } else {
+            return XFutureVoid.completedFutureWithName("setPreferRobotNeighborhood.nochange");
         }
     }
+    
 
     float lowerJointLimits[] = new float[]{-10000.f, -10000.f, -10000.f, -10000.f, -10000.f, -10000.f};
     float upperJointLimits[] = new float[]{10000.f, 10000.f, 10000.f, 10000.f, 10000.f, 10000.f};
@@ -2792,11 +2815,11 @@ public class FanucCRCLMain {
         }
     };
 
-    public void connectRemoteRobot() {
+    public XFutureVoid connectRemoteRobot() {
         if (null == robotService) {
             robotService = Executors.newSingleThreadExecutor(daemonThreadFactory);
         }
-        robotService.submit(this::connectRemoteRobotInternal);
+        return XFutureVoid.runAsync("connectRemoteRobot",this::connectRemoteRobotInternal,robotService);
     }
 
     private static final List<String> programNamesToCheckList = Arrays.asList(
