@@ -803,10 +803,28 @@ public class FanucCRCLMain {
     private final Set<String> prognamesNeeded = new HashSet<>();
     private volatile Iterator<Com4jObject> updateTasksListIterator = null;
 
+    private static final Logger LOGGER = Logger.getLogger(FanucCRCLMain.class.getName());
+    
+    private static boolean debug = Boolean.getBoolean("FanucCRCLMain.debug");
+    
+    private static void logDebug(String string)  {
+        if(debug) {
+            LOGGER.log(Level.INFO, string);
+        }
+    }
+    
+    public static boolean isDebug() {
+        return debug;
+    }
+    
+    public static void setDebug(boolean newDebugVal) {
+        debug = newDebugVal;
+    }
+    
     private void updateTasksList() {
         try {
-            System.out.println("prognamesNeeded = " + prognamesNeeded);
-            System.out.println("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
+            logDebug("prognamesNeeded = " + prognamesNeeded);
+            logDebug("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
             if (null == updateTasksListIterator) {
                 ITasks tasks = robot.tasks();
                 if (null != tasks) {
@@ -835,7 +853,7 @@ public class FanucCRCLMain {
                     }
                     tasksList.add(tsk);
                     namesToTaskMap.put(upperTskProgName, tsk);
-                    System.out.println("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
+                    logDebug("namesToTaskMap.keySet() = " + namesToTaskMap.keySet());
                 } else {
                     updateTasksListIterator = null;
                 }
@@ -876,18 +894,18 @@ public class FanucCRCLMain {
                                 try {
                                     lastDoneMovePose = CRCLPosemath.copy(mtPrev.getEndPosition());
                                     lastDoneMoveCommandID = mtPrev.getCommandID();
-//                                            System.out.println("mtPrev.getCommandID() = " + mtPrev.getCommandID());
-//                                            System.out.println("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
-//                                            System.out.println("rotDist = " + rotDist);
-//                                            System.out.println("dist = " + dist);
+//                                            logDebug("mtPrev.getCommandID() = " + mtPrev.getCommandID());
+//                                            logDebug("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
+//                                            logDebug("rotDist = " + rotDist);
+//                                            logDebug("dist = " + dist);
                                     double distTransFromStart = distTransFrom(moveToStartPosition);
-//                                            System.out.println("distFromStart = " + distTransFromStart);
+//                                            logDebug("distFromStart = " + distTransFromStart);
                                     double distRotFromStart = distRotFrom(moveToStartPosition);
-//                                            System.out.println("distRotFromStart = " + distRotFromStart);
-//                                            System.out.println("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
+//                                            logDebug("distRotFromStart = " + distRotFromStart);
+//                                            logDebug("Done move = " + CRCLSocket.getUtilSocket().commandToString(prevCmd, false) + " status =" + CRCLSocket.getUtilSocket().statusToString(status, false));
                                     long moveTime = (System.currentTimeMillis() - startMoveTime);
-//                                            System.out.println("Move took " + moveTime + " ms.");
-//                                            System.out.println("moveChecksDone = " + moveChecksDone);
+//                                            logDebug("Move took " + moveTime + " ms.");
+//                                            logDebug("moveChecksDone = " + moveChecksDone);
 //                                                moveLogFilePrintStream.println("current_time_ms,current_time_string,id,start_x,start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
                                     if (keepMoveToLog) {
                                         openMoveToLogFile();
@@ -978,21 +996,21 @@ public class FanucCRCLMain {
                     }
                 } else if (prevCmd instanceof InitCanonType) {
                     long diff = System.currentTimeMillis() - dwellEndTime;
-//                            System.out.println("(prevCmd instanceof InitCanonType) diff = " + diff);
-//                            System.out.println("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
+//                            logDebug("(prevCmd instanceof InitCanonType) diff = " + diff);
+//                            logDebug("status.getCommandStatus().getCommandState() = " + status.getCommandStatus().getCommandState());
                     if (diff >= 0 && status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
 //                                if(diff > 5) {
 //                                    showError("dwell took:" + diff + " additional milliseconds over the expected "+((long)(((DwellType)prevCmd).getDwellTime().doubleValue()*1000.0)));
 //                                }
                         lastServoReady = true;
-//                                System.out.println("robotResetCount = " + robotResetCount);
+//                                logDebug("robotResetCount = " + robotResetCount);
                         boolean secondInitSafetyStatError = checkSafetyStatError();
-//                                System.out.println("secondInitSafetyStatError = " + secondInitSafetyStatError);
+//                                logDebug("secondInitSafetyStatError = " + secondInitSafetyStatError);
                         if (secondInitSafetyStatError) {
                             setCommandState(CommandStateEnumType.CRCL_ERROR);
                         } else if (robotResetCount < 3) {
                             boolean secondInitCheckServoReady = checkServoReady();
-                            System.out.println("secondInitCheckServoReady = " + secondInitCheckServoReady);
+                            logDebug("secondInitCheckServoReady = " + secondInitCheckServoReady);
                             if (!secondInitCheckServoReady) {
                                 robot.alarms().reset();
                                 robot.tasks().abortAll(true);
@@ -1026,9 +1044,9 @@ public class FanucCRCLMain {
                         }
                         if (maxDiff < 0.1 && lastMaxJointDiff < 0.1) {
                             setCommandState(CommandStateEnumType.CRCL_DONE);
-                            System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
+                            logDebug("actuateJointMaxTime = " + actuateJointMaxTime);
                             long time_running = System.currentTimeMillis() - actuateJointStartTime;
-                            System.out.println("time_running = " + time_running);
+                            logDebug("time_running = " + time_running);
                         }
                         lastMaxJointDiff = maxDiff;
 
@@ -1200,19 +1218,19 @@ public class FanucCRCLMain {
             main.stopInternal();
         }
         main = null;
-        System.out.println("Thread.activeCount() = " + Thread.activeCount());
+        logDebug("Thread.activeCount() = " + Thread.activeCount());
         for (StackTraceElement ste[] : Thread.getAllStackTraces().values()) {
-            System.out.println("ste = " + Arrays.toString(ste));
+            logDebug("ste = " + Arrays.toString(ste));
         }
         Thread ta[] = new Thread[10 + Thread.activeCount()];
         Thread.enumerate(ta);
         for (Thread t : ta) {
             if (null != t && !t.equals(Thread.currentThread())) {
-                System.out.println("t = " + t);
-                System.out.println("t.isAlive() = " + t.isAlive());
-                System.out.println("t.isDaemon() = " + t.isDaemon());
-                System.out.println("t.isInteruppted() = " + t.isInterrupted());
-                System.out.println("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
+                logDebug("t = " + t);
+                logDebug("t.isAlive() = " + t.isAlive());
+                logDebug("t.isDaemon() = " + t.isDaemon());
+                logDebug("t.isInteruppted() = " + t.isInterrupted());
+                logDebug("t.getStackTrace() = " + Arrays.toString(t.getStackTrace()));
                 t.interrupt();
             }
         }
@@ -1346,12 +1364,12 @@ public class FanucCRCLMain {
         lastServoReady = true;
 
         boolean initSafetyStatError = checkSafetyStatError();
-//        System.out.println("initSafetyStatError = " + initSafetyStatError);
+//        logDebug("initSafetyStatError = " + initSafetyStatError);
         if (initSafetyStatError) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
         } else {
             boolean initCheckServoReady = checkServoReady();
-//            System.out.println("initCheckServoReady = " + initCheckServoReady);
+//            logDebug("initCheckServoReady = " + initCheckServoReady);
             if (!initCheckServoReady) {
                 setCommandState(CommandStateEnumType.CRCL_WORKING);
                 dwellEndTime = System.currentTimeMillis() + 1000;
@@ -1600,7 +1618,7 @@ public class FanucCRCLMain {
 
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
 //        try {
-//            System.out.println("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
+//            logDebug("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
 //        } catch (CRCLException ex) {
 //            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
 //        }
@@ -1759,7 +1777,7 @@ public class FanucCRCLMain {
                 System.err.println("time since start=" + (curtime - start));
                 Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, e);
                 getTaskList(false).ifPresent(taskList -> {
-                    taskList.forEach((Object[] objects) -> System.out.println(Arrays.toString(objects)));
+                    taskList.forEach((Object[] objects) -> logDebug(Arrays.toString(objects)));
                 });
                 if (count > 3) {
                     showError(e.toString());
@@ -1779,8 +1797,8 @@ public class FanucCRCLMain {
         String progName = program.name();
         if (null != progName && progName.length() > 1) {
             prognamesNeeded.add(progName);
-            System.out.println("progName = " + progName);
-            System.out.println("prognamesNeeded = " + prognamesNeeded);
+            logDebug("progName = " + progName);
+            logDebug("prognamesNeeded = " + prognamesNeeded);
         }
     }
     public static final long MOVE_INTERVAL_MILLIS = 100;
@@ -1908,7 +1926,7 @@ public class FanucCRCLMain {
 
     private void handleDwell(DwellType dwellCmd) {
         dwellEndTime = System.currentTimeMillis() + ((long) (dwellCmd.getDwellTime() * 1000.0 + 1.0));
-//        System.out.println("dwellEndTime = " + dwellEndTime);
+//        logDebug("dwellEndTime = " + dwellEndTime);
         setCommandState(CommandStateEnumType.CRCL_WORKING);
     }
 
@@ -1998,9 +2016,9 @@ public class FanucCRCLMain {
                 try {
                     if (tsk != null && tskProgName != null && tskProgName.equals(progName)) {
                         FRETaskStatusConstants tskStatus = tsk.status();
-//                        System.out.println("tskStatus = " + tskStatus);
+//                        logDebug("tskStatus = " + tskStatus);
                         if (tskStatus == FRETaskStatusConstants.frStatusRun) {
-                            System.out.println("aborting task with curProgram().name() = " + tskProgName);
+                            logDebug("aborting task with curProgram().name() = " + tskProgName);
                             tsk.abort(true, true);
                             long t0 = System.currentTimeMillis();
                             int cycles = 0;
@@ -2009,18 +2027,18 @@ public class FanucCRCLMain {
                                     || tskStatus == FRETaskStatusConstants.frStatusAborting)) {
                                 Thread.sleep(10);
                                 tskStatus = tsk.status();
-                                System.out.println("tskStatus = " + tskStatus);
+                                logDebug("tskStatus = " + tskStatus);
                                 cycles++;
-                                System.out.println("cycles = " + cycles);
+                                logDebug("cycles = " + cycles);
                             }
                             long t1 = System.currentTimeMillis();
                             boolean interrupted = Thread.currentThread().isInterrupted();
-                            System.out.println("interrupted = " + interrupted);
+                            logDebug("interrupted = " + interrupted);
                             if (interrupted) {
                                 System.exit(1);
                             }
-                            System.out.println("Abort took " + (t1 - t0) + " ms and " + cycles + " cycles.");
-                            System.out.println("tskStatus = " + tskStatus);
+                            logDebug("Abort took " + (t1 - t0) + " ms and " + cycles + " cycles.");
+                            logDebug("tskStatus = " + tskStatus);
                         }
                     }
                 } catch (InterruptedException ie) {
@@ -2039,8 +2057,8 @@ public class FanucCRCLMain {
                     prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
                     if (null != progName && progName.length() > 1) {
                         prognamesNeeded.add(progName);
-                        System.out.println("progName = " + progName);
-                        System.out.println("prognamesNeeded = " + prognamesNeeded);
+                        logDebug("progName = " + progName);
+                        logDebug("prognamesNeeded = " + prognamesNeeded);
                     }
                     didit = true;
                 } catch (Exception e) {
@@ -2048,11 +2066,11 @@ public class FanucCRCLMain {
                     Thread.sleep(10);
                 }
             }
-            System.out.println("(System.currentTimeMillis()-runStartTime) = " + (System.currentTimeMillis() - runStartTime));
-            System.out.println("tries = " + tries);
+            logDebug("(System.currentTimeMillis()-runStartTime) = " + (System.currentTimeMillis() - runStartTime));
+            logDebug("tries = " + tries);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("e.getMessage() = " + e.getMessage());
+            logDebug("e.getMessage() = " + e.getMessage());
             prog.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
         }
     }
@@ -2119,7 +2137,7 @@ public class FanucCRCLMain {
             posReg97.update();
             posReg97.refresh();
             double chkval = posReg97Joint.item(number);
-            System.out.println("Actuate joints: number=" + number + " \tval=\t" + val + " \torigval=" + origval + "\tup_limit=" + uplimit + "\tlow_limit=" + lowlimit);
+            logDebug("Actuate joints: number=" + number + " \tval=\t" + val + " \torigval=" + origval + "\tup_limit=" + uplimit + "\tlow_limit=" + lowlimit);
             if (Math.abs(chkval - val) > 1e-4) {
                 System.err.println("chkval = " + chkval);
             }
@@ -2130,8 +2148,8 @@ public class FanucCRCLMain {
         regNumeric97.regLong((int) max_time);
         posReg97.update();
         actuateJointMaxTime = max_time;
-        System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
-        System.out.println("diffs = " + Arrays.toString(diffs));
+        logDebug("actuateJointMaxTime = " + actuateJointMaxTime);
+        logDebug("diffs = " + Arrays.toString(diffs));
         actuateJointStartTime = System.currentTimeMillis();
         this.runTPProgram(move_joint_prog);
 
@@ -2299,9 +2317,9 @@ public class FanucCRCLMain {
         if (handleCommandCount > 0 && updateStatusCount > 0) {
             String extra = "";
             if (prevCmd instanceof ActuateJointsType) {
-//                System.out.println("actuateJointMaxTime = " + actuateJointMaxTime);
+//                logDebug("actuateJointMaxTime = " + actuateJointMaxTime);
                 long time_running = System.currentTimeMillis() - actuateJointStartTime;
-//                System.out.println("time_running = " + time_running);
+//                logDebug("time_running = " + time_running);
                 extra = "actuateJointMaxTime = " + actuateJointMaxTime + ",time_running = " + time_running;
             }
             displayInterface.updatePerformanceString("Performance: Commands: " + handleCommandCount + " maxTime=" + maxHandleCommandTime + " (ms), avgTime=" + (totalHandleCommandTime / handleCommandCount) + "(ms)"
@@ -2363,10 +2381,10 @@ public class FanucCRCLMain {
             showError(ex.getMessage());
         } finally {
             try {
-                System.out.println("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
+                logDebug("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
                 clients.remove(cs);
                 cs.close();
-                System.out.println("clients = " + clients);
+                logDebug("clients = " + clients);
             } catch (IOException ex) {
                 Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -2840,7 +2858,7 @@ public class FanucCRCLMain {
             this.lastServoReady = true;
             if (preferRobotNeighborhood) {
                 if (null == neighborhood) {
-                    System.out.println("Calling createFRCRobotNeighborhood ...");
+                    logDebug("Calling createFRCRobotNeighborhood ...");
                     neighborhood = createFRCRobotNeighborhood();
                 }
                 IRNRobots robots = neighborhood.robots();
@@ -2856,25 +2874,25 @@ public class FanucCRCLMain {
                 robots.dispose();
             }
             if (null == robot) {
-                System.out.println("Calling createFRCRobot ...");
+                logDebug("Calling createFRCRobot ...");
                 robot = com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot();
-                System.out.println("createFRCRobot returned " + robot);
+                logDebug("createFRCRobot returned " + robot);
                 setPreferRobotNeighborhood(false);
             }
 
             robotIsConnected = robot.isConnected();
 
             if (!robotIsConnected) {
-                System.out.println("Connecting to " + remoteRobotHost + " ...");
+                logDebug("Connecting to " + remoteRobotHost + " ...");
                 int tries = 0;
                 robot.connectEx(remoteRobotHost, true, 1, 1);
                 while (!robot.isConnected() && !Thread.currentThread().isInterrupted() && tries < 10) {
                     tries++;
-                    System.out.println("Connecting to " + remoteRobotHost + " ... : tries = " + tries + "/10");
+                    logDebug("Connecting to " + remoteRobotHost + " ... : tries = " + tries + "/10");
                     Thread.sleep(200);
                 }
                 robotIsConnected = robot.isConnected();
-                System.out.println("robotIsConnected = " + robotIsConnected);
+                logDebug("robotIsConnected = " + robotIsConnected);
             }
 
             if (!robotIsConnected) {
@@ -2886,7 +2904,7 @@ public class FanucCRCLMain {
             iip.record();
             groupPos = iip.group((short) 1);
 
-            System.out.println("Getting list of programs ...");
+            logDebug("Getting list of programs ...");
             IPrograms programs = robot.programs();
             if (null != programs) {
                 synchronized (tpPrograms) {
@@ -2900,32 +2918,32 @@ public class FanucCRCLMain {
                             tpPrograms.add(program);
                         }
                         if (null != program && program.name().equalsIgnoreCase("GRIPPER_OPEN")) {
-                            System.out.println("Found open_gripper program.");
+                            logDebug("Found open_gripper program.");
                             open_gripper_prog = program;
 
                         }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_W_TIME")) {
-                            System.out.println("Found MOVE_W_TIME program.");
+                            logDebug("Found MOVE_W_TIME program.");
                             move_w_time_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_LINEAR")) {
-                            System.out.println("Found MOVE_LINEAR program.");
+                            logDebug("Found MOVE_LINEAR program.");
                             move_linear_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_JOINT")) {
-                            System.out.println("Found MOVE_JOINT program.");
+                            logDebug("Found MOVE_JOINT program.");
                             move_joint_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("TOOL_OPEN")) {
-                            System.out.println("Found MOVE_JOINT program.");
+                            logDebug("Found MOVE_JOINT program.");
                             tool_open_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("TOOL_CLOSE")) {
-                            System.out.println("Found MOVE_JOINT program.");
+                            logDebug("Found MOVE_JOINT program.");
                             tool_close_prog = program;
                         }
                         if (null != program && program.name().equalsIgnoreCase("GRIPPER_CLOSE")) {
-                            System.out.println("Found close_gripper program.");
+                            logDebug("Found close_gripper program.");
                             close_gripper_prog = program;
                         }
                     }
@@ -2947,7 +2965,7 @@ public class FanucCRCLMain {
             posReg98.record();
             posReg97 = robot.regPositions().item(97, null).queryInterface(ISysPosition.class).group((short) 1);
             posReg97.record();
-            System.out.println("Calling robot.sysVariables() ...");
+            logDebug("Calling robot.sysVariables() ...");
             IVars sysvars = robot.sysVariables();
             overrideVar = sysvars.item("$MCR.$GENOVERRIDE", null).queryInterface(IVar.class);
             if (null != overrideVar) {
@@ -2976,7 +2994,7 @@ public class FanucCRCLMain {
             }
             readAndApplyUserJointLimits();
             updateJFrame();
-            System.out.println("Connect to Remote Fanuc Robot complete.");
+            logDebug("Connect to Remote Fanuc Robot complete.");
         } catch (ComException comEx) {
             showComException(comEx);
         } catch (Exception e) {
@@ -3184,10 +3202,10 @@ public class FanucCRCLMain {
         boolean prefRNN = (args.length > 3) ? Boolean.valueOf(args[3]) : false;
         main.startDisplayInterface();
         main.start(prefRNN, neighborhoodname, host, port);
-//        System.out.println("Press enter \"stop\" to quit");
+//        logDebug("Press enter \"stop\" to quit");
 //        Scanner in = new Scanner(System.in);
 //        while (!in.nextLine().equals("stop")) {
-//            System.out.println("Enter \"stop\" to quit");
+//            logDebug("Enter \"stop\" to quit");
 //        }
 //        main.stop();
 //        main = null;

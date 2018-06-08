@@ -219,7 +219,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jogWorldRotSpeedsSet = false;
     }
 
+    public String pauseInfoString() {
+        return internal.pauseInfoString();
+    }
+    
     public void unpauseCrclProgram() {
+        String startPauseInfo = pauseInfoString();
         pauseTime = System.currentTimeMillis();
         internal.unpause();
         this.jButtonResume.setEnabled(internal.isPaused());
@@ -227,17 +232,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
         if(isPaused()) {
+            System.err.println("startPauseInfo = " + startPauseInfo);
+            String currentPauseInfo = pauseInfoString();
+            System.err.println("currentPauseInfo="+currentPauseInfo);
             throw new IllegalStateException("still paused after unpauseCrclProgram()");
         }
     }
 
     public void showJointsPlot() {
-//        if (this.jCheckBoxMenuItemJoints.isSelected()) {
         jointsPlotter = new plotterJFrame();
         jointsPlotter.setTitle("JOINTS");
         jointsPlotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         jointsPlotter.setVisible(true);
-//        }
     }
 
     public void showSetSchemaFilesDialog() {

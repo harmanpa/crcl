@@ -2492,22 +2492,41 @@ public class PendantClientInner {
         return System.currentTimeMillis() - pauseStartTime;
     }
 
-    public void pause() {
-        try {
+    private synchronized void internalSetPausedTrue() {
+        if (!paused) {
             pauseThread = Thread.currentThread();
             pauseTrace = pauseThread.getStackTrace();
             pauseStartTime = System.currentTimeMillis();
             pauseProgramState = programState;
-//            pauseRunningProgramThread = runTestProgramThread.get();
+            paused = true;
+        }
+    }
+
+    public void pause() {
+        try {
+            internalSetPausedTrue();
             pause_count.incrementAndGet();
             pauseQueue.clear();
-            paused = true;
             if (isConnected() && !lastCmdTriedWasStop) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    public String pauseInfoString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("pauseThread=").append(pauseThread).append("\n");
+        builder.append("pauseTrace=").append(pauseTrace).append("\n");
+        builder.append("pauseStartTime=").append(pauseStartTime).append(" or ").append((System.currentTimeMillis() - pauseStartTime)).append("ago.\n");
+        builder.append("pauseProgramState=").append(pauseProgramState).append("\n");
+        builder.append("pause_count=").append(pause_count.get()).append("\n");
+        builder.append("unpauseThread=").append(unpauseThread).append("\n");
+        builder.append("unpauseProgramState=").append(unpauseProgramState).append("\n");
+        builder.append("unpauseTime=").append(unpauseTime).append("\n");
+        builder.append("unpausePauseCount=").append(unpausePauseCount).append("\n");
+        return builder.toString();
     }
 
     public void waitForPause(int startRunProgramAbortCount) throws InterruptedException {
@@ -2521,23 +2540,34 @@ public class PendantClientInner {
         }
     }
 
-    private volatile Thread unpauseRunningProgramThread = null;
+    private volatile Thread unpauseThread = null;
     private volatile ProgramState unpauseProgramState = null;
+    private volatile long unpauseTime = 0;
+    private volatile long unpausePauseCount = 0;
+    
+
+    private synchronized void internalSetPausedFalse() {
+        if (paused) {
+            paused = false;
+            unpauseThread = Thread.currentThread();
+            unpauseProgramState = programState;
+            unpauseTime = System.currentTimeMillis();
+            unpausePauseCount = pause_count.get();
+        }
+    }
 
     public void unpause() {
         if (paused) {
             System.out.println("PendantClientInner.unpause() called.\n");
         }
-        paused = false;
-//        unpauseRunningProgramThread = runTestProgramThread.get();
-        unpauseProgramState = programState;
+        internalSetPausedFalse();
+
         for (int i = 0; i < waiting_for_pause_queue.get() + 1; i++) {
             try {
                 if (pauseQueue.isEmpty()) {
-                    paused = false;
+                    internalSetPausedFalse();
                     pauseQueue.put(Thread.currentThread().getStackTrace());
-                    paused = false;
-
+                    internalSetPausedFalse();
                 } else {
                     break;
                 }
@@ -2545,7 +2575,7 @@ public class PendantClientInner {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-        paused = false;
+        internalSetPausedFalse();
     }
 
     public boolean isStepMode() {
@@ -3027,9 +3057,6 @@ public class PendantClientInner {
     }
 
     public boolean isRunningProgram() {
-//        Thread rptp = this.runTestProgramThread.get();
-//        return null != rptp
-//                && rptp.isAlive();
         return (null != runProgramFuture && !runProgramFuture.isDone() && !runProgramFuture.isCancelled()
                 && !runProgramFuture.isCompletedExceptionally())
                 || (null == runProgramFuture && null != runProgramThread && runProgramThread.isAlive());
@@ -3047,9 +3074,9 @@ public class PendantClientInner {
         Map<String, String> map = new HashMap<>();
         map.put("jointTol", Double.toString(jointTol));
         map.put("jointPosIncrement", Double.toString(jogIncrement));
-        map.put("jointMoveSpeed",  "");
+        map.put("jointMoveSpeed", "");
         map.put("jointMoveAccel", "");
-        map.put("xyzAxisIncrement",Double.toString(this.getXyzJogIncrement()));
+        map.put("xyzAxisIncrement", Double.toString(this.getXyzJogIncrement()));
         map.put("maxJoint", "10");
         return map;
     }

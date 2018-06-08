@@ -153,6 +153,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.pauseCrclProgram();
     }
 
+    public String pauseInfoString() {
+        return pendantClientJPanel1.pauseInfoString();
+    }
+    
     public void unpauseCrclProgram() {
         pendantClientJPanel1.unpauseCrclProgram();
     }

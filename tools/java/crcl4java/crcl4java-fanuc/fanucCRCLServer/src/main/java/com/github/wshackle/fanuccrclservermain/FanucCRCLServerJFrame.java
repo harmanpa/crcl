@@ -75,6 +75,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
                 serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
             }
         }
+        jCheckBoxMenuItemDebug.setSelected(FanucCRCLMain.isDebug());
     }
 
     public IVar getOverrideVar() {
@@ -170,6 +171,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         jMenu3 = new javax.swing.JMenu();
         jCheckBoxMenuItemStartClient = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemStartPressureServer = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebug = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Fanuc CRCL Server");
@@ -251,6 +253,14 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         jCheckBoxMenuItemStartPressureServer.setText("Start Pressure Sensor Server on Startup");
         jMenu3.add(jCheckBoxMenuItemStartPressureServer);
 
+        jCheckBoxMenuItemDebug.setText("Debug");
+        jCheckBoxMenuItemDebug.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDebugActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxMenuItemDebug);
+
         jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
@@ -307,6 +317,10 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     private void jMenuItemLaunchWebActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLaunchWebActionPerformed
         launchWebServer();
     }//GEN-LAST:event_jMenuItemLaunchWebActionPerformed
+
+    private void jCheckBoxMenuItemDebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDebugActionPerformed
+        FanucCRCLMain.setDebug(jCheckBoxMenuItemDebug.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemDebugActionPerformed
 
     private void shutDown() {
         fanucCRCLServerJPanel1.shutDown();
@@ -484,6 +498,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupConnectType;
     private com.github.wshackle.fanuccrclservermain.FanucCRCLServerJPanel fanucCRCLServerJPanel1;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebug;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemShowPressureOutput;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartClient;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartPressureServer;

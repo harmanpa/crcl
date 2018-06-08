@@ -45,6 +45,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
      */
     public FanucCRCLServerJInternalFrame() {
         initComponents();
+        jCheckBoxMenuItemDebug.setSelected(FanucCRCLMain.isDebug());
     }
     
     
@@ -290,6 +291,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         jMenu3 = new javax.swing.JMenu();
         jCheckBoxMenuItemStartClient = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemStartPressureServer = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebug = new javax.swing.JCheckBoxMenuItem();
 
         setIconifiable(true);
         setMaximizable(true);
@@ -365,6 +367,14 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         jCheckBoxMenuItemStartPressureServer.setText("Start Pressure Sensor Server on Startup");
         jMenu3.add(jCheckBoxMenuItemStartPressureServer);
 
+        jCheckBoxMenuItemDebug.setText("Debug");
+        jCheckBoxMenuItemDebug.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDebugActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxMenuItemDebug);
+
         jMenuBar1.add(jMenu3);
 
         setJMenuBar(jMenuBar1);
@@ -413,9 +423,14 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         saveProperties();
     }//GEN-LAST:event_jCheckBoxMenuItemStartClientActionPerformed
 
+    private void jCheckBoxMenuItemDebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDebugActionPerformed
+         FanucCRCLMain.setDebug(jCheckBoxMenuItemDebug.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemDebugActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.github.wshackle.fanuccrclservermain.FanucCRCLServerJPanel fanucCRCLServerJPanel1;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebug;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemShowPressureOutput;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartClient;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemStartPressureServer;
