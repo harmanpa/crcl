@@ -2544,7 +2544,6 @@ public class PendantClientInner {
     private volatile ProgramState unpauseProgramState = null;
     private volatile long unpauseTime = 0;
     private volatile long unpausePauseCount = 0;
-    
 
     private synchronized void internalSetPausedFalse() {
         if (paused) {
@@ -2812,6 +2811,7 @@ public class PendantClientInner {
             if (startLine == -2) {
                 startLine = lastShowCurrentProgramLine;
             }
+            
             if (lastProgramIndex > startLine + 2 && startLine > 2) {
                 System.out.println("origStartLine = " + origStartLine);
                 System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));

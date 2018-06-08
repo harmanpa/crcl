@@ -179,6 +179,13 @@ public class ProgramPlotter {
             ymin = Math.min(ymin, pt2D.y);
             ymax = Math.max(ymax, pt2D.y);
         }
+        if (null != initPoint) {
+            Point2D.Double pt2D = toPoint2D(initPoint);
+            xmin = Math.min(xmin, pt2D.x);
+            xmax = Math.max(xmax, pt2D.x);
+            ymin = Math.min(ymin, pt2D.y);
+            ymax = Math.max(ymax, pt2D.y);
+        }
         rect.x = xmin;
         rect.width = xmax - xmin;
         rect.y = ymin;
@@ -449,6 +456,46 @@ public class ProgramPlotter {
         this.outerColor = outerColor;
     }
 
+    private PointType initPoint;
+
+    /**
+     * Get the value of initPoint
+     *
+     * @return the value of initPoint
+     */
+    public PointType getInitPoint() {
+        return initPoint;
+    }
+
+    /**
+     * Set the value of initPoint
+     *
+     * @param initPoint new value of initPoint
+     */
+    public void setInitPoint(PointType initPoint) {
+        this.initPoint = initPoint;
+    }
+
+    private boolean fillMarginEnabled;
+
+    /**
+     * Get the value of fillMarginEnabled
+     *
+     * @return the value of fillMarginEnabled
+     */
+    public boolean isFillMarginEnabled() {
+        return fillMarginEnabled;
+    }
+
+    /**
+     * Set the value of fillMarginEnabled
+     *
+     * @param fillMarginEnabled new value of fillMarginEnabled
+     */
+    public void setFillMarginEnabled(boolean fillMarginEnabled) {
+        this.fillMarginEnabled = fillMarginEnabled;
+    }
+
     public void paint(CRCLProgramType program, Graphics2D g2d, int programIndex) {
         if (autoScale || null == bounds) {
             setBounds(findBounds(program));
@@ -464,28 +511,34 @@ public class ProgramPlotter {
                 (dimension.height - yMargin) / bounds.height);
         g2d.setBackground(background);
         g2d.clearRect(0, 0, dimension.width, dimension.height);
-        g2d.setColor(marginColor);
         double fullMarginWidth = dimension.width - bounds.width * scale;
         double fullMarginHeight = dimension.height - bounds.height * scale;
+        if (fillMarginEnabled) {
+            g2d.setColor(marginColor);
 
-        Rectangle2D.Double marginLeft = new Rectangle2D.Double(0, 0, fullMarginWidth / 2, dimension.height);
-        g2d.fill(marginLeft);
-        Rectangle2D.Double marginUpper = new Rectangle2D.Double(0, 0,
-                dimension.width, fullMarginHeight / 2);
-        g2d.fill(marginUpper);
-        Rectangle2D.Double marginRight = new Rectangle2D.Double(dimension.width - fullMarginWidth / 2,
-                0, fullMarginWidth / 2, dimension.height);
-        g2d.fill(marginRight);
-        Rectangle2D.Double marginBottom = new Rectangle2D.Double(0, dimension.height - fullMarginHeight / 2,
-                dimension.width, fullMarginHeight / 2);
-        g2d.fill(marginBottom);
+            Rectangle2D.Double marginLeft = new Rectangle2D.Double(0, 0, fullMarginWidth / 2, dimension.height);
+            g2d.fill(marginLeft);
+            Rectangle2D.Double marginUpper = new Rectangle2D.Double(0, 0,
+                    dimension.width, fullMarginHeight / 2);
+            g2d.fill(marginUpper);
+            Rectangle2D.Double marginRight = new Rectangle2D.Double(dimension.width - fullMarginWidth / 2,
+                    0, fullMarginWidth / 2, dimension.height);
+            g2d.fill(marginRight);
+            Rectangle2D.Double marginBottom = new Rectangle2D.Double(0, dimension.height - fullMarginHeight / 2,
+                    dimension.width, fullMarginHeight / 2);
+            g2d.fill(marginBottom);
+        }
 
         g2d.translate(0, dimension.height);
         g2d.scale(scale, -scale);
         g2d.translate(-bounds.x + fullMarginWidth / (2 * scale),
                 -bounds.y + fullMarginHeight / (2 * scale));
 
-        Point2D.Double lastPoint = null;
+        Point2D.Double initPoint2D = null;
+        if (null != initPoint) {
+            initPoint2D = toPoint2D(initPoint);
+        }
+        Point2D.Double lastPoint = initPoint2D;
         final double pointSize = Math.max(dimension.width, dimension.height) / 30.0;
         final double halfPointSize = pointSize / 2.0;
         for (int i = 0; i < program.getMiddleCommand().size(); i++) {
@@ -504,7 +557,7 @@ public class ProgramPlotter {
                 lastPoint = nextPoint;
             }
         }
-        lastPoint = null;
+        lastPoint = initPoint2D;
         for (int i = 0; i < program.getMiddleCommand().size() && i <= programIndex; i++) {
             MiddleCommandType cmd = program.getMiddleCommand().get(i);
             if (cmd instanceof MoveToType) {

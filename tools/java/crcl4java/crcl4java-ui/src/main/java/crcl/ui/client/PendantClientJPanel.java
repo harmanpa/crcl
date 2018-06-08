@@ -222,7 +222,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public String pauseInfoString() {
         return internal.pauseInfoString();
     }
-    
+
     public void unpauseCrclProgram() {
         String startPauseInfo = pauseInfoString();
         pauseTime = System.currentTimeMillis();
@@ -231,10 +231,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
-        if(isPaused()) {
+        if (isPaused()) {
             System.err.println("startPauseInfo = " + startPauseInfo);
             String currentPauseInfo = pauseInfoString();
-            System.err.println("currentPauseInfo="+currentPauseInfo);
+            System.err.println("currentPauseInfo=" + currentPauseInfo);
             throw new IllegalStateException("still paused after unpauseCrclProgram()");
         }
     }
@@ -281,20 +281,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         long millis = prd.getTime();
         double dist = prd.getDist();
         boolean result = prd.isResult();
-        TableModel dtm = this.jTableProgram.getModel();
-//        final int row = getProgramRow();
-//        Long idFromTable = (Long) dtm.getValueAt(row, 0);
-//        if (idFromTable != null && idFromTable != prd.getId()) {
-//            System.err.println("ProgramRunData does not match table : prd =" + prd + ", idFromTable=" + idFromTable + " on row=" + row);
-//        }
-//        String cmdString = (String) dtm.getValueAt(row, 1);
-//        if (!prd.getCmdString().equals(cmdString)) {
-//            System.err.println("ProgramRunData does not match table : prd =" + prd + ", cmdString=" + cmdString + " on row=" + row);
-//        }
-        if (row >= 0 && row < dtm.getRowCount()) {
-            dtm.setValueAt(millis, row, 3);
-            dtm.setValueAt(dist, row, 4);
-            dtm.setValueAt(result, row, 5);
+        if (row >= 0 && row < jTableProgram.getRowCount()) {
+            jTableProgram.setValueAt(millis, row, 3);
+            jTableProgram.setValueAt(dist, row, 4);
+            jTableProgram.setValueAt(result, row, 5);
         }
     }
 
@@ -418,10 +408,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 if (getProgramRow() != line) {
                     jTableProgram.getSelectionModel().setSelectionInterval(line, line);
                 }
-                DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
                 final int row = getProgramRow();
-                if (row > 0 && row < dtm.getRowCount() - 1) {
-                    long id = (Long) dtm.getValueAt(row, 1);
+                if (row > 0 && row < jTableProgram.getRowCount() - 1) {
+                    long id = (Long) jTableProgram.getValueAt(row, 1);
                     if (program.getMiddleCommand().size() <= line - 1
                             || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
                         showProgram(program, progRunDataList, line);
@@ -436,51 +425,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
-                if (line == 0) {
-                    try {
-                        InitCanonType cmd = program.getInitCanon();
-                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                        showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException | CRCLException ex) {
-                        Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else if (line > 0 && (null == program.getMiddleCommand())) {
-                    try {
-                        EndCanonType cmd = program.getEndCanon();
-                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                        showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException | CRCLException ex) {
-                        Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else if (line > 0 && line <= program.getMiddleCommand().size()) {
-                    try {
-                        MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
-                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                        showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException | CRCLException ex) {
-                        Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else if (line == program.getMiddleCommand().size() + 1) {
-                    try {
-                        EndCanonType cmd = program.getEndCanon();
-                        String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                        showSelectedProgramCommand(cmdString);
-                    } catch (JAXBException | CRCLException ex) {
-                        Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                if (null == overheadProgramPlotter) {
-                    setOverheadProgramPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
-                }
-                if (null == sideProgramPlotter) {
-                    setSideProgramPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
-                }
-                programPlotterJPanelOverhead.setProgram(program);
-                programPlotterJPanelSide.setProgram(program);
-                programPlotterJPanelOverhead.setIndex(line);
-                programPlotterJPanelSide.setIndex(line);
-                programPlotterJPanelOverhead.repaint();
-                programPlotterJPanelSide.repaint();
+                showSelectedProgramLine(line, program);
 
             } else {
                 showSelectedProgramCommand("No Program loaded.");
@@ -491,6 +436,58 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             l.accept(this, line, program, status);
         }
         programLineShowing = line;
+    }
+
+    private volatile int lastShowSelectedProgramLineLine = -99;
+    private volatile CRCLProgramType lastshowSelectedProgramLineProgram = null;
+
+    private void showSelectedProgramLine(final int line, final CRCLProgramType program) {
+        if (null != lastshowSelectedProgramLineProgram
+                && lastShowSelectedProgramLineLine == line
+                && lastshowSelectedProgramLineProgram == program) {
+            return;
+        }
+        lastShowSelectedProgramLineLine = line;
+        lastshowSelectedProgramLineProgram = program;
+        if (line == 0) {
+            try {
+                InitCanonType cmd = program.getInitCanon();
+                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                showSelectedProgramCommand(cmdString);
+            } catch (JAXBException | CRCLException ex) {
+                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (line > 0 && (null == program.getMiddleCommand())) {
+            try {
+                EndCanonType cmd = program.getEndCanon();
+                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                showSelectedProgramCommand(cmdString);
+            } catch (JAXBException | CRCLException ex) {
+                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (line > 0 && line <= program.getMiddleCommand().size()) {
+            try {
+                MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
+                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                showSelectedProgramCommand(cmdString);
+            } catch (JAXBException | CRCLException ex) {
+                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else if (line == program.getMiddleCommand().size() + 1) {
+            try {
+                EndCanonType cmd = program.getEndCanon();
+                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
+                showSelectedProgramCommand(cmdString);
+            } catch (JAXBException | CRCLException ex) {
+                Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        programPlotterJPanelOverhead.setProgram(program);
+        programPlotterJPanelSide.setProgram(program);
+        programPlotterJPanelOverhead.setIndex(line);
+        programPlotterJPanelSide.setIndex(line);
+        programPlotterJPanelOverhead.repaint();
+        programPlotterJPanelSide.repaint();
     }
 
     private void showSelectedProgramCommand(String cmdString) {
@@ -516,7 +513,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, CRCLStatusType status, final List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
-        if(!debugShowProgram) {
+        if (!debugShowProgram) {
             return;
         }
         PrintStream ps = getShowProgramLogPrintStream();
@@ -599,14 +596,23 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.updateUIFromInternal();
 //        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), null));
         this.internal.addPropertyChangeListener(new PendantClientJPanel.MyPropertyChangeListener());
+        this.jTableProgram.getSelectionModel().addListSelectionListener(programTableListSelectionListener);
         this.transformJPanel1.setPendantClient(this);
         this.jTextFieldStatus.setBackground(Color.GRAY);
+        this.programPlotterJPanelOverhead.setPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
+        this.programPlotterJPanelSide.setPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
     }
 
     private ListSelectionListener programTableListSelectionListener = new ListSelectionListener() {
         @Override
         public void valueChanged(ListSelectionEvent e) {
-            throw new UnsupportedOperationException("Not supported yet.");
+//            System.out.println("e = " + e);
+            boolean adjusting = e.getValueIsAdjusting();
+            int row = jTableProgram.getSelectedRow();
+            if (!adjusting && null != programShowing && row >= 0) {
+                showSelectedProgramLine(row, programShowing);
+            }
+            //finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), internal.getProgRunDataList(),Thread.currentThread().getStackTrace());
         }
     };
 
@@ -1208,7 +1214,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void logClearProgramTimesDistancesInternalInfo(StackTraceElement trace[]) throws IOException, JAXBException {
-        if(!debugShowProgram) {
+        if (!debugShowProgram) {
             return;
         }
         PrintStream ps = getShowProgramLogPrintStream();
@@ -1226,11 +1232,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         } catch (IOException | JAXBException ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        DefaultTableModel dtm = (DefaultTableModel) this.jTableProgram.getModel();
-        for (int i = 0; i < dtm.getRowCount(); i++) {
-            dtm.setValueAt(-1L, i, 3);
-            dtm.setValueAt(0.0, i, 4);
-            dtm.setValueAt(false, i, 5);
+        for (int i = 0; i < jTableProgram.getRowCount(); i++) {
+            jTableProgram.setValueAt(-1L, i, 3);
+            jTableProgram.setValueAt(0.0, i, 4);
+            jTableProgram.setValueAt(false, i, 5);
         }
     }
 
@@ -1442,7 +1447,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.lastOpenedProgramFile = lastOpenedProgramFile;
     }
 
-    transient private ProgramPlotter sideProgramPlotter;
+    
 
     /**
      * Get the value of sideProgramPlotter
@@ -1450,20 +1455,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      * @return the value of sideProgramPlotter
      */
     public ProgramPlotter getSideProgramPlotter() {
-        return sideProgramPlotter;
+        return programPlotterJPanelSide.getPlotter();
     }
 
-    /**
-     * Set the value of sideProgramPlotter
-     *
-     * @param sideProgramPlotter new value of sideProgramPlotter
-     */
-    public void setSideProgramPlotter(ProgramPlotter sideProgramPlotter) {
-        this.sideProgramPlotter = sideProgramPlotter;
-        this.programPlotterJPanelSide.setPlotter(sideProgramPlotter);
-    }
+//    /**
+//     * Set the value of sideProgramPlotter
+//     *
+//     * @param sideProgramPlotter new value of sideProgramPlotter
+//     */
+//    public void setSideProgramPlotter(ProgramPlotter sideProgramPlotter) {
+//        this.sideProgramPlotter = sideProgramPlotter;
+//        this.programPlotterJPanelSide.setPlotter(sideProgramPlotter);
+//    }
 
-    transient private ProgramPlotter overheadProgramPlotter;
+//    transient private ProgramPlotter overheadProgramPlotter;
 
     /**
      * Get the value of overheadProgramPlotter
@@ -1471,18 +1476,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      * @return the value of overheadProgramPlotter
      */
     public ProgramPlotter getOverheadProgramPlotter() {
-        return overheadProgramPlotter;
+        return programPlotterJPanelOverhead.getPlotter();
     }
 
-    /**
-     * Set the value of overheadProgramPlotter
-     *
-     * @param overheadProgramPlotter new value of overheadProgramPlotter
-     */
-    public void setOverheadProgramPlotter(ProgramPlotter overheadProgramPlotter) {
-        this.overheadProgramPlotter = overheadProgramPlotter;
-        this.programPlotterJPanelOverhead.setPlotter(overheadProgramPlotter);
-    }
+//    /**
+//     * Set the value of overheadProgramPlotter
+//     *
+//     * @param overheadProgramPlotter new value of overheadProgramPlotter
+//     */
+//    public void setOverheadProgramPlotter(ProgramPlotter overheadProgramPlotter) {
+//        this.overheadProgramPlotter = overheadProgramPlotter;
+//        this.programPlotterJPanelOverhead.setPlotter(overheadProgramPlotter);
+//    }
 
     public CRCLProgramType getProgram() {
         return internal.getProgram();
@@ -1534,12 +1539,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             internal.setProgram(program);
             this.saveRecentProgram(f);
             this.jTabbedPaneLeftUpper.setSelectedComponent(this.jPanelProgram);
-            if (null == overheadProgramPlotter) {
-                setOverheadProgramPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
-            }
-            if (null == sideProgramPlotter) {
-                setSideProgramPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
-            }
             programPlotterJPanelOverhead.setProgram(program);
             programPlotterJPanelSide.setProgram(program);
             programPlotterJPanelOverhead.repaint();
@@ -1955,6 +1954,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             final CRCLCommandType lastCommandSent,
             boolean isHoldingObject,
             StackTraceElement ste[]) {
+        if (needInitPoint) {
+            PointType pt = CRCLPosemath.getPoint(curInternalStatus);
+            if (null != pt) {
+                pt = CRCLPosemath.copy(pt);
+                programPlotterJPanelOverhead.getPlotter().setInitPoint(pt);
+                programPlotterJPanelSide.getPlotter().setInitPoint(pt);
+                needInitPoint = false;
+            } else {
+                programPlotterJPanelOverhead.getPlotter().setInitPoint(null);
+                programPlotterJPanelSide.getPlotter().setInitPoint(null);
+                needInitPoint = true;
+            }
+        }
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             CommandStatusType ccst = curInternalStatus.getCommandStatus();
             if (null != ccst) {
@@ -2134,6 +2146,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
+                programPlotterJPanelOverhead.getPlotter().setCurrentPoint(pt);
+                programPlotterJPanelSide.getPlotter().setCurrentPoint(pt);
                 checkMenuOuter();
                 if (this.menuOuter.isPlotXyzSelected()) {
                     if (null == xyzPlotter) {
@@ -3047,14 +3061,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             return showProgramLogPrintStream;
         }
         File programLog = File.createTempFile("showProgramLog_" + getPort(), ".txt");
-        showDebugMessage("Logging showProgram debug info to "+programLog);
+        showDebugMessage("Logging showProgram debug info to " + programLog);
         showProgramLogStartTime = System.currentTimeMillis();
         showProgramLogPrintStream = new PrintStream(new FileOutputStream(programLog));
         return showProgramLogPrintStream;
     }
 
     private void logShowProgramInfo(CRCLProgramType program, List<ProgramRunData> progRunDataList, int line) throws IOException, JAXBException {
-        if(!debugShowProgram) {
+        if (!debugShowProgram) {
             return;
         }
         PrintStream ps = getShowProgramLogPrintStream();
@@ -4634,6 +4648,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    private volatile boolean needInitPoint = false;
+
     private void prepRunCurrentProgram() {
         boolean startAsConnected = isConnected();
         int startPollStopCount = pollStopCount.get();
@@ -4679,6 +4695,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
+        PointType pt = internal.getPoint();
+        if (null != pt) {
+            pt = CRCLPosemath.copy(pt);
+            programPlotterJPanelOverhead.getPlotter().setInitPoint(pt);
+            programPlotterJPanelSide.getPlotter().setInitPoint(pt);
+            needInitPoint = false;
+        } else {
+            programPlotterJPanelOverhead.getPlotter().setInitPoint(null);
+            programPlotterJPanelSide.getPlotter().setInitPoint(null);
+            needInitPoint = true;
+        }
     }
 
     private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
