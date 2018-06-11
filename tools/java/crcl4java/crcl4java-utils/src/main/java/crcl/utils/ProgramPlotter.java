@@ -397,7 +397,8 @@ public class ProgramPlotter {
     }
 
     private Color currentPointColor = Color.red.darker();
-
+    private Color currentPointAlphaColor = new Color( currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(),100);
+    
     /**
      * Get the value of currentPointColor
      *
@@ -414,6 +415,7 @@ public class ProgramPlotter {
      */
     public void setCurrentPointColor(Color currentPointColor) {
         this.currentPointColor = currentPointColor;
+        currentPointAlphaColor = new Color( currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(),100);
     }
 
     private Color marginColor = new Color(100, 100, 100);
@@ -534,6 +536,7 @@ public class ProgramPlotter {
         g2d.translate(-bounds.x + fullMarginWidth / (2 * scale),
                 -bounds.y + fullMarginHeight / (2 * scale));
 
+        
         Point2D.Double initPoint2D = null;
         if (null != initPoint) {
             initPoint2D = toPoint2D(initPoint);
@@ -541,6 +544,12 @@ public class ProgramPlotter {
         Point2D.Double lastPoint = initPoint2D;
         final double pointSize = Math.max(dimension.width, dimension.height) / 30.0;
         final double halfPointSize = pointSize / 2.0;
+        if (null != currentPoint) {
+            Point2D.Double currentPoint2D = toPoint2D(currentPoint);
+            g2d.setColor(currentPointAlphaColor);
+            paintFullCrossHairs(g2d, currentPoint2D, halfPointSize, pointSize, scale, heightUnder, widthUnder);
+        }
+        
         for (int i = 0; i < program.getMiddleCommand().size(); i++) {
             MiddleCommandType cmd = program.getMiddleCommand().get(i);
             if (cmd instanceof MoveToType) {
@@ -688,6 +697,14 @@ public class ProgramPlotter {
         return bounds.y + bounds.height * selectionMin[2];
     }
 
+    public void paintFullCrossHairs(Graphics2D g2d, Point2D.Double currentPoint2D, final double halfPointSize, final double pointSize, double scale, double heightUnder, double widthUnder) {
+        g2d.fill(new Arc2D.Double(currentPoint2D.x - halfPointSize, currentPoint2D.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
+        g2d.draw(new Line2D.Double(currentPoint2D.x, bounds.y - yMargin / (2 * scale) - heightUnder / 2.0,
+                currentPoint2D.x, bounds.y + bounds.height + yMargin / (2 * scale) + heightUnder / 2.0));
+        g2d.draw(new Line2D.Double(bounds.x - xMargin / (2 * scale) - widthUnder / 2.0, currentPoint2D.y,
+                bounds.x + bounds.width + xMargin / (2 * scale) + widthUnder / 2.0, currentPoint2D.y));
+    }
+    
     public void paintCrossHairs(Graphics2D g2d, Point2D.Double currentPoint2D, final double halfPointSize, final double pointSize, double scale, double heightUnder, double widthUnder) {
         g2d.fill(new Arc2D.Double(currentPoint2D.x - halfPointSize, currentPoint2D.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
         g2d.draw(new Line2D.Double(currentPoint2D.x, bounds.y - yMargin / (2 * scale) - heightUnder / 2.0,
