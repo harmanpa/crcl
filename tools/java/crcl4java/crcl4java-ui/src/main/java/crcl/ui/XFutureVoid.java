@@ -105,12 +105,159 @@ public class XFutureVoid extends XFuture<Void> {
         return super.thenCompose(getName() + ".thenCompose", c -> supplier.get());
     }
 
-    public XFutureVoid thenComposeVoid(Supplier< XFuture<Void>> supplier) {
+    public XFutureVoid thenComposeToVoid(Supplier< ? extends XFuture<Void>> supplier) {
         XFuture<Void> f = super.thenCompose(getName() + ".thenCompose", c -> supplier.get());
         XFutureVoid ret = staticwrapvoid(f.getName(), f);
         ret.alsoCancelAdd(f);
         return ret;
     }
+    
+    public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier) {
+        XFuture<Void> future= this.thenComposeAsync(getName()  + ".thenComposeAsyncToVoid", x->supplier.get());
+        XFutureVoid ret = new XFutureVoid(getName()  + ".thenComposeAsyncToVoid");
+        future.thenRun(() -> ret.complete());
+        ret.alsoCancelAdd(future);
+        return ret;
+    }
+    
+     public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier, ExecutorService es) {
+        XFuture<Void> future= this.thenComposeAsync(getName()  + ".thenComposeAsyncToVoid", x->supplier.get(),es);
+        XFutureVoid ret = new XFutureVoid(getName()  + ".thenComposeAsyncToVoid");
+        future.thenRun(() -> ret.complete());
+        ret.alsoCancelAdd(future);
+        return ret;
+    }
+    
+     
+    public XFutureVoid thenComposeToVoid(String name, Supplier< ? extends XFuture<Void>> sup) {
+        XFuture<Void> future= this.thenCompose(name , x-> sup.get());
+        XFutureVoid ret = new XFutureVoid(name);
+        future.thenRun(() -> ret.complete());
+        ret.alsoCancelAdd(future);
+        return ret;
+    }
+    
+     public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup) {
+        XFuture<Void> future= this.thenComposeAsync(name , x-> sup.get());
+        XFutureVoid ret = new XFutureVoid(name);
+        future.thenRun(() -> ret.complete());
+        ret.alsoCancelAdd(future);
+        return ret;
+    }
+    
+    public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup,ExecutorService es) {
+        XFuture<Void> future= this.thenComposeAsync(name , x->sup.get(),es);
+        XFutureVoid ret = new XFutureVoid(name);
+        future.thenRun(() -> ret.complete());
+        ret.alsoCancelAdd(future);
+        return ret;
+    }
+
+    @Override
+    public XFutureVoid always(Runnable r) {
+        return staticwrapvoid(getName() + ".always", super.handle((x, t) -> {
+            try {
+                r.run();
+            } catch (Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }));
+    }
+
+    @Override
+    public XFutureVoid always(String name, Runnable r) {
+        return staticwrapvoid(name, super.handle((x, t) -> {
+            try {
+                r.run();
+            } catch (Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }));
+    }
+
+    @Override
+    public XFutureVoid alwaysAsync(String name, Runnable r, ExecutorService service) {
+        return staticwrapvoid(name, super.handleAsync((x, t) -> {
+            try {
+                r.run();
+            } catch (Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }, service));
+    }
+
+    @Override
+    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
+        return staticwrapvoid(getName()+ ".alwaysAsync", super.handleAsync((x, t) -> {
+            try {
+                r.run();
+            } catch (Throwable t2) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                if (null == t) {
+                    if (t2 instanceof RuntimeException) {
+                        throw ((RuntimeException) t2);
+                    } else {
+                        throw new RuntimeException(t2);
+                    }
+                }
+            }
+            if (null != t) {
+                if (t instanceof RuntimeException) {
+                    throw ((RuntimeException) t);
+                } else {
+                    throw new RuntimeException(t);
+                }
+            }
+            return x;
+        }, service));
+    }
+
+    
     
     @Override
     public XFutureVoid thenRun(Runnable r) {
@@ -214,29 +361,29 @@ public class XFutureVoid extends XFuture<Void> {
         return ret;
     }
     
-    @Override
-    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
-        return staticwrapvoid(this.getName() + ".alwaysAsync", super.handleAsync((x, t) -> {
-            try {
-                r.run();
-            } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
-                if (null == t) {
-                    if (t2 instanceof RuntimeException) {
-                        throw ((RuntimeException) t2);
-                    } else {
-                        throw new RuntimeException(t2);
-                    }
-                }
-            }
-            if (null != t) {
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
-            }
-            return x;
-        }, service));
-    }
+//    @Override
+//    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
+//        return staticwrapvoid(this.getName() + ".alwaysAsync", super.handleAsync((x, t) -> {
+//            try {
+//                r.run();
+//            } catch (Throwable t2) {
+//                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+//                if (null == t) {
+//                    if (t2 instanceof RuntimeException) {
+//                        throw ((RuntimeException) t2);
+//                    } else {
+//                        throw new RuntimeException(t2);
+//                    }
+//                }
+//            }
+//            if (null != t) {
+//                if (t instanceof RuntimeException) {
+//                    throw ((RuntimeException) t);
+//                } else {
+//                    throw new RuntimeException(t);
+//                }
+//            }
+//            return x;
+//        }, service));
+//    }
 }
