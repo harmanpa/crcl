@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman.motctrl;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,7 +71,13 @@ public enum MotCtrlReturnEnum {
     }
     
     public static MotCtrlReturnEnum fromId(int id) {
-        return map.get(id);
+        MotCtrlReturnEnum ret =  map.get(id);
+        if(ret != SUCCESS) {
+            StackTraceElement trace[] = Thread.currentThread().getStackTrace();
+            System.err.println("trace = " + Arrays.toString(trace));
+            System.err.println("MotCtrlReturnEnum.fromId("+id+") returning "+ret);
+        }
+        return ret;
     }
     
     private MotCtrlReturnEnum(int id, String message) {

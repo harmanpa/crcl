@@ -18,7 +18,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" max="-2" attributes="0"/>
-              <Component id="jTabbedPaneLeftUpper" max="32767" attributes="0"/>
+              <Component id="jTabbedPaneLeftUpper" pref="708" max="32767" attributes="0"/>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Component id="jTabbedPaneRightUpper" max="32767" attributes="0"/>
               <EmptySpace min="-2" pref="11" max="-2" attributes="0"/>
@@ -89,17 +89,6 @@
                                   </Group>
                                   <Component id="jLabel13" alignment="0" min="-2" max="-2" attributes="0"/>
                                   <Group type="102" alignment="0" attributes="0">
-                                      <Component id="jButtonProgramPause" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jButtonResume" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jButtonProgramAbort" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jButtonProgramRun" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jButtonRunProgFromCurrentLine" min="-2" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Group type="102" alignment="0" attributes="0">
                                       <Component id="jButtonEditProgramItem" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="jButtonDeletProgramItem" min="-2" max="-2" attributes="0"/>
@@ -114,11 +103,23 @@
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="jLabelExpectHoldingObject" min="-2" max="-2" attributes="0"/>
                                   </Group>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jButtonProgramPause" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButtonResume" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButtonProgramAbort" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButtonProgramRun" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jButtonRunProgFromCurrentLine" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="jCheckBoxStepping" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
-                              <EmptySpace min="0" pref="133" max="32767" attributes="0"/>
+                              <EmptySpace pref="91" max="32767" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -145,6 +146,7 @@
                           <Component id="jButtonProgramRun" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonResume" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonRunProgFromCurrentLine" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jCheckBoxStepping" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
@@ -274,7 +276,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="jButtonStepBack">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Back"/>
+                <Property name="text" type="java.lang.String" value="Step Back"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonStepBackActionPerformed"/>
@@ -282,7 +284,7 @@
             </Component>
             <Component class="javax.swing.JButton" name="jButtonStepFwd">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Fwd"/>
+                <Property name="text" type="java.lang.String" value="Step Fwd"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonStepFwdActionPerformed"/>
@@ -336,6 +338,14 @@
                 <Property name="text" type="java.lang.String" value="Expect Holding Object: FALSE"/>
                 <Property name="opaque" type="boolean" value="true"/>
               </Properties>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="jCheckBoxStepping">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Stepping"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxSteppingActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
@@ -428,7 +438,7 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace pref="25" max="32767" attributes="0"/>
+                      <EmptySpace pref="39" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -934,7 +944,7 @@
                           </Group>
                           <Component id="jScrollPane4" alignment="1" pref="286" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="394" max="32767" attributes="0"/>
+                      <EmptySpace pref="408" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1056,7 +1066,7 @@
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="jScrollPane7" alignment="0" pref="676" max="32767" attributes="0"/>
+                          <Component id="jScrollPane7" alignment="0" pref="690" max="32767" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jCheckBoxPauseCommandStatusLog" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
@@ -1409,7 +1419,7 @@
                                   <Group type="102" attributes="0">
                                       <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jTextFieldStatCmdID" pref="61" max="32767" attributes="0"/>
+                                      <Component id="jTextFieldStatCmdID" pref="47" max="32767" attributes="0"/>
                                   </Group>
                               </Group>
                               <EmptySpace min="10" pref="10" max="-2" attributes="0"/>
@@ -1648,7 +1658,7 @@
                   <Layout>
                     <DimensionLayout dim="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <EmptySpace min="0" pref="122" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="108" max="32767" attributes="0"/>
                       </Group>
                     </DimensionLayout>
                     <DimensionLayout dim="1">

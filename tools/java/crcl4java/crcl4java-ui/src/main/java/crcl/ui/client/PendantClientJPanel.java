@@ -422,7 +422,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                        ? internal.getRunEndMillis() : System.currentTimeMillis();
+                                ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 showSelectedProgramLine(line, program);
@@ -703,10 +703,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -715,8 +715,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -725,10 +725,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -737,8 +737,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -754,7 +754,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-            ))
+                    ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -1447,8 +1447,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.lastOpenedProgramFile = lastOpenedProgramFile;
     }
 
-    
-
     /**
      * Get the value of sideProgramPlotter
      *
@@ -1467,9 +1465,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        this.sideProgramPlotter = sideProgramPlotter;
 //        this.programPlotterJPanelSide.setPlotter(sideProgramPlotter);
 //    }
-
 //    transient private ProgramPlotter overheadProgramPlotter;
-
     /**
      * Get the value of overheadProgramPlotter
      *
@@ -1488,7 +1484,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        this.overheadProgramPlotter = overheadProgramPlotter;
 //        this.programPlotterJPanelOverhead.setPlotter(overheadProgramPlotter);
 //    }
-
     public CRCLProgramType getProgram() {
         return internal.getProgram();
     }
@@ -2140,9 +2135,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             PoseType p
                     = Optional.ofNullable(internal)
-                            .map(PendantClientInner::getStatus)
-                            .map(CRCLPosemath::getPose)
-                            .orElse(null);
+                    .map(PendantClientInner::getStatus)
+                    .map(CRCLPosemath::getPose)
+                    .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -2928,8 +2923,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             File tmpFile
                     = (internal.getTempLogDir() != null)
-                    ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
-                    : File.createTempFile("poseList", ".csv");
+                            ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
+                            : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
         } catch (IOException ex) {
@@ -2976,8 +2971,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == commandStatusLogFile) {
             commandStatusLogFile
                     = (internal.getTempLogDir() != null)
-                    ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
-                    : File.createTempFile("commandStatus_", ".csv");
+                            ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
+                            : File.createTempFile("commandStatus_", ".csv");
         }
         return commandStatusLogFile;
     }
@@ -3237,6 +3232,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jLabelHoldingObject2 = new javax.swing.JLabel();
         jCheckBoxMonitorHoldingOutput = new javax.swing.JCheckBox();
         jLabelExpectHoldingObject = new javax.swing.JLabel();
+        jCheckBoxStepping = new javax.swing.JCheckBox();
         jPanelJogging = new javax.swing.JPanel();
         jComboBox1 = new javax.swing.JComboBox();
         jPanelJogMinus = new javax.swing.JPanel();
@@ -3423,14 +3419,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         });
 
-        jButtonStepBack.setText("Back");
+        jButtonStepBack.setText("Step Back");
         jButtonStepBack.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonStepBackActionPerformed(evt);
             }
         });
 
-        jButtonStepFwd.setText("Fwd");
+        jButtonStepFwd.setText("Step Fwd");
         jButtonStepFwd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonStepFwdActionPerformed(evt);
@@ -3457,6 +3453,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jLabelExpectHoldingObject.setText("Expect Holding Object: FALSE");
         jLabelExpectHoldingObject.setOpaque(true);
 
+        jCheckBoxStepping.setText("Stepping");
+        jCheckBoxStepping.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxSteppingActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelProgramLayout = new javax.swing.GroupLayout(jPanelProgram);
         jPanelProgram.setLayout(jPanelProgramLayout);
         jPanelProgramLayout.setHorizontalGroup(
@@ -3481,16 +3484,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jLabelHoldingObject2))
                             .addComponent(jLabel13)
                             .addGroup(jPanelProgramLayout.createSequentialGroup()
-                                .addComponent(jButtonProgramPause)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonResume)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonProgramAbort)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonProgramRun)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonRunProgFromCurrentLine))
-                            .addGroup(jPanelProgramLayout.createSequentialGroup()
                                 .addComponent(jButtonEditProgramItem)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonDeletProgramItem)
@@ -3503,9 +3496,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonStepFwd)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabelExpectHoldingObject)))
-                        .addGap(0, 133, Short.MAX_VALUE)))
-                .addContainerGap())
+                                .addComponent(jLabelExpectHoldingObject))
+                            .addGroup(jPanelProgramLayout.createSequentialGroup()
+                                .addComponent(jButtonProgramPause)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonResume)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonProgramAbort)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonProgramRun)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonRunProgFromCurrentLine)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jCheckBoxStepping)))
+                        .addContainerGap(91, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -3528,7 +3532,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .addComponent(jButtonProgramAbort)
                     .addComponent(jButtonProgramRun)
                     .addComponent(jButtonResume)
-                    .addComponent(jButtonRunProgFromCurrentLine))
+                    .addComponent(jButtonRunProgFromCurrentLine)
+                    .addComponent(jCheckBoxStepping))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonEditProgramItem)
@@ -3872,7 +3877,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jButton2))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addContainerGap(39, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4014,7 +4019,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToCurrent))
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE))
-                .addContainerGap(394, Short.MAX_VALUE))
+                .addContainerGap(408, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4100,7 +4105,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 676, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4387,7 +4392,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE)))
                         .addGap(10, 10, 10))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addContainerGap()
@@ -4432,7 +4437,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 122, Short.MAX_VALUE)
+            .addGap(0, 108, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4515,7 +4520,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPaneLeftUpper)
+                .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPaneRightUpper)
                 .addGap(11, 11, 11))
@@ -4622,19 +4627,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
 
-        runCurrentProgramAsync();
+        runCurrentProgramAsync(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
     private XFuture<Boolean> lastProgramFuture = null;
 
-    public boolean runCurrentProgram() {
-        prepRunCurrentProgram();
+    public boolean runCurrentProgram(boolean stepMode) {
+        prepRunCurrentProgram(stepMode);
         return internal.runProgram(internal.getProgram(), 0);
     }
 
-    public XFuture<Boolean> runCurrentProgramAsync() {
+    public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode) {
         try {
-            prepRunCurrentProgram();
+            prepRunCurrentProgram(stepMode);
             XFuture<Boolean> future = internal.startRunProgramThread(0);
             XFuture<Boolean> ret = checkFutureChange(future);
             lastProgramFuture = future;
@@ -4650,7 +4655,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private volatile boolean needInitPoint = false;
 
-    private void prepRunCurrentProgram() {
+    private void prepRunCurrentProgram(boolean stepMode) {
         boolean startAsConnected = isConnected();
         int startPollStopCount = pollStopCount.get();
 //        System.out.println("startPollStopCount = " + startPollStopCount);
@@ -4690,7 +4695,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.setQuitOnTestCommandFailure(true);
         internal.setPoll_ms(new_poll_ms);
         internal.setWaitForDoneDelay(new_poll_ms);
-        internal.setStepMode(false);
+        setStepMode(stepMode);
         this.jButtonResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
@@ -4706,6 +4711,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             programPlotterJPanelSide.getPlotter().setInitPoint(null);
             needInitPoint = true;
         }
+    }
+
+    public void setStepMode(boolean newStepMode) {
+        internal.setStepMode(newStepMode);
+        jCheckBoxStepping.setSelected(newStepMode);
+    }
+
+    public boolean isStepMode() {
+        boolean stepMode = internal.isStepMode();
+        if (jCheckBoxStepping.isSelected() != stepMode) {
+            jCheckBoxStepping.setSelected(stepMode);
+        }
+        return stepMode;
     }
 
     private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
@@ -4737,7 +4755,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
     private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
-        continueCurrentProgram();
+        continueCurrentProgram(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
     public boolean isPaused() {
@@ -4781,7 +4799,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private volatile XFuture<Boolean> programFutureInternal = null;
     private volatile XFuture<Boolean> lastContinueCurrentProgramRet = null;
 
-    public XFuture<Boolean> continueCurrentProgram() {
+    public XFuture<Boolean> continueCurrentProgram(boolean stepMode) {
         if (internal.isBlockPrograms()) {
             internal.printStartBlockingProgramInfo();
             internal.showErrorMessage("Block Programs");
@@ -4829,7 +4847,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //                }
 //            })
             this.internal.closeTestProgramThread();
-            this.internal.setStepMode(false);
+            setStepMode(stepMode);
             if (internal.isPaused()) {
                 internal.unpause();
             } else {
@@ -4872,7 +4890,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     private void jButtonStepBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepBackActionPerformed
-        internal.setStepMode(true);
+        setStepMode(true);
         internal.abort();
         int l = this.getCurrentProgramLine();
         if (l > 0) {
@@ -4882,10 +4900,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonStepBackActionPerformed
 
     private void jButtonStepFwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepFwdActionPerformed
-        internal.setStepMode(true);
-        if (internal.isPaused() && internal.isRunningProgram()) {
+        setStepMode(true);
+        boolean wasPaused = internal.isPaused();
+        boolean wasRunning = internal.isRunningProgram();
+        if (internal.isPaused()) {
             internal.unpause();
-        } else {
+        }
+        if (!wasRunning) {
             internal.startRunProgramThread(this.getCurrentProgramLine());
         }
     }//GEN-LAST:event_jButtonStepFwdActionPerformed
@@ -5378,6 +5399,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void jCheckBoxSteppingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSteppingActionPerformed
+        internal.setStepMode(jCheckBoxStepping.isSelected());
+    }//GEN-LAST:event_jCheckBoxSteppingActionPerformed
+
     public Thread getRunProgramThread() {
         return internal.getRunProgramThread();
     }
@@ -5530,6 +5555,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JCheckBox jCheckBoxMonitorHoldingOutput;
     private javax.swing.JCheckBox jCheckBoxPauseCommandStatusLog;
     private javax.swing.JCheckBox jCheckBoxPoll;
+    private javax.swing.JCheckBox jCheckBoxStepping;
     private javax.swing.JCheckBox jCheckBoxStraight;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JComboBox<PoseDisplayMode> jComboBoxMoveToPoseDisplayMode;

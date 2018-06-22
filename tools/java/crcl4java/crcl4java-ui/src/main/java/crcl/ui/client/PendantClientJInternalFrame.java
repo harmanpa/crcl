@@ -79,6 +79,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         initComponents();
         init();
     }
+    
+    public void setStepMode(boolean step) {
+        pendantClientJPanel1.setStepMode(step);
+    }
+    
+    public boolean isStepMode() {
+        return pendantClientJPanel1.isStepMode();
+    }
 
     public String getCrclClientErrorMessage() {
         return pendantClientJPanel1.getCrclClientErrorMessage();
@@ -1134,14 +1142,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.getLastOpenedProgramFile();
     }
 
-    public boolean runCurrentProgram() {
+    public boolean runCurrentProgram(boolean stepMode) {
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
-        return pendantClientJPanel1.runCurrentProgram();
+        return pendantClientJPanel1.runCurrentProgram(stepMode);
     }
 
-    public XFuture<Boolean> runCurrentProgramAsync() {
+    public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode) {
         this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(true);
-        return pendantClientJPanel1.runCurrentProgramAsync();
+        return pendantClientJPanel1.runCurrentProgramAsync(stepMode);
     }
 
     @Override
@@ -1244,8 +1252,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.saveProperties();
     }
 
-    public XFuture<Boolean> continueCurrentProgram() {
-        return pendantClientJPanel1.continueCurrentProgram();
+    public XFuture<Boolean> continueCurrentProgram(boolean stepMode) {
+        return pendantClientJPanel1.continueCurrentProgram(stepMode);
     }
 
     public File getTempLogDir() {
