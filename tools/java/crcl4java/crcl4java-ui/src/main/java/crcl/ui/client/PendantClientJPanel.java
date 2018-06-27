@@ -349,7 +349,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public static interface CurrentPoseListener {
 
-        public void handlePoseUpdate(PendantClientJPanel panel, PoseType pose, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected);
+        public void handlePoseUpdate(PendantClientJPanel panel, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected,long statRecieveTime);
     }
 
     private final ConcurrentLinkedDeque<CurrentPoseListener> currentPoseListeners = new ConcurrentLinkedDeque<>();
@@ -422,7 +422,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                                ? internal.getRunEndMillis() : System.currentTimeMillis();
+                        ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 showSelectedProgramLine(line, program);
@@ -703,10 +703,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -715,8 +715,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -725,10 +725,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -737,8 +737,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -754,7 +754,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-                    ))
+            ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -1849,6 +1849,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     @Override
     public void finishSetStatus() {
+        long statRecieveTime = System.currentTimeMillis();
         final CRCLStatusType curInternalStatus
                 = internal.getStatus();
         final boolean isHoldingObjectExpected = internal.isHoldingObjectExpected();
@@ -1858,7 +1859,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             lastFinishSetStatusProgramCopy = null;
             lastFinishSetStatusInternalProgram = null;
-            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste);
+            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime);
         } else {
             final CRCLStatusType curInternalStatusCopy
                     = CRCLPosemath.copy(internal.getStatus());
@@ -1872,7 +1873,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste);
+                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste, statRecieveTime);
                 }
             });
         }
@@ -1945,10 +1946,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void finishSetStatusPriv(
             final CRCLProgramType program,
-            final CRCLStatusType curInternalStatus,
-            final CRCLCommandType lastCommandSent,
-            boolean isHoldingObject,
-            StackTraceElement ste[]) {
+            final CRCLStatusType curInternalStatus, 
+            final CRCLCommandType lastCommandSent, 
+            boolean isHoldingObject, 
+            StackTraceElement[] ste, 
+            long statReceiveTime) {
         if (needInitPoint) {
             PointType pt = CRCLPosemath.getPoint(curInternalStatus);
             if (null != pt) {
@@ -2134,10 +2136,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
             }
             PoseType p
-                    = Optional.ofNullable(internal)
-                    .map(PendantClientInner::getStatus)
-                    .map(CRCLPosemath::getPose)
-                    .orElse(null);
+                    = Optional.ofNullable(curInternalStatus)
+                            .map(CRCLPosemath::getPose)
+                            .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -2191,7 +2192,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     }
                 }
                 for (CurrentPoseListener l : currentPoseListeners) {
-                    l.handlePoseUpdate(this, p, curInternalStatus, lastCommandSent, isHoldingObject);
+                    l.handlePoseUpdate(this, curInternalStatus, lastCommandSent, isHoldingObject,statReceiveTime);
                 }
             }
         }
@@ -2230,18 +2231,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (container instanceof JInternalFrame) {
             internalFrame = (JInternalFrame) container;
         }
+        String lastMessage = internal.getLastMessage();
+        String newTitle = "CRCL Client: " + stateString
+                + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
+                + program
+                + ((lastMessage != null) ? " : " + lastMessage : "");
+        if (newTitle.length() > 72) {
+            newTitle = newTitle.substring(0, 72);
+        }
         if (null != frame) {
-            String lastMessage = internal.getLastMessage();
-            frame.setTitle("CRCL Client: " + stateString
-                    + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                    + program
-                    + ((lastMessage != null) ? " : " + lastMessage : ""));
+            frame.setTitle(newTitle);
         } else if (null != internalFrame) {
-            String lastMessage = internal.getLastMessage();
-            internalFrame.setTitle("CRCL Client: " + stateString
-                    + ((stateDescription != null && stateDescription.length() > 1) ? " : " + stateDescription : "")
-                    + program
-                    + ((lastMessage != null) ? " : " + lastMessage : ""));
+            internalFrame.setTitle(newTitle);
         }
         if (null != updateTitleListeners) {
             for (UpdateTitleListener utl : updateTitleListeners) {
@@ -2923,8 +2924,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             File tmpFile
                     = (internal.getTempLogDir() != null)
-                            ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
-                            : File.createTempFile("poseList", ".csv");
+                    ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
+                    : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
         } catch (IOException ex) {
@@ -2971,8 +2972,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == commandStatusLogFile) {
             commandStatusLogFile
                     = (internal.getTempLogDir() != null)
-                            ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
-                            : File.createTempFile("commandStatus_", ".csv");
+                    ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
+                    : File.createTempFile("commandStatus_", ".csv");
         }
         return commandStatusLogFile;
     }
@@ -4042,29 +4043,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jScrollPane7.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        jTableCommandStatusLog.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramName", "Program Index", "Server", "Text"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Boolean.class, java.lang.Double.class, java.lang.Long.class, java.lang.Double.class, java.lang.Object.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        jTableCommandStatusLog.setModel(getCommandStatusLogModel());
         jScrollPane7.setViewportView(jTableCommandStatusLog);
 
         jCheckBoxPauseCommandStatusLog.setSelected(true);
@@ -4572,6 +4551,27 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButtonEditProgramItemActionPerformed
 
+    private static DefaultTableModel getCommandStatusLogModel() {
+        return new javax.swing.table.DefaultTableModel(
+                new Object[][]{},
+                PendantClientInner.COMMAND_STATUS_LOG_HEADINGS
+        ) {
+            Class[] types = new Class[]{
+                java.lang.String.class, java.lang.Boolean.class, java.lang.Double.class, java.lang.Long.class, java.lang.Double.class, java.lang.Object.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean[]{
+                false, false, false, false, false, false, false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types[columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        };
+    }
 
     private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
         int index = getProgramRow();

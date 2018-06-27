@@ -48,6 +48,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmEulerZyx;
@@ -638,13 +639,12 @@ public class CRCLPosemath {
 //    private static String createAssertErrorString(CRCLCommandType cmd, long id) {
 //        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
 //    }
-
     private static void setCommandId(CRCLCommandType cmd, long id) {
 //        assert cmd.getCommandID() <= id :
 //                createAssertErrorString(cmd,id);
         cmd.setCommandID(id);
     }
-    
+
     public static CRCLProgramType transformProgramWithFilter(PoseType pose,
             CRCLProgramType programIn,
             /*@Nullable*/ PoseFilter filter) {
@@ -653,7 +653,7 @@ public class CRCLPosemath {
         InitCanonType initCmdIn = programIn.getInitCanon();
         long id = 1;
         if (null != initCmdIn) {
-            setCommandId(initCmdOut,initCmdIn.getCommandID());
+            setCommandId(initCmdOut, initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
@@ -661,7 +661,7 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                setCommandId(moveToCmdOut,moveToCmdIn.getCommandID());
+                setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
                     moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 } else {
@@ -689,7 +689,7 @@ public class CRCLPosemath {
         InitCanonType initCmdIn = programIn.getInitCanon();
         long id = 1;
         if (null != initCmdIn) {
-            setCommandId(initCmdOut,initCmdIn.getCommandID());
+            setCommandId(initCmdOut, initCmdIn.getCommandID());
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
@@ -698,7 +698,7 @@ public class CRCLPosemath {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
-                setCommandId(moveToCmdOut,moveToCmdIn.getCommandID());
+                setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
                 moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
                 programOut.getMiddleCommand().add(moveToCmdOut);
@@ -1046,7 +1046,17 @@ public class CRCLPosemath {
         return newPose;
     }
 
-    public static String poseToString(PoseType pose) throws CRCLException {
+    public static String pointToString(PointType point) {
+        try {
+            PmCartesian cart = toPmCartesian(point);
+            return cart.toString();
+        } catch (Exception exception) {
+            LOG.log(Level.SEVERE, "", exception);
+            return exception.toString();
+        }
+    }
+
+    public static String poseToString(PoseType pose) {
         try {
             PmRotationMatrix rmat = toPmRotationMatrix(pose);
             PmCartesian cart = toPmCartesian(pose.getPoint());
@@ -1055,8 +1065,22 @@ public class CRCLPosemath {
                     rmat.y.x, rmat.y.y, rmat.y.z, cart.y,
                     rmat.z.x, rmat.z.y, rmat.z.z, cart.z,
                     0.0, 0.0, 0.0, 1.0);
-        } catch (PmException pmException) {
-            throw new CRCLException(pmException);
+        } catch (Exception exception) {
+            LOG.log(Level.SEVERE, "", exception);
+            return exception.toString();
+        }
+    }
+
+    public static String poseToXyzRpyString(PoseType pose) {
+        try {
+            PmRpy rpy = toPmRpy(pose);
+            PmCartesian cart = toPmCartesian(pose.getPoint());
+            return String.format("X=%.3f,Y=%.3f,Z=%.3f,Roll=%.3f,Pitch=%.3f,Yaw=%.3f",
+                    cart.x, cart.y, cart.z,
+                    Math.toDegrees(rpy.r), Math.toDegrees(rpy.p), Math.toDegrees(rpy.y));
+        } catch (Exception exception) {
+            LOG.log(Level.SEVERE, "", exception);
+            return exception.toString();
         }
     }
 
@@ -1455,7 +1479,7 @@ public class CRCLPosemath {
         pose.setZAxis(zVec);
         return pose;
     }
-    
+
     /**
      * Combine a translation and rotation in a PoseType
      *
@@ -1587,13 +1611,20 @@ public class CRCLPosemath {
      * @param da2 second array of doubles
      * @return maximum difference between corresponding elements of two arrays
      */
-    public static double maxDiffDoubleArray(double da[], double da2[]) {
+    public static double maxDiffDoubleArray(double da[], double da2[], double mod) {
         if (null == da || null == da2 || da.length != da2.length) {
             throw new IllegalArgumentException("maxDiffDoubleArray expencs two double arrays of same size");
         }
         double diff = 0.0;
         for (int i = 0; i < da.length; i++) {
-            diff = Math.max(diff, Math.abs(da[i] - da2[i]));
+            double diffi = Math.abs(da[i] - da2[i]);
+            if (mod > Double.MIN_NORMAL) {
+                int modi = (int) Math.ceil(diff / mod);
+                diffi = Math.min(diffi, Math.abs(mod * modi - diffi));
+                int modj = (int) Math.floor(diff / mod);
+                diffi = Math.min(diffi, Math.abs(mod * modj - diffi));
+            }
+            diff = Math.max(diff, diffi);
         }
         return diff;
     }

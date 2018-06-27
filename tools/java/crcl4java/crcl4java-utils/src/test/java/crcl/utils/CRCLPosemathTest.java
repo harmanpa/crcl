@@ -343,10 +343,10 @@ public class CRCLPosemathTest {
         double[] da = new double[]{0, 0, 0.2, 0};
         double[] da2 = new double[]{0, 0, -0.2, 0};
         double expResult = 0.4;
-        double result = CRCLPosemath.maxDiffDoubleArray(da, da2);
+        double result = CRCLPosemath.maxDiffDoubleArray(da, da2,0.0);
         assertEquals(expResult, result, ASSERT_TOLERANCE_DELTA);
         try {
-            CRCLPosemath.maxDiffDoubleArray(da, new double[1]);
+            CRCLPosemath.maxDiffDoubleArray(da, new double[1],0.0);
             fail("Expected IllegalArgumentException since array lengths don't match");
         } catch (IllegalArgumentException expectedException) {
         }

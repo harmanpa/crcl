@@ -1655,16 +1655,16 @@ public class PendantClientInner {
 
     private volatile long lastLogCmdTime = System.currentTimeMillis();
     private volatile PointType lastLogMoveToCmdPoint = null;
+    private volatile PointType lastLogStatusPoint = null;
 
-    private Double distFromLastLogMoveToCmdPoint(CRCLStatusType status) {
+    private double distFromLastLogMoveToCmdPoint() {
         if (null == lastLogMoveToCmdPoint) {
-            return null;
+            return Double.NaN;
         }
-        PointType pt = CRCLPosemath.getPoint(status);
-        if (null == pt) {
-            return null;
+        if (null == lastLogStatusPoint) {
+            return Double.NaN;
         }
-        return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, pt);
+        return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, lastLogStatusPoint);
     }
 
     private volatile PointType lastMoveToCmdPoint = null;
@@ -1680,6 +1680,14 @@ public class PendantClientInner {
         return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, pt);
     }
 
+    private volatile double lastLogElementToArrayX = Double.NaN;
+    private volatile double lastLogElementToArrayY = Double.NaN;
+    private volatile double lastLogElementToArrayZ = Double.NaN;
+
+    private static String fmtDouble(double d) {
+        return String.format("%.3f", d);
+    }
+
     public Object[] logElementToArray(CommandStatusLogElement el) {
         if (null == el) {
             return null;
@@ -1693,32 +1701,41 @@ public class PendantClientInner {
             lastLogCmdTime = cel.getTime();
             if (cmd instanceof MoveToType) {
                 MoveToType moveTo = (MoveToType) cmd;
-                lastLogMoveToCmdPoint = moveTo.getEndPosition().getPoint();
+                PointType point = moveTo.getEndPosition().getPoint();
+                lastLogMoveToCmdPoint = point;
                 return new Object[]{
                     getTimeString(cel.getTime()),
                     true,
-                    cel.getTime() - lastLogCmdTime,
+                    fmtDouble(cel.getTime() - lastLogCmdTime),
                     cel.getId(),
-                    0.0,
+                    fmtDouble(distFromLastLogMoveToCmdPoint()),
                     null,
                     cel.getTime(),
                     cel.getProgName(),
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
+                    cmd.getName(),
+                    fmtDouble(lastLogStatusPoint.getX()),
+                    fmtDouble(lastLogStatusPoint.getY()),
+                    fmtDouble(lastLogStatusPoint.getZ()),
                     CRCLSocket.cmdToString(cmd)
                 };
             } else {
                 return new Object[]{
                     getTimeString(cel.getTime()),
                     true,
-                    cel.getTime() - lastLogCmdTime,
+                    fmtDouble(cel.getTime() - lastLogCmdTime),
                     cel.getId(),
-                    null,
+                    fmtDouble(distFromLastLogMoveToCmdPoint()),
                     null,
                     cel.getTime(),
                     cel.getProgName(),
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
+                    cmd.getName(),
+                    fmtDouble(lastLogStatusPoint.getX()),
+                    fmtDouble(lastLogStatusPoint.getY()),
+                    fmtDouble(lastLogStatusPoint.getZ()),
                     CRCLSocket.cmdToString(cmd)
                 };
             }
@@ -1726,17 +1743,22 @@ public class PendantClientInner {
             StatusLogElement sel = (StatusLogElement) el;
             CRCLStatusType status = sel.getStatus();
             PointType point = CRCLPosemath.getPoint(status);
+            lastLogStatusPoint = point;
             return new Object[]{
                 getTimeString(sel.getTime()),
                 false,
-                sel.getTime() - lastLogCmdTime,
+                fmtDouble(sel.getTime() - lastLogCmdTime),
                 sel.getId(),
-                distFromLastLogMoveToCmdPoint(status),
+                distFromLastLogMoveToCmdPoint(),
                 status.getCommandStatus().getCommandState(),
                 sel.getTime(),
                 sel.getProgName(),
                 sel.getProgIndex(),
                 sel.getSvrSocket(),
+                status.getName(),
+                point.getX(),
+                point.getY(),
+                point.getZ(),
                 status.getCommandStatus().getStateDescription()
             };
         } else {
@@ -1753,13 +1775,19 @@ public class PendantClientInner {
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
         if (!Objects.equals(lastPrintCommandStatusAppendable, appendable)) {
-            printer.printRecord(new String[]{
-                "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramName", "ProgramIndex", "Server", "Text"
-            });
+            printer.printRecord(COMMAND_STATUS_LOG_HEADINGS);
             lastPrintCommandStatusAppendable = appendable;
         }
         printCommandStatusLogNoHeader(appendable, clearLog);
     }
+
+    static final String[] COMMAND_STATUS_LOG_HEADINGS = new String[]{
+        "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Name", "Text"
+    };
+
+    static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
+        String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class,String.class,String.class,String.class,String.class,String.class,
+    };
 
     public void printCommandStatusLogNoHeader(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
@@ -2811,7 +2839,7 @@ public class PendantClientInner {
             if (startLine == -2) {
                 startLine = lastShowCurrentProgramLine;
             }
-            
+
             if (lastProgramIndex > startLine + 2 && startLine > 2) {
                 System.out.println("origStartLine = " + origStartLine);
                 System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));

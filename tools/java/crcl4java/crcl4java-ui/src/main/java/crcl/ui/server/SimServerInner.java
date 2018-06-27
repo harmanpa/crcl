@@ -1036,9 +1036,14 @@ public class SimServerInner {
             PmRotationVector diffRotv = goalRotv.multiply(currentRotv.inv());
             PoseType newGoalPose = curGoalPose;
             goalPoseToCommandedPositions(newGoalPose);
-            double maxdiff = maxDiffDoubleArray(this.commandedJointPositions, this.jointPositions);
+            double maxdiff = maxDiffDoubleArray(this.commandedJointPositions, this.jointPositions,360.0);
             double scale = 1.0;
+            int cycles = 0;
             while (maxdiff > JOINT_DIFF_MAX) {
+                cycles++;
+                if(cycles > 10) {
+                    throw new IllegalStateException("cycles="+cycles);
+                }
                 scale *= JOINT_DIFF_MAX / (maxdiff + 0.01);
                 PmCartesian scaledDiffPt = diffPt.multiply(scale);
                 PmCartesian newGoalPt = currentPt.add(scaledDiffPt);
@@ -1046,7 +1051,7 @@ public class SimServerInner {
                 PmRotationVector newGoalRotv = currentRotv.multiply(scaledDiffRot);
                 newGoalPose = toPoseType(newGoalPt, newGoalRotv);
                 this.goalPoseToCommandedPositions(newGoalPose);
-                maxdiff = maxDiffDoubleArray(this.commandedJointPositions, this.jointPositions);
+                maxdiff = maxDiffDoubleArray(this.commandedJointPositions, this.jointPositions,360.0);
             }
         } catch (PmException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
