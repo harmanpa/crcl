@@ -1786,8 +1786,7 @@ public class PendantClientInner {
     };
 
     static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
-        String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class,String.class,String.class,String.class,String.class,String.class,
-    };
+        String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
 
     public void printCommandStatusLogNoHeader(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
@@ -2117,7 +2116,9 @@ public class PendantClientInner {
         disconnnectTime = System.currentTimeMillis();
 
         disconnectCount.incrementAndGet();
-        System.out.println("disconnectCount = " + disconnectCount.get());
+        if (debugConnectDisconnect) {
+            System.out.println("disconnectCount = " + disconnectCount.get());
+        }
         disconnecting = true;
         initSent = false;
         stopStatusReaderThread();
