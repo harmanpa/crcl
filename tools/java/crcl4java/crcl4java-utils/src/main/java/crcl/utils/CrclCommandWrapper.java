@@ -29,6 +29,20 @@ import crcl.base.MiddleCommandType;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -40,7 +54,10 @@ public class CrclCommandWrapper extends MessageType {
         public void accept(CrclCommandWrapper wrapper);
     }
     private MiddleCommandType wrappedCommand;
+    
+    /*@Nullable*/
     private CRCLProgramType curProgram = null;
+    
     private int curProgramIndex = -1;
 
     public int getCurProgramIndex() {
@@ -52,6 +69,7 @@ public class CrclCommandWrapper extends MessageType {
     }
     
     
+    /*@Nullable*/
     public CRCLProgramType getCurProgram() {
         return curProgram;
     }

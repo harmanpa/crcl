@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
+@SuppressWarnings("nullness")
 public class PendantClientOuterStub implements PendantClientOuter, PendantClientMenuOuter {
 
     @Override

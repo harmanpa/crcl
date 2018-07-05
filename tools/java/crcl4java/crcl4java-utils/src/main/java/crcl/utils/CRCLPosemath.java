@@ -380,6 +380,7 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
+     /*@Nullable*/
     public static SettingsStatusType copy(SettingsStatusType settings) {
         if (null != settings) {
             SettingsStatusType newSettings = new SettingsStatusType();
@@ -1461,6 +1462,19 @@ public class CRCLPosemath {
      * @return new Pose creating from combining inputs or pose_in if not null
      * @throws PmException if rotation vector can not be converted to matrix
      */
+    static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat) throws PmException {
+       return toPoseType(tran,mat,((PoseType)null));
+    }
+    
+    /**
+     * Combine a translation and rotation in a PoseType
+     *
+     * @param tran translational component of pose
+     * @param mat rotational component of pose
+     * @param pose_in optional pose to be set instead of creating new Pose
+     * @return new Pose creating from combining inputs or pose_in if not null
+     * @throws PmException if rotation vector can not be converted to matrix
+     */
     static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat, /*@Nullable*/ PoseType pose_in) throws PmException {
         PoseType pose = pose_in;
         if (pose == null) {
@@ -1548,7 +1562,7 @@ public class CRCLPosemath {
      * @throws PmException if rotation vector can not be converted to matrix
      */
     static public PoseType toPoseType(PmCartesian tran, PmRotationVector v) throws PmException {
-        return toPoseType(tran, v, null);
+        return toPoseType(tran, v, ((PoseType) null));
     }
 
     /**
@@ -1560,7 +1574,7 @@ public class CRCLPosemath {
      * @throws PmException if rotation vector can not be converted to matrix
      */
     static public PoseType toPoseType(PmCartesian tran, PmRpy v) throws PmException {
-        return toPoseType(tran, v, null);
+        return toPoseType(tran, v, ((PoseType) null));
     }
 
     /**

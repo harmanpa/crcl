@@ -22,9 +22,12 @@
  */
 package crcl.ui;
 
+import static crcl.ui.XFutureVoid.allOf;
+import static crcl.ui.XFutureVoid.allOfWithName;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -90,6 +93,14 @@ public class XFuture<T> extends CompletableFuture<T> {
         this.createTrace = this.createThread.getStackTrace();
     }
 
+    public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
+    }
+
+    public static XFutureVoid allOf(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
+    }
+    
     private static String createTraceToString(StackTraceElement stea[]) {
         return Arrays.stream(stea)
                 .filter(ste -> !ste.getClassName().contains("Future") && !ste.getClassName().startsWith("java.lang"))

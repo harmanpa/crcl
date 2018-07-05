@@ -71,6 +71,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 
 /**
@@ -78,11 +79,13 @@ import org.xml.sax.SAXException;
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  * @param <T> Type of object to be shown/modified.
  */
+@SuppressWarnings("nullness")
 public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     /**
      * Creates new form CmdTableJPanel
      */
+    @SuppressWarnings("initialization")
     public ObjTableJPanel() {
         initComponents();
         setupTableSelection();
@@ -429,7 +432,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
      *
      * @return the value of obj
      */
-    public T getObj() {
+    @Nullable public T getObj() {
         return obj;
     }
 

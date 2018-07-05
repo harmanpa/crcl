@@ -458,6 +458,7 @@ public class ProgramPlotter {
         this.outerColor = outerColor;
     }
 
+    /*@Nullable*/
     private PointType initPoint;
 
     /**
@@ -465,6 +466,7 @@ public class ProgramPlotter {
      *
      * @return the value of initPoint
      */
+    /*@Nullable*/
     public PointType getInitPoint() {
         return initPoint;
     }

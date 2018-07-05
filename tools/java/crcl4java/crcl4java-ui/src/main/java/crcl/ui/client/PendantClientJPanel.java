@@ -143,6 +143,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmEulerZyx;
@@ -167,18 +168,18 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private boolean jogWorldTransSpeedsSet = false;
     private boolean jogWorldRotSpeedsSet = false;
     private static final Logger LOGGER = Logger.getLogger(PendantClientJPanel.class.getName());
-    private XpathQueryJFrame xqJFrame = null;
-    private diagapplet.plotter.plotterJFrame xyzPlotter = null;
-    private diagapplet.plotter.plotterJFrame jointsPlotter = null;
+    @Nullable private XpathQueryJFrame xqJFrame = null;
+    private diagapplet.plotter.@Nullable plotterJFrame xyzPlotter = null;
+    private diagapplet.plotter.@Nullable plotterJFrame jointsPlotter = null;
 
     //    javax.swing.Timer pollTimer = null;
-    transient private volatile Thread pollingThread = null;
+    @Nullable transient private volatile Thread pollingThread = null;
     transient private volatile boolean statusRequested = false;
     private long max_diff_readStatusEndTime_requestStatusStartTime = 0;
     private long maxPollStatusCycleTime = 0;
     private long cycles = 0;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
-    transient private CRCLProgramType recordPointsProgram = null;
+    @Nullable transient private CRCLProgramType recordPointsProgram = null;
     private static final String SETTINGSREF = "clientsettingsref";
     private static final String CRCLJAVA_USER_DIR = ".crcljava";
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
@@ -349,7 +350,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public static interface CurrentPoseListener {
 
-        public void handlePoseUpdate(PendantClientJPanel panel, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected,long statRecieveTime);
+        public void handlePoseUpdate(PendantClientJPanel panel, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime);
     }
 
     private final ConcurrentLinkedDeque<CurrentPoseListener> currentPoseListeners = new ConcurrentLinkedDeque<>();
@@ -384,7 +385,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.getStatus();
     }
 
-    private void finishShowCurrentProgramLine(final int line, final CRCLProgramType program, final CRCLStatusType status, final List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
+    private void finishShowCurrentProgramLine(final int line, final CRCLProgramType program, @Nullable CRCLStatusType status, final List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
 
         if (programShowing == null) {
             showProgram(program, progRunDataList, line);
@@ -410,10 +411,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
                 final int row = getProgramRow();
                 if (row > 0 && row < jTableProgram.getRowCount() - 1) {
-                    long id = (Long) jTableProgram.getValueAt(row, 1);
-                    if (program.getMiddleCommand().size() <= line - 1
-                            || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
-                        showProgram(program, progRunDataList, line);
+                    Object idObject = jTableProgram.getValueAt(row, 1);
+                    if (idObject instanceof Long) {
+                        long id = (Long) idObject;
+                        if (program.getMiddleCommand().size() <= line - 1
+                                || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
+                            showProgram(program, progRunDataList, line);
+                        }
                     }
                 }
                 scrollToVisible(jTableProgram, line, 0);
@@ -431,15 +435,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 showSelectedProgramCommand("No Program loaded.");
             }
         }
-        for (int i = 0; i < programLineListeners.size(); i++) {
-            ProgramLineListener l = programLineListeners.get(i);
-            l.accept(this, line, program, status);
+        if (null != status) {
+            for (int i = 0; i < programLineListeners.size(); i++) {
+                ProgramLineListener l = programLineListeners.get(i);
+                l.accept(this, line, program, status);
+            }
         }
         programLineShowing = line;
     }
 
     private volatile int lastShowSelectedProgramLineLine = -99;
-    private volatile CRCLProgramType lastshowSelectedProgramLineProgram = null;
+    @Nullable private volatile CRCLProgramType lastshowSelectedProgramLineProgram = null;
 
     private void showSelectedProgramLine(final int line, final CRCLProgramType program) {
         if (null != lastshowSelectedProgramLineProgram
@@ -512,7 +518,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jTextAreaSelectedProgramCommand.setCaretPosition(0);
     }
 
-    private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, CRCLStatusType status, final List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
+    private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, @Nullable CRCLStatusType status, final List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
         if (!debugShowProgram) {
             return;
         }
@@ -562,6 +568,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      * @throws javax.xml.parsers.ParserConfigurationException when xml schemas
      * are invalid.
      */
+    @SuppressWarnings("initialization")
     public PendantClientJPanel() throws ParserConfigurationException {
         initComponents();
         this.internal = new PendantClientInner(this);
@@ -584,12 +591,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        readRecentPrograms();
         final String programPropertyString = System.getProperty("crcl4java.program");
         if (null != programPropertyString) {
-            java.awt.EventQueue.invokeLater(new Runnable() {
-
-                @Override
-                public void run() {
-                    openXmlProgramFile(new File(programPropertyString));
-                }
+            final String nonNullProgramPropertyString = programPropertyString;
+            java.awt.EventQueue.invokeLater(() -> {
+                openXmlProgramFile(new File(nonNullProgramPropertyString));
             });
         }
         checkSettingsRef();
@@ -746,8 +750,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
-    @SuppressWarnings("unchecked")
-    static private <T> T valueOf(Class<T> clss, String s) {
+    @SuppressWarnings({"unchecked","nullness"})
+    @Nullable static private <T> T valueOf(Class<T> clss, String s) {
         try {
             Method vmethod = Stream.of(clss.getMethods())
                     .filter(m -> m.getName().equals("valueOf"))
@@ -1946,10 +1950,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void finishSetStatusPriv(
             final CRCLProgramType program,
-            final CRCLStatusType curInternalStatus, 
-            final CRCLCommandType lastCommandSent, 
-            boolean isHoldingObject, 
-            StackTraceElement[] ste, 
+            final CRCLStatusType curInternalStatus,
+            final CRCLCommandType lastCommandSent,
+            boolean isHoldingObject,
+            StackTraceElement[] ste,
             long statReceiveTime) {
         if (needInitPoint) {
             PointType pt = CRCLPosemath.getPoint(curInternalStatus);
@@ -2192,7 +2196,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     }
                 }
                 for (CurrentPoseListener l : currentPoseListeners) {
-                    l.handlePoseUpdate(this, curInternalStatus, lastCommandSent, isHoldingObject,statReceiveTime);
+                    l.handlePoseUpdate(this, curInternalStatus, lastCommandSent, isHoldingObject, statReceiveTime);
                 }
             }
         }

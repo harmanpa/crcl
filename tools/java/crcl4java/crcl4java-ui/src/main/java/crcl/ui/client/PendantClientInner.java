@@ -480,49 +480,25 @@ public class PendantClientInner {
     }
 
     private volatile StackTraceElement[] closeTestProgramRunProgramThreadTrace = null;
+    private volatile StackTraceElement[] closeTestProgramThreadTrace = null;
+    private volatile Thread closeTestProgramThreadThead = null;
 
     public void closeTestProgramThread() {
         if (!isRunningProgram()) {
             return;
         }
+        closeTestProgramThreadThead = Thread.currentThread();
+        closeTestProgramThreadTrace = Thread.currentThread().getStackTrace();
+        closeTestProgramRunProgramThreadTrace = runProgramThread.getStackTrace();
         if (null != runProgramFuture) {
             runProgramFuture.cancelAll(true);
         }
         if (isRunningProgram()) {
             if (null != runProgramThread) {
-                closeTestProgramRunProgramThreadTrace = runProgramThread.getStackTrace();
                 System.err.println("closeTestProgramRunProgramThreadTrace = " + Arrays.toString(closeTestProgramRunProgramThreadTrace));
             }
             showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFuture + ", runProgramThread=" + runProgramThread);
         }
-
-//        Thread rtpt = runTestProgramThread.getAndSet(null);
-//        if (null != rtpt) {
-//            if (rtpt.equals(Thread.currentThread())) {
-//                return;
-//            }
-//            close_test_count.incrementAndGet();
-//            try {
-//                rtpt.join(100);
-//            } catch (InterruptedException ex) {
-//                LOGGER.log(Level.SEVERE, null, ex);
-//            }
-//            if (rtpt.isAlive()) {
-//                if (debugInterrupts) {
-//                    Thread.dumpStack();
-//                    System.err.println("Interrupting runTestProgramThread = " + runTestProgramThread);
-//                    System.out.println("Interrupting runTestProgramThread = " + runTestProgramThread);
-//                    System.out.println("runTestProgramThread.getStackTrace() = " + Arrays.toString(rtpt.getStackTrace()));
-//                }
-//                interruptStacks.add(Thread.currentThread().getStackTrace());
-//                rtpt.interrupt();
-//                try {
-//                    rtpt.join(100);
-//                } catch (InterruptedException ex) {
-//                    LOGGER.log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        }
     }
 
     public boolean isDone(long minCmdId) {
@@ -647,7 +623,7 @@ public class PendantClientInner {
 
     public void showErrorMessage(String s) {
         System.err.println(s);
-        if (!disconnecting) {
+        if (!disconnecting && !aborting) {
             Thread.dumpStack();
         }
         crclClientErrorMessage = s;
@@ -1268,8 +1244,11 @@ public class PendantClientInner {
         }
     }
 
+    private volatile boolean aborting = false;
+
     public void abort() {
         try {
+            aborting = true;
             this.programName = null;
             this.programIndex = -1;
             runProgramAbortCount.incrementAndGet();
@@ -1290,6 +1269,7 @@ public class PendantClientInner {
         } catch (JAXBException | InterruptedException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+        aborting = false;
     }
 
     private volatile boolean initSent = false;
@@ -2823,8 +2803,6 @@ public class PendantClientInner {
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement[] threadCreateCallStack,
             XFuture<Boolean> future) {
-//        checkProgIds(prog);
-
         try {
             final int origStartLine = startLine;
             final int startRunProgramAbortCount = runProgramAbortCount.get();
@@ -3085,10 +3063,25 @@ public class PendantClientInner {
         return this.paused;
     }
 
+    private volatile boolean lastRunProgramFutureNotCompleted = false;
+    private volatile boolean lastRunProgramThreadAlive = false;
+
     public boolean isRunningProgram() {
-        return (null != runProgramFuture && !runProgramFuture.isDone() && !runProgramFuture.isCancelled()
-                && !runProgramFuture.isCompletedExceptionally())
-                || (null == runProgramFuture && null != runProgramThread && runProgramThread.isAlive());
+        boolean runProgramFutureNotCompleted = isRunProgramFutureNotCompleted();
+        boolean runProgramThreadAlive = isRunProgramThreadAlive();
+        lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
+        lastRunProgramThreadAlive = runProgramThreadAlive;
+        return runProgramFutureNotCompleted
+                || (null == runProgramFuture && runProgramThreadAlive);
+    }
+
+    private boolean isRunProgramThreadAlive() {
+        return null != runProgramThread && runProgramThread.isAlive();
+    }
+
+    private boolean isRunProgramFutureNotCompleted() {
+        return null != runProgramFuture && !runProgramFuture.isDone() && !runProgramFuture.isCancelled()
+                && !runProgramFuture.isCompletedExceptionally();
     }
 
     public long getRunStartMillis() {

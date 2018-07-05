@@ -42,7 +42,7 @@
         <!-- <main.class>crcl.utils.DefaultMain</main.class> -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        
+        <checkerframework.version>1.9.13</checkerframework.version>
     </properties>
     <build>
         
@@ -111,24 +111,24 @@
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>checker-qual</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>checker</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <!-- The type annotations compiler - uncomment if using Java 7 -->
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>compiler</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <!-- The annotated JDK to use (change to jdk7 if using Java 7) -->
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>jdk7</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
             </dependencies>
             <build>

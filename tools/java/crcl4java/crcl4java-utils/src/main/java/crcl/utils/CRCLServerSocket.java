@@ -56,9 +56,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
 /**
  *
- * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov> }
  */
 public class CRCLServerSocket implements AutoCloseable, Runnable {
 
@@ -67,17 +81,24 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     public static class CRCLServerClientInfo implements AutoCloseable {
 
         private final CRCLSocket socket;
+
+        /*@Nullable*/
         private final Future<?> future;
 
         public CRCLSocket getSocket() {
             return socket;
         }
 
+        /*@Nullable*/
         public Future<?> getFuture() {
             return future;
         }
 
-        public CRCLServerClientInfo(CRCLSocket socket, Future<?> future) {
+        public CRCLServerClientInfo(CRCLSocket socket) {
+            this(socket, ((Future<?>) null));
+        }
+
+        public CRCLServerClientInfo(CRCLSocket socket, /*@Nullable*/ Future<?> future) {
             this.socket = socket;
             this.future = future;
         }
@@ -137,6 +158,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         }
     }
 
+    /*@Nullable*/
     private ExecutorService callbackService = null;
 
     /**
@@ -144,6 +166,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      *
      * @return the value of callbackService
      */
+    /*@Nullable*/
     public ExecutorService getCallbackService() {
         return callbackService;
     }
@@ -160,6 +183,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         this.callbackService = callbackService;
     }
 
+    /*@Nullable*/
     private ExecutorService executorService;
 
     /**
@@ -167,6 +191,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      *
      * @return the value of executorService
      */
+    /*@Nullable*/
     public ExecutorService getExecutorService() {
         return executorService;
     }
@@ -183,7 +208,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         this.executorService = executorService;
     }
 
-    private volatile ServerSocketChannel serverSocketChannel;
+    /*@Nullable*/ private volatile ServerSocketChannel serverSocketChannel;
 
     private boolean closing = false;
 
@@ -265,7 +290,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         this.validate = validate;
     }
 
-    private ServerSocket serverSocket;
+    /*@Nullable*/ private ServerSocket serverSocket;
 
     final List<CRCLServerSocketEventListener> listeners = new ArrayList<>();
 
@@ -332,7 +357,10 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         if (event.getException() instanceof SocketException
                 || event.getException() instanceof EOFException) {
             try {
-                event.getSource().close();
+                CRCLSocket source = event.getSource();
+                if (null != source) {
+                    source.close();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -363,6 +391,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         return l;
     }
 
+    /*@Nullable*/
     private Selector selector;
 
     /**
@@ -370,6 +399,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      *
      * @return the value of selector
      */
+    /*@Nullable*/
     public Selector getSelector() {
         return selector;
     }
@@ -386,7 +416,10 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         this.selector = selector;
     }
 
+    /*@Nullable*/ 
     private SocketAddress localAddress;
+    
+    /*@Nullable*/
     private InetAddress bindAddress;
 
     /**
@@ -394,6 +427,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      *
      * @return the value of bindAddress
      */
+    /*@Nullable*/
     public InetAddress getBindAddress() {
         return bindAddress;
     }
@@ -497,38 +531,48 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     }
 
     private void runSingleThreaded() throws InterruptedException, IOException, ClosedChannelException {
-        if (null == serverSocketChannel) {
+        ServerSocketChannel channelForRun = this.serverSocketChannel;
+        if (null == channelForRun) {
+            SocketAddress localAddressToBind = this.localAddress;
+            if(null == localAddressToBind) {
+                throw new IllegalStateException("null == localAddressToBind");
+            }
             try {
-                serverSocketChannel = (ServerSocketChannel) ServerSocketChannel.open()
-                        .bind(localAddress)
+                channelForRun = (ServerSocketChannel) ServerSocketChannel.open()
+                        .bind(localAddressToBind)
                         .setOption(StandardSocketOptions.SO_REUSEADDR, true)
                         .configureBlocking(false);
+                this.serverSocketChannel = channelForRun;
             } catch (BindException bindException) {
-                System.err.println("localAdrress = "+((InetSocketAddress) localAddress).getHostString()+":"+((InetSocketAddress) localAddress).getPort());
+                if(localAddressToBind instanceof InetSocketAddress) {
+                    InetSocketAddress loclaInetSocketAddress =  (InetSocketAddress) localAddressToBind;
+                    System.err.println("localAdrress = " + loclaInetSocketAddress.getHostString() + ":" + loclaInetSocketAddress.getPort());
+                }
                 throw new IOException(bindException);
             }
         }
-        if (null == selector) {
-            selector = Selector.open();
+        Selector selectorForRun = this.selector;
+        if (null == selectorForRun) {
+            selectorForRun = Selector.open();
+            this.selector = selectorForRun;
+        }
+        if (null == channelForRun) {
+            throw new IllegalStateException("serverSocketChannel==null");
         }
 
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        if (null == selectorForRun) {
+            throw new IllegalStateException("selectorForRun==null");
+        }
+        channelForRun.register(selectorForRun, SelectionKey.OP_ACCEPT);
         while (!closing && !Thread.currentThread().isInterrupted()) {
-            selector.select();
-            SelectionKey keys[] = new SelectionKey[0];
-            synchronized (selector) {
-                Set<SelectionKey> keySet = selector.selectedKeys();
-                synchronized (keySet) {
-                    keys = keySet.toArray(keys);
-                    keySet.removeAll(Arrays.asList(keys));
-                }
-            }
+            selectorForRun.select();
+            SelectionKey keys[] = getAndClearKeys(selectorForRun);
             for (int i = 0; i < keys.length; i++) {
                 SelectionKey key = keys[i];
 
-                if (key.channel() == serverSocketChannel) {
+                if (key.channel() == channelForRun) {
                     SocketChannel clientSocketChannel
-                            = serverSocketChannel.accept();
+                            = channelForRun.accept();
                     if (null == clientSocketChannel) {
                         System.out.println("key = " + key);
                     } else {
@@ -537,7 +581,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                         CRCLSocket crclSocket = new CRCLSocket(clientSocketChannel);
                         clients.add(new CRCLServerClientInfo(crclSocket, null));
                         SelectionKey newKey
-                                = clientSocketChannel.register(selector, SelectionKey.OP_READ, crclSocket);
+                                = clientSocketChannel.register(selectorForRun, SelectionKey.OP_READ, crclSocket);
                     }
                 } else {
                     CRCLSocket crclSocket = (CRCLSocket) key.attachment();
@@ -557,7 +601,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                         } catch (IOException iOException) {
                             try {
                                 s.close();
-                                selector.selectedKeys().remove(key);
+                                selectorForRun.selectedKeys().remove(key);
                             } catch (Exception exception) {
                             }
                             handleEvent(new CRCLServerSocketEvent(crclSocket, null, iOException));
@@ -572,6 +616,19 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                 }
             }
         }
+    }
+
+    @SuppressWarnings("nullness")
+    private SelectionKey[] getAndClearKeys(Selector selectorForRun) {
+        SelectionKey keys[] = new SelectionKey[0];
+        synchronized (selectorForRun) {
+            Set<SelectionKey> keySet = selectorForRun.selectedKeys();
+            synchronized (keySet) {
+                keys = keySet.toArray(keys);
+                keySet.removeAll(Arrays.asList(keys));
+            }
+        }
+        return keys;
     }
 
     private int backlog = 0;
@@ -606,29 +663,36 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     }
 
     private Socket acceptFromServerSocket() throws SocketException, IOException {
-        if (null == serverSocket) {
+        ServerSocket acceptServerSocket = this.serverSocket;
+        if (null == acceptServerSocket) {
             throw new IllegalStateException("serverSocket == null");
         }
         // This is an anoying hack around the problem that you can't rely on
         // serverSocket.accept() being interrupted.
         // This only generally needs to happen when shuting down the server
-        int orig_timeout = serverSocket.getSoTimeout();
-        serverSocket.setSoTimeout(500);
+        int orig_timeout = acceptServerSocket.getSoTimeout();
+        acceptServerSocket.setSoTimeout(500);
         Socket ret = null;
+        boolean interrupted = false;
         try {
-            while (ret == null && !closing && !Thread.currentThread().isInterrupted()) {
+            interrupted = interrupted || Thread.currentThread().isInterrupted();
+            while (ret == null && !closing && !interrupted) {
                 try {
-                    ret = serverSocket.accept();
-                } catch (SocketTimeoutException socketTimeoutException) {
+                    ret = acceptServerSocket.accept();
+                } catch (SocketTimeoutException ignored) {
                 }
             }
         } finally {
-            serverSocket.setSoTimeout(orig_timeout);
+            acceptServerSocket.setSoTimeout(orig_timeout);
+        }
+        if (null == ret) {
+            throw new IllegalStateException("acceptFromServerSocket returned null,closing=" + closing + ",interrupted=" + interrupted);
         }
         return ret;
     }
 
     private void runMultiThreaded() throws InterruptedException, IOException {
+
         if (null != serverSocketChannel) {
             serverSocketChannel.close();
             serverSocketChannel = null;
@@ -637,7 +701,11 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
             selector.close();
             selector = null;
         }
-        initExecutorService();
+        
+        ExecutorService runMultiExecutorService = initExecutorService();
+        if (null == runMultiExecutorService) {
+            throw new IllegalStateException("null == runMultiExcututorService");
+        }
         if (null == serverSocket) {
             if (null != bindAddress) {
                 serverSocket = new ServerSocket(port, backlog, bindAddress);
@@ -653,7 +721,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
                 return;
             }
             final CRCLSocket crclSocket = new CRCLSocket(socket);
-            Future<?> future = executorService.submit(new Runnable() {
+            Future<?> future = runMultiExecutorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -676,21 +744,25 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         }
     }
 
-    private void initExecutorService() {
-        if (null == executorService) {
-            executorService = Executors.newCachedThreadPool(new ThreadFactory() {
-
-                int num = 0;
-
-                @Override
-                public Thread newThread(Runnable r) {
-                    num++;
-                    Thread t = new Thread(r, "CRCLServerSocket" + runcount + "_" + num);
-//                        t.setDaemon(true);
-                    return t;
-                }
-            });
+    private ExecutorService initExecutorService() {
+        ExecutorService es = this.executorService;
+        if (null != es) {
+            return es;
         }
+        ExecutorService newExecutorService = Executors.newCachedThreadPool(new ThreadFactory() {
+
+            int num = 0;
+
+            @Override
+            public Thread newThread(Runnable r) {
+                num++;
+                Thread t = new Thread(r, "CRCLServerSocket" + runcount + "_" + num);
+//                        t.setDaemon(true);
+                return t;
+            }
+        });
+        this.executorService = newExecutorService;
+        return newExecutorService;
     }
 
     public CRCLServerSocket() {
@@ -727,8 +799,8 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }
-        initExecutorService();
+        ExecutorService serviceFoStart = initExecutorService();
         started = true;
-        return executorService.submit(this);
+        return serviceFoStart.submit(this);
     }
 }
