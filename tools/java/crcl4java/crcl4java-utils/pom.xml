@@ -95,7 +95,7 @@
     <name>crcl4java-utils</name>
     <profiles>
         <profile>
-            <id>with_checkers</id>
+            <id>checkerframework_jdk7</id>
             <properties>
                 <!-- For checker framework , http://types.cs.washington.edu/checker-framework/current/checker-framework-manual.html#maven -->
                 <!-- These properties will be set by the Maven Dependency plugin -->
@@ -161,7 +161,8 @@
                                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
                             </annotationProcessors>
                             <compilerArgs>
-                                <arg>-Xlint:unchecked</arg>
+                                <arg>-Xlint:all,-serial</arg>
+                                <arg>-AprintErrorStack</arg>
                                 <!-- location of the annotated JDK, which comes from a Maven dependency -->
                                 <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
                                 <!-- Uncomment the following line if using Java 7. -->
