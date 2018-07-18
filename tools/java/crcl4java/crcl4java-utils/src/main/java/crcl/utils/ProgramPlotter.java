@@ -476,7 +476,7 @@ public class ProgramPlotter {
      *
      * @param initPoint new value of initPoint
      */
-    public void setInitPoint(PointType initPoint) {
+    public void setInitPoint(/*@Nullable*/ PointType initPoint) {
         this.initPoint = initPoint;
     }
 

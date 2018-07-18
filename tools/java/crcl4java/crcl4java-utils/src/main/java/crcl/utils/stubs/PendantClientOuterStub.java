@@ -230,10 +230,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return null;
     }
 
-    @Override
-    public CRCLProgramType getProgram() {
-        return null;
-    }
 
     @Override
     public File getLastOpenedProgramFile() {

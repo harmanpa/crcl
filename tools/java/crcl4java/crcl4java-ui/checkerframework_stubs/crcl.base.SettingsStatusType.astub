@@ -54,7 +54,7 @@ class SettingsStatusType extends DataThingType {
     void setRotSpeedAbsolute(RotSpeedAbsoluteType arg0);
     @Nullable RotSpeedRelativeType getRotSpeedRelative();
     void setRotSpeedRelative(RotSpeedRelativeType arg0);
-    T@Nullable orqueUnitEnumType getTorqueUnitName();
+    @Nullable TorqueUnitEnumType getTorqueUnitName();
     void setTorqueUnitName(TorqueUnitEnumType arg0);
     @Nullable TransAccelAbsoluteType getTransAccelAbsolute();
     void setTransAccelAbsolute(TransAccelAbsoluteType arg0);

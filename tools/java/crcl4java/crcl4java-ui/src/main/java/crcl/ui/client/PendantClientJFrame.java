@@ -20,13 +20,11 @@
  */
 package crcl.ui.client;
 
-import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.IconImages;
-import crcl.ui.misc.ObjTableJPanel;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.server.SimServerJFrame;
 import crcl.ui.misc.TransformSetupJFrame;
@@ -43,7 +41,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
@@ -60,6 +57,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 
 /**
@@ -68,11 +66,13 @@ import org.xml.sax.SAXException;
  */
 public class PendantClientJFrame extends javax.swing.JFrame implements PendantClientOuter, PendantClientMenuOuter {
 
+    @SuppressWarnings("initialization")
     public PendantClientJFrame(GraphicsConfiguration gc) throws ParserConfigurationException {
         super(gc);
         init();
     }
 
+    @SuppressWarnings("initialization")
     public PendantClientJFrame(String title) throws ParserConfigurationException {
         super(title);
         init();
@@ -85,6 +85,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
      * @throws javax.xml.parsers.ParserConfigurationException when
      * javax.xml.parsers.DocumentBuilderFactory fails in XpathUtils
      */
+    @SuppressWarnings("initialization")
     public PendantClientJFrame() throws ParserConfigurationException {
         super();
         init();
@@ -92,9 +93,9 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
     private void init() {
         initComponents();
-        pendantClientJPanel1.setOuterFrame(this);
+//        pendantClientJPanel1.setOuterContainer(this);
         pendantClientJPanel1.setMenuOuter(this);
-        addCommandsMenu();
+        pendantClientJPanel1.addToCommandsMenu(jMenuCmds);
 
         readRecentCommandFiles();
         readRecentPrograms();
@@ -165,30 +166,37 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
                     return name.endsWith(".xml");
                 }
             });
-            Arrays.sort(sub_fa, new Comparator<File>() {
+            if (null != sub_fa) {
+                sortFileArrayByLastModified(sub_fa);
+                for (int i = 0; i < sub_fa.length && i < 3; i++) {
+                    File xmlFile = sub_fa[i];
+                    JMenuItem jmi = new JMenuItem(xmlFile.getName());
+                    jmi.addActionListener(new ActionListener() {
 
-                @Override
-                public int compare(File o1, File o2) {
-                    return Long.compare(o1.lastModified(), o2.lastModified());
-                }
-            });
-            for (int i = 0; i < sub_fa.length && i < 3; i++) {
-                File xmlFile = sub_fa[i];
-                JMenuItem jmi = new JMenuItem(xmlFile.getName());
-                jmi.addActionListener(new ActionListener() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            pendantClientJPanel1.openXmlInstanceFile(xmlFile);
-                        } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                            showMessage(ex);
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                pendantClientJPanel1.openXmlInstanceFile(xmlFile);
+                            } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
+                                LOGGER.log(Level.SEVERE, null, ex);
+                                showMessage(ex);
+                            }
                         }
-                    }
-                });
-                jm.add(jmi);
+                    });
+                    jm.add(jmi);
+                }
             }
+        }
+    }
+
+//    private static final Comparator<File> LAST_MODIFIED_COMPARATOR
+//            = (File o1, File o2) -> Long.compare(o1.lastModified(), o2.lastModified());
+    private static final Comparator<File> LAST_MODIFIED_COMPARATOR
+            = Comparator.comparing(File::lastModified);
+
+    private void sortFileArrayByLastModified(File[] sub_fa) {
+        if (null != sub_fa) {
+            Arrays.sort(sub_fa, LAST_MODIFIED_COMPARATOR);
         }
     }
 
@@ -214,54 +222,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
-    private void addCommandsMenu() {
-        try {
-            List<Class> allClasses = ObjTableJPanel.getClasses();
-            List<Class> cmdClasses = ObjTableJPanel.getAssignableClasses(CRCLCommandType.class,
-                    allClasses);
-            Collections.sort(cmdClasses, new Comparator<Class>() {
-
-                @Override
-                public int compare(Class o1, Class o2) {
-                    return o1.getCanonicalName().compareTo(o2.getCanonicalName());
-                }
-            });
-            for (final Class c : cmdClasses) {
-                JMenuItem jmi = new JMenuItem(c.getCanonicalName());
-                jmi.addActionListener(new ActionListener() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            PendantClientInner internal = pendantClientJPanel1.getInternal();
-                            CRCLCommandType cmd = (CRCLCommandType) c.newInstance();
-                            cmd
-                                    = ObjTableJPanel.editObject(cmd,
-                                            internal.getXpu(),
-                                            null,
-                                            internal.getCheckCommandValidPredicate());
-                            if (null != cmd) {
-                                internal.incAndSendCommand(cmd);
-                                pendantClientJPanel1.saveRecentCommand(cmd);
-                            }
-                        } catch (InstantiationException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (IllegalAccessException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (JAXBException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                });
-                this.jMenuCmds.add(jmi);
-            }
-        } catch (Throwable e) {
-            LOGGER.log(Level.SEVERE, null, e);
-        }
-    }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -271,11 +231,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        try {
-            pendantClientJPanel1 = new crcl.ui.client.PendantClientJPanel();
-        } catch (javax.xml.parsers.ParserConfigurationException e1) {
-            e1.printStackTrace();
-        }
+        pendantClientJPanel1 = new PendantClientJPanel(this,this);
         jMenuBarPendantClient = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemOpenXmlCommandInstance = new javax.swing.JMenuItem();
@@ -560,6 +516,9 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
             else if (evt.getSource() == jMenuItemSetSchemaFiles) {
                 PendantClientJFrame.this.jMenuItemSetSchemaFilesActionPerformed(evt);
             }
+            else if (evt.getSource() == jCheckBoxMenuItemValidateXml) {
+                PendantClientJFrame.this.jCheckBoxMenuItemValidateXmlActionPerformed(evt);
+            }
             else if (evt.getSource() == jCheckBoxMenuItemUseEXI) {
                 PendantClientJFrame.this.jCheckBoxMenuItemUseEXIActionPerformed(evt);
             }
@@ -577,9 +536,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
             }
             else if (evt.getSource() == jMenuItemAbout) {
                 PendantClientJFrame.this.jMenuItemAboutActionPerformed(evt);
-            }
-            else if (evt.getSource() == jCheckBoxMenuItemValidateXml) {
-                PendantClientJFrame.this.jCheckBoxMenuItemValidateXmlActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -621,7 +577,9 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         Map<String, String> testPropsMap
                 = PropertiesJPanel.confirmPropertiesMap(this, "Test Run Properties", true,
                         pendantClientJPanel1.getInternal().getDefaultTestPropertiesMap());
-        pendantClientJPanel1.startRunTest(testPropsMap);
+        if (null != testPropsMap) {
+            pendantClientJPanel1.startRunTest(testPropsMap);
+        }
     }//GEN-LAST:event_jMenuItemRunTestActionPerformed
 
 
@@ -878,7 +836,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     public void finishSetStatus() {
         pendantClientJPanel1.finishSetStatus();
     }
-    
+
     @Override
     public void clearProgramTimesDistances() {
         pendantClientJPanel1.clearProgramTimesDistances();
@@ -944,7 +902,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return pendantClientJPanel1.getCurrentPose();
     }
 
-    @Override
+    @Nullable
     public CRCLProgramType getProgram() {
         return pendantClientJPanel1.getProgram();
     }

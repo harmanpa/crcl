@@ -23,7 +23,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +34,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.JFileChooser;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -72,7 +72,10 @@ public class WebServerJFrame extends javax.swing.JFrame {
         }
     }
 
-    static private Optional<File> findJarInDir(String dir) {
+    static private Optional<File> findJarInDir(@Nullable String dir) {
+        if(dir == null) {
+            return Optional.empty();
+        }
         File fa[] = new File(dir).listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -85,7 +88,13 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return Optional.empty();
     }
 
-    static private Optional<File> findFileInDir(String dir, String filename) {
+    static private Optional<File> findFileInDir(@Nullable String dir, @Nullable String filename) {
+        if(dir == null) {
+            return Optional.empty();
+        }
+        if(filename == null) {
+            return Optional.empty();
+        }
         File fa[] = new File(dir).listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -98,7 +107,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return Optional.empty();
     }
 
-    private static File findJar() {
+    @Nullable private static File findJar() {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
         return Stream.of(userDir,
@@ -114,10 +123,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 .findFirst().orElse(null);
     }
 
-    private static File findFile(String name) {
+    @Nullable private static File findFile(String name) {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
-        Function<String, Optional<File>> finder = (String dir) -> findFileInDir(dir, name);
+        Function<@Nullable String, Optional<File>> finder
+                = (@Nullable String dir) -> findFileInDir(dir, name);
         return Stream.of(userDir,
                 userDir + File.separator + "target",
                 userDir + File.separator + "crcl4java-vaadin-webapp" + File.separator + "target",
@@ -158,6 +168,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
     /**
      * Creates new form WebServerJFrame
      */
+    @SuppressWarnings("initialization")
     public WebServerJFrame() {
         initComponents();
         registerShutdownHook();
@@ -228,7 +239,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    transient private Runnable onStopRunnable = null;
+    @Nullable volatile private Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -412,9 +423,9 @@ public class WebServerJFrame extends javax.swing.JFrame {
         saveProperties();
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    transient private Process internalProcess;
-    transient private Thread monitorOutputThread;
-    transient private Thread monitorErrorThread;
+    @Nullable volatile private Process internalProcess;
+    @Nullable volatile private Thread monitorOutputThread;
+    @Nullable volatile private Thread monitorErrorThread;
 
     private List<String> consoleStrings = new LinkedList<String>();
 
@@ -437,20 +448,25 @@ public class WebServerJFrame extends javax.swing.JFrame {
         this.maxLoggedStrings = maxLoggedStrings;
     }
 
-    transient volatile private PrintWriter logger = null;
-    private File logFile = null;
+    @Nullable volatile private PrintWriter logger = null;
+    @Nullable private File logFile = null;
 
     private synchronized PrintWriter getLogger() throws IOException {
         if (logger == null) {
-            logFile = File.createTempFile("webserverlog", ".txt");
-            System.out.println("logFile = " + logFile);
-            logger = new PrintWriter(new FileWriter(logFile));
+            File newLogFile = File.createTempFile("webserverlog", ".txt");
+            System.out.println("logFile = " + newLogFile);
+            logger = new PrintWriter(new FileWriter(newLogFile));
+            this.logFile = newLogFile;
         }
         return logger;
     }
 
     private void monitorInternalProcessOutput() {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()))) {
+        Process internalProcess1 = internalProcess;
+        if(null == internalProcess1) {
+            throw new IllegalStateException("null == internalProcess");
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getInputStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
@@ -465,7 +481,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessError() {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()))) {
+        Process internalProcess1 = internalProcess;
+        if(null == internalProcess1) {
+            throw new IllegalStateException("null == internalProcess");
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getErrorStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);
@@ -520,17 +540,19 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     public void stop() {
-        if (null != onStopRunnable) {
+        Runnable onStopRunnable1 = onStopRunnable;
+        if (null != onStopRunnable1) {
             System.out.println("Starting WebServerJFrame : onStopRunnable.run()");
-            onStopRunnable.run();
+            onStopRunnable1.run();
             System.out.println("Finished WebServerJFrame : onStopRunnable.run()");
         }
-        if (null != internalProcess) {
+        Process internalProcess1 = internalProcess;
+        if (null != internalProcess1) {
             try {
                 System.out.println("Starting WebServerJFrame : internalProcess.destroy()");
-                internalProcess.destroy();
-                internalProcess.waitFor(10, TimeUnit.SECONDS);
-                int exit_code = internalProcess.exitValue();
+                internalProcess1.destroy();
+                internalProcess1.waitFor(10, TimeUnit.SECONDS);
+                int exit_code = internalProcess1.exitValue();
                 System.out.println("exit_code = " + exit_code);
                 System.out.println("Finished WebServerJFrame : internalProcess.destroy()");
             } catch (InterruptedException ex) {
@@ -538,34 +560,39 @@ public class WebServerJFrame extends javax.swing.JFrame {
             }
             try {
                 System.out.println("Starting WebServerJFrame : internalProcess.destroyForcibly()");
-                internalProcess.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
+                internalProcess1.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
                 System.out.println("Finished WebServerJFrame : internalProcess.destroyForcibly()");
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            internalProcess = null;
+            internalProcess1 = null;
+            this.internalProcess = null;
         }
-        if (null != monitorOutputThread) {
+        Thread monitorOutputThread1 = monitorOutputThread;
+        if (null != monitorOutputThread1) {
             System.out.println("Starting WebServerJFrame : monitorOutputThread.join(...)");
-            monitorOutputThread.interrupt();
+            monitorOutputThread1.interrupt();
             try {
-                monitorOutputThread.join(2000);
+                monitorOutputThread1.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.out.println("Finished WebServerJFrame : monitorOutputThread.join(...)");
-            monitorOutputThread = null;
+            monitorOutputThread1 = null;
+            this.monitorOutputThread = null;
         }
-        if (null != monitorErrorThread) {
+        Thread monitorErrorThread1 = monitorErrorThread;
+        if (null != monitorErrorThread1) {
             System.out.println("Starting WebServerJFrame : monitorErrorThread.join(...)");
-            monitorErrorThread.interrupt();
+            monitorErrorThread1.interrupt();
             try {
-                monitorErrorThread.join(2000);
+                monitorErrorThread1.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.out.println("Finished WebServerJFrame : monitorErrorThread.join(...)");
-            monitorErrorThread = null;
+            monitorErrorThread1 = null;
+            this.monitorErrorThread = null;
         }
         closeLogger();
         System.out.println("Starting WebServerJFrame : saveProperties()");
@@ -662,9 +689,10 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     private synchronized void showLogFile() {
         closeLogger();
-        if (null != logFile && logFile.exists()) {
+        File logFile1 = logFile;
+        if (null != logFile1 && logFile1.exists()) {
             try {
-                Desktop.getDesktop().open(logFile);
+                Desktop.getDesktop().open(logFile1);
             } catch (IOException ex) {
                 Logger.getLogger(WebServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }

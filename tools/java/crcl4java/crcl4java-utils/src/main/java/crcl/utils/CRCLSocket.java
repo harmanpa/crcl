@@ -1075,11 +1075,30 @@ public class CRCLSocket implements AutoCloseable {
             final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
 
             if (!protectionDomainChecked) {
-                ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
-                System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+                String javaClassVersion = System.getProperty("java.class.version");
+                System.out.println("javaClassVersion = " + javaClassVersion);
+                String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
+                System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
+                String javaVmVersion = System.getProperty("java.vm.version");
+                
+                System.out.println("javaVmVersion = " + javaVmVersion);
                 protectionDomainChecked = true;
+                if (javaClassVersion.compareTo("52.0") > 0) {
+                    ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                    LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
+                    System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+//                    throw new RuntimeException("javaClassVersion="+javaClassVersion+", javaSpecVmVersion="+javaSpecVmVersion+", javaVmVersion="+javaVmVersion);
+                } 
+//                else {
+//                    String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
+//                    throw new RuntimeException("jAXBContextFactoryProperty="+jAXBContextFactoryProperty);
+//                }
+                
             }
+//            String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
+//            if(null != jAXBContextFactoryProperty) {
+//                    throw new RuntimeException("jAXBContextFactoryProperty="+jAXBContextFactoryProperty);
+//            }
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
             u_cmd = context.createUnmarshaller();
@@ -1098,7 +1117,11 @@ public class CRCLSocket implements AutoCloseable {
 //        System.exit(0);
     }
 
-    public CRCLSocket(Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
+    public CRCLSocket( Schema cmdSchema, Schema statSchema, Schema programSchema) {
+        this(null,cmdSchema,statSchema,programSchema);
+    }
+    
+    public CRCLSocket(/*@Nullable*/ Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
         this.socket = socket;
         this.cmdSchema = cmdSchema;
         this.statSchema = statSchema;
@@ -2126,7 +2149,7 @@ public class CRCLSocket implements AutoCloseable {
             writePackets(channel, ba);
         } else {
             Socket sock = getSocket();
-            if(null == sock) {
+            if (null == sock) {
                 throw new IllegalStateException("getSocket() returned null");
             }
             writePackets(sock.getOutputStream(), ba);
@@ -2316,8 +2339,8 @@ public class CRCLSocket implements AutoCloseable {
             return getUtilSocket().statusToPrettyString(status, false);
         } catch (Exception e) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, e);
-            String msg =  e.getMessage();
-            if(null == msg) {
+            String msg = e.getMessage();
+            if (null == msg) {
                 return "EXCEPTION";
             }
             return msg;
@@ -2577,11 +2600,5 @@ public class CRCLSocket implements AutoCloseable {
             return result;
         }
 
-    }
-
-    private static interface Supplier<T> {
-
-        /*@Nullable*/
-        public T get();
     }
 }

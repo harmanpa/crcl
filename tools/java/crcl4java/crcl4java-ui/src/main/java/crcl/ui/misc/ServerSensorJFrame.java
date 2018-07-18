@@ -5,7 +5,6 @@
  */
 package crcl.ui.misc;
 
-
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import java.awt.Image;
 import java.beans.PropertyChangeListener;
@@ -15,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.JFileChooser;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -30,7 +29,7 @@ import javax.swing.JFileChooser;
  */
 public class ServerSensorJFrame extends javax.swing.JFrame {
 
-    transient private FingerPressureSensorData data;
+    private FingerPressureSensorData data;
 
     public static final String PROP_DATA = "data";
 
@@ -54,7 +53,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         propertyChangeSupport.firePropertyChange(PROP_DATA, oldData, data);
     }
 
-    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport propertyChangeSupport; //= new PropertyChangeSupport(this);
 
     /**
      * Add PropertyChangeListener.
@@ -79,16 +78,17 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     /**
      * Creates new form ServerSensorJFrame
      */
+    @SuppressWarnings("initialization")
     public ServerSensorJFrame() {
         initComponents();
         setIconImage(SERVER_IMAGE);
+        propertyChangeSupport = new PropertyChangeSupport(this);
     }
-    
+
     @Override
     final public void setIconImage(Image image) {
         super.setIconImage(image);
     }
-
 
     public void setCommandString(String s) {
         try {
@@ -122,7 +122,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    transient private Runnable onStopRunnable = null;
+    @Nullable private Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -321,40 +321,41 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    transient private Process internalProcess;
-    transient private Thread monitorOutputThread;
-    transient private Thread monitorErrorThread;
-    transient private Thread readSocketThread;
+    @Nullable private Process internalProcess = null;
+    @Nullable private Thread monitorOutputThread = null;
+    @Nullable private Thread monitorErrorThread = null;
+    @Nullable private Thread readSocketThread = null;
 
     private final int SERVER_PORT_NUM = 4567;
 
     private void readSocket() {
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try (Socket s = new Socket("localhost", SERVER_PORT_NUM);
-                BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
-            String line = null;
-            while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
-                System.out.println("line = " + line);
-                final String str = line;
-
-                FingerPressureSensorData newData = FingerPressureSensorData.fromJSON(str);
-                System.out.println("data.sensor_values.FSR_finger_A_distal = " + newData.getFSR_finger_A_distal());
-                System.out.println("data.sensor_values.FSR_finger_B_distal = " + newData.getFSR_finger_B_distal());
-                setData(newData);
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    socketAppend(str + "\n");
-                    jTextFieldFingerA.setText(Double.toString(newData.getFSR_finger_A_distal()));
-                    jTextFieldFingerB.setText(Double.toString(newData.getFSR_finger_B_distal()));
-                });
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(ex.toString()));
-        }
+        throw new UnsupportedOperationException("pressure sensor server not implemented");
+//        try {
+//            Thread.sleep(2000);
+//        } catch (InterruptedException ex) {
+//            Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        try (Socket s = new Socket("localhost", SERVER_PORT_NUM);
+//                BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
+//            String line = null;
+//            while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
+//                System.out.println("line = " + line);
+//                final String str = line;
+//
+//                FingerPressureSensorData newData = FingerPressureSensorData.fromJSON(str);
+//                System.out.println("data.sensor_values.FSR_finger_A_distal = " + newData.getFSR_finger_A_distal());
+//                System.out.println("data.sensor_values.FSR_finger_B_distal = " + newData.getFSR_finger_B_distal());
+//                setData(newData);
+//                javax.swing.SwingUtilities.invokeLater(() -> {
+//                    socketAppend(str + "\n");
+//                    jTextFieldFingerA.setText(Double.toString(newData.getFSR_finger_A_distal()));
+//                    jTextFieldFingerB.setText(Double.toString(newData.getFSR_finger_B_distal()));
+//                });
+//            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//            javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(ex.toString()));
+//        }
     }
 
     private List<String> consoleStrings = new LinkedList<String>();
@@ -391,7 +392,11 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessOutput() {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getInputStream()))) {
+        Process internalProcess1 = internalProcess;
+        if(null == internalProcess1) {
+            throw new IllegalStateException("null == internalProcess1");
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getInputStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.out.println(line);
@@ -409,7 +414,11 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     }
 
     private void monitorInternalProcessError() {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess.getErrorStream()))) {
+        Process internalProcess1 = internalProcess;
+        if(null == internalProcess1) {
+            throw new IllegalStateException("null == internalProcess1");
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getErrorStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);
@@ -455,40 +464,48 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         if (null != onStopRunnable) {
             onStopRunnable.run();
         }
-        if (null != internalProcess) {
+        Process internalProcess1 = this.internalProcess;
+        if (null != internalProcess1) {
             try {
-                internalProcess.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
+                internalProcess1.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            internalProcess = null;
+            internalProcess1 = null;
+            this.internalProcess = null;
         }
-        if (null != monitorOutputThread) {
-            monitorOutputThread.interrupt();
+        Thread monitorOutputThread1 = this.monitorOutputThread;
+        if (null != monitorOutputThread1) {
+            monitorOutputThread1.interrupt();
             try {
-                monitorOutputThread.join(2000);
+                monitorOutputThread1.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            monitorOutputThread = null;
+            monitorOutputThread1 = null;
+            this.monitorOutputThread = null;
         }
-        if (null != monitorErrorThread) {
-            monitorErrorThread.interrupt();
+        Thread monitorErrorThread1 = this.monitorErrorThread;
+        if (null != monitorErrorThread1) {
+            monitorErrorThread1.interrupt();
             try {
-                monitorErrorThread.join(2000);
+                monitorErrorThread1.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            monitorErrorThread = null;
+            monitorErrorThread1 = null;
+            this.monitorErrorThread = null;
         }
-        if (null != readSocketThread) {
-            readSocketThread.interrupt();
+        Thread readSocketThread1 = this.readSocketThread;
+        if (null != readSocketThread1) {
+            readSocketThread1.interrupt();
             try {
-                readSocketThread.join(2000);
+                readSocketThread1.join(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-            readSocketThread = null;
+            readSocketThread1 = null;
+            this.readSocketThread = null;
         }
     }
 

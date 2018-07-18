@@ -308,6 +308,20 @@ public class CRCLPosemath {
         newVec.setK(vec.getK());
         return newVec;
     }
+    
+    /**
+     * Copy or clone the pose.
+     *
+     * @param pose pose to be cloned
+     * @return PoseType with same initial values as pose but can be
+     * independently modified.
+     */
+    public static /*@Nullable*/ PoseType copyNullable(/*@Nullable*/ PoseType pose) {
+        if(null == pose) {
+            return null;
+        }
+        return copy(pose);
+    }
 
     /**
      * Copy or clone the pose.

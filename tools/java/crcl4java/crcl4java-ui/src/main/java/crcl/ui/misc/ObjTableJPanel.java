@@ -71,6 +71,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 
@@ -91,8 +92,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         setupTableSelection();
     }
 
-    transient private XpathUtils xpu = null;
-    private File[] schemaFiles = null;
+     private XpathUtils xpu = null;
+    private File @MonotonicNonNull [] schemaFiles = null;
     private String defaultDocumentation = null;
 
     private void setupTableSelection() {
@@ -751,11 +752,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     private JDialog dialog = null;
     private boolean cancelled = false;
-    transient private Function<T,XFuture<Boolean>>  isValid = null;
+     private Function<T,XFuture<Boolean>>  isValid = null;
 
     private static <T> T editObjectPriv(JDialog _dialog, T _obj,
             XpathUtils xpu,
-            File schemaFiles[],
+            File schemaFiles @Nullable [],
             Function<T,XFuture<Boolean>> isValid) {
         ObjTableJPanel<T> panel = new ObjTableJPanel<>();
         panel.dialog = _dialog;
@@ -797,12 +798,20 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return panel.getObj();
     }
 
-    public static <T> T editObject(T _obj, Frame _owner, String _title, boolean _modal, XpathUtils xpu, File schemaFiles[], Function<T,XFuture<Boolean>> isValid) {
+    public static <T> T editObject(T _obj, 
+            @Nullable Frame _owner, 
+            String _title, 
+            boolean _modal, 
+            XpathUtils xpu,
+            File schemaFiles @Nullable [], 
+            Function<T,XFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog(_owner, _obj.getClass().getCanonicalName() + ":" + _title, _modal);
         return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid);
     }
 
-    public static <T> T editObject(T _obj, XpathUtils xpu, File schemaFiles[],
+    public static <T> T editObject(T _obj, 
+            XpathUtils xpu, 
+            File schemaFiles @Nullable [],
             Function<T,XFuture<Boolean>> isValid) {
         JDialog dialog = new JDialog();
         dialog.setTitle(_obj.getClass().getCanonicalName());

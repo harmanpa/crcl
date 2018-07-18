@@ -1044,36 +1044,37 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     }
 
     public void launchPressureSensorServer() {
-        try {
-            if (null != serverSensorJFrame) {
-                fingerSensorServerCmd = serverSensorJFrame.getCommandString();
-                fingerSensorServerDirectory = serverSensorJFrame.getDirectoryString();
-                serverSensorJFrame.stop();
-                serverSensorJFrame.setVisible(false);
-                serverSensorJFrame.dispose();
-                saveProperties();
-            }
-            serverSensorJFrame = new ServerSensorJFrame();
-            serverSensorJFrame.setCommandString(fingerSensorServerCmd);
-            serverSensorJFrame.setDirectoryString(fingerSensorServerDirectory);
-//            jCheckBoxMenuItemShowPressureOutput.setSelected(true);
-            serverSensorJFrame.setVisible(true);
-            serverSensorJFrame.start();
-            serverSensorJFrame.addPropertyChangeListener(new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    if (evt.getPropertyName().equals(ServerSensorJFrame.PROP_DATA)) {
-                        main.setHoldingObject(serverSensorJFrame.getData().getFSR_finger_B_distal() > 10.0);
-                        main.setHoldingObjectKnown(true);
-                    }
-                }
-            });
-        } catch (IOException ex) {
-            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            if (null != main) {
-                main.showError(ex.toString());
-            }
-        }
+        throw new UnsupportedOperationException("pressure sensor server not implemented");
+//        try {
+//            if (null != serverSensorJFrame) {
+//                fingerSensorServerCmd = serverSensorJFrame.getCommandString();
+//                fingerSensorServerDirectory = serverSensorJFrame.getDirectoryString();
+//                serverSensorJFrame.stop();
+//                serverSensorJFrame.setVisible(false);
+//                serverSensorJFrame.dispose();
+//                saveProperties();
+//            }
+//            serverSensorJFrame = new ServerSensorJFrame();
+//            serverSensorJFrame.setCommandString(fingerSensorServerCmd);
+//            serverSensorJFrame.setDirectoryString(fingerSensorServerDirectory);
+////            jCheckBoxMenuItemShowPressureOutput.setSelected(true);
+//            serverSensorJFrame.setVisible(true);
+//            serverSensorJFrame.start();
+//            serverSensorJFrame.addPropertyChangeListener(new PropertyChangeListener() {
+//                @Override
+//                public void propertyChange(PropertyChangeEvent evt) {
+//                    if (evt.getPropertyName().equals(ServerSensorJFrame.PROP_DATA)) {
+//                        main.setHoldingObject(serverSensorJFrame.getData().getFSR_finger_B_distal() > 10.0);
+//                        main.setHoldingObjectKnown(true);
+//                    }
+//                }
+//            });
+//        } catch (IOException ex) {
+//            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//            if (null != main) {
+//                main.showError(ex.toString());
+//            }
+//        }
     }
 
     WebServerJFrame webServerJFrame = null;

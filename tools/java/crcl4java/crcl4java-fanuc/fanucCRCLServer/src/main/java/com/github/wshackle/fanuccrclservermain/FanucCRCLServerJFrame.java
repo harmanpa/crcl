@@ -68,14 +68,16 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         if (jCheckBoxMenuItemStartClient.isSelected()) {
             launchClient();
         }
-        if (jCheckBoxMenuItemStartPressureServer.isSelected()) {
-            launchPressureSensorServer();
-            ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
-            if (null != serverSensorJFrame) {
-                serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
-            }
-        }
         jCheckBoxMenuItemDebug.setSelected(FanucCRCLMain.isDebug());
+        if (jCheckBoxMenuItemStartPressureServer.isSelected()) {
+            throw new UnsupportedOperationException("pressure sensor server not implemented");
+//            launchPressureSensorServer();
+//            ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
+//            if (null != serverSensorJFrame) {
+//                serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
+//            }
+        }
+        
     }
 
     public IVar getOverrideVar() {
@@ -303,11 +305,12 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     }//GEN-LAST:event_formWindowClosed
 
     private void jCheckBoxMenuItemShowPressureOutputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
-        ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
-        if (null != serverSensorJFrame) {
-            serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
-        }
-        saveProperties();
+        throw new UnsupportedOperationException("pressure sensor server not implemented");
+//        ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
+//        if (null != serverSensorJFrame) {
+//            serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
+//        }
+//        saveProperties();
     }//GEN-LAST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
 
     private void jCheckBoxMenuItemStartClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemStartClientActionPerformed

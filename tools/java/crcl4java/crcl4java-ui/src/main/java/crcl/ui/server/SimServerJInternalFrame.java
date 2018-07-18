@@ -40,6 +40,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     /**
      * Creates new form SimServerJInternalFrame
      */
+    @SuppressWarnings("initialization")
     public SimServerJInternalFrame() {
         initComponents();
         this.simServerJPanel1.setMenuOuter(this);
@@ -47,6 +48,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         jCheckBoxMenuItemValidateXML.setSelected(simServerJPanel1.isValidateXMLSelected());
     }
 
+    @SuppressWarnings("initialization")
     public SimServerJInternalFrame(boolean startServer) {
         initComponents();
         this.simServerJPanel1.setMenuOuter(this);

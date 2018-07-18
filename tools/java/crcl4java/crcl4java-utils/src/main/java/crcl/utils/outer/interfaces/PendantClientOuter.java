@@ -60,17 +60,17 @@ public interface PendantClientOuter {
 
     public void checkPollSelected();
 
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status,List<ProgramRunData> programRunData);
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData> programRunData);
 
     public void clearProgramTimesDistances();
-    
+
     public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd);
 
     public void finishOpenXmlProgramFile(File f, CRCLProgramType program, boolean addRecent);
 
     public CRCLProgramType editProgram(CRCLProgramType program);
 
-    public boolean checkUserText(String text) throws InterruptedException,ExecutionException ;
+    public boolean checkUserText(String text) throws InterruptedException, ExecutionException;
 
     public boolean isMonitoringHoldingObject();
 
@@ -80,26 +80,24 @@ public interface PendantClientOuter {
 
     public PoseType getCurrentPose();
 
-    public CRCLProgramType getProgram();
-
     public File getLastOpenedProgramFile();
 
     public void setProgram(CRCLProgramType program) throws JAXBException;
-    
+
     public void abortProgram();
 
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException;
-    
+
     public PendantClientMenuOuter getMenuOuter();
-    
+
     public File getPropertiesFile();
 
     public void setPropertiesFile(File propertiesFile);
 
     public void loadProperties();
-    
+
     public void saveProperties();
-    
+
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log);
-    
+
 }

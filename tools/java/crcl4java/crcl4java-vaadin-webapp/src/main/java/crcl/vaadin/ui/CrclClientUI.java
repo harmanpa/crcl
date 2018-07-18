@@ -190,12 +190,12 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-    transient private CRCLSocket socket;
-    transient private Thread updateThread;
-    transient private Thread monitorThread;
-    transient private long lastUpdateTime = 0;
+     private CRCLSocket socket;
+     private Thread updateThread;
+     private Thread monitorThread;
+     private long lastUpdateTime = 0;
 
-    transient private ByteArrayOutputStream recieverOutputStream;
+     private ByteArrayOutputStream recieverOutputStream;
     private static Map<String, Resource> browserMap;
 //    private static final Resource defaultBrowserResource
 //            = new ExternalResource("https://github.com/usnistgov/crcl");
@@ -313,7 +313,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         new Label("Joint5 : " + String.format("%+6.1f ", 0.0)),
         new Label("Joint6 : " + String.format("%+6.1f ", 0.0)),};
     private final HorizontalLayout jogJointLines[] = new HorizontalLayout[6];
-    transient private final CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+     private final CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
     private final Table transformPos1Table = new Table("First Live Position");
     private final Button setPos1CurrentButton = new Button("Set First Live Postion to Current Live Position");
     private final Table transformPos2Table = new Table("Second Live Position");
@@ -332,7 +332,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private final Button transformProgramButton = new Button("Apply Transform To Program");
     private final Button flipXAxisButton = new Button("Flip X Axis");
     private final Label statusLabel = new Label("Status: UNITIALIZED");
-    transient private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
+     private final Queue<MiddleCommandType> cmdQueue = new LinkedList<>();
     private final Slider minXSlider = new Slider("Min X");
     private final Slider maxXSlider = new Slider("Max X");
     private final Slider minYSlider = new Slider("Min Y");
@@ -425,7 +425,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     private String recordPointsProgramName = null;
-    transient private CRCLProgramType recordPointsProgram = null;
+     private CRCLProgramType recordPointsProgram = null;
 
     public void recordCurrentPoint() {
         if (null == recordPointsProgram) {
@@ -606,7 +606,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         }
     }
 
-    transient private CommonInfo prevCommonInfo = CommonInfo.defaultWithRemotePrograms(REMOTE_PROGRAM_DIR.list());
+     private CommonInfo prevCommonInfo = CommonInfo.defaultWithRemotePrograms(REMOTE_PROGRAM_DIR.list());
 
     @Override
     @SuppressWarnings("unchecked")
@@ -702,8 +702,8 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
 
     public static final String VALUE_ITEM_PROPERTY = "Value";
-    transient PmPose transformPm = null;
-    transient PoseType transformPose = null;
+     PmPose transformPm = null;
+     PoseType transformPose = null;
 
     private void compute2PointTransform() {
         try {
@@ -1936,7 +1936,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     private int jogJointNumber = -1;
     private JogState curJogState = JogState.NONE;
     private JogState prevJogState = JogState.NONE;
-    transient private CRCLStatusType stat = null;
+     private CRCLStatusType stat = null;
 
     private void monitorConnection() {
         try {
@@ -2047,7 +2047,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         super.refresh(request);
     }
 
-    transient private PointType currentPoint = null;
+     private PointType currentPoint = null;
 
     @SuppressWarnings("unchecked")
     private void loadPointToTable(PointType pt, Table tbl) {
@@ -2158,7 +2158,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         return (float) (Math.abs(inc - Math.abs(goal - current)) / inc);
     }
 
-    transient private PoseType currentPose = null;
+     private PoseType currentPose = null;
     private static PoseType globalCurrentPose = null;
 
     private double jointJogSpeed = 5.0;
@@ -2732,9 +2732,9 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
     }
     private static double worldAngleIncrementRad = Math.toRadians(30.0);
 
-    transient private MoveToType prevMoveTo = null;
-    transient private ActuateJointsType prevActuateJoints = null;
-    transient private long lastCmdIdSent = 1;
+     private MoveToType prevMoveTo = null;
+     private ActuateJointsType prevActuateJoints = null;
+     private long lastCmdIdSent = 1;
 
     @SuppressWarnings("unchecked")
     private void runOneProgramStep(final int new_program_index) throws CRCLException {

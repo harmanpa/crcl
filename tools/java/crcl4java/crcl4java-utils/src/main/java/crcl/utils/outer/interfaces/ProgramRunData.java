@@ -28,6 +28,8 @@ package crcl.utils.outer.interfaces;
  */
 public class ProgramRunData {
 
+    public static final ProgramRunData PROGRAM_RUN_DATA_PLACEHOLDER = new ProgramRunData(0, 0, false, 0, "");
+    
     public ProgramRunData(long time, double dist, boolean result, long id, String type) {
         this.time = time;
         this.dist = dist;

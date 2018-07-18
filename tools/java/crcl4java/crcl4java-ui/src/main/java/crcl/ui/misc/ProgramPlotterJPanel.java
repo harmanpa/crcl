@@ -30,6 +30,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import javax.swing.JPanel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -38,15 +39,18 @@ import javax.swing.JPanel;
 public class ProgramPlotterJPanel extends JPanel {
 
     
+    @SuppressWarnings("initialization")
+    public ProgramPlotterJPanel(){
+    }
     
-    transient private  ProgramPlotter plotter;
+    @Nullable  private  ProgramPlotter plotter=null;
 
     /**
      * Get the value of plotter
      *
      * @return the value of plotter
      */
-    public ProgramPlotter getPlotter() {
+    @Nullable public ProgramPlotter getPlotter() {
         return plotter;
     }
 
@@ -59,14 +63,14 @@ public class ProgramPlotterJPanel extends JPanel {
         this.plotter = plotter;
     }
 
-    transient private CRCLProgramType program;
+    @Nullable  private CRCLProgramType program=null;
 
     /**
      * Get the value of program
      *
      * @return the value of program
      */
-    public CRCLProgramType getProgram() {
+    @Nullable public CRCLProgramType getProgram() {
         return program;
     }
 
