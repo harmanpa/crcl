@@ -1183,7 +1183,7 @@ public class PendantClientInner {
     public String commandToSimpleString(@Nullable CRCLCommandType cmd) {
         if (null != cmd) {
             try {
-                return getTempCRCLSocket().commandToSimpleString(cmd);
+                return CRCLSocket.commandToSimpleString(cmd);
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 return ex.toString();
@@ -1616,7 +1616,7 @@ public class PendantClientInner {
                     .stream()
                     .map((pose) -> {
                         PmRpy rpy = tryGet(() -> Posemath.toRpy(pose.rot)).orElse(rpyZero);
-                        Stream stream = Stream.builder()
+                        Stream<?> stream = Stream.builder()
                                 .add(pose.getTime())
                                 .add(pose.getTime() - firstTime)
                                 .add(pose.getStatus().getCommandStatus().getCommandID())
@@ -1809,6 +1809,7 @@ public class PendantClientInner {
         "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Name", "Text"
     };
 
+    @SuppressWarnings("rawtypes")
     static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
         String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
 
@@ -2999,7 +3000,7 @@ public class PendantClientInner {
                 long time_to_exec = System.currentTimeMillis() - programCommandStartTime;
                 PmCartesian p1 = getPoseCart();
 
-                ProgramRunData prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, initCmd.getCommandID(), getTempCRCLSocket().commandToSimpleString(initCmd));
+                ProgramRunData prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, initCmd.getCommandID(), CRCLSocket.commandToSimpleString(initCmd));
                 while (progRunDataList.size() <= 1) {
                     progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
                 }
@@ -3080,7 +3081,7 @@ public class PendantClientInner {
                     p1 = getPoseCart();
                     if (i < middleCommands.size()) {
                         showCurrentProgramLine(i + 1, prog, getStatus());
-                        prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), result, cmd.getCommandID(), getTempCRCLSocket().commandToSimpleString(cmd));
+                        prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), result, cmd.getCommandID(), CRCLSocket.commandToSimpleString(cmd));
                         while (progRunDataList.size() <= i) {
                             progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
                         }
@@ -3103,7 +3104,7 @@ public class PendantClientInner {
                     return false;
                 }
                 time_to_exec = System.currentTimeMillis() - programCommandStartTime;
-                prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, endCmd.getCommandID(), getTempCRCLSocket().commandToSimpleString(endCmd));
+                prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, endCmd.getCommandID(), CRCLSocket.commandToSimpleString(endCmd));
                 while (progRunDataList.size() <= middleCommands.size() + 1) {
                     progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
                 }

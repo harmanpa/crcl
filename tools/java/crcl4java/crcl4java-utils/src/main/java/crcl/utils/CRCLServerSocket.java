@@ -213,30 +213,34 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
     private boolean closing = false;
 
     @Override
-    public void close() throws Exception {
+    public void close()  {
         started = false;
         closing = true;
         if (queueEvents) {
-            queue.offer(new CRCLServerSocketEvent(null, null, null), 1, TimeUnit.SECONDS);
+            try {
+                queue.offer(new CRCLServerSocketEvent(null, null, null), 1, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         if (null != serverSocketChannel) {
             try {
                 serverSocketChannel.close();
-            } catch (IOException iOException) {
+            } catch (IOException ignored) {
             }
             serverSocketChannel = null;
         }
         if (null != serverSocket) {
             try {
                 serverSocket.close();
-            } catch (IOException iOException) {
+            } catch (IOException ignored) {
             }
             serverSocket = null;
         }
         if (null != selector) {
             try {
                 selector.close();
-            } catch (IOException iOException) {
+            } catch (IOException ignored) {
             }
             selector = null;
         }
@@ -251,11 +255,19 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         clients.clear();
         if (null != executorService) {
             executorService.shutdownNow();
-            executorService.awaitTermination(1, TimeUnit.SECONDS);
+            try {
+                executorService.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         if (null != callbackService) {
             callbackService.shutdownNow();
-            callbackService.awaitTermination(1, TimeUnit.SECONDS);
+            try {
+                callbackService.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         listeners.clear();
         queue.clear();

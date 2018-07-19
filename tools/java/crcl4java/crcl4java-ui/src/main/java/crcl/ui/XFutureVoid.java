@@ -59,7 +59,7 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     private void alsoCancelAddAll(Iterable<? extends CompletableFuture<?>> cfs) {
-        for (CompletableFuture cf : cfs) {
+        for (CompletableFuture<?> cf : cfs) {
             alsoCancelAdd(cf);
         }
     }
@@ -358,10 +358,12 @@ public class XFutureVoid extends XFuture<Void> {
         return ret;
     }
 
+    @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
     }
 
+    @SuppressWarnings("rawtypes")
     public static XFutureVoid allOf(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOf(cfsCollection.toArray(new CompletableFuture[0]));
     }

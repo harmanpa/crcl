@@ -95,10 +95,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         this.createTrace = this.createThread.getStackTrace();
     }
 
+    @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
     }
 
+    @SuppressWarnings("rawtypes")
     public static XFutureVoid allOf(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOf(cfsCollection.toArray(new CompletableFuture[0]));
     }
@@ -177,11 +179,11 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Nullable private volatile List<String> prevProfileStrings = null;
 
-    @SuppressWarnings("unchecked")
-    private void getAllProfileString(Iterable<CompletableFuture> localAlsoCancels, List<String> listIn) {
+    @SuppressWarnings({"unchecked","rawtypes"})
+    private void getAllProfileString(Iterable<CompletableFuture<?>> localAlsoCancels, List<String> listIn) {
 
         List<String> localPrevProfileStrings = this.prevProfileStrings;
-        List<CompletableFuture> localAlsoCancelsCopy = new ArrayList<CompletableFuture>();
+        List<CompletableFuture<?>> localAlsoCancelsCopy = new ArrayList<>();
         if (null != localPrevProfileStrings) {
             listIn.addAll(localPrevProfileStrings);
         } else {
@@ -192,26 +194,13 @@ public class XFuture<T> extends CompletableFuture<T> {
                     if (xf.isDone() || xf.isCancelled() || xf.isCompletedExceptionally()) {
                         StackTraceElement xfGetProfileTrace[] = xf.getProfileStringTrace;
                         List<String> xfPrevProfileString = xf.prevProfileStrings;
-//                        int xfAlsoCancelSize = xf.alsoCancel.size();
                         List<CompletableFuture> localAlsoCancel = new ArrayList<>(xf.alsoCancel);
-//                        List<CompletableFuture> prevAlsoCancelCopy = new ArrayList<>();
-//                        if (null != xf.prevAlsoCancel) {
-//                            prevAlsoCancelCopy.addAll(xf.prevAlsoCancel);
-//                            xf.checkPrevAlsoCancelProfiled();
-//                        }
-//                        if (localAlsoCancel.size() != xfAlsoCancelSize) {
-//                            System.err.println("size mismatch");
-//                        }
                         xf.clearAlsoCancel();
-//                        if (localAlsoCancel.size() != xf.prevAlsoCancel.size()) {
-//                            System.err.println("size mismatch");
-//                        }
                         xf.getAllProfileString(localAlsoCancel, listIn);
                     } else {
                         System.err.println("also cancel not done");
                         xf.getAllProfileString(this.alsoCancel, listIn);
                     }
-//                    xf.checkPrevAlsoCancelProfiled();
                 }
             }
             listIn.add(getProfileString());
@@ -220,7 +209,6 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (localGetProfileStringTrace == null) {
             System.err.println("getAllProfileString called without setting getProfileStringTrace");
         }
-//        this.checkPrevAlsoCancelProfiled();
     }
 
     @SuppressWarnings("unchecked")
@@ -233,7 +221,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         } else {
             List<String> l = new ArrayList<>();
-            List<CompletableFuture> localAlsoCancel = new ArrayList<>(this.alsoCancel);
+            List<CompletableFuture<?>> localAlsoCancel = new ArrayList<>(this.alsoCancel);
             if (!localAlsoCancel.isEmpty()) {
                 clearAlsoCancel();
                 StackTraceElement preGetProfileTrace[] = this.getProfileStringTrace;
@@ -262,7 +250,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return sb.toString();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","rawtypes"})
     private void internalPrintStatus(PrintStream ps) {
 
         if (isCompletedExceptionally()) {
@@ -283,7 +271,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             ps.println(this.toString() + " is done.");
             return;
         }
-        for (CompletableFuture f : alsoCancel) {
+        for (CompletableFuture<?> f : alsoCancel) {
             if (f instanceof XFuture) {
                 XFuture xf = (XFuture) f;
                 xf.internalPrintStatus(ps);
@@ -347,7 +335,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private void alsoCancelAddAll(Iterable<? extends CompletableFuture<?>> cfs) {
-        for (CompletableFuture cf : cfs) {
+        for (CompletableFuture<?> cf : cfs) {
             alsoCancelAdd(cf);
         }
     }
@@ -528,9 +516,9 @@ public class XFuture<T> extends CompletableFuture<T> {
     public void setKeepOldProfileStrings(boolean newKeepOldProfileStrings) {
         keepOldProfileStrings = newKeepOldProfileStrings;
         if (newKeepOldProfileStrings) {
-            for (CompletableFuture cf : this.alsoCancel) {
+            for (CompletableFuture<?> cf : this.alsoCancel) {
                 if (cf instanceof XFuture) {
-                    XFuture xf = (XFuture) cf;
+                    XFuture<?> xf = (XFuture) cf;
                     xf.setKeepOldProfileStrings(true);
                 }
             }
@@ -549,7 +537,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     private void saveProfileStrings() {
         if (keepOldProfileStrings) {
             List<String> l = new ArrayList<>();
-            List<CompletableFuture> localAlsoCancel = new ArrayList<>(this.alsoCancel);
+            List<CompletableFuture<?>> localAlsoCancel = new ArrayList<>(this.alsoCancel);
             if (!localAlsoCancel.isEmpty()) {
                 clearAlsoCancel();
                 StackTraceElement preGetProfileTrace[] = this.getProfileStringTrace;
@@ -566,9 +554,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (this.startTime > localMaxDepCompleteTime) {
             localMaxDepCompleteTime = this.startTime;
         }
-        for (CompletableFuture f : this.alsoCancel) {
+        for (CompletableFuture<?> f : this.alsoCancel) {
             if (f instanceof XFuture) {
-                XFuture xf = (XFuture) f;
+                XFuture<?> xf = (XFuture) f;
                 long xfCompleteTime = xf.completeTime;
                 if (xfCompleteTime > localMaxDepCompleteTime) {
                     localMaxDepCompleteTime = xfCompleteTime;
@@ -756,7 +744,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 threadToInterrupt.interrupt();
             }
 
-            for (CompletableFuture f : alsoCancel) {
+            for (CompletableFuture<?> f : alsoCancel) {
                 if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
                     try {
                         if (f instanceof XFuture) {
@@ -769,7 +757,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                     }
                 }
             }
-            for (CompletableFuture f : alsoCancelCopy) {
+            for (CompletableFuture<?> f : alsoCancelCopy) {
                 if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
                     try {
                         if (f instanceof XFuture) {
@@ -932,7 +920,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     private <A, B, R> BiFunction<A, B, R> biWrap(BiFunction<A, B, R> f) {
         return (A a, B b) -> {
             try {
-                return (R) f.apply(a, b);
+                return f.apply(a, b);
             } catch (Throwable t) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t);
                 if (t instanceof RuntimeException) {
@@ -1196,7 +1184,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     protected void alsoCancelAdd(CompletableFuture<?> cf) {
         if (cf instanceof XFuture) {
-            XFuture xf = (XFuture) cf;
+            XFuture<?> xf = (XFuture) cf;
             if (xf.keepOldProfileStrings) {
                 this.setKeepOldProfileStrings(true);
             }

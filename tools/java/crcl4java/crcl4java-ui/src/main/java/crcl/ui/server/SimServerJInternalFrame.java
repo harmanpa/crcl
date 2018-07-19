@@ -525,7 +525,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void close() throws Exception {
+    public void close()  {
         simServerJPanel1.closeServer();
         this.setVisible(false);
     }

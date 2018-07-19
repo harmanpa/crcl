@@ -704,7 +704,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     @Override
-    public void close() throws Exception {
+    public void close()  {
         closeServer();
     }
 

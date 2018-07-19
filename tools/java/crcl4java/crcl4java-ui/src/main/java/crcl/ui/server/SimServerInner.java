@@ -2344,7 +2344,7 @@ public class SimServerInner {
             while (cmdLog.size() > 100) {
                 cmdLog.remove(0);
             }
-            String cmdName = getCheckerCRCLSocket().commandToSimpleString(cmd);
+            String cmdName = CRCLSocket.commandToSimpleString(cmd);
             outer.updateCurrentCommandType(cmdName);
             synchronized (status) {
                 CommandStatusType cst = status.getCommandStatus();
@@ -2910,8 +2910,12 @@ public class SimServerInner {
         }
 
         @Override
-        public void close() throws Exception {
-            cs.close();
+        public void close() {
+            try {
+                cs.close();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
         public CRCLSocket getCs() {

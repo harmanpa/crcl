@@ -1094,7 +1094,7 @@ public class CRCLSocket implements AutoCloseable {
                         useEclipseJaxb = Boolean.valueOf(useEclipseJaxbPropertyString);
                     }
                     if (useEclipseJaxb) {
-                        Class eclipselinkClass;
+                        Class<?> eclipselinkClass;
                         try {
                             eclipselinkClass = Class.forName("org.eclipse.persistence.jaxb.JAXBContextFactory");
                             System.out.println("eclipselinkClass = " + eclipselinkClass);
@@ -1642,7 +1642,8 @@ public class CRCLSocket implements AutoCloseable {
             try {
                 this.lastCommandString = str;
                 setUnmarshallerSchema(u_cmd, validate ? cmdSchema : null);
-                JAXBElement el = (JAXBElement) u_cmd.unmarshal(new StringReader(str));
+                JAXBElement<?> el = 
+                        (JAXBElement) u_cmd.unmarshal(new StringReader(str));
                 CRCLCommandInstanceType instance
                         = (CRCLCommandInstanceType) el.getValue();
                 return instance;
@@ -1657,7 +1658,7 @@ public class CRCLSocket implements AutoCloseable {
 
         synchronized (u_cmd) {
             setUnmarshallerSchema(u_cmd, validate ? cmdSchema : null);
-            JAXBElement el = (JAXBElement) u_cmd.unmarshal(is);
+            JAXBElement<?> el = (JAXBElement) u_cmd.unmarshal(is);
             CRCLCommandInstanceType instance
                     = (CRCLCommandInstanceType) el.getValue();
             return instance;
@@ -1670,7 +1671,7 @@ public class CRCLSocket implements AutoCloseable {
             synchronized (u_prog) {
                 this.lastProgramString = str;
                 setUnmarshallerSchema(u_prog, validate ? programSchema : null);
-                JAXBElement el = (JAXBElement) u_prog.unmarshal(new StringReader(str));
+                JAXBElement<?> el = (JAXBElement) u_prog.unmarshal(new StringReader(str));
                 CRCLProgramType prog
                         = (CRCLProgramType) el.getValue();
                 return prog;
@@ -1771,7 +1772,7 @@ public class CRCLSocket implements AutoCloseable {
                 }
                 lastStatusString = str;
                 setUnmarshallerSchema(u_stat, validate ? statSchema : null);
-                JAXBElement el = (JAXBElement) u_stat.unmarshal(new StringReader(str));
+                JAXBElement<?> el = (JAXBElement) u_stat.unmarshal(new StringReader(str));
                 CRCLStatusType instance
                         = (CRCLStatusType) el.getValue();
                 return instance;
@@ -1784,7 +1785,7 @@ public class CRCLSocket implements AutoCloseable {
     public CRCLStatusType readStatusFromStream(final InputStream is, boolean validate) throws JAXBException {
         synchronized (u_stat) {
             setUnmarshallerSchema(u_stat, validate ? statSchema : null);
-            JAXBElement el = (JAXBElement) u_stat.unmarshal(is);
+            JAXBElement<?> el = (JAXBElement) u_stat.unmarshal(is);
             CRCLStatusType instance
                     = (CRCLStatusType) el.getValue();
             return instance;
