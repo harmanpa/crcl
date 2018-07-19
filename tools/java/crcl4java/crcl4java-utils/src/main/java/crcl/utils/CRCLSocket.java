@@ -319,9 +319,9 @@ public class CRCLSocket implements AutoCloseable {
     private static File defaultProgramSchemaFiles /*@Nullable*/[] = null;
 
     @SuppressWarnings("nullness")
-    public static synchronized Schema filesToCmdSchema(File fa[]) throws CRCLException {
+    /*@Nullable*/ public static synchronized Schema filesToCmdSchema(File fa /*@Nullable*/[]) throws CRCLException {
         if (null == fa) {
-            throw new IllegalArgumentException("fa=null");
+            return null;
         }
         File arrayCopy[] = Arrays.copyOf(fa, fa.length);
         File[] reorderedFa = reorderCommandSchemaFiles(arrayCopy);
@@ -330,7 +330,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized Schema getDefaultCmdSchema() throws CRCLException {
+    public static synchronized /*@Nullable*/ Schema getDefaultCmdSchema() throws CRCLException {
         return filesToCmdSchema(defaultCmdSchemaFiles);
     }
 
@@ -351,9 +351,9 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized Schema filesToStatSchema(File fa[]) throws CRCLException {
+    public static synchronized /*@Nullable*/ Schema filesToStatSchema(File fa /*@Nullable*/[]) throws CRCLException {
         if (null == fa) {
-            throw new IllegalArgumentException("fa=null");
+            return null;
         }
         File[] reorderedFa = reorderStatSchemaFiles(Arrays.copyOf(fa, fa.length));
         defaultStatSchemaFiles = reorderedFa;
@@ -366,7 +366,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized Schema filesToProgramSchema(File fa[]) throws CRCLException {
+    public static synchronized /*@Nullable*/ Schema filesToProgramSchema(File fa /*@Nullable*/[]) throws CRCLException {
         if (null == fa) {
             return null;
         }
@@ -1080,20 +1080,37 @@ public class CRCLSocket implements AutoCloseable {
                 String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
                 System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
                 String javaVmVersion = System.getProperty("java.vm.version");
-                
                 System.out.println("javaVmVersion = " + javaVmVersion);
+                String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
+                System.out.println("jaxbFactory = " + jaxbFactory);
+                ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                System.out.println("jaxbProDeom = " + jaxbProDeom);
                 protectionDomainChecked = true;
                 if (javaClassVersion.compareTo("52.0") > 0) {
-                    ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                    LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
-                    System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+                    String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
+                    boolean useEclipseJaxb = false;
+                    if (null != useEclipseJaxbPropertyString) {
+                        useEclipseJaxb = Boolean.valueOf(useEclipseJaxbPropertyString);
+                    }
+                    if (useEclipseJaxb) {
+                        Class eclipselinkClass;
+                        try {
+                            eclipselinkClass = Class.forName("org.eclipse.persistence.jaxb.JAXBContextFactory");
+                            System.out.println("eclipselinkClass = " + eclipselinkClass);
+                            ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                            LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
+                            System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
 //                    throw new RuntimeException("javaClassVersion="+javaClassVersion+", javaSpecVmVersion="+javaSpecVmVersion+", javaVmVersion="+javaVmVersion);
-                } 
+                }
 //                else {
 //                    String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
 //                    throw new RuntimeException("jAXBContextFactoryProperty="+jAXBContextFactoryProperty);
 //                }
-                
+
             }
 //            String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
 //            if(null != jAXBContextFactoryProperty) {
@@ -1117,11 +1134,11 @@ public class CRCLSocket implements AutoCloseable {
 //        System.exit(0);
     }
 
-    public CRCLSocket( Schema cmdSchema, Schema statSchema, Schema programSchema) {
-        this(null,cmdSchema,statSchema,programSchema);
+    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
+        this(null, cmdSchema, statSchema, programSchema);
     }
-    
-    public CRCLSocket(/*@Nullable*/ Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
+
+    public CRCLSocket(/*@Nullable*/Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
         this.socket = socket;
         this.cmdSchema = cmdSchema;
         this.statSchema = statSchema;
@@ -1860,7 +1877,10 @@ public class CRCLSocket implements AutoCloseable {
                 if (null == defaultCmdSchema) {
                     File fa[] = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
                     if (null != fa) {
-                        setCmdSchema(CRCLSocket.filesToCmdSchema(fa));
+                        Schema cmdSchemaFromFiles = CRCLSocket.filesToCmdSchema(fa);
+                        if (null != cmdSchemaFromFiles) {
+                            setCmdSchema(cmdSchemaFromFiles);
+                        }
                     }
                 } else {
                     setCmdSchema(defaultCmdSchema);
@@ -1883,7 +1903,10 @@ public class CRCLSocket implements AutoCloseable {
                 if (null == defaultStatSchema) {
                     File fa[] = CRCLSocket.readStatSchemaFiles(statSchemasFile);
                     if (null != fa) {
-                        setStatSchema(CRCLSocket.filesToStatSchema(fa));
+                        Schema schemaFromFiles = CRCLSocket.filesToStatSchema(fa);
+                        if (null != schemaFromFiles) {
+                            setStatSchema(schemaFromFiles);
+                        }
                     }
                 } else {
                     setStatSchema(defaultStatSchema);
