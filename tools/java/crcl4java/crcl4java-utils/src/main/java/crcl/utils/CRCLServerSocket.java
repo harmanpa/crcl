@@ -261,11 +261,11 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
         queue.clear();
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        close();
-        super.finalize();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        close();
+//        super.finalize();
+//    }
 
     private boolean validate;
 

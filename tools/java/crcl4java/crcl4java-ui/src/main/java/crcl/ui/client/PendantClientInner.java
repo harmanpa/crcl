@@ -1799,7 +1799,7 @@ public class PendantClientInner {
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
         if (!Objects.equals(lastPrintCommandStatusAppendable, appendable)) {
-            printer.printRecord(COMMAND_STATUS_LOG_HEADINGS);
+            printer.printRecord((Object[])COMMAND_STATUS_LOG_HEADINGS);
             lastPrintCommandStatusAppendable = appendable;
         }
         printCommandStatusLogNoHeader(appendable, clearLog);

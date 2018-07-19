@@ -647,11 +647,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
         }
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        stop();
-        super.finalize();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        stop();
+//        super.finalize();
+//    }
 
 
     private void jButtonDirBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDirBrowseActionPerformed

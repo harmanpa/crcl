@@ -1086,6 +1086,7 @@ public class CRCLSocket implements AutoCloseable {
                 ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
                 System.out.println("jaxbProDeom = " + jaxbProDeom);
                 protectionDomainChecked = true;
+//                System.setProperty("com.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize","true");
                 if (javaClassVersion.compareTo("52.0") > 0) {
                     String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
                     boolean useEclipseJaxb = false;
@@ -1411,11 +1412,11 @@ public class CRCLSocket implements AutoCloseable {
         programSchema = null;
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        this.close();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        super.finalize();
+//        this.close();
+//    }
 
     public String getReadInProgressString() {
         return this.readInProgressString;

@@ -25,6 +25,7 @@ import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Frame;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -455,7 +456,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     final private Color myBlue = new Color(150, 150, 255);
 
-    private Object getDefaultForClass(Class clss) throws InstantiationException, IllegalAccessException {
+    private Object getDefaultForClass(Class<?> clss) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         if (String.class.isAssignableFrom(clss)) {
             return "";
         }
@@ -486,7 +487,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         if (clss.isEnum()) {
             return clss.getEnumConstants()[0];
         }
-        return clss.newInstance();
+        return clss.getDeclaredConstructor().newInstance();
     }
 
     private Field getField(Class clss, String name) {
@@ -1443,6 +1444,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         }
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     private void setNewTableItem() {
         try {
             int row = jTable1.getSelectedRow();
@@ -1458,6 +1460,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 classes = getClasses();
             }
             List<Class> availClasses = getAssignableClasses(clss, classes);
+            
             Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
             int selected = JOptionPane.showOptionDialog(this.dialog,
                     "Select class of new " + clss.getCanonicalName(),
@@ -1469,19 +1472,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     null);
             this.updateObjFromTable();
             Object newo = null;
-            newo = ca[selected].newInstance();
+            newo = ca[selected].getDeclaredConstructor().newInstance();
             this.setObjectForName(type, name, newo);
             this.updateTableFromObject();
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1491,45 +1487,42 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     private void jButtonAddToListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddToListActionPerformed
         try {
-            int row = jTable1.getSelectedRow();
-            DefaultTableModel tm = (DefaultTableModel) jTable1.getModel();
-            if (row < 0 || row > tm.getRowCount()) {
-                jButtonNew.setEnabled(false);
-                return;
-            }
-            String type = (String) tm.getValueAt(row, 0);
-            String name = (String) tm.getValueAt(row, 1);
-            String typeparams = getTypeParams(type);
-            Class clss = Class.forName(typeparams);
-            if (null == classes) {
-                classes = getClasses();
-            }
-            List<Class> availClasses = getAssignableClasses(clss, classes);
-            Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
-            int selected = JOptionPane.showOptionDialog(this.dialog,
-                    "Select class of new " + clss.getCanonicalName(),
-                    name + " = new " + clss.getCanonicalName(),
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    ca,
-                    null);
-            Object newo = ca[selected].newInstance();
-            this.updateObjFromTable();
-            this.addObjectToList(typeparams, name, newo);
-            this.updateTableFromObject();
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            addToList();
+        } catch (Exception ex) {
+            Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonAddToListActionPerformed
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    private void addToList() throws NoSuchMethodException, InstantiationException, HeadlessException, InvocationTargetException, ClassNotFoundException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        int row = jTable1.getSelectedRow();
+        DefaultTableModel tm = (DefaultTableModel) jTable1.getModel();
+        if (row < 0 || row > tm.getRowCount()) {
+            jButtonNew.setEnabled(false);
+            return;
+        }
+        String type = (String) tm.getValueAt(row, 0);
+        String name = (String) tm.getValueAt(row, 1);
+        String typeparams = getTypeParams(type);
+        Class clss = Class.forName(typeparams);
+        if (null == classes) {
+            classes = getClasses();
+        }
+        List<Class> availClasses = getAssignableClasses(clss, classes);
+        Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
+        int selected = JOptionPane.showOptionDialog(this.dialog,
+                "Select class of new " + clss.getCanonicalName(),
+                name + " = new " + clss.getCanonicalName(),
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                ca,
+                null);
+        Object newo = ca[selected].getDeclaredConstructor().newInstance();
+        this.updateObjFromTable();
+        this.addObjectToList(typeparams, name, newo);
+        this.updateTableFromObject();
+    }
 
     private void jButtonRemoveFromListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveFromListActionPerformed
         try {

@@ -26,6 +26,7 @@ import crcl.base.VectorType;
 import java.math.BigDecimal;
 import java.util.logging.Logger;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
+import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -214,11 +215,14 @@ public class CRCLPosemathCommonsTest {
      * Test of toCommonsRotation method, of class CRCLPosemathCommons.
      */
     @Test
+    @SuppressWarnings("deprecation")
     public void testToCommonsRotation() {
         System.out.println("toCommonsRotation");
         PoseType poseIn = pose321rot90;
         // NOTICE the MINUS sign, commons-math uses opposite convention
-        Rotation expResult = new Rotation(Vector3D.PLUS_K, -Math.PI / 2);
+        // This Rotation constructor is deprecated.
+        Rotation expResult =  new Rotation(Vector3D.PLUS_K, -Math.PI / 2, RotationConvention.VECTOR_OPERATOR);
+        // wasnew Rotation(Vector3D.PLUS_K, -Math.PI / 2);
         Rotation result = CRCLPosemathCommons.toCommonsRotation(poseIn);
         checkEquals("rot90", expResult, result);
     }

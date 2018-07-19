@@ -143,11 +143,11 @@ public class MotoPlusConnection implements AutoCloseable {
         }
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        close();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        super.finalize();
+//        close();
+//    }
 
     public final class Starter {
 
