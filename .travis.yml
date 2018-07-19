@@ -10,7 +10,7 @@ script:
   - java -version
   - cd tools/java/crcl4java
   - mvn -version
-  - mvn -X -Pwith_checkers -U test
+  - mvn -U test
   
 notifications:
   email:
