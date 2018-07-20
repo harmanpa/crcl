@@ -749,11 +749,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
                         .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
+                boolean visibleAndValid = isVisible() && isValid();
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> !m.getName().startsWith("getTempLogDir"))
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
+                        .filter(m -> !m.getName().startsWith("getLocationOnScreen") || visibleAndValid)
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
                         .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
