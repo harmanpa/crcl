@@ -1093,7 +1093,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return (null == selectedRows || selectedRows.length < 1) ? 0 : selectedRows[0];
     }
 
-    public String getVersion() throws IOException {
+    public String getVersion() {
         try (
                 InputStream versionIs
                 = requireNonNull(ClassLoader.getSystemResourceAsStream("version"),
@@ -1106,6 +1106,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             sb.append("\nSchema versions = ").append(CRCLSocket.getSchemaVersions().toString());
             return sb.toString();
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            String exString = ex.toString();
+            if(exString.length() > 30) {
+                exString = exString.substring(0, 30);
+            }
+            return exString;
         }
     }
 
@@ -1301,25 +1308,25 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     @Override
-    public PoseType getCurrentPose() {
+    public PoseType currentStatusPose() {
         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
         return requireNonNull(CRCLPosemath.getPose(status), "CRCLPosemath.getPose(status)");
     }
 
-    public Optional<CRCLStatusType> getCurrentStatus() {
+    public Optional<CRCLStatusType> currentStatus() {
         return Optional.ofNullable(internal)
                 .map(x -> x.getStatus());
     }
 
-    public Optional<CommandStateEnumType> getCurrentState() {
-        return getCurrentStatus()
+    public Optional<CommandStateEnumType> currentState() {
+        return currentStatus()
                 .map(x -> x.getCommandStatus())
                 .map(x -> x.getCommandState());
     }
 
     @SuppressWarnings("nullness")
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
+    public MiddleCommandType currentProgramCommand() {
         CRCLProgramType program = internal.getProgram();
         if (null == program) {
             return null;
@@ -2778,37 +2785,37 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
 
                 private void incrementYaw(MoveToType moveToType, final double inc) throws PmException {
-                    final PoseType pose = requireNonNull(internal.getPose(), "internal.getPose()");
+                    final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
                     PmRpy rpy = Posemath.toRpy(pm);
                     rpy.y += inc;
                     PmRotationVector pm2 = Posemath.toRot(rpy);
                     PoseType nextPose = CRCLPosemath.toPoseType(
-                            CRCLPosemath.toPmCartesian(internal.getPoint()),
+                            CRCLPosemath.toPmCartesian(internal.currentStatusPoint()),
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
 
                 private void incrementPitch(MoveToType moveToType, final double inc) throws PmException {
-                    final PoseType pose = requireNonNull(internal.getPose(), "internal.getPose()");
+                    final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
                     PmRpy rpy = Posemath.toRpy(pm);
                     rpy.p += inc;
                     PmRotationVector pm2 = Posemath.toRot(rpy);
                     PoseType nextPose = CRCLPosemath.toPoseType(
-                            CRCLPosemath.toPmCartesian(internal.getPoint()),
+                            CRCLPosemath.toPmCartesian(internal.currentStatusPoint()),
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
 
                 private void incrementRoll(MoveToType moveToType, final double inc) throws PmException {
-                    final PoseType pose = requireNonNull(internal.getPose(), "internal.getPose()");
+                    final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
                     PmRpy rpy = Posemath.toRpy(pm);
                     rpy.r += inc;
                     PmRotationVector pm2 = Posemath.toRot(rpy);
                     PoseType nextPose = CRCLPosemath.toPoseType(
-                            CRCLPosemath.toPmCartesian(internal.getPoint()),
+                            CRCLPosemath.toPmCartesian(internal.currentStatusPoint()),
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
@@ -3025,7 +3032,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void aboutAction() {
         try {
             JOptionPane.showMessageDialog(this, getVersion());
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -4874,7 +4881,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
-        PointType pt = internal.getPoint();
+        PointType pt = internal.currentStatusPoint();
         if (null != pt) {
             pt = CRCLPosemath.copy(pt);
             setPlottersInitPoint(pt);
@@ -5276,7 +5283,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
         lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
-        final PoseType pose = internal.getPose();
+        final PoseType pose = internal.currentStatusPose();
         if (null != pose) {
             updatePoseTable(pose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
         }
@@ -5493,7 +5500,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
         updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
-        final PoseType pose = internal.getPose();
+        final PoseType pose = internal.currentStatusPose();
         if (null != pose) {
             updatePoseTable(pose, jTablePose, getCurrentPoseDisplayMode());
         }
@@ -5501,7 +5508,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void jComboBoxPoseDisplayModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeItemStateChanged
         updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
-        final PoseType pose = internal.getPose();
+        final PoseType pose = internal.currentStatusPose();
         if (null != pose) {
             updatePoseTable(pose, jTablePose, getCurrentPoseDisplayMode());
         }

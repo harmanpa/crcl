@@ -221,12 +221,12 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
+    public MiddleCommandType currentProgramCommand() {
         return null;
     }
 
     @Override
-    public PoseType getCurrentPose() {
+    public PoseType currentStatusPose() {
         return null;
     }
 

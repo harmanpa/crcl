@@ -1515,14 +1515,14 @@ public class PendantClientInner {
         return CommandStateEnumType.CRCL_ERROR;
     }
 
-    public PoseType getPose() {
+    public PoseType currentStatusPose() {
         if (status == null) {
             throw new IllegalStateException("status==null");
         }
         return requireNonNull(CRCLPosemath.getPose(status), "CRCLPosemath.getPose(status)");
     }
 
-    public PointType getPoint() {
+    public PointType currentStatusPoint() {
         if (status == null) {
             throw new IllegalStateException("status==null");
         }
@@ -2387,7 +2387,7 @@ public class PendantClientInner {
     }
 
     private boolean testMoveThroughToEffect(MoveThroughToType moveThroughTo) {
-        PoseType curPose = this.getPose();
+        PoseType curPose = this.currentStatusPose();
         PoseType cmdPose = moveThroughTo.getWaypoint().get(moveThroughTo.getNumPositions() - 1);
         return PoseToleranceChecker.isInTolerance(curPose, cmdPose, expectedEndPoseTolerance, angleType);
     }
@@ -2429,7 +2429,7 @@ public class PendantClientInner {
         }
         CRCLStatusType origStatus = requireNonNull(this.testCommandStartStatus, "testCommandStartStatus");
         PointType origPoint = requireNonNull(CRCLPosemath.getPoint(origStatus), "CRCLPosemath.getPoint(testCommandStartStatus)");
-        PointType curPoint = this.getPoint();
+        PointType curPoint = this.currentStatusPoint();
         double newScale = unitToScale(slu.getUnitName());
         double oldScale = unitToScale(testCommandStartLengthUnit);
         double convertScale = newScale / oldScale;
@@ -2515,7 +2515,7 @@ public class PendantClientInner {
     private final String NEW_LINE = System.lineSeparator();
 
     private boolean testMoveToEffect(MoveToType moveTo) {
-        PoseType curPose = this.getPose();
+        PoseType curPose = this.currentStatusPose();
         if (curPose == null || PoseToleranceChecker.containsNull(curPose)) {
             outer.showMessage("MoveTo Failed current pose contains null.");
             return false;

@@ -1073,21 +1073,21 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
-        return pendantClientJPanel1.getCurrentProgramCommand();
+    public MiddleCommandType currentProgramCommand() {
+        return pendantClientJPanel1.currentProgramCommand();
     }
 
     public Optional<CRCLStatusType> getCurrentStatus() {
-        return pendantClientJPanel1.getCurrentStatus();
+        return pendantClientJPanel1.currentStatus();
     }
 
     public Optional<CommandStateEnumType> getCurrentState() {
-        return pendantClientJPanel1.getCurrentState();
+        return pendantClientJPanel1.currentState();
     }
 
     @Override
-    public PoseType getCurrentPose() {
-        return pendantClientJPanel1.getCurrentPose();
+    public PoseType currentStatusPose() {
+        return pendantClientJPanel1.currentStatusPose();
     }
 
     @Nullable

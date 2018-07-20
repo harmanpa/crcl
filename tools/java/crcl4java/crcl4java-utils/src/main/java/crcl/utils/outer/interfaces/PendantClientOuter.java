@@ -76,9 +76,9 @@ public interface PendantClientOuter {
 
     public void setExpectedHoldingObject(boolean x);
 
-    public MiddleCommandType getCurrentProgramCommand();
+    public MiddleCommandType currentProgramCommand();
 
-    public PoseType getCurrentPose();
+    public PoseType currentStatusPose();
 
     public File getLastOpenedProgramFile();
 

@@ -789,7 +789,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonOrigPoint1ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOrigPoint1ProgramActionPerformed
         if (null != pendantClient) {
-            MiddleCommandType cmd = pendantClient.getCurrentProgramCommand();
+            MiddleCommandType cmd = pendantClient.currentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
                 PoseType pose = moveToCmd.getEndPosition();
@@ -805,7 +805,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonOrigPoint2CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOrigPoint2CurrentActionPerformed
         if (null != pendantClient) {
-            PoseType pose = pendantClient.getCurrentPose();
+            PoseType pose = pendantClient.currentStatusPose();
             if (null != pose) {
                 PointType posePoint = pose.getPoint();
                 if (null != posePoint) {
@@ -817,7 +817,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonOrigPoint2ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOrigPoint2ProgramActionPerformed
         if (null != pendantClient) {
-            MiddleCommandType cmd = pendantClient.getCurrentProgramCommand();
+            MiddleCommandType cmd = pendantClient.currentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
                 PoseType pose = moveToCmd.getEndPosition();
@@ -833,7 +833,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonNewPoint1CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint1CurrentActionPerformed
         if (null != pendantClient) {
-            PoseType pose = pendantClient.getCurrentPose();
+            PoseType pose = pendantClient.currentStatusPose();
             if (null != pose) {
                 PointType posePoint = pose.getPoint();
                 if (null != posePoint) {
@@ -845,7 +845,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonNewPoint1ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint1ProgramActionPerformed
         if (null != pendantClient) {
-            MiddleCommandType cmd = pendantClient.getCurrentProgramCommand();
+            MiddleCommandType cmd = pendantClient.currentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
                 PoseType pose = moveToCmd.getEndPosition();
@@ -861,7 +861,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonNewPoint2CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint2CurrentActionPerformed
         if (null != pendantClient) {
-            PoseType pose = pendantClient.getCurrentPose();
+            PoseType pose = pendantClient.currentStatusPose();
             if (null != pose) {
                 PointType posePoint = pose.getPoint();
                 if (null != posePoint) {
@@ -873,7 +873,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonNewPoint2ProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNewPoint2ProgramActionPerformed
         if (null != pendantClient) {
-            MiddleCommandType cmd = pendantClient.getCurrentProgramCommand();
+            MiddleCommandType cmd = pendantClient.currentProgramCommand();
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmd = (MoveToType) cmd;
                 PoseType pose = moveToCmd.getEndPosition();
@@ -889,7 +889,7 @@ public class TransformJPanel extends javax.swing.JPanel {
 
     private void jButtonOrigPoint1CurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOrigPoint1CurrentActionPerformed
         if (null != pendantClient) {
-            PoseType pose = pendantClient.getCurrentPose();
+            PoseType pose = pendantClient.currentStatusPose();
             if (null != pose) {
                 PointType posePoint = pose.getPoint();
                 if (null != posePoint) {

@@ -893,13 +893,13 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
-        return pendantClientJPanel1.getCurrentProgramCommand();
+    public MiddleCommandType currentProgramCommand() {
+        return pendantClientJPanel1.currentProgramCommand();
     }
 
     @Override
-    public PoseType getCurrentPose() {
-        return pendantClientJPanel1.getCurrentPose();
+    public PoseType currentStatusPose() {
+        return pendantClientJPanel1.currentStatusPose();
     }
 
     @Nullable
