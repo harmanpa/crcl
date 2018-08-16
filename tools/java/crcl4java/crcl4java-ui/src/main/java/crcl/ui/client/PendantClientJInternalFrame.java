@@ -22,14 +22,12 @@
  */
 package crcl.ui.client;
 
-import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.XFuture;
-import crcl.ui.misc.ObjTableJPanel;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
 import crcl.utils.CRCLException;
@@ -44,7 +42,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
@@ -64,6 +61,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 
 /**
@@ -75,20 +74,36 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     /**
      * Creates new form PendantClientJInternalFrame
      */
-    public PendantClientJInternalFrame() {
+    @SuppressWarnings("initialization")
+    PendantClientJInternalFrame() {
+        this(null);
+    }
+    
+    public boolean checkPose(PoseType goalPose) {
+        return pendantClientJPanel1.checkPose(goalPose);
+    }
+
+    /**
+     * Creates new form PendantClientJInternalFrame
+     * @param parentJFrame parentJFrame
+     */
+    @SuppressWarnings("initialization")
+    public PendantClientJInternalFrame(@Nullable JFrame parentJFrame) {
+        this.parentJFrame = parentJFrame;
         initComponents();
         init();
     }
-    
+
+
     public void setStepMode(boolean step) {
         pendantClientJPanel1.setStepMode(step);
     }
-    
+
     public boolean isStepMode() {
         return pendantClientJPanel1.isStepMode();
     }
 
-    public String getCrclClientErrorMessage() {
+    @Nullable public String getCrclClientErrorMessage() {
         return pendantClientJPanel1.getCrclClientErrorMessage();
     }
 
@@ -96,11 +111,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isPaused();
     }
 
-    public Thread getRunProgramThread() {
+    @Nullable public Thread getRunProgramThread() {
         return pendantClientJPanel1.getRunProgramThread();
     }
 
-    public XFuture<Boolean> getRunProgramFuture() {
+    @Nullable public XFuture<Boolean> getRunProgramFuture() {
         return pendantClientJPanel1.getRunProgramFuture();
     }
 
@@ -128,7 +143,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isIgnoreTimeouts();
     }
 
-    public List<ProgramRunData> getLastProgRunDataList() {
+    @Nullable public List<ProgramRunData> getLastProgRunDataList() {
         return pendantClientJPanel1.getLastProgRunDataList();
     }
 
@@ -164,7 +179,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public String pauseInfoString() {
         return pendantClientJPanel1.pauseInfoString();
     }
-    
+
     public void unpauseCrclProgram() {
         pendantClientJPanel1.unpauseCrclProgram();
     }
@@ -177,17 +192,17 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.connect(host, port);
     }
 
-    private JFrame parentJFrame = null;
+    @MonotonicNonNull private JFrame parentJFrame;
 
-    public JFrame findParentJFrame() {
+    @Nullable public JFrame findParentJFrame() {
         if (parentJFrame != null) {
             return parentJFrame;
         }
         Container parent = this.getParent();
         while (parent != null && !(parent instanceof JFrame)) {
+            parentJFrame = (JFrame) parent;
             parent = parent.getParent();
         }
-        parentJFrame = (JFrame) parentJFrame;
         return parentJFrame;
     }
 
@@ -200,14 +215,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     private void init() {
-        pendantClientJPanel1.setOuterFrame(this.findParentJFrame());
+//        pendantClientJPanel1.setOuterContainer(this);
         pendantClientJPanel1.setMenuOuter(this);
-        addCommandsMenu();
+        pendantClientJPanel1.addToCommandsMenu(jMenuCmds);
 
         readRecentCommandFiles();
         readRecentPrograms();
 //        this.setIconImage(DISCONNECTED_IMAGE);
-        this.setTitle("CRCL Client: Disconnected");
+        super.setTitle("CRCL Client: Disconnected");
         jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
         jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
 
@@ -278,29 +293,25 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
                     return name.endsWith(".xml");
                 }
             });
-            Arrays.sort(sub_fa, new Comparator<File>() {
+            if (null != sub_fa) {
+                Arrays.sort(sub_fa, Comparator.comparing(File::lastModified));
+                for (int i = 0; i < sub_fa.length && i < 3; i++) {
+                    File xmlFile = sub_fa[i];
+                    JMenuItem jmi = new JMenuItem(xmlFile.getName());
+                    jmi.addActionListener(new ActionListener() {
 
-                @Override
-                public int compare(File o1, File o2) {
-                    return Long.compare(o1.lastModified(), o2.lastModified());
-                }
-            });
-            for (int i = 0; i < sub_fa.length && i < 3; i++) {
-                File xmlFile = sub_fa[i];
-                JMenuItem jmi = new JMenuItem(xmlFile.getName());
-                jmi.addActionListener(new ActionListener() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            pendantClientJPanel1.openXmlInstanceFile(xmlFile);
-                        } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                            showMessage(ex);
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                pendantClientJPanel1.openXmlInstanceFile(xmlFile);
+                            } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
+                                LOGGER.log(Level.SEVERE, null, ex);
+                                showMessage(ex);
+                            }
                         }
-                    }
-                });
-                jm.add(jmi);
+                    });
+                    jm.add(jmi);
+                }
             }
         }
     }
@@ -325,53 +336,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         }
     }
 
-    private void addCommandsMenu() {
-        try {
-            List<Class> allClasses = ObjTableJPanel.getClasses();
-            List<Class> cmdClasses = ObjTableJPanel.getAssignableClasses(CRCLCommandType.class,
-                    allClasses);
-            Collections.sort(cmdClasses, new Comparator<Class>() {
-
-                @Override
-                public int compare(Class o1, Class o2) {
-                    return o1.getCanonicalName().compareTo(o2.getCanonicalName());
-                }
-            });
-            for (final Class c : cmdClasses) {
-                JMenuItem jmi = new JMenuItem(c.getCanonicalName());
-                jmi.addActionListener(new ActionListener() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            PendantClientInner internal = pendantClientJPanel1.getInternal();
-                            CRCLCommandType cmd = (CRCLCommandType) c.newInstance();
-                            cmd
-                                    = ObjTableJPanel.editObject(cmd,
-                                            internal.getXpu(),
-                                            null,
-                                            internal.getCheckCommandValidPredicate());
-                            if (null != cmd) {
-                                internal.incAndSendCommand(cmd);
-                                pendantClientJPanel1.saveRecentCommand(cmd);
-                            }
-                        } catch (InstantiationException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (IllegalAccessException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (JAXBException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                });
-                this.jMenuCmds.add(jmi);
-            }
-        } catch (Throwable e) {
-            LOGGER.log(Level.SEVERE, null, e);
-        }
-    }
     public static final Logger LOGGER = Logger.getLogger(PendantClientJInternalFrame.class.getName());
 
     @Override
@@ -393,7 +357,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
                 return (JFrame) container;
             }
         }
-        return null;
+        throw new IllegalStateException("no containter parent is a JFrame");
     }
 
     /**
@@ -427,11 +391,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        try {
-            pendantClientJPanel1 = new crcl.ui.client.PendantClientJPanel();
-        } catch (javax.xml.parsers.ParserConfigurationException e1) {
-            e1.printStackTrace();
-        }
+        pendantClientJPanel1 = new PendantClientJPanel(this,parentJFrame);
         jMenuBarPendantClient = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemOpenXmlCommandInstance = new javax.swing.JMenuItem();
@@ -882,7 +842,9 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         Map<String, String> testPropsMap
                 = PropertiesJPanel.confirmPropertiesMap(this.getOuterFrame(), "Test Run Properties", true,
                         pendantClientJPanel1.getInternal().getDefaultTestPropertiesMap());
-        pendantClientJPanel1.startRunTest(testPropsMap);
+        if (null != testPropsMap) {
+            pendantClientJPanel1.startRunTest(testPropsMap);
+        }
     }//GEN-LAST:event_jMenuItemRunTestActionPerformed
 
     private void jMenuItemPoseList3DPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemPoseList3DPlotActionPerformed
@@ -900,7 +862,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     private void jMenuItemTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemTransformProgramActionPerformed
         TransformSetupJFrame setupFrame = new TransformSetupJFrame();
-        setupFrame.setPendantClient(this);
+        setupFrame.setPendantClient(this.pendantClientJPanel1);
         setupFrame.setVisible(true);
     }//GEN-LAST:event_jMenuItemTransformProgramActionPerformed
 
@@ -1059,7 +1021,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void clearProgramTimesDistances() {
         pendantClientJPanel1.clearProgramTimesDistances();
     }
-    
+
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
         pendantClientJPanel1.checkXmlQuery(crclSocket);
@@ -1111,24 +1073,24 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
-        return pendantClientJPanel1.getCurrentProgramCommand();
+    public MiddleCommandType currentProgramCommand() {
+        return pendantClientJPanel1.currentProgramCommand();
     }
 
     public Optional<CRCLStatusType> getCurrentStatus() {
-        return pendantClientJPanel1.getCurrentStatus();
+        return pendantClientJPanel1.currentStatus();
     }
 
     public Optional<CommandStateEnumType> getCurrentState() {
-        return pendantClientJPanel1.getCurrentState();
+        return pendantClientJPanel1.currentState();
     }
 
     @Override
-    public PoseType getCurrentPose() {
-        return pendantClientJPanel1.getCurrentPose();
+    public PoseType currentStatusPose() {
+        return pendantClientJPanel1.currentStatusPose();
     }
 
-    @Override
+    @Nullable
     public CRCLProgramType getProgram() {
         return pendantClientJPanel1.getProgram();
     }
@@ -1256,7 +1218,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.continueCurrentProgram(stepMode);
     }
 
-    public File getTempLogDir() {
+    @Nullable public File getTempLogDir() {
         return pendantClientJPanel1.getTempLogDir();
     }
 

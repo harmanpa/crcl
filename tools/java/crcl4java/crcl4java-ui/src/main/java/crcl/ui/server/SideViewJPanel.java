@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class SideViewJPanel extends JPanel {
 
@@ -84,7 +85,7 @@ public class SideViewJPanel extends JPanel {
         this.repaint();
     }
 
-    private double[] jointvals;
+    private double @Nullable [] jointvals=null;
 
 
     /**
@@ -220,23 +221,24 @@ public class SideViewJPanel extends JPanel {
     private double maxSimpleJv0 = 0;
 
     private boolean paintSimpleRobot(Dimension d, Graphics2D g2d) {
-        if (null == jointvals || jointvals.length < SimulatedKinematicsSimple.NUM_JOINTS) {
+        double[] jointvals1 = jointvals;
+        if (null == jointvals1 || jointvals1.length < SimulatedKinematicsSimple.NUM_JOINTS) {
             return true;
         }
-        maxSimpleJv0 = Math.max(maxSimpleJv0, jointvals[0]);
+        maxSimpleJv0 = Math.max(maxSimpleJv0, jointvals1[0]);
         double sfactor = Math.min(d.width / 2.0, d.height / 2.0) / (Math.abs(maxSimpleJv0) + SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0]);
         g2d.scale(sfactor, -1.0 * sfactor);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        l0rect.width = jointvals[0];
-        g2d.rotate(Math.toRadians(jointvals[2]));
+        l0rect.width = jointvals1[0];
+        g2d.rotate(Math.toRadians(jointvals1[2]));
         g2d.setColor(Color.yellow);
         g2d.fill(l0rect);
         g2d.translate(l0rect.width, 0.0);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        l1rect.width = Math.cos(Math.toRadians(jointvals[5] - jointvals[2])) * SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0];
-        g2d.rotate(Math.toRadians(jointvals[4] - jointvals[2]));
+        l1rect.width = Math.cos(Math.toRadians(jointvals1[5] - jointvals1[2])) * SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0];
+        g2d.rotate(Math.toRadians(jointvals1[4] - jointvals1[2]));
         g2d.setColor(Color.yellow);
         g2d.fill(l1rect);
         return false;
@@ -247,26 +249,27 @@ public class SideViewJPanel extends JPanel {
         g2d.scale(sfactor, -1.0 * sfactor);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        if (null == jointvals) {
+        double[] jointvals1 = jointvals;
+        if (null == jointvals1) {
             return true;
         }
-        g2d.rotate(Math.toRadians(jointvals[1]));
+        g2d.rotate(Math.toRadians(jointvals1[1]));
         g2d.setColor(Color.yellow);
         g2d.fill(l0rect);
         g2d.translate(l0rect.width, 0.0);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        g2d.rotate(Math.toRadians(jointvals[2]));
+        g2d.rotate(Math.toRadians(jointvals1[2]));
         g2d.setColor(Color.yellow);
         g2d.fill(l1rect);
         g2d.translate(l1rect.width, 0.0);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        g2d.rotate(Math.toRadians(jointvals[3]));
+        g2d.rotate(Math.toRadians(jointvals1[3]));
         g2d.setColor(Color.yellow);
         g2d.fill(l2rect);
         g2d.translate(l2rect.width, 0.0);
-        l3rect.width = this.seglengths[3] * Math.cos(Math.toRadians(jointvals[4]));
+        l3rect.width = this.seglengths[3] * Math.cos(Math.toRadians(jointvals1[4]));
         if (l3rect.width <= 0) {
             return true;
         }
@@ -276,7 +279,7 @@ public class SideViewJPanel extends JPanel {
         g2d.fill(j2circle);
         g2d.translate(l3rect.width, 0.0);
         g2d.setColor(Color.BLACK);
-        l4rect.height = seglengths[4] * Math.abs(Math.cos(Math.toRadians(jointvals[5])));
+        l4rect.height = seglengths[4] * Math.abs(Math.cos(Math.toRadians(jointvals1[5])));
         l4rect.y = -0.5 * l4rect.height;
         g2d.fill(l4rect);
         g2d.translate(0.0, l4rect.height / 2.0);

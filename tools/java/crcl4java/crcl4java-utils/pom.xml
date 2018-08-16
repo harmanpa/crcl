@@ -20,6 +20,21 @@
             <version>2.3.0</version>
         </dependency>
         <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>2.3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
             <artifactId>crcl4java-base</artifactId>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
@@ -42,7 +57,7 @@
         <!-- <main.class>crcl.utils.DefaultMain</main.class> -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        
+        <checkerframework.version>1.9.13</checkerframework.version>
     </properties>
     <build>
         
@@ -95,7 +110,7 @@
     <name>crcl4java-utils</name>
     <profiles>
         <profile>
-            <id>with_checkers</id>
+            <id>checkerframework_jdk7</id>
             <properties>
                 <!-- For checker framework , http://types.cs.washington.edu/checker-framework/current/checker-framework-manual.html#maven -->
                 <!-- These properties will be set by the Maven Dependency plugin -->
@@ -111,24 +126,24 @@
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>checker-qual</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>checker</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <!-- The type annotations compiler - uncomment if using Java 7 -->
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>compiler</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
                 <!-- The annotated JDK to use (change to jdk7 if using Java 7) -->
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>jdk7</artifactId>
-                    <version>1.9.11</version>
+                    <version>${checkerframework.version}</version>
                 </dependency>
             </dependencies>
             <build>
@@ -161,7 +176,8 @@
                                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
                             </annotationProcessors>
                             <compilerArgs>
-                                <arg>-Xlint:unchecked</arg>
+                                <arg>-Xlint:all,-serial</arg>
+                                <arg>-AprintErrorStack</arg>
                                 <!-- location of the annotated JDK, which comes from a Maven dependency -->
                                 <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
                                 <!-- Uncomment the following line if using Java 7. -->

@@ -35,6 +35,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -45,8 +46,10 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     /**
      * Creates new form MultiLineStringJPanel
      */
+    @SuppressWarnings("initialization")
     public MultiLineStringJPanel() {
         initComponents();
+        popMenu = createCopyPopMenu();
     }
 
     /**
@@ -145,20 +148,26 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
 
     private void jButtonOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOKActionPerformed
         this.cancelled = false;
-        this.dialog.setVisible(false);
+        if (null != this.dialog) {
+            this.dialog.setVisible(false);
+        }
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         this.cancelled = true;
-        this.dialog.setVisible(false);
+        if (null != this.dialog) {
+            this.dialog.setVisible(false);
+        }
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
-    private JPopupMenu popMenu = new JPopupMenu();
+    final private JPopupMenu popMenu;
 
-    {
+    private JPopupMenu createCopyPopMenu() {
+        JPopupMenu popMenu = new JPopupMenu();
         JMenuItem copyMenuItem = new JMenuItem("Copy");
         copyMenuItem.addActionListener(e -> copyText());
         popMenu.add(copyMenuItem);
+        return popMenu;
     }
 
     private void copyText() {
@@ -191,10 +200,10 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jTextArea1MouseReleased
 
-    private JDialog dialog = null;
+    @Nullable private JDialog dialog = null;
     private boolean cancelled = false;
 
-    private static String editTextPrivate(JDialog _dialog, String init) {
+    @Nullable private static String editTextPrivate(JDialog _dialog, String init) {
         MultiLineStringJPanel panel = new MultiLineStringJPanel();
         panel.jTextArea1.setText(init);
         panel.jScrollPane1.getVerticalScrollBar().setValue(0);
@@ -209,14 +218,14 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return panel.jTextArea1.getText();
     }
 
-    public static String editText(String init, Frame _owner,
+    @Nullable public static String editText(String init, Frame _owner,
             String _title,
             boolean _modal) {
         JDialog dialog = new JDialog(_owner, _title, _modal);
         return editTextPrivate(dialog, init);
     }
 
-    public static String editText(String init) {
+    @Nullable public static String editText(String init) {
         JDialog dialog = new JDialog();
         dialog.setModal(true);
         return editTextPrivate(dialog, init);
@@ -260,11 +269,12 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
     }
 
-    public static XFuture<Boolean> showText(String init, JFrame _owner,
+    public static XFuture<Boolean> showText(String init,
+            @Nullable JFrame _owner,
             String _title,
             boolean _modal) {
 
-        final XFuture<Boolean> ret = new XFuture<>("showText("+init+","+_title+")");
+        final XFuture<Boolean> ret = new XFuture<>("showText(" + init + "," + _title + ")");
         if (!disableShowText) {
             runOnDispatchThread(() -> {
                 JDialog dialog = new JDialog(_owner, _title, _modal);
@@ -277,7 +287,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     public static XFuture<Boolean> showText(String init) {
-        final XFuture<Boolean> ret = new XFuture<>("showText("+init+")");
+        final XFuture<Boolean> ret = new XFuture<>("showText(" + init + ")");
         if (!disableShowText) {
             runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
         } else {

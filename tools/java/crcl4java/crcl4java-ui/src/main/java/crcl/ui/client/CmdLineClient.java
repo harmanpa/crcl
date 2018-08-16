@@ -20,10 +20,12 @@
  */
 package crcl.ui.client;
 
+import crcl.base.CRCLProgramType;
 import crcl.utils.CRCLException;
 import crcl.utils.stubs.PendantClientOuterStub;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -101,7 +103,8 @@ public class CmdLineClient {
                 programSucceeded = pendantClientInner.runTest(pendantClientInner.getDefaultTestPropertiesMap());
             } else if (null != programPropertyString) {
                 pendantClientInner.openXmlProgramFile(new File(programPropertyString),false);
-                programSucceeded = pendantClientInner.runProgram(pendantClientInner.getProgram(), 0);
+                CRCLProgramType program = Objects.requireNonNull(pendantClientInner.getProgram());
+                programSucceeded = pendantClientInner.runProgram(program, 0);
                 System.out.println("Program " + programPropertyString + " succeeded: " + programSucceeded);
             } else {
                 System.err.println("No program specified");

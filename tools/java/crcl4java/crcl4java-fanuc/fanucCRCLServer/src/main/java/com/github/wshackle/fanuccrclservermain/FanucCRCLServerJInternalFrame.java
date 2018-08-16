@@ -408,11 +408,12 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jCheckBoxMenuItemShowPressureOutputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
-        ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
-        if (null != serverSensorJFrame) {
-            serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
-        }
-        saveProperties();
+        throw new UnsupportedOperationException("pressure sensor server not implemented");
+//        ServerSensorJFrame serverSensorJFrame = fanucCRCLServerJPanel1.getSensorJFrame();
+//        if (null != serverSensorJFrame) {
+//            serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
+//        }
+//        saveProperties();
     }//GEN-LAST:event_jCheckBoxMenuItemShowPressureOutputActionPerformed
 
     private void jMenuItemLaunchWebActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLaunchWebActionPerformed

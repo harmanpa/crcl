@@ -86,4 +86,12 @@
                 <exec.mainClass>"crcl.utils.PerfTest"</exec.mainClass>
             </properties>
         </action>
+    <action>
+            <actionName>CUSTOM-debug_maven</actionName>
+            <displayName>debug_maven</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>install</goal>
+            </goals>
+        </action>
 </actions>

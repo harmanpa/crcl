@@ -24,13 +24,27 @@ package crcl.utils;
 
 import crcl.base.CRCLCommandInstanceType;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
 /**
  *
- * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov> }
  */
 public class CRCLServerSocketEvent {
 
-    
+    /*@Nullable*/
     private final CRCLSocket source;
 
     /**
@@ -38,10 +52,12 @@ public class CRCLServerSocketEvent {
      *
      * @return the value of source
      */
+    /*@Nullable*/
     public CRCLSocket getSource() {
         return source;
     }
 
+    /*@Nullable*/
     private final CRCLCommandInstanceType instance;
 
     /**
@@ -49,10 +65,12 @@ public class CRCLServerSocketEvent {
      *
      * @return the value of instance
      */
+    /*@Nullable*/
     public CRCLCommandInstanceType getInstance() {
         return instance;
     }
 
+    /*@Nullable*/
     final private Exception exception;
 
     /**
@@ -60,11 +78,12 @@ public class CRCLServerSocketEvent {
      *
      * @return the value of exception
      */
+    /*@Nullable*/
     public Exception getException() {
         return exception;
     }
 
-    public CRCLServerSocketEvent(CRCLSocket source, CRCLCommandInstanceType instance, Exception exception) {
+    public CRCLServerSocketEvent(/*@Nullable*/ CRCLSocket source, /*@Nullable*/ CRCLCommandInstanceType instance, /*@Nullable*/ Exception exception) {
         this.source = source;
         this.instance = instance;
         this.exception = exception;

@@ -63,7 +63,7 @@ public class SimulatedKinematicsSimpleTest {
             if (Math.abs(jtest[ii] - j2[ii]) > 1.0) {
                 try {
                     System.err.println("pose=" + CRCLPosemath.poseToString(pose));
-                } catch (CRCLException ex) {
+                } catch (Exception ex) {
                     Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 System.err.println("j2=" + Arrays.toString(j2));
@@ -92,7 +92,7 @@ public class SimulatedKinematicsSimpleTest {
                     if (Math.abs(jtest[ii] - j2[ii]) > 1.0) {
                         try {
                             System.err.println("pose=" + CRCLPosemath.poseToString(pose));
-                        } catch (CRCLException ex) {
+                        } catch (Exception ex) {
                             Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         System.err.println("j2=" + Arrays.toString(j2));
@@ -210,7 +210,7 @@ public class SimulatedKinematicsSimpleTest {
                     try {
                         System.err.println("pose=" + CRCLPosemath.poseToString(pose));
                         System.err.println("pose2=" + CRCLPosemath.poseToString(pose2));
-                    } catch (CRCLException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(SimulatedKinematicsSimpleTest.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     System.err.println("j2=" + Arrays.toString(j2));

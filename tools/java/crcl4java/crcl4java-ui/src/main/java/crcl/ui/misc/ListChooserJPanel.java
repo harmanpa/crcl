@@ -38,6 +38,7 @@ public class ListChooserJPanel<TT> extends javax.swing.JPanel {
     /**
      * Creates new form ListChooserJPanel
      */
+    @SuppressWarnings("initialization")
     private ListChooserJPanel(JDialog _dialog, TT[] choices, TT defaultChoice) {
         initComponents();
         this.dialog = _dialog;

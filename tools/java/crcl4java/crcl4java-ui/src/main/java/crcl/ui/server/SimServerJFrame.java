@@ -43,6 +43,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
      * @throws javax.xml.parsers.ParserConfigurationException when
      * javax.xml.parsers.DocumentBuilderFactory fails in XpathUtils
      */
+    @SuppressWarnings("initialization")
     public SimServerJFrame() throws ParserConfigurationException {
         initComponents();
         boolean logImages = SimServerJPanel.LOG_IMAGES_DEFAULT;

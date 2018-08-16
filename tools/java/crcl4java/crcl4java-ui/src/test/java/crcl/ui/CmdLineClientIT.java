@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import static java.util.Objects.requireNonNull;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
@@ -59,11 +60,17 @@ public class CmdLineClientIT {
             LOGGER.log(Level.INFO, "Begin CmdLineClientIT.testMain");
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
-            URL programURL = CmdLineClientIT.class.getResource("/main/programAll.xml");
+            URL programURL = requireNonNull(
+                    CmdLineClientIT.class.getResource("/main/programAll.xml"),
+                    "CmdLineClientIT.class.getResource(\"/main/programAll.xml\")"
+                    );
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
+            URL initPoseURL = requireNonNull(
+                    CmdLineClientIT.class.getResource("/main/initPose.csv"),
+                    "CmdLineClientIT.class.getResource(\"/main/initPose.csv\")"
+            );
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
@@ -134,7 +141,10 @@ public class CmdLineClientIT {
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
+            URL initPoseURL = requireNonNull(
+                    CmdLineClientIT.class.getResource("/main/initPose.csv"),
+                    "CmdLineClientIT.class.getResource(\"/main/initPose.csv\")"
+            );
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.port", "0");
 
@@ -206,11 +216,17 @@ public class CmdLineClientIT {
             LOGGER.log(Level.INFO, "Begin CmdLineClientIT.testMainEXI");
             LOGGER.log(Level.INFO, "user.dir={0}", System.getProperty("user.dir"));
             CmdLineClient.setProgramSucceeded(false);
-            URL programURL = CmdLineClientIT.class.getResource("/main/programAll.xml");
+            URL programURL = requireNonNull(
+                    CmdLineClientIT.class.getResource("/main/programAll.xml"),
+                    "CmdLineClientIT.class.getResource(\"/main/programAll.xml\")"
+                    );
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
-            URL initPoseURL = CmdLineClientIT.class.getResource("/main/initPose.csv");
+            URL initPoseURL = requireNonNull(
+                    CmdLineClientIT.class.getResource("/main/initPose.csv"),
+                    "CmdLineClientIT.class.getResource(\"/main/initPose.csv\")"
+            );
             Path initPosePath = Paths.get(initPoseURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");

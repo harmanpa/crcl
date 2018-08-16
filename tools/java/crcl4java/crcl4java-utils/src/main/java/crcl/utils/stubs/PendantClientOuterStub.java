@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 
+@SuppressWarnings("nullness")
 public class PendantClientOuterStub implements PendantClientOuter, PendantClientMenuOuter {
 
     @Override
@@ -220,19 +221,15 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public MiddleCommandType getCurrentProgramCommand() {
+    public MiddleCommandType currentProgramCommand() {
         return null;
     }
 
     @Override
-    public PoseType getCurrentPose() {
+    public PoseType currentStatusPose() {
         return null;
     }
 
-    @Override
-    public CRCLProgramType getProgram() {
-        return null;
-    }
 
     @Override
     public File getLastOpenedProgramFile() {

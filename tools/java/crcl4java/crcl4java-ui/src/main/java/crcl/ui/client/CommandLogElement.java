@@ -25,6 +25,7 @@ package crcl.ui.client;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.base.CRCLCommandType;
 import crcl.utils.CRCLSocket;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -32,7 +33,8 @@ import crcl.utils.CRCLSocket;
  */
 public class CommandLogElement extends CommandStatusLogElement {
     
-    public CommandLogElement(CRCLCommandType cmd, long time, String progName, int progIndex, String svrString) {
+    @SuppressWarnings("nullness")
+    public CommandLogElement(CRCLCommandType cmd, long time, @Nullable  String progName, int progIndex, @Nullable String svrString) {
         super(cmd.getCommandID(), time,progName, progIndex,svrString);
         this.cmd = cmd;
     }

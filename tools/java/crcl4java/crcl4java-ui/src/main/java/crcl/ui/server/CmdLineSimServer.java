@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.Posemath;
 
 /**
@@ -39,9 +40,9 @@ import rcs.posemath.Posemath;
  */
 public class CmdLineSimServer {
 
-    private static SimServerInner simServerInner = null;
+    @Nullable private static SimServerInner simServerInner = null;
 
-    public static synchronized SimServerInner getSimServerInner() {
+    @Nullable public static synchronized SimServerInner getSimServerInner() {
         return simServerInner;
     }
     

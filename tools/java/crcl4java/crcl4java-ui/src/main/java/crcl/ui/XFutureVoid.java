@@ -23,6 +23,8 @@
 package crcl.ui;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
@@ -58,7 +60,7 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     private void alsoCancelAddAll(Iterable<? extends CompletableFuture<?>> cfs) {
-        for (CompletableFuture cf : cfs) {
+        for (CompletableFuture<?> cf : cfs) {
             alsoCancelAdd(cf);
         }
     }
@@ -111,42 +113,41 @@ public class XFutureVoid extends XFuture<Void> {
         ret.alsoCancelAdd(f);
         return ret;
     }
-    
+
     public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier) {
-        XFuture<Void> future= this.thenComposeAsync(getName()  + ".thenComposeAsyncToVoid", x->supplier.get());
-        XFutureVoid ret = new XFutureVoid(getName()  + ".thenComposeAsyncToVoid");
+        XFuture<Void> future = this.thenComposeAsync(getName() + ".thenComposeAsyncToVoid", x -> supplier.get());
+        XFutureVoid ret = new XFutureVoid(getName() + ".thenComposeAsyncToVoid");
         future.thenRun(() -> ret.complete());
         ret.alsoCancelAdd(future);
         return ret;
     }
-    
-     public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier, ExecutorService es) {
-        XFuture<Void> future= this.thenComposeAsync(getName()  + ".thenComposeAsyncToVoid", x->supplier.get(),es);
-        XFutureVoid ret = new XFutureVoid(getName()  + ".thenComposeAsyncToVoid");
+
+    public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier, ExecutorService es) {
+        XFuture<Void> future = this.thenComposeAsync(getName() + ".thenComposeAsyncToVoid", x -> supplier.get(), es);
+        XFutureVoid ret = new XFutureVoid(getName() + ".thenComposeAsyncToVoid");
         future.thenRun(() -> ret.complete());
         ret.alsoCancelAdd(future);
         return ret;
     }
-    
-     
+
     public XFutureVoid thenComposeToVoid(String name, Supplier< ? extends XFuture<Void>> sup) {
-        XFuture<Void> future= this.thenCompose(name , x-> sup.get());
+        XFuture<Void> future = this.thenCompose(name, x -> sup.get());
         XFutureVoid ret = new XFutureVoid(name);
         future.thenRun(() -> ret.complete());
         ret.alsoCancelAdd(future);
         return ret;
     }
-    
-     public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup) {
-        XFuture<Void> future= this.thenComposeAsync(name , x-> sup.get());
+
+    public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup) {
+        XFuture<Void> future = this.thenComposeAsync(name, x -> sup.get());
         XFutureVoid ret = new XFutureVoid(name);
         future.thenRun(() -> ret.complete());
         ret.alsoCancelAdd(future);
         return ret;
     }
-    
-    public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup,ExecutorService es) {
-        XFuture<Void> future= this.thenComposeAsync(name , x->sup.get(),es);
+
+    public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> sup, ExecutorService es) {
+        XFuture<Void> future = this.thenComposeAsync(name, x -> sup.get(), es);
         XFutureVoid ret = new XFutureVoid(name);
         future.thenRun(() -> ret.complete());
         ret.alsoCancelAdd(future);
@@ -233,7 +234,7 @@ public class XFutureVoid extends XFuture<Void> {
 
     @Override
     public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
-        return staticwrapvoid(getName()+ ".alwaysAsync", super.handleAsync((x, t) -> {
+        return staticwrapvoid(getName() + ".alwaysAsync", super.handleAsync((x, t) -> {
             try {
                 r.run();
             } catch (Throwable t2) {
@@ -257,8 +258,6 @@ public class XFutureVoid extends XFuture<Void> {
         }, service));
     }
 
-    
-    
     @Override
     public XFutureVoid thenRun(Runnable r) {
         XFuture<Void> f = super.thenRun(r);
@@ -269,12 +268,12 @@ public class XFutureVoid extends XFuture<Void> {
 
     @Override
     public XFutureVoid thenRun(String name, Runnable r) {
-        XFuture<Void> f = super.thenRun(name,r);
+        XFuture<Void> f = super.thenRun(name, r);
         XFutureVoid ret = staticwrapvoid(f.getName(), f);
         ret.alsoCancelAdd(f);
         return ret;
     }
-    
+
     @Override
     public XFutureVoid thenRunAsync(Runnable r) {
         XFuture<Void> f = super.thenRunAsync(r);
@@ -285,41 +284,40 @@ public class XFutureVoid extends XFuture<Void> {
 
     @Override
     public XFutureVoid thenRunAsync(String name, Runnable r) {
-        XFuture<Void> f = super.thenRunAsync(name,r);
+        XFuture<Void> f = super.thenRunAsync(name, r);
         XFutureVoid ret = staticwrapvoid(f.getName(), f);
         ret.alsoCancelAdd(f);
         return ret;
     }
-    
+
     @Override
     public XFutureVoid thenRunAsync(String name, Runnable r, ExecutorService es) {
-        XFuture<Void> f = super.thenRunAsync(name,r,es);
+        XFuture<Void> f = super.thenRunAsync(name, r, es);
         XFutureVoid ret = staticwrapvoid(f.getName(), f);
         ret.alsoCancelAdd(f);
         return ret;
     }
-    
-    
-    public <U> XFuture<U> thenSupply(Supplier<U> supplier ){
+
+    public <U> XFuture<U> thenSupply(Supplier<U> supplier) {
         return super.thenApply(x -> supplier.get());
     }
 
     public <U> XFuture<U> thenSupply(String name, Supplier<U> supplier) {
-        return super.thenApply(name,x -> supplier.get());
+        return super.thenApply(name, x -> supplier.get());
     }
-    
+
     public <U> XFuture<U> thenSupplyAsync(Supplier<U> supplier) {
-        return super.thenApplyAsync(x-> supplier.get());
+        return super.thenApplyAsync(x -> supplier.get());
     }
 
     public <U> XFuture<U> thenSupplyAsync(String name, Supplier<U> supplier) {
-        return super.thenApplyAsync(name, x-> supplier.get());
+        return super.thenApplyAsync(name, x -> supplier.get());
     }
-    
+
     public <U> XFuture<U> thenSupplyAsync(String name, Supplier<U> supplier, ExecutorService es) {
-        return super.thenApplyAsync(name, x-> supplier.get(),es);
+        return super.thenApplyAsync(name, x -> supplier.get(), es);
     }
-    
+
     public XFutureVoid thenComposeVoidAsync(Supplier< XFuture<Void>> supplier) {
         XFuture<Void> f = super.thenComposeAsync(getName() + ".thenCompose", c -> supplier.get());
         XFutureVoid ret = staticwrapvoid(f.getName(), f);
@@ -361,6 +359,17 @@ public class XFutureVoid extends XFuture<Void> {
         return ret;
     }
     
+    @SuppressWarnings("rawtypes")
+    public static XFutureVoid allOf(Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
+    }
+    
+
+    @SuppressWarnings("rawtypes")
+    public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
+    }
+
 //    @Override
 //    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
 //        return staticwrapvoid(this.getName() + ".alwaysAsync", super.handleAsync((x, t) -> {

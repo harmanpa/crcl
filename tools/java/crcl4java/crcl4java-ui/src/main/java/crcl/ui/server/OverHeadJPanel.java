@@ -38,9 +38,13 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class OverHeadJPanel extends JPanel {
 
+    public OverHeadJPanel() {
+    }
+    
     private static final String DEFAULT_IMAGE_LOG_DIR = System.getProperty("crcl4java.simserver.imagelogdir", "/tmp");
 
     private String imageLogDir = DEFAULT_IMAGE_LOG_DIR;
@@ -104,7 +108,7 @@ public class OverHeadJPanel extends JPanel {
         this.repaint();
     }
 
-    private double[] jointvals;
+     private double @Nullable[] jointvals =null;
 
     /**
      * Set the value of jointvals
@@ -221,23 +225,24 @@ public class OverHeadJPanel extends JPanel {
     private double maxSimpleJv0 = 0;
 
     private boolean paintSimpleRobot(Dimension d, Graphics2D g2d) {
-        if (null == jointvals || jointvals.length < SimulatedKinematicsSimple.NUM_JOINTS) {
+        double[] jointvals1 = jointvals;
+        if (null == jointvals1 || jointvals1.length < SimulatedKinematicsSimple.NUM_JOINTS) {
             return true;
         }
-        maxSimpleJv0 = Math.max(maxSimpleJv0, jointvals[0]);
+        maxSimpleJv0 = Math.max(maxSimpleJv0, jointvals1[0]);
         double sfactor = Math.min(d.width / 2.0, d.height / 2.0) / (Math.abs(maxSimpleJv0) + SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0]);
         g2d.scale(sfactor, -1.0 * sfactor);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        l0rect.width = Math.cos(Math.toRadians(jointvals[2])) * jointvals[0];
-        g2d.rotate(Math.toRadians(jointvals[1]));
+        l0rect.width = Math.cos(Math.toRadians(jointvals1[2])) * jointvals1[0];
+        g2d.rotate(Math.toRadians(jointvals1[1]));
         g2d.setColor(Color.yellow);
         g2d.fill(l0rect);
         g2d.translate(l0rect.width, 0.0);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        l1rect.width = Math.cos(Math.toRadians(jointvals[4])) * SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0];
-        g2d.rotate(Math.toRadians(jointvals[5] - jointvals[2]));
+        l1rect.width = Math.cos(Math.toRadians(jointvals1[4])) * SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS[0];
+        g2d.rotate(Math.toRadians(jointvals1[5] - jointvals1[2]));
         g2d.setColor(Color.yellow);
         g2d.fill(l1rect);
         return false;
@@ -248,17 +253,18 @@ public class OverHeadJPanel extends JPanel {
         g2d.scale(sfactor, -1.0 * sfactor);
         g2d.setColor(Color.gray);
         g2d.fill(j1circle);
-        if (null == jointvals) {
+        double[] jointvals1 = jointvals;
+        if (null == jointvals1) {
             return true;
         }
-        g2d.rotate(Math.toRadians(jointvals[0]));
+        g2d.rotate(Math.toRadians(jointvals1[0]));
         g2d.setColor(Color.yellow);
-        double angle = jointvals[1];
+        double angle = jointvals1[1];
         l0rect.width = seglengths[0] * Math.cos(Math.toRadians(angle));
         g2d.fill(l0rect);
         g2d.translate(l0rect.width, 0.0);
         g2d.setColor(Color.yellow);
-        angle += jointvals[2];
+        angle += jointvals1[2];
         l1rect.width = seglengths[1] * Math.cos(Math.toRadians(angle));
         if (l1rect.width <= 0) {
             return true;
@@ -267,7 +273,7 @@ public class OverHeadJPanel extends JPanel {
         g2d.setColor(Color.gray);
         g2d.fill(jrect);
         g2d.translate(l1rect.width, 0.0);
-        angle += jointvals[3];
+        angle += jointvals1[3];
         l2rect.width = seglengths[2] * Math.cos(Math.toRadians(angle));
         if (l2rect.width <= 0) {
             return true;
@@ -281,14 +287,14 @@ public class OverHeadJPanel extends JPanel {
         if (l3rect.width <= 0) {
             return true;
         }
-        g2d.rotate(Math.toRadians(jointvals[4]));
+        g2d.rotate(Math.toRadians(jointvals1[4]));
         g2d.setColor(Color.yellow);
         g2d.fill(l3rect);
         g2d.setColor(Color.gray);
         g2d.fill(j2circle);
         g2d.translate(l3rect.width, 0.0);
         g2d.setColor(Color.BLACK);
-        l4rect.height = seglengths[3] * Math.abs(Math.sin(Math.toRadians(jointvals[5])));
+        l4rect.height = seglengths[3] * Math.abs(Math.sin(Math.toRadians(jointvals1[5])));
         l4rect.y = -0.5 * l5rect.height;
         g2d.fill(l4rect);
         g2d.translate(0.0, l5rect.height / 2.0);

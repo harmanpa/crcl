@@ -10,7 +10,6 @@ import crcl.base.CRCLProgramType;
 import crcl.base.InitCanonType;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +23,20 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
 public class CRCLSocketIT {
 
     public CRCLSocketIT() {
@@ -70,7 +83,9 @@ public class CRCLSocketIT {
 //        fail("forced failure");
     }
 
+    /*@Nullable*/
     private Exception serverThreadEx = null;
+    
     private boolean interruptingServer = false;
     private boolean timeoutOccured = false;
 

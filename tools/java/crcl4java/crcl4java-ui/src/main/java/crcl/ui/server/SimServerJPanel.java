@@ -27,6 +27,7 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.GetStatusType;
+import crcl.base.GripperStatusType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
@@ -46,16 +47,17 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -71,6 +73,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -85,6 +88,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      * not setup correctly.
      *
      */
+    @SuppressWarnings("initialization")
     public SimServerJPanel() throws ParserConfigurationException {
         initComponents();
         this.inner = new SimServerInner(this);
@@ -139,9 +143,19 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.sideViewJPanel1.setLogImages(logImages);
         this.jCheckBoxTeleportToGoals.setSelected(inner.isTeleportToGoals());
     }
+    
+    private final ConcurrentLinkedDeque<File> propsFiles = new ConcurrentLinkedDeque<>();
+    
 
     public void restartServer() {
-        inner.restartServer(inner.getServerIsDaemon());
+        try {
+            inner.restartServer(inner.getServerIsDaemon());
+            propsFiles.add(propertiesFile);
+        } catch (Exception ex) {
+            System.err.println("propertiesFile=" + propertiesFile);
+            System.err.println("propsFiles="+propsFiles);
+            throw ex;
+        }
     }
 
     public void closeServer() {
@@ -198,10 +212,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 restartServer();
             }
             String validateXmlString = props.getProperty(VALIDATEXML_PROPERTY_NAME);
-            if(null != validateXmlString) {
+            if (null != validateXmlString) {
                 inner.setValidateXMLSelected(Boolean.parseBoolean(validateXmlString));
             }
-            
+
         }
     }
     private static final String VALIDATEXML_PROPERTY_NAME = "crcl.validateXML";
@@ -213,18 +227,20 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
 
-    transient private CRCLSocket gripperSocket = null;
-    transient private Thread gripperReadThread = null;
+    @Nullable private CRCLSocket gripperSocket = null;
+    @Nullable private Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
     private boolean sendGripperStatusRequests = true;
 
     private void setRobotType(SimRobotEnum robotType) {
         this.inner.setRobotType(robotType);
-        this.overHeadJPanel1.setJointvals(inner.getJointPositions());
-        this.sideViewJPanel1.setJointvals(inner.getJointPositions());
-        this.overHeadJPanel1.setSeglengths(inner.getSeglengths());
-        this.sideViewJPanel1.setSeglengths(inner.getSeglengths());
+        double[] jointPositions = requireNonNull(inner.getJointPositions(), "inner.getJointPositions()");
+        this.overHeadJPanel1.setJointvals(jointPositions);
+        this.sideViewJPanel1.setJointvals(jointPositions);
+        double[] segLengths = requireNonNull(inner.getSeglengths(), "inner.getSeglengths()");
+        this.overHeadJPanel1.setSeglengths(segLengths);
+        this.sideViewJPanel1.setSeglengths(segLengths);
         this.overHeadJPanel1.setRobotType(robotType);
         this.sideViewJPanel1.setRobotType(robotType);
         this.updatePanels(true);
@@ -237,22 +253,24 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             try {
                 gripperSocket.close();
                 gripperSocket = null;
-                this.inner.setGripperSocket(gripperSocket);
+                this.inner.setGripperSocket(null);
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-        if (null != gripperReadThread) {
+        Thread gripperReadThread1 = this.gripperReadThread;
+        if (null != gripperReadThread1) {
             try {
-                if (gripperReadThread.isAlive()) {
+                if (gripperReadThread1.isAlive()) {
                     Thread.dumpStack();
-                    System.err.println("Interrupting gripperReadThread = " + gripperReadThread);
-                    System.out.println("Interrupting gripperReadThread = " + gripperReadThread);
-                    System.out.println("gripperReadThread.getStackTrace() = " + Arrays.toString(gripperReadThread.getStackTrace()));
-                    gripperReadThread.interrupt();
-                    gripperReadThread.join(100);
+                    System.err.println("Interrupting gripperReadThread = " + gripperReadThread1);
+                    System.out.println("Interrupting gripperReadThread = " + gripperReadThread1);
+                    System.out.println("gripperReadThread.getStackTrace() = " + Arrays.toString(gripperReadThread1.getStackTrace()));
+                    gripperReadThread1.interrupt();
+                    gripperReadThread1.join(100);
                 }
-                gripperReadThread = null;
+                gripperReadThread1 = null;
+                this.gripperReadThread = null;
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -673,7 +691,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 //    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
 //        return xpu.queryXml(statSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
 //    }
-    private transient final SimServerInner inner;
+    private final SimServerInner inner;
 
     private void showErrorsPopup(MouseEvent evt) {
         JPopupMenu errorsPop = new JPopupMenu();
@@ -686,6 +704,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         errorsPop.show(evt.getComponent(), evt.getX(), evt.getY());
     }
 
+    @SuppressWarnings("nullness")
     public <T, R> R apply(TryFunction<T, R> f, T b) {
         try {
             return f.apply(b);
@@ -696,7 +715,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         closeServer();
     }
 
@@ -770,6 +789,36 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         cmd.setCommandID(id);
     }
 
+    private void monitorCrclSocket(CRCLSocket socket) {
+        try {
+            GetStatusType getStatus = new GetStatusType();
+            setCommandId(getStatus, 1);
+            CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
+            cmdInstance.setCRCLCommand(getStatus);
+            while (!Thread.currentThread().isInterrupted()) {
+                CRCLCommandInstanceType gripperCmd = inner.getGripperCmdQueue().poll();
+                if (null != gripperCmd) {
+                    socket.writeCommand(gripperCmd);
+                }
+                if (sendGripperStatusRequests) {
+                    Thread.sleep(inner.getDelayMillis());
+                    setCommandId(getStatus, getStatus.getCommandID() + 1);
+                    socket.writeCommand(cmdInstance, false);
+                }
+                checkMenuOuter();
+                CRCLStatusType statusFromGripper
+                        = socket.readStatus(inner.isValidateXMLSelected());
+                GripperStatusType gripperStatus1 = requireNonNull(statusFromGripper.getGripperStatus(), "statusFromGripper.getGripperStatus()");
+                SimServerJPanel.this.getStatus().setGripperStatus(gripperStatus1);
+            }
+        } catch (CRCLException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            showMessage(ex);
+        } catch (InterruptedException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void setIncludeGripperAction() {
         try {
             this.closeGripperSocket();
@@ -778,41 +827,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             gripperHost = JOptionPane.showInputDialog(this, "Gripper Server Host?", this.gripperHost);
             gripperPort = Integer.parseInt(gripperPortString);
             sendGripperStatusRequests = (JOptionPane.showConfirmDialog(this, "Send status requests?") == JOptionPane.YES_OPTION);
-            this.gripperSocket = new CRCLSocket(gripperHost, gripperPort);
+            CRCLSocket socket = new CRCLSocket(gripperHost, gripperPort);
+            this.gripperSocket = socket;
             this.gripperReadThread = new Thread(new Runnable() {
-
                 @Override
                 public void run() {
-                    try {
-                        GetStatusType getStatus = new GetStatusType();
-                        setCommandId(getStatus, 1);
-                        CRCLCommandInstanceType cmdInstance = new CRCLCommandInstanceType();
-                        cmdInstance.setCRCLCommand(getStatus);
-                        while (!Thread.currentThread().isInterrupted()) {
-                            CRCLCommandInstanceType gripperCmd = inner.getGripperCmdQueue().poll();
-                            if (null != gripperCmd) {
-                                gripperSocket.writeCommand(gripperCmd);
-                            }
-                            if (sendGripperStatusRequests) {
-                                Thread.sleep(inner.getDelayMillis());
-                                setCommandId(getStatus, getStatus.getCommandID() + 1);
-                                gripperSocket.writeCommand(cmdInstance, false);
-                            }
-                            checkMenuOuter();
-                            CRCLStatusType gripperStatus
-                                    = gripperSocket.readStatus(inner.isValidateXMLSelected());
-                            SimServerJPanel.this.getStatus().setGripperStatus(gripperStatus.getGripperStatus());
-                        }
-                    } catch (CRCLException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                        showMessage(ex);
-                    } catch (InterruptedException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    }
+                    monitorCrclSocket(socket);
                 }
             }, "simServerReadGripperThread");
             gripperReadThread.start();
-            this.inner.setGripperSocket(gripperSocket);
+            this.inner.setGripperSocket(socket);
 
         } catch (IOException | CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -857,7 +881,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     public String getVersion() throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("version")))) {
+        try (
+                InputStream is = requireNonNull(ClassLoader.getSystemResourceAsStream("version"), "ClassLoader.getSystemResourceAsStream(\"version\")");
+                BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             StringBuilder sb = new StringBuilder();
             String line = null;
             while (null != (line = br.readLine())) {
@@ -925,7 +951,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    transient private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
+    private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
 
         @Override
         public XFuture<Boolean> apply(CRCLStatusType t) {
@@ -973,10 +999,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldNumWaypoints.setText(Integer.toString(numWaypoints));
     }
 
-    private JFrame outerFrame;
+    @Nullable private JFrame outerFrame;
     private boolean searchedForOuterFrame = false;
 
-    private JFrame searchForOuterFrame() {
+    @Nullable private JFrame searchForOuterFrame() {
         if (searchedForOuterFrame) {
             return outerFrame;
         }
@@ -995,7 +1021,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      *
      * @return the value of outerFrame
      */
-    public JFrame getOuterFrame() {
+    @Nullable public JFrame getOuterFrame() {
         if (null == outerFrame) {
             outerFrame = searchForOuterFrame();
         }
@@ -1055,10 +1081,18 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     private void updatePanelsPrivate() {
-        this.overHeadJPanel1.setJointvals(inner.getJointPositions());
-        this.overHeadJPanel1.setSeglengths(inner.getSeglengths());
+        double[] jointPositions = inner.getJointPositions();
+        if (null != jointPositions) {
+            this.overHeadJPanel1.setJointvals(jointPositions);
+            this.sideViewJPanel1.setJointvals(jointPositions);
+        }
+        double[] seglengths = inner.getSeglengths();
+        if (null != seglengths) {
+            this.overHeadJPanel1.setSeglengths(seglengths);
+            this.sideViewJPanel1.setSeglengths(seglengths);
+        }
+
         this.overHeadJPanel1.repaint();
-        this.sideViewJPanel1.setJointvals(inner.getJointPositions());
         this.sideViewJPanel1.repaint();
     }
 

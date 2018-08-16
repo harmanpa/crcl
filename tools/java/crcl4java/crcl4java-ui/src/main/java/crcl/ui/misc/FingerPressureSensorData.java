@@ -5,8 +5,10 @@
  */
 package crcl.ui.misc;
 
-import com.google.gson.Gson;
-import java.util.Arrays;
+//import com.google.gson.Gson;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 
 /**
  *
@@ -37,12 +39,13 @@ public class FingerPressureSensorData {
 
     }
 
-    private DataItem[] sensor_values;
+    private DataItem @Nullable [] sensor_values = null;
 
     public int getFSR_finger_A_distal() {
-        if (null != sensor_values) {
-            for (int i = 0; i < sensor_values.length; i++) {
-                DataItem item = sensor_values[i];
+        DataItem[] sensor_values1 = sensor_values;
+        if (null != sensor_values1) {
+            for (int i = 0; i < sensor_values1.length; i++) {
+                DataItem item = sensor_values1[i];
                 if (null != item) {
                     if (item.getFSR_finger_A_distal() != Integer.MIN_VALUE) {
                         return item.getFSR_finger_A_distal();
@@ -54,9 +57,10 @@ public class FingerPressureSensorData {
     }
 
     public int getFSR_finger_B_distal() {
-        if (null != sensor_values) {
-            for (int i = 0; i < sensor_values.length; i++) {
-                DataItem item = sensor_values[i];
+        DataItem[] sensor_values1 = sensor_values;
+        if (null != sensor_values1) {
+            for (int i = 0; i < sensor_values1.length; i++) {
+                DataItem item = sensor_values1[i];
                 if (null != item) {
                     if (item.getFSR_finger_B_distal() != Integer.MIN_VALUE) {
                         return item.getFSR_finger_B_distal();
@@ -67,10 +71,10 @@ public class FingerPressureSensorData {
         return 0;
     }
     
-    private static Gson gson = new Gson();
-
-    public static FingerPressureSensorData fromJSON(String json) {
-        return gson.fromJson(json, FingerPressureSensorData.class);
-    }
+//    private static Gson gson = new Gson();
+//
+//    public static FingerPressureSensorData fromJSON(String json) {
+//        return gson.fromJson(json, FingerPressureSensorData.class);
+//    }
 
 }

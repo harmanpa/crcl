@@ -26,18 +26,31 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/*
+ * 
+ * NOTE: Comments beginning with {@literal @} or {@literal >>>} are used by Checker Framework Comments
+ * beginning with {@literal @} must have no spaces in the comment or Checker will ignore
+ * it.
+ *
+ * See http://types.cs.washington.edu/checker-framework for null pointer
+ * checks. This file can be compiled without the Checker Framework, but using
+ * the framework allows potential NullPointerExceptions to be found.
+ */
+ /*>>>
+import org.checkerframework.checker.nullness.qual.*;
+ */
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public abstract class CommandStatusLogElement {
 
-    public CommandStatusLogElement(long id, long time,String progName, int progIndex,String svrSocket) {
+    public CommandStatusLogElement(long id, long time,/* @Nullable */ String progName, int progIndex, /* @Nullable */  String svrSocket) {
         this.id = id;
         this.time = time;
-        this.progName = progName;
+        this.progName = (null != progName)?progName:"";
         this.progIndex = progIndex;
-        this.svrSocket = svrSocket;
+        this.svrSocket = (null != svrSocket)?svrSocket:"";
     }
 
     private final String progName;

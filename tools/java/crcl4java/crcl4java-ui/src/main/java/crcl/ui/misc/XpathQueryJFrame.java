@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -39,6 +40,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
      * @throws javax.xml.parsers.ParserConfigurationException when
      * javax.xml.parsers.DocumentBuilderFactory fails in XpathUtils
      */
+    @SuppressWarnings("initialization")
     public XpathQueryJFrame() throws ParserConfigurationException {
         initComponents();
         this.xpu = new XpathUtils();
@@ -246,7 +248,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
         });
     }
 
-    String failedQuery = null;
+    @Nullable String failedQuery = null;
 
     public void message(String s) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -258,13 +260,13 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
         });
     }
 
-    transient final XpathUtils xpu;
+     final XpathUtils xpu;
 
     public boolean isUpdateAutomaticallySelected() {
         return this.jCheckBoxUpdateAutomatically.isSelected();
     }
     
-    public String runQuery(String query, String status) {
+    @Nullable public String runQuery(String query, String status) {
         String resultString = "";
         try {
             if (query.equals(failedQuery)) {
