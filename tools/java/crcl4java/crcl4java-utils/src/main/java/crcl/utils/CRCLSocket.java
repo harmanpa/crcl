@@ -1065,6 +1065,9 @@ public class CRCLSocket implements AutoCloseable {
         this.socket = null;
     }
 
+    private static final boolean DEBUG_JAXB_SELECTION
+            = Boolean.getBoolean("crcl.DEBUG_JAXB_SELECTION");
+
     // Instance initializer called by all constructors , but not seperately callable.
     {
         try {
@@ -1076,15 +1079,17 @@ public class CRCLSocket implements AutoCloseable {
 
             if (!protectionDomainChecked) {
                 String javaClassVersion = System.getProperty("java.class.version");
-                System.out.println("javaClassVersion = " + javaClassVersion);
-                String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
-                System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
-                String javaVmVersion = System.getProperty("java.vm.version");
-                System.out.println("javaVmVersion = " + javaVmVersion);
-                String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
-                System.out.println("jaxbFactory = " + jaxbFactory);
-                ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                System.out.println("jaxbProDeom = " + jaxbProDeom);
+                if (DEBUG_JAXB_SELECTION) {
+                    System.out.println("javaClassVersion = " + javaClassVersion);
+                    String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
+                    System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
+                    String javaVmVersion = System.getProperty("java.vm.version");
+                    System.out.println("javaVmVersion = " + javaVmVersion);
+                    String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
+                    System.out.println("jaxbFactory = " + jaxbFactory);
+                    ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                    System.out.println("jaxbProDeom = " + jaxbProDeom);
+                }
                 protectionDomainChecked = true;
 //                System.setProperty("com.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize","true");
                 if (javaClassVersion.compareTo("52.0") > 0) {
@@ -1417,7 +1422,6 @@ public class CRCLSocket implements AutoCloseable {
 //        super.finalize();
 //        this.close();
 //    }
-
     public String getReadInProgressString() {
         return this.readInProgressString;
     }
@@ -1642,8 +1646,8 @@ public class CRCLSocket implements AutoCloseable {
             try {
                 this.lastCommandString = str;
                 setUnmarshallerSchema(u_cmd, validate ? cmdSchema : null);
-                JAXBElement<?> el = 
-                        (JAXBElement) u_cmd.unmarshal(new StringReader(str));
+                JAXBElement<?> el
+                        = (JAXBElement) u_cmd.unmarshal(new StringReader(str));
                 CRCLCommandInstanceType instance
                         = (CRCLCommandInstanceType) el.getValue();
                 return instance;

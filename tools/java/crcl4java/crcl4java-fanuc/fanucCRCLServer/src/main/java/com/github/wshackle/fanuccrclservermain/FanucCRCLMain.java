@@ -133,6 +133,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import static crcl.utils.CRCLPosemath.point;
 import java.util.Iterator;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -268,7 +269,7 @@ public class FanucCRCLMain {
 
     public XFutureVoid startDisplayInterface() {
         XFutureVoid ret = new XFutureVoid("startDisplayInterface");
-        java.awt.EventQueue.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             if (null == displayInterface) {
                 displayInterface = new FanucCRCLServerJFrame();
             }

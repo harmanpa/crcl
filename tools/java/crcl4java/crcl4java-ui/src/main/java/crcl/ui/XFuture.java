@@ -101,8 +101,8 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @SuppressWarnings("rawtypes")
-    public static XFutureVoid allOf(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
-        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
+    public static XFutureVoid allOf( Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOf( cfsCollection.toArray(new CompletableFuture[0]));
     }
 
     private static String createTraceToString(StackTraceElement stea[]) {

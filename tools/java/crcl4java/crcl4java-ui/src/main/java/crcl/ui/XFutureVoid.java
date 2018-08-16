@@ -24,6 +24,7 @@ package crcl.ui;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
@@ -357,15 +358,16 @@ public class XFutureVoid extends XFuture<Void> {
         ret.alsoCancelAddAll(Arrays.asList(cfs));
         return ret;
     }
+    
+    @SuppressWarnings("rawtypes")
+    public static XFutureVoid allOf(Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
+    }
+    
 
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
-    }
-
-    @SuppressWarnings("rawtypes")
-    public static XFutureVoid allOf(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
-        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
     }
 
 //    @Override

@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -142,9 +143,19 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.sideViewJPanel1.setLogImages(logImages);
         this.jCheckBoxTeleportToGoals.setSelected(inner.isTeleportToGoals());
     }
+    
+    private final ConcurrentLinkedDeque<File> propsFiles = new ConcurrentLinkedDeque<>();
+    
 
     public void restartServer() {
-        inner.restartServer(inner.getServerIsDaemon());
+        try {
+            inner.restartServer(inner.getServerIsDaemon());
+            propsFiles.add(propertiesFile);
+        } catch (Exception ex) {
+            System.err.println("propertiesFile=" + propertiesFile);
+            System.err.println("propsFiles="+propsFiles);
+            throw ex;
+        }
     }
 
     public void closeServer() {
@@ -216,8 +227,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
 
-    @Nullable  private CRCLSocket gripperSocket = null;
-    @Nullable  private Thread gripperReadThread = null;
+    @Nullable private CRCLSocket gripperSocket = null;
+    @Nullable private Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
     private boolean sendGripperStatusRequests = true;
@@ -680,7 +691,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 //    public String getDocumentation(String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
 //        return xpu.queryXml(statSchemaFiles, "/schema/complexType[@name=\""+name+"\"]/annotation/documentation/text()");
 //    }
-    private  final SimServerInner inner;
+    private final SimServerInner inner;
 
     private void showErrorsPopup(MouseEvent evt) {
         JPopupMenu errorsPop = new JPopupMenu();
@@ -704,7 +715,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
 
     @Override
-    public void close()  {
+    public void close() {
         closeServer();
     }
 
@@ -940,7 +951,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-     private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
+    private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
 
         @Override
         public XFuture<Boolean> apply(CRCLStatusType t) {
@@ -1071,16 +1082,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private void updatePanelsPrivate() {
         double[] jointPositions = inner.getJointPositions();
-        if(null != jointPositions) {
+        if (null != jointPositions) {
             this.overHeadJPanel1.setJointvals(jointPositions);
             this.sideViewJPanel1.setJointvals(jointPositions);
         }
         double[] seglengths = inner.getSeglengths();
-        if(null != seglengths) {
+        if (null != seglengths) {
             this.overHeadJPanel1.setSeglengths(seglengths);
             this.sideViewJPanel1.setSeglengths(seglengths);
         }
-        
+
         this.overHeadJPanel1.repaint();
         this.sideViewJPanel1.repaint();
     }

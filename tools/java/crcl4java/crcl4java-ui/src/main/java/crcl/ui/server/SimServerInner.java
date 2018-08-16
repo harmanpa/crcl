@@ -135,7 +135,9 @@ import java.util.Objects;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import static crcl.utils.CRCLPosemath.multiply;
 import static crcl.utils.CRCLPosemath.toPoseType;
+import java.net.InetSocketAddress;
 import static java.util.Objects.requireNonNull;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.validation.Schema;
@@ -721,8 +723,8 @@ public class SimServerInner {
         lastJointPositions = Arrays.copyOf(SimulatedKinematicsSimple.DEFAULT_JOINTVALS, SimulatedKinematicsSimple.DEFAULT_JOINTVALS.length);
         commandedJointPositions = Arrays.copyOf(SimulatedKinematicsSimple.DEFAULT_JOINTVALS, SimulatedKinematicsSimple.DEFAULT_JOINTVALS.length);
 
-        jointmins = new double[]{0,-360.0,-360.0, -360.0,-360.0,-360.0};
-        jointmaxs = new double[]{Double.POSITIVE_INFINITY,+360.0,+360.0, +360.0,+360.0,+360.0};
+        jointmins = new double[]{0, -360.0, -360.0, -360.0, -360.0, -360.0};
+        jointmaxs = new double[]{Double.POSITIVE_INFINITY, +360.0, +360.0, +360.0, +360.0, +360.0};
         seglengths = SimulatedKinematicsSimple.DEFAULT_SEGLENGTHS;
     }
 
@@ -934,8 +936,8 @@ public class SimServerInner {
     public void setGoalPose(@Nullable PoseType goalPose) {
         this.goalPose = goalPose;
         if (null != goalPose) {
-            if(!checkPose(goalPose)) {
-                throw new IllegalArgumentException("goalPose is invalid: "+CRCLPosemath.poseToString(goalPose));
+            if (!checkPose(goalPose)) {
+                throw new IllegalArgumentException("goalPose is invalid: " + CRCLPosemath.poseToString(goalPose));
             }
             if (teleportToGoals) {
                 this.simulatedTeleportToPose(goalPose);
@@ -1291,7 +1293,7 @@ public class SimServerInner {
         this.debugInterrupts = debugInterrupts;
     }
 
-    public synchronized  void closeServer() {
+    @Nullable public synchronized ServerSocket closeServer() {
         try {
             SimServerInner.runningServers.remove(this);
         } catch (Exception e) {
@@ -1376,6 +1378,7 @@ public class SimServerInner {
 //            System.out.println("clientStates.size()=" + clientStatesSize);
         }
         closeCount.incrementAndGet();
+        ServerSocket closedServerSocket = this.serverSocket;
         if (null != serverSocket) {
             try {
                 this.serverSocket.close();
@@ -1407,7 +1410,7 @@ public class SimServerInner {
                 this.clientThreadMap.clear();
             }
         }
-
+        return closedServerSocket;
     }
 
     private boolean validateXMLSelected = true;
@@ -2385,7 +2388,7 @@ public class SimServerInner {
                     showMessage("Not initialized when " + className.substring("crcl.base.".length()) + " recieved.");
                     return;
                 }
-                if(null == jointPositions) {
+                if (null == jointPositions) {
                     throw new IllegalStateException("null == jointPositions");
                 }
                 if (cmd instanceof SetEndEffectorType) {
@@ -2518,8 +2521,8 @@ public class SimServerInner {
                         this.setWaypoints(wpts);
 
                         for (PoseType pose : wpts) {
-                            if(!checkPose(pose) ) {
-                                throw new RuntimeException("pose in waypoints is invalid :"+ CRCLPosemath.poseToString(pose));
+                            if (!checkPose(pose)) {
+                                throw new RuntimeException("pose in waypoints is invalid :" + CRCLPosemath.poseToString(pose));
                             }
                         }
                         this.setCommandState(CommandStateEnumType.CRCL_WORKING);
@@ -2775,14 +2778,25 @@ public class SimServerInner {
         }
     }
 
+    static final private Map<Integer, ServerSocket> serverMap = new ConcurrentHashMap<>();
+    static final private Map<Integer, StackTraceElement[]> traceMap = new ConcurrentHashMap<>();
+    static final private Map<Integer, Thread> threadMap = new ConcurrentHashMap<>();
+
     public synchronized void restartServer(boolean asDaemon) {
+        InetSocketAddress bindAddress = new InetSocketAddress(port);
+        ServerSocket closedServerSocket = null;
         try {
             double[] commandedJointPositions1 = this.commandedJointPositions;
             if (null == commandedJointPositions1) {
                 throw new IllegalStateException("null == this.commandedJointPositions");
             }
-            closeServer();
-            ServerSocket restartingServerSocket = new ServerSocket(port);
+            closedServerSocket = closeServer();
+            ServerSocket restartingServerSocket = new ServerSocket();
+            restartingServerSocket.setReuseAddress(true);
+            restartingServerSocket.bind(bindAddress);
+            serverMap.put(port, restartingServerSocket);
+            traceMap.put(port, Thread.currentThread().getStackTrace());
+            threadMap.put(port, Thread.currentThread());
             final int start_close_count = this.closeCount.get();
             if (port == 0) {
                 // This is a hack so the integration test can be run on a port 
@@ -2793,7 +2807,7 @@ public class SimServerInner {
                 this.port = restartingServerSocket.getLocalPort();
                 System.setProperty("crcl4java.port", Integer.toString(port));
             }
-            restartingServerSocket.setReuseAddress(true);
+
             this.serverSocket = restartingServerSocket;
             Thread newAcceptClientsThread = new Thread(this::runAcceptClients,
                     "SimServerInner.acceptClientsThread.sssock=" + restartingServerSocket);
@@ -2868,9 +2882,18 @@ public class SimServerInner {
             newSimulationThread.start();
             SimServerInner.runningServers.add(this);
             this.serverSocket = restartingServerSocket;
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            System.err.println("port=" + port);
+            System.err.println("bindAddress=" + bindAddress);
+            System.err.println("closedServerSocket=" + closedServerSocket);
+            StackTraceElement trace[] = traceMap.get(port);
+            System.err.println("trace=" + Arrays.toString(trace));
+            System.err.println("serverMap=" + serverMap);
+            System.err.println("traceMap=" + traceMap);
+            System.err.println("threadMap=" + threadMap);
             showMessage("Can not start server on port " + port + " : " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
         }
     }
 

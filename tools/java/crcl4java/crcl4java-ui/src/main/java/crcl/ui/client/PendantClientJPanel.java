@@ -614,11 +614,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void init() {
         String portPropertyString = System.getProperty("crcl4java.port");
-        if (null != portPropertyString) {
-            this.jTextFieldPort.setText(portPropertyString);
+        if (null != portPropertyString && portPropertyString.length() > 0) {
+            int port = Integer.parseInt(portPropertyString);
+            this.jTextFieldPort.setText(""+ port);
         }
         String hostPropertyString = System.getProperty("crcl4java.host");
-        if (null != hostPropertyString) {
+        if (null != hostPropertyString && hostPropertyString.length() > 0) {
             this.jTextFieldHost.setText(hostPropertyString);
         }
         internal.setStatSchema(CRCLSocket.readStatSchemaFiles(PendantClientJPanel.statSchemasFile));
@@ -633,7 +634,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 openXmlProgramFile(new File(nonNullProgramPropertyString));
             });
         }
-        checkSettingsRef();
+        if(!(outerContainer instanceof  PendantClientJInternalFrame)) {
+            checkSettingsRef();
+        }
         this.updateUIFromInternal();
 //        this.jTableProgram.getSelectionModel().addListSelectionListener(e -> finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), null));
         this.internal.addPropertyChangeListener(new PendantClientJPanel.MyPropertyChangeListener());
