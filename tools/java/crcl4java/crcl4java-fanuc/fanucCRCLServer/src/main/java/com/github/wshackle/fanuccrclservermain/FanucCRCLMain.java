@@ -1237,7 +1237,7 @@ public class FanucCRCLMain {
         System.exit(0);
     }
 
-    public void stopCrclServer() {
+    public synchronized  void stopCrclServer() {
         if (null != crclServerFuture) {
             crclServerFuture.cancel(true);
 //            try {
@@ -2390,18 +2390,28 @@ public class FanucCRCLMain {
             }
         }
     }
+    
+    
+    private final AtomicInteger startCrclServerCount = new AtomicInteger();
+    
     private void wrappedStartCrclServer() {
+        ServerSocket startSs = this.ss;
+        int startStartCrclServerCount = startCrclServerCount.incrementAndGet();
         try {
             startCrclServer();
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("startSs = " + startSs);
+            System.err.println("localPort = " + localPort);
+            System.err.println("startStartCrclServerCount = " + startStartCrclServerCount);
+            System.err.println("startCrclServerCount.get() = " + startCrclServerCount.get());
             throw new RuntimeException(ex);
         }
     }
 
     Future<?> crclServerFuture = null;
 
-    public void startCrclServer() throws IOException {
+    public synchronized  void startCrclServer() throws IOException {
         stopCrclServer();
         es = Executors.newCachedThreadPool(daemonThreadFactory);
         ss = new ServerSocket(localPort);
