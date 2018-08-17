@@ -807,23 +807,23 @@ public class FanucCRCLMain {
     private volatile Iterator<Com4jObject> updateTasksListIterator = null;
 
     private static final Logger LOGGER = Logger.getLogger(FanucCRCLMain.class.getName());
-    
+
     private static boolean debug = Boolean.getBoolean("FanucCRCLMain.debug");
-    
-    private static void logDebug(String string)  {
-        if(debug) {
+
+    private static void logDebug(String string) {
+        if (debug) {
             LOGGER.log(Level.INFO, string);
         }
     }
-    
+
     public static boolean isDebug() {
         return debug;
     }
-    
+
     public static void setDebug(boolean newDebugVal) {
         debug = newDebugVal;
     }
-    
+
     private void updateTasksList() {
         try {
             logDebug("prognamesNeeded = " + prognamesNeeded);
@@ -1240,7 +1240,7 @@ public class FanucCRCLMain {
         System.exit(0);
     }
 
-    public synchronized  void stopCrclServer() {
+    public synchronized void stopCrclServer() {
         if (null != crclServerFuture) {
             crclServerFuture.cancel(true);
 //            try {
@@ -1366,6 +1366,17 @@ public class FanucCRCLMain {
     private void handleInitCanon(InitCanonType initCmd) {
         lastServoReady = true;
 
+        if (null != overrideVar) {
+            overrideVar.refresh();
+            Object overrideValueObject = overrideVar.value();
+//                System.out.println("overrideValueObject = " + overrideValueObject);
+//                if(null != overrideValueObject) {
+//                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
+//                }
+            if (overrideValueObject instanceof Integer) {
+                setOverrideValue((Integer) overrideValueObject);
+            }
+        }
         boolean initSafetyStatError = checkSafetyStatError();
 //        logDebug("initSafetyStatError = " + initSafetyStatError);
         if (initSafetyStatError) {
@@ -1664,10 +1675,10 @@ public class FanucCRCLMain {
             regNumeric96.regLong(time_needed_ms);
             reg96Var.update();
             runMotionTpProgram(move_w_time_prog);
-            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms*(100/overrideValue);
+            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms * (100 / overrideValue);
         } else {
             showInfo("MoveTo : cartDiff = " + cartDiff + ",rotDiff = " + rotDiff);
-            expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime)*(100/overrideValue));
+            expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime) * (100 / overrideValue));
             runMotionTpProgram(move_linear_prog);
         }
         startMoveTime = System.currentTimeMillis();
@@ -2395,10 +2406,9 @@ public class FanucCRCLMain {
             }
         }
     }
-    
-    
+
     private final AtomicInteger startCrclServerCount = new AtomicInteger();
-    
+
     private void wrappedStartCrclServer() {
         ServerSocket startSs = this.ss;
         int startStartCrclServerCount = startCrclServerCount.incrementAndGet();
@@ -2416,7 +2426,7 @@ public class FanucCRCLMain {
 
     Future<?> crclServerFuture = null;
 
-    public synchronized  void startCrclServer() throws IOException {
+    public synchronized void startCrclServer() throws IOException {
         stopCrclServer();
         es = Executors.newCachedThreadPool(daemonThreadFactory);
         ss = new ServerSocket(localPort);
@@ -2674,7 +2684,6 @@ public class FanucCRCLMain {
             return XFutureVoid.completedFutureWithName("setPreferRobotNeighborhood.nochange");
         }
     }
-    
 
     float lowerJointLimits[] = new float[]{-10000.f, -10000.f, -10000.f, -10000.f, -10000.f, -10000.f};
     float upperJointLimits[] = new float[]{10000.f, 10000.f, 10000.f, 10000.f, 10000.f, 10000.f};
@@ -2852,7 +2861,7 @@ public class FanucCRCLMain {
         if (null == robotService) {
             robotService = Executors.newSingleThreadExecutor(daemonThreadFactory);
         }
-        return XFutureVoid.runAsync("connectRemoteRobot",this::connectRemoteRobotInternal,robotService);
+        return XFutureVoid.runAsync("connectRemoteRobot", this::connectRemoteRobotInternal, robotService);
     }
 
     private static final List<String> programNamesToCheckList = Arrays.asList(
@@ -2868,10 +2877,9 @@ public class FanucCRCLMain {
     private volatile int overrideValue = 100;
 
     private void setOverrideValue(int overrideValue) {
-        this.overrideValue = Math.max(1,Math.min(100,overrideValue));
+        this.overrideValue = Math.max(1, Math.min(100, overrideValue));
     }
-    
-    
+
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
@@ -2997,8 +3005,8 @@ public class FanucCRCLMain {
 //                if(null != overrideValueObject) {
 //                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
 //                }
-                if(overrideValueObject instanceof Integer) {
-                    setOverrideValue((Integer)overrideValueObject);
+                if (overrideValueObject instanceof Integer) {
+                    setOverrideValue((Integer) overrideValueObject);
                 }
             }
             morSafetyStatVar = sysvars.item("$MOR.$safety_stat", null).queryInterface(IVar.class);

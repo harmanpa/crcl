@@ -1472,7 +1472,6 @@ public class CRCLPosemath {
      *
      * @param tran translational component of pose
      * @param mat rotational component of pose
-     * @param pose_in optional pose to be set instead of creating new Pose
      * @return new Pose creating from combining inputs or pose_in if not null
      * @throws PmException if rotation vector can not be converted to matrix
      */
@@ -1637,6 +1636,7 @@ public class CRCLPosemath {
      *
      * @param da first array of doubles
      * @param da2 second array of doubles
+     * @param mod optional modulus  set to zero or negative to ignore
      * @return maximum difference between corresponding elements of two arrays
      */
     public static double maxDiffDoubleArray(double da[], double da2[], double mod) {

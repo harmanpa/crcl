@@ -142,6 +142,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      * Set the value of port
      *
      * @param port new value of port
+     * @throws java.io.IOException if current socket fails to close
      */
     public void setPort(int port) throws IOException {
         if (isRunning()) {
@@ -473,6 +474,8 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      * Set the value of multithreaded
      *
      * @param multithreaded new value of multithreaded
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
      */
     public void setMultithreaded(boolean multithreaded) throws IOException, InterruptedException {
         if (isRunning()) {
@@ -658,6 +661,7 @@ public class CRCLServerSocket implements AutoCloseable, Runnable {
      * Set the value of backlog
      *
      * @param backlog new value of backlog
+     * @throws java.io.IOException
      */
     public void setBacklog(int backlog) throws IOException {
         if (isRunning()) {
