@@ -682,14 +682,16 @@ public class FanucCRCLMain {
             long start = System.currentTimeMillis();
             synchronized (status) {
                 readStatusCount.incrementAndGet();
-                if (status.getCommandStatus() == null) {
-                    status.setCommandStatus(new CommandStatusType());
+                CommandStatusType commandStatus = status.getCommandStatus();
+                if (commandStatus == null) {
+                    commandStatus = new CommandStatusType();
+                    status.setCommandStatus(commandStatus);
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 }
-                if (status.getCommandStatus().getCommandID() < 1) {
-                    status.getCommandStatus().setCommandID(1);
+                if (commandStatus.getCommandID() < 1) {
+                    commandStatus.setCommandID(1);
                 }
-                if (null == status.getCommandStatus().getCommandState()) {
+                if (null == commandStatus.getCommandState()) {
                     setCommandState(CommandStateEnumType.CRCL_WORKING);
                 }
                 if (holdingObjectKnown) {
@@ -709,9 +711,9 @@ public class FanucCRCLMain {
                         parallelGripperStatus.setSeparation(gripperSeperation);
                     }
                 }
-                status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
-
-                if (status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+                commandStatus.setStatusID(commandStatus.getStatusID() + 1);
+                commandStatus.setOverridePercent(overrideValue);
+                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                     lastCheckAtPosition = false;
                 }
                 if (null == robot) {
@@ -722,7 +724,7 @@ public class FanucCRCLMain {
                 ICurPosition icp = robot.curPosition();
                 if (null == icp) {
                     showError("robot.curPosition() returned null");
-                    status.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                     return;
                 }
                 ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
@@ -765,11 +767,11 @@ public class FanucCRCLMain {
                                     }
                                 }
                             }
-                            if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                            if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
                                     && prevCmd instanceof ConfigureJointReportsType) {
                                 this.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
-                            if (this.status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING
+                            if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
                                     && prevCmd instanceof ConfigureStatusReportType) {
                                 this.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
@@ -781,7 +783,7 @@ public class FanucCRCLMain {
                     checkDonePrevCmd();
                 }
                 if (null == prevCmd || !(prevCmd instanceof InitCanonType)
-                        || status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+                        || commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                     checkServoReady();
                 }
                 updateTimes.add(System.currentTimeMillis() - start);
@@ -1136,7 +1138,7 @@ public class FanucCRCLMain {
     private long lastWarnMoveTime = 0;
 
     private void warnMoveTime(long curTime) {
-        if (curTime - lastWarnMoveTime > 1000) {
+        if (curTime - lastWarnMoveTime > 2000) {
             System.err.println("move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime));
             lastWarnMoveTime = curTime;
         }
@@ -1519,7 +1521,8 @@ public class FanucCRCLMain {
             transSpeed = tsRel.getFraction() * 200.0;
 //            int val = ((TransSpeedRelativeType) ts).getFraction().multiply(BigDecimal.valueOf(maxRelativeSpeed)).intValue();
             int val = (int) (tsRel.getFraction() * maxRelativeSpeed);
-            overrideVar.value(Integer.valueOf(val));
+            overrideVar.value(val);
+            setOverrideValue(val);
             if (null != displayInterface) {
                 displayInterface.getjSliderOverride().setValue(val);
             }
@@ -1542,6 +1545,7 @@ public class FanucCRCLMain {
             RotSpeedRelativeType rsRel = (RotSpeedRelativeType) rs;
             int val = (int) (rsRel.getFraction() * maxRelativeSpeed);
             overrideVar.value(val);
+            setOverrideValue(val);
             if (null != displayInterface) {
                 displayInterface.getjSliderOverride().setValue(val);
             }
@@ -1660,10 +1664,10 @@ public class FanucCRCLMain {
             regNumeric96.regLong(time_needed_ms);
             reg96Var.update();
             runMotionTpProgram(move_w_time_prog);
-            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms;
+            expectedEndMoveToTime = System.currentTimeMillis() + time_needed_ms*(100/overrideValue);
         } else {
             showInfo("MoveTo : cartDiff = " + cartDiff + ",rotDiff = " + rotDiff);
-            expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime));
+            expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime)*(100/overrideValue));
             runMotionTpProgram(move_linear_prog);
         }
         startMoveTime = System.currentTimeMillis();
@@ -2861,6 +2865,13 @@ public class FanucCRCLMain {
 
     private static final HashSet<String> programNamesToCheckSet = new HashSet<>(programNamesToCheckList);
 
+    private volatile int overrideValue = 100;
+
+    private void setOverrideValue(int overrideValue) {
+        this.overrideValue = Math.max(1,Math.min(100,overrideValue));
+    }
+    
+    
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
@@ -2981,6 +2992,14 @@ public class FanucCRCLMain {
             overrideVar = sysvars.item("$MCR.$GENOVERRIDE", null).queryInterface(IVar.class);
             if (null != overrideVar) {
                 overrideVar.refresh();
+                Object overrideValueObject = overrideVar.value();
+                System.out.println("overrideValueObject = " + overrideValueObject);
+//                if(null != overrideValueObject) {
+//                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
+//                }
+                if(overrideValueObject instanceof Integer) {
+                    setOverrideValue((Integer)overrideValueObject);
+                }
             }
             morSafetyStatVar = sysvars.item("$MOR.$safety_stat", null).queryInterface(IVar.class);
             if (null != overrideVar) {

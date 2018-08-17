@@ -164,6 +164,9 @@
           <xs:element name="ProgramLength"
             type="xs:int"
             minOccurs="0"/>
+          <xs:element name="OverridePercent"
+            type="xs:int"
+            minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
