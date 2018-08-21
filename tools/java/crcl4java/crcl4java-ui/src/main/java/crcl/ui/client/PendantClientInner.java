@@ -31,6 +31,7 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
+import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
@@ -78,6 +79,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CrclCommandWrapper;
 import crcl.ui.XFuture;
 import static crcl.ui.client.PendantClientJPanel.getTimeString;
@@ -200,13 +202,16 @@ public class PendantClientInner {
     }
 
 //    private final AtomicReference<Thread> runTestProgramThread = new AtomicReference<>(null);
-    @MonotonicNonNull private CRCLStatusType status = null;
-    @Nullable private volatile CRCLSocket crclSocket = null;
+    @MonotonicNonNull
+    private CRCLStatusType status = null;
+    @Nullable
+    private volatile CRCLSocket crclSocket = null;
 
     private final PendantClientOuter outer;
     private static final double JOG_INCREMENT_DEFAULT = 3.0;
     private double jogIncrement = JOG_INCREMENT_DEFAULT;
-    @Nullable private volatile CRCLProgramType program = null;
+    @Nullable
+    private volatile CRCLProgramType program = null;
 
     private PoseToleranceType expectedEndPoseTolerance = new PoseToleranceType();
     private PoseToleranceType expectedIntermediatePoseTolerance;
@@ -220,8 +225,10 @@ public class PendantClientInner {
     private int poll_ms = jogInterval;
 
     private final XpathUtils xpu;
-    @MonotonicNonNull private CRCLSocket checkerCRCLSocket = null;
-    @MonotonicNonNull private CRCLCommandInstanceType checkerCommandInstance = null;
+    @MonotonicNonNull
+    private CRCLSocket checkerCRCLSocket = null;
+    @MonotonicNonNull
+    private CRCLCommandInstanceType checkerCommandInstance = null;
 
     @SuppressWarnings("initialization")
     private final Function<CRCLProgramType, XFuture<Boolean>> checkProgramValidPredicate
@@ -233,13 +240,16 @@ public class PendantClientInner {
 
 //    private File[] cmdSchemaFiles = null;
 //    private File[] programSchemaFiles = null;
-    @Nullable private CRCLCommandType lastCommandSent = null;
+    @Nullable
+    private CRCLCommandType lastCommandSent = null;
 
-    @Nullable public CRCLCommandType getLastCommandSent() {
+    @Nullable
+    public CRCLCommandType getLastCommandSent() {
         return this.lastCommandSent;
     }
 
-    @Nullable private CRCLCommandType prevLastCommandSent = null;
+    @Nullable
+    private CRCLCommandType prevLastCommandSent = null;
     private boolean recordCommands = false;
     private int maxRecordCommandsCount = 1000;
 
@@ -255,7 +265,8 @@ public class PendantClientInner {
             = new ConcurrentLinkedQueue<>();
     private final List<CRCLCommandType> recordedCommandsList = new ArrayList<>();
     private long waitForDoneDelay = getLongProperty("PendantClient.waitForDoneDelay", 100);
-    @Nullable private Thread readerThread = null;
+    @Nullable
+    private Thread readerThread = null;
     final private List<AnnotatedPose> poseList = new ArrayList<>();
     final private Queue<AnnotatedPose> poseQueue = new ConcurrentLinkedQueue<>();
     private boolean disconnecting = false;
@@ -280,7 +291,8 @@ public class PendantClientInner {
     long runEndMillis = 0;
     private double jointMoveAccel;
     private double jointMoveSpeed;
-    @Nullable private volatile CRCLStatusType testCommandStartStatus = null;
+    @Nullable
+    private volatile CRCLStatusType testCommandStartStatus = null;
     private boolean lengthUnitSent = false;
     private LengthUnitEnumType testCommandStartLengthUnit = LengthUnitEnumType.MILLIMETER;
     boolean testCommandStartLengthUnitSent = false;
@@ -337,7 +349,7 @@ public class PendantClientInner {
         this.jogTransSpeed = jogTransSpeed;
     }
 
-    public PendantClientInner(PendantClientOuter outer) throws ParserConfigurationException {
+    PendantClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
         this.expectedEndPoseTolerance = new PoseToleranceType();
@@ -353,6 +365,9 @@ public class PendantClientInner {
         this.expectedIntermediatePoseTolerance.setXPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setYPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setZPointTolerance(3.0);
+        this.setStatSchema(CRCLSocket.readStatSchemaFiles(defaultsInstance.getStatSchemasFile()));
+        this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(defaultsInstance.getCmdSchemasFile()));
+        this.setProgramSchema(CRCLSocket.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile()));
     }
 
     /**
@@ -397,7 +412,8 @@ public class PendantClientInner {
      *
      * @return the value of program
      */
-    @Nullable public CRCLProgramType getProgram() {
+    @Nullable
+    public CRCLProgramType getProgram() {
         return program;
     }
 
@@ -423,7 +439,8 @@ public class PendantClientInner {
         outer.clearProgramTimesDistances();
     }
 
-    @Nullable public CRCLSocket getCRCLSocket() {
+    @Nullable
+    public CRCLSocket getCRCLSocket() {
         return this.crclSocket;
     }
 
@@ -452,7 +469,8 @@ public class PendantClientInner {
     private volatile boolean blockPrograms = false;
     private final AtomicInteger blockProgramsSetCount = new AtomicInteger();
 
-    @Nullable private volatile Thread startBlockProgramsThread = null;
+    @Nullable
+    private volatile Thread startBlockProgramsThread = null;
     private volatile StackTraceElement startBlockProgramsTrace @Nullable []  = null;
     private volatile long startBlockProgramsTime = -1;
 
@@ -496,7 +514,8 @@ public class PendantClientInner {
 
     private volatile StackTraceElement @Nullable [] closeTestProgramRunProgramThreadTrace = null;
     private volatile StackTraceElement @Nullable [] closeTestProgramThreadTrace = null;
-    @Nullable private volatile Thread closeTestProgramThreadThead = null;
+    @Nullable
+    private volatile Thread closeTestProgramThreadThead = null;
 
     public void closeTestProgramThread() {
         if (!isRunningProgram()) {
@@ -581,16 +600,19 @@ public class PendantClientInner {
         return result;
     }
 
-    @Nullable private PrintStream logStream = null;
+    @Nullable
+    private PrintStream logStream = null;
 
-    @Nullable private File tempLogDir = null;
+    @Nullable
+    private File tempLogDir = null;
 
     /**
      * Get the value of tempLogDir
      *
      * @return the value of tempLogDir
      */
-    @Nullable public File getTempLogDir() {
+    @Nullable
+    public File getTempLogDir() {
         return tempLogDir;
     }
 
@@ -616,9 +638,11 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable private volatile String crclClientErrorMessage = null;
+    @Nullable
+    private volatile String crclClientErrorMessage = null;
 
-    @Nullable public String getCrclClientErrorMessage() {
+    @Nullable
+    public String getCrclClientErrorMessage() {
         return crclClientErrorMessage;
     }
 
@@ -781,9 +805,10 @@ public class PendantClientInner {
         return XFuture.completedFuture(false);
     }
 
-    @MonotonicNonNull private volatile Schema statSchema = null;
+    @MonotonicNonNull
+    private volatile Schema statSchema = null;
 
-    public synchronized void setStatSchema(File[] fa) {
+    final synchronized void setStatSchema(File[] fa) {
         try {
             statSchema = CRCLSocket.filesToStatSchema(fa);
             if (null != this.crclSocket) {
@@ -794,9 +819,10 @@ public class PendantClientInner {
         }
     }
 
-    @MonotonicNonNull private volatile Schema cmdSchema = null;
+    @MonotonicNonNull
+    private volatile Schema cmdSchema = null;
 
-    public void setCmdSchema(File[] fa) {
+    final void setCmdSchema(File[] fa) {
         try {
             cmdSchema = CRCLSocket.filesToCmdSchema(fa);
             if (null != this.crclSocket) {
@@ -807,10 +833,14 @@ public class PendantClientInner {
         }
     }
 
-    @MonotonicNonNull private volatile Schema progSchema = null;
+    @MonotonicNonNull
+    private volatile Schema progSchema = null;
 
-    public synchronized void setProgramSchema(File[] fa) {
+    final synchronized void setProgramSchema(File[] fa) {
         try {
+            if (fa.length < 1) {
+
+            }
             progSchema = CRCLSocket.filesToProgramSchema(fa);
             if (null != this.crclSocket) {
                 this.crclSocket.setProgramSchema(progSchema);
@@ -828,7 +858,8 @@ public class PendantClientInner {
         return CRCLSocket.getDefaultProgramSchemaFiles();
     }
 
-    @MonotonicNonNull private File logFile = null;
+    @MonotonicNonNull
+    private File logFile = null;
 
     public void openLogFile() {
         if (null != logStream) {
@@ -859,43 +890,44 @@ public class PendantClientInner {
         this.validateXmlSchema = validateXmlSchema;
     }
 
-    public void openXmlProgramFile(File f, boolean addRecent) throws SAXException, IOException, CRCLException, XPathExpressionException, ParserConfigurationException {
+    public void openXmlProgramFile(File f, boolean addRecent) {
 
-        if (null != logStream) {
-            try {
-                logStream.flush();
-                logStream.close();
-            } catch (Exception e) {
-                LOGGER.log(Level.FINEST, "", e);
+        try {
+            if (null != logStream) {
+                try {
+                    logStream.flush();
+                    logStream.close();
+                } catch (Exception e) {
+                    LOGGER.log(Level.FINEST, "", e);
+                }
+                logStream = null;
             }
-            logStream = null;
-        }
-        String s = this.xpu.queryXml(f, "/");
-        CRCLSocket cs = getTempCRCLSocket();
-        CRCLProgramType programFromFile
-                = cs.stringToProgram(s, isValidateXmlSchema());
-        final String programFromFileName = programFromFile.getName();
-        if (null == programFromFileName || programFromFileName.length() < 1) {
-            String fname = f.getName();
-            if (fname.endsWith(".xml")) {
-                fname = fname.substring(0, fname.length() - 4);
+            String s = this.xpu.queryXml(f, "/");
+            CRCLSocket cs = getTempCRCLSocket();
+            CRCLProgramType programFromFile
+                    = cs.stringToProgram(s, isValidateXmlSchema());
+            final String programFromFileName = programFromFile.getName();
+            if (null == programFromFileName || programFromFileName.length() < 1) {
+                String fname = f.getName();
+                if (fname.endsWith(".xml")) {
+                    fname = fname.substring(0, fname.length() - 4);
+                }
+                programFromFile.setName(fname);
             }
-            programFromFile.setName(fname);
+            this.setProgram(programFromFile);
+            if (null != tempLogDir) {
+                logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt", tempLogDir);
+            } else {
+                logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt");
+            }
+            logStream = new PrintStream(new FileOutputStream(logFile));
+            outer.showDebugMessage("Logging to " + logFile.getCanonicalPath());
+            outer.finishOpenXmlProgramFile(f, programFromFile, addRecent);
+            setOutgoingProgramFile(f.getName());
+        } catch (SAXException | IOException | XPathExpressionException | ParserConfigurationException | CRCLException exception) {
+            throw new RuntimeException("Failed to openProgramFile(" + f + "," + addRecent + ") : " + exception.getMessage(), exception);
         }
-        this.setProgram(programFromFile);
-        if (null != tempLogDir) {
-            logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt", tempLogDir);
-        } else {
-            logFile = File.createTempFile("crcl.client." + f.getName() + ".", ".log.txt");
-        }
-        logStream = new PrintStream(new FileOutputStream(logFile));
-        outer.showDebugMessage("Logging to " + logFile.getCanonicalPath());
-        outer.finishOpenXmlProgramFile(f, programFromFile, addRecent);
-        setOutgoingProgramFile(f.getName());
-//        cmdId = cmdId.add(1);f
-//        cmd.setCommandID(cmdId);
-//        this.sendCommand(cmd);
-//        this.saveRecentCommand(cmd);
+
     }
 
     public void saveXmlProgramFile(File f) throws CRCLException {
@@ -946,7 +978,8 @@ public class PendantClientInner {
     private volatile StackTraceElement lastCommandSentStackTrace @Nullable []  = null;
     private volatile StackTraceElement prevLastCommandSentStackTrace @Nullable []  = null;
 
-    @Nullable public CRCLCommandType getPrevLastCommandSent() {
+    @Nullable
+    public CRCLCommandType getPrevLastCommandSent() {
         return prevLastCommandSent;
     }
 
@@ -1118,11 +1151,13 @@ public class PendantClientInner {
 
     private final AtomicLong commandId = new AtomicLong(3);
 
-    @Nullable private volatile Thread lastIncCommandThread = null;
+    @Nullable
+    private volatile Thread lastIncCommandThread = null;
     private volatile StackTraceElement lastIncCommandThreadStackTrace @Nullable []  = null;
     private volatile long lastIncCommandThreadStackId;
     private volatile long lastIncCommandThreadStackTime;
-    @Nullable private volatile Thread secondLastIncCommandThread = null;
+    @Nullable
+    private volatile Thread secondLastIncCommandThread = null;
     private volatile StackTraceElement secondLastIncCommandThreadStackTrace @Nullable []  = null;
     private volatile long secondLastIncCommandThreadStackId;
     private volatile long secondLastIncCommandThreadStackTime;
@@ -1367,7 +1402,8 @@ public class PendantClientInner {
     private long lastWaitForDoneTimeDiff = -1;
     private long lastWaitForDoneFullTimeout = -1;
     private long lastWaitForDoneMinCmdId = -1;
-    @Nullable private Exception lastWaitForDoneException = null;
+    @Nullable
+    private Exception lastWaitForDoneException = null;
 
     private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION
             = Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension", "5000"));
@@ -1439,6 +1475,12 @@ public class PendantClientInner {
                 timeDiff = System.currentTimeMillis() - start;
                 lastWaitForDoneTimeDiff = timeDiff;
                 if (timeDiff > fullTimeout && !ignoreTimeouts) {
+                    if (isDone(minCmdId)) {
+                        return WaitForDoneResult.WFD_DONE;
+                    }
+                    if (isError(minCmdId)) {
+                        return WaitForDoneResult.WFD_ERROR;
+                    }
                     return WaitForDoneResult.WFD_TIMEOUT;
                 }
             }
@@ -1495,11 +1537,13 @@ public class PendantClientInner {
         outer.finishSetStatus();
     }
 
-    @Nullable public CRCLStatusType getStatus() {
+    @Nullable
+    public CRCLStatusType getStatus() {
         return this.status;
     }
 
-    @Nullable public CommandStatusType getCommandStatus() {
+    @Nullable
+    public CommandStatusType getCommandStatus() {
         CRCLStatusType s = this.getStatus();
         if (null != s) {
             return s.getCommandStatus();
@@ -1574,12 +1618,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1587,21 +1631,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1676,8 +1720,10 @@ public class PendantClientInner {
     private int holdingErrorRepCount = 0;
 
     private volatile long lastLogCmdTime = System.currentTimeMillis();
-    @MonotonicNonNull private volatile PointType lastLogMoveToCmdPoint = null;
-    @MonotonicNonNull private volatile PointType lastLogStatusPoint = null;
+    @MonotonicNonNull
+    private volatile PointType lastLogMoveToCmdPoint = null;
+    @MonotonicNonNull
+    private volatile PointType lastLogStatusPoint = null;
 
     private double distFromLastLogMoveToCmdPoint() {
         if (null == lastLogMoveToCmdPoint) {
@@ -1689,9 +1735,11 @@ public class PendantClientInner {
         return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, lastLogStatusPoint);
     }
 
-    @Nullable private volatile PointType lastMoveToCmdPoint = null;
+    @Nullable
+    private volatile PointType lastMoveToCmdPoint = null;
 
-    @Nullable private Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
+    @Nullable
+    private Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
         if (null == lastLogMoveToCmdPoint) {
             return null;
         }
@@ -1794,12 +1842,13 @@ public class PendantClientInner {
         printCommandStatusLog(System.out, false);
     }
 
-    @Nullable private volatile Appendable lastPrintCommandStatusAppendable = null;
+    @Nullable
+    private volatile Appendable lastPrintCommandStatusAppendable = null;
 
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
         if (!Objects.equals(lastPrintCommandStatusAppendable, appendable)) {
-            printer.printRecord((Object[])COMMAND_STATUS_LOG_HEADINGS);
+            printer.printRecord((Object[]) COMMAND_STATUS_LOG_HEADINGS);
             lastPrintCommandStatusAppendable = appendable;
         }
         printCommandStatusLogNoHeader(appendable, clearLog);
@@ -1876,11 +1925,13 @@ public class PendantClientInner {
         this.maxLogSize = maxLogSize;
     }
 
-    public void readStatus() {
+    private volatile long lastReadStatusTime = -1;
+
+    boolean readStatus() {
         CRCLSocket readSocket = this.crclSocket;
         try {
             if (null == readSocket || null == menuOuter()) {
-                return;
+                return false;
             }
             if (menuOuter().replaceStateSelected()) {
                 readSocket.setStatusStringInputFilter(CRCLSocket.addCRCLToState);
@@ -1890,8 +1941,9 @@ public class PendantClientInner {
             final CRCLStatusType curStatus
                     = readSocket.readStatus(validateXmlSchema);
             if (curStatus == null) {
-                return;
+                return false;
             }
+            lastReadStatusTime = System.currentTimeMillis();
             addStatusToCommandStatusLog(curStatus);
             outer.updateCommandStatusLog(commandStatusLog);
             if (menuOuter().isDebugReadStatusSelected()) {
@@ -1941,7 +1993,7 @@ public class PendantClientInner {
             Throwable ex = crclException.getCause();
             if (ex instanceof IOException || ex instanceof IllegalStateException) {
                 if (disconnecting || ex instanceof SocketException) {
-                    return;
+                    return false;
                 }
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex);
@@ -1959,7 +2011,7 @@ public class PendantClientInner {
 
             } else if (ex instanceof JAXBException) {
                 if (disconnecting) {
-                    return;
+                    return false;
                 }
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex.toString() + NEW_LINE + readSocket.getLastStatusString() + NEW_LINE);
@@ -1976,16 +2028,19 @@ public class PendantClientInner {
                 });
             } else {
                 if (disconnecting) {
-                    return;
+                    return false;
                 }
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+        return true;
     }
 
-    @Nullable private volatile CommandStatusLogElement lastCommandStatusLogElement = null;
+    @Nullable
+    private volatile CommandStatusLogElement lastCommandStatusLogElement = null;
 
-    @Nullable private CommandStatusLogElement getLastCommandStatusLogElement() {
+    @Nullable
+    private CommandStatusLogElement getLastCommandStatusLogElement() {
         CommandStatusLogElement lastEl = commandStatusLog.peekLast();
         if (lastEl == null) {
             return lastCommandStatusLogElement;
@@ -1997,13 +2052,14 @@ public class PendantClientInner {
     public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
         long curTime = System.currentTimeMillis();
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
+        CommandStatusType curCmdStatus = curStatus.getCommandStatus();
+        CommandStateEnumType curState = curCmdStatus.getCommandState();
+        double requiredTimeDiff = (curState == CRCL_WORKING)?500:20000;
         if (lastEl != null
                 && lastEl.getId() == curStatus.getCommandStatus().getCommandID()
                 && (lastEl instanceof StatusLogElement)
-                && curTime - lastEl.getTime() < 200000) {
+                && curTime - lastEl.getTime() < requiredTimeDiff) {
             StatusLogElement statLastEl = (StatusLogElement) lastEl;
-            CommandStatusType curCmdStatus = curStatus.getCommandStatus();
-            CommandStateEnumType curState = curCmdStatus.getCommandState();
             CommandStatusType lastCmdStatus = statLastEl.getStatus().getCommandStatus();
             CommandStateEnumType lastState = lastCmdStatus.getCommandState();
 
@@ -2062,7 +2118,8 @@ public class PendantClientInner {
         this.debugConnectDisconnect = debugConnectDisconnect;
     }
 
-    @Nullable private volatile Thread connectThread = null;
+    @Nullable
+    private volatile Thread connectThread = null;
     private volatile StackTraceElement connectTrace @Nullable []  = null;
     private volatile long connnectTime = -1;
     private volatile int lastSocketLocalPort = -1;
@@ -2138,7 +2195,8 @@ public class PendantClientInner {
 
     private final AtomicInteger disconnectCount = new AtomicInteger();
 
-    @Nullable private volatile Thread disconnectThread = null;
+    @Nullable
+    private volatile Thread disconnectThread = null;
     private volatile StackTraceElement disconnectTrace @Nullable []  = null;
     private volatile long disconnnectTime = -1;
 
@@ -2294,7 +2352,8 @@ public class PendantClientInner {
         return Double.parseDouble(System.getProperty(propName, Double.toString(defaultVal)));
     }
 
-    @MonotonicNonNull private String effectFailedMessage = null;
+    @MonotonicNonNull
+    private String effectFailedMessage = null;
 
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         if (null == status) {
@@ -2551,8 +2610,10 @@ public class PendantClientInner {
 
     }
 
-    @Nullable private volatile ProgramState pauseProgramState = null;
-    @Nullable private volatile Thread pauseRunningProgramThread = null;
+    @Nullable
+    private volatile ProgramState pauseProgramState = null;
+    @Nullable
+    private volatile Thread pauseRunningProgramThread = null;
 
     private volatile boolean ignoreTimeouts;
 
@@ -2574,7 +2635,8 @@ public class PendantClientInner {
         this.ignoreTimeouts = ignoreTimeouts;
     }
 
-    @Nullable private volatile Thread pauseThread = null;
+    @Nullable
+    private volatile Thread pauseThread = null;
     private volatile long pauseStartTime = -1;
     private volatile StackTraceElement pauseTrace @Nullable []  = null;
 
@@ -2630,8 +2692,10 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable private volatile Thread unpauseThread = null;
-    @Nullable private volatile ProgramState unpauseProgramState = null;
+    @Nullable
+    private volatile Thread unpauseThread = null;
+    @Nullable
+    private volatile ProgramState unpauseProgramState = null;
     private volatile long unpauseTime = 0;
     private volatile long unpausePauseCount = 0;
 
@@ -2693,14 +2757,16 @@ public class PendantClientInner {
         this.quitOnTestCommandFailure = quitOnTestCommandFailure;
     }
 
-    @Nullable private String outgoingProgramFile = null;
+    @Nullable
+    private String outgoingProgramFile = null;
 
     /**
      * Get the value of outgoingProgramFile
      *
      * @return the value of outgoingProgramFile
      */
-    @Nullable public String getOutgoingProgramFile() {
+    @Nullable
+    public String getOutgoingProgramFile() {
         return outgoingProgramFile;
     }
 
@@ -2713,14 +2779,16 @@ public class PendantClientInner {
         this.outgoingProgramFile = outgoingProgramFile;
     }
 
-    @Nullable private Integer outgoingProgramIndex;
+    @Nullable
+    private Integer outgoingProgramIndex;
 
     /**
      * Get the value of outgoingProgramIndex
      *
      * @return the value of outgoingProgramIndex
      */
-    @Nullable public Integer getOutgoingProgramIndex() {
+    @Nullable
+    public Integer getOutgoingProgramIndex() {
         return outgoingProgramIndex;
     }
 
@@ -2733,14 +2801,16 @@ public class PendantClientInner {
         this.outgoingProgramIndex = outgoingProgramIndex;
     }
 
-    @Nullable private Integer outgoingProgramLength = null;
+    @Nullable
+    private Integer outgoingProgramLength = null;
 
     /**
      * Get the value of outgoingProgramLength
      *
      * @return the value of outgoingProgramLength
      */
-    @Nullable public Integer getOutgoingProgramLength() {
+    @Nullable
+    public Integer getOutgoingProgramLength() {
         return outgoingProgramLength;
     }
 
@@ -2788,14 +2858,16 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable private volatile ProgramState programState = null;
+    @Nullable
+    private volatile ProgramState programState = null;
 
     /**
      * Get the value of programState
      *
      * @return the value of programState
      */
-    @Nullable public ProgramState getProgramState() {
+    @Nullable
+    public ProgramState getProgramState() {
         return programState;
     }
 
@@ -2832,10 +2904,12 @@ public class PendantClientInner {
 //        }
 //        return true;
 //    }
-    @Nullable private volatile String programName = null;
+    @Nullable
+    private volatile String programName = null;
     private volatile int programIndex = -1;
     private volatile int lastProgramIndex = -1;
-    @MonotonicNonNull private volatile String lastProgramName = null;
+    @MonotonicNonNull
+    private volatile String lastProgramName = null;
     private volatile int lastShowCurrentProgramLine = 0;
 
     public void showCurrentProgramLine(final int line, CRCLProgramType program, @Nullable CRCLStatusType status) {
@@ -2845,13 +2919,16 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable private volatile Thread runProgramThread = null;
+    @Nullable
+    private volatile Thread runProgramThread = null;
 
-    @Nullable public Thread getRunProgramThread() {
+    @Nullable
+    public Thread getRunProgramThread() {
         return runProgramThread;
     }
 
-    @Nullable public XFuture<Boolean> getRunProgramFuture() {
+    @Nullable
+    public XFuture<Boolean> getRunProgramFuture() {
         return runProgramFuture;
     }
 
@@ -2859,9 +2936,11 @@ public class PendantClientInner {
         return lastShowCurrentProgramLine;
     }
 
-    @MonotonicNonNull private volatile List<ProgramRunData> lastProgRunDataList = null;
+    @MonotonicNonNull
+    private volatile List<ProgramRunData> lastProgRunDataList = null;
 
-    @Nullable public List<ProgramRunData> getLastProgRunDataList() {
+    @Nullable
+    public List<ProgramRunData> getLastProgRunDataList() {
         return lastProgRunDataList;
     }
 
@@ -2896,7 +2975,20 @@ public class PendantClientInner {
                 showErrorMessage("Block Programs");
                 throw new IllegalStateException("Block Programs");
             }
-
+            int pause_count_start = this.pause_count.get();
+            boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startRunProgramAbortCount);
+            if (!waitForStatusResult) {
+                showMessage("runTest() failed because waiting for initial status");
+                System.out.println("request_status_count = " + request_status_count);
+                System.out.println("readerThread = " + readerThread);
+                System.out.println("pause_count.get() = " + pause_count.get());
+                System.out.println("pause_count_start = " + pause_count_start);
+                boolean requestStatusResult = requestStatus();
+                System.out.println("requestStatusResult = " + requestStatusResult);
+                boolean readStatusResult = readStatus();
+                System.out.println("readStatusResult = " + readStatusResult);
+                return false;
+            }
             runProgramThread = Thread.currentThread();
             if (startLine == -2) {
                 startLine = lastShowCurrentProgramLine;
@@ -2927,7 +3019,7 @@ public class PendantClientInner {
             callingRunProgramStackTrace.set(threadCreateCallStack);
             progRunDataList.clear();
             outer.clearProgramTimesDistances();
-            int pause_count_start = this.pause_count.get();
+
             int i = 0;
             if (null == prog) {
                 System.err.println("startLine=" + startLine);
@@ -3142,6 +3234,9 @@ public class PendantClientInner {
             } catch (JAXBException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
+        } catch (InterruptedException | JAXBException ex) {
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException("Failed to run program : " + ex.getMessage(), ex);
         } finally {
             lastProgRunDataList = new ArrayList<>(progRunDataList);
             runProgramThread = null;
@@ -3170,10 +3265,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3297,6 +3392,21 @@ public class PendantClientInner {
             }
             int startRunProgramAbortCount = runProgramAbortCount.get();
             outer.stopPollTimer();
+            int pause_count_start = this.pause_count.get();
+            final int orig_pause_count_start = pause_count_start;
+            boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startRunProgramAbortCount);
+            if (!waitForStatusResult) {
+                showMessage("runTest() failed because waiting for initial status");
+                System.out.println("request_status_count = " + request_status_count);
+                System.out.println("readerThread = " + readerThread);
+                System.out.println("pause_count.get() = " + pause_count.get());
+                System.out.println("orig_pause_count_start = " + orig_pause_count_start);
+                boolean requestStatusResult = requestStatus();
+                System.out.println("requestStatusResult = " + requestStatusResult);
+                boolean readStatusResult = readStatus();
+                System.out.println("readStatusResult = " + readStatusResult);
+                return false;
+            }
             InitCanonType initCmd = new InitCanonType();
             testCommand(initCmd, startRunProgramAbortCount);
             SetLengthUnitsType setUnitType = new SetLengthUnitsType();
@@ -3326,26 +3436,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -3482,7 +3592,7 @@ public class PendantClientInner {
             this.openXmlProgramFile(testProgramFile, false);
             outer.showDebugMessage("Test program saved to " + testProgramFile.getCanonicalPath());
             return runProgram(testProgram, 0);
-        } catch (CRCLException | InterruptedException | IOException | JAXBException | ParserConfigurationException | XPathExpressionException | SAXException | PmException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             outer.showMessage(ex);
         } finally {
@@ -3993,20 +4103,20 @@ public class PendantClientInner {
                     return true;
                 }
             }
-        } else if(cmd instanceof  MoveToType) {
+        } else if (cmd instanceof MoveToType) {
             MoveToType moveTo = (MoveToType) cmd;
             PoseType endPose = moveTo.getEndPosition();
-            if(endPose == null) {
+            if (endPose == null) {
                 throw new RuntimeException("MoveTo Command has invalid endPosition : null");
             }
-            if(!checkPose(endPose)) {
-                throw new RuntimeException("MoveTo Command has invalid endPosition :"+CRCLPosemath.poseToString(endPose));
+            if (!checkPose(endPose)) {
+                throw new RuntimeException("MoveTo Command has invalid endPosition :" + CRCLPosemath.poseToString(endPose));
             }
         }
         CRCLStatusType origStatuPrep = this.getStatus();
         if (null == origStatuPrep) {
             showMessage("testCommand can not get starting status");
-            return false;
+            throw new IllegalStateException("testCommand can not get starting status");
         }
         CRCLStatusType origStatus = copyStatus(origStatuPrep);
         CRCLStatusType lastCmdStartStatus = origStatus;
@@ -4039,7 +4149,7 @@ public class PendantClientInner {
                     if (null == readerThread) {
                         readStatus();
                     }
-                    waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
+                    boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
                     WaitForDoneResult wfdResult = waitForDone(id, timeout, pause_count_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
                         break;
@@ -4072,7 +4182,7 @@ public class PendantClientInner {
                 return false;
             }
             if (null == this.getStatus()) {
-                waitForStatus(2000, 200, pause_count_start, startingRunProgramAbortCount);
+                boolean waitForStatusResult = waitForStatus(2000, 200, pause_count_start, startingRunProgramAbortCount);
             }
             if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
                 return false;
@@ -4081,6 +4191,7 @@ public class PendantClientInner {
             testCommandStartLengthUnit = this.getLengthUnit();
             CRCLStatusType startStatusPrep = this.getStatus();
             if (null == startStatusPrep) {
+                System.out.println("origStatuPrep = " + origStatuPrep);
                 showMessage("testCommand can not get starting status");
                 return false;
             }
@@ -4115,13 +4226,16 @@ public class PendantClientInner {
                         + "sendCommandTime=" + sendCommandTime + NEW_LINE
                         + "curTime = " + curTime + NEW_LINE
                         + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
+                        + "lastReadStatusTime = " + lastReadStatusTime + NEW_LINE
+                        + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
+                        + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
                         + "timeout=" + timeout + NEW_LINE
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -4167,6 +4281,7 @@ public class PendantClientInner {
                     poseListSaveFileName = tmpFile.getCanonicalPath();
                     this.savePoseListToCsvFile(tmpFile.getCanonicalPath());
                 }
+                printCommandStatusLog();
                 String intString = this.createInterrupStackString();
                 String lastCmdString = commandToSimpleString(lastCommandSent);
                 String curStatusString
@@ -4179,17 +4294,28 @@ public class PendantClientInner {
                         + "cmd=" + cmdString + "." + NEW_LINE
                         + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
                         + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(startStatus, false) + "." + NEW_LINE
+                        + "testCommandStartStatus.getPose=" + CRCLPosemath.toString(startStatus.getPoseStatus().getPose()) + "." + NEW_LINE
+                        + "testCommandStartStatus.getJoints()=" + startStatus.getJointStatuses().getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition)) + "." + NEW_LINE
                         + "current status=" + curStatusString + "." + NEW_LINE
+                        + "current status.getPose()=" + ((curStatus != null) ? CRCLPosemath.toString(curStatus.getPoseStatus().getPose()) : "null") + "." + NEW_LINE
+                        + "current status.getJoints()=" + ((curStatus != null) ? curStatus.getJointStatuses().getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition)) : "null") + "." + NEW_LINE
                         + "sendCommandTime=" + sendCommandTime + NEW_LINE
                         + "curTime = " + curTime + NEW_LINE
                         + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
+                        + "lastReadStatusTime = " + lastReadStatusTime + NEW_LINE
+                        + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
+                        + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
                         + "timeout=" + timeout + NEW_LINE
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
+                        + ((startStatus == null || startStatus.getCommandStatus() == null)
+                                ? "startStatus.getCommandStatus()=null\n"
+                                : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + ((curStatus == null || curStatus.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -4232,9 +4358,9 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
@@ -4273,7 +4399,8 @@ public class PendantClientInner {
     private volatile long lastStartRunProgramThreadProgId = -1;
     private volatile int lastStartRunProgramThreadStartLine = -1;
 
-    @Nullable private volatile XFuture<Boolean> runProgramFuture = null;
+    @Nullable
+    private volatile XFuture<Boolean> runProgramFuture = null;
 
     public XFuture<Boolean> startRunProgramThread(final int startLine) {
 

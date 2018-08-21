@@ -63,7 +63,7 @@ public class CmdLineClientIT {
             URL programURL = requireNonNull(
                     CmdLineClientIT.class.getResource("/main/programAll.xml"),
                     "CmdLineClientIT.class.getResource(\"/main/programAll.xml\")"
-                    );
+            );
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
@@ -103,7 +103,7 @@ public class CmdLineClientIT {
                 "--maxTransSpeed", "200.0",
                 "--maxTransAccel", "200.0"
             });
-            CmdLineClient.main(new String[]{"--waitForDoneDelay", DELAY_STRING});
+            CmdLineClient.main(new String[]{"--waitForDoneDelay", DELAY_STRING, "--useTempSchemaCopies", "true"});
             if (!CmdLineClient.getProgramSucceeded()) {
                 LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
@@ -178,7 +178,9 @@ public class CmdLineClientIT {
                 "--maxTransAccel", "200.0",});
             CmdLineClient.main(new String[]{
                 "--waitForDoneDelay", DELAY_STRING,
-                "--autoRunTest", "true",});
+                "--autoRunTest", "true",
+                "--useTempSchemaCopies", "true"
+            });
             if (!CmdLineClient.getProgramSucceeded()) {
                 LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
@@ -219,7 +221,7 @@ public class CmdLineClientIT {
             URL programURL = requireNonNull(
                     CmdLineClientIT.class.getResource("/main/programAll.xml"),
                     "CmdLineClientIT.class.getResource(\"/main/programAll.xml\")"
-                    );
+            );
             Path programPath = Paths.get(programURL.toURI());
             System.setProperty("crcl4java.program", programPath.toString());
             System.setProperty("crcl4java.port", "0");
@@ -259,7 +261,10 @@ public class CmdLineClientIT {
                 "--maxTransSpeed", "200.0",
                 "--maxTransAccel", "200.0"
             });
-            CmdLineClient.main(new String[]{"--waitForDoneDelay", DELAY_STRING});
+            CmdLineClient.main(new String[]{
+                "--waitForDoneDelay", DELAY_STRING,
+                "--useTempSchemaCopies", "true"
+            });
             if (!CmdLineClient.getProgramSucceeded()) {
                 System.err.println("CmdLineSimServer.simServerInner.getStatus = "
                         + CmdLineSimServer.getStatusXmlString());

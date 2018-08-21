@@ -211,19 +211,20 @@ public class CRCLSocket implements AutoCloseable {
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
     }
-
-    /*@Nullable*/
-    private static CRCLSocket utilSocket = null;
-
-    public static void setUtilSocket(CRCLSocket newUtilSocket) {
-        utilSocket = newUtilSocket;
+    
+    private static class UtilSocketHider {
+        static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
     }
 
+//    /*@Nullable*/
+//    private static CRCLSocket utilSocket = null;
+//
+//    public static void setUtilSocket(CRCLSocket newUtilSocket) {
+//        utilSocket = newUtilSocket;
+//    }
+
     public static CRCLSocket getUtilSocket() {
-        if (null != utilSocket) {
-            return utilSocket;
-        }
-        return (utilSocket = new CRCLSocket());
+        return UtilSocketHider.UTIL_SOCKET;
     }
 
     /*@Nullable*/
@@ -271,10 +272,7 @@ public class CRCLSocket implements AutoCloseable {
      * @throws IOException unable to read from file
      */
     public static CRCLProgramType readProgramFile(Path p) throws CRCLException, IOException {
-        if (null == utilSocket) {
-            utilSocket = new CRCLSocket();
-        }
-        CRCLSocket cs = utilSocket;
+        CRCLSocket cs = getUtilSocket();
         String str = new String(Files.readAllBytes(p));
         synchronized (cs) {
             return cs.stringToProgram(str, true);
@@ -560,19 +558,38 @@ public class CRCLSocket implements AutoCloseable {
         return EMPTY_FILE_ARRAY;
     }
 
+    public static File[] findSchemaFiles(File dir) {
+        copySchemaResources(dir);
+        File files[] = dir.listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".xsd");
+            }
+        });
+        if (files != null) {
+            return files;
+        }
+        return EMPTY_FILE_ARRAY;
+    }
+    
     protected static void copySchemaResources() {
         if (resourcesCopied) {
             return;
         }
         boolean made_directory = crclSchemaDirFile.mkdirs();
         Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, crclSchemaDirFile + "mkdirs() returned" + made_directory);
-        copyResourcesToFiles(crclSchemaDirFile,
+        copySchemaResources(crclSchemaDirFile);
+        resourcesCopied = true;
+    }
+
+    public static void copySchemaResources(File directory) {
+        copyResourcesToFiles(directory,
                 "CRCLCommandInstance.xsd",
                 "CRCLCommands.xsd",
                 "CRCLProgramInstance.xsd",
                 "DataPrimitives.xsd",
                 "CRCLStatus.xsd");
-        resourcesCopied = true;
     }
 
     private static String getVersion(String resourceName) {

@@ -284,11 +284,14 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private volatile long maxTime = -1;
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
-        CommandStatusLogElement el;
-        while(null != (el = log.pollFirst()))  {
-            System.out.println(el.toString());
+        for(CommandStatusLogElement el: log) {
+            if(el.getTime() > maxTime) {
+                System.out.println(el.toString());
+                maxTime = el.getTime();
+            }
         }
     }
 

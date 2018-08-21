@@ -54,6 +54,7 @@ import crcl.base.StopConditionEnumType;
 import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.VectorType;
+import crcl.ui.DefaultSchemaFiles;
 import static crcl.ui.IconImages.BASE_IMAGE;
 import crcl.ui.misc.ListChooserJPanel;
 import crcl.ui.misc.MultiLineStringJPanel;
@@ -267,11 +268,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (result == JFileChooser.APPROVE_OPTION) {
             File fa[] = jFileChooser.getSelectedFiles();
             internal.setCmdSchema(fa);
-            CRCLSocket.saveCmdSchemaFiles(PendantClientJPanel.cmdSchemasFile, fa);
+            DefaultSchemaFiles defaultSchemaFiles = DefaultSchemaFiles.instance();
+            CRCLSocket.saveCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile(), fa);
             internal.setStatSchema(fa);
-            CRCLSocket.saveStatSchemaFiles(PendantClientJPanel.statSchemasFile, fa);
+            CRCLSocket.saveStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile(), fa);
             internal.setProgramSchema(fa);
-            CRCLSocket.saveProgramSchemaFiles(PendantClientJPanel.programSchemasFile, fa);
+            CRCLSocket.saveProgramSchemaFiles(defaultSchemaFiles.getProgramSchemasFile(), fa);
         }
     }
 
@@ -595,7 +597,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.outerContainer = outerContainer;
             this.outerJFrame = outerJFrame;
             initComponents();
-            this.internal = new PendantClientInner(this);
+            this.internal = new PendantClientInner(this,DefaultSchemaFiles.instance());
             init();
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -622,9 +624,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null != hostPropertyString && hostPropertyString.length() > 0) {
             this.jTextFieldHost.setText(hostPropertyString);
         }
-        internal.setStatSchema(CRCLSocket.readStatSchemaFiles(PendantClientJPanel.statSchemasFile));
-        internal.setCmdSchema(CRCLSocket.readCmdSchemaFiles(PendantClientJPanel.cmdSchemasFile));
-        internal.setProgramSchema(CRCLSocket.readProgramSchemaFiles(PendantClientJPanel.programSchemasFile));
+//        DefaultSchemaFiles defaultSchemaFiles = DefaultSchemaFiles.instance();
+//        internal.setStatSchema(CRCLSocket.readStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile()));
+//        internal.setCmdSchema(CRCLSocket.readCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile()));
+//        internal.setProgramSchema(CRCLSocket.readProgramSchemaFiles(defaultSchemaFiles.getProgramSchemasFile()));
 //        readRecentCommandFiles();
 //        readRecentPrograms();
         final String programPropertyString = System.getProperty("crcl4java.program");
@@ -1650,15 +1653,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return pathSet;
     }
 
-    private final static File statSchemasFile = new File(System.getProperty("user.home"),
-            ".crcljava_pendantclient_stat_schemas.txt");
-
-    private final static File cmdSchemasFile = new File(System.getProperty("user.home"),
-            ".crcljava_pendantclient_cmd_schemas.txt");
-
-    private final static File programSchemasFile = new File(System.getProperty("user.home"),
-            ".crcljava_pendantclient_cmd_schemas.txt");
-
+    
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
 

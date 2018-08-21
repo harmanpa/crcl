@@ -21,6 +21,7 @@ package crcl.ui.server;
 
 import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
+import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.stubs.SimServerOuterStub;
 import java.io.BufferedReader;
@@ -40,19 +41,21 @@ import rcs.posemath.Posemath;
  */
 public class CmdLineSimServer {
 
-    @Nullable private static SimServerInner simServerInner = null;
+    @Nullable
+    private static SimServerInner simServerInner = null;
 
-    @Nullable public static synchronized SimServerInner getSimServerInner() {
+    @Nullable
+    public static synchronized SimServerInner getSimServerInner() {
         return simServerInner;
     }
-    
-    public static synchronized  String getStatusXmlString() throws JAXBException {
-        if(null == simServerInner) {
+
+    public static synchronized String getStatusXmlString() throws JAXBException {
+        if (null == simServerInner) {
             return "null";
         }
         return simServerInner.getStatusXmlString();
     }
-    
+
     public static synchronized void closeServer() {
         if (null != simServerInner) {
             simServerInner.closeServer();
@@ -61,27 +64,28 @@ public class CmdLineSimServer {
     }
 
     public static void main(String[] args) {
-        testMain(args,false);
+        testMain(args, false);
 //        try {
 //            new BufferedReader(new InputStreamReader(System.in)).readLine();
 //        } catch (IOException ex) {
 //            Logger.getLogger(CmdLineSimServer.class.getName()).log(Level.SEVERE, null, ex);
 //        }
     }
-    
+
     public static void testMain(String[] args) {
-        testMain(args,true);
+        testMain(args, true);
     }
-    
+
     public static void testMain(String[] args, boolean asDaemon) {
         try {
             double initPose[][] = null;
+            boolean useTempSchemaCopies = false;
             for (int i = 0; i < args.length - 1; i++) {
                 switch (args[i]) {
                     case "--mode":
                         i++;
                         break;
-                        
+
                     case "--delayMillis":
                         System.setProperty("SimServer.delayMillis", args[i + 1]);
                         i++;
@@ -107,6 +111,11 @@ public class CmdLineSimServer {
                         i++;
                         break;
 
+                    case "--useTempSchemaCopies":
+                        useTempSchemaCopies = Boolean.valueOf(args[i + 1]);
+                        i++;
+                        break;
+
                     default:
                         System.err.println("Unrecognized argument for CmdLineSimServer: " + args[i]);
                         System.err.println("args = " + Arrays.toString(args));
@@ -114,13 +123,14 @@ public class CmdLineSimServer {
                 }
             }
             SimServerOuterStub simServerOuterStub = new SimServerOuterStub();
-            simServerInner = new SimServerInner(simServerOuterStub);
+            simServerInner = new SimServerInner(simServerOuterStub,
+                    useTempSchemaCopies? DefaultSchemaFiles.temp(): DefaultSchemaFiles.instance());
             if (null != initPose) {
                 simServerInner.simulatedTeleportToPose(CRCLPosemath.toPose(initPose));
             }
             simServerInner.restartServer(asDaemon);
-            
-        } catch (ParserConfigurationException ex) {
+
+        } catch (ParserConfigurationException | IOException ex) {
             Logger.getLogger(CmdLineSimServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

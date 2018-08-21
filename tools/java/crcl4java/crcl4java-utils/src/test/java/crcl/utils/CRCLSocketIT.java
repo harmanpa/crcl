@@ -331,8 +331,7 @@ public class CRCLSocketIT {
      *
      * @throws java.lang.Exception
      */
-    @Test
-    public void testClientPollingServerCallbackMultiThreaded() throws Exception {
+    private void testClientPollingServerCallbackMultiThreaded() throws Exception {
         testClientServer("testClientPollingServerCallbackMultiThreaded",
                 ExampleType.POLLING,
                 ExampleType.CALLBACK,
@@ -357,8 +356,7 @@ public class CRCLSocketIT {
      *
      * @throws java.lang.Exception
      */
-    @Test
-    public void testClientBlockingServerCallbackMultiThreaded() throws Exception {
+    private void testClientBlockingServerCallbackMultiThreaded() throws Exception {
         testClientServer("testClientBlockingServerCallbackMultiThreaded",
                 ExampleType.BLOCKING,
                 ExampleType.CALLBACK,

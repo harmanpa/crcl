@@ -32,6 +32,7 @@ import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseType;
+import crcl.ui.DefaultSchemaFiles;
 import crcl.ui.XFuture;
 
 import crcl.ui.misc.MultiLineStringJPanel;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
@@ -91,7 +93,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     @SuppressWarnings("initialization")
     public SimServerJPanel() throws ParserConfigurationException {
         initComponents();
-        this.inner = new SimServerInner(this);
+        this.inner = new SimServerInner(this,DefaultSchemaFiles.instance());
         SimRobotEnum defaultRobotType
                 = DEFAULT_ROBOTTYPE;
 //        this.inner = new SimServerInner(this);
@@ -104,8 +106,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jComboBoxRobotType.setModel(new DefaultComboBoxModel<>(SimRobotEnum.values()));
         this.jComboBoxRobotType.setSelectedItem(defaultRobotType);
         this.setRobotType(defaultRobotType);
-        this.setStatSchema(CRCLSocket.readStatSchemaFiles(SimServerJPanel.statSchemasFile));
-        this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(SimServerJPanel.cmdSchemasFile));
+        
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             inner.setPort(Integer.parseInt(portPropertyString));
@@ -736,9 +737,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         if (result == JFileChooser.APPROVE_OPTION) {
             File fa[] = jFileChooser.getSelectedFiles();
             setCmdSchema(fa);
-            CRCLSocket.saveCmdSchemaFiles(cmdSchemasFile, fa);
+            DefaultSchemaFiles defaultsInstance = DefaultSchemaFiles.instance();
+            CRCLSocket.saveCmdSchemaFiles(defaultsInstance.getCmdSchemasFile(), fa);
             setStatSchema(fa);
-            CRCLSocket.saveStatSchemaFiles(statSchemasFile, fa);
+            CRCLSocket.saveStatSchemaFiles(defaultsInstance.getStatSchemasFile(), fa);
         }
     }
 
@@ -899,12 +901,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             throw new IllegalStateException("SimServerMenuOuter reference is null.");
         }
     }
-
-    private final static File cmdSchemasFile = new File(System.getProperty("user.home"),
-            ".crcljava_simserver_cmd_schemas.txt");
-
-    private final static File statSchemasFile = new File(System.getProperty("user.home"),
-            ".crcljava_simserver_stat_schemas.txt");
 
     private void setCmdSchema(File[] fa) {
         inner.setCmdSchema(fa);
@@ -1178,8 +1174,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private void jTextFieldPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPortActionPerformed
         int new_port = Integer.parseInt(this.jTextFieldPort.getText());
+        inner.closeServer();
         inner.setPort(new_port);
-        inner.restartServer(inner.getServerIsDaemon());
+//        inner.restartServer(inner.getServerIsDaemon());
     }//GEN-LAST:event_jTextFieldPortActionPerformed
 
     private void jTextFieldCycleTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldCycleTimeActionPerformed
@@ -1200,6 +1197,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private void jButtonRestartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRestartServerActionPerformed
         int new_port = Integer.parseInt(this.jTextFieldPort.getText());
+        ServerSocket oldServer = inner.closeServer();
         new Thread(() -> {
             inner.setPort(new_port);
             inner.restartServer(inner.getServerIsDaemon());

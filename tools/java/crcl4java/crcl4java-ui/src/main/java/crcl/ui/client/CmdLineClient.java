@@ -21,6 +21,7 @@
 package crcl.ui.client;
 
 import crcl.base.CRCLProgramType;
+import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLException;
 import crcl.utils.stubs.PendantClientOuterStub;
 import java.io.File;
@@ -65,6 +66,7 @@ public class CmdLineClient {
         try {
             String poseFileName = null;
             boolean autoRunTest = false;
+            boolean useTempSchemaCopies = false;
             for (int i = 0; i < args.length - 1; i++) {
                 switch (args[i]) {
                     case "--waitForDoneDelay":
@@ -81,28 +83,34 @@ public class CmdLineClient {
                         autoRunTest = Boolean.valueOf(args[i + 1]);
                         i++;
                         break;
-                        
+
+                    case "--useTempSchemaCopies":
+                        useTempSchemaCopies = Boolean.valueOf(args[i + 1]);
+                        i++;
+                        break;
+
                     default:
-                        System.err.println("Unrecognized argument: "+ args[i]);
+                        System.err.println("Unrecognized argument: " + args[i]);
                         break;
                 }
             }
             programSucceeded = false;
             System.setProperty("crcjava.PendandClient.useReadStatusThreadSelected", "false");
             PendantClientOuterStub pendantClientOuterStub = new PendantClientOuterStub();
-            PendantClientInner pendantClientInner = new PendantClientInner(pendantClientOuterStub);
+            PendantClientInner pendantClientInner = new PendantClientInner(pendantClientOuterStub, 
+                    useTempSchemaCopies?DefaultSchemaFiles.temp():DefaultSchemaFiles.instance());
             pendantClientInner.setQuitOnTestCommandFailure(true);
             final String programPropertyString = System.getProperty("crcl4java.program");
             pendantClientInner.connect(pendantClientOuterStub.getHost(), pendantClientOuterStub.getPort());
-            if(!pendantClientInner.isConnected()) {
-                Logger.getLogger(CmdLineClient.class.getName()).log(Level.SEVERE, "Failed to connect to {0}:{1}", 
+            if (!pendantClientInner.isConnected()) {
+                Logger.getLogger(CmdLineClient.class.getName()).log(Level.SEVERE, "Failed to connect to {0}:{1}",
                         new Object[]{pendantClientOuterStub.getHost(), pendantClientOuterStub.getPort()});
                 return;
             }
             if (autoRunTest) {
                 programSucceeded = pendantClientInner.runTest(pendantClientInner.getDefaultTestPropertiesMap());
             } else if (null != programPropertyString) {
-                pendantClientInner.openXmlProgramFile(new File(programPropertyString),false);
+                pendantClientInner.openXmlProgramFile(new File(programPropertyString), false);
                 CRCLProgramType program = Objects.requireNonNull(pendantClientInner.getProgram());
                 programSucceeded = pendantClientInner.runProgram(program, 0);
                 System.out.println("Program " + programPropertyString + " succeeded: " + programSucceeded);
@@ -123,7 +131,7 @@ public class CmdLineClient {
             }
             pendantClientInner.disconnect();
 
-        } catch (CRCLException | ParserConfigurationException | SAXException | IOException | XPathExpressionException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(CmdLineClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

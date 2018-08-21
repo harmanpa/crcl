@@ -84,6 +84,7 @@ import crcl.base.TransSpeedType;
 import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
+import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.SimRobotEnum;
@@ -483,7 +484,8 @@ public class SimServerInner {
         SimServerInner.runningServers.forEach(s -> s.printClientStates(ps));
     }
 
-    @Nullable private CRCLSocket gripperSocket = null;
+    @Nullable
+    private CRCLSocket gripperSocket = null;
 
     private final XpathUtils xpu;
     private final SimServerOuter outer;
@@ -491,7 +493,6 @@ public class SimServerInner {
     private final Queue<CRCLCommandInstanceType> gripperCmdQueue = new ConcurrentLinkedQueue<>();
 
     private double @MonotonicNonNull [] jointPositions = null;
-    private double @MonotonicNonNull [] lastJointPositions = null;
     private double @MonotonicNonNull [] commandedJointPositions = null;
     private double @MonotonicNonNull [] jointVelocites = null;
     private double @MonotonicNonNull [] commandedJointVelocities = null;
@@ -500,7 +501,8 @@ public class SimServerInner {
     private double @MonotonicNonNull [] jointmaxs = null;
     private double @MonotonicNonNull [] seglengths = null;
 
-    @Nullable private PoseType goalPose = null;
+    @Nullable
+    private PoseType goalPose = null;
 
     private final double maxTransSpeed = getDoubleProperty("crcl4java.simserver.maxTransSpeed", 2.0);
     private final double maxTransAccel = getDoubleProperty("crcl4java.simserver.maxTransAccell", 20.0);
@@ -522,19 +524,23 @@ public class SimServerInner {
     private SimRobotEnum robotType = SimRobotEnum.PLAUSIBLE;
     private int port;
     private boolean moveStraight = false;
-    @Nullable private volatile ServerSocket serverSocket = null;
+    @Nullable
+    private volatile ServerSocket serverSocket = null;
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
     final private CRCLStatusType status = new CRCLStatusType();
-    @Nullable private CRCLCommandType multiStepCommand = null;
+    @Nullable
+    private CRCLCommandType multiStepCommand = null;
     private int moveScrewStep = 0;
     private BigDecimal moveScriptTurnComplete = BigDecimal.ZERO;
     private double jointSpeedMax = getDoubleProperty("crcl4java.simserver.jointSpeedMax", 200.0);
-    @Nullable private PmRotationVector lastDiffRotv = null;
+    @Nullable
+    private PmRotationVector lastDiffRotv = null;
     private int cycle_count = 0;
     private final ConcurrentLinkedDeque<ClientState> clientStates = new ConcurrentLinkedDeque<>();
     private final Map<CRCLSocket, Thread> clientThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
-    @Nullable private volatile Thread simulationThread = null;
+    @Nullable
+    private volatile Thread simulationThread = null;
     private final AtomicInteger closeCount = new AtomicInteger();
     long maxCmdId = 1;
     private final Map<CRCLSocket, LastStatusInfo> lastStatusMap
@@ -616,9 +622,11 @@ public class SimServerInner {
     private long cmdQueuePutTime = 0;
     private boolean debug_this_command = false;
     private int cmdQueueCmdsOffered = 0;
-    @Nullable private Thread acceptClientsThread = null;
+    @Nullable
+    private Thread acceptClientsThread = null;
     private long delayMillis = Long.getLong("crcl4java.simserver.delayMillis", 20);
-    @MonotonicNonNull private ConfigureJointReportsType cjrs = null;
+    @MonotonicNonNull
+    private ConfigureJointReportsType cjrs = null;
     private final Map<Integer, ConfigureJointReportType> cjrMap = new HashMap<>();
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private PoseToleranceType expectedEndPoseTolerance = new PoseToleranceType();
@@ -628,7 +636,8 @@ public class SimServerInner {
     private final long debugCmdQueueTime = 0;
     private long cmdQueueMaxSize = 0;
     private long maxCmdQueuePollTime = 0;
-    @Nullable private CRCLCommandInstanceType lastReadCommandInstance = null;
+    @Nullable
+    private CRCLCommandInstanceType lastReadCommandInstance = null;
     private int cmdQueuePollReturnCount = 0;
     private int cmdQueuePollReturnNonNullCount = 0;
     long maxDiffCmdQueuePutEmpty = 0;
@@ -639,14 +648,17 @@ public class SimServerInner {
     private long maxUpdateStatusTime = 0;
     private long maxSimCycleTime = 0;
     private long simCycleCount = 0;
-    @Nullable private CRCLSocket checkerCRCLSocket = null;
+    @Nullable
+    private CRCLSocket checkerCRCLSocket = null;
 
     @SuppressWarnings("initialization")
-    public SimServerInner(SimServerOuter _outer) throws ParserConfigurationException {
+    SimServerInner(SimServerOuter _outer, DefaultSchemaFiles defaultSchemaFiles) throws ParserConfigurationException {
         this.outer = _outer;
         this.xpu = new XpathUtils();
         this.robotType = SimRobotEnum.SIMPLE;
         this.port = CRCLSocket.DEFAULT_PORT;
+        this.setStatSchema(CRCLSocket.readStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile()));
+        this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile()));
         this.resetToDefaults();
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
@@ -678,7 +690,8 @@ public class SimServerInner {
      *
      * @return the value of gripperSocket
      */
-    @Nullable public CRCLSocket getGripperSocket() {
+    @Nullable
+    public CRCLSocket getGripperSocket() {
         return gripperSocket;
     }
 
@@ -709,7 +722,6 @@ public class SimServerInner {
         double[] newJointPositions = Arrays.copyOf(SimulatedKinematicsPlausible.DEFAULT_JOINTVALS, SimulatedKinematicsPlausible.DEFAULT_JOINTVALS.length);
         jointVelocites = new double[newJointPositions.length];
         jointPositions = newJointPositions;
-        lastJointPositions = Arrays.copyOf(SimulatedKinematicsPlausible.DEFAULT_JOINTVALS, SimulatedKinematicsPlausible.DEFAULT_JOINTVALS.length);
         commandedJointPositions = Arrays.copyOf(SimulatedKinematicsPlausible.DEFAULT_JOINTVALS, SimulatedKinematicsPlausible.DEFAULT_JOINTVALS.length);
         jointmins = new double[]{-170.0, 5.0, -170.0, +10.0, -135.0, -135.0};
         jointmaxs = new double[]{+170.0, 85.0, -10.0, 170.0, +135.0, +135.0};
@@ -720,7 +732,6 @@ public class SimServerInner {
         double newJointPositions[] = Arrays.copyOf(SimulatedKinematicsSimple.DEFAULT_JOINTVALS, SimulatedKinematicsSimple.DEFAULT_JOINTVALS.length);
         jointVelocites = new double[newJointPositions.length];
         jointPositions = newJointPositions;
-        lastJointPositions = Arrays.copyOf(SimulatedKinematicsSimple.DEFAULT_JOINTVALS, SimulatedKinematicsSimple.DEFAULT_JOINTVALS.length);
         commandedJointPositions = Arrays.copyOf(SimulatedKinematicsSimple.DEFAULT_JOINTVALS, SimulatedKinematicsSimple.DEFAULT_JOINTVALS.length);
 
         jointmins = new double[]{0, -360.0, -360.0, -360.0, -360.0, -360.0};
@@ -794,7 +805,8 @@ public class SimServerInner {
         this.teleportToGoals = teleportToGoals;
     }
 
-    @Nullable public PoseType getPose() {
+    @Nullable
+    public PoseType getPose() {
         return poseStatus.getPose();
     }
 
@@ -873,8 +885,8 @@ public class SimServerInner {
      */
     public void setPort(int port) {
         this.port = port;
-        if (null != this.serverSocket) {
-            this.restartServer(serverIsDaemon);
+        if (null != this.serverSocket && !serverSocket.isClosed()) {
+            throw new IllegalStateException("Can't change port when already bound. close first.");
         }
     }
 
@@ -889,7 +901,12 @@ public class SimServerInner {
 
     @SuppressWarnings("nullness")
     public void setJointPosition(double _position, int index) {
-        this.jointPositions[index] = _position;
+        if (status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+            throw new IllegalStateException("changing joint position while executing command.");
+        }
+        synchronized (jointPositions) {
+            this.jointPositions[index] = _position;
+        }
     }
 
     @SuppressWarnings("nullness")
@@ -969,7 +986,8 @@ public class SimServerInner {
         return maxdiff <= getJointDiffMax();
     }
 
-    @Nullable public VectorType getXAxis() {
+    @Nullable
+    public VectorType getXAxis() {
         PoseType pose = getPose();
         if (pose == null) {
             return null;
@@ -977,7 +995,8 @@ public class SimServerInner {
         return pose.getXAxis();
     }
 
-    @Nullable public VectorType getZAxis() {
+    @Nullable
+    public VectorType getZAxis() {
         PoseType pose = getPose();
         if (pose == null) {
             return null;
@@ -1234,9 +1253,10 @@ public class SimServerInner {
         return commandedJointPositions1;
     }
 
-    @MonotonicNonNull private volatile Schema cmdSchema = null;
+    @MonotonicNonNull
+    private volatile Schema cmdSchema = null;
 
-    public void setCmdSchema(File[] fa) {
+    final void setCmdSchema(File[] fa) {
         try {
             Schema newCmdSchema = CRCLSocket.filesToCmdSchema(fa);
             this.cmdSchema = newCmdSchema;
@@ -1249,9 +1269,10 @@ public class SimServerInner {
         }
     }
 
-    @MonotonicNonNull private volatile Schema statSchema = null;
+    @MonotonicNonNull
+    private volatile Schema statSchema = null;
 
-    public void setStatSchema(File[] fa) {
+    final void setStatSchema(File[] fa) {
         try {
             Schema newStatSchema = CRCLSocket.filesToStatSchema(fa);
             this.statSchema = newStatSchema;
@@ -1293,7 +1314,8 @@ public class SimServerInner {
         this.debugInterrupts = debugInterrupts;
     }
 
-    @Nullable public synchronized ServerSocket closeServer() {
+    @Nullable
+    public synchronized ServerSocket closeServer() {
         try {
             SimServerInner.runningServers.remove(this);
         } catch (Exception e) {
@@ -1651,6 +1673,9 @@ public class SimServerInner {
         }
     }
 
+    private final AtomicInteger workingCount = new AtomicInteger();
+    private volatile int maxWorkingCount = 0;
+
     /**
      *
      * @return the boolean
@@ -1671,12 +1696,13 @@ public class SimServerInner {
                         System.out.println("diffdebugUpdateStatusTimedebugCmdStartTime = " + diffdebugUpdateStatusTimedebugCmdStartTime);
                         debugCmdStartTime = 0;
                     }
-                    if (null == status.getCommandStatus()) {
-                        CommandStatusType cst = new CommandStatusType();
-                        cst.setCommandID(1);
-                        cst.setStatusID(1);
-                        cst.setCommandState(CommandStateEnumType.CRCL_WORKING);
-                        status.setCommandStatus(new CommandStatusType());
+                    CommandStatusType commandStatus = status.getCommandStatus();
+                    if (null == commandStatus) {
+                        commandStatus = new CommandStatusType();
+                        commandStatus.setCommandID(1);
+                        commandStatus.setStatusID(1);
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                        status.setCommandStatus(commandStatus);
                     }
                     this.incStatusId();
                     PoseType newGoalPose = this.goalPose;
@@ -1702,93 +1728,110 @@ public class SimServerInner {
                     if (null == jointVelocites) {
                         throw new IllegalStateException("null == jointVelocites");
                     }
-                    if (null == lastJointPositions) {
-                        throw new IllegalStateException("null == lastJointPositions");
-                    }
                     if (null == commandedJointPositions1) {
                         commandedJointPositions1 = Arrays.copyOf(jointPositions, jointPositions.length);
                     }
-                    for (int i = 0; i < jointPositions.length; i++) {
-                        final double JOINT_DIFF_MAX = getAllowedJointDiff(i);
-                        double jointPositionI = jointPositions[i];
-                        double commandedJointPositionI = commandedJointPositions1[i];
-                        if (Math.abs(commandedJointPositionI - jointPositionI) < JOINT_DIFF_MAX) {
-                            if (Math.abs(commandedJointPositionI - jointPositionI) > 1e-4) {
+                    synchronized (jointPositions) {
+                        for (int i = 0; i < jointPositions.length; i++) {
+                            final double JOINT_DIFF_MAX = getAllowedJointDiff(i);
+                            double jointPositionI = jointPositions[i];
+                            final double lastJointPositionI = jointPositionI;
+                            double commandedJointPositionI = commandedJointPositions1[i];
+                            final double origCommandedJointPositionI = commandedJointPositionI;
+                            double commandToCurrentJointDiff = commandedJointPositionI - jointPositionI;
+                            double absCommandToCurrentJointDiff = Math.abs(commandToCurrentJointDiff);
+                            double jointIncrement = 0.0;
+                            if (absCommandToCurrentJointDiff < JOINT_DIFF_MAX) {
+                                if (absCommandToCurrentJointDiff > 1e-4) {
+                                    jointschanged = true;
+                                }
+                                jointPositionI = commandedJointPositionI;
+                            } else {
+                                jointIncrement = JOINT_DIFF_MAX * Math.signum(commandToCurrentJointDiff);
+                                jointPositionI += jointIncrement;
+                                if (robotType == SimRobotEnum.SIMPLE && curGoalPose != null) {
+                                    jointPositionI = commandedJointPositionI;
+                                }
                                 jointschanged = true;
                             }
-                            jointPositionI = commandedJointPositionI;
-                            jointPositions[i] = jointPositionI;
-                        } else {
-                            jointPositionI += JOINT_DIFF_MAX * Math.signum(commandedJointPositionI - jointPositionI);
-                            if (robotType == SimRobotEnum.SIMPLE && curGoalPose != null) {
-                                jointPositionI = commandedJointPositionI;
-                                jointPositions[i] = jointPositionI;
-                            }
-                            jointschanged = true;
-                        }
-                        if (jointmins != null && jointmins.length > i) {
-                            double jointminI = jointmins[i];
-                            if (jointPositionI < jointminI) {
-                                newGoalPose = null;
-                                this.goalPose = null;
-                                setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                showMessage("Joint " + (i + 1) + " at " + jointPositionI + " less than limit " + jointminI);
-                                jointPositionI = jointminI;
-                                commandedJointPositionI = jointPositionI;
-                                jointPositions[i] = jointPositionI;
-                                commandedJointPositions1[i] = commandedJointPositionI;
-                            }
-                        }
-                        if (jointmaxs != null && jointmaxs.length > i) {
-                            double jointmaxI = jointmaxs[i];
-                            if (jointPositionI > jointmaxI) {
-                                newGoalPose = null;
-                                this.goalPose = null;
-                                setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                showMessage("Joint " + (i + 1) + " at " + jointPositionI + " more than limit " + jointmaxI);
-                                jointPositionI = jointmaxI;
-                                commandedJointPositionI = jointPositionI;
-                                jointPositions[i] = jointPositionI;
-                                commandedJointPositions1[i] = commandedJointPositionI;
-                            }
-                        }
-
-                        jointVelocites[i] = ((jointPositionI - lastJointPositions[i]) * 1000.0) / delayMillis;
-                        lastJointPositions[i] = jointPositionI;
-                        JointStatusesType jsst = getJointStatuses();
-                        assert (null != jsst);
-                        List<JointStatusType> jsl = jsst.getJointStatus();
-                        JointStatusType js = null;
-                        if (i < jsl.size()) {
-                            js = jsl.get(i);
-                        }
-                        if (null == js) {
-                            js = new JointStatusType();
-                            jsl.add(i, js);
-                        }
-                        js.setJointNumber(i + 1);
-                        if (cjrMap.size() > 0) {
-                            clearJointStatus(js);
-                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
-                            if (null != cjrt) {
-                                if (cjrt.getJointNumber() == js.getJointNumber()) {
-                                    if (cjrt.isReportPosition()) {
-                                        js.setJointPosition(jointPositionI);
-                                    }
-                                    if (cjrt.isReportVelocity()) {
-                                        js.setJointVelocity(jointVelocites[i]);
-                                    }
-                                    if (cjrt.isReportTorqueOrForce()) {
-                                        js.setJointTorqueOrForce(10.0);
-                                    }
+                            boolean atMinLimit = false;
+                            if (jointmins != null && jointmins.length > i) {
+                                double jointminI = jointmins[i];
+                                if (jointPositionI < jointminI) {
+                                    newGoalPose = null;
+                                    this.goalPose = null;
+                                    setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                    showMessage("Joint " + (i + 1) + " at " + jointPositionI + " less than limit " + jointminI);
+                                    jointPositionI = jointminI;
+                                    commandedJointPositionI = jointPositionI;
+                                    commandedJointPositions1[i] = commandedJointPositionI;
+                                    atMinLimit = true;
                                 }
                             }
-                            if (this.getCommandState() == CommandStateEnumType.CRCL_WORKING
-                                    && cmdLog.get(cmdLog.size() - 1) instanceof ConfigureJointReportsType) {
-                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            boolean atMaxLimit = false;
+                            if (jointmaxs != null && jointmaxs.length > i) {
+                                double jointmaxI = jointmaxs[i];
+                                if (jointPositionI > jointmaxI) {
+                                    newGoalPose = null;
+                                    this.goalPose = null;
+                                    setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                    showMessage("Joint " + (i + 1) + " at " + jointPositionI + " more than limit " + jointmaxI);
+                                    jointPositionI = jointmaxI;
+                                    commandedJointPositionI = jointPositionI;
+                                    commandedJointPositions1[i] = commandedJointPositionI;
+                                    atMaxLimit = true;
+                                }
                             }
-                        } else {
-                            js.setJointPosition(jointPositionI);
+
+                            double jointVelocitesI = ((jointPositionI - lastJointPositionI) * 1000.0) / delayMillis;
+                            if (Math.abs(jointVelocitesI) < 0.01 * absCommandToCurrentJointDiff) {
+                                throw new IllegalStateException("Joint velocity too slow to complete in 100 cycles : \n"
+                                        + "i=" + i + ", atMinLimit=" + atMinLimit + ", atMaxLimit=" + atMaxLimit + ",\n"
+                                        + "JOINT_DIFF_MAX=" + JOINT_DIFF_MAX + ", jointVelocitesI=" + jointVelocitesI + ",\n"
+                                        + "absCommandToCurrentJointDiff=" + absCommandToCurrentJointDiff + ",delayMillis=" + delayMillis + ",\n"
+                                        + "(jointPositionI - lastJointPositionI)=" + (jointPositionI - lastJointPositionI) + ",\n"
+                                        + "jointschanged=" + jointschanged + ",jointIncrement=" + jointIncrement + ",\n"
+                                        + "origCommandedJointPositionI=" + origCommandedJointPositionI + ", \n"
+                                        + "jointPositionI=" + jointPositionI + ", origJointPositionI=" + lastJointPositionI + ", (origJointPositionI-jointPositionI)=" + (lastJointPositionI - jointPositionI) + "\n"
+                                );
+                            }
+                            JointStatusesType jsst = getJointStatuses();
+                            assert (null != jsst);
+                            List<JointStatusType> jsl = jsst.getJointStatus();
+                            JointStatusType js = null;
+                            if (i < jsl.size()) {
+                                js = jsl.get(i);
+                            }
+                            if (null == js) {
+                                js = new JointStatusType();
+                                jsl.add(i, js);
+                            }
+                            js.setJointNumber(i + 1);
+                            if (cjrMap.size() > 0) {
+                                clearJointStatus(js);
+                                ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
+                                if (null != cjrt) {
+                                    if (cjrt.getJointNumber() == js.getJointNumber()) {
+                                        if (cjrt.isReportPosition()) {
+                                            js.setJointPosition(jointPositionI);
+                                        }
+                                        if (cjrt.isReportVelocity()) {
+                                            js.setJointVelocity(jointVelocitesI);
+                                        }
+                                        if (cjrt.isReportTorqueOrForce()) {
+                                            js.setJointTorqueOrForce(10.0);
+                                        }
+                                    }
+                                }
+                                if (this.getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                        && cmdLog.get(cmdLog.size() - 1) instanceof ConfigureJointReportsType) {
+                                    this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
+                            } else {
+                                js.setJointPosition(jointPositionI);
+                            }
+                            jointVelocites[i] = jointVelocitesI;
+                            jointPositions[i] = jointPositionI;
                         }
                     }
                     if (jointschanged
@@ -1796,23 +1839,38 @@ public class SimServerInner {
                         setPoseFromJoints(currentPose);
                     }
                     outer.updatePanels(jointschanged);
-                    if (!jointschanged
-                            && this.getCommandState() == CommandStateEnumType.CRCL_WORKING
-                            && executingMoveCommand) {
-                        if (null == newGoalPose
-                                || null == this.waypoints
-                                || this.currentWaypoint >= this.waypoints.size()) {
-                            setCommandState(CommandStateEnumType.CRCL_DONE);
-                            if (menuOuter().isDebugMoveDoneSelected()) {
-                                outer.showDebugMessage("SimServerInner DONE move command: " + status.getCommandStatus().getCommandID());
-                                outer.showDebugMessage("SimServerInner jointpositions = " + Arrays.toString(jointPositions));
+                    if (executingMoveCommand
+                            && this.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                        if (!jointschanged) {
+                            if (null == newGoalPose
+                                    || null == this.waypoints
+                                    || this.currentWaypoint >= this.waypoints.size()) {
+                                setCommandState(CommandStateEnumType.CRCL_DONE);
+                                if (menuOuter().isDebugMoveDoneSelected()) {
+                                    outer.showDebugMessage("SimServerInner DONE move command: " + commandStatus.getCommandID());
+                                    outer.showDebugMessage("SimServerInner jointpositions = " + Arrays.toString(jointPositions));
+                                }
+                                this.setMoveStraight(false);
+                                this.setWaypoints(null);
+                            } else {
+                                newGoalPose = null;
+                                this.goalPose = null;
                             }
-                            this.setMoveStraight(false);
-                            this.setWaypoints(null);
                         } else {
-                            newGoalPose = null;
-                            this.goalPose = null;
+                            System.err.println("SimServerInner: executing move command for " + workingCount.get() + " cycles.");
+                            System.out.println("jointVelocites = " + Arrays.toString(jointVelocites));
+                            System.out.println("jointPositions = " + Arrays.toString(jointPositions));
+                            System.out.println("this.commandedJointPositions = " + Arrays.toString(this.commandedJointPositions));
                         }
+                    }
+                    if (this.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                        int wc = workingCount.incrementAndGet();
+                        if (wc > maxWorkingCount) {
+                            maxWorkingCount = wc;
+                            System.out.println("Working on same command for  " + wc + " cycles.");
+                        }
+                    } else {
+                        workingCount.set(0);
                     }
                     cycle_count++;
                 }
@@ -2098,7 +2156,7 @@ public class SimServerInner {
     }
     private volatile int clientStatesSize = 0;
 
-    public void runAcceptClients() {
+    private void runAcceptClients() {
 
         final int start_close_count = this.closeCount.get();
         ServerSocket acceptingSocket = requireNonNull(this.serverSocket, "serverSocket");
@@ -2584,7 +2642,9 @@ public class SimServerInner {
                         if (jointPositions == null) {
                             jointPositions = Arrays.copyOf(commandedJointPositions1, commandedJointPositions1.length);
                         } else {
-                            System.arraycopy(commandedJointPositions1, 0, jointPositions, 0, Math.min(commandedJointPositions1.length, jointPositions.length));
+                            synchronized (jointPositions) {
+                                System.arraycopy(commandedJointPositions1, 0, jointPositions, 0, Math.min(commandedJointPositions1.length, jointPositions.length));
+                            }
                         }
                         goalPose = null;
                         waypoints.clear();
@@ -2783,6 +2843,12 @@ public class SimServerInner {
     static final private Map<Integer, Thread> threadMap = new ConcurrentHashMap<>();
 
     public synchronized void restartServer(boolean asDaemon) {
+        if (null == cmdSchema) {
+            throw new IllegalStateException("null==cmdSchema");
+        }
+        if (null == statSchema) {
+            throw new IllegalStateException("null==statSchema");
+        }
         InetSocketAddress bindAddress = new InetSocketAddress(port);
         ServerSocket closedServerSocket = null;
         try {
@@ -2915,7 +2981,8 @@ public class SimServerInner {
     private static class LastStatusInfo {
 
         long lastSentCid = -999;
-        @Nullable CommandStateEnumType lastSentState = null;
+        @Nullable
+        CommandStateEnumType lastSentState = null;
     }
 
     private static class ClientState implements AutoCloseable {
