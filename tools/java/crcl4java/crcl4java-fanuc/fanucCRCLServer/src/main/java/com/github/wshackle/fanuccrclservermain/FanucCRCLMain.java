@@ -1366,17 +1366,7 @@ public class FanucCRCLMain {
     private void handleInitCanon(InitCanonType initCmd) {
         lastServoReady = true;
 
-        if (null != overrideVar) {
-            overrideVar.refresh();
-            Object overrideValueObject = overrideVar.value();
-//                System.out.println("overrideValueObject = " + overrideValueObject);
-//                if(null != overrideValueObject) {
-//                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
-//                }
-            if (overrideValueObject instanceof Integer) {
-                setOverrideValue((Integer) overrideValueObject);
-            }
-        }
+        recheckOverride();
         boolean initSafetyStatError = checkSafetyStatError();
 //        logDebug("initSafetyStatError = " + initSafetyStatError);
         if (initSafetyStatError) {
@@ -1403,6 +1393,26 @@ public class FanucCRCLMain {
 
         robotResetCount = 0;
 //        checkAlarms();
+    }
+
+    private void recheckOverride() {
+        if (null != overrideVar) {
+            overrideVar.refresh();
+            Object overrideValueObject = overrideVar.value();
+            
+            if (overrideValueObject instanceof Integer) {
+                int val = (Integer) overrideValueObject;
+                if(val != overrideValue) {
+                    System.out.println("overrideValueObject = " + overrideValueObject);
+                    setOverrideValue(val);
+                }
+            } else {
+                System.out.println("overrideValueObject = " + overrideValueObject);
+                if(null != overrideValueObject) {
+                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
+                }
+            }
+        }
     }
 
     private void handleStopMotion(StopMotionType stopCmd) {
@@ -1639,6 +1649,9 @@ public class FanucCRCLMain {
 //            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 
+        if(overrideValue < 50) {
+            recheckOverride();
+        }
         moveReasons = new ArrayList<>();
         distances = new ArrayList<>();
         moveChecksDone = 0;
