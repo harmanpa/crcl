@@ -351,7 +351,9 @@ public class FanucCRCLMain {
             return connectRemoteRobot()
                     .thenRun(this::wrappedStartCrclServer);
         } catch (Exception exception) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, exception);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+                    "start("+preferRobotNeighborhood+","+neighborhoodname+","+remoteRobotHost+","+localPort+") : "+exception.getMessage(),
+                    exception);
             showError(exception.toString());
             throw new RuntimeException(exception);
         }
@@ -657,7 +659,7 @@ public class FanucCRCLMain {
 
     private File moveLogFile = null;
     private PrintStream moveLogFilePrintStream = null;
-    private AtomicInteger readStatusCount = new AtomicInteger();
+    private final AtomicInteger readStatusCount = new AtomicInteger();
     private List<Long> updateTimes = new ArrayList<>();
 
     private synchronized void readStatusFromRobotInternal() {
@@ -777,7 +779,7 @@ public class FanucCRCLMain {
                             }
                         }
                     } catch (Throwable ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i="+i+",js="+js+" : "+ex.getMessage(), ex);
                     }
                     jointStatuses.getJointStatus().add(js);
                     checkDonePrevCmd();
@@ -790,7 +792,8 @@ public class FanucCRCLMain {
             }
         } catch (PmException ex) {
             showError(ex.toString());
-            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            throw new RuntimeException(ex);
         }
     }
 
@@ -946,7 +949,7 @@ public class FanucCRCLMain {
 //start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
 
                                 } catch (Exception ex) {
-                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
                                 }
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                                 setPrevCmd(null);

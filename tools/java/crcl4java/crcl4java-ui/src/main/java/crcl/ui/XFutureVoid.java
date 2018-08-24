@@ -85,7 +85,10 @@ public class XFutureVoid extends XFuture<Void> {
                 Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, throwable);
+                String errMsg = "Exception in XFutureVoid  "+myf.forExceptionString();
+//                System.out.println("errMsg = " + errMsg);
+//                System.err.println(errMsg);
+                LOGGER.log(Level.SEVERE,errMsg , throwable);
                 throw new RuntimeException(throwable);
             }
             myf.complete(null);
@@ -94,6 +97,7 @@ public class XFutureVoid extends XFuture<Void> {
         myf.setFutureFromExecSubmit((Future<Void>) f);
         return myf;
     }
+    private static final Logger LOGGER = Logger.getLogger(XFuture.class.getName());
 
     public <U> XFuture<U> thenCompose(Supplier< ? extends CompletionStage<U>> supplier) {
         return super.thenCompose(getName() + ".thenCompose", c -> supplier.get());
@@ -160,7 +164,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -186,7 +190,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -212,7 +216,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -238,7 +242,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -376,7 +380,7 @@ public class XFutureVoid extends XFuture<Void> {
 //            try {
 //                r.run();
 //            } catch (Throwable t2) {
-//                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, null, t2);
+//                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
 //                if (null == t) {
 //                    if (t2 instanceof RuntimeException) {
 //                        throw ((RuntimeException) t2);

@@ -2054,7 +2054,7 @@ public class PendantClientInner {
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
         CommandStatusType curCmdStatus = curStatus.getCommandStatus();
         CommandStateEnumType curState = curCmdStatus.getCommandState();
-        double requiredTimeDiff = (curState == CRCL_WORKING)?500:20000;
+        double requiredTimeDiff = (curState == CRCL_WORKING) ? 500 : 20000;
         if (lastEl != null
                 && lastEl.getId() == curStatus.getCommandStatus().getCommandID()
                 && (lastEl instanceof StatusLogElement)
@@ -2965,6 +2965,9 @@ public class PendantClientInner {
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement @Nullable [] threadCreateCallStack,
             @Nullable XFuture<Boolean> future) {
+        int index = startLine;
+        String progName = prog.getName();
+        CRCLCommandType lineCmd = null;
         try {
             final int origStartLine = startLine;
             final int startRunProgramAbortCount = runProgramAbortCount.get();
@@ -3027,182 +3030,133 @@ public class PendantClientInner {
                 throw new IllegalArgumentException("prog == null");
             }
 
-//            if (paused) {
-//                if (crclClientErrorMessage == null || crclClientErrorMessage.length() < 1) {
-//                    showErrorMessage("startRunProgramThread called when paused.");
-//                }
-//                throw new IllegalStateException("startRunProgramThread called when paused.");
-//            }
-            try {
-                this.waitForPause(startRunProgramAbortCount);
-                if (runProgramAbortCount.get() != startRunProgramAbortCount) {
+            this.waitForPause(startRunProgramAbortCount);
+            if (runProgramAbortCount.get() != startRunProgramAbortCount) {
+                return false;
+            }
+            long id = commandId.get();
+            InitCanonType initCmd = prog.getInitCanon();
+            long progId = initCmd.getCommandID();
+            if (null != prog && null != prog.getMiddleCommand()) {
+                setOutgoingProgramLength(prog.getMiddleCommand().size());
+            } else {
+                setOutgoingProgramLength(0);
+            }
+
+            if (null == this.crclSocket) {
+                this.connect(outer.getHost(), outer.getPort());
+                if (!this.isConnected()) {
+                    showErrorMessage("runProgram() failed because not connected to server");
                     return false;
                 }
-                long id = commandId.get();
-                InitCanonType initCmd = prog.getInitCanon();
-                long progId = initCmd.getCommandID();
-                if (null != prog && null != prog.getMiddleCommand()) {
-                    setOutgoingProgramLength(prog.getMiddleCommand().size());
-                } else {
-                    setOutgoingProgramLength(0);
+            }
+            outer.stopPollTimer();
+
+            programCommandStartTime = System.currentTimeMillis();
+            PmCartesian p0 = getPoseCart();
+            if (this.runStartMillis < 1 || startLine == 0) {
+                this.runStartMillis = System.currentTimeMillis();
+                this.runEndMillis = -1;
+            }
+            setOutgoingProgramIndex(startLine);
+            CRCLStatusType curStatus = getStatus();
+            if (null != curStatus) {
+                showCurrentProgramLine(startLine, prog, curStatus);
+            }
+            if (startLine == 0) {
+                logRunProgramDebugInfo(startLine, id, progId);
+                while ((progId - 1) > id
+                        && !commandIdCompareAndSet(id, (progId - 1))) {
+                    id = commandId.get();
+                    progId = initCmd.getCommandID();
                 }
 
-                if (null == this.crclSocket) {
-                    this.connect(outer.getHost(), outer.getPort());
-                    if (!this.isConnected()) {
-                        showErrorMessage("runProgram() failed because not connected to server");
-                        return false;
-                    }
-                }
-                outer.stopPollTimer();
-
-                programCommandStartTime = System.currentTimeMillis();
-                PmCartesian p0 = getPoseCart();
-                if (this.runStartMillis < 1 || startLine == 0) {
-                    this.runStartMillis = System.currentTimeMillis();
-                    this.runEndMillis = -1;
-                }
-                setOutgoingProgramIndex(startLine);
-                CRCLStatusType curStatus = getStatus();
-                if (null != curStatus) {
-                    showCurrentProgramLine(startLine, prog, curStatus);
-                }
-                if (startLine == 0) {
-                    logRunProgramDebugInfo(startLine, id, progId);
-                    while ((progId - 1) > id
-                            && !commandIdCompareAndSet(id, (progId - 1))) {
-                        id = commandId.get();
-                        progId = initCmd.getCommandID();
-                    }
-
-                    programState = new ProgramState(prog, 0, initCmd);
-                    programName = prog.getName();
-                    programIndex = 0;
-                    if (!testCommand(initCmd, startRunProgramAbortCount)) {
-                        return false;
-                    }
-                    if (runProgramAbortCount.get() != startRunProgramAbortCount) {
-                        return false;
-                    }
-                    if (stepMode) {
-                        pause();
-                    }
-                    startLine = 1;
-                }
-                long time_to_exec = System.currentTimeMillis() - programCommandStartTime;
-                PmCartesian p1 = getPoseCart();
-
-                ProgramRunData prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, initCmd.getCommandID(), CRCLSocket.commandToSimpleString(initCmd));
-                while (progRunDataList.size() <= 1) {
-                    progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
-                }
-                progRunDataList.set(0, prd);
-                outer.showLastProgramLineExecTimeMillisDists(0, prd);
-                p0 = p1;
-                showCurrentProgramLine(startLine, prog, getStatus());
-                List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
-                for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size() + 1; i++) {
-                    if (null != future && future.isCancelled()) {
-                        try {
-                            stopMotion(StopConditionEnumType.FAST);
-                        } catch (JAXBException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                        System.err.println("runProgram() stopped when future.isCancelled() returned true");
-                        return false;
-                    }
-                    programCommandStartTime = System.currentTimeMillis();
-                    runProgramThread = Thread.currentThread();
-                    setOutgoingProgramIndex(i);
-                    MiddleCommandType cmd = middleCommands.get(i - 1);
-                    do {
-                        id = commandId.get();
-                        progId = cmd.getCommandID();
-                        if (i == startLine) {
-                            logRunProgramDebugInfo(startLine, id, progId);
-                        }
-                    } while ((progId - 1) > id
-                            && !commandIdCompareAndSet(id, (progId - 1)));
-                    if (cmd instanceof CrclCommandWrapper) {
-                        CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
-                        wrapper.setCurProgram(prog);
-                        wrapper.setCurProgramIndex(i - 1);
-                    }
-                    programState = new ProgramState(prog, i, cmd);
-                    programName = prog.getName();
-                    programIndex = i + 1;
-                    if (lastProgramIndex > programIndex && programIndex > 2) {
-                        showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + programIndex);
-                        throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + programIndex);
-                    }
-                    lastProgramIndex = programIndex;
-                    String progName = prog.getName();
-                    if (null != progName) {
-                        lastProgramName = progName;
-                    }
-                    if (this.isBlockPrograms()) {
-                        printStartBlockingProgramInfo();
-                        showErrorMessage("Block Programs");
-                        throw new IllegalStateException("Block Programs");
-                    }
-                    boolean result = testCommand(cmd, startRunProgramAbortCount);
-//                checkProgIds(prog);
-                    if (!result) {
-                        if (this.isQuitOnTestCommandFailure()) {
-                            if (isConnected()) {
-                                stopMotion(StopConditionEnumType.FAST);
-                            }
-                            if (null != future) {
-                                future.cancel(false);
-                            }
-                            return false;
-                        }
-                    }
-                    curStatus
-                            = requireNonNull(
-                                    this.getStatus(),
-                                    "this.getStatus()");
-                    final CommandStatusType commandStatus
-                            = requireNonNull(
-                                    curStatus.getCommandStatus(),
-                                    "curStatus.getCommandStatus()");
-                    if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_DONE) {
-                        result = false;
-                    }
-                    time_to_exec = System.currentTimeMillis() - programCommandStartTime;
-                    p1 = getPoseCart();
-                    if (i < middleCommands.size()) {
-                        showCurrentProgramLine(i + 1, prog, getStatus());
-                        prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), result, cmd.getCommandID(), CRCLSocket.commandToSimpleString(cmd));
-                        while (progRunDataList.size() <= i) {
-                            progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
-                        }
-                        progRunDataList.set(i, prd);
-                        outer.showLastProgramLineExecTimeMillisDists(i, prd);
-                    }
-                    p0 = p1;
-                    if (stepMode) {
-                        pause();
-                    }
-                }
-                programCommandStartTime = System.currentTimeMillis();
-                EndCanonType endCmd = prog.getEndCanon();
+                programState = new ProgramState(prog, 0, initCmd);
                 programName = prog.getName();
-                programIndex = -1;
-                if (!testCommand(endCmd, startRunProgramAbortCount)) {
+                programIndex = 0;
+                index=0;
+                lineCmd = initCmd;
+                if (!testCommand(initCmd, startRunProgramAbortCount)) {
                     return false;
                 }
                 if (runProgramAbortCount.get() != startRunProgramAbortCount) {
                     return false;
                 }
-                time_to_exec = System.currentTimeMillis() - programCommandStartTime;
-                prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, endCmd.getCommandID(), CRCLSocket.commandToSimpleString(endCmd));
-                while (progRunDataList.size() <= middleCommands.size() + 1) {
-                    progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
+                if (stepMode) {
+                    pause();
                 }
-                progRunDataList.set(middleCommands.size() + 1, prd);
-                outer.showLastProgramLineExecTimeMillisDists(middleCommands.size() + 1, prd);
-                showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
+                startLine = 1;
+            }
+            long time_to_exec = System.currentTimeMillis() - programCommandStartTime;
+            PmCartesian p1 = getPoseCart();
+
+            ProgramRunData prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, initCmd.getCommandID(), CRCLSocket.commandToSimpleString(initCmd));
+            while (progRunDataList.size() <= 1) {
+                progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
+            }
+            progRunDataList.set(0, prd);
+            outer.showLastProgramLineExecTimeMillisDists(0, prd);
+            p0 = p1;
+            showCurrentProgramLine(startLine, prog, getStatus());
+            List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
+            for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size() + 1; i++) {
+                if (null != future && future.isCancelled()) {
+                    try {
+                        stopMotion(StopConditionEnumType.FAST);
+                    } catch (JAXBException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    }
+                    System.err.println("runProgram() stopped when future.isCancelled() returned true");
+                    return false;
+                }
+                programCommandStartTime = System.currentTimeMillis();
+                runProgramThread = Thread.currentThread();
+                setOutgoingProgramIndex(i);
+                MiddleCommandType cmd = middleCommands.get(i - 1);
+                do {
+                    id = commandId.get();
+                    progId = cmd.getCommandID();
+                    if (i == startLine) {
+                        logRunProgramDebugInfo(startLine, id, progId);
+                    }
+                } while ((progId - 1) > id
+                        && !commandIdCompareAndSet(id, (progId - 1)));
+                if (cmd instanceof CrclCommandWrapper) {
+                    CrclCommandWrapper wrapper = (CrclCommandWrapper) cmd;
+                    wrapper.setCurProgram(prog);
+                    wrapper.setCurProgramIndex(i - 1);
+                }
+                programState = new ProgramState(prog, i, cmd);
+                programName = prog.getName();
+                index = i + 1;
+                programIndex = index;
+                if (lastProgramIndex > index && index > 2) {
+                    showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + index);
+                    throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + index);
+                }
+                lastProgramIndex = programIndex;
+                progName = prog.getName();
+                if (null != progName) {
+                    lastProgramName = progName;
+                }
+                if (this.isBlockPrograms()) {
+                    printStartBlockingProgramInfo();
+                    showErrorMessage("Block Programs");
+                    throw new IllegalStateException("Block Programs");
+                }
+                lineCmd = cmd;
+                boolean result = testCommand(cmd, startRunProgramAbortCount);
+                if (!result) {
+                    if (this.isQuitOnTestCommandFailure()) {
+                        if (isConnected()) {
+                            stopMotion(StopConditionEnumType.FAST);
+                        }
+                        if (null != future) {
+                            future.cancel(false);
+                        }
+                        return false;
+                    }
+                }
                 curStatus
                         = requireNonNull(
                                 this.getStatus(),
@@ -3211,37 +3165,80 @@ public class PendantClientInner {
                         = requireNonNull(
                                 curStatus.getCommandStatus(),
                                 "curStatus.getCommandStatus()");
-                return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
-            } catch (InterruptedException ex) {
-                if (close_test_count.get() <= start_close_test_count) {
-                    LOGGER.log(Level.SEVERE, null, ex);
+                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_DONE) {
+                    result = false;
                 }
-            } catch (Throwable ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-                System.err.println("startLine=" + startLine);
-                System.err.println("i=" + i);
-                System.err.println("threadCreateCallStack=" + Arrays.toString(threadCreateCallStack));
-            } finally {
-                setOutgoingProgramIndex(-1);
-                this.runEndMillis = System.currentTimeMillis();
-                outer.checkPollSelected();
-                callingRunProgramStackTrace.set(null);
+                time_to_exec = System.currentTimeMillis() - programCommandStartTime;
+                p1 = getPoseCart();
+                if (i < middleCommands.size()) {
+                    showCurrentProgramLine(i + 1, prog, getStatus());
+                    prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), result, cmd.getCommandID(), CRCLSocket.commandToSimpleString(cmd));
+                    while (progRunDataList.size() <= i) {
+                        progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
+                    }
+                    progRunDataList.set(i, prd);
+                    outer.showLastProgramLineExecTimeMillisDists(i, prd);
+                }
+                p0 = p1;
+                if (stepMode) {
+                    pause();
+                }
             }
+            programCommandStartTime = System.currentTimeMillis();
+            EndCanonType endCmd = prog.getEndCanon();
+            programName = prog.getName();
+            index = -1;
+            programIndex = -1;
+            lineCmd = endCmd;
+            if (!testCommand(endCmd, startRunProgramAbortCount)) {
+                return false;
+            }
+            if (runProgramAbortCount.get() != startRunProgramAbortCount) {
+                return false;
+            }
+            time_to_exec = System.currentTimeMillis() - programCommandStartTime;
+            prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, endCmd.getCommandID(), CRCLSocket.commandToSimpleString(endCmd));
+            while (progRunDataList.size() <= middleCommands.size() + 1) {
+                progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
+            }
+            progRunDataList.set(middleCommands.size() + 1, prd);
+            outer.showLastProgramLineExecTimeMillisDists(middleCommands.size() + 1, prd);
+            showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
+            curStatus
+                    = requireNonNull(
+                            this.getStatus(),
+                            "this.getStatus()");
+            final CommandStatusType commandStatus
+                    = requireNonNull(
+                            curStatus.getCommandStatus(),
+                            "curStatus.getCommandStatus()");
+            return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
+
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("startLine = " + startLine);
+            System.err.println("index = " + index);
+            System.err.println("progName = " + progName);
+            if(null != lineCmd) {
+                System.err.println("lineCmd = " + CRCLSocket.cmdToString(lineCmd));
+            }
+            throw new RuntimeException("Failed to run program "+progName+" : " + ex.getMessage(), ex);
+        } finally {
             try {
                 if (null != crclSocket) {
                     stopMotion(StopConditionEnumType.FAST);
                 }
-            } catch (JAXBException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (JAXBException jAXBException) {
+                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, jAXBException);
             }
-        } catch (InterruptedException | JAXBException ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException("Failed to run program : " + ex.getMessage(), ex);
-        } finally {
+            
+            setOutgoingProgramIndex(-1);
+            this.runEndMillis = System.currentTimeMillis();
+            outer.checkPollSelected();
+            callingRunProgramStackTrace.set(null);
             lastProgRunDataList = new ArrayList<>(progRunDataList);
             runProgramThread = null;
         }
-        return false;
     }
 
     private void logRunProgramDebugInfo(int startLine, long id, long progId) {
