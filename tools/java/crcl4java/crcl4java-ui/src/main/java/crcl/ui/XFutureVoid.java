@@ -261,41 +261,36 @@ public class XFutureVoid extends XFuture<Void> {
     @Override
     public XFutureVoid thenRun(Runnable r) {
         XFuture<Void> f = super.thenRun(r);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        if (f == this) {
+            System.out.println("f = " + f);
+            XFuture<Void> f2 = super.thenRun(r);
+            System.out.println("f2 = " + f2);
+        }
+        return staticwrapvoid(f.getName(), f);
     }
 
     @Override
     public XFutureVoid thenRun(String name, Runnable r) {
         XFuture<Void> f = super.thenRun(name, r);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     @Override
     public XFutureVoid thenRunAsync(Runnable r) {
         XFuture<Void> f = super.thenRunAsync(r);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     @Override
     public XFutureVoid thenRunAsync(String name, Runnable r) {
         XFuture<Void> f = super.thenRunAsync(name, r);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     @Override
     public XFutureVoid thenRunAsync(String name, Runnable r, ExecutorService es) {
         XFuture<Void> f = super.thenRunAsync(name, r, es);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     public <U> XFuture<U> thenSupply(Supplier<U> supplier) {
@@ -320,16 +315,12 @@ public class XFutureVoid extends XFuture<Void> {
 
     public XFutureVoid thenComposeVoidAsync(Supplier< XFuture<Void>> supplier) {
         XFuture<Void> f = super.thenComposeAsync(getName() + ".thenCompose", c -> supplier.get());
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     public XFutureVoid thenComposeVoid(Supplier< XFuture<Void>> supplier, ExecutorService es) {
         XFuture<Void> f = super.thenComposeAsync(getName() + ".thenCompose", c -> supplier.get(), es);
-        XFutureVoid ret = staticwrapvoid(f.getName(), f);
-        ret.alsoCancelAdd(f);
-        return ret;
+        return staticwrapvoid(f.getName(), f);
     }
 
     private static XFutureVoid staticwrapvoid(String name, CompletableFuture<Void> future) {
@@ -348,22 +339,25 @@ public class XFutureVoid extends XFuture<Void> {
     public static XFutureVoid allOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFutureVoid ret = staticwrapvoid(name, orig);
-        ret.alsoCancelAddAll(Arrays.asList(cfs));
+        if (ret != orig) {
+            ret.alsoCancelAddAll(Arrays.asList(cfs));
+        }
         return ret;
     }
 
     public static XFutureVoid allOf(CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFutureVoid ret = staticwrapvoid("allOfWithName", orig);
-        ret.alsoCancelAddAll(Arrays.asList(cfs));
+        if (ret != orig) {
+            ret.alsoCancelAddAll(Arrays.asList(cfs));
+        }
         return ret;
     }
-    
+
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOf(Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOf(cfsCollection.toArray(new CompletableFuture[0]));
     }
-    
 
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {

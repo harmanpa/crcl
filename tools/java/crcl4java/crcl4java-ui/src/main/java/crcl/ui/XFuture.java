@@ -101,8 +101,8 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @SuppressWarnings("rawtypes")
-    public static XFutureVoid allOf( Collection<? extends CompletableFuture<?>> cfsCollection) {
-        return allOf( cfsCollection.toArray(new CompletableFuture[0]));
+    public static XFutureVoid allOf(Collection<? extends CompletableFuture<?>> cfsCollection) {
+        return allOf(cfsCollection.toArray(new CompletableFuture[0]));
     }
 
     private static String createTraceToString(StackTraceElement stea[]) {
@@ -179,7 +179,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Nullable private volatile List<String> prevProfileStrings = null;
 
-    @SuppressWarnings({"unchecked","rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void getAllProfileString(Iterable<CompletableFuture<?>> localAlsoCancels, List<String> listIn) {
 
         List<String> localPrevProfileStrings = this.prevProfileStrings;
@@ -250,7 +250,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return sb.toString();
     }
 
-    @SuppressWarnings({"unchecked","rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void internalPrintStatus(PrintStream ps) {
 
         if (isCompletedExceptionally()) {
@@ -1192,8 +1192,24 @@ public class XFuture<T> extends CompletableFuture<T> {
                 xf.setKeepOldProfileStrings(true);
             }
             xFutureAlsoCancelCount.incrementAndGet();
+//            for (CompletableFuture<?> alsoCancelCf : alsoCancel) {
+//                if (alsoCancelCf == cf) {
+//                    throw new IllegalStateException("attempt to addAlsoCancel twice :this=" + this + ", cf=" + cf);
+//                }
+//                if (alsoCancelCf instanceof XFuture) {
+//                    XFuture<?> alsoCancelXf = (XFuture<?>) alsoCancelCf;
+//                    for (CompletableFuture<?> alsoCancelCf2 : alsoCancelXf.alsoCancel) {
+//                        if (alsoCancelCf == cf) {
+//                            throw new IllegalStateException("attempt to addAlsoCancel2 twice :this=" + this + ", cf=" + cf+",alsoCancelXf="+alsoCancelXf);
+//                        }
+//                    }
+//                }
+//            }
         } else {
             cfFutureAlsoCancelCount.incrementAndGet();
+        }
+        if (cf == this) {
+            throw new IllegalStateException("attempt to addAlsoCancel of self :this=" + this);
         }
         this.alsoCancel.add(cf);
     }
