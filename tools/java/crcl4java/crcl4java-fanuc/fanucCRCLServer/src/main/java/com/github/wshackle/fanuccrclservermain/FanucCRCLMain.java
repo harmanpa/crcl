@@ -351,7 +351,9 @@ public class FanucCRCLMain {
             return connectRemoteRobot()
                     .thenRun(this::wrappedStartCrclServer);
         } catch (Exception exception) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, exception);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+                    "start("+preferRobotNeighborhood+","+neighborhoodname+","+remoteRobotHost+","+localPort+") : "+exception.getMessage(),
+                    exception);
             showError(exception.toString());
             throw new RuntimeException(exception);
         }
@@ -657,7 +659,7 @@ public class FanucCRCLMain {
 
     private File moveLogFile = null;
     private PrintStream moveLogFilePrintStream = null;
-    private AtomicInteger readStatusCount = new AtomicInteger();
+    private final AtomicInteger readStatusCount = new AtomicInteger();
     private List<Long> updateTimes = new ArrayList<>();
 
     private synchronized void readStatusFromRobotInternal() {
@@ -777,7 +779,7 @@ public class FanucCRCLMain {
                             }
                         }
                     } catch (Throwable ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i="+i+",js="+js+" : "+ex.getMessage(), ex);
                     }
                     jointStatuses.getJointStatus().add(js);
                     checkDonePrevCmd();
@@ -790,7 +792,8 @@ public class FanucCRCLMain {
             }
         } catch (PmException ex) {
             showError(ex.toString());
-            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            throw new RuntimeException(ex);
         }
     }
 
@@ -946,7 +949,7 @@ public class FanucCRCLMain {
 //start_y,start_z,end_x,end_y,end_z,distTran,distRot,moveTime,moveCheckCount");
 
                                 } catch (Exception ex) {
-                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
                                 }
                                 setCommandState(CommandStateEnumType.CRCL_DONE);
                                 setPrevCmd(null);
@@ -1366,17 +1369,7 @@ public class FanucCRCLMain {
     private void handleInitCanon(InitCanonType initCmd) {
         lastServoReady = true;
 
-        if (null != overrideVar) {
-            overrideVar.refresh();
-            Object overrideValueObject = overrideVar.value();
-//                System.out.println("overrideValueObject = " + overrideValueObject);
-//                if(null != overrideValueObject) {
-//                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
-//                }
-            if (overrideValueObject instanceof Integer) {
-                setOverrideValue((Integer) overrideValueObject);
-            }
-        }
+        recheckOverride();
         boolean initSafetyStatError = checkSafetyStatError();
 //        logDebug("initSafetyStatError = " + initSafetyStatError);
         if (initSafetyStatError) {
@@ -1403,6 +1396,26 @@ public class FanucCRCLMain {
 
         robotResetCount = 0;
 //        checkAlarms();
+    }
+
+    private void recheckOverride() {
+        if (null != overrideVar) {
+            overrideVar.refresh();
+            Object overrideValueObject = overrideVar.value();
+            
+            if (overrideValueObject instanceof Integer) {
+                int val = (Integer) overrideValueObject;
+                if(val != overrideValue) {
+                    System.out.println("overrideValueObject = " + overrideValueObject);
+                    setOverrideValue(val);
+                }
+            } else {
+                System.out.println("overrideValueObject = " + overrideValueObject);
+                if(null != overrideValueObject) {
+                    System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
+                }
+            }
+        }
     }
 
     private void handleStopMotion(StopMotionType stopCmd) {
@@ -1639,6 +1652,9 @@ public class FanucCRCLMain {
 //            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 
+        if(overrideValue < 50) {
+            recheckOverride();
+        }
         moveReasons = new ArrayList<>();
         distances = new ArrayList<>();
         moveChecksDone = 0;
