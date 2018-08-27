@@ -166,14 +166,16 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public void printStatus(PrintStream ps) {
         ps.println();
-        ps.println("Status for " + XFuture.this.forExceptionString());
+        ps.println("Status for " + XFuture.this.toString());
         internalPrintStatus(ps);
 
         if (isCompletedExceptionally()) {
             this.exceptionally(t -> {
                 if (!(t instanceof CancellationException) || printCancellationExceptions) {
-                    System.err.println(XFuture.this.forExceptionString() + " Completed Exceptionally with: ");
+                    System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
+                    String forExceptionString = XFuture.this.forExceptionString();
+                    System.err.println("forExceptionString = " + forExceptionString);
                 }
                 return null;
             });
@@ -185,8 +187,10 @@ public class XFuture<T> extends CompletableFuture<T> {
     @SuppressWarnings("nullness")
     private Object printEx(Throwable t, PrintStream ps) {
         if (!(t instanceof CancellationException) || printCancellationExceptions) {
-            System.err.println(XFuture.this.forExceptionString() + " Completed Exceptionally with: ");
+            ps.println(XFuture.this.toString() + " Completed Exceptionally with: ");
             t.printStackTrace(ps);
+            String forExceptionString = XFuture.this.forExceptionString();
+            ps.println("forExceptionString = " + forExceptionString);
         }
         return null;
     }
@@ -294,21 +298,23 @@ public class XFuture<T> extends CompletableFuture<T> {
     private void internalPrintStatus(PrintStream ps) {
 
         if (isCompletedExceptionally()) {
-            ps.println(XFuture.this.forExceptionString() + " is CompletedExceptionally.");
+            ps.println(XFuture.this.toString() + " is CompletedExceptionally.");
             this.exceptionally(t -> {
                 if (!(t instanceof CancellationException) || printCancellationExceptions) {
-                    System.err.println(XFuture.this.forExceptionString() + " Completed Exceptionally with: ");
+                    ps.println(XFuture.this.forExceptionString() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
+                    String forExceptionString = XFuture.this.forExceptionString();
+                    ps.println("forExceptionString = " + forExceptionString);
                 }
                 return null;
             });
             return;
         }
         if (isCancelled()) {
-            ps.println(XFuture.this.forExceptionString() + " is cancelled.");
+            ps.println(XFuture.this.toString() + " is cancelled.");
             return;
         } else if (isDone()) {
-            ps.println(XFuture.this.forExceptionString() + " is done.");
+            ps.println(XFuture.this.toString() + " is done.");
             return;
         }
         for (CompletableFuture<?> f : alsoCancel) {
@@ -329,7 +335,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 }
             }
         }
-        ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + XFuture.this.forExceptionString());
+        ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + XFuture.this.toString());
 
     }
 
@@ -987,22 +993,21 @@ public class XFuture<T> extends CompletableFuture<T> {
             this.completeExceptionally(thrown);
             if (thrown instanceof PrintedXFutureRuntimeException) {
                 throw ((PrintedXFutureRuntimeException) thrown);
+            } else if (thrown instanceof Error) {
+                throw ((Error) thrown);
             } else {
                 PrintStream ps = logExceptionPrintStream;
                 if (null != ps) {
-                    ps.println("Exception passed through XFuture : " + XFuture.this.forExceptionString());
                     Throwable cause = thrown.getCause();
                     boolean isCancellationException
                             = (thrown instanceof CancellationException)
                             || (null != cause && cause instanceof CancellationException);
                     if (!isCancellationException || printCancellationExceptions) {
+                        ps.println("Exception " + thrown + " passed through XFuture : " + XFuture.this.forExceptionString());
                         thrown.printStackTrace(ps);
                         if (null != cause) {
                             cause.printStackTrace(ps);
                         }
-                    } else if (thrown instanceof RuntimeException) {
-                        RuntimeException re = (RuntimeException) thrown;
-                        throw re;
                     }
                 }
                 throw new PrintedXFutureRuntimeException(thrown);

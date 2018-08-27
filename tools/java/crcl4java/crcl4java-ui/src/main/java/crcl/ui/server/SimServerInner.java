@@ -1856,18 +1856,19 @@ public class SimServerInner {
                                 newGoalPose = null;
                                 this.goalPose = null;
                             }
-                        } else {
-                            System.err.println("SimServerInner: executing move command for " + workingCount.get() + " cycles.");
-                            System.out.println("jointVelocites = " + Arrays.toString(jointVelocites));
-                            System.out.println("jointPositions = " + Arrays.toString(jointPositions));
-                            System.out.println("this.commandedJointPositions = " + Arrays.toString(this.commandedJointPositions));
-                        }
+                        } 
+//                        else {
+//                            System.err.println("SimServerInner: executing move command for " + workingCount.get() + " cycles.");
+//                            System.out.println("jointVelocites = " + Arrays.toString(jointVelocites));
+//                            System.out.println("jointPositions = " + Arrays.toString(jointPositions));
+//                            System.out.println("this.commandedJointPositions = " + Arrays.toString(this.commandedJointPositions));
+//                        }
                     }
                     if (this.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
                         int wc = workingCount.incrementAndGet();
                         if (wc > maxWorkingCount) {
                             maxWorkingCount = wc;
-                            System.out.println("Working on same command for  " + wc + " cycles.");
+//                            System.out.println("Working on same command for  " + wc + " cycles.");
                         }
                     } else {
                         workingCount.set(0);
