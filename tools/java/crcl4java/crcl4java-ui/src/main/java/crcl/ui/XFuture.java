@@ -482,7 +482,9 @@ public class XFuture<T> extends CompletableFuture<T> {
                 }
                 return result;
             } catch (Throwable throwable) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                }
                 try {
                     T result = handler.apply(throwable);
                     myf.complete(result);
@@ -530,7 +532,9 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return result;
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                }
                 throw new RuntimeException(throwable);
             }
         });
@@ -597,7 +601,9 @@ public class XFuture<T> extends CompletableFuture<T> {
                 setTName(name);
                 return fn.apply(x);
             } catch (Throwable t) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                }
                 FT chk = fn.apply(x);
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
@@ -1070,7 +1076,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(x);
             } catch (Throwable t) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                }
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
                 } else {
@@ -1085,7 +1093,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(a, b);
             } catch (Throwable t) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                }
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
                 } else {
@@ -1135,22 +1145,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t2);
-                if (null == t) {
-                    if (t2 instanceof RuntimeException) {
-                        throw ((RuntimeException) t2);
-                    } else {
-                        throw new RuntimeException(t2);
-                    }
-                }
+                logAndRethrow(t2);
             }
-            if (null != t) {
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
-            }
+            rethrow(t);
             return x;
         }));
     }
@@ -1160,22 +1157,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t2);
-                if (null == t) {
-                    if (t2 instanceof RuntimeException) {
-                        throw ((RuntimeException) t2);
-                    } else {
-                        throw new RuntimeException(t2);
-                    }
-                }
+                logAndRethrow(t2);
             }
-            if (null != t) {
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
-            }
+            rethrow(t);
             return x;
         }));
     }
@@ -1185,22 +1169,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t2);
-                if (null == t) {
-                    if (t2 instanceof RuntimeException) {
-                        throw ((RuntimeException) t2);
-                    } else {
-                        throw new RuntimeException(t2);
-                    }
-                }
+                logAndRethrow(t2);
             }
-            if (null != t) {
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
-            }
+            rethrow(t);
             return x;
         }, service));
     }
@@ -1210,22 +1181,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t2);
-                if (null == t) {
-                    if (t2 instanceof RuntimeException) {
-                        throw ((RuntimeException) t2);
-                    } else {
-                        throw new RuntimeException(t2);
-                    }
-                }
+                logAndRethrow(t2);
             }
-            if (null != t) {
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
-            }
+            rethrow(t);
             return x;
         }, service));
     }
@@ -1441,14 +1399,17 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 r.run();
             } catch (Throwable t) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                } else {
-                    throw new RuntimeException(t);
-                }
+                logAndRethrow(t);
             }
         };
+    }
+
+    private void logAndRethrow(Throwable t) {
+        if (!(t instanceof CancellationException) || printCancellationExceptions) {
+            Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
+                    "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+        }
+        rethrow(t);
     }
 
     @Override
