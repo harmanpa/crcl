@@ -360,13 +360,43 @@ public class XFuture<T> extends CompletableFuture<T> {
             break;
         }
         StackTraceElement[] shortenedCreateTrace = Arrays.copyOfRange(trace, startTraceInfoIndex, trace.length);
-        return "name=" + name + "\n"
+        return  "\nsuper.toString()="+super.toString() +"\n"
+                + "name=" + name + "\n"
                 + " runTime=" + getRunTime() + "ms ago\n"
                 + longCancelString()
+                + manuallyCompletedString()
+                + manuallyCompletedExceptionallyString()
                 + " createThread=" + createThread + ",\n"
-                + " createTrace= \n" + traceToString(shortenedCreateTrace) + "\n";
+                + " createTrace= \n" + traceToString(shortenedCreateTrace) + "\n"
+                
+        ;
+    }
+    
+     private String manuallyCompletedString() {
+        if(null != manuallyCompletedValue 
+                && null != manuallyCompletedThread
+                && null != manuallyCompletedTrace) {
+            return
+                    "completedThrowable="+manuallyCompletedValue+"\n"
+                    + "completedThread="+manuallyCompletedThread +"\n"
+                    + "completedTrace= \n"+ traceToString(manuallyCompletedTrace)+"\n";
+        }
+        return "";
+    }
+    
+    private String manuallyCompletedExceptionallyString() {
+        if(null != completedExceptionallyThrowable 
+                && null != completedExceptionallyThread
+                && null != completedExceptionallyTrace) {
+            return
+                    "completedExceptionallyThrowable="+completedExceptionallyThrowable+"\n"
+                    + "completedExceptionallyThread="+completedExceptionallyThread +"\n"
+                    + "completedExceptionallyTrace= \n"+ traceToString(completedExceptionallyTrace)+"\n";
+        }
+        return "";
     }
 
+    
     @Nullable
     public Runnable getOnCancelAllRunnable() {
         return onCancelAllRunnable;
@@ -446,7 +476,9 @@ public class XFuture<T> extends CompletableFuture<T> {
 
 //    public static final  Function<Throwable, ?> RETHROWER = XFuture::rethrow;
     public static <T> T rethrow(Throwable t) {
-        if (t instanceof RuntimeException) {
+        if(t == null) {
+            return (T) null;
+        } else if (t instanceof RuntimeException) {
             throw (RuntimeException) t;
         } else if (t instanceof Error) {
             throw (Error) t;
@@ -685,8 +717,28 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
+    private volatile T manuallyCompletedValue;
+    private volatile Thread manuallyCompletedThread=null;
+    private volatile StackTraceElement manuallyCompletedTrace[]=null;
+    
+    
     @Override
     public boolean complete(T value) {
+        if(isCancelled()) {
+            String forExString = this.forExceptionString();
+            Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
+                    "Attempt to complete a future that was already cancelled : forExString= " +forExString);
+            throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
+        }
+        if(isCompletedExceptionally()) {
+            exceptionally(this::logAndRethrow);
+            String forExString = this.forExceptionString();
+            Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
+                    "Attempt to complete a future that was already completedExceptionally : forExString= " +forExString);
+            throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
+        }
+        manuallyCompletedValue= value;
+        
         boolean ret = super.complete(value);
         saveProfileStrings();
         clearAlsoCancel();
@@ -750,8 +802,16 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
+    private volatile Throwable completedExceptionallyThrowable = null;
+    private volatile Thread completedExceptionallyThread = null;
+    private volatile StackTraceElement completedExceptionallyTrace [] = null;
+    
     @Override
     public boolean completeExceptionally(Throwable ex) {
+        completedExceptionallyThrowable = ex;
+        completedExceptionallyThread = Thread.currentThread();
+        completedExceptionallyTrace = Thread.currentThread().getStackTrace();
+        
         boolean ret = super.completeExceptionally(ex);
         saveProfileStrings();
         clearAlsoCancel();
@@ -890,12 +950,13 @@ public class XFuture<T> extends CompletableFuture<T> {
 //    private volatile List<CompletableFuture<?>> prevAlsoCancel = null;
     public void cancelAll(boolean mayInterrupt) {
         try {
-            List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
+         
             if (null != cancelThread) {
                 cancelThread = Thread.currentThread();
                 cancelStack = cancelThread.getStackTrace();
                 cancelTime = System.currentTimeMillis();
             }
+            List<CompletableFuture<?>> alsoCancelCopy = new ArrayList<>(this.alsoCancel);
             try {
                 if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
                     this.cancel(false);
@@ -996,7 +1057,6 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <T> T logException(T ret, Throwable thrown) {
         if (null != thrown) {
-            this.completeExceptionally(thrown);
             if (thrown instanceof PrintedXFutureRuntimeException) {
                 throw ((PrintedXFutureRuntimeException) thrown);
             } else if (thrown instanceof Error) {
@@ -1404,12 +1464,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         };
     }
 
-    private void logAndRethrow(Throwable t) {
+    private  <T> T  logAndRethrow(Throwable t) {
         if (!(t instanceof CancellationException) || printCancellationExceptions) {
             Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
                     "Exception in XFuture " + XFuture.this.forExceptionString(), t);
         }
-        rethrow(t);
+        return rethrow(t);
     }
 
     @Override
