@@ -4285,6 +4285,17 @@ public class PendantClientInner {
                         = (curStatus != null)
                                 ? getTempCRCLSocket().statusToString(curStatus, false)
                                 : "null";
+                JointStatusesType jointStatuses 
+                        = startStatus.getJointStatuses();
+                List<JointStatusType> jointStatus 
+                        = (jointStatuses == null)?null:
+                        jointStatuses.getJointStatus();
+                Map<Integer, Double> startStatusJointsMap
+                        =  (null == jointStatus)?null:
+                        jointStatus.stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition));
+                String startStatusJointsMapString 
+                        =  (null == startStatusJointsMap)?null:
+                        startStatusJointsMap.toString();
                 String messageString = cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
@@ -4292,7 +4303,7 @@ public class PendantClientInner {
                         + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
                         + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(startStatus, false) + "." + NEW_LINE
                         + "testCommandStartStatus.getPose=" + CRCLPosemath.toString(startStatus.getPoseStatus().getPose()) + "." + NEW_LINE
-                        + "testCommandStartStatus.getJoints()=" + startStatus.getJointStatuses().getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition)) + "." + NEW_LINE
+                        + "testCommandStartStatus.getJoints()=" + startStatusJointsMapString + "." + NEW_LINE
                         + "current status=" + curStatusString + "." + NEW_LINE
                         + "current status.getPose()=" + ((curStatus != null) ? CRCLPosemath.toString(curStatus.getPoseStatus().getPose()) : "null") + "." + NEW_LINE
                         + "current status.getJoints()=" + ((curStatus != null) ? curStatus.getJointStatuses().getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition)) : "null") + "." + NEW_LINE

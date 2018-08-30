@@ -146,7 +146,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             stringWriter.flush();
             return stringWriter.toString();
         } catch (IOException ex) {
-            Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "trace=" + trace, ex);
+            if (!closingMode) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "trace=" + trace, ex);
+            }
             throw new RuntimeException(ex);
         }
     }
@@ -375,9 +377,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         StringBuilder sb = new StringBuilder();
         for (CompletableFuture<?> cf : alsoCancel) {
             sb.append(cf).append("\n");
-            if(cf instanceof  XFuture) {
+            if (cf instanceof XFuture) {
                 XFuture<?> xf = (XFuture) cf;
-                if(xf.isCancelled() || xf.isCompletedExceptionally()) {
+                if (xf.isCancelled() || xf.isCompletedExceptionally()) {
                     sb.append(xf.name).append(" : forExceptionString=").append(xf.forExceptionString()).append("\n");
                     sb.append(xf.name).append(" :  end forExceptionString").append("\n");
                 }
@@ -525,8 +527,10 @@ public class XFuture<T> extends CompletableFuture<T> {
                 }
                 return result;
             } catch (Throwable throwable) {
-                if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                if (!closingMode) {
+                    if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                    }
                 }
                 try {
                     T result = handler.apply(throwable);
@@ -537,7 +541,9 @@ public class XFuture<T> extends CompletableFuture<T> {
                     }
                     return result;
                 } catch (Throwable throwable2) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in handler " + throwable2.getMessage(), throwable2);
+                    if (!closingMode) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in handler " + throwable2.getMessage(), throwable2);
+                    }
                 }
                 myf.completeExceptionally(throwable);
                 throw new RuntimeException(throwable);
@@ -575,8 +581,10 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return result;
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
-                if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                if (!closingMode) {
+                    if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
+                    }
                 }
                 throw new RuntimeException(throwable);
             }
@@ -644,8 +652,10 @@ public class XFuture<T> extends CompletableFuture<T> {
                 setTName(name);
                 return fn.apply(x);
             } catch (Throwable t) {
-                if (!(t instanceof CancellationException) || printCancellationExceptions) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!closingMode) {
+                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                    }
                 }
                 FT chk = fn.apply(x);
                 if (t instanceof RuntimeException) {
@@ -732,15 +742,32 @@ public class XFuture<T> extends CompletableFuture<T> {
     private volatile Thread manuallyCompletedThread = null;
     private volatile StackTraceElement manuallyCompletedTrace[] = null;
 
+    private static volatile boolean closingMode = false;
+
+    public static boolean isClosingMode() {
+        return closingMode;
+    }
+
+    public static void setClosingMode(boolean closingMode) {
+        XFuture.closingMode = closingMode;
+    }
+
     @Override
     public boolean complete(T value) {
+
         if (isCancelled()) {
+            if (closingMode) {
+                return false;
+            }
             String forExString = this.forExceptionString();
             Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
                     "Attempt to complete a future that was already cancelled : forExString= " + forExString);
             throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
         }
         if (isCompletedExceptionally()) {
+            if (closingMode) {
+                return false;
+            }
             exceptionally(this::logAndRethrow);
             String forExString = this.forExceptionString();
             Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
@@ -1146,8 +1173,10 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(x);
             } catch (Throwable t) {
-                if (!(t instanceof CancellationException) || printCancellationExceptions) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!closingMode) {
+                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                    }
                 }
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
@@ -1163,8 +1192,10 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(a, b);
             } catch (Throwable t) {
-                if (!(t instanceof CancellationException) || printCancellationExceptions) {
-                    Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                if (!closingMode) {
+                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                        Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+                    }
                 }
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
@@ -1475,9 +1506,11 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private <T> T logAndRethrow(Throwable t) {
-        if (!(t instanceof CancellationException) || printCancellationExceptions) {
-            Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
-                    "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+        if (!closingMode) {
+            if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
+                        "Exception in XFuture " + XFuture.this.forExceptionString(), t);
+            }
         }
         return rethrow(t);
     }
