@@ -174,7 +174,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (isCompletedExceptionally()) {
             this.exceptionally(t -> {
                 if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
-                    System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
+                    System.err.println(XFuture.this.getName() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
                     String forExceptionString = XFuture.this.forExceptionString();
                     System.err.println("forExceptionString = " + forExceptionString);
@@ -189,7 +189,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     @SuppressWarnings("nullness")
     private Object printEx(Throwable t, PrintStream ps) {
         if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
-            ps.println(XFuture.this.toString() + " Completed Exceptionally with: ");
+            ps.println(XFuture.this.getName() + " Completed Exceptionally with: ");
             t.printStackTrace(ps);
             String forExceptionString = XFuture.this.forExceptionString();
             ps.println("forExceptionString = " + forExceptionString);
