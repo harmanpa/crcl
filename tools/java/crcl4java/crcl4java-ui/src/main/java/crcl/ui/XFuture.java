@@ -173,7 +173,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
         if (isCompletedExceptionally()) {
             this.exceptionally(t -> {
-                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                     System.err.println(XFuture.this.toString() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
                     String forExceptionString = XFuture.this.forExceptionString();
@@ -188,7 +188,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @SuppressWarnings("nullness")
     private Object printEx(Throwable t, PrintStream ps) {
-        if (!(t instanceof CancellationException) || printCancellationExceptions) {
+        if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
             ps.println(XFuture.this.toString() + " Completed Exceptionally with: ");
             t.printStackTrace(ps);
             String forExceptionString = XFuture.this.forExceptionString();
@@ -302,7 +302,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (isCompletedExceptionally()) {
             ps.println(XFuture.this.toString() + " is CompletedExceptionally.");
             this.exceptionally(t -> {
-                if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                     ps.println(XFuture.this.forExceptionString() + " Completed Exceptionally with: ");
                     t.printStackTrace(ps);
                     String forExceptionString = XFuture.this.forExceptionString();
@@ -528,7 +528,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return result;
             } catch (Throwable throwable) {
                 if (!closingMode) {
-                    if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                    if (!isPrintedOrCancellationException(throwable) || printCancellationExceptions) {
                         Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
                     }
                 }
@@ -582,7 +582,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
                 if (!closingMode) {
-                    if (!(throwable instanceof CancellationException) || printCancellationExceptions) {
+                    if (!isPrintedOrCancellationException(throwable) || printCancellationExceptions) {
                         Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + myf.forExceptionString(), throwable);
                     }
                 }
@@ -653,7 +653,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return fn.apply(x);
             } catch (Throwable t) {
                 if (!closingMode) {
-                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                         Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
                     }
                 }
@@ -1103,7 +1103,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 if (null != ps) {
                     Throwable cause = thrown.getCause();
                     boolean isCancellationException
-                            = (thrown instanceof CancellationException)
+                            = isPrintedOrCancellationException(thrown)
                             || (null != cause && cause instanceof CancellationException);
                     if (!isCancellationException || printCancellationExceptions) {
                         ps.println("Exception " + thrown + " passed through XFuture : " + XFuture.this.forExceptionString());
@@ -1174,7 +1174,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return f.apply(x);
             } catch (Throwable t) {
                 if (!closingMode) {
-                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                         Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
                     }
                 }
@@ -1193,7 +1193,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return f.apply(a, b);
             } catch (Throwable t) {
                 if (!closingMode) {
-                    if (!(t instanceof CancellationException) || printCancellationExceptions) {
+                    if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                         Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFuture " + XFuture.this.forExceptionString(), t);
                     }
                 }
@@ -1204,6 +1204,10 @@ public class XFuture<T> extends CompletableFuture<T> {
                 }
             }
         };
+    }
+
+    private static boolean isPrintedOrCancellationException(Throwable t) {
+        return (t instanceof CancellationException) || (t instanceof PrintedXFutureRuntimeException);
     }
 
     @Nullable
@@ -1507,7 +1511,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     private <T> T logAndRethrow(Throwable t) {
         if (!closingMode) {
-            if (!(t instanceof CancellationException) || printCancellationExceptions) {
+            if (!isPrintedOrCancellationException(t) || printCancellationExceptions) {
                 Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
                         "Exception in XFuture " + XFuture.this.forExceptionString(), t);
             }
