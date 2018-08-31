@@ -202,7 +202,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.15</version>
+                        <version>2.22.0</version>
                         <executions>
                             <execution>
                                 <id>default-integration-test</id>
@@ -233,7 +233,7 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.18.1</version>
+                        <version>2.22.0</version>
                         <executions>
                             <execution>
                                 <goals>
