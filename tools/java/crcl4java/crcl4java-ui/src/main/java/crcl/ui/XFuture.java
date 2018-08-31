@@ -1103,14 +1103,17 @@ public class XFuture<T> extends CompletableFuture<T> {
                 if (null != ps) {
                     Throwable cause = thrown.getCause();
                     boolean isCancellationException
-                            = isPrintedOrCancellationException(thrown)
-                            || (null != cause && cause instanceof CancellationException);
+                            = isPrintedOrCancellationException(thrown);
                     if (!isCancellationException || printCancellationExceptions) {
-                        ps.println("Exception " + thrown + " passed through XFuture : " + XFuture.this.forExceptionString());
+                        ps.println("Exception " + thrown + " passed through XFuture : " + XFuture.this.getName());
                         thrown.printStackTrace(ps);
+
                         if (null != cause) {
+                            ps.println("cause=");
                             cause.printStackTrace(ps);
                         }
+                        ps.println("XFuture.forExceptionString() = " + XFuture.this.forExceptionString());
+
                     }
                 }
                 throw new PrintedXFutureRuntimeException(thrown);
@@ -1207,7 +1210,10 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private static boolean isPrintedOrCancellationException(Throwable t) {
-        return (t instanceof CancellationException) || (t instanceof PrintedXFutureRuntimeException);
+        Throwable cause = t.getCause();
+        return (t instanceof CancellationException) || (t instanceof PrintedXFutureRuntimeException)
+                || (null != cause && t != cause
+                && (cause instanceof CancellationException) || (cause instanceof PrintedXFutureRuntimeException));
     }
 
     @Nullable
