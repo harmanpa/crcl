@@ -752,11 +752,23 @@ public class XFuture<T> extends CompletableFuture<T> {
         XFuture.closingMode = closingMode;
     }
 
+    private volatile static boolean  debugCompleteWithExceptions = false;
+
+    public static boolean isDebugCompleteWithExceptions() {
+        return debugCompleteWithExceptions;
+    }
+
+    public static void setDebugCompleteWithExceptions(boolean debugCompleteWithExceptions) {
+        XFuture.debugCompleteWithExceptions = debugCompleteWithExceptions;
+    }
+    
+    
     @Override
     public boolean complete(T value) {
 
+        
         if (isCancelled()) {
-            if (closingMode) {
+            if (closingMode || !debugCompleteWithExceptions) {
                 return false;
             }
             String forExString = this.forExceptionString();
@@ -765,7 +777,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
         }
         if (isCompletedExceptionally()) {
-            if (closingMode) {
+            if (closingMode || !debugCompleteWithExceptions) {
                 return false;
             }
             exceptionally(this::logAndRethrow);
@@ -773,6 +785,9 @@ public class XFuture<T> extends CompletableFuture<T> {
             Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE,
                     "Attempt to complete a future that was already completedExceptionally : forExString= " + forExString);
             throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
+        }
+        if(isDone()) {
+            return false;
         }
         manuallyCompletedValue = value;
 
