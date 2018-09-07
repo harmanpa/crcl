@@ -11,6 +11,9 @@
         <version>1.9.dev2-SNAPSHOT</version>
     </parent>
     <name>crcl4java-fanuc</name>
+    <modules>
+        <module>fanucCRCLServer</module>
+    </modules>
     <profiles>
         <profile>
             <id>windows-com4j</id>
@@ -20,20 +23,13 @@
                 </os>
             </activation>
             <modules>
-                <module>fanucCRCLServer</module>
                 <module>fanucCom4JBase</module>
-                <module>fanucStatusMonitor</module>
             </modules>
         </profile>
         <profile>
-            <id>linux-alt-profile</id>
-            <activation>
-                <os>
-                    <family>Linux</family>
-                </os>
-            </activation>
+            <id>withStatusMonitor</id>
             <modules>
-                <module>fanucCRCLServer</module>
+                <module>fanucStatusMonitor</module>
             </modules>
         </profile>
     </profiles>

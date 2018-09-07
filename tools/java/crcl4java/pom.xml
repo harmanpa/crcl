@@ -9,9 +9,8 @@
         <module>crcl4java-base</module>
         <module>crcl4java-utils</module>
         <module>crcl4java-ui</module>
-        <module>crcl4java-exi</module>
-        <module>crcl4java-commons-math</module>
         <module>crcl4java-motoman</module>
+        <module>crcl4java-fanuc</module>
     </modules>
     
     <url>
@@ -221,6 +220,8 @@
         <profile> 
             <id>all</id>
             <modules>
+                <module>crcl4java-exi</module>
+                <module>crcl4java-commons-math</module>
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-fanuc</module>
@@ -230,6 +231,8 @@
         <profile> 
             <id>all_linux</id>
             <modules>
+                <module>crcl4java-exi</module>
+                <module>crcl4java-commons-math</module>
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-zeroc-ice</module>
@@ -238,6 +241,8 @@
         <profile> 
             <id>allexceptice</id>
             <modules>
+                <module>crcl4java-exi</module>
+                <module>crcl4java-commons-math</module>
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-fanuc</module>
