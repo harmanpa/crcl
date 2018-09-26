@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class TelnetJFrame extends javax.swing.JFrame {
 

@@ -42,7 +42,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucStatusMonitorJFrame extends javax.swing.JFrame {
 

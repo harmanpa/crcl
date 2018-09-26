@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FingerPressureSensorDataTest {
     

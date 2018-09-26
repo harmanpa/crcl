@@ -17,7 +17,7 @@ The Internet Communications Engine (Ice) is a modern open-source object-oriented
 To build the library requires:
 
     Java Development Kit (JDK) 1.7 or higher
-        http://www.oracle.com/technetwork/java/javase/downloads/index.html
+        https://adoptopenjdk.net/
 
     Maven 3.0.5 or higher
         https://maven.apache.org/download.cgi

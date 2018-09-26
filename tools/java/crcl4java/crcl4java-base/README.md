@@ -1,6 +1,6 @@
 To Build:
 
-Download the latest JDK (at-least 1.8+)  from http://www.oracle.com/technetwork/java/javase/downloads/index.html
+Download the latest JDK (at-least 1.8+)  from https://adoptopenjdk.net/
 
 ( getting the bundled Netbeans is recommended but not required)
 

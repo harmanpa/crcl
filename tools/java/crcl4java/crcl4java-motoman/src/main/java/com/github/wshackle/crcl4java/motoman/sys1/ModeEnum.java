@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public enum ModeEnum {
     INVALID_MODE(0),

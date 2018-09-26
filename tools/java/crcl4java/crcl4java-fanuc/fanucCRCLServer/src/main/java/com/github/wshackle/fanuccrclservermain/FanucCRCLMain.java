@@ -137,7 +137,7 @@ import javax.swing.SwingUtilities;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucCRCLMain {
 

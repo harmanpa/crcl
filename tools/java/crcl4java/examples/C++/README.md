@@ -4,7 +4,7 @@
 C++ can use Java libraries through JNI or more conveniently through java4cpp.
 https://github.com/wshackle/java4cpp.
 
-Install Java SE Development Kit 8  from http://www.oracle.com/technetwork/java/javase/downloads/index.html
+Install Java SE Development Kit 8  from https://adoptopenjdk.net/
 
 If you need help or a more complete description of the options for installing 
 Java 8 on Ubuntu see: 

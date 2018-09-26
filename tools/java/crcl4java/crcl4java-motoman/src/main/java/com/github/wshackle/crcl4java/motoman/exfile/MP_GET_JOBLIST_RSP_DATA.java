@@ -24,7 +24,7 @@ package com.github.wshackle.crcl4java.motoman.exfile;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MP_GET_JOBLIST_RSP_DATA {
 

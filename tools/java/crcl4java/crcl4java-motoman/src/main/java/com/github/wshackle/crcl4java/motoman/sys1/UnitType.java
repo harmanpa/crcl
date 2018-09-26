@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public enum UnitType {
     MP_POS_UNIT_DEGREE(1),

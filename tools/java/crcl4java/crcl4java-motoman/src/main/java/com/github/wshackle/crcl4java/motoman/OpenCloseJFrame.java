@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class OpenCloseJFrame extends javax.swing.JFrame {
 

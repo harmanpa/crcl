@@ -24,7 +24,7 @@ package crcl.ui.client;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public enum WaitForDoneResult {
     WFD_DONE,

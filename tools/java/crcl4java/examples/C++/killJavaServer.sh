@@ -7,9 +7,7 @@
 
 # On platforms other than Ubuntu 14.04 or if the automatic installation fails
 # it may be easier just to manually install Java 8 from:
-# http://www.oracle.com/technetwork/java/javase/downloads/index.html
-# or 
-# http://www.java.com/
+# https://adoptopenjdk.net/
 #
 
 if test "x${DEBUG_KILL_JAVA}" != "x" ; then

@@ -50,7 +50,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCRCLServerDisplayInterface {
 

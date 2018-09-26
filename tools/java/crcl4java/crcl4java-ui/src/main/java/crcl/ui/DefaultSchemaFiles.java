@@ -28,7 +28,7 @@ import java.io.IOException;
  */
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class DefaultSchemaFiles {
 

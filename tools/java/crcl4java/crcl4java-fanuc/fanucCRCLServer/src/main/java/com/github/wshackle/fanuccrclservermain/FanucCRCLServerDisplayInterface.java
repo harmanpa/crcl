@@ -17,7 +17,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public interface FanucCRCLServerDisplayInterface {
     public JTextField getjTextFieldRobotNeighborhoodPath();

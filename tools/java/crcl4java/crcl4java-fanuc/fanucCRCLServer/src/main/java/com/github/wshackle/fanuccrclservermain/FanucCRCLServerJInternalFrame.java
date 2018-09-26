@@ -36,7 +36,7 @@ import javax.swing.JTextField;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame implements FanucCRCLServerDisplayInterface {
 

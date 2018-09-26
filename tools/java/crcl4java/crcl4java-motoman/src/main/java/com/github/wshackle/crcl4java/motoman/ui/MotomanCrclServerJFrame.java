@@ -24,7 +24,7 @@ package com.github.wshackle.crcl4java.motoman.ui;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MotomanCrclServerJFrame extends javax.swing.JFrame {
 

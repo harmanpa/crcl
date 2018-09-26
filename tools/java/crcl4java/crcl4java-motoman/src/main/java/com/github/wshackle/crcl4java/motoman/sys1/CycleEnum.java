@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public enum CycleEnum {
     INVALID_CYCLE(0), // 1 = Step, 2 = 1Cycle, 3 = Auto

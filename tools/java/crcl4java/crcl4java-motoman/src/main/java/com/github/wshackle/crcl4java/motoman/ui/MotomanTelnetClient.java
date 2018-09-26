@@ -34,7 +34,7 @@ import org.apache.commons.net.telnet.TelnetClient;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MotomanTelnetClient {
 

@@ -24,7 +24,7 @@ package crcl.utils;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CRCLException extends Exception {
     

@@ -59,7 +59,7 @@ import rcs.posemath.PmRpy;
 
 /**
  *
- * @author shackle
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class JbrParser {
 
