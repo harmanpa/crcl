@@ -43,4 +43,15 @@
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-compile_with_checkers</actionName>
+            <displayName>compile_with_checkers</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>compile</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>with_checkers</activatedProfile>
+            </activatedProfiles>
+        </action>
     </actions>

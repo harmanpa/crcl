@@ -349,6 +349,24 @@ public class PendantClientInner {
         this.jogTransSpeed = jogTransSpeed;
     }
 
+    private File statSchemaFiles[];
+    private File cmdSchemaFiles[];
+    private File progSchemaFiles[];
+
+    public File[] getStatSchemaFiles() {
+        return statSchemaFiles;
+    }
+
+    public File[] getCmdSchemaFiles() {
+        return cmdSchemaFiles;
+    }
+
+    
+    public File[] getProgSchemaFiles() {
+        return progSchemaFiles;
+    }
+    
+    
     PendantClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
@@ -365,9 +383,12 @@ public class PendantClientInner {
         this.expectedIntermediatePoseTolerance.setXPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setYPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setZPointTolerance(3.0);
-        this.setStatSchema(CRCLSocket.readStatSchemaFiles(defaultsInstance.getStatSchemasFile()));
-        this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(defaultsInstance.getCmdSchemasFile()));
-        this.setProgramSchema(CRCLSocket.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile()));
+        this.statSchemaFiles = CRCLSocket.readStatSchemaFiles(defaultsInstance.getStatSchemasFile());
+        this.setStatSchema(this.statSchemaFiles);
+        this.cmdSchemaFiles = CRCLSocket.readCmdSchemaFiles(defaultsInstance.getCmdSchemasFile());
+        this.setCmdSchema(this.cmdSchemaFiles);
+        this.progSchemaFiles = CRCLSocket.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile());
+        this.setProgramSchema(this.progSchemaFiles);
     }
 
     /**
@@ -811,6 +832,7 @@ public class PendantClientInner {
     final synchronized void setStatSchema(File[] fa) {
         try {
             statSchema = CRCLSocket.filesToStatSchema(fa);
+            this.statSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setStatSchema(statSchema);
             }
@@ -825,6 +847,7 @@ public class PendantClientInner {
     final void setCmdSchema(File[] fa) {
         try {
             cmdSchema = CRCLSocket.filesToCmdSchema(fa);
+            this.cmdSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setCmdSchema(cmdSchema);
             }
@@ -842,6 +865,7 @@ public class PendantClientInner {
 
             }
             progSchema = CRCLSocket.filesToProgramSchema(fa);
+            this.progSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setProgramSchema(progSchema);
             }
@@ -850,13 +874,6 @@ public class PendantClientInner {
         }
     }
 
-    public File[] getCmdSchemaFiles() {
-        return CRCLSocket.getDefaultCmdSchemaFiles();
-    }
-
-    public File[] getProgramSchemaFiles() {
-        return CRCLSocket.getDefaultProgramSchemaFiles();
-    }
 
     @MonotonicNonNull
     private File logFile = null;

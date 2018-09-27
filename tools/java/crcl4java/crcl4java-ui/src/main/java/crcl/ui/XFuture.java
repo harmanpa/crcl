@@ -346,6 +346,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return super.toString() + "{" + name + "(" + getRunTime() + "ms ago) " + shortCancelString() + "createThread=" + createThread + ", createTrace=" + shortTraceToString(createTrace) + '}';
     }
 
+    @SuppressWarnings("nullness")
     public String forExceptionString() {
         StackTraceElement[] trace = this.createTrace;
         int startTraceInfoIndex = 0;
@@ -738,9 +739,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
-    private volatile T manuallyCompletedValue;
-    private volatile Thread manuallyCompletedThread = null;
-    private volatile StackTraceElement manuallyCompletedTrace[] = null;
+    @Nullable private volatile T manuallyCompletedValue = null;
+    @Nullable private volatile Thread manuallyCompletedThread = null;
+    private volatile StackTraceElement manuallyCompletedTrace @Nullable [] = null;
 
     private static volatile boolean closingMode = false;
 
@@ -854,9 +855,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
-    private volatile Throwable completedExceptionallyThrowable = null;
-    private volatile Thread completedExceptionallyThread = null;
-    private volatile StackTraceElement completedExceptionallyTrace[] = null;
+    @Nullable private volatile Throwable completedExceptionallyThrowable = null;
+    @Nullable private volatile Thread completedExceptionallyThread = null;
+    private volatile StackTraceElement completedExceptionallyTrace @Nullable [] = null;
 
     @Override
     public boolean completeExceptionally(Throwable ex) {

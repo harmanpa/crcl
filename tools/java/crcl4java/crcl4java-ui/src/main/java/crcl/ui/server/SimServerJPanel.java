@@ -93,7 +93,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     @SuppressWarnings("initialization")
     public SimServerJPanel() throws ParserConfigurationException {
         initComponents();
-        this.inner = new SimServerInner(this,DefaultSchemaFiles.instance());
+        this.inner = new SimServerInner(this, DefaultSchemaFiles.instance());
         SimRobotEnum defaultRobotType
                 = DEFAULT_ROBOTTYPE;
 //        this.inner = new SimServerInner(this);
@@ -106,7 +106,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jComboBoxRobotType.setModel(new DefaultComboBoxModel<>(SimRobotEnum.values()));
         this.jComboBoxRobotType.setSelectedItem(defaultRobotType);
         this.setRobotType(defaultRobotType);
-        
+
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString) {
             inner.setPort(Integer.parseInt(portPropertyString));
@@ -144,17 +144,18 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.sideViewJPanel1.setLogImages(logImages);
         this.jCheckBoxTeleportToGoals.setSelected(inner.isTeleportToGoals());
     }
-    
+
     private final ConcurrentLinkedDeque<File> propsFiles = new ConcurrentLinkedDeque<>();
-    
 
     public void restartServer() {
         try {
             inner.restartServer(inner.getServerIsDaemon());
-            propsFiles.add(propertiesFile);
+            if (null != propertiesFile) {
+                propsFiles.add(propertiesFile);
+            }
         } catch (Exception ex) {
             System.err.println("propertiesFile=" + propertiesFile);
-            System.err.println("propsFiles="+propsFiles);
+            System.err.println("propsFiles=" + propsFiles);
             throw ex;
         }
     }
@@ -228,8 +229,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
 
-    @Nullable private CRCLSocket gripperSocket = null;
-    @Nullable private Thread gripperReadThread = null;
+    @Nullable
+    private CRCLSocket gripperSocket = null;
+    @Nullable
+    private Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
     private boolean sendGripperStatusRequests = true;
@@ -853,7 +856,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             this.getOuterFrame(),
                             "Edit Status", true,
                             inner.getXpu(),
-                            null,
+                            inner.getStatSchemaFiles(),
                             this.checkStatusValidPredicate);
             if (null != newstat) {
                 inner.setStatus(newstat);
@@ -995,10 +998,12 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldNumWaypoints.setText(Integer.toString(numWaypoints));
     }
 
-    @Nullable private JFrame outerFrame;
+    @Nullable
+    private JFrame outerFrame;
     private boolean searchedForOuterFrame = false;
 
-    @Nullable private JFrame searchForOuterFrame() {
+    @Nullable
+    private JFrame searchForOuterFrame() {
         if (searchedForOuterFrame) {
             return outerFrame;
         }
@@ -1017,7 +1022,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      *
      * @return the value of outerFrame
      */
-    @Nullable public JFrame getOuterFrame() {
+    @Nullable
+    public JFrame getOuterFrame() {
         if (null == outerFrame) {
             outerFrame = searchForOuterFrame();
         }

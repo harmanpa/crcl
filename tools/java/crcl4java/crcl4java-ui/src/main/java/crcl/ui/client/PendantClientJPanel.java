@@ -3178,7 +3178,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 //        internal.getXpu().setSchemaFiles(internal.getProgramSchemaFiles());
         program = ObjTableJPanel.editObject(program,
                 internal.getXpu(),
-                internal.getProgramSchemaFiles(),
+                internal.getProgSchemaFiles(),
                 internal.getCheckProgramValidPredicate());
         return program;
     }
@@ -3191,7 +3191,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == cmd) {
             return;
         }
-        cmd = ObjTableJPanel.editObject(cmd, internal.getXpu(), internal.getCmdSchemaFiles(),
+        cmd = ObjTableJPanel.editObject(
+                cmd, 
+                internal.getXpu(), 
+                internal.getCmdSchemaFiles(),
                 internal.getCheckCommandValidPredicate());
         incAndSendCommandFromAwt(cmd);
         this.saveRecentCommand(cmd);
@@ -4692,7 +4695,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
                 MiddleCommandType cmdOrig = program.getMiddleCommand().get(index - 1);
                 MiddleCommandType cmdEdited
-                        = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
+                        = (MiddleCommandType) ObjTableJPanel.editObject(
+                                cmdOrig,
                                 internal.getXpu(),
                                 internal.getCmdSchemaFiles(),
                                 PendantClientJPanel.this.internal.getCheckCommandValidPredicate());
@@ -4780,7 +4784,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             MiddleCommandType cmdOrig = (MiddleCommandType) selectedClss.getDeclaredConstructor().newInstance();
             MiddleCommandType cmdEdited
-                    = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
+                    = (MiddleCommandType) ObjTableJPanel.editObject(
+                            cmdOrig,
                             internal.getXpu(),
                             internal.getCmdSchemaFiles(),
                             PendantClientJPanel.this.internal.getCheckCommandValidPredicate());
@@ -5749,9 +5754,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         PendantClientInner internal = pendantClientJPanel1.getInternal();
                         CRCLCommandType cmd = (CRCLCommandType) c.getDeclaredConstructor().newInstance();
                         cmd
-                                = ObjTableJPanel.editObject(cmd,
+                                = ObjTableJPanel.editObject(
+                                        cmd,
                                         internal.getXpu(),
-                                        null,
+                                        internal.getCmdSchemaFiles(),
                                         internal.getCheckCommandValidPredicate());
                         if (null != cmd) {
                             internal.incAndSendCommand(cmd);

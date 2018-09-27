@@ -650,6 +650,12 @@ public class SimServerInner {
     private long simCycleCount = 0;
     @Nullable
     private CRCLSocket checkerCRCLSocket = null;
+    
+    private File[] statSchemaFiles;
+
+    public File[] getStatSchemaFiles() {
+        return statSchemaFiles;
+    }
 
     @SuppressWarnings("initialization")
     SimServerInner(SimServerOuter _outer, DefaultSchemaFiles defaultSchemaFiles) throws ParserConfigurationException {
@@ -657,7 +663,8 @@ public class SimServerInner {
         this.xpu = new XpathUtils();
         this.robotType = SimRobotEnum.SIMPLE;
         this.port = CRCLSocket.DEFAULT_PORT;
-        this.setStatSchema(CRCLSocket.readStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile()));
+        this.statSchemaFiles = CRCLSocket.readStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile());
+        this.setStatSchema(this.statSchemaFiles);
         this.setCmdSchema(CRCLSocket.readCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile()));
         this.resetToDefaults();
         String portPropertyString = System.getProperty("crcl4java.port");
@@ -1276,6 +1283,7 @@ public class SimServerInner {
         try {
             Schema newStatSchema = CRCLSocket.filesToStatSchema(fa);
             this.statSchema = newStatSchema;
+            this.statSchemaFiles = fa;
             cleanupClientStatesThreadMap();
             for (ClientState state : this.clientStates) {
                 state.getCs().setStatSchema(newStatSchema);

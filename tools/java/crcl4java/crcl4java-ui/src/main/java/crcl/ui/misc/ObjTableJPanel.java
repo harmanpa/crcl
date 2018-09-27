@@ -122,6 +122,10 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     Class<?> clss = null;
                     if (typenoparams.equals("boolean")) {
                         clss = boolean.class;
+                    } else if (typenoparams.equals("long")) {
+                        clss = long.class;
+                    } else if (typenoparams.equals("double")) {
+                        clss = double.class;
                     } else {
                         clss = Class.forName(typenoparams);
                     }
