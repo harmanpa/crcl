@@ -66,6 +66,8 @@ public interface PendantClientOuter {
 
     public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd);
 
+    public int getCurrentProgramLine();
+    
     public void finishOpenXmlProgramFile(File f, CRCLProgramType program, boolean addRecent);
 
     public CRCLProgramType editProgram(CRCLProgramType program);

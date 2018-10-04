@@ -27,6 +27,7 @@ import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
+import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.XFuture;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
@@ -135,7 +136,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.startBlockingPrograms();
     }
 
-    public void stopBlockingPrograms(int count) throws PendantClientInner.ConcurrentBlockProgramsException {
+    public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         pendantClientJPanel1.stopBlockingPrograms(count);
     }
 
@@ -1224,6 +1225,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     public void setTempLogDir(File tempLogDir) {
         this.pendantClientJPanel1.setTempLogDir(tempLogDir);
+    }
+    
+    
+     public StackTraceElement[] getRunProgramReturnFalseTrace() {
+        return pendantClientJPanel1.getRunProgramReturnFalseTrace();
     }
 
     @Override

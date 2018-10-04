@@ -57,6 +57,12 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return false;
     }
 
+    private int currentProgramLine;
+    
+    @Override
+    public int getCurrentProgramLine() {
+        return currentProgramLine;
+    }
 
     private final boolean replaceState;
 
@@ -126,6 +132,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 
     @Override
     public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status,List<ProgramRunData> progRunDataList) {
+        currentProgramLine = line;
     }
 
     @Override

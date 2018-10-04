@@ -71,6 +71,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         super(gc);
         init();
     }
+    
+     @Override
+    public int getCurrentProgramLine() {
+        return this.pendantClientJPanel1.getCurrentProgramLine();
+    }
 
     @SuppressWarnings("initialization")
     public PendantClientJFrame(String title) throws ParserConfigurationException {
