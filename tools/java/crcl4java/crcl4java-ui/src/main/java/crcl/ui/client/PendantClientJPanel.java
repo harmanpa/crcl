@@ -4924,6 +4924,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
+        boolean readStatusResult = internal.readStatus();
+        System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
         PointType pt = internal.currentStatusPoint();
         if (null != pt) {
             pt = CRCLPosemath.copy(pt);
