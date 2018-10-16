@@ -1018,53 +1018,10 @@ public class PendantClientInner {
                 return false;
             }
             if (cmd instanceof InitCanonType) {
-//                switch (initCount) {
-//                    case 0:
-//                        initTrace0.set(Thread.currentThread().getStackTrace());
-//                        break;
-//
-//                    case 1:
-//                        initTrace1.set(Thread.currentThread().getStackTrace());
-//                        break;
-//
-//                    case 2:
-//                        initTrace2.set(Thread.currentThread().getStackTrace());
-//                        break;
-//
-//                    case 3:
-//                        initTrace3.set(Thread.currentThread().getStackTrace());
-//                        break;
-//
-//                    default:
-//                        break;
-//                }
                 initCount++;
-//                if (initCount > 2) {
-////                    StackTraceElement trace0[] = initTrace0.get();
-////                    if (null != trace0) {
-////                        System.out.println("initTrace0.get() = " + Arrays.toString(trace0));
-////                    }
-////                    StackTraceElement trace1[] = initTrace1.get();
-////                    if (null != trace1) {
-////                        System.out.println("initTrace1.get() = " + Arrays.toString(trace1));
-////                    }
-////                    StackTraceElement trace2[] = initTrace2.get();
-////                    if (null != trace2) {
-////                        System.out.println("initTrace2.get() = " + Arrays.toString(trace2));
-////                    }
-////                    StackTraceElement trace3[] = initTrace3.get();
-////                    if (null != trace3) {
-////                        System.out.println("initTrace3.get() = " + Arrays.toString(trace3));
-////                    }
-////                    System.out.println("initCount = " + initCount);
-//                }
             }
             if (cmd instanceof MoveToType) {
                 initCount = 0;
-//                initTrace0.set(null);
-//                initTrace1.set(null);
-//                initTrace2.set(null);
-//                initTrace3.set(null);
             }
             if (cmd instanceof CrclCommandWrapper) {
                 if (((CrclCommandWrapper) cmd).getWrappedCommand().getCommandID() != cmd.getCommandID()) {
@@ -1138,7 +1095,9 @@ public class PendantClientInner {
                 if (null != ex.getCause() && ex.getCause() instanceof SocketException) {
                     disconnect();
                 }
-                if (cmd instanceof GetStatusType) {
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                } else {
                     throw new RuntimeException(ex);
                 }
             }

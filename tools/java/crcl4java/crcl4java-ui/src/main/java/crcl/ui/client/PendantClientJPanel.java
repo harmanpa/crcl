@@ -4880,60 +4880,70 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private volatile boolean needInitPoint = false;
 
     private void prepRunCurrentProgram(boolean stepMode) {
-        boolean startAsConnected = isConnected();
-        int startPollStopCount = pollStopCount.get();
-//        System.out.println("startPollStopCount = " + startPollStopCount);
-        Thread startPollThread = pollingThread;
-//        System.out.println("startPollThread = " + startPollThread);
-        CRCLSocket startCrclSocket = internal.getCRCLSocket();
-        int startlocalPort = -1;
-        int startRemotePort = -1;
-        if (null != startCrclSocket) {
-            Socket startSocket = startCrclSocket.getSocket();
-            if (null != startSocket) {
-                startlocalPort = startSocket.getLocalPort();
-//                System.out.println("startlocalPort = " + startlocalPort);
-                startRemotePort = startSocket.getPort();
-//                System.out.println("startRemotePort = " + startRemotePort);
+        try {
+            boolean startAsConnected = isConnected();
+            int startPollStopCount = pollStopCount.get();
+            Thread startPollThread = pollingThread;
+            CRCLSocket startCrclSocket = internal.getCRCLSocket();
+            int startlocalPort = -1;
+            int startRemotePort = -1;
+            if (null != startCrclSocket) {
+                Socket startSocket = startCrclSocket.getSocket();
+                if (null != startSocket) {
+                    startlocalPort = startSocket.getLocalPort();
+                    startRemotePort = startSocket.getPort();
+                }
             }
-        }
-        if (!startAsConnected) {
-            connectCurrent();
-        }
-        CRCLSocket step2CrclSocket = internal.getCRCLSocket();
-        int step2localPort = -1;
-        int step2RemotePort = -1;
-        if (null != step2CrclSocket) {
-            Socket step2Socket = step2CrclSocket.getSocket();
-            if (null != step2Socket) {
-                step2localPort = step2Socket.getLocalPort();
-//                System.out.println("step2localPort = " + step2localPort);
-                step2RemotePort = step2Socket.getPort();
-//                System.out.println("step2RemotePort = " + step2RemotePort);
+            if (!startAsConnected) {
+                connectCurrent();
             }
-        }
-        stopPollTimer();
-
-        this.clearProgramTimesDistances();
-        int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
-        internal.setQuitOnTestCommandFailure(true);
-        internal.setPoll_ms(new_poll_ms);
-        internal.setWaitForDoneDelay(new_poll_ms);
-        setStepMode(stepMode);
-        this.jButtonResume.setEnabled(internal.isPaused());
-        this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
-        jogWorldTransSpeedsSet = false;
-        jogWorldRotSpeedsSet = false;
-        boolean readStatusResult = internal.readStatus();
-        System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
-        PointType pt = internal.currentStatusPoint();
-        if (null != pt) {
-            pt = CRCLPosemath.copy(pt);
-            setPlottersInitPoint(pt);
-            needInitPoint = false;
-        } else {
-            setPlottersInitPoint(null);
-            needInitPoint = true;
+            CRCLSocket step2CrclSocket = internal.getCRCLSocket();
+            int step2localPort = -1;
+            int step2RemotePort = -1;
+            if (null != step2CrclSocket) {
+                Socket step2Socket = step2CrclSocket.getSocket();
+                if (null != step2Socket) {
+                    step2localPort = step2Socket.getLocalPort();
+                    step2RemotePort = step2Socket.getPort();
+                }
+            }
+            stopPollTimer();
+            
+            this.clearProgramTimesDistances();
+            int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
+            internal.setQuitOnTestCommandFailure(true);
+            internal.setPoll_ms(new_poll_ms);
+            internal.setWaitForDoneDelay(new_poll_ms);
+            setStepMode(stepMode);
+            this.jButtonResume.setEnabled(internal.isPaused());
+            this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+            jogWorldTransSpeedsSet = false;
+            jogWorldRotSpeedsSet = false;
+            boolean requestStatusResult = internal.requestStatus();
+            if (!requestStatusResult) {
+                throw new RuntimeException("requestStatus() returned false");
+            }
+            boolean readStatusResult = internal.readStatus();
+            if (!readStatusResult) {
+                throw new RuntimeException("readStatus() returned false");
+            }
+            System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
+            PointType pt = internal.currentStatusPoint();
+            if (null != pt) {
+                pt = CRCLPosemath.copy(pt);
+                setPlottersInitPoint(pt);
+                needInitPoint = false;
+            } else {
+                setPlottersInitPoint(null);
+                needInitPoint = true;
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, exception);
+            if(exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
         }
     }
 
