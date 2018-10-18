@@ -1101,7 +1101,7 @@ public class FanucCRCLMain {
 
     private boolean checkMoveDone(double dist, double rotDist, long curTime) {
         if ((curTime - expectedEndMoveToTime) > 2000) {
-            warnMoveTime(curTime);
+            warnMoveTime(dist,rotDist,curTime);
         }
         if (dist >= distanceTolerance) {
             addMoveReason(MoveStatus.DIST_OVER_TOLERANCE);
@@ -1112,16 +1112,17 @@ public class FanucCRCLMain {
             addMoveReason(MoveStatus.ROTDIST_OVER_TOLERANCE);
             return false;
         }
-        if (curTime < expectedEndMoveToTime) {
-            addMoveReason(MoveStatus.EXPECTED_END_MOVE_TIME);
-            return false;
-        }
+        
         if (!posReg98.isAtCurPosition()) {
             addMoveReason(MoveStatus.POSREG98_AT_CUR_POSITION);
             return false;
         }
         if (!checkCurrentTasks()) {
             addMoveReason(MoveStatus.CHECKED_TASK_STILL_RUNNING);
+            return false;
+        }
+        if (curTime < expectedEndMoveToTime && (curTime - moveTime) < 2000) {
+            addMoveReason(MoveStatus.EXPECTED_END_MOVE_TIME);
             return false;
         }
         if ((curTime - moveTime) < 20) {
@@ -1140,9 +1141,9 @@ public class FanucCRCLMain {
 
     private long lastWarnMoveTime = 0;
 
-    private void warnMoveTime(long curTime) {
+    private void warnMoveTime(double dist, double rotDist,long curTime) {
         if (curTime - lastWarnMoveTime > 2000) {
-            System.err.println("move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime));
+            System.err.println("FanucCRCL: move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime)+", moveStatus="+moveStatus+",dist="+dist+",rotDist="+rotDist);
             lastWarnMoveTime = curTime;
         }
     }
@@ -1646,11 +1647,6 @@ public class FanucCRCLMain {
     private volatile PoseType moveToStartPosition = null;
 
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
-//        try {
-//            logDebug("Starting move = " + CRCLSocket.getUtilSocket().commandToString(moveCmd, false) + ", status=" + CRCLSocket.getUtilSocket().statusToString(status, false));
-//        } catch (CRCLException ex) {
-//            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 
         if(overrideValue < 50) {
             recheckOverride();
