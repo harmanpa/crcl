@@ -512,8 +512,6 @@ public class PendantClientInner {
         return blockProgramsSetCount.incrementAndGet();
     }
 
-    
-
     public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         int c = blockProgramsSetCount.get();
         if (c != count) {
@@ -576,13 +574,13 @@ public class PendantClientInner {
     }
 
     private static String createAssertErrorString(CRCLCommandType cmd, long oldId, long newId) {
-        return "command id being reduced from "+ oldId +" to " + newId + ", cmd=" + CRCLSocket.cmdToString(cmd);
+        return "command id being reduced from " + oldId + " to " + newId + ", cmd=" + CRCLSocket.cmdToString(cmd);
     }
 
     private void setCommandId(CRCLCommandType cmd, long id) {
         long commandID = cmd.getCommandID();
         assert commandID <= id :
-                createAssertErrorString(cmd,commandID, id);
+                createAssertErrorString(cmd, commandID, id);
 //        if (!(cmd instanceof GetStatusType)) {
 //            if (Math.abs(id - cmd.getCommandID()) > 3 && id > 3 && cmd.getCommandID() > 3) {
 //                showErrorMessage("Math.abs(id - cmd.getCommandID()) > 3 && id > 3, id=" + id + ",cmd.getCommandID()=" + cmd.getCommandID());
@@ -1255,6 +1253,27 @@ public class PendantClientInner {
             SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
             this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
             holdingErrorOccured = false;
+        } else if (cmd instanceof MoveToType) {
+            MoveToType moveToCmd = (MoveToType) cmd;
+            PointType pt = moveToCmd.getEndPosition().getPoint();
+            if (pt.getX() > maxLimit.x) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
+            }
+            if (pt.getY() > maxLimit.y) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
+            }
+            if (pt.getZ() > maxLimit.z) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
+            }
+            if (pt.getX() < minLimit.x) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
+            }
+            if (pt.getY() < minLimit.y) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
+            }
+            if (pt.getZ() < minLimit.z) {
+                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
+            }
         }
         boolean ret = this.sendCommandPrivate(cmd);
 
@@ -1584,12 +1603,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1597,21 +1616,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -2241,6 +2260,46 @@ public class PendantClientInner {
     }
 
     private boolean holdingObjectExpected;
+
+    private volatile PmCartesian minLimit = new PmCartesian(-10000, -10000, -10000);
+
+    /**
+     * Get the value of minLimit
+     *
+     * @return the value of minLimit
+     */
+    public PmCartesian getMinLimit() {
+        return new PmCartesian(minLimit.x, minLimit.y, minLimit.z);
+    }
+
+    /**
+     * Set the value of minLimit
+     *
+     * @param minLimit new value of minLimit
+     */
+    public void setMinLimit(PmCartesian minLimit) {
+        this.minLimit = minLimit;
+    }
+
+    private volatile PmCartesian maxLimit = new PmCartesian(10000, 10000, 10000);
+
+    /**
+     * Get the value of maxLimit
+     *
+     * @return the value of maxLimit
+     */
+    public PmCartesian getMaxLimit() {
+        return new PmCartesian(maxLimit.x, maxLimit.y, maxLimit.z);
+    }
+
+    /**
+     * Set the value of maxLimit
+     *
+     * @param maxLimit new value of maxLimit
+     */
+    public void setMaxLimit(PmCartesian maxLimit) {
+        this.maxLimit = maxLimit;
+    }
 
     /**
      * Get the value of holdingObjectExpected
@@ -3176,9 +3235,9 @@ public class PendantClientInner {
                     System.out.println("outer.getCurrentProgramLine() = " + outer.getCurrentProgramLine());
                     System.out.println("middleCommands.size() = " + middleCommands.size());
                 }
-                if(cmd != middleCommands.get(middleCommands.size()-1)) {
+                if (cmd != middleCommands.get(middleCommands.size() - 1)) {
                     System.out.println("cmd = " + cmd);
-                    System.out.println("middleCommands.get(middleCommands.size()-1) = " + middleCommands.get(middleCommands.size()-1));
+                    System.out.println("middleCommands.get(middleCommands.size()-1) = " + middleCommands.get(middleCommands.size() - 1));
                 }
             }
 
@@ -3262,10 +3321,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3433,26 +3492,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -4230,9 +4289,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -4317,13 +4376,13 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((startStatus == null || startStatus.getCommandStatus() == null)
-                        ? "startStatus.getCommandStatus()=null\n"
-                        : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "startStatus.getCommandStatus()=null\n"
+                                : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + ((curStatus == null || curStatus.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -4366,9 +4425,9 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
@@ -4587,8 +4646,48 @@ public class PendantClientInner {
         public T tryGet() throws Throwable;
 
     }
-
+    
     public boolean checkPose(PoseType goalPose) {
+        return checkPose(goalPose,false);
+    }
+
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
+        PointType point = goalPose.getPoint();
+
+        if (!ignoreCartTran) {
+            if (point.getX() > maxLimit.x) {
+                showMessage("Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+            if (point.getY() > maxLimit.y) {
+                showMessage("Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+
+            if (point.getZ() > maxLimit.z) {
+                showMessage("Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+
+            if (point.getX() < minLimit.x) {
+                showMessage("Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+            if (point.getY() < minLimit.y) {
+                showMessage("Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+            if (point.getZ() < minLimit.z) {
+                showMessage("Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z);
+                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return false;
+            }
+        }
         VectorType goalXAxis = requireNonNull(goalPose.getXAxis(), "goalPose.getXAxis()");
         PmCartesian xvec = vectorToPmCartesian(goalXAxis);
         if (Math.abs(xvec.mag() - 1.0) > 1e-3) {

@@ -65,6 +65,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
+import rcs.posemath.PmCartesian;
 
 /**
  *
@@ -80,8 +81,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         this(null);
     }
     
-    public boolean checkPose(PoseType goalPose) {
-        return pendantClientJPanel1.checkPose(goalPose);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
+        return pendantClientJPanel1.checkPose(goalPose,ignoreCartTran);
     }
 
     /**
@@ -96,6 +97,43 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
 
+    /**
+     * Get the value of minLimit
+     *
+     * @return the value of minLimit
+     */
+    public PmCartesian getMinLimit() {
+        return pendantClientJPanel1.getMinLimit();
+    }
+
+    /**
+     * Set the value of minLimit
+     *
+     * @param minLimit new value of minLimit
+     */
+    public void setMinLimit(PmCartesian minLimit) {
+        pendantClientJPanel1.setMinLimit(minLimit);
+    }
+
+
+    /**
+     * Get the value of maxLimit
+     *
+     * @return the value of maxLimit
+     */
+    public PmCartesian getMaxLimit() {
+        return pendantClientJPanel1.getMaxLimit();
+    }
+
+    /**
+     * Set the value of maxLimit
+     *
+     * @param maxLimit new value of maxLimit
+     */
+    public void setMaxLimit(PmCartesian maxLimit) {
+       pendantClientJPanel1.setMaxLimit(maxLimit);
+    }
+    
     public void setStepMode(boolean step) {
         pendantClientJPanel1.setStepMode(step);
     }

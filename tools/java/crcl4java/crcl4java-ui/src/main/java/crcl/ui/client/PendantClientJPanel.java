@@ -260,6 +260,44 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jointsPlotter.setVisible(true);
     }
 
+    /**
+     * Get the value of minLimit
+     *
+     * @return the value of minLimit
+     */
+    public PmCartesian getMinLimit() {
+        return internal.getMinLimit();
+    }
+
+    /**
+     * Set the value of minLimit
+     *
+     * @param minLimit new value of minLimit
+     */
+    public void setMinLimit(PmCartesian minLimit) {
+        internal.setMinLimit(minLimit);
+    }
+
+
+    /**
+     * Get the value of maxLimit
+     *
+     * @return the value of maxLimit
+     */
+    public PmCartesian getMaxLimit() {
+        return internal.getMaxLimit();
+    }
+
+    /**
+     * Set the value of maxLimit
+     *
+     * @param maxLimit new value of maxLimit
+     */
+    public void setMaxLimit(PmCartesian maxLimit) {
+       internal.setMaxLimit(maxLimit);
+    }
+    
+    
     public void showSetSchemaFilesDialog() {
         JFileChooser jFileChooser = new JFileChooser();
         javax.swing.filechooser.FileFilter[] ffa = jFileChooser.getChoosableFileFilters();
@@ -1355,8 +1393,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private final AtomicInteger pollStopCount = new AtomicInteger();
 
-    public boolean checkPose(PoseType goalPose) {
-        return internal.checkPose(goalPose);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
+        return internal.checkPose(goalPose,ignoreCartTran);
     }
 
     private void pollStatus(int startPollStopCount) {
