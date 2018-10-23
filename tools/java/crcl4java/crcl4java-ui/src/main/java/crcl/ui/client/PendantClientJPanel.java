@@ -745,10 +745,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             Throwable cause = ex.getCause();
             if (null != cause) {
                 Logger.getLogger(PendantClientJPanel.class
-                        .getName()).log(Level.SEVERE, null, cause);
+                        .getName()).log(Level.SEVERE, "m="+m+",o="+o, cause);
             }
             Logger.getLogger(PendantClientJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
+                    .getName()).log(Level.SEVERE, "m="+m+",o="+o, ex);
         }
         return Optional.empty();
     }
@@ -804,6 +804,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
                         .filter(m -> m.getName().startsWith("get"))
                         .filter(m -> !m.getName().startsWith("getTempLogDir"))
+                        .filter(m -> !m.getName().contains("Mouse"))
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> !m.getName().startsWith("getLocationOnScreen") || visibleAndValid)
                         .filter(m -> m.getParameterTypes().length == 0)

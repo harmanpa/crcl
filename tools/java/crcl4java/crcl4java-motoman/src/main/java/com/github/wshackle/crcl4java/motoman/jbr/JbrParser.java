@@ -22,37 +22,23 @@
  */
 package com.github.wshackle.crcl4java.motoman.jbr;
 
-import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLProgramType;
-import crcl.base.CRCLStatusType;
-import static crcl.base.CommandStateEnumType.CRCL_DONE;
-import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.EndCanonType;
-import crcl.base.GetStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.MoveToType;
 import crcl.base.PoseType;
 import crcl.base.SetEndEffectorType;
-import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
-import crcl.utils.CRCLSocket;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javafx.scene.shape.MoveTo;
-import javax.xml.bind.JAXBException;
+
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
