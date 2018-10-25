@@ -31,6 +31,7 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
+import static crcl.base.CommandStateEnumType.CRCL_ERROR;
 import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
@@ -202,9 +203,9 @@ public class PendantClientInner {
                 .collect(Collectors.joining(","));
     }
 
-//    private final AtomicReference<Thread> runTestProgramThread = new AtomicReference<>(null);
     @MonotonicNonNull
     private CRCLStatusType status = null;
+    
     @Nullable
     private volatile CRCLSocket crclSocket = null;
 
@@ -1257,21 +1258,27 @@ public class PendantClientInner {
             MoveToType moveToCmd = (MoveToType) cmd;
             PointType pt = moveToCmd.getEndPosition().getPoint();
             if (pt.getX() > maxLimit.x) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
             }
             if (pt.getY() > maxLimit.y) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
             }
             if (pt.getZ() > maxLimit.z) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
             }
             if (pt.getX() < minLimit.x) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
             }
             if (pt.getY() < minLimit.y) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
             }
             if (pt.getZ() < minLimit.z) {
+                setCommandState(CRCL_ERROR);
                 throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
             }
         }

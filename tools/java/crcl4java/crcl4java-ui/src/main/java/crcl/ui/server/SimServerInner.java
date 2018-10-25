@@ -650,7 +650,7 @@ public class SimServerInner {
     private long simCycleCount = 0;
     @Nullable
     private CRCLSocket checkerCRCLSocket = null;
-    
+
     private File[] statSchemaFiles;
 
     public File[] getStatSchemaFiles() {
@@ -767,14 +767,22 @@ public class SimServerInner {
         }
     }
 
+    private boolean robotTypeSet = false;
+
     /**
      * Set the value of robotType
      *
      * @param robotType new value of robotType
      */
     public void setRobotType(SimRobotEnum robotType) {
-        this.robotType = robotType;
-        this.resetToDefaults();
+        try {
+            if (robotType != this.robotType || !robotTypeSet) {
+                this.robotType = robotType;
+                this.resetToDefaults();
+            }
+        } finally {
+            robotTypeSet = true;
+        }
     }
 
     public XpathUtils getXpu() {
@@ -814,10 +822,22 @@ public class SimServerInner {
 
     @Nullable
     public PoseType getPose() {
-        return poseStatus.getPose();
+        if (null == poseStatus) {
+            return null;
+        } else {
+            PoseType pose = poseStatus.getPose();
+            if (null != pose) {
+                return CRCLPosemath.copy(pose);
+            } else {
+                return null;
+            }
+        }
     }
 
     public void setPose(PoseType pose) {
+        if (pose.getPoint().getX() > 1200.0) {
+            System.err.println("pose.getPoint().getX()=" + pose.getPoint().getX());
+        }
         poseStatus.setPose(pose);
     }
 
@@ -1681,6 +1701,29 @@ public class SimServerInner {
         }
     }
 
+    public void teleportJoints(double newJointPositions[]) {
+        if (null == newJointPositions) {
+            throw new IllegalArgumentException("null == newJointPositions");
+        }
+        if (newJointPositions.length != jointPositions.length) {
+            throw new IllegalArgumentException(newJointPositions.length + " newJointPositions.length != jointPositions.length " + jointPositions.length);
+        }
+        System.arraycopy(newJointPositions, 0, jointPositions, 0, jointPositions.length);
+        System.arraycopy(newJointPositions, 0, commandedJointPositions, 0, jointPositions.length);
+        for (int i = 0; i < jointVelocites.length; i++) {
+            jointVelocites[i] = 0;
+        }
+        JointStatusesType jsst = getJointStatuses();
+
+        List<JointStatusType> jsl = jsst.getJointStatus();
+        for (JointStatusType jst : jsl) {
+            int jointNumber = jst.getJointNumber();
+            if (jointNumber > 0 && jointNumber < newJointPositions.length - 1) {
+                jst.setJointPosition(newJointPositions[jointNumber - 1]);
+            }
+        }
+    }
+
     private final AtomicInteger workingCount = new AtomicInteger();
     private volatile int maxWorkingCount = 0;
 
@@ -1721,7 +1764,8 @@ public class SimServerInner {
                         newGoalPose = this.waypoints.get(this.currentWaypoint);
                         setGoalPose(newGoalPose);
                     }
-                    PoseType currentPose = getPose();
+                    PoseType startingCurrentPose = getPose();
+                    PoseType currentPose = CRCLPosemath.copy(startingCurrentPose);
                     if (null != newGoalPose && null != currentPose) {
                         curGoalPose = this.limitSpeedAccel(newGoalPose, currentPose);
                         if (this.moveStraight || isCoordinated(newGoalPose)) {
@@ -1864,7 +1908,7 @@ public class SimServerInner {
                                 newGoalPose = null;
                                 this.goalPose = null;
                             }
-                        } 
+                        }
 //                        else {
 //                            System.err.println("SimServerInner: executing move command for " + workingCount.get() + " cycles.");
 //                            System.out.println("jointVelocites = " + Arrays.toString(jointVelocites));
@@ -1958,20 +2002,56 @@ public class SimServerInner {
                 throw new IllegalStateException("null == commandedJointPositions && null == jointPositions");
             }
         }
+        try {
+            double jointsIn[] = this.commandedJointPositions;
+            PoseType inputPose = _goalPose;
+            double jointsOut[] = poseToJoints(jointsIn, inputPose);
+            this.commandedJointPositions = jointsOut;
+        } catch (Exception exception) {
+            Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, "", exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
+        }
+    }
+
+    private String initStatusFilename;
+
+    /**
+     * Get the value of initStatusFilename
+     *
+     * @return the value of initStatusFilename
+     */
+    public String getInitStatusFilename() {
+        return initStatusFilename;
+    }
+
+    /**
+     * Set the value of initStatusFilename
+     *
+     * @param initStatusFilename new value of initStatusFilename
+     */
+    public void setInitStatusFilename(String initStatusFilename) {
+        this.initStatusFilename = initStatusFilename;
+    }
+
+    public double[] poseToJoints(double[] jointsIn, PoseType inputPose) throws IllegalArgumentException, PmException {
+        double jointsOut[];
         switch (robotType) {
             case PLAUSIBLE:
-                this.commandedJointPositions = skPlausible.poseToJoints(this.commandedJointPositions, _goalPose);
+                jointsOut = skPlausible.poseToJoints(jointsIn, inputPose);
                 break;
 
-            case SIMPLE: {
-                try {
-                    this.commandedJointPositions = skSimple.poseToJoints(this.commandedJointPositions, _goalPose);
-                } catch (PmException ex) {
-                    Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            break;
+            case SIMPLE:
+                jointsOut = skSimple.poseToJoints(jointsIn, inputPose);
+                break;
+
+            default:
+                throw new IllegalArgumentException("bad robotType=" + robotType);
         }
+        return jointsOut;
     }
 
     /**

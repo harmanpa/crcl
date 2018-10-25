@@ -268,14 +268,22 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             showTextPrivate(dialog, init);
         }
     }
-
+    
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,
             boolean _modal) {
+        return showText(init,_owner,_title,_modal,false);
+    }
+
+    public static XFuture<Boolean> showText(String init,
+            @Nullable JFrame _owner,
+            String _title,
+            boolean _modal,
+            boolean forceShow) {
 
         final XFuture<Boolean> ret = new XFuture<>("showText(" + init + "," + _title + ")");
-        if (!disableShowText) {
+        if (!disableShowText || forceShow) {
             runOnDispatchThread(() -> {
                 JDialog dialog = new JDialog(_owner, _title, _modal);
                 ret.complete(showTextPrivate(dialog, init));

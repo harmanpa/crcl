@@ -22,14 +22,23 @@
  */
 package crcl.ui.server;
 
+import crcl.base.CRCLStatusType;
 import crcl.base.LengthUnitEnumType;
+import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -81,6 +90,8 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         jMenuItemExit = new javax.swing.JMenuItem();
         jMenuItemSaveProperties = new javax.swing.JMenuItem();
         jMenuItemLoadProperties = new javax.swing.JMenuItem();
+        jMenuItemSaveStatusToFile = new javax.swing.JMenuItem();
+        jMenuItemSetInitalStatusFile = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItemEditStatus = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
@@ -133,6 +144,22 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             }
         });
         jMenu1.add(jMenuItemLoadProperties);
+
+        jMenuItemSaveStatusToFile.setText("Save Status to File ...");
+        jMenuItemSaveStatusToFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSaveStatusToFileActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSaveStatusToFile);
+
+        jMenuItemSetInitalStatusFile.setText("Set Inital Status File ...");
+        jMenuItemSetInitalStatusFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSetInitalStatusFileActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSetInitalStatusFile);
 
         jMenuBar1.add(jMenu1);
 
@@ -349,6 +376,79 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         simServerJPanel1.setValidateXMLSelected(jCheckBoxMenuItemValidateXML.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemValidateXMLActionPerformed
 
+    public CRCLStatusType getStatus() {
+        return simServerJPanel1.getStatus();
+    }
+
+    private void jMenuItemSaveStatusToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveStatusToFileActionPerformed
+        try {
+            JFileChooser chooser;
+            File propertiesFile = simServerJPanel1.getPropertiesFile();
+            if (propertiesFile != null) {
+                chooser = new JFileChooser(propertiesFile.getParentFile());
+            } else {
+                chooser = new JFileChooser();
+            }
+            FileFilter xmlFilter = new FileNameExtensionFilter("XML", "xml");
+            chooser.addChoosableFileFilter(xmlFilter);
+            chooser.setFileFilter(xmlFilter);
+            if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+                File f = chooser.getSelectedFile();
+                String name = f.getName();
+                if(!name.endsWith(".xml")) {
+                    name = name+".xml";
+                    f = new File(f.getParentFile(),name);
+                }
+                try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+                    pw.println(CRCLSocket.statusToPrettyString(simServerJPanel1.getStatus()));
+                }
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Set as IntialStatus file?")) {
+                    File propertiesParentFile = propertiesFile.getParentFile();
+                    if (!Objects.equals(propertiesParentFile.getCanonicalPath(), f.getParentFile().getCanonicalPath())) {
+                        File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                        Files.copy(f.toPath(), copy.toPath());
+                        simServerJPanel1.setInitStatusFilename(copy.getName());
+                    } else {
+                        simServerJPanel1.setInitStatusFilename(name);
+                    }
+                    simServerJPanel1.saveProperties();
+                }
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, exception);
+        }
+    }//GEN-LAST:event_jMenuItemSaveStatusToFileActionPerformed
+
+    private void jMenuItemSetInitalStatusFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSetInitalStatusFileActionPerformed
+        try {
+            JFileChooser chooser;
+            File propertiesFile = simServerJPanel1.getPropertiesFile();
+            if (propertiesFile != null) {
+                chooser = new JFileChooser(propertiesFile.getParentFile());
+            } else {
+                chooser = new JFileChooser();
+            }
+            FileFilter xmlFilter = new FileNameExtensionFilter("XML", "xml");
+            chooser.addChoosableFileFilter(xmlFilter);
+            chooser.setFileFilter(xmlFilter);
+            if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+                File f = chooser.getSelectedFile();
+                String name = f.getName();
+                File propertiesParentFile = propertiesFile.getParentFile();
+                if (!Objects.equals(propertiesParentFile.getCanonicalPath(), f.getParentFile().getCanonicalPath())) {
+                    File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                    Files.copy(f.toPath(), copy.toPath());
+                    simServerJPanel1.setInitStatusFilename(copy.getName());
+                } else {
+                    simServerJPanel1.setInitStatusFilename(name);
+                }
+                simServerJPanel1.saveProperties();
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, exception);
+        }
+    }//GEN-LAST:event_jMenuItemSetInitalStatusFileActionPerformed
+
     @Override
     public boolean isDebugMoveDoneSelected() {
         return this.jCheckBoxMenuItemDebugMoveDone.isSelected();
@@ -518,6 +618,8 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     private javax.swing.JMenuItem jMenuItemExit;
     private javax.swing.JMenuItem jMenuItemLoadProperties;
     private javax.swing.JMenuItem jMenuItemSaveProperties;
+    private javax.swing.JMenuItem jMenuItemSaveStatusToFile;
+    private javax.swing.JMenuItem jMenuItemSetInitalStatusFile;
     private javax.swing.JMenuItem jMenuItemSetSchema;
     private javax.swing.JMenuItem jMenuItemViewCommandLogBrief;
     private javax.swing.JMenuItem jMenuItemViewCommandLogFull;
@@ -525,7 +627,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void close()  {
+    public void close() {
         simServerJPanel1.closeServer();
         this.setVisible(false);
     }

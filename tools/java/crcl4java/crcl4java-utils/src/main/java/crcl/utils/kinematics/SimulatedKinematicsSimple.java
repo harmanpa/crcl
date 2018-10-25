@@ -126,7 +126,6 @@ public class SimulatedKinematicsSimple {
         }
         double[] sl = this.scaled_seglengths;
         PmCartesian cart = CRCLPosemath.toPmCartesian(pose.getPoint());
-//        double r = cart.mag();
         double endr = sl[0];
         PmRotationMatrix rmat = CRCLPosemath.toPmRotationMatrix(pose);
         PmCartesian endSeg = cart.add(rmat.multiply(new PmCartesian(-endr, 0.0, 0.0)));

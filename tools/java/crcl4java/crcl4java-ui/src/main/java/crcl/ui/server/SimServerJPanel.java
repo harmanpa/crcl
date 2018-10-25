@@ -31,6 +31,7 @@ import crcl.base.GripperStatusType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
+import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.ui.DefaultSchemaFiles;
 import crcl.ui.XFuture;
@@ -51,7 +52,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -61,7 +61,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -71,7 +70,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -96,7 +94,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.inner = new SimServerInner(this, DefaultSchemaFiles.instance());
         SimRobotEnum defaultRobotType
                 = DEFAULT_ROBOTTYPE;
-//        this.inner = new SimServerInner(this);
         java.awt.EventQueue.invokeLater(() -> this.updatePanelsPrivate());
         this.lengthUnitComboBox.setSelectedItem(LengthUnitEnumType.MILLIMETER);
         for (SimRobotEnum srType : SimRobotEnum.values()) {
@@ -114,7 +111,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         } else {
             this.jTextFieldPort.setText(Integer.toString(inner.getPort()));
         }
-//        inner.restartServer();
         try {
             String imageLogDirProp = System.getProperty("crcl4java.simserver.imagelogdir");
             File imageLogDir = null;
@@ -190,12 +186,32 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             int port = Integer.parseInt(jTextFieldPort.getText());
             props.put(CRCLPORT_PROPERTY_NAME, Integer.toString(port));
             props.put(VALIDATEXML_PROPERTY_NAME, Boolean.toString(inner.isValidateXMLSelected()));
+            props.put(SIM_ROBOT_TYPE_PROPERTY_NAME, inner.getRobotType().toString());
+            String initStatusFilename = inner.getInitStatusFilename();
+            if (null != initStatusFilename) {
+                props.put(SIM_INIT_STATUS_PROPERTY_NAME, initStatusFilename);
+            }
             System.out.println("SimServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
-//            try (FileWriter fw = new FileWriter(propertiesFile)) {
-//                props.store(fw, "");
-//            }
             PropertiesUtils.saveProperties(propertiesFile, props);
         }
+    }
+
+    /**
+     * Get the value of initStatusFilename
+     *
+     * @return the value of initStatusFilename
+     */
+    public String getInitStatusFilename() {
+        return inner.getInitStatusFilename();
+    }
+
+    /**
+     * Set the value of initStatusFilename
+     *
+     * @param initStatusFilename new value of initStatusFilename
+     */
+    public void setInitStatusFilename(String initStatusFilename) {
+        inner.setInitStatusFilename(initStatusFilename);
     }
 
     public void loadProperties() throws IOException {
@@ -206,6 +222,47 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                     props.load(fr);
                 }
             }
+            String validateXmlString = props.getProperty(VALIDATEXML_PROPERTY_NAME);
+            if (null != validateXmlString) {
+                inner.setValidateXMLSelected(Boolean.parseBoolean(validateXmlString));
+            }
+            String robotTypeString = props.getProperty(SIM_ROBOT_TYPE_PROPERTY_NAME);
+            if (null != robotTypeString) {
+                inner.setRobotType(SimRobotEnum.valueOf(robotTypeString));
+            }
+            String initStatusFilename = props.getProperty(SIM_INIT_STATUS_PROPERTY_NAME);
+            if (null != initStatusFilename) {
+                try {
+                    inner.setInitStatusFilename(initStatusFilename);
+                    CRCLStatusType initStatus = CRCLSocket.readStatusFile(new File(propertiesFile.getParentFile(), initStatusFilename));
+                    if (null != initStatus) {
+                        JointStatusesType jsst = initStatus.getJointStatuses();
+                        if(null != jsst) {
+                            setCommandState(CommandStateEnumType.CRCL_DONE);
+                            List<JointStatusType> jsl = jsst.getJointStatus();
+                            for(JointStatusType jst : jsl) {
+                                inner.setJointPosition(jst.getJointPosition(), jst.getJointNumber()-1);
+                            }
+                        }
+                        PoseStatusType poseStatus = initStatus.getPoseStatus();
+                        if (null != poseStatus) {
+                            double jpos[] = inner.getJointPositions();
+                            PoseType initPose = poseStatus.getPose();
+                            double newjpos[] = inner.poseToJoints(jpos, initPose);
+                            setCommandState(CommandStateEnumType.CRCL_DONE);
+                            inner.teleportJoints(newjpos);
+                            inner.setPose(initPose);
+                        }
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, "loadProperties: initStatusFilename=" + initStatusFilename, ex);
+                    if (ex instanceof RuntimeException) {
+                        throw (RuntimeException) ex;
+                    } else {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
             String portString = props.getProperty(CRCLPORT_PROPERTY_NAME);
             if (portString != null) {
                 int port = Integer.parseInt(portString);
@@ -213,13 +270,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 inner.setPort(port);
                 restartServer();
             }
-            String validateXmlString = props.getProperty(VALIDATEXML_PROPERTY_NAME);
-            if (null != validateXmlString) {
-                inner.setValidateXMLSelected(Boolean.parseBoolean(validateXmlString));
-            }
-
         }
     }
+
+    private static final String SIM_INIT_STATUS_PROPERTY_NAME = "crcl.sim.initStatus";
+    private static final String SIM_ROBOT_TYPE_PROPERTY_NAME = "crcl.sim.robotType";
     private static final String VALIDATEXML_PROPERTY_NAME = "crcl.validateXML";
     private static final String CRCLPORT_PROPERTY_NAME = "crcl.port";
 
@@ -281,7 +336,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         }
     }
 
-    private CRCLStatusType getStatus() {
+    public CRCLStatusType getStatus() {
         return inner.getStatus();
     }
 
@@ -1121,22 +1176,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     }
     private boolean showing_message = false;
 
-    private boolean getSwingBoolean(Supplier<Boolean> supplier) {
-        final boolean boolarra[] = new boolean[1];
-        try {
-            SwingUtilities.invokeAndWait(() -> boolarra[0] = supplier.get());
-        } catch (InterruptedException | InvocationTargetException ex) {
-            Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return boolarra[0];
-    }
-
     public boolean isInitializedSelected() {
-//        if (SwingUtilities.isEventDispatchThread()) {
-//            return this.jCheckBoxInitialized.isSelected();
-//        } else {
-//            return getSwingBoolean(() -> this.jCheckBoxInitialized.isSelected());
-//        }
         return jCheckBoxInitialized.isSelected();
     }
 

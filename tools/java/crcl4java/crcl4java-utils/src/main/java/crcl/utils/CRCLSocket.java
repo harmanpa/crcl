@@ -251,6 +251,35 @@ public class CRCLSocket implements AutoCloseable {
         return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
     }
 
+    
+    /**
+     * Read a CRCL Status from a File with the given file.
+     *
+     * @param f File to read
+     * @return CRCLStatus read from file.
+     * @throws CRCLException file is not valid CRCLStatus
+     * @throws IOException unable to read from file
+     */
+    public static CRCLStatusType readStatusFile(File f) throws CRCLException, IOException {
+        return readStatusFile(f.toPath());
+    }
+
+    /**
+     * Read a CRCL Status from a File with the given path.
+     *
+     * @param p Path to file to read
+     * @return CRCLStatus read from file.
+     * @throws CRCLException file is not valid CRCLStatus
+     * @throws IOException unable to read from file
+     */
+    public static CRCLStatusType readStatusFile(Path p) throws CRCLException, IOException {
+        CRCLSocket cs = getUtilSocket();
+        String str = new String(Files.readAllBytes(p));
+        synchronized (cs) {
+            return cs.stringToStatus(str, true);
+        }
+    }
+    
     /**
      * Read a CRCL Program from a File with the given file.
      *
