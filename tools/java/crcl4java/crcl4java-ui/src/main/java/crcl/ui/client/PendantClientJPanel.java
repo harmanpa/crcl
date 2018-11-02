@@ -278,7 +278,6 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.setMinLimit(minLimit);
     }
 
-
     /**
      * Get the value of maxLimit
      *
@@ -294,10 +293,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      * @param maxLimit new value of maxLimit
      */
     public void setMaxLimit(PmCartesian maxLimit) {
-       internal.setMaxLimit(maxLimit);
+        internal.setMaxLimit(maxLimit);
     }
-    
-    
+
     public void showSetSchemaFilesDialog() {
         JFileChooser jFileChooser = new JFileChooser();
         javax.swing.filechooser.FileFilter[] ffa = jFileChooser.getChoosableFileFilters();
@@ -745,10 +743,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             Throwable cause = ex.getCause();
             if (null != cause) {
                 Logger.getLogger(PendantClientJPanel.class
-                        .getName()).log(Level.SEVERE, "m="+m+",o="+o, cause);
+                        .getName()).log(Level.SEVERE, "m=" + m + ",o=" + o, cause);
             }
             Logger.getLogger(PendantClientJPanel.class
-                    .getName()).log(Level.SEVERE, "m="+m+",o="+o, ex);
+                    .getName()).log(Level.SEVERE, "m=" + m + ",o=" + o, ex);
         }
         return Optional.empty();
     }
@@ -1395,7 +1393,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private final AtomicInteger pollStopCount = new AtomicInteger();
 
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
-        return internal.checkPose(goalPose,ignoreCartTran);
+        return internal.checkPose(goalPose, ignoreCartTran);
     }
 
     private void pollStatus(int startPollStopCount) {
@@ -1407,10 +1405,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     && startPollStopCount == pollStopCount.get()) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                internal.requestStatus();
-                statusRequested = true;
-                internal.readStatus();
-                statusRequested = false;
+                synchronized (internal) {
+                    internal.requestStatus();
+                    statusRequested = true;
+                    internal.readStatus();
+                    statusRequested = false;
+                }
                 long readStatusEndTime = System.currentTimeMillis();
                 long diff_readStatusEndTime_requestStatusStartTime = (readStatusEndTime - requestStatusStartTime);
                 if (max_diff_readStatusEndTime_requestStatusStartTime < diff_readStatusEndTime_requestStatusStartTime) {
@@ -4947,7 +4947,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 }
             }
             stopPollTimer();
-            
+
             this.clearProgramTimesDistances();
             int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
             internal.setQuitOnTestCommandFailure(true);
@@ -4978,7 +4978,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         } catch (Exception exception) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, exception);
-            if(exception instanceof RuntimeException) {
+            if (exception instanceof RuntimeException) {
                 throw (RuntimeException) exception;
             } else {
                 throw new RuntimeException(exception);
