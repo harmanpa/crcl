@@ -33,6 +33,7 @@ import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.Utils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -300,7 +301,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     }
 
     private void readRecentCommandFiles() {
-        File fMainDir = new File(System.getProperty("user.home"),
+        File fMainDir = new File(Utils.getCrclUserHomeDir(),
                 recent_files_dir);
         if (!fMainDir.exists()) {
             return;

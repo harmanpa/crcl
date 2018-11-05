@@ -96,7 +96,7 @@ public class TestMotoPlusConnection {
             if (true) {
                 return;
             }
-//            mpc.downloadJobData("MOVELGEAR", new File(System.getProperty("user.home"), "MOVELGEAR.JBR"));
+//            mpc.downloadJobData("MOVELGEAR", new File(Utils.getCrclUserHomeDir(), "MOVELGEAR.JBR"));
 //            if (true) {
 //                return;
 //            }

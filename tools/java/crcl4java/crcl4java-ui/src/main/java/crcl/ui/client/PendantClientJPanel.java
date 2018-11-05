@@ -73,6 +73,7 @@ import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.ProgramPlotter;
+import crcl.utils.Utils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
@@ -752,7 +753,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public void resetPrefs() {
-        File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
+        File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
         if (crcljavaDir.exists()) {
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             boolean deleted = settingsRef.delete();
@@ -777,7 +778,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void savePrefsFile(File f) {
         try {
-            File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             Logger.getLogger(PendantClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
@@ -1002,7 +1003,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void checkSettingsRef() {
 
         try {
-            File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             Logger.getLogger(PendantClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
@@ -1053,7 +1054,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private void loadPrefsFile(File f) {
         try {
-            File crcljavaDir = new File(System.getProperty("user.home"), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             Logger.getLogger(PendantClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
@@ -1086,14 +1087,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
 //    
 //    private void jMenuItemSavePrefsActionPerformed(java.awt.event.ActionEvent evt) {                                                   
-//        JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+//        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
 //        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
 //            File f = chooser.getSelectedFile();
 //            savePrefsFile(f);
 //        }
 //    }                                                  
 //    private void jMenuItemLoadPrefsActionPerformed(java.awt.event.ActionEvent evt) {                                                   
-//        JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+//        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
 //        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
 //            File f = chooser.getSelectedFile();
 //            loadPrefsFile(f);
@@ -1658,7 +1659,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public Set<String> getRecentPrograms() {
-        File fMainDir = new File(System.getProperty("user.home"), recent_programs_dir);
+        File fMainDir = new File(Utils.getCrclUserHomeDir(), recent_programs_dir);
         Set<String> pathSet = new TreeSet<>();
         if (!fMainDir.exists()) {
             return pathSet;
@@ -2951,7 +2952,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmdInstance) throws JAXBException, IOException {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmdInstance, true);
-        File fDir = new File(System.getProperty("user.home"), recent_files_dir);
+        File fDir = new File(Utils.getCrclUserHomeDir(), recent_files_dir);
         boolean made_dir = fDir.mkdirs();
         Logger.getLogger(PendantClientJPanel.class.getName()).finest(() -> "mkdir " + fDir + " returned " + made_dir);
         final CRCLCommandType crclCommand = cmdInstance.getCRCLCommand();
@@ -2983,7 +2984,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (pathSet.contains(fprog.getCanonicalPath())) {
             return;
         }
-        File fDir = new File(System.getProperty("user.home"), recent_programs_dir);
+        File fDir = new File(Utils.getCrclUserHomeDir(), recent_programs_dir);
         boolean made_dir = fDir.mkdirs();
         Logger.getLogger(PendantClientJPanel.class.getName()).finest(() -> "mkdir " + fDir + " returned " + made_dir);
         String name = fprog.getName();
@@ -3082,7 +3083,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public void loadPrefsAction() {
-        JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             File f = chooser.getSelectedFile();
             loadPrefsFile(f);
@@ -3106,7 +3107,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }
 
     public void savePrefsAction() {
-        JFileChooser chooser = new JFileChooser(new File(System.getProperty("user.home")));
+        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             File f = chooser.getSelectedFile();
             savePrefsFile(f);

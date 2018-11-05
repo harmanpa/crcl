@@ -117,7 +117,7 @@ public class CrclClientUI extends UI implements Consumer<CommonInfo> {
         programInfoListeners.add(l);
     }
 
-    private final static File REMOTE_PROGRAM_DIR = new File(System.getProperty("user.home"), ".crcl4java.programs");
+    private final static File REMOTE_PROGRAM_DIR = new File(Utils.getCrclUserHomeDir(), ".crcl4java.programs");
 
     private static CommonInfo commonInfo = CommonInfo.defaultWithRemotePrograms(REMOTE_PROGRAM_DIR.list());
 

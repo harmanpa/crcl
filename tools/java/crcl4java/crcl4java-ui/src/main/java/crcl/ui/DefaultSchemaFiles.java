@@ -1,6 +1,7 @@
 package crcl.ui;
 
 import crcl.utils.CRCLSocket;
+import crcl.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 
@@ -64,7 +65,7 @@ public class DefaultSchemaFiles {
         this.statSchemasFile = statSchemasFile;
         this.programSchemasFile = programSchemasFile;
     }
-    private static final String HOME = System.getProperty("user.home");
+    private static final String HOME = Utils.getCrclUserHomeDir();
     private static final String SCHEMA_FILES_DIR = System.getProperty("crcl4java.schemaFilesDir", HOME);
     
 //    private static final String HOME = 

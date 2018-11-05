@@ -193,13 +193,13 @@ public class JbrParser {
 //    public static void main(String[] args) throws IOException, PmException, CRCLException, JAXBException {
 //
 //        JbrParser jp = new JbrParser();
-//        jp.parse(new File(System.getProperty("user.home"), "MOVELGEAR.JBR"));
+//        jp.parse(new File(Utils.getCrclUserHomeDir(), "MOVELGEAR.JBR"));
 //
 //        System.out.println("Generating program");
 //        CRCLProgramType program = jp.getProgram("MOVELGEAR");
 //        String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, true);
 //        System.out.println("programString = " + programString);
-//        Files.write(Paths.get(System.getProperty("user.home"), "MOVELGEAR_CRLC.xml"),
+//        Files.write(Paths.get(Utils.getCrclUserHomeDir(), "MOVELGEAR_CRLC.xml"),
 //                programString.getBytes(), StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
 //        if (true) {
 //            return;

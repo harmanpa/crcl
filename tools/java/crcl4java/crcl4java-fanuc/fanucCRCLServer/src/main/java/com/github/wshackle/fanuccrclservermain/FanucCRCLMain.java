@@ -132,6 +132,7 @@ import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import static crcl.utils.CRCLPosemath.point;
+import crcl.utils.Utils;
 import java.util.Iterator;
 import javax.swing.SwingUtilities;
 
@@ -2788,9 +2789,9 @@ public class FanucCRCLMain {
         this.cartLimitsFile = cartLimitsFile;
     }
 
-    private static final File CART_LIMITS_FILE = new File(System.getProperty("user.home"),
+    private static final File CART_LIMITS_FILE = new File(Utils.getCrclUserHomeDir(),
             ".fanucCRLCCartLimits.txt");
-    private static final File JOINT_LIMITS_FILE = new File(System.getProperty("user.home"),
+    private static final File JOINT_LIMITS_FILE = new File(Utils.getCrclUserHomeDir(),
             ".fanucCRLCJointLimits.txt");
 
     private void findString(String input, String token, Consumer<String> tailConsumer) {

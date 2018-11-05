@@ -416,11 +416,11 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private static final Logger LOGGER = Logger.getLogger(CRCLSocket.class.getName());
-    private final static File statSchemasFile = new File(System.getProperty("user.home"),
+    private final static File statSchemasFile = new File(Utils.getCrclUserHomeDir(),
             ".crcljava_stat_schemas.txt");
-    private final static File cmdSchemasFile = new File(System.getProperty("user.home"),
+    private final static File cmdSchemasFile = new File(Utils.getCrclUserHomeDir(),
             ".crcljava_cmd_schemas.txt");
-    private final static File programSchemasFile = new File(System.getProperty("user.home"),
+    private final static File programSchemasFile = new File(Utils.getCrclUserHomeDir(),
             ".crcljava_program_schemas.txt");
     final static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
     final static public boolean DEFAULT_RANDOM_PACKETING = false;
@@ -428,7 +428,7 @@ public class CRCLSocket implements AutoCloseable {
     private static boolean resourcesCopied = false;
 
     static {
-        File startFile = new File(System.getProperty("user.home"));
+        File startFile = new File(Utils.getCrclUserHomeDir());
         crclSchemaDirFile = new File(startFile, "crclXmlSchemas");
     }
 
