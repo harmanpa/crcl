@@ -478,7 +478,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                        ? internal.getRunEndMillis() : System.currentTimeMillis();
+                                ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 showSelectedProgramLine(line, program);
@@ -793,10 +793,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 boolean visibleAndValid = isVisible() && isValid();
                 Stream.of(ma)
@@ -808,8 +808,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getLocationOnScreen") || visibleAndValid)
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -818,10 +818,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
+                        ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -830,8 +830,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
+                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                                .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -848,7 +848,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-            ))
+                    ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -1406,18 +1406,19 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     && startPollStopCount == pollStopCount.get()) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                synchronized (internal) {
-                    internal.requestStatus();
-                    statusRequested = true;
-                    internal.readStatus();
-                    statusRequested = false;
+                if (!internal.isUnpausing()) {
+                    synchronized (internal) {
+                        internal.requestStatus();
+                        statusRequested = true;
+                        internal.readStatus();
+                        statusRequested = false;
+                    }
+                    long readStatusEndTime = System.currentTimeMillis();
+                    long diff_readStatusEndTime_requestStatusStartTime = (readStatusEndTime - requestStatusStartTime);
+                    if (max_diff_readStatusEndTime_requestStatusStartTime < diff_readStatusEndTime_requestStatusStartTime) {
+                        max_diff_readStatusEndTime_requestStatusStartTime = diff_readStatusEndTime_requestStatusStartTime;
+                    }
                 }
-                long readStatusEndTime = System.currentTimeMillis();
-                long diff_readStatusEndTime_requestStatusStartTime = (readStatusEndTime - requestStatusStartTime);
-                if (max_diff_readStatusEndTime_requestStatusStartTime < diff_readStatusEndTime_requestStatusStartTime) {
-                    max_diff_readStatusEndTime_requestStatusStartTime = diff_readStatusEndTime_requestStatusStartTime;
-                }
-
                 Thread.sleep(internal.getPoll_ms());
                 long endCycleTime = System.currentTimeMillis();
                 long pollStatusCycleTime = endCycleTime - requestStatusStartTime;
@@ -2266,8 +2267,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             PoseType p
                     = Optional.ofNullable(curInternalStatus)
-                            .map(CRCLPosemath::getPose)
-                            .orElse(null);
+                    .map(CRCLPosemath::getPose)
+                    .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -3143,8 +3144,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             File tmpFile
                     = (internal.getTempLogDir() != null)
-                    ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
-                    : File.createTempFile("poseList", ".csv");
+                            ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
+                            : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
         } catch (IOException ex) {
@@ -3192,8 +3193,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == commandStatusLogFile) {
             commandStatusLogFile
                     = (internal.getTempLogDir() != null)
-                    ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
-                    : File.createTempFile("commandStatus_", ".csv");
+                            ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
+                            : File.createTempFile("commandStatus_", ".csv");
         }
         return commandStatusLogFile;
     }
@@ -4959,6 +4960,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
+            if(internal.isUnpausing()) {
+                throw new RuntimeException("trying to prep program while still unpausing");
+            }
             boolean requestStatusResult = internal.requestStatus();
             if (!requestStatusResult) {
                 throw new RuntimeException("requestStatus() returned false");
