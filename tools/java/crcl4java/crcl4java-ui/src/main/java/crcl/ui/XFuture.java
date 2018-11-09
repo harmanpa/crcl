@@ -126,7 +126,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return "";
     }
 
-    private static String traceToString(StackTraceElement trace @Nullable []) {
+    public static String traceToString(StackTraceElement trace @Nullable []) {
         if (null == trace) {
             return "";
         }

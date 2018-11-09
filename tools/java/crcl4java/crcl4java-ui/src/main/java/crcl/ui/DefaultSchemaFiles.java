@@ -38,7 +38,17 @@ public class DefaultSchemaFiles {
     private final File programSchemasFile;
 
     public DefaultSchemaFiles(File cmdSchemasFile, File statSchemasFile, File programSchemasFile) {
-        if (!cmdSchemasFile.exists() || CRCLSocket.readCmdSchemaFiles(cmdSchemasFile).length < 1) {
+        int cmdSchemaFilesLength;
+        File startingCmdSchemaFiles[];
+        boolean startingCmdSchemasFileExists = cmdSchemasFile.exists();
+        if(startingCmdSchemasFileExists) {
+            startingCmdSchemaFiles = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
+            cmdSchemaFilesLength= startingCmdSchemaFiles.length;
+        } else {
+            startingCmdSchemaFiles = null;
+            cmdSchemaFilesLength= 0;
+        }
+        if (!startingCmdSchemasFileExists || cmdSchemaFilesLength < 1) {
             File resourceDir = new File(cmdSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
             CRCLSocket.copySchemaResources(resourceDir);
@@ -46,7 +56,17 @@ public class DefaultSchemaFiles {
             CRCLSocket.saveCmdSchemaFiles(cmdSchemasFile, fa);
         }
 
-        if (!statSchemasFile.exists() || CRCLSocket.readStatSchemaFiles(statSchemasFile).length < 1) {
+        int statSchemaFilesLength;
+        File startingStatSchemaFiles[];
+        boolean startingStatSchemasFileExists = statSchemasFile.exists();
+        if(startingStatSchemasFileExists) {
+            startingStatSchemaFiles = CRCLSocket.readStatSchemaFiles(statSchemasFile);
+            statSchemaFilesLength= startingStatSchemaFiles.length;
+        } else {
+            startingStatSchemaFiles = null;
+            statSchemaFilesLength= 0;
+        }
+        if (!startingStatSchemasFileExists || statSchemaFilesLength < 1) {
             File resourceDir = new File(statSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
             CRCLSocket.copySchemaResources(resourceDir);
@@ -54,7 +74,17 @@ public class DefaultSchemaFiles {
             CRCLSocket.saveStatSchemaFiles(statSchemasFile, fa);
         }
         
-        if (!programSchemasFile.exists() || CRCLSocket.readProgramSchemaFiles(programSchemasFile).length < 1) {
+        int programSchemaFilesLength;
+        File startingProgramSchemaFiles[];
+        boolean startingProgramSchemasFileExists = programSchemasFile.exists();
+        if(startingProgramSchemasFileExists) {
+            startingProgramSchemaFiles = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
+            programSchemaFilesLength= startingProgramSchemaFiles.length;
+        } else {
+            startingProgramSchemaFiles = null;
+            programSchemaFilesLength= 0;
+        }
+        if (!startingProgramSchemasFileExists || programSchemaFilesLength < 1) {
             File resourceDir = new File(programSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
             CRCLSocket.copySchemaResources(resourceDir);

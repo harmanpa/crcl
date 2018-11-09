@@ -97,6 +97,7 @@ import static crcl.utils.CRCLPosemath.pose;
 import static crcl.utils.CRCLPosemath.vectorToPmCartesian;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
+import crcl.utils.Utils;
 import crcl.utils.XpathUtils;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.ProgramRunData;
@@ -367,9 +368,13 @@ public class PendantClientInner {
         return progSchemaFiles;
     }
 
+    private final StackTraceElement createStackTrace[];
+    private final DefaultSchemaFiles defaultsInstance;
     PendantClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
+        this.defaultsInstance = defaultsInstance;
+        createStackTrace = Thread.currentThread().getStackTrace();
         this.expectedEndPoseTolerance = new PoseToleranceType();
         this.expectedEndPoseTolerance.setXAxisTolerance(5.0 /* degrees */);
         this.expectedEndPoseTolerance.setZAxisTolerance(5.0 /* degrees */);
@@ -2139,7 +2144,10 @@ public class PendantClientInner {
                 throw new IllegalStateException("null==statSchema");
             }
             if (null == progSchema) {
-                throw new IllegalStateException("null==progSchema");
+                System.err.println("defaultsInstance.getProgramSchemasFile() = " + defaultsInstance.getProgramSchemasFile());
+                System.err.println("progSchemaFiles = " + Arrays.toString(progSchemaFiles));
+                System.err.println("PendantClientInner : createStackTrace = " + XFuture.traceToString(createStackTrace));
+                throw new IllegalStateException("null==progSchema:  Utils.getCrclUserHomeDir()= "+ Utils.getCrclUserHomeDir());
             }
             disconnecting = false;
             connectThread = Thread.currentThread();

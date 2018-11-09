@@ -211,8 +211,9 @@ public class CRCLSocket implements AutoCloseable {
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
     }
-    
+
     private static class UtilSocketHider {
+
         static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
     }
 
@@ -222,7 +223,6 @@ public class CRCLSocket implements AutoCloseable {
 //    public static void setUtilSocket(CRCLSocket newUtilSocket) {
 //        utilSocket = newUtilSocket;
 //    }
-
     public static CRCLSocket getUtilSocket() {
         return UtilSocketHider.UTIL_SOCKET;
     }
@@ -251,7 +251,6 @@ public class CRCLSocket implements AutoCloseable {
         return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
     }
 
-    
     /**
      * Read a CRCL Status from a File with the given file.
      *
@@ -279,7 +278,7 @@ public class CRCLSocket implements AutoCloseable {
             return cs.stringToStatus(str, true);
         }
     }
-    
+
     /**
      * Read a CRCL Program from a File with the given file.
      *
@@ -601,7 +600,7 @@ public class CRCLSocket implements AutoCloseable {
         }
         return EMPTY_FILE_ARRAY;
     }
-    
+
     protected static void copySchemaResources() {
         if (resourcesCopied) {
             return;
@@ -692,7 +691,11 @@ public class CRCLSocket implements AutoCloseable {
             for (String name : names) {
                 try {
                     File f = new File(dirFile, name);
-                    if (f.exists() && (System.currentTimeMillis() - f.lastModified()) < 60000) {
+                    if (f.exists() 
+                            && 
+                            ( RESOURCE_CHANGE_TIME < 0
+                            || (System.currentTimeMillis() - f.lastModified()) < RESOURCE_CHANGE_TIME) 
+                            ) {
                         continue;
                     }
                     InputStream resourceStream = classLoader.getResourceAsStream(name);
@@ -710,6 +713,7 @@ public class CRCLSocket implements AutoCloseable {
             }
         }
     }
+    private static final long RESOURCE_CHANGE_TIME = getLongProperty("crcl.resourceChangeTime",600000);
 
     public static List<File> reorderStatSchemaFiles(List<File> fl) {
         Collections.sort(fl, new Comparator<File>() {
@@ -798,7 +802,9 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static File[] readStatSchemaFiles(File schemaListFile) {
-        if (schemaListFile.exists() && System.currentTimeMillis() - schemaListFile.lastModified() > 60000) {
+        if (schemaListFile.exists() 
+                && SCHEMA_CHANGE_TIME > 0
+                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
             boolean deleted = schemaListFile.delete();
             if (!deleted) {
                 Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
@@ -809,29 +815,38 @@ public class CRCLSocket implements AutoCloseable {
         }
         if (!schemaListFile.exists()) {
 //            showMessage("Could not find CRCL Schema xsd files.");
-            return EMPTY_FILE_ARRAY;
+             throw new IllegalStateException(schemaListFile + " does not exist.");
         }
-        BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(schemaListFile));
-            String line = null;
-            List<File> fl = new ArrayList<>();
-            while (null != (line = br.readLine())) {
-                fl.add(new File(line.trim()));
-            }
+            List<File> fl = readSchemaListFile(schemaListFile);
             fl = reorderStatSchemaFiles(fl);
             return fl.toArray(new File[fl.size()]);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Failed to read " + schemaListFile, ex);
-        } finally {
-            if (null != br) {
-                try {
-                    br.close();
-                } catch (Exception exx) {
+             if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    private static List<File> readSchemaListFile(File schemaListFile) throws IOException {
+        List<File> fl = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
+            String line = null;
+            
+            while (null != (line = br.readLine())) {
+                File file = new File(line.trim());
+                if (file.isAbsolute()) {
+                    fl.add(file);
+                } else {
+                    String absFilePath = schemaListFile.getParent() + File.separator + line.trim();
+                    fl.add(new File(absFilePath));
                 }
             }
         }
-        return EMPTY_FILE_ARRAY;
+        return fl;
     }
 
     public static void saveProgramSchemaFiles(File schemaListFile, File fa[]) {
@@ -839,22 +854,7 @@ public class CRCLSocket implements AutoCloseable {
             return;
         }
         fa = reorderProgramSchemaFiles(fa);
-        PrintStream ps = null;
-        try {
-            ps = new PrintStream(new FileOutputStream(schemaListFile));
-            for (int i = 0; i < fa.length; i++) {
-                ps.println(fa[i].getCanonicalPath());
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
-        } finally {
-            if (null != ps) {
-                try {
-                    ps.close();
-                } catch (Exception exx) {
-                }
-            }
-        }
+        saveSchemaListFile(schemaListFile, fa);
     }
 
     public static void saveStatSchemaFiles(File schemaListFile, File fa[]) {
@@ -862,14 +862,26 @@ public class CRCLSocket implements AutoCloseable {
             return;
         }
         fa = reorderStatSchemaFiles(fa);
+        saveSchemaListFile(schemaListFile, fa);
+    }
+
+    private static void saveSchemaListFile(File schemaListFile, File[] fa) {
         PrintStream ps = null;
         try {
+            File schemaParent = schemaListFile.getParentFile();
+            String schemaParentPath = schemaParent.getCanonicalPath();
             ps = new PrintStream(new FileOutputStream(schemaListFile));
             for (int i = 0; i < fa.length; i++) {
-                ps.println(fa[i].getCanonicalPath());
+                String elementCanonicalPath = fa[i].getCanonicalPath();
+                if (elementCanonicalPath.startsWith(schemaParentPath)) {
+                    elementCanonicalPath = elementCanonicalPath.substring(schemaParentPath.length() + 1);
+                }
+                ps.println(elementCanonicalPath);
             }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Can not write " + schemaListFile, ex);
+        } catch (Exception ex) {
+            String errmsg = "Can not write " + schemaListFile;
+            LOGGER.log(Level.SEVERE, errmsg, ex);
+            throw new RuntimeException(errmsg, ex);
         } finally {
             if (null != ps) {
                 try {
@@ -961,94 +973,80 @@ public class CRCLSocket implements AutoCloseable {
         return fl;
     }
 
-    public static File[] readCmdSchemaFiles(File schemasListFile) {
-        if (schemasListFile.exists() && System.currentTimeMillis() - schemasListFile.lastModified() > 60000) {
-            boolean deleted = schemasListFile.delete();
+    public static File[] readCmdSchemaFiles(File schemaListFile) {
+        if (schemaListFile.exists() 
+                && SCHEMA_CHANGE_TIME > 0
+                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
+            boolean deleted = schemaListFile.delete();
             if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(schemasListFile + " not deleted");
+                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
             }
-            saveCmdSchemaFiles(schemasListFile, findSchemaFiles());
-        } else if (!schemasListFile.exists()) {
-            saveCmdSchemaFiles(schemasListFile, findSchemaFiles());
+            saveCmdSchemaFiles(schemaListFile, findSchemaFiles());
+        } else if (!schemaListFile.exists()) {
+            saveCmdSchemaFiles(schemaListFile, findSchemaFiles());
         }
-        if (!schemasListFile.exists()) {
+        if (!schemaListFile.exists()) {
 //            showMessage("Could not find CRCL Schema xsd files.");
-            return EMPTY_FILE_ARRAY;
+            throw new IllegalStateException(schemaListFile + " does not exist.");
         }
-        BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(schemasListFile));
-            String line = null;
-            List<File> fl = new ArrayList<>();
-            while (null != (line = br.readLine())) {
-                fl.add(new File(line.trim()));
-            }
+            List<File> fl = readSchemaListFile(schemaListFile);
             fl = reorderCommandSchemaFiles(fl);
             return toNonNullArray(fl, EMPTY_FILE_ARRAY, EMPTY_FILE_ARRAY);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Can not read " + schemasListFile, ex);
-        } finally {
-            if (null != br) {
-                try {
-                    br.close();
-                } catch (Exception exx) {
-                }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
+             if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
             }
         }
-        return EMPTY_FILE_ARRAY;
     }
+    private static final long SCHEMA_CHANGE_TIME = getLongProperty("crcl.schemaChangeTime",600000);
 
-    public static File[] readProgramSchemaFiles(File schemasListFile) {
-        if (!schemasListFile.exists()) {
-            saveProgramSchemaFiles(schemasListFile, findSchemaFiles());
+    private static long getLongProperty(String name, long defaultValue) {
+        String propVal = System.getProperty(name);
+        if(propVal == null) {
+            return defaultValue;
         }
-        if (!schemasListFile.exists()) {
-//            showMessage("Could not find CRCL Schema xsd files.");
-            return EMPTY_FILE_ARRAY;
-        }
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(schemasListFile));
-            String line = null;
-            List<File> fl = new ArrayList<>();
-            while (null != (line = br.readLine())) {
-                fl.add(new File(line.trim()));
+        return Long.parseLong(propVal);
+    }
+    
+    public static File[] readProgramSchemaFiles(File schemaListFile) {
+        if (schemaListFile.exists() 
+                && SCHEMA_CHANGE_TIME > 0
+                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
+            boolean deleted = schemaListFile.delete();
+            if (!deleted) {
+                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
             }
+            saveProgramSchemaFiles(schemaListFile, findSchemaFiles());
+        } else if (!schemaListFile.exists()) {
+            saveProgramSchemaFiles(schemaListFile, findSchemaFiles());
+        }
+        if (!schemaListFile.exists()) {
+            throw new IllegalStateException(schemaListFile + " does not exist.");
+        }
+        try {
+           List<File> fl = readSchemaListFile(schemaListFile);
             fl = reorderProgramSchemaFiles(fl);
             return fl.toArray(new File[fl.size()]);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Can not read " + schemasListFile, ex);
-        } finally {
-            if (null != br) {
-                try {
-                    br.close();
-                } catch (Exception exx) {
-                }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
             }
-        }
-        return EMPTY_FILE_ARRAY;
+        } 
     }
 
     public static void saveCmdSchemaFiles(File schemasListFile, File fa[]) {
         if (null == fa) {
             return;
         }
-        PrintStream ps = null;
-        try {
-            ps = new PrintStream(new FileOutputStream(schemasListFile));
-            for (int i = 0; i < fa.length; i++) {
-                ps.println(fa[i].getCanonicalPath());
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Can not write " + schemasListFile, ex);
-        } finally {
-            if (null != ps) {
-                try {
-                    ps.close();
-                } catch (Exception exx) {
-                }
-            }
-        }
+        fa = reorderCommandSchemaFiles(fa);
+        saveSchemaListFile(schemasListFile, fa);
     }
 
     /*@Nullable*/ private SocketChannel socketChannel;

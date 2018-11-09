@@ -22,6 +22,8 @@
  */
 package crcl.utils;
 
+import java.util.Properties;
+
 /**
  *
  * @author shackle
@@ -31,7 +33,15 @@ public class Utils {
     private Utils() {
     }
     public static String getCrclUserHomeDir() {
-        return System.getProperty("crcl.user.home", System.getProperty("user.home"));
+        String dir =  System.getProperty("crcl.user.home", System.getProperty("user.home"));
+        if(!dir.endsWith("netbeans_run_user_home")) {
+            System.out.println("System.getProperty(\"user.home\") = " + System.getProperty("user.home"));
+            System.out.println("System.getProperty(\"crcl.user.home\") = " + System.getProperty("crcl.user.home"));
+            System.out.println("dir = " + dir);
+            Properties props = System.getProperties();
+            props.list(System.out);
+        }
+        return dir;
     }
     
 }
