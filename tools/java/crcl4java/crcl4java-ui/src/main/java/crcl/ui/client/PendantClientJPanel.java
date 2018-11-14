@@ -4971,7 +4971,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             if (!readStatusResult) {
                 throw new RuntimeException("readStatus() returned false");
             }
-            System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
+//            System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
             PointType pt = internal.currentStatusPoint();
             if (null != pt) {
                 pt = CRCLPosemath.copy(pt);

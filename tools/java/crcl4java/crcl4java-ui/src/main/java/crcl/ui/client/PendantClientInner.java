@@ -370,6 +370,7 @@ public class PendantClientInner {
 
     private final StackTraceElement createStackTrace[];
     private final DefaultSchemaFiles defaultsInstance;
+
     PendantClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
@@ -1619,12 +1620,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                .stream()
-                .map((x) -> x.getStatus())
-                .filter((x) -> x != null)
-                .map((x) -> x.getJointStatuses())
-                .filter((x) -> x != null)
-                .collect(Collectors.toList());
+                        .stream()
+                        .map((x) -> x.getStatus())
+                        .filter((x) -> x != null)
+                        .map((x) -> x.getJointStatuses())
+                        .filter((x) -> x != null)
+                        .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1632,21 +1633,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                .map((x) -> x.getJointStatus())
-                .map((x) -> x.stream().findAny())
-                .orElse(Optional.empty());
+                        .map((x) -> x.getJointStatus())
+                        .map((x) -> x.stream().findAny())
+                        .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                .map((x) -> x.getJointPosition() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointPosition() != null)
+                        .orElse(false);
         final boolean haveVel
                 = exampleJs
-                .map((x) -> x.getJointVelocity() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointVelocity() != null)
+                        .orElse(false);
         final boolean haveForce
                 = exampleJs
-                .map((x) -> x.getJointTorqueOrForce() != null)
-                .orElse(false);
+                        .map((x) -> x.getJointTorqueOrForce() != null)
+                        .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -1927,7 +1928,7 @@ public class PendantClientInner {
     }
 
     private volatile long lastReadStatusTime = -1;
-    
+
     public boolean isUnpausing() {
         return unpausing;
     }
@@ -2147,7 +2148,7 @@ public class PendantClientInner {
                 System.err.println("defaultsInstance.getProgramSchemasFile() = " + defaultsInstance.getProgramSchemasFile());
                 System.err.println("progSchemaFiles = " + Arrays.toString(progSchemaFiles));
                 System.err.println("PendantClientInner : createStackTrace = " + XFuture.traceToString(createStackTrace));
-                throw new IllegalStateException("null==progSchema:  Utils.getCrclUserHomeDir()= "+ Utils.getCrclUserHomeDir());
+                throw new IllegalStateException("null==progSchema:  Utils.getCrclUserHomeDir()= " + Utils.getCrclUserHomeDir());
             }
             disconnecting = false;
             connectThread = Thread.currentThread();
@@ -3145,10 +3146,7 @@ public class PendantClientInner {
                 programIndex = 0;
                 index = 0;
                 lineCmd = initCmd;
-                if (!testCommand(initCmd, startRunProgramAbortCount)) {
-                    setRunProgramReturnFalseTrace();
-                    throw new RuntimeException("runProgram() failed because initCmd failed.");
-                }
+                testCommand(initCmd, startRunProgramAbortCount);
                 int runProgramAbortCountCheck3 = runProgramAbortCount.get();
                 if (runProgramAbortCountCheck3 != startRunProgramAbortCount) {
                     setRunProgramReturnFalseTrace();
@@ -3219,19 +3217,19 @@ public class PendantClientInner {
                     throw new IllegalStateException("Block Programs");
                 }
                 lineCmd = cmd;
-                boolean result = testCommand(cmd, startRunProgramAbortCount);
-                if (!result) {
-                    if (this.isQuitOnTestCommandFailure()) {
-                        if (isConnected()) {
-                            stopMotion(StopConditionEnumType.FAST);
-                        }
-                        if (null != future) {
-                            future.cancelAll(false);
-                        }
-                        setRunProgramReturnFalseTrace();
-                        throw new RuntimeException("runProgram() failed with index=" + index + " because cmd=" + cmdString(cmd) + " failed.");
-                    }
-                }
+                testCommand(cmd, startRunProgramAbortCount);
+//                if (!result) {
+//                    if (this.isQuitOnTestCommandFailure()) {
+//                        if (isConnected()) {
+//                            stopMotion(StopConditionEnumType.FAST);
+//                        }
+//                        if (null != future) {
+//                            future.cancelAll(false);
+//                        }
+//                        setRunProgramReturnFalseTrace();
+//                        throw new RuntimeException("runProgram() failed with index=" + index + " because cmd=" + cmdString(cmd) + " failed.");
+//                    }
+//                }
                 curStatus
                         = requireNonNull(
                                 this.getStatus(),
@@ -3240,14 +3238,15 @@ public class PendantClientInner {
                         = requireNonNull(
                                 curStatus.getCommandStatus(),
                                 "curStatus.getCommandStatus()");
-                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_DONE) {
-                    result = false;
+                CommandStateEnumType commandState = commandStatus.getCommandState();
+                if (commandState != CommandStateEnumType.CRCL_DONE) {
+                    throw new RuntimeException("commandState=" + commandState + " when expected to be done. index=" + index + ", cmd=" + cmdString(cmd));
                 }
                 time_to_exec = System.currentTimeMillis() - programCommandStartTime;
                 p1 = getPoseCart();
                 if (i <= middleCommands.size()) {
                     showCurrentProgramLine(i, prog, getStatus());
-                    prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), result, cmd.getCommandID(), CRCLSocket.commandToSimpleString(cmd));
+                    prd = new ProgramRunData(time_to_exec, p1.distFrom(p0), true, cmd.getCommandID(), CRCLSocket.commandToSimpleString(cmd));
                     while (progRunDataList.size() <= i) {
                         progRunDataList.add(PROGRAM_RUN_DATA_PLACEHOLDER);
                     }
@@ -3277,10 +3276,7 @@ public class PendantClientInner {
             index = -1;
             programIndex = -1;
             lineCmd = endCmd;
-            if (!testCommand(endCmd, startRunProgramAbortCount)) {
-                setRunProgramReturnFalseTrace();
-                throw new RuntimeException("runProgram() failed because endCmd failed.");
-            }
+            testCommand(endCmd, startRunProgramAbortCount);
             int runProgramAbortCountCheck2 = runProgramAbortCount.get();
             if (runProgramAbortCountCheck2 != startRunProgramAbortCount) {
                 setRunProgramReturnFalseTrace();
@@ -3352,10 +3348,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                .map(CRCLPosemath::getPoint)
-                .filter(x -> x != null)
-                .map(CRCLPosemath::toPmCartesian)
-                .orElse(new PmCartesian());
+                        .map(CRCLPosemath::getPoint)
+                        .filter(x -> x != null)
+                        .map(CRCLPosemath::toPmCartesian)
+                        .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3525,26 +3521,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointPosIncrement"))
-                    .map(Double::parseDouble)
-                    .orElse(jogIncrement);
+                            .map(m -> m.get("jointPosIncrement"))
+                            .map(Double::parseDouble)
+                            .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveSpeed"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveSpeed"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("jointMoveAccel"))
-                    .filter(s -> s.length() > 0)
-                    .map(Double::valueOf)
-                    .orElse(null);
+                            .map(m -> m.get("jointMoveAccel"))
+                            .filter(s -> s.length() > 0)
+                            .map(Double::valueOf)
+                            .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                    .map(m -> m.get("xyzAxisIncrement"))
-                    .map(Double::valueOf)
-                    .orElse(this.getXyzJogIncrement());
+                            .map(m -> m.get("xyzAxisIncrement"))
+                            .map(Double::valueOf)
+                            .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -4166,30 +4162,36 @@ public class PendantClientInner {
      * @throws rcs.posemath.PmException math failure
      * @throws crcl.utils.CRCLException CRCL utility failed.
      */
-    private boolean testCommand(CRCLCommandType cmd, final int startingRunProgramAbortCount) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+    private void testCommand(CRCLCommandType cmd, final int startingRunProgramAbortCount) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
+        int rpac = runProgramAbortCount.get();
 
-        if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-            return false;
+        if (rpac != startingRunProgramAbortCount) {
+            setRunProgramReturnFalseTrace();
+            throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
         }
         if (cmd instanceof CrclCommandWrapper) {
             this.waitForPause(startingRunProgramAbortCount);
-            if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                return false;
+            rpac = runProgramAbortCount.get();
+            if (rpac != startingRunProgramAbortCount) {
+                setRunProgramReturnFalseTrace();
+                throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
             }
             CrclCommandWrapper wrapped = (CrclCommandWrapper) cmd;
             CRCLCommandType wcmd = wrapped.getWrappedCommand();
             if (wcmd instanceof MessageType && skipWrappedMessageCommands) {
                 incCommandID(cmd);
                 wrapped.notifyOnStartListeners();
-                if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                    return false;
+                rpac = runProgramAbortCount.get();
+                if (rpac != startingRunProgramAbortCount) {
+                    throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                 }
                 if (wrapped.getWrappedCommand() instanceof MessageType) {
                     wrapped.notifyOnDoneListeners();
-                    if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                        return false;
+                    rpac = runProgramAbortCount.get();
+                    if (rpac != startingRunProgramAbortCount) {
+                        throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                     }
-                    return true;
+                    return;
                 }
             }
         } else if (cmd instanceof MoveToType) {
@@ -4224,8 +4226,8 @@ public class PendantClientInner {
         final int orig_pause_count_start = pause_count_start;
         do {
             int pause_check = this.pause_count.get();
-            if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                return false;
+            if (rpac != startingRunProgramAbortCount) {
+                throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
             }
             if (pause_count_start != pause_check) {
                 do {
@@ -4234,7 +4236,7 @@ public class PendantClientInner {
                     pause_count_start = this.pause_count.get();
                     synchronized (this) {
                         if (!requestStatus()) {
-                            return false;
+                            throw new RuntimeException("attempt to requestStatus() failed.");
                         }
                         if (null == readerThread) {
                             readStatus();
@@ -4247,8 +4249,9 @@ public class PendantClientInner {
                     }
                     Thread.sleep(100);
                     this.waitForPause(startingRunProgramAbortCount);
-                    if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                        return false;
+                    rpac = runProgramAbortCount.get();
+                    if (rpac != startingRunProgramAbortCount) {
+                        throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                     }
                 } while (true);
             }
@@ -4258,25 +4261,29 @@ public class PendantClientInner {
             }
             if (cmd instanceof GetStatusType) {
                 showDebugMessage("Ignoring command GetStatusType inside a program.");
-                return true;
+                return;
             }
-            if (startingConnectCount != connectCount.get()) {
+            int currentConnectCount = connectCount.get();
+            if (startingConnectCount != currentConnectCount) {
                 System.err.println("Connected while testing command");
-                return false;
+                throw new RuntimeException("currentConnectCount=" + currentConnectCount + ", startingConnectCount=" + startingConnectCount);
             }
-            if (startingDisconnectCount != disconnectCount.get()) {
+            int currentDisconnectCount = disconnectCount.get();
+            if (startingDisconnectCount != currentDisconnectCount) {
                 System.err.println("Disconnected while testing command");
-                return false;
+                throw new RuntimeException("currentDisconnectCount=" + currentDisconnectCount + ", startingDisconnectCount=" + startingDisconnectCount);
             }
             this.waitForPause(startingRunProgramAbortCount);
-            if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                return false;
+            rpac = runProgramAbortCount.get();
+            if (rpac != startingRunProgramAbortCount) {
+                throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
             }
             if (null == this.getStatus()) {
                 boolean waitForStatusResult = waitForStatus(2000, 200, pause_count_start, startingRunProgramAbortCount);
             }
-            if (runProgramAbortCount.get() != startingRunProgramAbortCount) {
-                return false;
+            rpac = runProgramAbortCount.get();
+            if (rpac != startingRunProgramAbortCount) {
+                throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
             }
             testCommandStartLengthUnitSent = lengthUnitSent;
             testCommandStartLengthUnit = this.getLengthUnit();
@@ -4284,7 +4291,7 @@ public class PendantClientInner {
             if (null == startStatusPrep) {
                 System.out.println("origStatuPrep = " + origStatuPrep);
                 showMessage("testCommand can not get starting status");
-                return false;
+                throw new RuntimeException("failed to get starting status");
             }
             CRCLStatusType startStatus = copyStatus(startStatusPrep);
             lastCmdStartStatus = startStatus;
@@ -4295,7 +4302,7 @@ public class PendantClientInner {
                     continue;
                 }
                 showMessage("Can not send " + cmdString + ".");
-                return false;
+                throw new RuntimeException("incAndSendCommand failed");
             }
             curStatus = this.getStatus();
             if (cmd.getCommandID() == startStatus.getCommandStatus().getCommandID() && cmd.getCommandID() > 1) {
@@ -4324,9 +4331,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -4343,21 +4350,24 @@ public class PendantClientInner {
                 }
                 cmd = wrapper.getWrappedCommand();
             }
-            if (startingConnectCount != connectCount.get()) {
+            currentConnectCount = connectCount.get();
+            if (startingConnectCount != currentConnectCount) {
                 System.err.println("Connected while testing command");
-                return false;
+                throw new RuntimeException("currentConnectCount=" + currentConnectCount + ", startingConnectCount=" + startingConnectCount);
             }
-            if (startingDisconnectCount != disconnectCount.get()) {
+            currentDisconnectCount = disconnectCount.get();
+            if (startingDisconnectCount != currentDisconnectCount) {
                 System.err.println("Disconnected while testing command");
-                return false;
+                throw new RuntimeException("currentDisconnectCount=" + currentDisconnectCount + ", startingDisconnectCount=" + startingDisconnectCount);
             }
             if (cmd instanceof EndCanonType) {
-                return wfdResult != WaitForDoneResult.WFD_ERROR
-                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION
-                        && wfdResult != WaitForDoneResult.WFD_HOLDING_ERROR
-                        && null != curStatus
-                        && null != curStatus.getCommandStatus()
-                        && curStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
+                return;
+//                return wfdResult != WaitForDoneResult.WFD_ERROR
+//                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION
+//                        && wfdResult != WaitForDoneResult.WFD_HOLDING_ERROR
+//                        && null != curStatus
+//                        && null != curStatus.getCommandStatus()
+//                        && curStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
             }
             if (wfdResult != WaitForDoneResult.WFD_DONE) {
                 if (pause_count_start != this.pause_count.get()) {
@@ -4411,13 +4421,13 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((startStatus == null || startStatus.getCommandStatus() == null)
-                                ? "startStatus.getCommandStatus()=null\n"
-                                : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
-                                + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "startStatus.getCommandStatus()=null\n"
+                        : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
+                        + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + ((curStatus == null || curStatus.getCommandStatus() == null)
-                                ? "status.getCommandStatus()=null\n"
-                                : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
-                                + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                        ? "status.getCommandStatus()=null\n"
+                        : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
+                        + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -4432,7 +4442,7 @@ public class PendantClientInner {
                     });
                     System.err.println("intString=" + intString);
                 }
-                return false;
+                throw new RuntimeException("wfdResult="+wfdResult+", messageString="+messageString);
             }
         } while (pause_count_start != this.pause_count.get());
 
@@ -4460,15 +4470,16 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                            ? "status.getCommandStatus()=null\n"
-                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                    ? "status.getCommandStatus()=null\n"
+                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
             showErrorMessage(messageString);
+            throw new RuntimeException("testCommandEffect returned false : messageString="+messageString);
         }
-        return effectOk;
+        return;
     }
 
     final static private AtomicInteger runProgramThreadCount = new AtomicInteger();
