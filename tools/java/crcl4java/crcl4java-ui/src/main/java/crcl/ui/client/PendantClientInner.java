@@ -32,6 +32,7 @@ import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import static crcl.base.CommandStateEnumType.CRCL_ERROR;
+import static crcl.base.CommandStateEnumType.CRCL_READY;
 import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
@@ -84,6 +85,7 @@ import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CrclCommandWrapper;
 import crcl.ui.XFuture;
+import crcl.ui.XFutureVoid;
 import static crcl.ui.client.PendantClientJPanel.getTimeString;
 
 import crcl.ui.misc.MultiLineStringJPanel;
@@ -568,13 +570,21 @@ public class PendantClientInner {
         return false;
     }
 
+    private volatile String errorStateDescription = null;
+    private volatile CRCLStatusType lastErrorStat = null;
+
     public boolean isError(long minCmdId) {
         CRCLStatusType stat = this.status;
         if (null != stat) {
             final CommandStatusType commandStatus = stat.getCommandStatus();
             if (null != commandStatus) {
-                return commandStatus.getCommandID() == minCmdId
+                boolean ret = commandStatus.getCommandID() == minCmdId
                         && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR;
+                if (ret) {
+                    lastErrorStat = CRCLPosemath.copy(stat);
+                    errorStateDescription = commandStatus.getStateDescription();
+                }
+                return ret;
             }
         }
         return false;
@@ -665,6 +675,18 @@ public class PendantClientInner {
 
     public void clearCrclClientErrorMessage() {
         crclClientErrorMessage = null;
+        CRCLStatusType statusLocal = status;
+        if(null != statusLocal) {
+            CommandStatusType commandStatusLocal = statusLocal.getCommandStatus();
+            if(null != commandStatusLocal) {
+                if(commandStatusLocal.getCommandState() == CRCL_ERROR) {
+                    commandStatusLocal.setCommandState(CRCL_READY);
+                }
+                if(null != commandStatusLocal.getStateDescription()) {
+                    commandStatusLocal.setStateDescription("");
+                }
+            }
+        }
     }
 
     private volatile boolean skipWrappedMessageCommands = true;
@@ -711,6 +733,17 @@ public class PendantClientInner {
         if (null != logStream) {
             logStream.println(s);
         }
+    }
+
+    private void showMessageAndSetCommandErrorDescription(String s) {
+        outer.showMessage(s);
+        if (null == logStream) {
+            openLogStream();
+        }
+        if (null != logStream) {
+            logStream.println(s);
+        }
+        commandErrorState(s);
     }
 
     private void showDebugMessage(String s) {
@@ -1264,28 +1297,22 @@ public class PendantClientInner {
             MoveToType moveToCmd = (MoveToType) cmd;
             PointType pt = moveToCmd.getEndPosition().getPoint();
             if (pt.getX() > maxLimit.x) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
             }
             if (pt.getY() > maxLimit.y) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
             }
             if (pt.getZ() > maxLimit.z) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
             }
             if (pt.getX() < minLimit.x) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
             }
             if (pt.getY() < minLimit.y) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
             }
             if (pt.getZ() < minLimit.z) {
-                setCommandState(CRCL_ERROR);
-                throw new IllegalArgumentException("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
+                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
             }
         }
         boolean ret = this.sendCommandPrivate(cmd);
@@ -1313,9 +1340,29 @@ public class PendantClientInner {
         }
     }
 
+    public RuntimeException commandErrorState(String description) {
+        setCommandState(CRCL_ERROR);
+        if (null != status) {
+            CommandStatusType commandStatus = status.getCommandStatus();
+            if (null != commandStatus) {
+                String oldDescription = commandStatus.getStateDescription();
+                if (null == oldDescription) {
+                    commandStatus.setStateDescription(description);
+                } else if (!oldDescription.contains(description)) {
+                    commandStatus.setStateDescription(description + " : " + oldDescription);
+                }
+            } else {
+                commandStatus = new CommandStatusType();
+                commandStatus.setCommandID(1);
+                commandStatus.setStateDescription(description);
+            }
+        }
+        return new RuntimeException(description);
+    }
+
     private volatile boolean aborting = false;
 
-    public void abort() {
+    public XFutureVoid abort() {
         try {
             aborting = true;
             this.programName = null;
@@ -1335,10 +1382,32 @@ public class PendantClientInner {
             }
             this.closeTestProgramThread();
             stopMotion(StopConditionEnumType.FAST);
+            if (!wasRunning && !isRunningProgram()) {
+                aborting = false;
+                return XFutureVoid.completedFuture();
+            }
+            XFutureVoid notRunningFuture = new XFutureVoid("abort");
+            final javax.swing.Timer notRunningTimerA[] = new javax.swing.Timer[1];
+            javax.swing.Timer notRunningTimer = new javax.swing.Timer(100, l -> {
+                if (!isRunningProgram() && !notRunningFuture.isDone()) {
+                    notRunningFuture.complete();
+                    javax.swing.Timer notRunningTimerLocal = notRunningTimerA[0];
+                    if (null != notRunningTimerLocal) {
+                        notRunningTimerLocal.stop();
+                    }
+                }
+            });
+            notRunningTimerA[0] = notRunningTimer;
+            notRunningTimer.start();
+            return notRunningFuture;
         } catch (JAXBException | InterruptedException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+            aborting = false;
+            XFutureVoid notRunningFuture = new XFutureVoid("abort");
+            notRunningFuture.completeExceptionally(ex);
+            return notRunningFuture;
         }
-        aborting = false;
+
     }
 
     private volatile boolean initSent = false;
@@ -1620,12 +1689,12 @@ public class PendantClientInner {
         }
         List<JointStatusesType> jss
                 = poselist
-                        .stream()
-                        .map((x) -> x.getStatus())
-                        .filter((x) -> x != null)
-                        .map((x) -> x.getJointStatuses())
-                        .filter((x) -> x != null)
-                        .collect(Collectors.toList());
+                .stream()
+                .map((x) -> x.getStatus())
+                .filter((x) -> x != null)
+                .map((x) -> x.getJointStatuses())
+                .filter((x) -> x != null)
+                .collect(Collectors.toList());
         final Set<Integer> jointIds = new TreeSet<>();
         jss.stream()
                 .flatMap((x) -> x.getJointStatus().stream())
@@ -1633,21 +1702,21 @@ public class PendantClientInner {
         Optional<JointStatusesType> exampleJss = jss.stream().findAny();
         Optional<JointStatusType> exampleJs
                 = exampleJss
-                        .map((x) -> x.getJointStatus())
-                        .map((x) -> x.stream().findAny())
-                        .orElse(Optional.empty());
+                .map((x) -> x.getJointStatus())
+                .map((x) -> x.stream().findAny())
+                .orElse(Optional.empty());
         final boolean havePos
                 = exampleJs
-                        .map((x) -> x.getJointPosition() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointPosition() != null)
+                .orElse(false);
         final boolean haveVel
                 = exampleJs
-                        .map((x) -> x.getJointVelocity() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointVelocity() != null)
+                .orElse(false);
         final boolean haveForce
                 = exampleJs
-                        .map((x) -> x.getJointTorqueOrForce() != null)
-                        .orElse(false);
+                .map((x) -> x.getJointTorqueOrForce() != null)
+                .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
         try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
@@ -3348,10 +3417,10 @@ public class PendantClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
-                        .filter(x -> x != null)
-                        .map(CRCLPosemath::toPmCartesian)
-                        .orElse(new PmCartesian());
+                .map(CRCLPosemath::getPoint)
+                .filter(x -> x != null)
+                .map(CRCLPosemath::toPmCartesian)
+                .orElse(new PmCartesian());
         return p0;
     }
 
@@ -3521,26 +3590,26 @@ public class PendantClientInner {
                     .ifPresent(this::setJointTol);
             double jointPosIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointPosIncrement"))
-                            .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                    .map(m -> m.get("jointPosIncrement"))
+                    .map(Double::parseDouble)
+                    .orElse(jogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveSpeed"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveSpeed"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             Double testJointMoveAccel
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("jointMoveAccel"))
-                            .filter(s -> s.length() > 0)
-                            .map(Double::valueOf)
-                            .orElse(null);
+                    .map(m -> m.get("jointMoveAccel"))
+                    .filter(s -> s.length() > 0)
+                    .map(Double::valueOf)
+                    .orElse(null);
             final Double xyzAxisIncrement
                     = Optional.ofNullable(testProperies)
-                            .map(m -> m.get("xyzAxisIncrement"))
-                            .map(Double::valueOf)
-                            .orElse(this.getXyzJogIncrement());
+                    .map(m -> m.get("xyzAxisIncrement"))
+                    .map(Double::valueOf)
+                    .orElse(this.getXyzJogIncrement());
             SetTransSpeedType setTransSpeed = new SetTransSpeedType();
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
@@ -4331,9 +4400,9 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE
                         + "commandLogString = " + commandLogString + NEW_LINE;
                 System.out.println(messageString);
@@ -4402,6 +4471,8 @@ public class PendantClientInner {
                                 : startStatusJointsMap.toString();
                 String messageString = cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
+                        + "errorStateDescription=" + errorStateDescription + NEW_LINE
+                        + "lastErrorStat=" + getTempCRCLSocket().statusToString(lastErrorStat, false) + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
                         + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
@@ -4421,13 +4492,13 @@ public class PendantClientInner {
                         + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                         + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                         + ((startStatus == null || startStatus.getCommandStatus() == null)
-                        ? "startStatus.getCommandStatus()=null\n"
-                        : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "startStatus.getCommandStatus()=null\n"
+                                : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + ((curStatus == null || curStatus.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
+                                ? "status.getCommandStatus()=null\n"
+                                : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
+                                + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
                         + "intString=" + intString + NEW_LINE;
                 System.out.println(messageString);
                 showErrorMessage(messageString);
@@ -4442,7 +4513,7 @@ public class PendantClientInner {
                     });
                     System.err.println("intString=" + intString);
                 }
-                throw new RuntimeException("wfdResult="+wfdResult+", messageString="+messageString);
+                throw new RuntimeException("wfdResult=" + wfdResult + ", messageString=" + messageString);
             }
         } while (pause_count_start != this.pause_count.get());
 
@@ -4470,14 +4541,14 @@ public class PendantClientInner {
                     + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
+                            ? "status.getCommandStatus()=null\n"
+                            : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
+                            + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
                     + "intString=" + intString + NEW_LINE
                     + "commandLogString = " + commandLogString + NEW_LINE;
             System.out.println(messageString);
             showErrorMessage(messageString);
-            throw new RuntimeException("testCommandEffect returned false : messageString="+messageString);
+            throw new RuntimeException("testCommandEffect returned false : messageString=" + messageString);
         }
         return;
     }
@@ -4702,55 +4773,46 @@ public class PendantClientInner {
 
         if (!ignoreCartTran) {
             if (point.getX() > maxLimit.x) {
-                showMessage("Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x);
                 return false;
             }
             if (point.getY() > maxLimit.y) {
-                showMessage("Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y);
                 return false;
             }
 
             if (point.getZ() > maxLimit.z) {
-                showMessage("Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z);
                 return false;
             }
 
             if (point.getX() < minLimit.x) {
-                showMessage("Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x);
                 return false;
             }
             if (point.getY() < minLimit.y) {
-                showMessage("Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y);
                 return false;
             }
             if (point.getZ() < minLimit.z) {
-                showMessage("Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z);
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
+                showMessageAndSetCommandErrorDescription("Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z);
                 return false;
             }
         }
         VectorType goalXAxis = requireNonNull(goalPose.getXAxis(), "goalPose.getXAxis()");
         PmCartesian xvec = vectorToPmCartesian(goalXAxis);
         if (Math.abs(xvec.mag() - 1.0) > 1e-3) {
-            showMessage("Bad postion : xvec " + xvec + " has magnitude not equal to one.");
-            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showMessageAndSetCommandErrorDescription("Bad postion : xvec " + xvec + " has magnitude not equal to one.");
             return false;
         }
         VectorType goalZAxis = requireNonNull(goalPose.getZAxis(), "goalPose.getZAxis()");
         PmCartesian zvec = vectorToPmCartesian(goalZAxis);
         if (Math.abs(zvec.mag() - 1.0) > 1e-3) {
-            showMessage("Bad postion : zvec " + zvec + " has magnitude not equal to one.");
-            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showMessageAndSetCommandErrorDescription("Bad postion : zvec " + zvec + " has magnitude not equal to one.");
             return false;
         }
         if (Math.abs(Posemath.pmCartCartDot(xvec, zvec)) > 1e-3) {
-            showMessage("Bad postion : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.");
-            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showMessageAndSetCommandErrorDescription("Bad postion : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.");
             return false;
         }
         return true;

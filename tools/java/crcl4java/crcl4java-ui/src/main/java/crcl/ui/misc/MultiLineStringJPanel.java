@@ -28,6 +28,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -43,6 +44,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class MultiLineStringJPanel extends javax.swing.JPanel {
 
+    private static final ConcurrentLinkedDeque<MultiLineStringJPanel> allPanels = new ConcurrentLinkedDeque<>();
+
     /**
      * Creates new form MultiLineStringJPanel
      */
@@ -50,6 +53,14 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public MultiLineStringJPanel() {
         initComponents();
         popMenu = createCopyPopMenu();
+        allPanels.add(this);
+    }
+
+    public static void closeAllPanels() {
+        MultiLineStringJPanel panel;
+        while (null != (panel = allPanels.pollFirst())) {
+            panel.cancelAndClose();
+        }
     }
 
     /**
@@ -151,14 +162,20 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         if (null != this.dialog) {
             this.dialog.setVisible(false);
         }
+        allPanels.remove(this);
     }//GEN-LAST:event_jButtonOKActionPerformed
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
+        cancelAndClose();
+        allPanels.remove(this);
+    }//GEN-LAST:event_jButtonCancelActionPerformed
+
+    private void cancelAndClose() {
         this.cancelled = true;
         if (null != this.dialog) {
             this.dialog.setVisible(false);
         }
-    }//GEN-LAST:event_jButtonCancelActionPerformed
+    }
 
     final private JPopupMenu popMenu;
 
@@ -200,10 +217,12 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jTextArea1MouseReleased
 
-    @Nullable private JDialog dialog = null;
+    @Nullable
+    private JDialog dialog = null;
     private boolean cancelled = false;
 
-    @Nullable private static String editTextPrivate(JDialog _dialog, String init) {
+    @Nullable
+    private static String editTextPrivate(JDialog _dialog, String init) {
         MultiLineStringJPanel panel = new MultiLineStringJPanel();
         panel.jTextArea1.setText(init);
         panel.jScrollPane1.getVerticalScrollBar().setValue(0);
@@ -218,14 +237,16 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return panel.jTextArea1.getText();
     }
 
-    @Nullable public static String editText(String init, Frame _owner,
+    @Nullable
+    public static String editText(String init, Frame _owner,
             String _title,
             boolean _modal) {
         JDialog dialog = new JDialog(_owner, _title, _modal);
         return editTextPrivate(dialog, init);
     }
 
-    @Nullable public static String editText(String init) {
+    @Nullable
+    public static String editText(String init) {
         JDialog dialog = new JDialog();
         dialog.setModal(true);
         return editTextPrivate(dialog, init);
@@ -268,12 +289,22 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             showTextPrivate(dialog, init);
         }
     }
-    
+
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,
             boolean _modal) {
-        return showText(init,_owner,_title,_modal,false);
+        return showText(init, _owner, _title, _modal, false);
+    }
+
+    private static boolean ignoreForceShow = false;
+
+    public static void setIgnoreForceShow(boolean val) {
+        ignoreForceShow = val;
+    }
+
+    public static boolean getIgnoreForceShow() {
+        return ignoreForceShow;
     }
 
     public static XFuture<Boolean> showText(String init,
@@ -283,7 +314,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             boolean forceShow) {
 
         final XFuture<Boolean> ret = new XFuture<>("showText(" + init + "," + _title + ")");
-        if (!disableShowText || forceShow) {
+        if (!disableShowText || (forceShow && !ignoreForceShow)) {
             runOnDispatchThread(() -> {
                 JDialog dialog = new JDialog(_owner, _title, _modal);
                 ret.complete(showTextPrivate(dialog, init));

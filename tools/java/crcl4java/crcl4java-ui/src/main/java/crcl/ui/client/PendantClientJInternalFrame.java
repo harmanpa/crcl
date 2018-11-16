@@ -29,6 +29,7 @@ import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.XFuture;
+import crcl.ui.XFutureVoid;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
 import crcl.utils.CRCLException;
@@ -1213,9 +1214,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return this;
     }
 
-    @Override
-    public void abortProgram() {
-        pendantClientJPanel1.abortProgram();
+    public XFutureVoid abortProgram() {
+        return pendantClientJPanel1.abortProgram();
     }
 
     @Override

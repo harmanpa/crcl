@@ -86,8 +86,6 @@ public interface PendantClientOuter {
 
     public void setProgram(CRCLProgramType program) throws JAXBException;
 
-    public void abortProgram();
-
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException;
 
     public PendantClientMenuOuter getMenuOuter();

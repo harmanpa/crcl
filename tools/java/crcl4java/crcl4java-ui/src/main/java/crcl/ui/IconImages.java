@@ -54,17 +54,27 @@ public class IconImages {
     public static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, BASE_IMAGE);
     public static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
 
-    @MonotonicNonNull private static Image robotImage = null;
+    @MonotonicNonNull
+    private static Image robotImage = null;
 
     private static class DefaultRobotImageLoader {
 
-        final static Image DEFAULT_ROBOT_IMAGE = getDefaultRobotImage();
+        final static BufferedImage DEFAULT_ROBOT_IMAGE = getDefaultRobotImage();
 
-        private static Image getDefaultRobotImage() {
+        private static BufferedImage getDefaultRobotImage() {
             try {
                 URL robotImageUrl = ClassLoader.getSystemResource("robot.png");
                 if (null != robotImageUrl) {
-                    return ImageIO.read(robotImageUrl);
+                    BufferedImage bi = ImageIO.read(robotImageUrl);
+//                    for (int x = 0; x < bi.getWidth(); x++) {
+//                        for (int y = 0; y < bi.getHeight(); y++) {
+//                            int color = bi.getRGB(x, y);
+//                            if ((color & 0xFFFFFF) == 0xFFFFFF) {
+//                                bi.setRGB(x, y, 0xFFFFFF);
+//                            }
+//                        }
+//                    }
+                    return bi;
                 }
             } catch (Exception ex) {
                 Logger.getLogger(IconImages.class.getName()).log(Level.SEVERE, null, ex);

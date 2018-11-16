@@ -66,6 +66,7 @@ import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
 import static crcl.ui.IconImages.WORKING_IMAGE;
 import crcl.ui.XFuture;
+import crcl.ui.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -4750,9 +4751,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         pauseCrclProgram();
     }//GEN-LAST:event_jButtonProgramPauseActionPerformed
 
-    public void abortProgram() {
+    public XFutureVoid abortProgram() {
         pauseTime = System.currentTimeMillis();
-        internal.abort();
+        return internal.abort();
     }
 
     private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed

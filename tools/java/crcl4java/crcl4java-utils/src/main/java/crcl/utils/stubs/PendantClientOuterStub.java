@@ -266,10 +266,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return this;
     }
 
-    @Override
-    public void abortProgram() {
-        
-    }
 
     @Override
     public File getPropertiesFile() {

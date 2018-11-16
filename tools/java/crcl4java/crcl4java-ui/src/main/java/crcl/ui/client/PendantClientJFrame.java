@@ -29,6 +29,7 @@ import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.server.SimServerJFrame;
 import crcl.ui.misc.TransformSetupJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
+import crcl.ui.XFutureVoid;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.Utils;
@@ -115,9 +116,8 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
-    @Override
-    public void abortProgram() {
-        pendantClientJPanel1.abortProgram();
+    public XFutureVoid abortProgram() {
+        return pendantClientJPanel1.abortProgram();
     }
 
     public void connectCurrent() {
