@@ -1296,23 +1296,27 @@ public class PendantClientInner {
         } else if (cmd instanceof MoveToType) {
             MoveToType moveToCmd = (MoveToType) cmd;
             PointType pt = moveToCmd.getEndPosition().getPoint();
-            if (pt.getX() > maxLimit.x) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
+            if (null != maxLimit) {
+                if (pt.getX() > maxLimit.x) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
+                }
+                if (pt.getY() > maxLimit.y) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
+                }
+                if (pt.getZ() > maxLimit.z) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
+                }
             }
-            if (pt.getY() > maxLimit.y) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
-            }
-            if (pt.getZ() > maxLimit.z) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
-            }
-            if (pt.getX() < minLimit.x) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
-            }
-            if (pt.getY() < minLimit.y) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
-            }
-            if (pt.getZ() < minLimit.z) {
-                throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
+            if (null != minLimit) {
+                if (pt.getX() < minLimit.x) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
+                }
+                if (pt.getY() < minLimit.y) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
+                }
+                if (pt.getZ() < minLimit.z) {
+                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
+                }
             }
         }
         boolean ret = this.sendCommandPrivate(cmd);
