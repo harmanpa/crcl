@@ -350,7 +350,7 @@ public class XFutureVoid extends XFuture<Void> {
 
     public static XFutureVoid allOf(CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
-        XFutureVoid ret = staticwrapvoid("allOfWithName", orig);
+        XFutureVoid ret = staticwrapvoid("XFutureVoid.allOf.cfs.length="+cfs.length, orig);
         if (ret != orig) {
             ret.alsoCancelAddAll(Arrays.asList(cfs));
         }
@@ -366,30 +366,4 @@ public class XFutureVoid extends XFuture<Void> {
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
     }
-
-//    @Override
-//    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
-//        return staticwrapvoid(this.getName() + ".alwaysAsync", super.handleAsync((x, t) -> {
-//            try {
-//                r.run();
-//            } catch (Throwable t2) {
-//                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
-//                if (null == t) {
-//                    if (t2 instanceof RuntimeException) {
-//                        throw ((RuntimeException) t2);
-//                    } else {
-//                        throw new RuntimeException(t2);
-//                    }
-//                }
-//            }
-//            if (null != t) {
-//                if (t instanceof RuntimeException) {
-//                    throw ((RuntimeException) t);
-//                } else {
-//                    throw new RuntimeException(t);
-//                }
-//            }
-//            return x;
-//        }, service));
-//    }
 }
