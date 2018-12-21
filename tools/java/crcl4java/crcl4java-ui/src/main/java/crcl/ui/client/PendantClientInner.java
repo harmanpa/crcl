@@ -3374,7 +3374,7 @@ public class PendantClientInner {
             return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
 
         } catch (Exception ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, "", ex);
             System.err.println("startLine = " + startLine);
             System.err.println("index = " + index);
             System.err.println("progName = " + progName);
