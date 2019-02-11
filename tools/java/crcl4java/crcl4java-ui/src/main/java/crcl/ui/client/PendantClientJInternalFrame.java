@@ -113,7 +113,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
      *
      * @param minLimit new value of minLimit
      */
-    public void setMinLimit(PmCartesian minLimit) {
+    public void setMinLimit(@Nullable PmCartesian minLimit) {
         pendantClientJPanel1.setMinLimit(minLimit);
     }
 
@@ -132,7 +132,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
      *
      * @param maxLimit new value of maxLimit
      */
-    public void setMaxLimit(PmCartesian maxLimit) {
+    public void setMaxLimit(@Nullable PmCartesian maxLimit) {
        pendantClientJPanel1.setMaxLimit(maxLimit);
     }
     

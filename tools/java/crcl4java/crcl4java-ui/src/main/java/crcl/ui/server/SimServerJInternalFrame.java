@@ -384,8 +384,14 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         try {
             JFileChooser chooser;
             File propertiesFile = simServerJPanel1.getPropertiesFile();
+
             if (propertiesFile != null) {
-                chooser = new JFileChooser(propertiesFile.getParentFile());
+                final File parentFile = propertiesFile.getParentFile();
+                if (null != parentFile) {
+                    chooser = new JFileChooser(parentFile);
+                } else {
+                    chooser = new JFileChooser();
+                }
             } else {
                 chooser = new JFileChooser();
             }
@@ -395,19 +401,28 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
                 File f = chooser.getSelectedFile();
                 String name = f.getName();
-                if(!name.endsWith(".xml")) {
-                    name = name+".xml";
-                    f = new File(f.getParentFile(),name);
+                final File fParentFile = f.getParentFile();
+                if (!name.endsWith(".xml")) {
+                    name = name + ".xml";
+                    f = new File(fParentFile, name);
                 }
                 try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
                     pw.println(CRCLSocket.statusToPrettyString(simServerJPanel1.getStatus()));
                 }
                 if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Set as IntialStatus file?")) {
-                    File propertiesParentFile = propertiesFile.getParentFile();
-                    if (!Objects.equals(propertiesParentFile.getCanonicalPath(), f.getParentFile().getCanonicalPath())) {
-                        File copy = File.createTempFile(name, ".xml", propertiesParentFile);
-                        Files.copy(f.toPath(), copy.toPath());
-                        simServerJPanel1.setInitStatusFilename(copy.getName());
+                    if (null != propertiesFile) {
+                        File propertiesParentFile = propertiesFile.getParentFile();
+                        if (null != propertiesParentFile
+                                && null != fParentFile
+                                && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                        fParentFile.getCanonicalPath()
+                                )) {
+                            File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                            Files.copy(f.toPath(), copy.toPath());
+                            simServerJPanel1.setInitStatusFilename(copy.getName());
+                        } else {
+                            simServerJPanel1.setInitStatusFilename(name);
+                        }
                     } else {
                         simServerJPanel1.setInitStatusFilename(name);
                     }
@@ -424,7 +439,12 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             JFileChooser chooser;
             File propertiesFile = simServerJPanel1.getPropertiesFile();
             if (propertiesFile != null) {
-                chooser = new JFileChooser(propertiesFile.getParentFile());
+                final File parentFile = propertiesFile.getParentFile();
+                if (null != parentFile) {
+                    chooser = new JFileChooser(parentFile);
+                } else {
+                    chooser = new JFileChooser();
+                }
             } else {
                 chooser = new JFileChooser();
             }
@@ -434,11 +454,20 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
             if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
                 File f = chooser.getSelectedFile();
                 String name = f.getName();
-                File propertiesParentFile = propertiesFile.getParentFile();
-                if (!Objects.equals(propertiesParentFile.getCanonicalPath(), f.getParentFile().getCanonicalPath())) {
-                    File copy = File.createTempFile(name, ".xml", propertiesParentFile);
-                    Files.copy(f.toPath(), copy.toPath());
-                    simServerJPanel1.setInitStatusFilename(copy.getName());
+                if (null != propertiesFile) {
+                    final File propertiesParentFile = propertiesFile.getParentFile();
+                    final File fParentFile = f.getParentFile();
+                    if (null != propertiesParentFile
+                            && null != fParentFile
+                            && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                    fParentFile.getCanonicalPath()
+                            )) {
+                        File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                        Files.copy(f.toPath(), copy.toPath());
+                        simServerJPanel1.setInitStatusFilename(copy.getName());
+                    } else {
+                        simServerJPanel1.setInitStatusFilename(name);
+                    }
                 } else {
                     simServerJPanel1.setInitStatusFilename(name);
                 }

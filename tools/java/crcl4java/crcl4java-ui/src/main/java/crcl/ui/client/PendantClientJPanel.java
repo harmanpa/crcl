@@ -276,7 +276,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      *
      * @param minLimit new value of minLimit
      */
-    public void setMinLimit(PmCartesian minLimit) {
+    public void setMinLimit(@Nullable PmCartesian minLimit) {
         internal.setMinLimit(minLimit);
     }
 
@@ -294,7 +294,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
      *
      * @param maxLimit new value of maxLimit
      */
-    public void setMaxLimit(PmCartesian maxLimit) {
+    public void setMaxLimit(@Nullable PmCartesian maxLimit) {
         internal.setMaxLimit(maxLimit);
     }
 

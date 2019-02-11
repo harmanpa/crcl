@@ -2358,7 +2358,8 @@ public class PendantClientInner {
 
     private boolean holdingObjectExpected;
 
-    private volatile PmCartesian minLimit = new PmCartesian(-10000, -10000, -10000);
+    private volatile PmCartesian minLimit = DEFAULT_MIN_LIMIT;
+    private static final PmCartesian DEFAULT_MIN_LIMIT = new PmCartesian(-10000, -10000, -10000);
 
     /**
      * Get the value of minLimit
@@ -2374,11 +2375,16 @@ public class PendantClientInner {
      *
      * @param minLimit new value of minLimit
      */
-    public void setMinLimit(PmCartesian minLimit) {
-        this.minLimit = minLimit;
+    public void setMinLimit(@Nullable PmCartesian minLimit) {
+        if(null == minLimit) {
+            this.minLimit = DEFAULT_MIN_LIMIT;
+        } else {
+            this.minLimit = minLimit;
+        }
     }
 
-    private volatile PmCartesian maxLimit = new PmCartesian(10000, 10000, 10000);
+    private volatile PmCartesian maxLimit = DEFAULT_MAX_LIMIT;
+    private static final PmCartesian DEFAULT_MAX_LIMIT = new PmCartesian(10000, 10000, 10000);
 
     /**
      * Get the value of maxLimit
@@ -2395,7 +2401,11 @@ public class PendantClientInner {
      * @param maxLimit new value of maxLimit
      */
     public void setMaxLimit(PmCartesian maxLimit) {
-        this.maxLimit = maxLimit;
+        if(null == maxLimit) {
+            this.maxLimit = DEFAULT_MAX_LIMIT;
+        } else {
+            this.maxLimit = maxLimit;
+        }
     }
 
     /**

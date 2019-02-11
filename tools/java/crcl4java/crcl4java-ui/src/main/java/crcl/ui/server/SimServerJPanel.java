@@ -237,21 +237,25 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                     CRCLStatusType initStatus = CRCLSocket.readStatusFile(new File(propertiesFile.getParentFile(), initStatusFilename));
                     if (null != initStatus) {
                         JointStatusesType jsst = initStatus.getJointStatuses();
-                        if(null != jsst) {
+                        if (null != jsst) {
                             setCommandState(CommandStateEnumType.CRCL_DONE);
                             List<JointStatusType> jsl = jsst.getJointStatus();
-                            for(JointStatusType jst : jsl) {
-                                inner.setJointPosition(jst.getJointPosition(), jst.getJointNumber()-1);
+                            for (JointStatusType jst : jsl) {
+                                inner.setJointPosition(jst.getJointPosition(), jst.getJointNumber() - 1);
                             }
                         }
                         PoseStatusType poseStatus = initStatus.getPoseStatus();
                         if (null != poseStatus) {
                             double jpos[] = inner.getJointPositions();
-                            PoseType initPose = poseStatus.getPose();
-                            double newjpos[] = inner.poseToJoints(jpos, initPose);
-                            setCommandState(CommandStateEnumType.CRCL_DONE);
-                            inner.teleportJoints(newjpos);
-                            inner.setPose(initPose);
+                            if (null != jpos) {
+                                PoseType initPose = poseStatus.getPose();
+                                if (null != initPose) {
+                                    double newjpos[] = inner.poseToJoints(jpos, initPose);
+                                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                                    inner.teleportJoints(newjpos);
+                                    inner.setPose(initPose);
+                                }
+                            }
                         }
                     }
                 } catch (Exception ex) {

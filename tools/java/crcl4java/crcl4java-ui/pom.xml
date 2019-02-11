@@ -20,7 +20,7 @@
         <exec.mainClass>${main.class}</exec.mainClass>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <checker-framework.version>2.5.5</checker-framework.version>
+        <checker-framework.version>2.6.0</checker-framework.version>
     </properties>
     <dependencies>
         <dependency>
@@ -206,8 +206,8 @@
                             </annotationProcessors>
                             <compilerArgs>
                                 <arg>-Xlint:all,-serial</arg>
-                                <arg>-AprintErrorStack</arg>
-                                <arg>-AprintAllQualifiers</arg>
+                                <!--  <arg>-AprintErrorStack</arg> -->
+                                <!--  <arg>-AprintAllQualifiers</arg> -->
                                 <!-- location of the annotated JDK, which comes from a Maven dependency -->
                                 <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
                                 <!-- Uncomment the following line to use the type annotations compiler. -->
