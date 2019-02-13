@@ -4486,7 +4486,7 @@ public class PendantClientInner {
                 String messageString = cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "errorStateDescription=" + errorStateDescription + NEW_LINE
-                        + "lastErrorStat=" + getTempCRCLSocket().statusToString(lastErrorStat, false) + NEW_LINE
+                        + "lastErrorStat=" + ((lastErrorStat!=null)?getTempCRCLSocket().statusToString(lastErrorStat, false):"null") + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
                         + "lastCommandSent=" + lastCmdString + "." + NEW_LINE

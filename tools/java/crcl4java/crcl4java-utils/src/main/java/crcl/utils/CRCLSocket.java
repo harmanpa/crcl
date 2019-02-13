@@ -2349,6 +2349,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String statusToString(CRCLStatusType status, boolean validate) throws CRCLException {
 
+        if(null == status) {
+            throw new NullPointerException("status");
+        }
         if (status.getCommandStatus() == null) {
             throw new IllegalArgumentException("status.getCommandStatus()  must not be null. Use setCommandStatus(...)");
         }
