@@ -84,10 +84,10 @@ public class XFutureVoid extends XFuture<Void> {
                 Thread.currentThread().setName(tname);
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
-                String errMsg = "Exception in XFutureVoid  "+myf.forExceptionString();
+                String errMsg = "Exception in XFutureVoid  " + myf.forExceptionString();
 //                System.out.println("errMsg = " + errMsg);
 //                System.err.println(errMsg);
-                LOGGER.log(Level.SEVERE,errMsg , throwable);
+                LOGGER.log(Level.SEVERE, errMsg, throwable);
                 throw new RuntimeException(throwable);
             }
             myf.complete(null);
@@ -163,7 +163,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -184,12 +184,53 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     @Override
+    public XFutureVoid alwaysCompose(Supplier<XFutureVoid> supplier) {
+        XFutureVoid ret = new XFutureVoid(getName() + ".always");
+        XFutureVoid orig
+                = staticwrapvoid(getName() + ".always", super.handle((x, t) -> {
+                    try {
+                        supplier.get()
+                                .thenRun(() -> {
+                                    if (null != t) {
+                                        ret.completeExceptionally(t);
+                                        if (t instanceof RuntimeException) {
+                                            throw ((RuntimeException) t);
+                                        } else {
+                                            throw new RuntimeException(t);
+                                        }
+                                    }
+                                    ret.complete(x);
+                                });
+                    } catch (Throwable t2) {
+                        LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
+                        if (null == t) {
+                            if (t2 instanceof RuntimeException) {
+                                throw ((RuntimeException) t2);
+                            } else {
+                                throw new RuntimeException(t2);
+                            }
+                        }
+                    }
+                    if (null != t) {
+                        if (t instanceof RuntimeException) {
+                            throw ((RuntimeException) t);
+                        } else {
+                            throw new RuntimeException(t);
+                        }
+                    }
+                    return x;
+                }));
+        ret.alsoCancelAdd(orig);
+        return ret;
+    }
+
+    @Override
     public XFutureVoid always(String name, Runnable r) {
         return staticwrapvoid(name, super.handle((x, t) -> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -215,7 +256,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -241,7 +282,7 @@ public class XFutureVoid extends XFuture<Void> {
             try {
                 r.run();
             } catch (Throwable t2) {
-                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  "+XFutureVoid.this.toString(), t2);
+                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
                 if (null == t) {
                     if (t2 instanceof RuntimeException) {
                         throw ((RuntimeException) t2);
@@ -259,6 +300,47 @@ public class XFutureVoid extends XFuture<Void> {
             }
             return x;
         }, service));
+    }
+
+    public XFutureVoid alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
+        XFutureVoid ret = new XFutureVoid(getName() + ".alwaysComposeAsync");
+        XFutureVoid orig
+                = staticwrapvoid(getName() + ".alwaysComposeAsync",
+                        super.handleAsync((x, t) -> {
+                            try {
+                                supplier.get()
+                                        .thenRun(() -> {
+                                            if (null != t) {
+                                                ret.completeExceptionally(t);
+                                                if (t instanceof RuntimeException) {
+                                                    throw ((RuntimeException) t);
+                                                } else {
+                                                    throw new RuntimeException(t);
+                                                }
+                                            }
+                                            ret.complete(x);
+                                        });
+                            } catch (Throwable t2) {
+                                LOGGER.log(Level.SEVERE, "Exception in XFutureVoid  " + XFutureVoid.this.toString(), t2);
+                                if (null == t) {
+                                    if (t2 instanceof RuntimeException) {
+                                        throw ((RuntimeException) t2);
+                                    } else {
+                                        throw new RuntimeException(t2);
+                                    }
+                                }
+                            }
+                            if (null != t) {
+                                if (t instanceof RuntimeException) {
+                                    throw ((RuntimeException) t);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return x;
+                        }, service));
+        ret.alsoCancelAdd(orig);
+        return ret;
     }
 
     @Override
@@ -350,7 +432,7 @@ public class XFutureVoid extends XFuture<Void> {
 
     public static XFutureVoid allOf(CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
-        XFutureVoid ret = staticwrapvoid("XFutureVoid.allOf.cfs.length="+cfs.length, orig);
+        XFutureVoid ret = staticwrapvoid("XFutureVoid.allOf.cfs.length=" + cfs.length, orig);
         if (ret != orig) {
             ret.alsoCancelAddAll(Arrays.asList(cfs));
         }

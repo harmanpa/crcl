@@ -479,7 +479,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 jPanelProgram.repaint();
                 long endMillis
                         = (internal.getRunEndMillis() > 0 && internal.getRunEndMillis() > internal.getRunStartMillis())
-                                ? internal.getRunEndMillis() : System.currentTimeMillis();
+                        ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 showSelectedProgramLine(line, program);
@@ -794,10 +794,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 boolean visibleAndValid = isVisible() && isValid();
                 Stream.of(ma)
@@ -809,8 +809,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getLocationOnScreen") || visibleAndValid)
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this)
-                                .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 ma = this.internal.getClass().getMethods();
                 Stream
@@ -819,10 +819,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> m.getName().startsWith("is"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                        ))
+                ))
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
                 Stream.of(ma)
                         .filter(m -> Modifier.isPublic(m.getModifiers()))
@@ -831,8 +831,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .filter(m -> !m.getName().startsWith("getPropertiesFile"))
                         .filter(m -> m.getParameterTypes().length == 0)
                         .map(m -> safeInvokeMethod(m, PendantClientJPanel.this.internal)
-                                .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                                .orElse("# could not invoke" + m.getName()))
+                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
+                        .orElse("# could not invoke" + m.getName()))
                         .forEachOrdered(ps::println);
             }
         } catch (IOException iOException) {
@@ -849,7 +849,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     .filter(m -> m.getParameterTypes().length == 1)
                     .filter(m -> Modifier.isStatic(m.getModifiers()))
                     .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-                    ))
+            ))
                     .findAny()
                     .orElse(null);
             if (null != vmethod) {
@@ -2268,8 +2268,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
             PoseType p
                     = Optional.ofNullable(curInternalStatus)
-                    .map(CRCLPosemath::getPose)
-                    .orElse(null);
+                            .map(CRCLPosemath::getPose)
+                            .orElse(null);
             if (null != p) {
                 updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
                 PointType pt = p.getPoint();
@@ -2508,9 +2508,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private volatile boolean disconnecting = false;
 
+    private volatile StackTraceElement[] disconnectTrace = null;
+    private volatile Thread disconnectThread = null;
+
     public void disconnect() {
         closeShowProgramLogPrintStream();
         disconnecting = true;
+        disconnectThread = Thread.currentThread();
+        disconnectTrace = Thread.currentThread().getStackTrace();
         if (isRunningProgram()) {
             internal.showErrorMessage("diconnect while isRunningProgram");
             throw new IllegalStateException("disconnect while isRunningProgram");
@@ -2578,6 +2583,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             JInternalFrame jInternalFrame = (JInternalFrame) outerContainer;
             jInternalFrame.setTitle("CRCL Client: " + _host + ":" + _port);
         }
+        disconnecting = !internal.isConnected();
     }
 
     private javax.swing.@Nullable Timer jog_timer = null;
@@ -3145,8 +3151,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try {
             File tmpFile
                     = (internal.getTempLogDir() != null)
-                            ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
-                            : File.createTempFile("poseList", ".csv");
+                    ? File.createTempFile("poseList", ".csv", internal.getTempLogDir())
+                    : File.createTempFile("poseList", ".csv");
             this.internal.savePoseListToCsvFile(tmpFile.getAbsolutePath());
             Desktop.getDesktop().open(tmpFile);
         } catch (IOException ex) {
@@ -3194,8 +3200,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (null == commandStatusLogFile) {
             commandStatusLogFile
                     = (internal.getTempLogDir() != null)
-                            ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
-                            : File.createTempFile("commandStatus_", ".csv");
+                    ? File.createTempFile("commandStatus_", ".csv", internal.getTempLogDir())
+                    : File.createTempFile("commandStatus_", ".csv");
         }
         return commandStatusLogFile;
     }
@@ -4895,7 +4901,22 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private XFuture<Boolean> lastProgramFuture = null;
 
     public boolean runCurrentProgram(boolean stepMode) {
+        if (!internal.isConnected()) {
+            System.err.println("disconnectThread = " + disconnectThread);
+            System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+            throw new RuntimeException("runCurrentProgram !internal.isConnected()");
+        }
+        if (disconnecting) {
+            System.err.println("disconnectThread = " + disconnectThread);
+            System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+            throw new RuntimeException("runCurrentProgram.disconnecting");
+        }
         prepRunCurrentProgram(stepMode);
+        if (disconnecting) {
+            System.err.println("disconnectThread = " + disconnectThread);
+            System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+            throw new RuntimeException("runCurrentProgram.disconnecting");
+        }
         final CRCLProgramType program = internal.getProgram();
         if (null == program) {
             throw new IllegalStateException("null == program");
@@ -4905,7 +4926,17 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode) {
         try {
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("runCurrentProgramAsync.disconnecting");
+            }
             prepRunCurrentProgram(stepMode);
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("runCurrentProgramAsync.disconnecting");
+            }
             XFuture<Boolean> future = internal.startRunProgramThread(0);
             XFuture<Boolean> ret = checkFutureChange(future);
             lastProgramFuture = future;
@@ -4961,14 +4992,29 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
-            if(internal.isUnpausing()) {
+            if (internal.isUnpausing()) {
                 throw new RuntimeException("trying to prep program while still unpausing");
             }
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
             boolean requestStatusResult = internal.requestStatus();
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
             if (!requestStatusResult) {
                 throw new RuntimeException("requestStatus() returned false");
             }
             boolean readStatusResult = internal.readStatus();
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
             if (!readStatusResult) {
                 throw new RuntimeException("readStatus() returned false");
             }

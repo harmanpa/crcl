@@ -33,7 +33,14 @@ public class Utils {
     private Utils() {
     }
     public static String getCrclUserHomeDir() {
-        String dir =  System.getProperty("crcl.user.home", System.getProperty("user.home"));
+        boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+
+        String dir;
+        if (isWindows) {
+            dir = System.getProperty("windows.crcl.user.home", System.getProperty("crcl.user.home", System.getProperty("user.home")));
+        } else {
+            dir = System.getProperty("linux.crcl.user.home", System.getProperty("crcl.user.home", System.getProperty("user.home")));
+        }
 //        if(!dir.endsWith("netbeans_run_user_home")) {
 //            System.out.println("System.getProperty(\"user.home\") = " + System.getProperty("user.home"));
 //            System.out.println("System.getProperty(\"crcl.user.home\") = " + System.getProperty("crcl.user.home"));

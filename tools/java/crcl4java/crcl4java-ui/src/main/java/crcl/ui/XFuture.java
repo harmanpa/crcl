@@ -739,9 +739,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
-    @Nullable private volatile T manuallyCompletedValue = null;
-    @Nullable private volatile Thread manuallyCompletedThread = null;
-    private volatile StackTraceElement manuallyCompletedTrace @Nullable [] = null;
+    @Nullable
+    private volatile T manuallyCompletedValue = null;
+    @Nullable
+    private volatile Thread manuallyCompletedThread = null;
+    private volatile StackTraceElement manuallyCompletedTrace @Nullable []  = null;
 
     private static volatile boolean closingMode = false;
 
@@ -753,7 +755,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         XFuture.closingMode = closingMode;
     }
 
-    private volatile static boolean  debugCompleteWithExceptions = false;
+    private volatile static boolean debugCompleteWithExceptions = false;
 
     public static boolean isDebugCompleteWithExceptions() {
         return debugCompleteWithExceptions;
@@ -762,12 +764,10 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static void setDebugCompleteWithExceptions(boolean debugCompleteWithExceptions) {
         XFuture.debugCompleteWithExceptions = debugCompleteWithExceptions;
     }
-    
-    
+
     @Override
     public boolean complete(T value) {
 
-        
         if (isCancelled()) {
             if (closingMode || !debugCompleteWithExceptions) {
                 return false;
@@ -787,7 +787,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                     "Attempt to complete a future that was already completedExceptionally : forExString= " + forExString);
             throw new IllegalStateException("Attempt to complete a future that was already completedExceptionally");
         }
-        if(isDone()) {
+        if (isDone()) {
             return false;
         }
         manuallyCompletedValue = value;
@@ -855,9 +855,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return ret;
     }
 
-    @Nullable private volatile Throwable completedExceptionallyThrowable = null;
-    @Nullable private volatile Thread completedExceptionallyThread = null;
-    private volatile StackTraceElement completedExceptionallyTrace @Nullable [] = null;
+    @Nullable
+    private volatile Throwable completedExceptionallyThrowable = null;
+    @Nullable
+    private volatile Thread completedExceptionallyThread = null;
+    private volatile StackTraceElement completedExceptionallyTrace @Nullable []  = null;
 
     @Override
     public boolean completeExceptionally(Throwable ex) {
@@ -1590,5 +1592,90 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenApply(String name, Function<? super T, ? extends U> fn) {
         return wrap(name, super.thenApply(fn));
+    }
+
+    public XFuture<T> alwaysCompose(Supplier<XFutureVoid> supplier) {
+        XFuture<T> ret = new XFuture<T>(getName() + ".always");
+        XFuture<T> orig
+                = wrap(
+                        getName() + ".always",
+                        super.handle((T x, Throwable t) -> {
+                            try {
+                                supplier.get()
+                                        .thenRun(() -> {
+                                            if (null != t) {
+                                                ret.completeExceptionally(t);
+                                                if (t instanceof RuntimeException) {
+                                                    throw ((RuntimeException) t);
+                                                } else {
+                                                    throw new RuntimeException(t);
+                                                }
+                                            }
+                                            ret.complete((T) x);
+                                        });
+                            } catch (Throwable t2) {
+                                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFutureVoid  " + XFuture.this.toString(), t2);
+                                if (null == t) {
+                                    if (t2 instanceof RuntimeException) {
+                                        throw ((RuntimeException) t2);
+                                    } else {
+                                        throw new RuntimeException(t2);
+                                    }
+                                }
+                            }
+                            if (null != t) {
+                                if (t instanceof RuntimeException) {
+                                    throw ((RuntimeException) t);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return x;
+                        }));
+        ret.alsoCancelAdd(orig);
+        return ret;
+    }
+
+    public XFuture<T> alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
+        XFuture<T> ret = new XFuture<T>(getName() + ".always");
+        XFuture<T> orig
+                = wrap(
+                        getName() + ".always",
+                        super.handleAsync((T x, Throwable t) -> {
+                            try {
+                                supplier.get()
+                                        .thenRun(() -> {
+                                            if (null != t) {
+                                                ret.completeExceptionally(t);
+                                                if (t instanceof RuntimeException) {
+                                                    throw ((RuntimeException) t);
+                                                } else {
+                                                    throw new RuntimeException(t);
+                                                }
+                                            }
+                                            ret.complete((T) x);
+                                        });
+                            } catch (Throwable t2) {
+                                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, "Exception in XFutureVoid  " + XFuture.this.toString(), t2);
+                                if (null == t) {
+                                    if (t2 instanceof RuntimeException) {
+                                        throw ((RuntimeException) t2);
+                                    } else {
+                                        throw new RuntimeException(t2);
+                                    }
+                                }
+                            }
+                            if (null != t) {
+                                if (t instanceof RuntimeException) {
+                                    throw ((RuntimeException) t);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return x;
+                        },
+                                service));
+        ret.alsoCancelAdd(orig);
+        return ret;
     }
 }
