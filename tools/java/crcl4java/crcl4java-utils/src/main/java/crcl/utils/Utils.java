@@ -22,7 +22,12 @@
  */
 package crcl.utils;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -32,6 +37,32 @@ public class Utils {
     
     private Utils() {
     }
+    
+    
+     public static String traceToString(StackTraceElement trace[]) {
+        if (null == trace) {
+            return "";
+        }
+        try (StringWriter stringWriter = new StringWriter()) {
+            try (PrintWriter printWriter = new PrintWriter(stringWriter)) {
+                boolean first = true;
+                for (StackTraceElement traceElement : trace) {
+                    String traceString = traceElement.toString();
+                    if (first && traceString.contains("Thread.getStackTrace(")) {
+                        first = false;
+                        continue;
+                    }
+                    first = false;
+                    printWriter.println("\tat " + traceElement);
+                }
+            }
+            stringWriter.flush();
+            return stringWriter.toString();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+     
     public static String getCrclUserHomeDir() {
         boolean isWindows = System.getProperty("os.name").startsWith("Windows");
 

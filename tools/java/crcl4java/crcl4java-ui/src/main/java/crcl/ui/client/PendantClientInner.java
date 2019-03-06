@@ -2209,7 +2209,11 @@ public class PendantClientInner {
     public synchronized void connect(String host, int port) {
         try {
             if (isConnected()) {
-                throw new IllegalStateException("Already connected :  " + this.crclSocket + ", timeSinceConnect=" + (System.currentTimeMillis() - connnectTime) + ", connectThread=" + connectThread + ",connectTrace=" + Arrays.toString(connectTrace));
+                final String errmsg = "Already connected :  " + this.crclSocket + ", timeSinceConnect=" + (System.currentTimeMillis() - connnectTime) + ", connectThread=" + connectThread;
+                System.err.println(errmsg);
+                Thread.dumpStack();
+                System.err.println("connectTrace=" + XFuture.traceToString(connectTrace));
+                throw new IllegalStateException(errmsg);
             }
             if (null == cmdSchema) {
                 throw new IllegalStateException("null==cmdSchema");
