@@ -1818,11 +1818,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 if (t - last_message_show_time > 5000) {
                     last_message_show_time = System.currentTimeMillis();
                     Window window = PendantClientJPanel.this.getOuterWindow();
-                    if (null != window) {
+                    if (null != window && window instanceof JFrame) {
                         MultiLineStringJPanel.showText(s,
-                                window,
+                                (JFrame) window,
                                 "Message from Client",
-                                Dialog.ModalityType.APPLICATION_MODAL);
+                                true);
                     }
                 }
                 last_message_show_time = System.currentTimeMillis();

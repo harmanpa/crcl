@@ -1862,9 +1862,9 @@ public class PendantClientInner {
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
                     cmd.getName(),
-                    fmtDouble(lastLogStatusPoint.getX()),
-                    fmtDouble(lastLogStatusPoint.getY()),
-                    fmtDouble(lastLogStatusPoint.getZ()),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getX():Double.NaN),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getY():Double.NaN),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getZ():Double.NaN),
                     CRCLSocket.cmdToString(cmd)
                 };
             } else {
@@ -1880,9 +1880,9 @@ public class PendantClientInner {
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
                     cmd.getName(),
-                    fmtDouble(lastLogStatusPoint.getX()),
-                    fmtDouble(lastLogStatusPoint.getY()),
-                    fmtDouble(lastLogStatusPoint.getZ()),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getX():Double.NaN),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getY():Double.NaN),
+                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getZ():Double.NaN),
                     CRCLSocket.cmdToString(cmd)
                 };
             }

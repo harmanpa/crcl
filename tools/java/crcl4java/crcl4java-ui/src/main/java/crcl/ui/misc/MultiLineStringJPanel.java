@@ -21,6 +21,7 @@
 package crcl.ui.misc;
 
 import crcl.ui.XFuture;
+import crcl.utils.Utils;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
@@ -281,22 +282,8 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
 
     public static volatile boolean disableShowText = Boolean.valueOf("crcl.ui.misc.MultiLineString.disableShowText");
 
-    public static void showText(String init, Window _owner,
-            String _title,
-            Dialog.ModalityType _modal) {
-        if (!disableShowText) {
-            JDialog dialog = new JDialog(_owner, _title, _modal);
-            showTextPrivate(dialog, init);
-        }
-    }
-
-    public static XFuture<Boolean> showText(String init,
-            @Nullable JFrame _owner,
-            String _title,
-            boolean _modal) {
-        return showText(init, _owner, _title, _modal, false);
-    }
-
+    
+    
     private static boolean ignoreForceShow = false;
 
     public static void setIgnoreForceShow(boolean val) {
@@ -306,7 +293,27 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public static boolean getIgnoreForceShow() {
         return ignoreForceShow;
     }
+    
+    public static XFuture<Boolean> showException(Throwable throwable) {
+        return showText(throwable.toString(), null, "Exception", false, true);
+    }
 
+    public static XFuture<Boolean> showText(String init) {
+        return showText(init, null, "", false, false);
+    }
+    
+    public static XFuture<Boolean> showText(String init,
+            @Nullable JFrame _owner,
+            String _title,
+            boolean _modal) {
+        return showText(init, _owner, _title, _modal, false);
+    }
+
+    public static XFuture<Boolean> showText(String init,
+            @Nullable JFrame _owner) {
+        return showText(init, _owner, "", false, false);
+    }
+    
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,
@@ -325,21 +332,6 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return ret;
     }
 
-    public static XFuture<Boolean> showText(String init) {
-        final XFuture<Boolean> ret = new XFuture<>("showText(" + init + ")");
-        if (!disableShowText) {
-            runOnDispatchThread(() -> ret.complete(showTextInternal(init)));
-        } else {
-            ret.complete(false);
-        }
-        return ret;
-    }
-
-    private static boolean showTextInternal(String init) {
-        JDialog dialog = new JDialog();
-        dialog.setModal(false);
-        return showTextPrivate(dialog, init);
-    }
 
     private static void runOnDispatchThread(final Runnable r) {
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
