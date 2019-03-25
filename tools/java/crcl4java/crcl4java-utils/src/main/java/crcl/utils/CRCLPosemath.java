@@ -47,6 +47,7 @@ import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -741,7 +742,8 @@ public class CRCLPosemath {
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
-        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+        final List<MiddleCommandType> programInMiddleCommands = programIn.getMiddleCommand();
+        for (MiddleCommandType cmd : programInMiddleCommands) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();

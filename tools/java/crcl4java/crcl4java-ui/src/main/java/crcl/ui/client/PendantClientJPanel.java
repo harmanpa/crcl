@@ -616,16 +616,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             @Nullable CRCLStatusType status,
             List<ProgramRunData> progRunDataList) {
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
+        final CRCLProgramType crclProgramCopy = CRCLPosemath.copy(program);
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
-            finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), status, progRunDataList, ste);
+            finishShowCurrentProgramLine(line, crclProgramCopy, status, progRunDataList, ste);
         } else {
             final CRCLStatusType curInternalStatus = (null == status) ? null : CRCLPosemath.copy(status);
             List<ProgramRunData> progRunDataListCopy = (null != progRunDataList) ? new ArrayList<>(progRunDataList) : Collections.emptyList();
             java.awt.EventQueue.invokeLater(new Runnable() {
-
                 @Override
                 public void run() {
-                    finishShowCurrentProgramLine(line, CRCLPosemath.copy(program), curInternalStatus, progRunDataListCopy, ste);
+                    finishShowCurrentProgramLine(line, crclProgramCopy, curInternalStatus, progRunDataListCopy, ste);
                 }
             });
         }
@@ -5087,6 +5087,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.isPaused();
     }
 
+    public String getLastRunningProgramTrueInfo() {
+        return internal.getLastRunningProgramTrueInfo();
+    }
+    
     public boolean isRunningProgram() {
         return internal.isRunningProgram();
     }

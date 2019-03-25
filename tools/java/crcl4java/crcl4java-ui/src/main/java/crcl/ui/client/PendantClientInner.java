@@ -1862,9 +1862,9 @@ public class PendantClientInner {
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
                     cmd.getName(),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getX():Double.NaN),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getY():Double.NaN),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getZ():Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
                     CRCLSocket.cmdToString(cmd)
                 };
             } else {
@@ -1880,9 +1880,9 @@ public class PendantClientInner {
                     cel.getProgIndex(),
                     cel.getSvrSocket(),
                     cmd.getName(),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getX():Double.NaN),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getY():Double.NaN),
-                    fmtDouble(lastLogStatusPoint!=null?lastLogStatusPoint.getZ():Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
+                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
                     CRCLSocket.cmdToString(cmd)
                 };
             }
@@ -2380,7 +2380,7 @@ public class PendantClientInner {
      * @param minLimit new value of minLimit
      */
     public void setMinLimit(@Nullable PmCartesian minLimit) {
-        if(null == minLimit) {
+        if (null == minLimit) {
             this.minLimit = DEFAULT_MIN_LIMIT;
         } else {
             this.minLimit = minLimit;
@@ -2405,7 +2405,7 @@ public class PendantClientInner {
      * @param maxLimit new value of maxLimit
      */
     public void setMaxLimit(PmCartesian maxLimit) {
-        if(null == maxLimit) {
+        if (null == maxLimit) {
             this.maxLimit = DEFAULT_MAX_LIMIT;
         } else {
             this.maxLimit = maxLimit;
@@ -3449,13 +3449,43 @@ public class PendantClientInner {
     private volatile boolean lastRunProgramFutureNotCompleted = false;
     private volatile boolean lastRunProgramThreadAlive = false;
 
-    public boolean isRunningProgram() {
+    private volatile String lastRunningProgramTrueInfo = null;
+    private volatile boolean lastIsRunningProgram = false;
+
+    public String getLastRunningProgramTrueInfo() {
+        return lastRunningProgramTrueInfo;
+    }
+
+    
+    public synchronized  boolean isRunningProgram() {
         boolean runProgramFutureNotCompleted = isRunProgramFutureNotCompleted();
         boolean runProgramThreadAlive = isRunProgramThreadAlive();
         lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
         lastRunProgramThreadAlive = runProgramThreadAlive;
-        return runProgramFutureNotCompleted
+        boolean ret
+                = runProgramFutureNotCompleted
                 || (null == runProgramFuture && runProgramThreadAlive);
+        lastIsRunningProgram = ret;
+        if (ret) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("runProgramFuture").append(runProgramFuture).append("\n");
+            if (null != runProgramFuture) {
+                final Throwable throwable = runProgramFuture.getThrowable();
+                sb.append("runProgramFuture.getThrowable()=\n").append(throwable).append("\n");
+                if (null != throwable) {
+                    sb.append("runProgramFuture.getThrowable().getStackTrace()=\n").append(XFuture.traceToString(throwable.getStackTrace())).append("\n");
+                }
+                sb.append("runProgramFuture.createTrace=\n").append(XFuture.traceToString(runProgramFuture.getCreateTrace())).append("\n");
+            }
+            sb.append("runProgramThread").append(runProgramThread).append("/n");
+            if (null != runProgramThread) {
+                sb.append("runProgramFuture.getStackTrace()=\n").append(XFuture.traceToString(runProgramThread.getStackTrace())).append("\n");
+            }
+            lastRunningProgramTrueInfo = sb.toString();
+        } else {
+            lastRunningProgramTrueInfo = null;
+        }
+        return ret;
     }
 
     private boolean isRunProgramThreadAlive() {
@@ -4490,7 +4520,7 @@ public class PendantClientInner {
                 String messageString = cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
                         + "wfdResult=" + wfdResult + NEW_LINE
                         + "errorStateDescription=" + errorStateDescription + NEW_LINE
-                        + "lastErrorStat=" + ((lastErrorStat!=null)?getTempCRCLSocket().statusToString(lastErrorStat, false):"null") + NEW_LINE
+                        + "lastErrorStat=" + ((lastErrorStat != null) ? getTempCRCLSocket().statusToString(lastErrorStat, false) : "null") + NEW_LINE
                         + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
                         + "cmd=" + cmdString + "." + NEW_LINE
                         + "lastCommandSent=" + lastCmdString + "." + NEW_LINE

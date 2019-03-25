@@ -168,6 +168,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isRunningProgram();
     }
 
+    public String getLastRunningProgramTrueInfo() {
+        return pendantClientJPanel1.getLastRunningProgramTrueInfo();
+    }
+    
     public boolean isBlockPrograms() {
         return pendantClientJPanel1.isBlockPrograms();
     }

@@ -93,13 +93,21 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture(String name) {
-        this.name = name;
+        this.name = defaultName(name);
         this.startTime = System.currentTimeMillis();
         this.num = numCounter.incrementAndGet();
         this.createThread = Thread.currentThread();
         this.createTrace = this.createThread.getStackTrace();
     }
 
+    public Thread getCreateThread() {
+        return createThread;
+    }
+
+    public StackTraceElement[] getCreateTrace() {
+        return createTrace;
+    }
+    
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
@@ -133,14 +141,33 @@ public class XFuture<T> extends CompletableFuture<T> {
         try (StringWriter stringWriter = new StringWriter()) {
             try (PrintWriter printWriter = new PrintWriter(stringWriter)) {
                 boolean first = true;
-                for (StackTraceElement traceElement : trace) {
-                    String traceString = traceElement.toString();
-                    if (first && traceString.contains("Thread.getStackTrace(")) {
-                        first = false;
-                        continue;
+                int firstExternal = 0;
+                int lastExternal = trace.length - 1;
+                for (int i = 0; i < trace.length - 1; i++) {
+                    StackTraceElement stackTraceElement = trace[i];
+                    final String className = stackTraceElement.getClassName();
+                    if (!className.startsWith("java.") && !className.contains("Future")) {
+                        firstExternal = i;
+                        break;
                     }
-                    first = false;
-                    printWriter.println("\tat " + traceElement);
+                }
+                for (int i = trace.length - 1; i > firstExternal; i--) {
+                    StackTraceElement stackTraceElement = trace[i];
+                    final String className = stackTraceElement.getClassName();
+                    if (!className.startsWith("java.") && !className.contains("Future")) {
+                        lastExternal = i;
+                        break;
+                    }
+                }
+                if (firstExternal > 0) {
+                    printWriter.println("\t \t// skipping (firstExternal=" + firstExternal + ") " + Arrays.toString(Arrays.copyOfRange(trace, 0, firstExternal)));
+                }
+                for (int i = firstExternal; i <= lastExternal; i++) {
+                    StackTraceElement stackTraceElement = trace[i];
+                    printWriter.println("\tat " + stackTraceElement);
+                }
+                if (lastExternal > 0 && lastExternal < trace.length - 1) {
+                    printWriter.println("\t \t// skipping (" + (lastExternal + 1) + "," + trace.length + ") " + Arrays.toString(Arrays.copyOfRange(trace, lastExternal + 1, trace.length)));
                 }
             }
             stringWriter.flush();
@@ -183,6 +210,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             });
             return;
         }
+        ps.println("\t END Status for " + XFuture.this.toString());
         ps.println();
     }
 
@@ -220,7 +248,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
         getProfileStringTrace = Thread.currentThread().getStackTrace();
         getProfileStringThreadName = Thread.currentThread().getName();
-        return joinAny(",", num, startTime, completeTime, (completeTime - startTime), (completeTime - maxDepCompleteTime), "\"" + name + "\"", isCompletedExceptionally(), isCancelled(), isDone(), xFutureAlsoCancelCount.get(), cfFutureAlsoCancelCount.get(), "\"" + traceToString(createTrace) + "\"");
+        return joinAny(",", num, startTime, completeTime, (completeTime - startTime), (completeTime - maxDepCompleteTime), "\"" + name + "\"", isCompletedExceptionally(), isCancelled(), isDone(), xFutureAlsoCancelCount.get(), cfFutureAlsoCancelCount.get(), "\"" + shortTraceToString(createTrace) + "\"");
     }
 
     @Nullable
@@ -328,8 +356,12 @@ public class XFuture<T> extends CompletableFuture<T> {
         Function<Throwable, Object> exPrinter = (Throwable t) -> {
             return printEx(t, ps);
         };
+        boolean allAlsoCancelDone = true;
         for (CompletableFuture<?> f : alsoCancel) {
             if (!(f instanceof XFuture)) {
+                if (!f.isDone()) {
+                    allAlsoCancelDone = false;
+                }
                 ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + f.toString());
                 if (f.isCompletedExceptionally()) {
                     CompletableFuture<Object> fob = (CompletableFuture<Object>) f;
@@ -338,12 +370,17 @@ public class XFuture<T> extends CompletableFuture<T> {
             }
         }
         ps.println("done=" + isDone() + "\tcancelled=" + isCancelled() + "\t" + XFuture.this.toString());
+        if (!isDone() && allAlsoCancelDone) {
+            ps.println("!isDone() && allAlsoCancelDone");
+            ps.println(name + ".createTrace=");
+            ps.println(traceToString(createTrace));
+        }
 
     }
 
     @Override
     public String toString() {
-        return super.toString() + "{" + name + "(" + getRunTime() + "ms ago) " + shortCancelString() + "createThread=" + createThread + ", createTrace=" + shortTraceToString(createTrace) + '}';
+        return super.toString() + "{" + name + "(" + getRunTime() + "ms ago) }";
     }
 
     @SuppressWarnings("nullness")
@@ -670,31 +707,19 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> thenCompose(Function<? super T, ? extends CompletionStage<U>> fn) {
-        return this.thenCompose(name + ".thenCompose", fn);
+        return this.thenCompose(defaultName(), fn);
     }
 
     public XFutureVoid thenComposeToVoid(Function<? super T, ? extends XFuture<Void>> fn) {
-        XFuture<Void> future = this.thenCompose(name + ".thenComposeToVoid", fn);
-        XFutureVoid ret = new XFutureVoid(name + ".thenComposeToVoid");
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        return this.thenComposeAsyncToVoid(defaultName(), fn);
     }
 
     public XFutureVoid thenComposeAsyncToVoid(Function<? super T, ? extends XFuture<Void>> fn) {
-        XFuture<Void> future = this.thenComposeAsync(name + ".thenComposeAsyncToVoid", fn);
-        XFutureVoid ret = new XFutureVoid(name + ".thenComposeAsyncToVoid");
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        return this.thenComposeAsyncToVoid(defaultName(), fn);
     }
 
     public XFutureVoid thenComposeAsyncToVoid(Function<? super T, ? extends XFuture<Void>> fn, ExecutorService es) {
-        XFuture<Void> future = this.thenComposeAsync(name + ".thenComposeAsyncToVoid", fn, es);
-        XFutureVoid ret = new XFutureVoid(name + ".thenComposeAsyncToVoid");
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        return this.thenComposeAsyncToVoid(defaultName(), fn, es);
     }
 
     public XFutureVoid thenComposeToVoid(String name, Function<? super T, ? extends XFuture<Void>> fn) {
@@ -881,6 +906,29 @@ public class XFuture<T> extends CompletableFuture<T> {
         return endTime - sTime;
     }
 
+    protected String defaultName() {
+        return defaultName(getName());
+    }
+    
+    private static String defaultName(String name) {
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+        final int ssIndexOf = name.indexOf("//");
+        String nameSubstring;
+        if(ssIndexOf > 0) {
+            nameSubstring = name.substring(0, ssIndexOf);
+        } else {
+            nameSubstring = name;
+        }
+        for (int i = 0; i < trace.length; i++) {
+            StackTraceElement stackTraceElement = trace[i];
+            String className = stackTraceElement.getClassName();
+            if (!className.startsWith("java.") && !className.contains("XFuture")) {
+                return nameSubstring+"//"+stackTraceElement.toString();
+            }
+        }
+        return name;
+    }
+
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
 
         XFuture<U> myF = new XFuture<>(name);
@@ -902,7 +950,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
-        return this.thenComposeAsync(name + ".thenComposeAsync", fn, executor);
+        return this.thenComposeAsync(defaultName(), fn, executor);
     }
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
@@ -925,7 +973,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn) {
-        return this.thenComposeAsync(name + ".thenComposeAsync", fn);
+        return this.thenComposeAsync(defaultName(), fn);
     }
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
@@ -1270,15 +1318,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> always(Runnable r) {
-        return wrap(name + ".always", super.handle((x, t) -> {
-            try {
-                r.run();
-            } catch (Throwable t2) {
-                logAndRethrow(t2);
-            }
-            rethrow(t);
-            return x;
-        }));
+        return this.always(defaultName(), r);
     }
 
     public XFuture<T> always(String name, Runnable r) {
@@ -1306,20 +1346,12 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> alwaysAsync(Runnable r, ExecutorService service) {
-        return wrap(this.name + ".alwaysAsync", super.handleAsync((x, t) -> {
-            try {
-                r.run();
-            } catch (Throwable t2) {
-                logAndRethrow(t2);
-            }
-            rethrow(t);
-            return x;
-        }, service));
+        return this.alwaysAsync(defaultName(), r, service);
     }
 
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
-        return wrap(this.name + ".handleAsync", super.handleAsync(biWrap(fn), executor));
+        return this.handleAsync(defaultName(), fn, executor);
     }
 
     public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
@@ -1328,7 +1360,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(this.name + ".handleAsync", super.handleAsync(biWrap(fn)));
+        return this.handle(defaultName(), fn);
     }
 
     public <U> XFuture<U> handleAsync(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
@@ -1337,7 +1369,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U> XFuture<U> handle(BiFunction<? super T, Throwable, ? extends U> fn) {
-        return wrap(this.name + ".handle", super.handle(biWrap(fn)));
+        return this.handle(defaultName(), fn);
     }
 
     public <U> XFuture<U> handle(String name, BiFunction<? super T, Throwable, ? extends U> fn) {
@@ -1507,12 +1539,12 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public XFutureVoid thenRunAsync(Runnable action, Executor executor) {
-        return wrapvoid(this.name + ".thenRunAsync", super.thenRunAsync(runWrap(action), executor));
+        return this.thenRunAsync(defaultName(), action, executor);
     }
 
     @Override
     public XFutureVoid thenRunAsync(Runnable action) {
-        return wrapvoid(this.name + ".thenRunAsync", super.thenRunAsync(runWrap(action), getDefaultThreadPool()));
+        return this.thenRunAsync(defaultName(), action);
     }
 
     public XFutureVoid thenRunAsync(String name, Runnable action) {
@@ -1545,7 +1577,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public XFutureVoid thenRun(Runnable action) {
-        return wrapvoid(this.name + ".thenRun", super.thenRun(runWrap(action)));
+        return this.thenRun(defaultName(), action);
     }
 
     public XFutureVoid thenRun(String name, Runnable action) {
@@ -1595,10 +1627,14 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> alwaysCompose(Supplier<XFutureVoid> supplier) {
-        XFuture<T> ret = new XFuture<T>(getName() + ".always");
+        return this.alwaysCompose(defaultName(), supplier);
+    }
+
+    public XFuture<T> alwaysCompose(String name, Supplier<XFutureVoid> supplier) {
+        XFuture<T> ret = new XFuture<T>(name);
         XFuture<T> orig
                 = wrap(
-                        getName() + ".always",
+                        name,
                         super.handle((T x, Throwable t) -> {
                             try {
                                 supplier.get()
@@ -1637,10 +1673,14 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
-        XFuture<T> ret = new XFuture<T>(getName() + ".always");
+        return this.alwaysComposeAsync(defaultName(), supplier, service);
+    }
+
+    public XFuture<T> alwaysComposeAsync(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
+        XFuture<T> ret = new XFuture<T>(name);
         XFuture<T> orig
                 = wrap(
-                        getName() + ".always",
+                        name,
                         super.handleAsync((T x, Throwable t) -> {
                             try {
                                 supplier.get()
