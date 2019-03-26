@@ -3395,7 +3395,15 @@ public class PendantClientInner {
             if (null != lineCmd) {
                 System.err.println("lineCmd = " + CRCLSocket.cmdToString(lineCmd));
             }
-            throw new RuntimeException("Failed to run program " + progName + " : " + ex.getMessage(), ex);
+            final String newExMsg;
+            String endExMsg = "Failed to run program " + progName + " : " + ex.getMessage();
+            if (errorStateDescription != null) {
+                System.err.println("errorStateDescription = " + errorStateDescription);
+                newExMsg = errorStateDescription + endExMsg;
+            } else {
+                newExMsg = errorStateDescription + endExMsg;
+            }
+            throw new RuntimeException(newExMsg, ex);
         } finally {
             try {
                 if (null != crclSocket) {
@@ -3456,8 +3464,7 @@ public class PendantClientInner {
         return lastRunningProgramTrueInfo;
     }
 
-    
-    public synchronized  boolean isRunningProgram() {
+    public synchronized boolean isRunningProgram() {
         boolean runProgramFutureNotCompleted = isRunProgramFutureNotCompleted();
         boolean runProgramThreadAlive = isRunProgramThreadAlive();
         lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
@@ -4561,7 +4568,11 @@ public class PendantClientInner {
                     });
                     System.err.println("intString=" + intString);
                 }
+                if(null != errorStateDescription && errorStateDescription.length() > 0) {
+                    throw new RuntimeException(errorStateDescription+": wfdResult=" + wfdResult + ", messageString=" + messageString);
+                } else {
                 throw new RuntimeException("wfdResult=" + wfdResult + ", messageString=" + messageString);
+                }
             }
         } while (pause_count_start != this.pause_count.get());
 

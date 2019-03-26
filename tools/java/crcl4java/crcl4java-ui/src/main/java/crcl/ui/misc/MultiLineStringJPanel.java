@@ -282,8 +282,6 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
 
     public static volatile boolean disableShowText = Boolean.valueOf("crcl.ui.misc.MultiLineString.disableShowText");
 
-    
-    
     private static boolean ignoreForceShow = false;
 
     public static void setIgnoreForceShow(boolean val) {
@@ -293,7 +291,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public static boolean getIgnoreForceShow() {
         return ignoreForceShow;
     }
-    
+
     public static XFuture<Boolean> showException(Throwable throwable) {
         return showText(throwable.toString(), null, "Exception", false, true);
     }
@@ -301,7 +299,11 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public static XFuture<Boolean> showText(String init) {
         return showText(init, null, "", false, false);
     }
-    
+
+    public static XFuture<Boolean> forceShowText(String init) {
+        return showText(init, null, "", false, true);
+    }
+
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,
@@ -313,7 +315,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             @Nullable JFrame _owner) {
         return showText(init, _owner, "", false, false);
     }
-    
+
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,
@@ -331,7 +333,6 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
         return ret;
     }
-
 
     private static void runOnDispatchThread(final Runnable r) {
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
