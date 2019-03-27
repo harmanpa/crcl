@@ -847,6 +847,9 @@ public class PendantClientInner {
                             + " but number of waypoints = " + wpts_length);
                 }
             }
+            if(MultiLineStringJPanel.disableShowText) {
+                return XFuture.completedFuture(true);
+            }
             return MultiLineStringJPanel.showText(s);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);

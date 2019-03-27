@@ -1960,11 +1960,22 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         CRCLProgramType internalProgram = internal.getProgram();
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
         updateCurrentPoseListeners(curInternalStatus, lastCmd, isHoldingObjectExpected, statRecieveTime);
-
+        CommandStatusType ccst = curInternalStatus.getCommandStatus();
+        String ccstStateDescription = ccst.getStateDescription();
+        String stateDescription;
+        if (null != ccstStateDescription) {
+            stateDescription = ccstStateDescription;
+        } else {
+            stateDescription = "";
+        }
+        final CommandStateEnumType state = ccst.getCommandState();
+        String stateString = state.toString();
+        updateTitle(ccst, stateString, stateDescription);
+        boolean isRunning = internal.isRunningProgram();
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             lastFinishSetStatusProgramCopy = null;
             lastFinishSetStatusInternalProgram = null;
-            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime);
+            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription,isRunning);
         } else {
             final CRCLStatusType curInternalStatusCopy
                     = requireNonNull(CRCLPosemath.copy(curInternalStatus), "CRCLPosemath.copy(curInternalStatus)");
@@ -1978,7 +1989,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste, statRecieveTime);
+                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription,isRunning);
                 }
             });
         }
@@ -2062,7 +2073,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             @Nullable CRCLCommandType lastCommandSent,
             boolean isHoldingObject,
             StackTraceElement[] ste,
-            long statReceiveTime) {
+            long statReceiveTime,
+            CommandStatusType ccst,
+            String stateDescription,
+            boolean isRunning) {
         if (needInitPoint && null != curInternalStatus) {
             PointType pt = CRCLPosemath.getPoint(curInternalStatus);
             if (null != pt) {
@@ -2077,11 +2091,11 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         }
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
-            CommandStatusType ccst = curInternalStatus.getCommandStatus();
+            ccst = curInternalStatus.getCommandStatus();
             if (null != ccst) {
                 this.jTextFieldStatCmdID.setText("" + ccst.getCommandID());
                 String ccstStateDescription = ccst.getStateDescription();
-                String stateDescription = "";
+
                 if (null != ccstStateDescription) {
                     stateDescription = ccstStateDescription;
                 }
@@ -2119,7 +2133,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 if (null != outerJFrame) {
                                     if (lastIconState == CRCL_ERROR
                                             || lastIconState == null
-                                            || !isRunningProgram()
+                                            || !isRunning
                                             || program == null
                                             || line < 1
                                             || line >= program.getMiddleCommand().size()) {
@@ -2131,12 +2145,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         }
                         lastIconState = state;
                     }
-                    if (null != container && null != outerJFrame) {
-                        if (null != stateDescription) {
-                            updateTitle(ccst, stateString, stateDescription);
-                        }
-                    }
-                    if (!internal.isRunningProgram()) {
+
+                    if (!isRunning) {
                         String ccstProgramFile = ccst.getProgramFile();
                         if (null != ccstProgramFile
                                 && !ccstProgramFile.equals(internal.getOutgoingProgramFile())
@@ -2417,10 +2427,20 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (newTitle.length() > 72) {
             newTitle = newTitle.substring(0, 72);
         }
-        if (null != internalFrame) {
-            internalFrame.setTitle(newTitle);
-        } else if (null != outerJFrame) {
-            outerJFrame.setTitle(newTitle);
+        final String finalNewTitle = newTitle;
+        JInternalFrame finalInternalFrame = internalFrame;
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            if (null != finalInternalFrame) {
+                finalInternalFrame.setTitle(finalNewTitle);
+            } else if (null != outerJFrame) {
+                outerJFrame.setTitle(finalNewTitle);
+            }
+        } else {
+            if (null != finalInternalFrame) {
+                javax.swing.SwingUtilities.invokeLater(() -> finalInternalFrame.setTitle(finalNewTitle));
+            } else if (null != outerJFrame) {
+                javax.swing.SwingUtilities.invokeLater(() -> outerJFrame.setTitle(finalNewTitle));
+            }
         }
         if (null != updateTitleListeners) {
             for (UpdateTitleListener utl : updateTitleListeners) {
@@ -5090,7 +5110,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public String getLastRunningProgramTrueInfo() {
         return internal.getLastRunningProgramTrueInfo();
     }
-    
+
     public boolean isRunningProgram() {
         return internal.isRunningProgram();
     }
@@ -5909,6 +5929,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                         internal.getCmdSchemaFiles(),
                                         internal.getCheckCommandValidPredicate());
                         if (null != cmd) {
+                                cmd.setCommandID(0);
                             internal.incAndSendCommand(cmd);
                             pendantClientJPanel1.saveRecentCommand(cmd);
                         }
