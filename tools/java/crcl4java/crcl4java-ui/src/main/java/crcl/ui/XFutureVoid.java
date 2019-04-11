@@ -22,12 +22,15 @@
  */
 package crcl.ui;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,7 +118,7 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     public <U> XFuture<U> thenComposeAsync(String name, Supplier< ? extends CompletionStage<U>> supplier, ExecutorService es) {
-        return super.thenCompose(name, c -> supplier.get());
+        return super.thenComposeAsync(name, c -> supplier.get(),es);
     }
 
     public <U> XFuture<U> thenComposeAsync(Supplier< ? extends CompletionStage<U>> supplier, ExecutorService es) {
@@ -234,10 +237,10 @@ public class XFutureVoid extends XFuture<Void> {
         return ret;
     }
 
-    public XFutureVoid alwaysAsync( Runnable r, ExecutorService service) {
+    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
         return this.alwaysAsync(defaultName(), r, service);
     }
-    
+
     @Override
     public XFutureVoid alwaysAsync(String name, Runnable r, ExecutorService service) {
         return staticwrapvoid(name, super.handleAsync((x, t) -> {
@@ -263,7 +266,6 @@ public class XFutureVoid extends XFuture<Void> {
             return x;
         }, service));
     }
-
 
     public XFutureVoid alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
         return alwaysComposeAsync(defaultName(), supplier, service);
@@ -370,14 +372,46 @@ public class XFutureVoid extends XFuture<Void> {
             return (XFutureVoid) future;
         }
         XFutureVoid newFuture = new XFutureVoid(name);
-        future.handle(newFuture::logException)
-                .thenAccept(x -> {
-                    newFuture.complete(x);
-                });
+        future.handle((x,t) -> hiddenHandler(x,t,future,newFuture));
         newFuture.alsoCancelAdd(future);
         return newFuture;
     }
 
+    static private <T> T hiddenHandler(T ret, Throwable thrown, CompletableFuture<T> future,XFutureVoid newFuture) {
+        if (null != thrown) {
+            if (thrown instanceof PrintedXFutureRuntimeException) {
+                newFuture.completeExceptionally(thrown);
+                throw ((PrintedXFutureRuntimeException) thrown);
+            } else if (thrown instanceof Error) {
+                 newFuture.completeExceptionally(thrown);
+                throw ((Error) thrown);
+            } else {
+                PrintStream ps = XFuture.logExceptionPrintStream;
+                if (null != ps && !XFuture.closingMode) {
+                    Throwable cause = thrown.getCause();
+                    boolean isCancellationException
+                            = XFuture.isPrintedOrCancellationException(thrown);
+                    if (!isCancellationException || XFuture.printCancellationExceptions) {
+                        ps.println("future="+future);
+                        ps.println("Exception " + thrown + " passed through XFuture : " + newFuture.getName());
+                        thrown.printStackTrace(ps);
+
+                        if (null != cause) {
+                            ps.println("cause=");
+                            cause.printStackTrace(ps);
+                        }
+                        ps.println("XFuture.forExceptionString() = " + newFuture.forExceptionString());
+
+                    }
+                }
+                 newFuture.completeExceptionally(thrown);
+                throw new PrintedXFutureRuntimeException(thrown);
+            }
+        }
+        newFuture.complete();
+        return ret;
+    }
+    
     public static XFutureVoid allOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFutureVoid ret = staticwrapvoid(name, orig);
@@ -394,6 +428,22 @@ public class XFutureVoid extends XFuture<Void> {
             ret.alsoCancelAddAll(Arrays.asList(cfs));
         }
         return ret;
+    }
+
+    public XFutureVoid peekException(Consumer<Throwable> consumer) {
+        Function<Throwable, Void> func = (Throwable throwable1) -> {
+            if (null != throwable1) {
+                consumer.accept(throwable1);
+                if (throwable1 instanceof RuntimeException) {
+                    throw (RuntimeException) throwable1;
+                } else {
+                    throw new RuntimeException(throwable1);
+                }
+            }
+            return (Void) null;
+        };
+        XFuture<Void> future = super.exceptionally(func);
+        return staticwrapvoid(future.getName(), future);
     }
 
     @SuppressWarnings("rawtypes")
