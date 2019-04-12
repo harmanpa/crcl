@@ -548,7 +548,11 @@ public class PendantClientInner {
             closeTestProgramRunProgramThreadTrace = rpt.getStackTrace();
         }
         if (null != runProgramFuture) {
-            runProgramFuture.cancelAll(true);
+            if (!runProgramFuture.isDone()) {
+                System.err.println("PendantClientInner.runProgramFuture : cancelling runProgramFuture=" + runProgramFuture);
+                runProgramFuture.cancelAll(true);
+            }
+            runProgramFuture = null;
         }
         if (isRunningProgram()) {
             if (null != runProgramThread) {
@@ -847,7 +851,7 @@ public class PendantClientInner {
                             + " but number of waypoints = " + wpts_length);
                 }
             }
-            if(MultiLineStringJPanel.disableShowText) {
+            if (MultiLineStringJPanel.disableShowText) {
                 return XFuture.completedFuture(true);
             }
             return MultiLineStringJPanel.showText(s);
@@ -4571,10 +4575,10 @@ public class PendantClientInner {
                     });
                     System.err.println("intString=" + intString);
                 }
-                if(null != errorStateDescription && errorStateDescription.length() > 0) {
-                    throw new RuntimeException(errorStateDescription+": wfdResult=" + wfdResult + ", messageString=" + messageString);
+                if (null != errorStateDescription && errorStateDescription.length() > 0) {
+                    throw new RuntimeException(errorStateDescription + ": wfdResult=" + wfdResult + ", messageString=" + messageString);
                 } else {
-                throw new RuntimeException("wfdResult=" + wfdResult + ", messageString=" + messageString);
+                    throw new RuntimeException("wfdResult=" + wfdResult + ", messageString=" + messageString);
                 }
             }
         } while (pause_count_start != this.pause_count.get());
@@ -4771,7 +4775,10 @@ public class PendantClientInner {
 //        rtpt.start();
 //        this.runTestProgramThread.set(rtpt);
         if (null != runProgramFuture) {
-            runProgramFuture.cancelAll(true);
+            if (!runProgramFuture.isDone()) {
+                System.err.println("PendantClientInner.startRunTestThread : cancelling runProgramFuture=" + runProgramFuture);
+                runProgramFuture.cancelAll(true);
+            }
         }
         runProgramFuture = XFuture.supplyAsync("startRunTestThread", () -> runTest(testProperties), runProgramService);
     }

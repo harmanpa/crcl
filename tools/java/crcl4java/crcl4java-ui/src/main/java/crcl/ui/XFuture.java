@@ -1081,7 +1081,20 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public void cancelAll(boolean mayInterrupt) {
         try {
-            cancelAllRecurse(mayInterrupt, this, 0);
+            if (!isDone()) {
+                if (alsoCancel.isEmpty()
+                        && null == onCancelAllRunnable
+                        && null == futureFromExecSubmit) {
+                    if (null == cancelThread) {
+                        cancelThread = Thread.currentThread();
+                        cancelStack = cancelThread.getStackTrace();
+                        cancelTime = System.currentTimeMillis();
+                    }
+                    super.cancel(mayInterrupt);
+                } else {
+                    cancelAllRecurse(mayInterrupt, this, 0);
+                }
+            }
         } catch (Exception e) {
             if (!closingMode) {
                 Thread.dumpStack();
@@ -1109,6 +1122,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         try {
             if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
                 if (!closingMode) {
+                    Thread.dumpStack();
                     System.err.println("Cancelling XFuture " + getName());
                     System.err.println("createTrace=" + traceToString(createTrace));
                 }
