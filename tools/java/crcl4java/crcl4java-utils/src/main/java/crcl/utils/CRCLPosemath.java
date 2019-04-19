@@ -1682,6 +1682,15 @@ public class CRCLPosemath {
      * @return Point equivalent of input cartesian
      */
     public static PointType toPointType(PmCartesian c) {
+        if(!Double.isFinite(c.x)) {
+            throw new IllegalArgumentException("c.x="+c.x+", c="+c);
+        }
+        if(!Double.isFinite(c.y)) {
+            throw new IllegalArgumentException("c.y="+c.y+", c="+c);
+        }
+        if(!Double.isFinite(c.z)) {
+            throw new IllegalArgumentException("c.z="+c.z+", c="+c);
+        }
         PointType pt = new PointType();
         pt.setX(c.x);
         pt.setY(c.y);
