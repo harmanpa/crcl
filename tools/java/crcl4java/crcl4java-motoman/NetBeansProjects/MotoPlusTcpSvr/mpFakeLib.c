@@ -297,7 +297,7 @@ LONG mpGetServoPower(MP_SERVO_POWER_RSP_DATA *rData) {
 
 LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num) {
     short i = 0;
-    printf("mpReadIO(%p,%p,%d) called.\n", sData, rData, num);
+    printf("mpReadIO(%p,%p,%ld) called.\n", sData, rData, num);
     for (i = 0; i < num; i++) {
         printf("sData[%d].ulAddr=%ld\n", i, sData[i].ulAddr);
         rData[i] = 7 + i;
@@ -308,7 +308,7 @@ LONG mpReadIO(MP_IO_INFO *sData, USHORT* rData, LONG num) {
 
 LONG mpWriteIO(MP_IO_DATA *sData, LONG num) {
     short i = 0;
-    printf("mpWriteIO(%p,%d) called.\n", sData, num);
+    printf("mpWriteIO(%p,%ld) called.\n", sData, num);
     for (i = 0; i < num; i++) {
         printf("sData[%d].ulAddr=%ld\n", i, sData[i].ulAddr);
         printf("sData[%d].ulValue=%ld\n", i, sData[i].ulValue);
@@ -365,12 +365,12 @@ long mpGetFileName(int index, char *fileName) {
 }
 
 long mpLoadFile(long mpRamDriveId, const char *loadPath, const char *fileName) {
-    printf("mpLoadFile(%d,%s,%s) called.\n", mpRamDriveId, loadPath, fileName);
+    printf("mpLoadFile(%ld,%s,%s) called.\n", mpRamDriveId, loadPath, fileName);
     return 0;
 }
 
 long mpSaveFile(long mpRamDriveId, const char *savePath, const char *fileName) {
-    printf("mpSaveFile(%d,%s,%s) called.\n", mpRamDriveId, savePath, fileName);
+    printf("mpSaveFile(%ld,%s,%s) called.\n", mpRamDriveId, savePath, fileName);
     return 0;
 }
 

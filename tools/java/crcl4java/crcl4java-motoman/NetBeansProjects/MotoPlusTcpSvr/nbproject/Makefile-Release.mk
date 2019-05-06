@@ -66,27 +66,27 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/main.o: main.c 
+${OBJECTDIR}/main.o: main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
 
-${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c 
+${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpFakeLib.o mpFakeLib.c
 
-${OBJECTDIR}/mpMain.o: mpMain.c 
+${OBJECTDIR}/mpMain.o: mpMain.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpMain.o mpMain.c
 
-${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c 
+${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/remoteFunctions.o remoteFunctions.c
 
-${OBJECTDIR}/tcpSvr.o: tcpSvr.c 
+${OBJECTDIR}/tcpSvr.o: tcpSvr.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tcpSvr.o tcpSvr.c
@@ -97,7 +97,6 @@ ${OBJECTDIR}/tcpSvr.o: tcpSvr.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr
 
 # Subprojects
 .clean-subprojects:

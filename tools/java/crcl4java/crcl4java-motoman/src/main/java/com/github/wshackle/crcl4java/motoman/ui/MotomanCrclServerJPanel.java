@@ -309,15 +309,18 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBoxDebugActionPerformed
 
-    private void updateConnection() throws NumberFormatException {
+    private void updateConnection()  {
         if (this.jCheckBoxConnect.isSelected()) {
             try {
                 disconnectCrclMotoplus();
                 crclPort = Integer.parseInt(jTextFieldCrclPort.getText());
-                motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText());
+                motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText().trim());
                 motomanHost = jTextFieldMotoplusHost.getText();
                 connectCrclMotoplus();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
+                System.err.println("crclPort = " + crclPort);
+                System.err.println("motomanPort = " + motomanPort);
+                System.err.println("motomanHost = " + motomanHost);
                 Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
