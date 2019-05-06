@@ -981,16 +981,13 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
 
 int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
     int32_t ret = -1;
-    int32_t index = -1;
     int32_t mode = -1;
     int32_t flags = -1;
     int32_t fd = -1;
     int32_t maxBytes = -1;
 
     int sendRet = 0;
-    int namelen = 0;
-    short extensionId = -1;
-
+   
     switch (type) {
 
         case FILE_CTRL_OPEN:
