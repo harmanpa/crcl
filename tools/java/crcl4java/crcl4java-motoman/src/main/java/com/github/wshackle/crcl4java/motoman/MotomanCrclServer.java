@@ -106,12 +106,17 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private final CRCLServerSocket svrSocket;
     private final MotoPlusConnection mpc;
 
+    
     public MotomanCrclServer(CRCLServerSocket svrSocket, MotoPlusConnection mpConnection) {
         this.svrSocket = svrSocket;
         this.mpc = mpConnection;
         this.svrSocket.addListener(this);
     }
 
+    public MotoPlusConnection getMpc() {
+        return mpc;
+    }
+    
     public boolean mpcConnected() {
         return mpc.isConnected();
     }
@@ -474,7 +479,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     }
 
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
-        CoordTarget tgt = new CoordTarget();
+        
+        boolean isStraight = cmd.isMoveStraight();
+        final int newTargetId = lastSentTargetId.incrementAndGet();
+        CoordTarget tgt = new CoordTarget(isStraight,newTargetId);
         mpc.mpSetServoPower(true);
         boolean power = mpc.mpGetServoPower();
         if (debug) {
@@ -495,9 +503,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         if (debug) {
             System.out.println("motSetCoordRet = " + motSetCoordRet);
         }
-
-        tgt.setId(lastSentTargetId.incrementAndGet());
-        if (cmd.isMoveStraight()) {
+        tgt.setId(newTargetId);
+        if (isStraight) {
             tgt.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
         } else {
             tgt.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
@@ -608,7 +615,8 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private void actuateJoints(ActuateJointsType ajs) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
         boolean debug = true;
 
-        JointTarget tgt = new JointTarget();
+        final int newTargetId = lastSentTargetId.incrementAndGet();
+        JointTarget tgt = new JointTarget(newTargetId);
         mpc.mpSetServoPower(true);
         boolean power = mpc.mpGetServoPower();
         if (debug) {
@@ -619,7 +627,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
             }
             System.out.println("power = " + power);
         }
-        tgt.setId(lastSentTargetId.incrementAndGet());
+        tgt.setId(newTargetId);
         tgt.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
 
         if (debug) {

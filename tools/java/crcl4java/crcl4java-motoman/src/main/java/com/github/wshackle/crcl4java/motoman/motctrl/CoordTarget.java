@@ -28,6 +28,18 @@ package com.github.wshackle.crcl4java.motoman.motctrl;
  */
 public class CoordTarget extends Target {
 
+    public CoordTarget(MP_INTP_TYPE intp, int id) {
+        super(intp, id);
+    }
+
+    public CoordTarget(boolean isStraight, int id) {
+        super(isStraight?MP_INTP_TYPE.MP_MOVL_TYPE:MP_INTP_TYPE.MP_MOVL_TYPE, id);
+    }
+    
+    public CoordTarget() {
+        this(false,0);
+    }
+    
     private final COORD_POS dst = new COORD_POS();
 
     /**

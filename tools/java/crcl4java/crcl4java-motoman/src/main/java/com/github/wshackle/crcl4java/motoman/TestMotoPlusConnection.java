@@ -446,28 +446,27 @@ public class TestMotoPlusConnection {
         spd.v = 200;
         System.out.println("Calling mpMotSetSpeed(0," + spd + ")");
         mpc.mpMotSetSpeed(0, spd);
-        MP_CART_POS_RSP_DATA cartResData[] = new MP_CART_POS_RSP_DATA[1];
-        cartResData[0] = new MP_CART_POS_RSP_DATA();
+       
         System.out.println("Calling mpGetCartPos(0,...)");
-        mpc.mpGetCartPos(0, cartResData);
-        System.out.println("cartResData = " + Arrays.toString(cartResData));
+        MP_CART_POS_RSP_DATA cartResData = mpc.getCartPos(0);
+        System.out.println("cartResData = " + cartResData);
         CoordTarget coordTarget = new CoordTarget();
         coordTarget.setId(16);
         coordTarget.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
         COORD_POS cp = coordTarget.getDst();
-        cp.x = (int) cartResData[0].lx();
-        cp.y = (int) cartResData[0].ly();
-        cp.z = (int) cartResData[0].lz() + 200000;
-        cp.rx = (int) cartResData[0].lrx();
-        cp.ry = (int) cartResData[0].lry();
-        cp.rz = (int) cartResData[0].lrz();
+        cp.x = (int) cartResData.lx();
+        cp.y = (int) cartResData.ly();
+        cp.z = (int) cartResData.lz() + 200000;
+        cp.rx = (int) cartResData.lrx();
+        cp.ry = (int) cartResData.lry();
+        cp.rz = (int) cartResData.lrz();
         cp = coordTarget.getAux();
-        cp.x = (int) cartResData[0].lx();
-        cp.y = (int) cartResData[0].ly();
-        cp.z = (int) cartResData[0].lz() + 200000;
-        cp.rx = (int) cartResData[0].lrx();
-        cp.ry = (int) cartResData[0].lry();
-        cp.rz = (int) cartResData[0].lrz();
+        cp.x = (int) cartResData.lx();
+        cp.y = (int) cartResData.ly();
+        cp.z = (int) cartResData.lz() + 200000;
+        cp.rx = (int) cartResData.lrx();
+        cp.ry = (int) cartResData.lry();
+        cp.rz = (int) cartResData.lrz();
 
         System.out.println("coordTarget = " + coordTarget);
         System.out.println("Calling mpMotTargetCoordSend(0,(...),0)\n");
@@ -492,19 +491,19 @@ public class TestMotoPlusConnection {
         motTargetClearRet = mpc.mpMotStop(0);
 
         cp = coordTarget.getDst();
-        cp.x = (int) cartResData[0].lx();
-        cp.y = (int) cartResData[0].ly();
-        cp.z = (int) cartResData[0].lz();
-        cp.rx = (int) cartResData[0].lrx();
-        cp.ry = (int) cartResData[0].lry();
-        cp.rz = (int) cartResData[0].lrz();
+        cp.x = (int) cartResData.lx();
+        cp.y = (int) cartResData.ly();
+        cp.z = (int) cartResData.lz();
+        cp.rx = (int) cartResData.lrx();
+        cp.ry = (int) cartResData.lry();
+        cp.rz = (int) cartResData.lrz();
         cp = coordTarget.getAux();
-        cp.x = (int) cartResData[0].lx();
-        cp.y = (int) cartResData[0].ly();
-        cp.z = (int) cartResData[0].lz();
-        cp.rx = (int) cartResData[0].lrx();
-        cp.ry = (int) cartResData[0].lry();
-        cp.rz = (int) cartResData[0].lrz();
+        cp.x = (int) cartResData.lx();
+        cp.y = (int) cartResData.ly();
+        cp.z = (int) cartResData.lz();
+        cp.rx = (int) cartResData.lrx();
+        cp.ry = (int) cartResData.lry();
+        cp.rz = (int) cartResData.lrz();
         coordTarget.setId(17);
 
         System.out.println("coordTarget = " + coordTarget);
@@ -561,18 +560,16 @@ public class TestMotoPlusConnection {
         int grp = 0;
         int dist = 20000;
 
-        MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
-        pulseData[0] = new MP_PULSE_POS_RSP_DATA();
-        System.out.println("Calling mpGetCartPos(0,...)");
-        mpc.mpGetPulsePos(0, pulseData);
-        System.out.println("pulseData = " + Arrays.toString(pulseData));
+        System.out.println("Calling getPulsePos(0)");
+        MP_PULSE_POS_RSP_DATA pulseData = mpc.getPulsePos(0);
+        System.out.println("pulseData = " +pulseData);
         JointTarget jointTarget = new JointTarget();
         jointTarget.setId(26);
         jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);
         int dst[] = jointTarget.getDst();
-        System.arraycopy(pulseData[0].lPos, 0, dst, 0, dst.length);
+        System.arraycopy(pulseData.lPos, 0, dst, 0, dst.length);
         int aux[] = jointTarget.getDst();
-        System.arraycopy(pulseData[0].lPos, 0, aux, 0, aux.length);
+        System.arraycopy(pulseData.lPos, 0, aux, 0, aux.length);
         dst[0] += dist;
         aux[0] += dist;
 
@@ -602,8 +599,8 @@ public class TestMotoPlusConnection {
 
         dst = jointTarget.getDst();
         aux = jointTarget.getAux();
-        System.arraycopy(pulseData[0].lPos, 0, dst, 0, dst.length);
-        System.arraycopy(pulseData[0].lPos, 0, aux, 0, aux.length);
+        System.arraycopy(pulseData.lPos, 0, dst, 0, dst.length);
+        System.arraycopy(pulseData.lPos, 0, aux, 0, aux.length);
         jointTarget.setId(27);
 
         System.out.println("Calling mpMotSetSpeed(" + grp + "," + spd + ")");

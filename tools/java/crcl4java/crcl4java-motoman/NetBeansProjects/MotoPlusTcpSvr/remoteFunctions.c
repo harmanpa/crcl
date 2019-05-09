@@ -100,6 +100,17 @@ static void setInt32(char *buf, int offset, int32_t val) {
 #endif
 }
 
+int returnSingleIntRet(int acceptHandle, char *outBuffer, int ret) {
+    setInt32(outBuffer, 0, 4);
+    setInt32(outBuffer, 4, ret);
+    int sendRet = sendN(acceptHandle, outBuffer, 8, 0);
+    if (sendRet != 8) {
+        fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+        return -1;
+    }
+    return 0;
+}
+
 // Return 0 for success, anything else will be treated like a fatal error closing
 // the connection.
 
@@ -174,13 +185,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 varData[i].ulValue = getInt32(inBuffer, 20 + (8 * i));
             }
             ret = mpPutVarData(varData, num);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case SYS1_GET_CURRENT_CART_POS:
@@ -355,13 +360,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 ioData[i].ulValue = getInt32(inBuffer, 20 + (8 * i));
             }
             ret = mpWriteIO(ioData, num);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case SYS1_GET_MODE:
@@ -445,13 +444,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 return -1;
             }
             ret = mpGetRtc();
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
         default:
             fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
@@ -488,13 +481,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             }
             options = getInt32(inBuffer, 12);
             ret = mpMotStart(options);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_STOP:
@@ -504,13 +491,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             }
             options = getInt32(inBuffer, 12);
             ret = mpMotStop(options);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_TARGET_CLEAR:
@@ -521,13 +502,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             controlGroup = getInt32(inBuffer, 12);
             options = getInt32(inBuffer, 16);
             ret = mpMotTargetClear(controlGroup, options);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_JOINT_TARGET_SEND:
@@ -560,13 +535,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 }
             }
             ret = mpMotTargetSend(controlGroup, &target, timeout);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_COORD_TARGET_SEND:
@@ -609,13 +578,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 }
             }
             ret = mpMotTargetSend(controlGroup, &target, timeout);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_TARGET_RECEIVE:
@@ -660,13 +623,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             coordType = getInt32(inBuffer, 16);
             aux = getInt32(inBuffer, 20);
             ret = mpMotSetCoord(grpNo, coordType, aux);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_SET_TOOL:
@@ -677,13 +634,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             grpNo = getInt32(inBuffer, 12);
             tool = getInt32(inBuffer, 16);
             ret = mpMotSetTool(grpNo, tool);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_SET_SPEED:
@@ -696,13 +647,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             speed.v = getInt32(inBuffer, 24);
             speed.vr = getInt32(inBuffer, 32);
             ret = mpMotSetSpeed(grpNo, &speed);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_SET_ORIGIN:
@@ -713,13 +658,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             grpNo = getInt32(inBuffer, 12);
             options = getInt32(inBuffer, 16);
             ret = mpMotSetOrigin(grpNo, options);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_SET_TASK:
@@ -730,13 +669,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             grpNo = getInt32(inBuffer, 12);
             taskNo = getInt32(inBuffer, 16);
             ret = mpMotSetTask(grpNo, taskNo);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_SET_SYNC:
@@ -748,13 +681,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             aux = getInt32(inBuffer, 16);
             options = getInt32(inBuffer, 20);
             ret = mpMotSetSync(grpNo, aux, options);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case MOT_RESET_SYNC:
@@ -764,13 +691,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             }
             grpNo = getInt32(inBuffer, 12);
             ret = mpMotResetSync(grpNo);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         default:
@@ -810,13 +731,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
             lastExtensionId = -1;
             ret = mpRefreshFileList(extensionId);
             if (ret != 0) {
-                setInt32(outBuffer, 0, 4);
-                setInt32(outBuffer, 4, ret);
-                sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-                if (sendRet != 8) {
-                    fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                    return -1;
-                }
+                return returnSingleIntRet(acceptHandle,outBuffer,ret);
                 return 0;
             }
             lastExtensionId = extensionId;
@@ -877,13 +792,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 return -1;
             }
             ret = mpLoadFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case EX_FILE_CTRL_SAVE_FILE:
@@ -898,13 +807,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 return -1;
             }
             ret = mpSaveFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case EX_FILE_CTRL_FD_READ_FILE:
@@ -919,13 +822,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
             memset(&fileNameSendData, 0, sizeof (fileNameSendData));
             strcpy(fileNameSendData.cFileName, inBuffer + 16);
             ret = mpFdReadFile(fd, &fileNameSendData);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case EX_FILE_CTRL_FD_WRITE_FILE:
@@ -940,13 +837,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
             memset(&fileNameSendData, 0, sizeof (fileNameSendData));
             strcpy(fileNameSendData.cFileName, inBuffer + 16);
             ret = mpFdWriteFile(fd, &fileNameSendData);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case EX_FILE_CTRL_FD_GET_JOB_LIST:
@@ -987,32 +878,20 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     int32_t maxBytes = -1;
 
     int sendRet = 0;
-   
+
     switch (type) {
 
         case FILE_CTRL_OPEN:
             flags = getInt32(inBuffer, 12);
             mode = getInt32(inBuffer, 16);
             ret = mpOpen(inBuffer + 20, flags, mode);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case FILE_CTRL_CREATE:
             flags = getInt32(inBuffer, 12);
             ret = mpCreate(inBuffer + 16, flags);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case FILE_CTRL_CLOSE:
@@ -1026,13 +905,7 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
                 return -1;
             }
             ret = mpClose(fd);
-            setInt32(outBuffer, 0, 4);
-            setInt32(outBuffer, 4, ret);
-            sendRet = sendN(acceptHandle, outBuffer, 8, 0);
-            if (sendRet != 8) {
-                fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
-                return -1;
-            }
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
             break;
 
         case FILE_CTRL_READ:
@@ -1078,6 +951,242 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             }
             break;
 
+        default:
+            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            return -1;
+    }
+    return 0;
+}
+
+int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
+
+
+    MP_FCS_ROB_ID rob_id;
+    int reset_time;
+    MP_FCS_OFFSET_DATA offset_data;
+    int coord_type;
+    int uf_no;
+    MP_FCS_SENS_DATA sens_data;
+    MP_FCS_IMP_COEFF m, d, k;
+    BITSTRING cart_axes;
+    BITSTRING option_ctrl;
+    MP_FCS_FREF_DATA fref_data;
+    int scale;
+    int ret;
+    int sendRet;
+
+    switch (type) {
+
+        case FORCE_CONTROL_START_MEASURING:
+            if (msgSize != 16 + 4 * MP_FCS_AXES_NUM) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsStartMeasuring = %d != %d",
+                        msgSize, 16 + 4 * MP_FCS_AXES_NUM);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            rob_id = getInt32(inBuffer, 16);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                offset_data[i] = getInt32(inBuffer, 20 + (4 * i));
+            }
+            ret = mpFcsStartMeasuring(rob_id, reset_time, offset_data);
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
+            break;
+
+        case FORCE_CONTROL_GET_FORCE_DATA:
+            if (msgSize != 20) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsGetForceData = %d != %d",
+                        msgSize, 20);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            coord_type = getInt32(inBuffer, 16);
+            uf_no = getInt32(inBuffer, 20);
+            ret = mpFcsGetForceData(rob_id, coord_type, uf_no, sens_data);
+            setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
+            setInt32(outBuffer, 4, ret);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                setInt32(outBuffer, 4 + (4 * i), sens_data[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 8 + 4 * MP_FCS_AXES_NUM, 0);
+            if (sendRet != 8 + 4 * MP_FCS_AXES_NUM) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != %d\n", sendRet, 8 + 4 * MP_FCS_AXES_NUM);
+                return -1;
+            }
+            break;
+
+        case FORCE_CONTROL_START_IMP:
+            if (msgSize != 20) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsStartImp = %d != %d",
+                        msgSize, 20);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                m[i] = getInt32(inBuffer, 16 + (4 * i));
+            }
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                m[i] = getInt32(inBuffer, 16 + 4 * MP_FCS_AXES_NUM + (4 * i));
+            }
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                k[i] = getInt32(inBuffer, 16 + 8 * MP_FCS_AXES_NUM + (4 * i));
+            }
+            coord_type = getInt32(inBuffer, 16 + 12 * MP_FCS_AXES_NUM);
+            uf_no = getInt32(inBuffer, 20 + 12 * MP_FCS_AXES_NUM);
+            cart_axes = getInt32(inBuffer, 20 + 12 * MP_FCS_AXES_NUM);
+            option_ctrl = getInt32(inBuffer, 20 + 12 * MP_FCS_AXES_NUM);
+            ret = mpFcsStartImp(rob_id, m, d, k,
+                    coord_type, uf_no, cart_axes, option_ctrl);
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
+            break;
+
+
+        case FORCE_CONTROL_SET_REFERENCE_FORCE:
+            if (msgSize != 12 + 4 * MP_FCS_AXES_NUM) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsSetReferenceForce = %d != %d",
+                        msgSize, 12 + 4 * MP_FCS_AXES_NUM);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                fref_data[i] = getInt32(inBuffer, 16 + (4 * i));
+            }
+            ret = mpFcsSetReferenceForce(rob_id, fref_data);
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
+            break;
+            
+        case FORCE_CONTROL_END_IMP:
+            if (msgSize != 12 ) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsEndImp = %d != %d",
+                        msgSize, 12);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            ret = mpFcsEndImp(rob_id);
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
+            break;
+            
+        case FORCE_CONTROL_CONV_FORCE_SCALE:
+            if (msgSize != 16 ) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsEndImp = %d != %d",
+                        msgSize, 16);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            scale =  getInt32(inBuffer, 16);
+            ret = mpFcsConvForceScale(rob_id,scale);
+            return returnSingleIntRet(acceptHandle,outBuffer,ret);
+            break;
+            
+        case FORCE_CONTROL_GET_SENSOR_DATA:
+            if (msgSize != 12) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsGetForceData = %d != %d",
+                        msgSize, 12);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            ret = mpFcsGetSensorData(rob_id, sens_data);
+            setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
+            setInt32(outBuffer, 4, ret);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                setInt32(outBuffer, 4 + (4 * i), sens_data[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 8 + 4 * MP_FCS_AXES_NUM, 0);
+            if (sendRet != 8 + 4 * MP_FCS_AXES_NUM) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != %d\n", sendRet, 8 + 4 * MP_FCS_AXES_NUM);
+                return -1;
+            }
+            break;
+
+        default:
+            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            return -1;
+    }
+    return 0;
+}
+
+int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
+
+    mpConvAxesToCartPos(unsigned int, long [MP_GRP_AXES_NUM], unsigned int, BITSTRING *, MP_COORD *);
+    extern int mpConvCartPosToAxes(unsigned int, MP_COORD *, unsigned int, BITSTRING, long *, MP_KINEMA_TYPE, long [MP_GRP_AXES_NUM]);
+    extern int mpConvPulseToAngle(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
+    extern int mpConvAngleToPulse(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
+    extern int mpConvFBPulseToPulse(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
+    extern int mpMakeFrame(MP_XYZ *, MP_XYZ *, MP_XYZ *, MP_FRAME *);
+    extern int mpInvFrame(MP_FRAME *, MP_FRAME *);
+    extern int mpRotFrame(MP_FRAME *, double, MP_XYZ *, MP_FRAME *);
+    extern int mpMulFrame(MP_FRAME *, MP_FRAME *, MP_FRAME *);
+    extern int mpZYXeulerToFrame(MP_COORD *, MP_FRAME *);
+    extern int mpFrameToZYXeuler(MP_FRAME *, MP_COORD *);
+    extern int mpCrossProduct(MP_XYZ *, MP_XYZ *, MP_XYZ *);
+    extern int mpInnerProduct(MP_XYZ *, MP_XYZ *, double *);
+    
+    
+    switch (type) {
+
+        case KINEMATICS_CONVERSION_CONVERT_AXES_TO_CART_POS:
+            if (msgSize != 12) {
+                fprintf(stderr,
+                        "tcpSvr: invalid msgSize for mpFcsGetForceData = %d != %d",
+                        msgSize, 12);
+                return -1;
+            }
+            rob_id = getInt32(inBuffer, 12);
+            ret = mpFcsGetSensorData(rob_id, sens_data);
+            setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
+            setInt32(outBuffer, 4, ret);
+            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+                setInt32(outBuffer, 4 + (4 * i), sens_data[i]);
+            }
+            sendRet = sendN(acceptHandle, outBuffer, 8 + 4 * MP_FCS_AXES_NUM, 0);
+            if (sendRet != 8 + 4 * MP_FCS_AXES_NUM) {
+                fprintf(stderr, "tcpSvr: sendRet = %d != %d\n", sendRet, 8 + 4 * MP_FCS_AXES_NUM);
+                return -1;
+            }
+            break;
+            
+        KINEMATICS_CONVERSION_CONVERT_CART_POS_TO_AXES:
+            break;
+            
+        KINEMATICS_CONVERSION_CONVERT_PULSE_TO_ANGLE:
+            break;
+            
+        KINEMATICS_CONVERSION_CONVERT_ANGLE_TO_PULSE:
+            break;
+            
+        KINEMATICS_CONVERSION_CONVERT_FB_PULSE_TO_PULSE:
+            break;
+            
+        KINEMATICS_CONVERSION_MAKE_FRAME:
+            break;
+            
+        KINEMATICS_CONVERSION_INV_FRAME:
+            break;
+            
+        KINEMATICS_CONVERSION_ROT_FRAME:
+            break;
+            
+        KINEMATICS_CONVERSION_MUL_FRAME:
+            break;
+            
+        KINEMATICS_CONVERSION_ZYX_EULER_TO_FRAME:
+            break;
+            
+        KINEMATICS_CONVERSION_FRAME_TO_ZYX_EULER:
+            break;
+            
+        KINEMATICS_CONVERSION_CROSS_PRODUCT:
+            break;
+            
+        KINEMATICS_CONVERSION_INNER_PRODUCT:
+            break;
+        
         default:
             fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
             return -1;
@@ -1138,6 +1247,14 @@ int handleSingleConnection(int acceptHandle) {
 
         case EX_FILE_CTRL_FUNCTION_GROUP:
             failed = handleExFileFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        case FORCE_CTRL_FUNCTION_GROUP:
+            failed = handleFcsFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
+            break;
+
+        case KINEMATICS_CONVERSION_FUNCTION_GROUP:
+            failed = handleKinematicConvFunctionRequest(acceptHandle, inBuffer, outBuffer, type, msgSize);
             break;
 
         default:

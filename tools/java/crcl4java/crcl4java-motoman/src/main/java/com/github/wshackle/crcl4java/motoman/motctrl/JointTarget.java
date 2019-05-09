@@ -30,6 +30,19 @@ import java.util.Arrays;
  */
 public class JointTarget extends Target {
 
+    public JointTarget(MP_INTP_TYPE intp, int id) {
+        super(intp, id);
+    }
+
+    
+    public JointTarget(int id) {
+        super(MP_INTP_TYPE.MP_MOVJ_TYPE, id);
+    }
+    
+    public JointTarget() {
+        super(MP_INTP_TYPE.MP_MOVJ_TYPE, 0);
+    }
+    
     public final static int MP_GRP_AXES_NUM = 8;
 
     private final int[] dst = new int[MP_GRP_AXES_NUM];

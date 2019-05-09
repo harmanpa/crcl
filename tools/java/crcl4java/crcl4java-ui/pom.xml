@@ -188,7 +188,7 @@
             
                     <plugin>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.0</version>
+                        <version>3.8.1</version>
                         <configuration>
                             <!-- Change source and target to 1.7 to create .class files that can be run on a Java 7 JVM -->
                             <source>1.8</source>
@@ -205,6 +205,7 @@
                                 <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
                             </annotationProcessors>
                             <compilerArgs>
+                                <arg>-parameters</arg>
                                 <arg>-Xlint:all,-serial</arg>
                                 <!--  <arg>-AprintErrorStack</arg> -->
                                 <!--  <arg>-AprintAllQualifiers</arg> -->

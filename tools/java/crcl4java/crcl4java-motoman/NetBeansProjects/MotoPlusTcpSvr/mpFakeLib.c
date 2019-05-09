@@ -9,7 +9,7 @@
 #include <sys/select.h>
 #include <unistd.h>
 #include <fcntl.h>
- 
+
 /* Not technically required, but needed on some UNIX distributions */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,7 +17,6 @@
 #include "motoPlus.h"
 
 #include <stdlib.h>
-
 
 struct pthreadArg {
     FUNCPTR entryPt;
@@ -398,56 +397,124 @@ long mpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA *rData) {
 int mpCreate(const char * name, int flags) {
     int ret = -1;
     printf("mpCreate(%s,%d) called.\n", name, flags);
-    ret = creat(name,0666);
-    if(ret < 0) {
-        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    ret = creat(name, 0666);
+    if (ret < 0) {
+        printf("ret = %d, errno = %d, %s\n", ret, errno, strerror(errno));
     }
     return ret;
 }
 
 int mpOpen(const char * name, int flags, int mode) {
-    int ret=-1;
-    printf("mpOpen(%s,%d,%d) called.\n", name, flags,mode);
-    ret =  open(name,flags,0666);
-    if(ret < 0) {
-        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    int ret = -1;
+    printf("mpOpen(%s,%d,%d) called.\n", name, flags, mode);
+    ret = open(name, flags, 0666);
+    if (ret < 0) {
+        printf("ret = %d, errno = %d, %s\n", ret, errno, strerror(errno));
     }
     return ret;
 }
 
-STATUS mpRemove(const char * name)  {
+STATUS mpRemove(const char * name) {
     printf("mpRemove(%s,) called.\n", name);
     return 0;
 }
 
-
 int mpRename(const char * oldName, const char * newName) {
-    printf("mpRename(%s,%s) called.\n", oldName,newName);
+    printf("mpRename(%s,%s) called.\n", oldName, newName);
     return 0;
 }
 
 int mpRead(int fd, char * buffer, size_t maxBytes) {
     int ret = -1;
-    printf("mpRead(%d,%p,%ld) called.\n", fd,buffer,maxBytes);
-    ret =  read(fd,buffer,maxBytes);
-    if(ret < 0) {
-        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    printf("mpRead(%d,%p,%ld) called.\n", fd, buffer, maxBytes);
+    ret = read(fd, buffer, maxBytes);
+    if (ret < 0) {
+        printf("ret = %d, errno = %d, %s\n", ret, errno, strerror(errno));
     }
     return ret;
 }
 
 int mpWrite(int fd, char * buffer, size_t nBytes) {
-    int ret=-1;
-    printf("mpWrite(%d,%p,%ld) called.\n", fd,buffer,nBytes);
-    ret = write(fd,buffer,nBytes);
-    if(ret < 0) {
-        printf("ret = %d, errno = %d, %s\n",ret,errno,strerror(errno));
+    int ret = -1;
+    printf("mpWrite(%d,%p,%ld) called.\n", fd, buffer, nBytes);
+    ret = write(fd, buffer, nBytes);
+    if (ret < 0) {
+        printf("ret = %d, errno = %d, %s\n", ret, errno, strerror(errno));
     }
     return ret;
 }
 
-
 int mpGetRtc(void) {
     printf("mpGetRtc() called.\n");
     return 1;
+}
+
+static MP_FCS_OFFSET_DATA sim_offset_data;
+
+int mpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time, MP_FCS_OFFSET_DATA offset_data) {
+    printf("mpFcsStartMeasuring(rob_id=%d,reset_time=%d,...) called.\n", rob_id,reset_time);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpFcsStartMeasuring : offset_data[%d]=%d\n",i,offset_data[i]);
+        sim_offset_data[i] = offset_data[i];
+    }
+    return 0;
+}
+
+int mpFcsGetForceData(MP_FCS_ROB_ID rob_id, int coord_type, int uf_no, MP_FCS_SENS_DATA sens_data) {
+    printf("mpFcsGetForceData(rob_id=%d,coord_type=%d,uf_no=%d,...) called.\n", rob_id,coord_type,uf_no);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        sens_data[i]=i+sim_offset_data[i];
+        printf("mpFcsGetForceData : sens_data[%d]=%d\n",i,sens_data[i]);
+    }
+    return 0;
+}
+
+static MP_FCS_IMP_COEFF sim_m, sim_d, sim_k;
+
+int mpFcsStartImp(MP_FCS_ROB_ID rob_id, MP_FCS_IMP_COEFF m, MP_FCS_IMP_COEFF d, MP_FCS_IMP_COEFF k,
+        int coord_type, int uf_no, BITSTRING cart_axes, BITSTRING option_ctrl) {
+    printf("mpFcsStartImp(rob_id=%d,coord_type=%d,uf_no=%d,cart_axes=0x%x,option_ctrl=0x%x...) called.\n", rob_id,coord_type,uf_no,cart_axes,option_ctrl);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpFcsStartImp : m[%d]=%d\n",i,m[i]);
+        sim_m[i] = m[i];
+    }
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpFcsStartImp : k[%d]=%d\n",i,k[i]);
+        sim_k[i] = k[i];
+    }
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpFcsStartImp : d[%d]=%d\n",i,d[i]);
+        sim_d[i] = d[i];
+    }
+    return 0;
+}
+
+static MP_FCS_FREF_DATA sim_fref_data;
+
+int mpFcsSetReferenceForce(MP_FCS_ROB_ID rob_id, MP_FCS_FREF_DATA fref_data) {
+    printf("mpFcsSetReferenceForce(rob_id=%d,...) called.\n", rob_id);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpFcsSetReferenceForce : fref_data[%d]=%d\n",i,fref_data[i]);
+        sim_fref_data[i] = fref_data[i];
+    }
+    return 0;
+}
+
+int mpFcsEndImp(MP_FCS_ROB_ID rob_id) {
+    printf("mpFcsEndImp(rob_id=%d) called.\n", rob_id);
+    return 0;
+}
+
+int mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale) {
+    printf("mpFcsEndImp(rob_id=%d,scale=%d) called.\n", rob_id,scale);
+    return 0;
+}
+
+int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data) {
+    printf("mpFcsGetSensorData(rob_id=%d,...) called.\n", rob_id);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        sens_data[i]=i+sim_offset_data[i];
+        printf("mpFcsGetForceData : sens_data[%d]=%d\n",i,sens_data[i]);
+    }
+    return 0;
 }

@@ -143,11 +143,6 @@ public class MotoPlusConnection implements AutoCloseable {
         }
     }
 
-//    @Override
-//    protected void finalize() throws Throwable {
-//        super.finalize();
-//        close();
-//    }
 
     public final class Starter {
 
@@ -1095,16 +1090,8 @@ public class MotoPlusConnection implements AutoCloseable {
     };
 
     private final Starter starter = new Starter();
-
-    public Starter getStarter() {
-        return starter;
-    }
-
     private final Returner returner = new Returner();
 
-    public Returner getReturner() {
-        return returner;
-    }
 
     public MotCtrlReturnEnum mpMotStart(int options) throws IOException {
         starter.startMpMotStart(options);
@@ -1193,7 +1180,7 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getSysOkReturn();
     }
 
-    public boolean mpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
+    private boolean mpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
         starter.startMpGetVarData(sData, rData, num);
         return returner.getSysDataReturn(rData);
     }
@@ -1213,7 +1200,7 @@ public class MotoPlusConnection implements AutoCloseable {
         return cartData[0];
     }
 
-    public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
+    private boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
         starter.startMpGetCartPos(ctrlGroup, data);
         return returner.getCartPosReturn(data);
     }
@@ -1227,17 +1214,17 @@ public class MotoPlusConnection implements AutoCloseable {
         return pulseData[0];
     }
 
-    public boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {
+    private boolean mpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {
         starter.startMpGetPulsePos(ctrlGroup, data);
         return returner.getPulsePosReturn(data);
     }
 
-    public boolean mpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
+    private boolean mpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
         starter.startMpGetFBPulsePos(ctrlGroup, data);
         return returner.getFBPulsePosReturn(data);
     }
 
-    public boolean mpGetDegPosEx(int ctrlGroup, MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
+    private boolean mpGetDegPosEx(int ctrlGroup, MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
         starter.startMpGetDegPosEx(ctrlGroup, data);
         return returner.getDegPosExPosReturn(data);
     }

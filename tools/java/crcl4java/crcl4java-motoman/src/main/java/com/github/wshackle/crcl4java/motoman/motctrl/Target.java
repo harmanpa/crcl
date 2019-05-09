@@ -30,6 +30,11 @@ public abstract class Target {
 
     private MP_INTP_TYPE intp;
 
+    public Target(MP_INTP_TYPE intp, int id) {
+        this.intp = intp;
+        this.id = id;
+    }
+    
     /**
      * Get the value of intp
      *

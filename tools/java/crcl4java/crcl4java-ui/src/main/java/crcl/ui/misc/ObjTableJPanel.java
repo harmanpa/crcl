@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -41,6 +42,7 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -105,27 +107,35 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
             @Override
             public void valueChanged(ListSelectionEvent e) {
+                jButtonNew.setEnabled(false);
+                jButtonDelete.setEnabled(false);
+                jButtonAddToList.setEnabled(false);
+                jButtonRemoveFromList.setEnabled(false);
+                jButtonEditMultiLineText.setEnabled(false);
+                int row = jTable1.getSelectedRow();
+                DefaultTableModel tm = (DefaultTableModel) jTable1.getModel();
+                if (row < 0 || row > tm.getRowCount()) {
+                    return;
+                }
+                Object col0Val = tm.getValueAt(row, 0);
+                Object col1Val = tm.getValueAt(row, 1);
+                String type = col0Val.toString();
+                String name = col1Val.toString();
+                String typenoparams = removeTypeParams(type);
+                Class<?> clss = null;
                 try {
-                    jButtonNew.setEnabled(false);
-                    jButtonDelete.setEnabled(false);
-                    jButtonAddToList.setEnabled(false);
-                    jButtonRemoveFromList.setEnabled(false);
-                    jButtonEditMultiLineText.setEnabled(false);
-                    int row = jTable1.getSelectedRow();
-                    DefaultTableModel tm = (DefaultTableModel) jTable1.getModel();
-                    if (row < 0 || row > tm.getRowCount()) {
-                        return;
-                    }
-                    String type = (String) tm.getValueAt(row, 0);
-                    String name = (String) tm.getValueAt(row, 1);
-                    String typenoparams = removeTypeParams(type);
-                    Class<?> clss = null;
-                    if (typenoparams.equals("boolean")) {
+                    if(col0Val instanceof Class) {
+                        clss = (Class) col0Val;
+                    } else if (typenoparams.equals("boolean")) {
                         clss = boolean.class;
                     } else if (typenoparams.equals("long")) {
                         clss = long.class;
                     } else if (typenoparams.equals("double")) {
                         clss = double.class;
+                    } else if (typenoparams.equals("int")) {
+                        clss = int.class;
+                    } else if (typenoparams.equals("float")) {
+                        clss = float.class;
                     } else {
                         clss = Class.forName(typenoparams);
                     }
@@ -174,13 +184,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     if (clss.equals(String.class)) {
                         jButtonEditMultiLineText.setEnabled(true);
                     }
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalAccessException ex) {
-                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IllegalArgumentException ex) {
-                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InvocationTargetException ex) {
+                } catch (Exception ex) {
+                    System.out.println("type = " + type);
+                    System.err.println("row = " + row);
+                    System.err.println("col0Val = " + col0Val);
+                    System.err.println("col1Val = " + col1Val);
+                    System.err.println("typenoparams = " + typenoparams);
                     Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -448,12 +457,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         final int row_count = tm.getRowCount();
         for (int i = 0; i < row_count; i++) {
             try {
-                String type = (String) tm.getValueAt(i, 0);
-                String name = (String) tm.getValueAt(i, 1);
+                String type = tm.getValueAt(i, 0).toString();
+                String name = tm.getValueAt(i, 1).toString();
                 Object o = tm.getValueAt(i, 2);
                 this.setObjectForName(type, name, o);
 
             } catch (SecurityException | IllegalArgumentException ex) {
+                System.err.println("i = " + i);
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -525,6 +535,15 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         Class<?> oclss = clss;
         if (null != o) {
             oclss = o.getClass();
+        } else {
+            Object rowArray[] = new Object[]{oclss, name_prefix, null};
+            addRow(tm, rowArray);
+            return;
+        }
+        if (oclss.isPrimitive()) {
+            Object rowElementArray[] = new Object[]{int.class, name_prefix, o};
+            addRow(tm, rowElementArray);
+            return;
         }
         if (null != defaultDocumentation) {
             jTextPane1.setText(defaultDocumentation);
@@ -532,8 +551,65 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             jScrollPaneDocumentation.getVerticalScrollBar().setValue(0);
         }
 
-        Method ma[] = oclss.getMethods();
+        if (oclss.isArray()) {
+            int arrayLength = Array.getLength(o);
+            Object rowLengthArray[] = new Object[]{int.class, name_prefix + "length", arrayLength};
+            addRow(tm, rowLengthArray);
+            Class<?> arrayComponentType = oclss.getComponentType();
+            if (arrayComponentType.isPrimitive()) {
+                for (int i = 0; i < arrayLength; i++) {
+                    Object object = Array.get(o, i);
+                    Object rowElementArray[] = new Object[]{int.class, name_prefix + "[" + i + "]", object};
+                    addRow(tm, rowElementArray);
+                }
+            } else {
+                for (int i = 0; i < arrayLength; i++) {
+                    Object object = Array.get(o, i);
+                    if (null != object) {
+                        addObjectToTable(name_prefix + "[" + i + "].", tm, object, object.getClass());
+                    } else {
+                        addObjectToTable(name_prefix + "[" + i + "].", tm, null, arrayComponentType);
+                    }
+                }
+            }
+            return;
+        }
+        Field fa[] = oclss.getFields();
         SortedSet<String> names = new TreeSet<>();
+        for (int i = 0; i < fa.length; i++) {
+            try {
+                Field field = fa[i];
+                boolean fieldIsPublic = Modifier.isPublic(field.getModifiers());
+                boolean fieldIsStatic = Modifier.isStatic(field.getModifiers());
+                if (fieldIsPublic && !fieldIsStatic) {
+                    Class<?> fieldType = field.getType();
+                    boolean fieldIsPrimitive = fieldType.isPrimitive();
+                    Set<String> methodNames = new TreeSet<>();
+                    Method fieldMethods[] = fieldType.getMethods();
+                    for (int j = 0; j < fieldMethods.length; j++) {
+                        Method fieldMethod = fieldMethods[j];
+                        if (Modifier.isPublic(fieldMethod.getModifiers())) {
+                            methodNames.add(fieldMethod.getName());
+                        }
+                    }
+                    if (!methodNames.contains("get" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1))) {
+                        Object fieldValue = field.get(o);
+                        Object rowArray[] = new Object[]{fieldType, name_prefix + field.getName(), fieldValue};
+                        addRow(tm, rowArray);
+                        if (!fieldIsPrimitive) {
+                            addObjectToTable(name_prefix + field.getName() + ".", tm, fieldValue, fieldType);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                System.err.println("o = " + o);
+                System.err.println("oclss = " + oclss);
+                System.err.println("name_prefix = " + name_prefix);
+                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        Method ma[] = oclss.getMethods();
+
         Map<String, Method> map = new HashMap<>();
         for (Method m : ma) {
             try {
@@ -587,11 +663,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 if (null != o && null != mget) {
                     try {
                         mo = mget.invoke(o);
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (InvocationTargetException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -599,6 +671,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 int numsetters = 0;
                 for (Method subm : subma) {
                     if (subm.getName().startsWith("set") && subm.getParameterCount() == 1) {
+                        numsetters++;
+                    }
+                }
+                Field subfa[] = mclss.getFields();
+                for (int i = 0; i < subfa.length; i++) {
+                    Field field = subfa[i];
+                    if (Modifier.isPublic(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
                         numsetters++;
                     }
                 }
@@ -680,8 +759,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         }
                     }
                 }
-                Object oa[] = new Object[]{type, name_prefix + name, mo};
-                tm.addRow(oa);
+                Object rowArray[] = new Object[]{type, name_prefix + name, mo};
+                addRow(tm, rowArray);
                 if (isCompound(mclss)) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
                 }
@@ -713,9 +792,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         Object lo = l.get(i);
                         if (null != lo) {
                             String item_name = name_prefix + name + ".get(" + i + ")";
-                            oa = new Object[]{list_item_type, item_name, lo};
+                            rowArray = new Object[]{list_item_type, item_name, lo};
                             this.colorMap.put(tm.getRowCount(), Color.yellow);
-                            tm.addRow(oa);
+                            addRow(tm, rowArray);
                             addObjectToTable(item_name + ".", tm, lo, lclss);
                         }
                     }
@@ -730,6 +809,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    private void addRow(DefaultTableModel tm, Object[] rowArray) {
+        if (rowArray[1].toString().length() < 1) {
+            System.out.println("rowArray = " + Arrays.toString(rowArray));
+        }
+        tm.addRow(rowArray);
     }
 
     /**
@@ -750,8 +836,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         editorMap.clear();
         colorMap.clear();
         noneditableSet.clear();
-        Object oa[] = new Object[]{obj.getClass().getCanonicalName(), "this", obj};
-        tm.addRow(oa);
+        Object oa[] = new Object[]{obj.getClass(), "this", obj};
+        addRow(tm, oa);
         colorMap.put(0, myBlue);
         addObjectToTable("", tm, obj, clss);
     }
@@ -1206,23 +1292,44 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             return l.get(Integer.parseInt(indexString));
         }
         Method mget = null;
+        Class<?> pobjClass = pobj.getClass();
         try {
-            mget = pobj.getClass().getMethod("get" + name);
+            mget = pobjClass.getMethod("get" + name);
 
         } catch (NoSuchMethodException ex) {
         }
         try {
             if (null == mget) {
-                mget = pobj.getClass().getMethod("is" + name);
+                mget = pobjClass.getMethod("is" + name);
             }
         } catch (NoSuchMethodException ex) {
         }
         if (mget == null) {
+            if(name.endsWith("]")) {
+                int bIndex = name.lastIndexOf("[");
+                String indexString = name.substring(bIndex+1,name.length()-1);
+                int indexVal = Integer.parseInt(indexString);
+                return Array.get(pobj, bIndex);
+            }
+            if(pobjClass.isArray() && name.equals("length")) {
+                return Array.getLength(pobj);
+            }
+            try {
+                Field field = pobjClass.getField(name);
+                if (Modifier.isPublic(field.getModifiers())) {
+                    return field.get(pobj);
+                }
+            } catch (Exception ex) {
+                System.out.println("pobj = " + pobj);
+                System.out.println("name = " + name);
+                System.out.println("pobjClass = " + pobjClass);
+                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
             System.err.println("Method to get object for " + name + " does not exist");
             return null;
         }
-        pobj = mget.invoke(pobj);
-        return pobj;
+        Object objectReturnedFromMget = mget.invoke(pobj);
+        return objectReturnedFromMget;
     }
 
     private Object getParentObject(String name) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -1317,12 +1424,40 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return tobj;
     }
 
+    @SuppressWarnings("unchecked")
     private void setObjectForName(String type, String name, Object o) {
         try {
             if (type.startsWith("java.util.List")) {
                 return;
             }
             if (name.endsWith(")")) {
+                return;
+            }
+            if (name.endsWith(".length") && o.getClass().isArray()) {
+                return;
+            }
+            if (name.endsWith("]")) {
+                int bindex = name.lastIndexOf("[");
+                String indexString = name.substring(bindex + 1, name.length() - 1);
+                int indexVal = Integer.parseInt(indexString);
+                Object pobj = this.getParentObject(name);
+                Class<?> tclass = this.stringToClass(type);
+                Object tobj = this.convertToType(tclass, name, o);
+                try {
+                    Array.set(pobj, indexVal, tobj);
+                } catch (Exception ex) {
+                    System.out.println("type = " + type);
+                    System.err.println("name = " + name);
+                    System.err.println("pobj.getClass() = " + pobj.getClass());
+                    System.err.println("o.getClass() = " + o.getClass());
+                    System.err.println("pobj = " + pobj);
+                    System.err.println("o = " + o);
+                    System.out.println("tclass = " + tclass);
+                    System.err.println("tobj = " + tobj);
+                    System.err.println("indexVal = " + indexVal);
+                    Logger.getLogger(ObjTableJPanel.class
+                            .getName()).log(Level.SEVERE, null, ex);
+                }
                 return;
             }
             Object orig_obj = this.getObject(name);
@@ -1344,38 +1479,76 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 endname = endname.substring(pindex + 1);
             }
             Method mset = null;
+            Class<?> pobjClass = pobj.getClass();
+            if (name.endsWith(".length") && pobjClass.isArray()) {
+                return;
+            }
             try {
-                mset = pobj.getClass().getMethod("set" + endname, tclass);
-
+                mset = pobjClass.getMethod("set" + endname, tclass);
             } catch (NoSuchMethodException ex) {
             }
             if (mset == null) {
+                if (this.jTable1.getRowCount() == 1) {
+
+                    setObj((T) tobj);
+                    return;
+                }
+//                    @SuppressWarnings("unchecked")
+//                    Class<T> objClass = (Class<T>) obj.getClass();
+//                    @SuppressWarnings("unchecked")
+//                    Constructor<T> constructors[] = (Constructor<T>[]) objClass.getConstructors();
+//                    for (int i = 0; i < constructors.length; i++) {
+//                        Constructor<T> constructor = (Constructor<T>) constructors[i];
+//                        if (constructor.getParameterCount() == 1) {
+//                            Class<?> parmClass = constructor.getParameterTypes()[0];
+//                            if (parmClass.isInstance(tobj)) {
+//                                T newObject = constructor.newInstance(tobj);
+//                                setObj((T) newObject);
+//                                break;
+//                            } else if(parmClass == int.class && tobj instanceof Integer) {
+//                                T newObject = constructor.newInstance((int)tobj);
+//                                setObj((T) newObject);
+//                                break;
+//                            }  else if(parmClass == double.class && tobj instanceof Double) {
+//                                T newObject = constructor.newInstance((double)tobj);
+//                                setObj((T) newObject);
+//                                break;
+//                            }  else if(parmClass == float.class && tobj instanceof Float) {
+//                                T newObject = constructor.newInstance((float)tobj);
+//                                setObj((T) newObject);
+//                                break;
+//                            } else if(parmClass == boolean.class && tobj instanceof Boolean) {
+//                                T newObject = constructor.newInstance((boolean)tobj);
+//                                setObj((T) newObject);
+//                                break;
+//                            }
+//                            
+//                        }
+//                    }
+                try {
+                    //                }
+                    Field field = pobjClass.getField(endname);
+                    if (Modifier.isPublic(field.getModifiers())
+                            && !Modifier.isStatic(field.getModifiers())
+                            && !Modifier.isFinal(field.getModifiers())) {
+                        field.set(pobj, tobj);
+                        return;
+                    }
+                } catch (NoSuchFieldException ex) {
+                    System.out.println("pobjClass = " + pobjClass);
+                    System.out.println("pobj = " + pobj);
+                    System.out.println("tobj = " + tobj);
+                    System.out.println("o = " + o);
+                    System.out.println("o.getClass() = " + o.getClass());
+                    System.out.println("endname = " + endname);
+                    Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 System.err.println("Method to set " + name + " does not exist");
                 return;
             }
             mset.invoke(pobj, new Object[]{tobj});
 
-        } catch (SecurityException ex) {
-            System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
+        } catch (Exception ex) {
             System.err.println("Error in setObjectForName(" + type + "," + name + ", " + o + ")");
             Logger.getLogger(ObjTableJPanel.class
                     .getName()).log(Level.SEVERE, null, ex);

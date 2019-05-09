@@ -24,18 +24,26 @@ package com.github.wshackle.crcl4java.motoman.ui;
 
 import com.github.wshackle.crcl4java.motoman.MotoPlusConnection;
 import com.github.wshackle.crcl4java.motoman.MotomanCrclServer;
+import crcl.ui.misc.ObjTableJPanel;
 import crcl.utils.CRCLServerSocket;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PropertiesUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -72,6 +80,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         jCheckBoxDebug = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextAreaErrLog = new javax.swing.JTextArea();
+        jButtonSendRequest = new javax.swing.JButton();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Telnet"));
 
@@ -88,10 +97,10 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
+                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 204, Short.MAX_VALUE))
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("CRCL"));
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Communications"));
 
         jLabel1.setText("CRCL Port:");
 
@@ -123,6 +132,14 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         jTextAreaErrLog.setRows(5);
         jScrollPane1.setViewportView(jTextAreaErrLog);
 
+        jButtonSendRequest.setText("Send Request");
+        jButtonSendRequest.setEnabled(false);
+        jButtonSendRequest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSendRequestActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -149,6 +166,8 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonSendRequest)
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addComponent(jScrollPane1))
                 .addContainerGap())
@@ -165,7 +184,8 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                     .addComponent(jLabel2)
                     .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
-                    .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonSendRequest))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -221,9 +241,12 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-    private static Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException {
+    private Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException {
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(host, port), timeoutMillis);
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
+        logPrintln("inetSocketAddress = " + inetSocketAddress + ", timoutMillis=" + timeoutMillis);
+        socket.connect(inetSocketAddress, timeoutMillis);
+        logPrintln("socket.connect() done.");
         return socket;
     }
 
@@ -234,19 +257,30 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                 && crclThread.isAlive()
                 && motomanCrclServer.mpcConnected();
     }
-    
+
     private final int LOG_SIZE_LIMIT = 5000;
+
     private void appendLog(String s) {
-        jTextAreaErrLog.append(s+'\n');
+        jTextAreaErrLog.append(s + '\n');
         String fullString = jTextAreaErrLog.getText();
-        if(fullString.length() > LOG_SIZE_LIMIT) {
+        if (fullString.length() > LOG_SIZE_LIMIT) {
             int index = Math.max(LOG_SIZE_LIMIT, fullString.indexOf('\n', LOG_SIZE_LIMIT));
             jTextAreaErrLog.setText(fullString.substring(index));
         }
     }
-    
-    private final Consumer<String> logConsumer  = this::appendLog;
-    
+
+    private void logPrintln(String s) {
+        System.out.println(s);
+        appendLog(s);
+    }
+
+    private void errLogPrintln(String s) {
+        System.err.println(s);
+        appendLog(s);
+    }
+
+    private final Consumer<String> logConsumer = this::appendLog;
+
     public void connectCrclMotoplus() throws IOException {
         internalDisconnect();
         motomanCrclServer = new MotomanCrclServer(
@@ -259,6 +293,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         if (!jCheckBoxConnect.isSelected()) {
             jCheckBoxConnect.setSelected(true);
         }
+        jButtonSendRequest.setEnabled(true);
     }
 
     public void disconnectCrclMotoplus() {
@@ -266,6 +301,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
             jCheckBoxConnect.setSelected(false);
         }
         internalDisconnect();
+        jButtonSendRequest.setEnabled(false);
     }
 
     private void internalDisconnect() {
@@ -274,24 +310,24 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
             try {
                 motomanCrclServer.close();
             } catch (Exception ex) {
-                Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             motomanCrclServer = null;
         }
         if (null != crclThread) {
             if (crclThread.isAlive()) {
-                System.err.println("Interrupting Motoman CRCL server thread");
+                errLogPrintln("Interrupting Motoman CRCL server thread");
                 try {
                     crclThread.join(100);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
                 if (crclThread.isAlive()) {
                     crclThread.interrupt();
                     try {
                         crclThread.join(100);
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                        LOGGER.log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -309,7 +345,85 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jCheckBoxDebugActionPerformed
 
-    private void updateConnection()  {
+    private void jButtonSendRequestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendRequestActionPerformed
+
+        if (null != motomanCrclServer) {
+            try {
+                MotoPlusConnection mpc = motomanCrclServer.getMpc();
+                Method mpcMethods[] = mpc.getClass().getDeclaredMethods();
+                HashMap<String, Method> methodMap = new HashMap<>();
+                for (int i = 0; i < mpcMethods.length; i++) {
+                    Method mpcMethod = mpcMethods[i];
+                    if (Modifier.isPublic(mpcMethod.getModifiers())) {
+                        methodMap.put(mpcMethod.getName(), mpcMethod);
+                    }
+                }
+                String methodNames[] = methodMap.keySet().toArray(new String[0]);
+                Arrays.sort(methodNames, 0, methodNames.length);
+                String selectedMethodName = (String) JOptionPane.showInputDialog(this, "Mpc Method", "Send Request", JOptionPane.QUESTION_MESSAGE, null, methodNames, null);
+                logPrintln("selectedMethodName = " + selectedMethodName);
+                Method selectedMethod = methodMap.get(selectedMethodName);
+                logPrintln("selectedMethod = " + selectedMethod);
+                Object objectParams[] = new Object[selectedMethod.getParameterCount()];
+                JFrame parentJFrame = (JFrame) getParent().getParent().getParent().getParent();
+                for (int i = 0; i < objectParams.length; i++) {
+                    Class<?> parameterType = selectedMethod.getParameterTypes()[i];
+                    logPrintln("parameterType = " + parameterType);
+                    String paramName = selectedMethod.getParameters()[i].getName();
+                    logPrintln("paramName = " + paramName);
+
+                    String queryString = selectedMethodName + " (parameter " + i + ") " + paramName;
+                    Object objectParam;
+                    if (parameterType.isArray()) {
+                        int arrayLength = Integer.parseInt(JOptionPane.showInputDialog(parentJFrame, "Length of " + queryString, 1));
+                        Class<?> compenentType = parameterType.getComponentType();
+                        Object newArray[] = (Object[]) Array.newInstance(compenentType, arrayLength);
+                        for (int j = 0; j < newArray.length; j++) {
+                            newArray[j] = compenentType.newInstance();
+                        }
+                        objectParam = newArray;
+                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                        logPrintln("editedObjectParam = " + editedObjectParam);
+                        Object editedObjectParamAsArray[] = (Object []) editedObjectParam;
+                        System.out.println("editedObjectParamAsArray = " + Arrays.toString(editedObjectParamAsArray));
+                        objectParams[i] = objectParam;
+                    } else if (parameterType.isEnum()) {
+                        Object[] enumConstants = (Object[]) parameterType.getEnumConstants();
+                        objectParam = JOptionPane.showInputDialog(parentJFrame, queryString, queryString, JOptionPane.QUESTION_MESSAGE, null, enumConstants, enumConstants[0]);
+                        objectParams[i] = objectParam;
+                    } else if (parameterType.isPrimitive()) {
+                        if (parameterType == int.class) {
+                            int paramInt = Integer.parseInt(JOptionPane.showInputDialog(parentJFrame, queryString, 0));
+                            logPrintln("paramInt = " + paramInt);
+                            objectParams[i] = paramInt;
+                        } else if (parameterType == double.class) {
+                            double paramDouble = Double.parseDouble(JOptionPane.showInputDialog(parentJFrame, queryString, 0.0));
+                            logPrintln("paramDouble = " + paramDouble);
+                            objectParams[i] = paramDouble;
+                        } else {
+                            objectParam = parameterType.newInstance();
+                            Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                            logPrintln("editedObjectParam = " + editedObjectParam);
+                            objectParams[i] = editedObjectParam;
+                        }
+                    } else {
+                        objectParam = parameterType.newInstance();
+                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                        logPrintln("editedObjectParam = " + editedObjectParam);
+                        objectParams[i] = editedObjectParam;
+                    }
+                }
+                Object returnValue = selectedMethod.invoke(mpc, objectParams);
+                logPrintln("returnValue = " + returnValue);
+                ObjTableJPanel.editObject(returnValue, parentJFrame, "returnValue", true, null, null, null);
+            } catch (Exception ex) {
+                appendLog(ex.getMessage());
+                Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonSendRequestActionPerformed
+
+    private void updateConnection() {
         if (this.jCheckBoxConnect.isSelected()) {
             try {
                 disconnectCrclMotoplus();
@@ -318,15 +432,16 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                 motomanHost = jTextFieldMotoplusHost.getText();
                 connectCrclMotoplus();
             } catch (Exception ex) {
-                System.err.println("crclPort = " + crclPort);
-                System.err.println("motomanPort = " + motomanPort);
-                System.err.println("motomanHost = " + motomanHost);
-                Logger.getLogger(MotomanCrclServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                errLogPrintln("crclPort = " + crclPort);
+                errLogPrintln("motomanPort = " + motomanPort);
+                errLogPrintln("motomanHost = " + motomanHost);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         } else {
             disconnectCrclMotoplus();
         }
     }
+    private static final Logger LOGGER = Logger.getLogger(MotomanCrclServerJPanel.class.getName());
 
     private File propertiesFile;
 
@@ -355,7 +470,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
         props.put("debug", Boolean.toString(jCheckBoxDebug.isSelected()));
 
-        System.out.println("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
+        logPrintln("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
 //        try (FileWriter fw = new FileWriter(propertiesFile)) {
 //            props.store(fw, "");
 //        }
@@ -377,7 +492,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
     public void loadProperties() throws IOException {
         Properties props = new Properties();
-        System.out.println("MotomanCrclServerJPanel loading properties from " + propertiesFile.getCanonicalPath());
+        logPrintln("MotomanCrclServerJPanel loading properties from " + propertiesFile.getCanonicalPath());
         try (FileReader fr = new FileReader(propertiesFile)) {
             props.load(fr);
         }
@@ -397,12 +512,13 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
         motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText());
         motomanHost = jTextFieldMotoplusHost.getText();
         String debugString = props.getProperty("debug");
-        if(debugString != null && debugString.length() > 0 && Boolean.valueOf(debugString)) {
+        if (debugString != null && debugString.length() > 0 && Boolean.valueOf(debugString)) {
             jCheckBoxDebug.setSelected(true);
         }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonSendRequest;
     private javax.swing.JCheckBox jCheckBoxConnect;
     private javax.swing.JCheckBox jCheckBoxDebug;
     private javax.swing.JLabel jLabel1;
