@@ -449,22 +449,21 @@ int mpGetRtc(void) {
     return 1;
 }
 
-static MP_FCS_OFFSET_DATA sim_offset_data;
 
 int mpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time, MP_FCS_OFFSET_DATA offset_data) {
-    printf("mpFcsStartMeasuring(rob_id=%d,reset_time=%d,...) called.\n", rob_id,reset_time);
+    printf("mpFcsStartMeasuring(rob_id=%d,reset_time=%d,...) called.\n", rob_id, reset_time);
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        printf("mpFcsStartMeasuring : offset_data[%d]=%d\n",i,offset_data[i]);
-        sim_offset_data[i] = offset_data[i];
+        offset_data[i] = i*20;
+        printf("mpFcsStartMeasuring : returning offset_data[%d]=%d\n", i, offset_data[i]);
     }
     return 0;
 }
 
 int mpFcsGetForceData(MP_FCS_ROB_ID rob_id, int coord_type, int uf_no, MP_FCS_SENS_DATA sens_data) {
-    printf("mpFcsGetForceData(rob_id=%d,coord_type=%d,uf_no=%d,...) called.\n", rob_id,coord_type,uf_no);
+    printf("mpFcsGetForceData(rob_id=%d,coord_type=%d,uf_no=%d,...) called.\n", rob_id, coord_type, uf_no);
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        sens_data[i]=i+sim_offset_data[i];
-        printf("mpFcsGetForceData : sens_data[%d]=%d\n",i,sens_data[i]);
+        sens_data[i] = i *30;
+        printf("mpFcsGetForceData : sens_data[%d]=%d\n", i, sens_data[i]);
     }
     return 0;
 }
@@ -473,18 +472,18 @@ static MP_FCS_IMP_COEFF sim_m, sim_d, sim_k;
 
 int mpFcsStartImp(MP_FCS_ROB_ID rob_id, MP_FCS_IMP_COEFF m, MP_FCS_IMP_COEFF d, MP_FCS_IMP_COEFF k,
         int coord_type, int uf_no, BITSTRING cart_axes, BITSTRING option_ctrl) {
-    printf("mpFcsStartImp(rob_id=%d,coord_type=%d,uf_no=%d,cart_axes=0x%x,option_ctrl=0x%x...) called.\n", rob_id,coord_type,uf_no,cart_axes,option_ctrl);
+    printf("mpFcsStartImp(rob_id=%d,coord_type=%d,uf_no=%d,cart_axes=0x%x,option_ctrl=0x%x...) called.\n", rob_id, coord_type, uf_no, cart_axes, option_ctrl);
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        printf("mpFcsStartImp : m[%d]=%d\n",i,m[i]);
+        printf("mpFcsStartImp : m[%d]=%d\n", i, m[i]);
         sim_m[i] = m[i];
     }
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        printf("mpFcsStartImp : k[%d]=%d\n",i,k[i]);
-        sim_k[i] = k[i];
+        printf("mpFcsStartImp : d[%d]=%d\n", i, d[i]);
+        sim_d[i] = d[i];
     }
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        printf("mpFcsStartImp : d[%d]=%d\n",i,d[i]);
-        sim_d[i] = d[i];
+        printf("mpFcsStartImp : k[%d]=%d\n", i, k[i]);
+        sim_k[i] = k[i];
     }
     return 0;
 }
@@ -494,7 +493,7 @@ static MP_FCS_FREF_DATA sim_fref_data;
 int mpFcsSetReferenceForce(MP_FCS_ROB_ID rob_id, MP_FCS_FREF_DATA fref_data) {
     printf("mpFcsSetReferenceForce(rob_id=%d,...) called.\n", rob_id);
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        printf("mpFcsSetReferenceForce : fref_data[%d]=%d\n",i,fref_data[i]);
+        printf("mpFcsSetReferenceForce : fref_data[%d]=%d\n", i, fref_data[i]);
         sim_fref_data[i] = fref_data[i];
     }
     return 0;
@@ -506,15 +505,137 @@ int mpFcsEndImp(MP_FCS_ROB_ID rob_id) {
 }
 
 int mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale) {
-    printf("mpFcsEndImp(rob_id=%d,scale=%d) called.\n", rob_id,scale);
+    printf("mpFcsConvForceScale(rob_id=%d,scale=%d) called.\n", rob_id, scale);
     return 0;
 }
 
 int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data) {
     printf("mpFcsGetSensorData(rob_id=%d,...) called.\n", rob_id);
     for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
-        sens_data[i]=i+sim_offset_data[i];
-        printf("mpFcsGetForceData : sens_data[%d]=%d\n",i,sens_data[i]);
+        sens_data[i] = i *15;
+        printf("mpFcsGetForceData : sens_data[%d]=%d\n", i, sens_data[i]);
     }
+    return 0;
+}
+
+static BITSTRING figCtrlFlagsToBitString(BOOL front, BOOL upper, BOOL flip, BOOL r_lt_180, BOOL t_lt_180, BOOL s_lt_180) {
+    BITSTRING bs =
+            (front ? 0: 0x1)
+            | (upper ? 0: 0x2)
+            | (flip ? 0: 0x4)
+            | (r_lt_180 ? 0: 0x8)
+            | (t_lt_180 ? 0: 0x10)
+            | (s_lt_180 ? 0: 0x20)
+            ;
+    return bs;
+}
+
+int mpConvAxesToCartPos(unsigned int grp_no,
+        long angle[MP_GRP_AXES_NUM],
+        unsigned int tool_no,
+        BITSTRING *fig_ctrl,
+        MP_COORD *coord) {
+    printf("mpConvAxesToCartPos(grp_no=%d,...,tool_no=%d,...) called.\n", grp_no, tool_no);
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvAxesToCartPos : angle[%d]=%ld\n", i, angle[i]);
+    }
+    *fig_ctrl = figCtrlFlagsToBitString(1,1,0,0,1,1);
+    printf("mpConvAxesToCartPos returning : (*fig_ctrl)=%d\n",(*fig_ctrl));
+    coord->x = 11;
+    coord->y = 12;
+    coord->z = 13;
+    coord->rx = 150000;
+    coord->ry = 300000;
+    coord->rz = 450000;
+    coord->ex1 = 60000;
+    coord->ex2 = 299;
+    printf("mpConvAxesToCartPos returning : (coord->x)=%ld\n",(coord->x));
+    printf("mpConvAxesToCartPos returning : (coord->y)=%ld\n",(coord->y));
+    printf("mpConvAxesToCartPos returning : (coord->z)=%ld\n",(coord->z));
+    printf("mpConvAxesToCartPos returning : (coord->rx)=%ld\n",(coord->rx));
+    printf("mpConvAxesToCartPos returning : (coord->ry)=%ld\n",(coord->ry));
+    printf("mpConvAxesToCartPos returning : (coord->rz)=%ld\n",(coord->rz));
+    printf("mpConvAxesToCartPos returning : (coord->ex1)=%ld\n",(coord->ex1));
+    printf("mpConvAxesToCartPos returning : (coord->ex2)=%ld\n",(coord->ex2));
+    return 0;
+}
+
+int mpConvCartPosToAxes(unsigned int grp_no, MP_COORD *coord, unsigned int tool_no, BITSTRING fig_ctrl, long prev_angle[MP_GRP_AXES_NUM], MP_KINEMA_TYPE kinema_type, long angle[MP_GRP_AXES_NUM]) {
+    printf("mpConvCartPosToAxes(grp_no=%u,...,tool_no=%u,fig_ctrl=0x%x,...,kinema_type=%d) called.\n", grp_no, tool_no,fig_ctrl,kinema_type);
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvCartPosToAxes : prev_angle[%d]=%ld\n", i, prev_angle[i]);
+        angle[i]= prev_angle[i]+i;
+    }
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvCartPosToAxes : returning angle[%d]=%ld\n", i, angle[i]);
+    }
+    return 0;
+}
+
+int mpConvPulseToAngle(unsigned int grp_no, long pulse[MP_GRP_AXES_NUM], long angle[MP_GRP_AXES_NUM]) {
+    printf("mpConvPulseToAngle(grp_no=%d,...,) called.\n", grp_no);
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvPulseToAngle : pulse[%d]=%ld\n", i, pulse[i]);
+        angle[i]= pulse[i]+i;
+    }
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvPulseToAngle : returning angle[%d]=%ld\n", i, angle[i]);
+    }
+    return 0;
+}
+
+int mpConvAngleToPulse(unsigned int grp_no, long angle[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]) {
+    printf("mpConvAngleToPulse(grp_no=%d,...,) called.\n", grp_no);
+    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+        printf("mpConvAngleToPulse : angle[%d]=%ld\n", i, angle[i]);
+        pulse[i]= angle[i]+i;
+    }
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvAngleToPulse : returning pulse[%d]=%ld\n", i, pulse[i]);
+    }
+    return 0;
+}
+
+int mpConvFBPulseToPulse(unsigned int grp_no, long fbpulse[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]) {
+    printf("mpConvFBPulseToPulse(grp_no=%d,...,) called.\n", grp_no);
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvFBPulseToPulse : fbpulse[%d]=%ld\n", i, fbpulse[i]);
+        pulse[i]= fbpulse[i]+i;
+    }
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+        printf("mpConvFBPulseToPulse : returning pulse[%d]=%ld\n", i, pulse[i]);
+    }
+    return 0;
+}
+
+int mpMakeFrame(MP_XYZ* org_vector, MP_XYZ* x_vector, MP_XYZ* y_vector, MP_FRAME* frame) {
+    return 0;
+}
+
+int mpInvFrame(MP_FRAME*org_frame, MP_FRAME* frame) {
+    return 0;
+}
+
+int mpRotFrame(MP_FRAME* org_frame, double angle, MP_XYZ* vector, MP_FRAME* frame) {
+    return 0;
+}
+
+int mpMulFrame(MP_FRAME* frame1, MP_FRAME* frame2, MP_FRAME* frame_prod) {
+    return 0;
+}
+
+int mpZYXeulerToFrame(MP_COORD* coord, MP_FRAME* frame) {
+    return 0;
+}
+
+int mpFrameToZYXeuler(MP_FRAME*frame, MP_COORD* coord) {
+    return 0;
+}
+
+int mpCrossProduct(MP_XYZ* vector1, MP_XYZ* vector2, MP_XYZ* xyz_prod) {
+    return 0;
+}
+
+int mpInnerProduct(MP_XYZ* vector1, MP_XYZ* vector2, double* double_prod) {
     return 0;
 }

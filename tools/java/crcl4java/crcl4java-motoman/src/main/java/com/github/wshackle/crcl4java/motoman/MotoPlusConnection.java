@@ -28,6 +28,20 @@ import com.github.wshackle.crcl4java.motoman.exfile.MpExtensionType;
 import com.github.wshackle.crcl4java.motoman.exfile.RemoteExFileFunctionType;
 import com.github.wshackle.crcl4java.motoman.file.MpFileFlagsEnum;
 import com.github.wshackle.crcl4java.motoman.file.RemoteFileFunctionType;
+import com.github.wshackle.crcl4java.motoman.force.FCS_COORD_TYPE;
+import com.github.wshackle.crcl4java.motoman.force.FcsReturnCode;
+import com.github.wshackle.crcl4java.motoman.force.MP_FCS_ROB_ID;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsBaseReturn;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsGetForceDataReturn;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsGetSensorDataReturn;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsStartMeasuringReturn;
+import com.github.wshackle.crcl4java.motoman.force.RemoteForceControlFunctionType;
+import com.github.wshackle.crcl4java.motoman.kinematics.KinReturnCode;
+import com.github.wshackle.crcl4java.motoman.kinematics.MP_COORD;
+import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.RemoteKinematicsConversionFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.RemoteMotFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -55,10 +69,13 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,6 +84,36 @@ import java.util.logging.Logger;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MotoPlusConnection implements AutoCloseable {
+
+    private static class DefaultHostHolder {
+
+        static final String DEFAULT_HOST = getDefaultHost();
+
+        private static String getDefaultHost() {
+            try {
+                String propVal = System.getProperty("MotoPlusHost");
+                if (propVal != null && propVal.length() > 0) {
+                    return propVal;
+                }
+                String envVal = System.getenv("MotoPlusHost");
+                if (envVal != null && envVal.length() > 0) {
+                    return envVal;
+                }
+                InetAddress addrToTry = InetAddress.getByName("192.168.1.33");
+                if (addrToTry.isReachable(2000)) {
+                    return "192.168.1.33";
+                }
+                return "localhost";
+            } catch (Exception ex) {
+                Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+                return "localhost";
+            }
+        }
+    }
+
+    public static String getDefaultHost() {
+        return DefaultHostHolder.DEFAULT_HOST;
+    }
 
     private Socket socket;
     private DataOutputStream dos;
@@ -143,6 +190,84 @@ public class MotoPlusConnection implements AutoCloseable {
         }
     }
 
+    private final ConcurrentLinkedDeque<Consumer<String>> logListeners = new ConcurrentLinkedDeque<>();
+
+    public void addLogListener(Consumer<String> consumer) {
+        logListeners.add(consumer);
+    }
+
+    public void removeLogListener(Consumer<String> consumer) {
+        logListeners.remove(consumer);
+    }
+
+    private boolean debug = false;
+
+    /**
+     * Get the value of debug
+     *
+     * @return the value of debug
+     */
+    public boolean isDebug() {
+        return debug;
+    }
+
+    /**
+     * Set the value of debug
+     *
+     * @param debug new value of debug
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    private void printDebug(String s) {
+        if (debug) {
+            for (Consumer<String> listener : logListeners) {
+                listener.accept(s);
+            }
+            System.out.print(s);
+        }
+    }
+
+    private void writeDataOutputStream(ByteBuffer bb) throws IOException {
+        final byte[] array = bb.array();
+        dos.write(array);
+        if (debug) {
+            printDebug("wrote " + array.length + " bytes.\n");
+            debugPrintBytes(array);
+        }
+    }
+
+    private void readDataInputStream(byte[] inbuf) throws IOException {
+        dis.readFully(inbuf);
+        if (debug) {
+            printDebug("read " + inbuf.length + " bytes.\n");
+            debugPrintBytes(inbuf);
+        }
+    }
+
+    private void debugPrintBytes(final byte[] array) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < array.length; i += 16) {
+            for (int j = i; j < array.length && j < i + 4; j++) {
+                sb.append(String.format("%02x", array[j]));
+            }
+            sb.append(' ');
+            for (int j = i + 4; j < array.length && j < i + 8; j++) {
+                sb.append(String.format("%02x", array[j]));
+            }
+            sb.append(' ');
+            for (int j = i + 8; j < array.length && j < i + 12; j++) {
+                sb.append(String.format("%02x", array[j]));
+            }
+            sb.append(' ');
+            for (int j = i + 12; j < array.length && j < i + 16; j++) {
+                sb.append(String.format("%02x", array[j]));
+            }
+            sb.append('\n');
+        }
+        printDebug(sb.toString());
+    }
 
     public final class Starter {
 
@@ -163,7 +288,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.put(name.getBytes());
             bb.position(offset);
             bb.put(name2.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpSaveFile(int fd, String name, String name2) throws IOException {
@@ -179,7 +304,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.put(name.getBytes());
             bb.position(offset);
             bb.put(name2.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpFdReadFile(int fd, String name) throws IOException {
@@ -191,7 +316,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, fd);
             bb.position(16);
             bb.put(name.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpFdWriteFile(int fd, String name) throws IOException {
@@ -203,7 +328,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, fd);
             bb.position(16);
             bb.put(name.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpFdGetJobList(int fd, MP_GET_JOBLIST_RSP_DATA jlistData) throws IOException {
@@ -213,7 +338,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_FD_GET_JOB_LIST.getId()); // type of function remote server will call
             bb.putInt(12, fd);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpOpenFile(String name, int flags, int mode) throws IOException {
@@ -226,7 +351,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(16, mode);
             bb.position(20);
             bb.put(name.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpCreateFile(String name, int flags) throws IOException {
@@ -238,7 +363,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, flags);
             bb.position(16);
             bb.put(name.getBytes());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpCloseFile(int fd) throws IOException {
@@ -248,7 +373,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_CLOSE.getId()); // type of function remote server will call
             bb.putInt(12, fd);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpReadFile(int fd, int maxBytes) throws IOException {
@@ -259,7 +384,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_READ.getId()); // type of function remote server will call
             bb.putInt(12, fd);
             bb.putInt(16, maxBytes);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpWriteFile(int fd, byte bytesToWrite[], int offset, int maxBytes) throws IOException {
@@ -275,7 +400,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(16, maxBytes);
             bb.position(20);
             bb.put(bytesToWrite, offset, maxBytes);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetFileCount(MpExtensionType ext) throws IOException {
@@ -285,7 +410,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.EX_FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_GET_FILE_COUNT.getId()); // type of function remote server will call
             bb.putShort(12, ext.getId());
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetFileName(MpExtensionType ext, int index) throws IOException {
@@ -296,7 +421,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteExFileFunctionType.EX_FILE_CTRL_GET_FILE_NAME.getId()); // type of function remote server will call
             bb.putShort(12, ext.getId());
             bb.putInt(14, index);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotStart(int options) throws IOException {
@@ -306,7 +431,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteMotFunctionType.MOT_START.getId()); // type of function remote server will call
             bb.putInt(12, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotStop(int options) throws IOException {
@@ -316,7 +441,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteMotFunctionType.MOT_STOP.getId()); // type of function remote server will call
             bb.putInt(12, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotTargetClear(int grp, int options) throws IOException {
@@ -327,7 +452,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_TARGET_CLEAR.getId()); // type of function remote server will call
             bb.putInt(12, grp);
             bb.putInt(16, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotTargetJointSend(int grp, JointTarget target, int timeout) throws IOException {
@@ -347,7 +472,7 @@ public class MotoPlusConnection implements AutoCloseable {
                 bb.putInt(56 + (i * 4), target.getAux()[i]);
             }
             bb.putInt(88, timeout);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotTargetCoordSend(int grp, CoordTarget target, int timeout) throws IOException {
@@ -377,7 +502,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(80, target.getAux().ex1);
             bb.putInt(84, target.getAux().ex2);
             bb.putInt(88, timeout);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotTargetReceive(int grpNo, int id, int[] recvId, int timeout, int options) throws IOException {
@@ -391,7 +516,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(16, id);
             bb.putInt(20, timeout);
             bb.putInt(24, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux) throws IOException {
@@ -403,7 +528,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, grpNo);
             bb.putInt(16, type.getId());
             bb.putInt(20, aux);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetTool(int grpNo, int toolNo) throws IOException {
@@ -414,7 +539,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_SET_TOOL.getId()); // type of function remote server will call
             bb.putInt(12, grpNo);
             bb.putInt(16, toolNo);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetSpeed(int grpNo, MP_SPEED spd) throws IOException {
@@ -427,7 +552,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(16, spd.vj);
             bb.putInt(24, spd.v);
             bb.putInt(32, spd.vr);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetOrigin(int grpNo, int options) throws IOException {
@@ -438,7 +563,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_SET_ORIGIN.getId()); // type of function remote server will call
             bb.putInt(12, grpNo);
             bb.putInt(16, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetTask(int grpNo, int taskNo) throws IOException {
@@ -449,7 +574,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_SET_TASK.getId()); // type of function remote server will call
             bb.putInt(12, grpNo);
             bb.putInt(16, taskNo);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetSync(int grpNo, int aux, int options) throws IOException {
@@ -461,7 +586,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, grpNo);
             bb.putInt(16, aux);
             bb.putInt(20, options);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpMotSetSync(int grpNo) throws IOException {
@@ -471,7 +596,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.MOT_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteMotFunctionType.MOT_SET_TASK.getId()); // type of function remote server will call
             bb.putInt(12, grpNo);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpPutVarData(MP_VAR_DATA[] sData, int num) throws IOException {
@@ -486,7 +611,7 @@ public class MotoPlusConnection implements AutoCloseable {
                 bb.putShort(18 + (i * 8), sData[i].usIndex);
                 bb.putInt(20 + (i * 8), sData[i].ulValue);
             }
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
@@ -500,7 +625,7 @@ public class MotoPlusConnection implements AutoCloseable {
                 bb.putInt(16 + (i * 8), sData[i].ulAddr);
                 bb.putInt(20 + (i * 8), sData[i].ulValue);
             }
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
@@ -514,7 +639,7 @@ public class MotoPlusConnection implements AutoCloseable {
                 bb.putShort(16 + (4 * i), sData[i].usType.getId());
                 bb.putShort(18 + (4 * i), sData[i].usIndex);
             }
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpReadIO(MP_IO_INFO[] sData, short[] iorData, int num) throws IOException {
@@ -527,7 +652,7 @@ public class MotoPlusConnection implements AutoCloseable {
             for (int i = 0; i < num; i++) {
                 bb.putInt(16 + (4 * i), sData[i].ulAddr);
             }
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
@@ -537,7 +662,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_CART_POS.getId()); // type of function remote server will call
             bb.putInt(12, ctrlGroup);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetPulsePos(int ctrlGroup, MP_PULSE_POS_RSP_DATA[] data) throws IOException {
@@ -547,7 +672,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_PULSE_POS.getId()); // type of function remote server will call
             bb.putInt(12, ctrlGroup);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetFBPulsePos(int ctrlGroup, MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
@@ -557,7 +682,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CURRENT_FEEDBACK_PULSE_POS.getId()); // type of function remote server will call
             bb.putInt(12, ctrlGroup);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetDegPosEx(int ctrlGroup, MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
@@ -567,7 +692,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_DEG_POS_EX.getId()); // type of function remote server will call
             bb.putInt(12, ctrlGroup);
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetServoPower() throws IOException {
@@ -576,7 +701,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_SERVO_POWER.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpSetServoPower(boolean on) throws IOException {
@@ -586,7 +711,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_SET_SERVO_POWER.getId()); // type of function remote server will call
             bb.putShort(12, (short) (on ? 1 : 0));
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetMode() throws IOException {
@@ -595,7 +720,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_MODE.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetCycle() throws IOException {
@@ -604,7 +729,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_CYCLE.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetAlarmStatus() throws IOException {
@@ -613,7 +738,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_ALARM_STATUS.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetAlarmCode() throws IOException {
@@ -622,7 +747,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_ALARM_CODE.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
 
         public void startMpGetRtc() throws IOException {
@@ -631,9 +756,189 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_RTC.getId()); // type of function remote server will call
-            dos.write(bb.array());
+            writeDataOutputStream(bb);
         }
+
+        public void startMpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time) throws IOException {
+            final int inputSize = 20;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_START_MEASURING.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            bb.putInt(16, reset_time); // averaging time
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsGetForceData(MP_FCS_ROB_ID rob_id, FCS_COORD_TYPE coord_type, int uf_no) throws IOException {
+            final int inputSize = 24;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_GET_FORCE_DATA.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            bb.putInt(16, coord_type.ordinal()); // averaging time
+            bb.putInt(20, uf_no); // averaging time
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsStartImp(MP_FCS_ROB_ID rob_id, int m[], int d[], int k[],
+                FCS_COORD_TYPE coord_type, int uf_no, int cart_axes, int option_ctrl) throws IOException, MotoPlusConnectionException {
+            final int inputSize = 4 + 28 + 12 * MP_FCS_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_START_IMP.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            if (m.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("m.length=" + m.length);
+            }
+            for (int i = 0; i < m.length; i++) {
+                bb.putInt(16 + (4 * i), m[i]);
+            }
+            if (d.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("d.length=" + d.length);
+            }
+            for (int i = 0; i < d.length; i++) {
+                bb.putInt(16 + 4 * MP_FCS_AXES_NUM + (4 * i), d[i]);
+            }
+            if (k.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("k.length=" + k.length);
+            }
+            for (int i = 0; i < k.length; i++) {
+                bb.putInt(16 + 8 * MP_FCS_AXES_NUM + (4 * i), k[i]);
+            }
+            bb.putInt(16 + 12 * MP_FCS_AXES_NUM, coord_type.ordinal());
+            bb.putInt(20 + 12 * MP_FCS_AXES_NUM, uf_no);
+            bb.putInt(24 + 12 * MP_FCS_AXES_NUM, cart_axes);
+            bb.putInt(28 + 12 * MP_FCS_AXES_NUM, option_ctrl);
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsSetReferenceForce(MP_FCS_ROB_ID rob_id, int fref_data[]) throws IOException, MotoPlusConnectionException {
+            final int inputSize = 16 + 4 * MP_FCS_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_SET_REFERENCE_FORCE.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            if (fref_data.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("fref_data.length=" + fref_data.length);
+            }
+            for (int i = 0; i < fref_data.length; i++) {
+                bb.putInt(16 + (4 * i), fref_data[i]);
+            }
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsEndImp(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
+            final int inputSize = 16;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_END_IMP.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale) throws IOException, MotoPlusConnectionException {
+            final int inputSize = 20;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_CONV_FORCE_SCALE.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            bb.putInt(16, scale); // robot ID
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpFcsGetSensorData(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
+            final int inputSize = 16;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_GET_SENSOR_DATA.getId()); // type of function remote server will call
+            bb.putInt(12, rob_id.getId()); // robot ID
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpConvAxesToCartPos(int grp_no, int angle[], int tool_no) throws IOException, MotoPlusConnectionException {
+            if (angle.length != MP_GRP_AXES_NUM) {
+                throw new RuntimeException("angle.length=" + angle.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
+            }
+            if (grp_no < 0) {
+                throw new IllegalArgumentException("grp_no=" + grp_no);
+            }
+            if (tool_no < 0) {
+                throw new IllegalArgumentException("tool_no=" + tool_no);
+            }
+            final int inputSize = 20 + 4 * MP_GRP_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteKinematicsConversionFunctionType.KINEMATICS_CONVERSION_CONVERT_AXES_TO_CART_POS.getId()); // type of function remote server will call
+            bb.putInt(12, grp_no); // robot ID
+            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+                bb.putInt(16 + 4 * i, angle[i]);
+            }
+            bb.putInt(16 + 4 * MP_GRP_AXES_NUM, tool_no);
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpConvCartPosToAxes(int grp_no, MP_COORD coord, int tool_no, int fig_ctrl, int prev_angle[], MP_KINEMA_TYPE kinema_type) throws IOException, MotoPlusConnectionException {
+            if (prev_angle.length != MP_GRP_AXES_NUM) {
+                throw new RuntimeException("prev_angle.length=" + prev_angle.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
+            }
+            if (grp_no < 0) {
+                throw new IllegalArgumentException("grp_no=" + grp_no);
+            }
+            if (tool_no < 0) {
+                throw new IllegalArgumentException("tool_no=" + tool_no);
+            }
+            final int inputSize = 56 + 4 * MP_GRP_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteKinematicsConversionFunctionType.KINEMATICS_CONVERSION_CONVERT_CART_POS_TO_AXES.getId()); // type of function remote server will call
+            bb.putInt(12, grp_no);
+            bb.putInt(16, coord.x);
+            bb.putInt(20, coord.y);
+            bb.putInt(24, coord.z);
+            bb.putInt(28, coord.rx);
+            bb.putInt(32, coord.ry);
+            bb.putInt(36, coord.rz);
+            bb.putInt(40, coord.ex1);
+            bb.putInt(44, coord.ex2);
+            bb.putInt(48, tool_no);
+            bb.putInt(52, fig_ctrl);
+            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+                bb.putInt(52 + 4 * i, prev_angle[i]);
+            }
+            bb.putInt(52 + 4 * MP_GRP_AXES_NUM, kinema_type.ordinal());
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpConvPulseToAngle(int grp_no, int pulse[]) throws IOException, MotoPlusConnectionException {
+            if (pulse.length != MP_GRP_AXES_NUM) {
+                throw new RuntimeException("prev_angle.length=" + pulse.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
+            }
+            if (grp_no < 0) {
+                throw new IllegalArgumentException("grp_no=" + grp_no);
+            }
+            final int inputSize = 16 + 4 * MP_GRP_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteKinematicsConversionFunctionType.KINEMATICS_CONVERSION_CONVERT_PULSE_TO_ANGLE.getId()); // type of function remote server will call
+            bb.putInt(12, grp_no);
+            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+                bb.putInt(16 + 4 * i, pulse[i]);
+            }
+            writeDataOutputStream(bb);
+        }
+
     }
+    private static final int MP_FCS_AXES_NUM = 6;
 
     public final class Returner {
 
@@ -643,11 +948,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpFdReadFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -655,11 +960,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpFdWriteFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -667,11 +972,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpSaveFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -679,11 +984,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpLoadFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -691,11 +996,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpOpenFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet <= 0) {
@@ -706,11 +1011,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpFdGetJobListReturn(MP_GET_JOBLIST_RSP_DATA jListData) throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -727,11 +1032,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpCreateFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet <= 0) {
@@ -742,11 +1047,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpCloseFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -760,11 +1065,11 @@ public class MotoPlusConnection implements AutoCloseable {
                 throw new IllegalArgumentException("Buf must not be null and have length of atleast offset = " + offset + " len = " + len);
             }
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet < 0) {
@@ -780,11 +1085,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpWriteFileReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -792,11 +1097,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getMpFileCountReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -810,11 +1115,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public String getMpFileNameReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int size = bb.getInt(0);
             inbuf = new byte[size];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -832,11 +1137,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MotCtrlReturnEnum getMpMotStandardReturn() throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return MotCtrlReturnEnum.fromId(intRet);
@@ -844,11 +1149,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MotCtrlReturnEnum getMpMotTargetReceiveReturn(int[] recvId) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (sz >= 8 && null != recvId && recvId.length > 0) {
@@ -859,11 +1164,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getSysOkReturn() throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet == 0;
@@ -871,11 +1176,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public int getIntReturn() throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             return intRet;
@@ -883,11 +1188,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getSysDataReturn(long rData[]) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < rData.length && i < (sz - 4) / 4; i++) {
@@ -898,11 +1203,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getSysReadIOReturn(short iorData[]) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < iorData.length && i < (sz - 4) / 2; i++) {
@@ -913,11 +1218,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getCartPosReturn(MP_CART_POS_RSP_DATA[] data) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < MP_CART_POS_RSP_DATA.MAX_CART_AXES; i++) {
@@ -929,11 +1234,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getPulsePosReturn(MP_PULSE_POS_RSP_DATA[] data) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
@@ -944,11 +1249,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getFBPulsePosReturn(MP_FB_PULSE_POS_RSP_DATA[] data) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES; i++) {
@@ -959,11 +1264,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getDegPosExPosReturn(MP_DEG_POS_RSP_DATA_EX[] data) throws IOException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             for (int i = 0; i < MP_DEG_POS_RSP_DATA_EX.MAX_PULSE_AXES; i++) {
@@ -978,11 +1283,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getServoPowerReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             short shortRet = bb.getShort(4);
@@ -997,11 +1302,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public boolean getSetServoPowerReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             short shortRet = bb.getShort(4);
@@ -1013,11 +1318,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MP_MODE_DATA getModeReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -1032,11 +1337,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MP_CYCLE_DATA getCycleReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -1049,11 +1354,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MP_ALARM_STATUS_DATA getAlarmStatusReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -1066,11 +1371,11 @@ public class MotoPlusConnection implements AutoCloseable {
 
         public MP_ALARM_CODE_DATA getAlarmCodeReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
-            dis.readFully(inbuf);
+            readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             int intRet = bb.getInt(0);
             if (intRet != 0) {
@@ -1087,11 +1392,127 @@ public class MotoPlusConnection implements AutoCloseable {
             return data;
         }
 
+        public MpFcsStartMeasuringReturn getMpFcsStartMeasuringReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpFcsStartMeasuringReturn returnVal = new MpFcsStartMeasuringReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = FcsReturnCode.fromInt(returnVal.returnInt);
+            for (int i = 0; i < returnVal.offset_data.length; i++) {
+                returnVal.offset_data[i] = bb.getInt(4 + i * 4);
+            }
+            return returnVal;
+        }
+
+        public MpFcsGetForceDataReturn getMpFcsGetForceDataReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpFcsGetForceDataReturn returnVal = new MpFcsGetForceDataReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = FcsReturnCode.fromInt(returnVal.returnInt);
+            returnVal.fx = bb.getInt(4);
+            returnVal.fy = bb.getInt(8);
+            returnVal.fz = bb.getInt(12);
+            returnVal.mx = bb.getInt(16);
+            returnVal.my = bb.getInt(20);
+            returnVal.mz = bb.getInt(24);
+            return returnVal;
+        }
+
+        public MpFcsGetSensorDataReturn getMpFcsGetSensorDataReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpFcsGetSensorDataReturn returnVal = new MpFcsGetSensorDataReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = FcsReturnCode.fromInt(returnVal.returnInt);
+            returnVal.sens_data[0] = bb.getInt(4);
+            returnVal.sens_data[1] = bb.getInt(8);
+            returnVal.sens_data[2] = bb.getInt(12);
+            returnVal.sens_data[3] = bb.getInt(16);
+            returnVal.sens_data[4] = bb.getInt(20);
+            returnVal.sens_data[5] = bb.getInt(24);
+            return returnVal;
+        }
+
+        public MpFcsBaseReturn getMpFcsBaseReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpFcsBaseReturn returnVal = new MpFcsBaseReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = FcsReturnCode.fromInt(returnVal.returnInt);
+            return returnVal;
+        }
+
+        public MpKinCartPosReturn getMpCartPosReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpKinCartPosReturn returnVal = new MpKinCartPosReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = KinReturnCode.fromInt(returnVal.returnInt);
+            returnVal.fig_ctrl = bb.getInt(4);
+            returnVal.coord.x = bb.getInt(8);
+            returnVal.coord.y = bb.getInt(12);
+            returnVal.coord.z = bb.getInt(16);
+            returnVal.coord.rx = bb.getInt(20);
+            returnVal.coord.ry = bb.getInt(24);
+            returnVal.coord.rz = bb.getInt(28);
+            returnVal.coord.ex1 = bb.getInt(32);
+            returnVal.coord.ex2 = bb.getInt(36);
+            return returnVal;
+        }
+
+        public MpKinAngleReturn getMpAngleReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpKinAngleReturn returnVal = new MpKinAngleReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = KinReturnCode.fromInt(returnVal.returnInt);
+            for (int i = 0; i < returnVal.angle.length; i++) {
+                returnVal.angle[i] = bb.getInt(4 + 4 * i);
+            }
+            return returnVal;
+        }
+
     };
 
     private final Starter starter = new Starter();
     private final Returner returner = new Returner();
-
 
     public MotCtrlReturnEnum mpMotStart(int options) throws IOException {
         starter.startMpMotStart(options);
@@ -1267,6 +1688,81 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getAlarmCodeReturn();
     }
 
+    public MpFcsStartMeasuringReturn mpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsStartMeasuring(rob_id, reset_time);
+        return returner.getMpFcsStartMeasuringReturn();
+    }
+
+    public MpFcsGetForceDataReturn mpFcsGetForceData(MP_FCS_ROB_ID rob_id, FCS_COORD_TYPE coord_type, int uf_no) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsGetForceData(rob_id, coord_type, uf_no);
+        return returner.getMpFcsGetForceDataReturn();
+    }
+
+    public MpFcsBaseReturn mpFcsStartImp(MP_FCS_ROB_ID rob_id, int m[], int d[], int k[],
+            FCS_COORD_TYPE coord_type, int uf_no, int cart_axes, int option_ctrl) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsStartImp(rob_id, m, d, k, coord_type, uf_no, cart_axes, option_ctrl);
+        return returner.getMpFcsBaseReturn();
+    }
+
+    public MpFcsBaseReturn mpFcsSetReferenceForce(MP_FCS_ROB_ID rob_id, int fref_data[]) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsSetReferenceForce(rob_id, fref_data);
+        return returner.getMpFcsBaseReturn();
+    }
+
+    public MpFcsBaseReturn mpFcsEndImp(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsEndImp(rob_id);
+        return returner.getMpFcsBaseReturn();
+    }
+
+    public MpFcsBaseReturn mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsConvForceScale(rob_id, scale);
+        return returner.getMpFcsBaseReturn();
+    }
+
+    public MpFcsGetSensorDataReturn mpFcsGetSensorData(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
+        starter.startMpFcsGetSensorData(rob_id);
+        return returner.getMpFcsGetSensorDataReturn();
+    }
+
+    public static final int MP_GRP_AXES_NUM = 8;
+
+    /**
+     * Converts a cartesian coordinate position (robot coordinate systems) of 
+     * the specified control group to an angle position.
+     * 
+     * @param grp_no  Control group number. Acquire the control group number by mpCtrlGrpId2GrpNo()
+     * @param angle joint angles in 0.0001 degrees units. length should be 8. Ordered with joints S,L,U,R,B,T,E,W
+     * @param tool_no
+     * @return
+     * @throws IOException
+     * @throws MotoPlusConnectionException
+     */
+    public MpKinCartPosReturn mpConvAxesToCartPos(int grp_no, int angle[], int tool_no) throws IOException, MotoPlusConnectionException {
+        starter.startMpConvAxesToCartPos(grp_no, angle, tool_no);
+        return returner.getMpCartPosReturn();
+    }
+
+    public MpKinAngleReturn mpConvCartPosToAxes(int grp_no, MP_COORD coord, int tool_no, int fig_ctrl, int prev_angle[], MP_KINEMA_TYPE kinema_type) throws IOException, MotoPlusConnectionException {
+        starter.startMpConvCartPosToAxes(grp_no, coord, tool_no, fig_ctrl, prev_angle, kinema_type);
+        return returner.getMpAngleReturn();
+    }
+
+    public MpKinAngleReturn mpConvPulseToAngle(int grp_no, int pulse[]) throws IOException, MotoPlusConnectionException {
+        starter.startMpConvPulseToAngle(grp_no, pulse);
+        return returner.getMpAngleReturn();
+    }
+
+//    extern int mpConvPulseToAngle(unsigned int grp_no, long pulse[MP_GRP_AXES_NUM], long angle[MP_GRP_AXES_NUM]);
+//    extern int mpConvAngleToPulse(unsigned int grp_no, long angle[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]);
+//    extern int mpConvFBPulseToPulse(unsigned int grp_no, long fbpulse[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]);
+//    extern int mpMakeFrame(MP_XYZ* org_vector, MP_XYZ* x_vector, MP_XYZ* y_vector, MP_FRAME* frame);
+//    extern int mpInvFrame(MP_FRAME*org_frame, MP_FRAME* frame);
+//    extern int mpRotFrame(MP_FRAME* org_frame, double angle, MP_XYZ* vector, MP_FRAME* frame);
+//    extern int mpMulFrame(MP_FRAME* frame1,MP_FRAME* frame2,MP_FRAME* frame_prod);
+//    extern int mpZYXeulerToFrame(MP_COORD* coord, MP_FRAME* frame);
+//    extern int mpFrameToZYXeuler(MP_FRAME*frame,MP_COORD* coord);
+//    extern int mpCrossProduct(MP_XYZ* vector1, MP_XYZ* vector2, MP_XYZ* xyz_prod);
+//    extern int mpInnerProduct(MP_XYZ* vector1, MP_XYZ* vector2, double* double_prod);
     public int mpGetRtc() throws IOException, MotoPlusConnectionException {
         starter.startMpGetRtc();
         return returner.getIntReturn();
@@ -1351,8 +1847,8 @@ public class MotoPlusConnection implements AutoCloseable {
 
     public boolean openGripper() throws Exception {
         boolean a = clearToolChangerGripperIOAndWait();
-        
-        boolean b = writeConsecutiveI0(10010, 1,0,1);
+
+        boolean b = writeConsecutiveI0(10010, 1, 0, 1);
 //        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
 //        ioData[0] = new MP_IO_DATA();
 //        ioData[0].ulAddr = 10010;
@@ -1422,7 +1918,7 @@ public class MotoPlusConnection implements AutoCloseable {
     public boolean openToolChanger() throws Exception {
         boolean a = clearToolChangerGripperIOAndWait();
 
-        boolean b = writeConsecutiveI0(10012, 1,1,0);
+        boolean b = writeConsecutiveI0(10012, 1, 1, 0);
 //        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
 //        ioData[0] = new MP_IO_DATA();
 //        ioData[0].ulAddr = 10013;
@@ -1434,8 +1930,8 @@ public class MotoPlusConnection implements AutoCloseable {
 //        ioData[2].ulAddr = 10012;
 //        ioData[2].ulValue = 1;
 //        boolean b = mpWriteIO(ioData, 3);
-        
-            Thread.sleep(200);
+
+        Thread.sleep(200);
 //        ioData = new MP_IO_DATA[5];
 //        ioData[0] = new MP_IO_DATA();
 //        ioData[0].ulAddr = 10010;
@@ -1463,9 +1959,9 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     private volatile boolean ioClear = false;
-    
+
     private boolean clearToolChangerGripperIOAndWait() throws IOException, InterruptedException {
-        if(ioClear) {
+        if (ioClear) {
             return true;
         }
         boolean a = clearToolChangerGripperIO();
@@ -1568,23 +2064,14 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             int r = MAX_READ_LEN;
             int sum = 0;
-//            ArrayList<ReadBlock> l = new ArrayList<>();
             while (r == MAX_READ_LEN) {
                 byte buf[] = new byte[MAX_READ_LEN];
                 r = mpReadFile(fd, buf);
 
                 if (r > 0 && r <= buf.length) {
                     fos.write(buf);
-//                    l.add(new ReadBlock(r, buf));
-//                    sum += r;
                 }
             }
-//            byte ret[] = new byte[sum];
-//            int s = 0;
-//            for (ReadBlock rb : l) {
-//                System.arraycopy(rb.buf, 0, ret, s, rb.r);
-//                s += rb.r;
-//            }
             mpCloseFile(fd);
         }
     }

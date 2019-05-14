@@ -302,7 +302,7 @@ extern "C" {
     /* definition master & sub task(=Job execution task) id's */
 #define MP_MASTER_TSK_ID 0
 
-enum {
+    enum {
         MP_MASTER_TSK = MP_MASTER_TSK_ID,
         MP_SUB1_TSK,
         MP_SUB2_TSK,
@@ -329,7 +329,7 @@ enum {
     typedef double DOUBLE;
 #endif
 
-/* control group configuration structure. */
+        /* control group configuration structure. */
     typedef struct {
         CTRLG_T ctrl_grp;
         UCHAR axes_config[MP_GRP_NUM];
@@ -559,19 +559,19 @@ enum {
     extern int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data);
 
     /*--- 00 ---*/
-    extern int mpConvAxesToCartPos(unsigned int, long [MP_GRP_AXES_NUM], unsigned int, BITSTRING *, MP_COORD *);
-    extern int mpConvCartPosToAxes(unsigned int, MP_COORD *, unsigned int, BITSTRING, long *, MP_KINEMA_TYPE, long [MP_GRP_AXES_NUM]);
-    extern int mpConvPulseToAngle(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
-    extern int mpConvAngleToPulse(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
-    extern int mpConvFBPulseToPulse(unsigned int, long [MP_GRP_AXES_NUM], long [MP_GRP_AXES_NUM]);
-    extern int mpMakeFrame(MP_XYZ *, MP_XYZ *, MP_XYZ *, MP_FRAME *);
-    extern int mpInvFrame(MP_FRAME *, MP_FRAME *);
-    extern int mpRotFrame(MP_FRAME *, double, MP_XYZ *, MP_FRAME *);
-    extern int mpMulFrame(MP_FRAME *, MP_FRAME *, MP_FRAME *);
-    extern int mpZYXeulerToFrame(MP_COORD *, MP_FRAME *);
-    extern int mpFrameToZYXeuler(MP_FRAME *, MP_COORD *);
-    extern int mpCrossProduct(MP_XYZ *, MP_XYZ *, MP_XYZ *);
-    extern int mpInnerProduct(MP_XYZ *, MP_XYZ *, double *);
+    extern int mpConvAxesToCartPos(unsigned int grp_no, long angle[MP_GRP_AXES_NUM], unsigned int tool_no, BITSTRING *fig_ctrl, MP_COORD *coord);
+    extern int mpConvCartPosToAxes(unsigned int grp_no, MP_COORD *coord, unsigned int tool_no, BITSTRING fig_ctrl, long prev_angle[MP_GRP_AXES_NUM], MP_KINEMA_TYPE type, long angle[MP_GRP_AXES_NUM]);
+    extern int mpConvPulseToAngle(unsigned int grp_no, long pulse[MP_GRP_AXES_NUM], long angle[MP_GRP_AXES_NUM]);
+    extern int mpConvAngleToPulse(unsigned int grp_no, long angle[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]);
+    extern int mpConvFBPulseToPulse(unsigned int grp_no, long fbpulse[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]);
+    extern int mpMakeFrame(MP_XYZ* org_vector, MP_XYZ* x_vector, MP_XYZ* y_vector, MP_FRAME* frame);
+    extern int mpInvFrame(MP_FRAME*org_frame, MP_FRAME* frame);
+    extern int mpRotFrame(MP_FRAME* org_frame, double angle, MP_XYZ* vector, MP_FRAME* frame);
+    extern int mpMulFrame(MP_FRAME* frame1,MP_FRAME* frame2,MP_FRAME* frame_prod);
+    extern int mpZYXeulerToFrame(MP_COORD* coord, MP_FRAME* frame);
+    extern int mpFrameToZYXeuler(MP_FRAME*frame,MP_COORD* coord);
+    extern int mpCrossProduct(MP_XYZ* vector1, MP_XYZ* vector2, MP_XYZ* xyz_prod);
+    extern int mpInnerProduct(MP_XYZ* vector1, MP_XYZ* vector2, double* double_prod);
 
 #ifdef __cplusplus
 }

@@ -38,7 +38,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,7 +110,7 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
 
         jLabel2.setText("Motoman Motoplus TCP Host:");
 
-        jTextFieldMotoplusHost.setText("192.168.1.33");
+        jTextFieldMotoplusHost.setText(MotoPlusConnection.getDefaultHost());
 
         jCheckBoxConnect.setText("Connected");
         jCheckBoxConnect.addActionListener(new java.awt.event.ActionListener() {
@@ -362,31 +364,62 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                 Arrays.sort(methodNames, 0, methodNames.length);
                 String selectedMethodName = (String) JOptionPane.showInputDialog(this, "Mpc Method", "Send Request", JOptionPane.QUESTION_MESSAGE, null, methodNames, null);
                 logPrintln("selectedMethodName = " + selectedMethodName);
+                if (null == selectedMethodName || selectedMethodName.length() < 1) {
+                    // User probably cancelled.
+                    return;
+                }
                 Method selectedMethod = methodMap.get(selectedMethodName);
                 logPrintln("selectedMethod = " + selectedMethod);
                 Object objectParams[] = new Object[selectedMethod.getParameterCount()];
                 JFrame parentJFrame = (JFrame) getParent().getParent().getParent().getParent();
+                Map<String, Object> argsMap = new TreeMap<>();
                 for (int i = 0; i < objectParams.length; i++) {
                     Class<?> parameterType = selectedMethod.getParameterTypes()[i];
-                    logPrintln("parameterType = " + parameterType);
+//                    logPrintln("parameterType = " + parameterType);
                     String paramName = selectedMethod.getParameters()[i].getName();
-                    logPrintln("paramName = " + paramName);
+//                    logPrintln("paramName = " + paramName);
 
                     String queryString = selectedMethodName + " (parameter " + i + ") " + paramName;
                     Object objectParam;
                     if (parameterType.isArray()) {
                         int arrayLength = Integer.parseInt(JOptionPane.showInputDialog(parentJFrame, "Length of " + queryString, 1));
                         Class<?> compenentType = parameterType.getComponentType();
-                        Object newArray[] = (Object[]) Array.newInstance(compenentType, arrayLength);
-                        for (int j = 0; j < newArray.length; j++) {
-                            newArray[j] = compenentType.newInstance();
+                        if (compenentType.isPrimitive()) {
+                            if (compenentType == byte.class) {
+                                byte newArray[] = new byte[arrayLength];
+                                objectParam = newArray;
+                            } else if (compenentType == short.class) {
+                                short newArray[] = new short[arrayLength];
+                                objectParam = newArray;
+                            } else if (compenentType == int.class) {
+                                int newArray[] = new int[arrayLength];
+                                objectParam = newArray;
+                            } else if (compenentType == long.class) {
+                                long newArray[] = new long[arrayLength];
+                                objectParam = newArray;
+                            } else if (compenentType == float.class) {
+                                float newArray[] = new float[arrayLength];
+                                objectParam = newArray;
+                            } else if (compenentType == double.class) {
+                                double newArray[] = new double[arrayLength];
+                                objectParam = newArray;
+                            } else {
+                                throw new RuntimeException("primitive type " + compenentType + " not supported");
+                            }
+                        } else {
+                            Object newArray[] = (Object[]) Array.newInstance(compenentType, arrayLength);
+                            for (int j = 0; j < newArray.length; j++) {
+                                newArray[j] = compenentType.newInstance();
+                            }
+                            objectParam = newArray;
                         }
-                        objectParam = newArray;
                         Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
-                        logPrintln("editedObjectParam = " + editedObjectParam);
-                        Object editedObjectParamAsArray[] = (Object []) editedObjectParam;
-                        System.out.println("editedObjectParamAsArray = " + Arrays.toString(editedObjectParamAsArray));
-                        objectParams[i] = objectParam;
+////                        logPrintln("editedObjectParam = " + editedObjectParam);
+//                       if (!compenentType.isPrimitive()) {
+//                            Object editedObjectParamAsArray[] = (Object[]) editedObjectParam;
+//                            logPrintln("editedObjectParamAsArray = " + Arrays.toString(editedObjectParamAsArray));
+//                        }
+                        objectParams[i] = editedObjectParam;
                     } else if (parameterType.isEnum()) {
                         Object[] enumConstants = (Object[]) parameterType.getEnumConstants();
                         objectParam = JOptionPane.showInputDialog(parentJFrame, queryString, queryString, JOptionPane.QUESTION_MESSAGE, null, enumConstants, enumConstants[0]);
@@ -394,11 +427,11 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                     } else if (parameterType.isPrimitive()) {
                         if (parameterType == int.class) {
                             int paramInt = Integer.parseInt(JOptionPane.showInputDialog(parentJFrame, queryString, 0));
-                            logPrintln("paramInt = " + paramInt);
+//                            logPrintln("paramInt = " + paramInt);
                             objectParams[i] = paramInt;
                         } else if (parameterType == double.class) {
                             double paramDouble = Double.parseDouble(JOptionPane.showInputDialog(parentJFrame, queryString, 0.0));
-                            logPrintln("paramDouble = " + paramDouble);
+//                            logPrintln("paramDouble = " + paramDouble);
                             objectParams[i] = paramDouble;
                         } else {
                             objectParam = parameterType.newInstance();
@@ -409,11 +442,16 @@ public class MotomanCrclServerJPanel extends javax.swing.JPanel {
                     } else {
                         objectParam = parameterType.newInstance();
                         Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
-                        logPrintln("editedObjectParam = " + editedObjectParam);
+//                        logPrintln("editedObjectParam = " + editedObjectParam);
                         objectParams[i] = editedObjectParam;
                     }
+                    argsMap.put(i + ":" + parameterType + ":" + paramName, objectParams[i]);
                 }
+                boolean origMpcDebug = mpc.isDebug();
+                mpc.setDebug(true);
+                logPrintln("argsMap = " + argsMap);
                 Object returnValue = selectedMethod.invoke(mpc, objectParams);
+                mpc.setDebug(origMpcDebug);
                 logPrintln("returnValue = " + returnValue);
                 ObjTableJPanel.editObject(returnValue, parentJFrame, "returnValue", true, null, null, null);
             } catch (Exception ex) {

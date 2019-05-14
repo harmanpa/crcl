@@ -20,42 +20,22 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.crcl4java.motoman;
+package com.github.wshackle.crcl4java.motoman.force;
 
-import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteFunctionGroup {
-    INVALID_FUNCTION_GROUP(0),
-    MOT_FUNCTION_GROUP(1),
-    SYS1_FUNCTION_GROUP(2),
-    FILE_CTRL_FUNCTION_GROUP(3),
-    EX_FILE_CTRL_FUNCTION_GROUP(4),
-    FORCE_CTRL_FUNCTION_GROUP(5),
-    KINEMATICS_CONVERSION_FUNCTION_GROUP(6);
+public class MpFcsStartMeasuringReturn extends MpFcsBaseReturn {
+    
+    public final int offset_data[] = new int[6];
 
-    private RemoteFunctionGroup(int id) {
-        this.id = id;
+    @Override
+    public String toString() {
+        return "MpFcsStartMeasuringReturn{" + "returnInt=" + returnInt + ", returnCode=" + returnCode + ", offset_data=" + Arrays.toString(offset_data) + '}';
     }
-
-    private final int id;
-
-    private static Map<Integer, MotCtrlReturnEnum> map = new HashMap<>();
-
-    static {
-        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
-            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
-            map.put(m.getId(), m);
-        }
-    }
-
-    public int getId() {
-        return id;
-    }
-
+    
+    
 }

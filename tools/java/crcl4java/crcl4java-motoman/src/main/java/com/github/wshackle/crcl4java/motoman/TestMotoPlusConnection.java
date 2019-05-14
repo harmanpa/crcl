@@ -22,6 +22,12 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.force.MP_FCS_ROB_ID;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsBaseReturn;
+import com.github.wshackle.crcl4java.motoman.force.MpFcsGetSensorDataReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -31,16 +37,9 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
-import crcl.utils.CRCLPosemath;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
-import rcs.posemath.PmCartesian;
-import rcs.posemath.PmEulerZyx;
-import rcs.posemath.PmRotationMatrix;
-import rcs.posemath.PmRotationVector;
-import rcs.posemath.PmRpy;
-import rcs.posemath.Posemath;
 
 /**
  *
@@ -48,54 +47,111 @@ import rcs.posemath.Posemath;
  */
 public class TestMotoPlusConnection {
 
-    private static String host = "192.168.1.33";//"10.0.0.2";
-//    private static String host = "localhost";
+    private static String host = MotoPlusConnection.getDefaultHost();
 
+    // 192.168.1.33");//"10.0.0.2";
+    //    private static String host = "localhost";
     public static void main(String[] args) throws Exception {
+        if (args.length > 0) {
+            host = args[0];
+        }
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
 
-            MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
-            PmEulerZyx eulerZyx = new PmEulerZyx(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()) );
-            System.out.println("eulerZyx = " + eulerZyx);
-            double rx = pos.rx();
-            double ry = pos.ry();
-            double rz = pos.rz();
-            System.out.println("rx = " + rx);
-            System.out.println("ry = " + ry);
-            System.out.println("rz = " + rz);
-//            double rotMag = Math.max(rx, Math.max(ry, rz));
-            double rotMag = Math.toRadians(Math.sqrt(rx * rx + ry * ry + rz * rz));
+            mpc.setDebug(true);
+//            MP_FCS_ROB_ID rob_id = MP_FCS_ROB_ID.MP_FCS_R2ID;
+//            MpFcsStartMeasuringReturn  startMeasRet= mpc.mpFcsStartMeasuring(rob_id, 2000);
+//            System.out.println("startMeasRet = " + startMeasRet);
+//            MpFcsGetForceDataReturn getForceDataRet = mpc.mpFcsGetForceData(rob_id, FCS_COORD_TYPE.FCS_ROBO_TYPE, 0);
+//            System.out.println("getForceDataRet = " + getForceDataRet);
+//            int m[] = new int[]{1,2,3,4,5,6};
+//            int d[] = new int[]{7,8,9,10,11,12};
+//            int k[] = new int[]{20,30,40,50,60,70};
+//            
+//            MpFcsBaseReturn startImpRet = mpc.mpFcsStartImp(rob_id, 
+//                    m,d,k,
+//                    FCS_COORD_TYPE.FCS_ROBO_TYPE, 
+//                    0, 7, 0);
+//            System.out.println("startImpRet = " + startImpRet);
+
+//              int fref_data[] = new int[]{7,6,5,4,3,2};
+//              MpFcsBaseReturn setRefReturn = mpc.mpFcsSetReferenceForce(rob_id, fref_data);
+//              System.out.println("setRefReturn = " + setRefReturn);
+//              
+//            MpFcsBaseReturn endImpRet = mpc.mpFcsEndImp(rob_id);
+//            System.out.println("endImpRet = " + endImpRet);
+//            MpFcsBaseReturn convForceScaleRet = mpc.mpFcsConvForceScale(rob_id, 10000);
+//            System.out.println("convForceScaleRet = " + convForceScaleRet);
+//
+//            MpFcsGetSensorDataReturn getSensDataReturn = mpc.mpFcsGetSensorData(rob_id);
+//            System.out.println("getSensDataReturn = " + getSensDataReturn);
+//            
+            int angle[] = new int[]{0, 10, 15, 30, 45, 60, 75, 90};
+            int grp_no = 2;
+            int tool_no = 3;
+            MpKinCartPosReturn convAxesToCartPosReturn
+                    = mpc.mpConvAxesToCartPos(grp_no, angle, tool_no);
+            System.out.println("convAxesToCartPosReturn = " + convAxesToCartPosReturn);
+
+            MpKinAngleReturn convCartToAxesReturn
+                    = mpc.mpConvCartPosToAxes(
+                            grp_no,
+                            convAxesToCartPosReturn.coord,
+                            tool_no,
+                            convAxesToCartPosReturn.fig_ctrl,
+                            angle,
+                            MP_KINEMA_TYPE.MP_KINEMA_FIG);
+
+            System.out.println("convCartToAxesReturn = " + convCartToAxesReturn);
+
+            int pulse[] = new int[]{5,10,15,20,25,30,35,40};
+            MpKinAngleReturn convPulseToAnglesReturn
+                    = mpc.mpConvPulseToAngle(grp_no, pulse);
+            System.out.println("convPulseToAnglesReturn = " + convPulseToAnglesReturn);
             
-            PmRotationVector rv = new PmRotationVector(rotMag, rx / rotMag, ry / rotMag, rz / rotMag);
-            
-            System.out.println("rv.s*rv.x = " + rv.s*rv.x);
-            System.out.println("rv = " + rv);
-            PmRpy rpy2 = Posemath.toRpy(rv);
-            System.out.println("rpy2 = " + rpy2);
-//            PmRotationMatrix mat = Posemath.toMat(rpy);
-//            System.out.println("mat = " + mat);
-            double srx = Math.sin(Math.toRadians(rx));
-            double sry = Math.sin(Math.toRadians(ry));
-            double srz = Math.sin(Math.toRadians(rz));
-            double crx = Math.cos(Math.toRadians(rx));
-            double cry = Math.cos(Math.toRadians(ry));
-            double crz = Math.cos(Math.toRadians(rz));
-            PmRotationMatrix mat2 = new PmRotationMatrix(
-                    Math.signum(cry*crz)*Math.sqrt(1 - srz*cry*srz*cry-sry*crz*sry*crz), srz*cry,sry*crx, 
-                    srz*crx,Math.signum(crx*crz)*Math.sqrt(1 - srz*crx*srz*crx-srx*crz*srx*crz),sry*crz, 
-                    sry*crx,srx*cry,Math.signum(cry*crx)*Math.sqrt(1 - srx*cry*srx*cry-sry*crx*sry*crx));
-            System.out.println("mat2 = " + mat2);
-            
-            double rx2 = Math.toDegrees(Math.atan2(mat2.z.y, mat2.z.z));
-            double ry2 = Math.toDegrees(Math.atan2(mat2.z.x*Math.signum(Math.cos(Math.toRadians(rx2))), mat2.z.z*Math.signum(Math.cos(Math.toRadians(rx2)))));
-            double rz2 = Math.toDegrees(Math.atan2(mat2.x.y, mat2.x.x));
-            System.out.println("rx2 = " + rx2);
-            System.out.println("ry2 = " + ry2);
-            System.out.println("rz2 = " + rz2);
-            if (true) {
-                return;
-            }
+//    extern int mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale);
+//    extern int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data);
+//            MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
+//            PmEulerZyx eulerZyx = new PmEulerZyx(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()));
+//            System.out.println("eulerZyx = " + eulerZyx);
+//            double rx = pos.rx();
+//            double ry = pos.ry();
+//            double rz = pos.rz();
+//            System.out.println("rx = " + rx);
+//            System.out.println("ry = " + ry);
+//            System.out.println("rz = " + rz);
+////            double rotMag = Math.max(rx, Math.max(ry, rz));
+//            double rotMag = Math.toRadians(Math.sqrt(rx * rx + ry * ry + rz * rz));
+//
+//            PmRotationVector rv = new PmRotationVector(rotMag, rx / rotMag, ry / rotMag, rz / rotMag);
+//
+//            System.out.println("rv.s*rv.x = " + rv.s * rv.x);
+//            System.out.println("rv = " + rv);
+//            PmRpy rpy2 = Posemath.toRpy(rv);
+//            System.out.println("rpy2 = " + rpy2);
+////            PmRotationMatrix mat = Posemath.toMat(rpy);
+////            System.out.println("mat = " + mat);
+//            double srx = Math.sin(Math.toRadians(rx));
+//            double sry = Math.sin(Math.toRadians(ry));
+//            double srz = Math.sin(Math.toRadians(rz));
+//            double crx = Math.cos(Math.toRadians(rx));
+//            double cry = Math.cos(Math.toRadians(ry));
+//            double crz = Math.cos(Math.toRadians(rz));
+//            PmRotationMatrix mat2 = new PmRotationMatrix(
+//                    Math.signum(cry * crz) * Math.sqrt(1 - srz * cry * srz * cry - sry * crz * sry * crz), srz * cry, sry * crx,
+//                    srz * crx, Math.signum(crx * crz) * Math.sqrt(1 - srz * crx * srz * crx - srx * crz * srx * crz), sry * crz,
+//                    sry * crx, srx * cry, Math.signum(cry * crx) * Math.sqrt(1 - srx * cry * srx * cry - sry * crx * sry * crx));
+//            System.out.println("mat2 = " + mat2);
+//
+//            double rx2 = Math.toDegrees(Math.atan2(mat2.z.y, mat2.z.z));
+//            double ry2 = Math.toDegrees(Math.atan2(mat2.z.x * Math.signum(Math.cos(Math.toRadians(rx2))), mat2.z.z * Math.signum(Math.cos(Math.toRadians(rx2)))));
+//            double rz2 = Math.toDegrees(Math.atan2(mat2.x.y, mat2.x.x));
+//            System.out.println("rx2 = " + rx2);
+//            System.out.println("ry2 = " + ry2);
+//            System.out.println("rz2 = " + rz2);
+//            if (true) {
+//                return;
+//            }
 //            mpc.downloadJobData("MOVELGEAR", new File(Utils.getCrclUserHomeDir(), "MOVELGEAR.JBR"));
 //            if (true) {
 //                return;
@@ -446,7 +502,7 @@ public class TestMotoPlusConnection {
         spd.v = 200;
         System.out.println("Calling mpMotSetSpeed(0," + spd + ")");
         mpc.mpMotSetSpeed(0, spd);
-       
+
         System.out.println("Calling mpGetCartPos(0,...)");
         MP_CART_POS_RSP_DATA cartResData = mpc.getCartPos(0);
         System.out.println("cartResData = " + cartResData);
@@ -562,7 +618,7 @@ public class TestMotoPlusConnection {
 
         System.out.println("Calling getPulsePos(0)");
         MP_PULSE_POS_RSP_DATA pulseData = mpc.getPulsePos(0);
-        System.out.println("pulseData = " +pulseData);
+        System.out.println("pulseData = " + pulseData);
         JointTarget jointTarget = new JointTarget();
         jointTarget.setId(26);
         jointTarget.setIntp(MP_INTP_TYPE.MP_MOVJ_TYPE);

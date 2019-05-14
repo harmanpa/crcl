@@ -20,42 +20,38 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.crcl4java.motoman;
-
-import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
-import java.util.HashMap;
-import java.util.Map;
+package com.github.wshackle.crcl4java.motoman.force;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public enum RemoteFunctionGroup {
-    INVALID_FUNCTION_GROUP(0),
-    MOT_FUNCTION_GROUP(1),
-    SYS1_FUNCTION_GROUP(2),
-    FILE_CTRL_FUNCTION_GROUP(3),
-    EX_FILE_CTRL_FUNCTION_GROUP(4),
-    FORCE_CTRL_FUNCTION_GROUP(5),
-    KINEMATICS_CONVERSION_FUNCTION_GROUP(6);
+public enum RemoteForceControlFunctionType {
 
-    private RemoteFunctionGroup(int id) {
+    FORCE_CONTROL_INVALID(0),
+    FORCE_CONTROL_START_MEASURING(1),
+    FORCE_CONTROL_GET_FORCE_DATA(2),
+    FORCE_CONTROL_START_IMP(3),
+    FORCE_CONTROL_SET_REFERENCE_FORCE(4),
+    FORCE_CONTROL_END_IMP(5),
+    FORCE_CONTROL_CONV_FORCE_SCALE(6),
+    FORCE_CONTROL_GET_SENSOR_DATA(7);
+
+    private RemoteForceControlFunctionType(int id) {
         this.id = id;
     }
 
     private final int id;
 
-    private static Map<Integer, MotCtrlReturnEnum> map = new HashMap<>();
-
-    static {
-        for (int i = 0; i < MotCtrlReturnEnum.values().length; i++) {
-            MotCtrlReturnEnum m = MotCtrlReturnEnum.values()[i];
-            map.put(m.getId(), m);
-        }
-    }
-
+//    private static Map<Integer, RemoteSys1FunctionType> map = new HashMap<>();
+//
+//    static {
+//        for (int i = 0; i < RemoteSys1FunctionType.values().length; i++) {
+//            RemoteSys1FunctionType m = RemoteSys1FunctionType.values()[i];
+//            map.put(m.getId(), m);
+//        }
+//    }
     public int getId() {
         return id;
     }
-
 }
