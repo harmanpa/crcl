@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.kinematics.MP_COORD;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
@@ -56,7 +57,7 @@ public class TestMotoPlusConnection {
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
 
-            mpc.setDebug(true);
+//            mpc.setDebug(true);
 //            MP_FCS_ROB_ID rob_id = MP_FCS_ROB_ID.MP_FCS_R2ID;
 //            MpFcsStartMeasuringReturn  startMeasRet= mpc.mpFcsStartMeasuring(rob_id, 2000);
 //            System.out.println("startMeasRet = " + startMeasRet);
@@ -88,6 +89,30 @@ public class TestMotoPlusConnection {
             System.out.println("currentPulseData = " + currentPulseData);
             MpKinAngleReturn currentAngle = mpc.mpConvPulseToAngle(0, currentPulseData.lPos);
             System.out.println("currentAngle = " + currentAngle);
+            
+            MpKinPulseReturn convPulseBackRet = mpc.mpConvAngleToPulse(0, currentAngle.angle);
+            System.out.println("convPulseBackRet = " + convPulseBackRet);
+            
+            MP_CART_POS_RSP_DATA currentCartPos = mpc.getCartPos(0);
+            System.out.println("currentCartPos = " + currentCartPos);
+            int prev_angle[] = new int[8];
+            MP_COORD coord = currentCartPos.toMpCoord();
+            System.out.println("coord = " + coord);
+            MpKinAngleReturn convCartPosToAxesRet;
+            //= mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT);
+//            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
+//            
+//             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
+//            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
+             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, prev_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG);
+            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
+            for (int i = 0; i < currentAngle.angle.length; i++) {
+                int diff = currentAngle.angle[i] - convCartPosToAxesRet.angle[i];
+                System.out.println("i="+i+", diff = " + diff);
+            }
+            
+            MpKinCartPosReturn convAngleToCartRet = mpc.mpConvAxesToCartPos(0, currentAngle.angle, 0);
+            System.out.println("convAngleToCartRet = " + convAngleToCartRet);
             
 //            int angle[] = new int[]{0, 10, 15, 30, 45, 60, 75, 90};
 //            int grp_no = 2;

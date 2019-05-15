@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman.sys1;
 
+import com.github.wshackle.crcl4java.motoman.kinematics.MP_COORD;
 import java.util.Arrays;
 
 /**
@@ -34,6 +35,18 @@ public class MP_CART_POS_RSP_DATA {
     public final int lPos[] = new int[MAX_CART_AXES];
     public short sConfig;
 
+    
+    public MP_COORD toMpCoord() {
+        MP_COORD coord = new MP_COORD();
+        coord.x = lPos[0];
+        coord.y = lPos[0];
+        coord.z = lPos[0];
+        coord.rx = lPos[3];
+        coord.ry = lPos[4];
+        coord.rz = lPos[5];
+        return coord;
+    }
+    
     public boolean front() {
         return (sConfig & 1) == 0;
     }
