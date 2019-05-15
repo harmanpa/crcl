@@ -923,6 +923,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     int scale;
     int ret;
     int sendLen = 8;
+    int i;
 
     switch (type) {
 
@@ -938,7 +939,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             ret = mpFcsStartMeasuring(rob_id, reset_time, offset_data);
             setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + (4 * i), offset_data[i]);
             }
             sendLen = 8 + 4 * MP_FCS_AXES_NUM;
@@ -958,7 +959,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             ret = mpFcsGetForceData(rob_id, coord_type, uf_no, sens_data);
             setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + (4 * i), sens_data[i]);
             }
             sendLen = 8 + 4 * MP_FCS_AXES_NUM;
@@ -973,13 +974,13 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 return -1;
             }
             rob_id = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 m[i] = getInt32(inBuffer, 16 + (4 * i));
             }
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 d[i] = getInt32(inBuffer, 16 + 4 * MP_FCS_AXES_NUM + (4 * i));
             }
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 k[i] = getInt32(inBuffer, 16 + 8 * MP_FCS_AXES_NUM + (4 * i));
             }
             coord_type = getInt32(inBuffer, 16 + 12 * MP_FCS_AXES_NUM);
@@ -1000,7 +1001,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
                 return -1;
             }
             rob_id = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 fref_data[i] = getInt32(inBuffer, 16 + (4 * i));
             }
             ret = mpFcsSetReferenceForce(rob_id, fref_data);
@@ -1043,7 +1044,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             ret = mpFcsGetSensorData(rob_id, sens_data);
             setInt32(outBuffer, 0, 4 + 4 * MP_FCS_AXES_NUM);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+            for (i = 0; i < MP_FCS_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + (4 * i), sens_data[i]);
             }
             sendLen = 8 + 4 * MP_FCS_AXES_NUM;
@@ -1068,34 +1069,31 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
     MP_KINEMA_TYPE kinema_type;
     long pulse[MP_GRP_AXES_NUM];
     long fbpulse[MP_GRP_AXES_NUM];
-    MP_XYZ org_vector;
-    MP_XYZ x_vector;
-    MP_XYZ y_vector;
-    MP_FRAME frame;
-    MP_FRAME org_frame;
-    double rot_angle;
-    MP_XYZ rot_vector;
-    MP_FRAME frame1;
-    MP_FRAME frame2;
-    MP_FRAME frame_prod;
-    MP_XYZ vector1;
-    MP_XYZ vector2;
-    MP_XYZ xyz_prod;
-    double inner_double_prod;
+    /*
+        MP_XYZ org_vector;
+        MP_XYZ x_vector;
+        MP_XYZ y_vector;
+        MP_FRAME frame;
+        MP_FRAME org_frame;
+        double rot_angle;
+        MP_XYZ rot_vector;
+        MP_FRAME frame1;
+        MP_FRAME frame2;
+        MP_FRAME frame_prod;
+        MP_XYZ vector1;
+        MP_XYZ vector2;
+        MP_XYZ xyz_prod;
+        double inner_double_prod;
+     */
     int ret;
     int sendLen = 8;
+    int i;
 
-    memset(prev_angle, 0, sizeof (prev_angle)*MP_GRP_AXES_NUM);
-    printf("sizeof(prev_angle)*MP_GRP_AXES_NUM=%ld\n", sizeof (prev_angle)*MP_GRP_AXES_NUM);
-    memset(angle, 0, sizeof (angle)*MP_GRP_AXES_NUM);
-    printf("sizeof(angle)*MP_GRP_AXES_NUM=%ld\n", sizeof (angle)*MP_GRP_AXES_NUM);
-    memset(pulse, 0, sizeof (pulse)*MP_GRP_AXES_NUM);
-    printf("sizeof(pulse)*MP_GRP_AXES_NUM=%ld\n", sizeof (pulse)*MP_GRP_AXES_NUM);
-    memset(fbpulse, 0, sizeof (fbpulse)*MP_GRP_AXES_NUM);
-    printf("sizeof(fbpulse)*MP_GRP_AXES_NUM=%ld\n", sizeof (fbpulse)*MP_GRP_AXES_NUM);
+    memset(prev_angle, 0, sizeof (prev_angle) * MP_GRP_AXES_NUM);
+    memset(angle, 0, sizeof (angle) * MP_GRP_AXES_NUM);
+    memset(pulse, 0, sizeof (pulse) * MP_GRP_AXES_NUM);
+    memset(fbpulse, 0, sizeof (fbpulse) * MP_GRP_AXES_NUM);
     memset(&coord, 0, sizeof (MP_COORD));
-    printf("sizeof(coord)=%ld\n", sizeof (coord));
-    printf("sizeof(MP_COORD)=%ld\n", sizeof (MP_COORD));
     switch (type) {
 
         case KINEMATICS_CONVERSION_CONVERT_AXES_TO_CART_POS:
@@ -1106,7 +1104,7 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
                 return -1;
             }
             grp_no = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 angle[i] = getInt32(inBuffer, 16 + i * 4);
             }
             tool_no = getInt32(inBuffer, 16 + 4 * MP_GRP_AXES_NUM);
@@ -1144,14 +1142,14 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
             coord.ex2 = getInt32(inBuffer, 44);
             tool_no = getInt32(inBuffer, 48);
             fig_ctrl = getInt32(inBuffer, 52);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 prev_angle[i] = getInt32(inBuffer, 52 + i * 4);
             }
             kinema_type = getInt32(inBuffer, 52 + MP_GRP_AXES_NUM * 4);
             ret = mpConvCartPosToAxes(grp_no, &coord, tool_no, fig_ctrl, prev_angle, kinema_type, angle);
             setInt32(outBuffer, 0, 4 + MP_GRP_AXES_NUM * 4);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + i * 4, angle[i]);
             }
             sendLen = 8 + MP_GRP_AXES_NUM * 4;
@@ -1166,13 +1164,13 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
                 return -1;
             }
             grp_no = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 pulse[i] = getInt32(inBuffer, 16 + i * 4);
             }
             ret = mpConvPulseToAngle(grp_no, pulse, angle);
             setInt32(outBuffer, 0, 4 + MP_GRP_AXES_NUM * 4);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + i * 4, angle[i]);
             }
             sendLen = 8 + MP_GRP_AXES_NUM * 4;
@@ -1187,13 +1185,13 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
                 return -1;
             }
             grp_no = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 angle[i] = getInt32(inBuffer, 16 + i * 4);
             }
             ret = mpConvAngleToPulse(grp_no, angle, pulse);
             setInt32(outBuffer, 0, 4 + MP_GRP_AXES_NUM * 4);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + i * 4, pulse[i]);
             }
             sendLen = 8 + MP_GRP_AXES_NUM * 4;
@@ -1208,13 +1206,13 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
                 return -1;
             }
             grp_no = getInt32(inBuffer, 12);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 fbpulse[i] = getInt32(inBuffer, 16 + i * 4);
             }
             ret = mpConvFBPulseToPulse(grp_no, fbpulse, pulse);
             setInt32(outBuffer, 0, 4 + MP_GRP_AXES_NUM * 4);
             setInt32(outBuffer, 4, ret);
-            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+            for (i = 0; i < MP_GRP_AXES_NUM; i++) {
                 setInt32(outBuffer, 8 + i * 4, pulse[i]);
             }
             sendLen = 8 + MP_GRP_AXES_NUM * 4;
