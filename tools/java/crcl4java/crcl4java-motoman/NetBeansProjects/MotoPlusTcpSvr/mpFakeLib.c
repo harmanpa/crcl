@@ -586,7 +586,7 @@ int mpConvPulseToAngle(unsigned int grp_no, long pulse[MP_GRP_AXES_NUM], long an
 
 int mpConvAngleToPulse(unsigned int grp_no, long angle[MP_GRP_AXES_NUM], long pulse[MP_GRP_AXES_NUM]) {
     printf("mpConvAngleToPulse(grp_no=%d,...,) called.\n", grp_no);
-    for (int i = 0; i < MP_FCS_AXES_NUM; i++) {
+    for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
         printf("mpConvAngleToPulse : angle[%d]=%ld\n", i, angle[i]);
         pulse[i]= angle[i]+i;
     }

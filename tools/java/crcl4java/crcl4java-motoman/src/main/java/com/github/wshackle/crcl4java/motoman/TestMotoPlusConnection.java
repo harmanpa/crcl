@@ -22,12 +22,10 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
-import com.github.wshackle.crcl4java.motoman.force.MP_FCS_ROB_ID;
-import com.github.wshackle.crcl4java.motoman.force.MpFcsBaseReturn;
-import com.github.wshackle.crcl4java.motoman.force.MpFcsGetSensorDataReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinPulseReturn;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;

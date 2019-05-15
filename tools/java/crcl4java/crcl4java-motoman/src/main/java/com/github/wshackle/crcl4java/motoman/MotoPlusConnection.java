@@ -41,6 +41,7 @@ import com.github.wshackle.crcl4java.motoman.kinematics.MP_COORD;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinPulseReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.RemoteKinematicsConversionFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.RemoteMotFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
@@ -936,6 +937,44 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             writeDataOutputStream(bb);
         }
+        
+        public void startMpConvAngleToPulse(int grp_no, int angle[]) throws IOException, MotoPlusConnectionException {
+            if (angle.length != MP_GRP_AXES_NUM) {
+                throw new RuntimeException("angle.length=" + angle.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
+            }
+            if (grp_no < 0) {
+                throw new IllegalArgumentException("grp_no=" + grp_no);
+            }
+            final int inputSize = 16 + 4 * MP_GRP_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteKinematicsConversionFunctionType.KINEMATICS_CONVERSION_CONVERT_ANGLE_TO_PULSE.getId()); // type of function remote server will call
+            bb.putInt(12, grp_no);
+            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+                bb.putInt(16 + 4 * i, angle[i]);
+            }
+            writeDataOutputStream(bb);
+        }
+        
+        public void startMpConvFBPulseToPulse(int grp_no, int fbpulse[]) throws IOException, MotoPlusConnectionException {
+            if (fbpulse.length != MP_GRP_AXES_NUM) {
+                throw new RuntimeException("fbpulse.length=" + fbpulse.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
+            }
+            if (grp_no < 0) {
+                throw new IllegalArgumentException("grp_no=" + grp_no);
+            }
+            final int inputSize = 16 + 4 * MP_GRP_AXES_NUM;
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteKinematicsConversionFunctionType.KINEMATICS_CONVERSION_CONVERT_FB_PULSE_TO_PULSE.getId()); // type of function remote server will call
+            bb.putInt(12, grp_no);
+            for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
+                bb.putInt(16 + 4 * i, fbpulse[i]);
+            }
+            writeDataOutputStream(bb);
+        }
 
     }
     private static final int MP_FCS_AXES_NUM = 6;
@@ -1508,6 +1547,24 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             return returnVal;
         }
+        
+        public MpKinPulseReturn getMpPulseReturn() throws IOException, MotoPlusConnectionException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            MpKinPulseReturn returnVal = new MpKinPulseReturn();
+
+            returnVal.returnInt = bb.getInt(0);
+            returnVal.returnCode = KinReturnCode.fromInt(returnVal.returnInt);
+            for (int i = 0; i < returnVal.pulse.length; i++) {
+                returnVal.pulse[i] = bb.getInt(4 + 4 * i);
+            }
+            return returnVal;
+        }
 
     };
 
@@ -1750,6 +1807,16 @@ public class MotoPlusConnection implements AutoCloseable {
     public MpKinAngleReturn mpConvPulseToAngle(int grp_no, int pulse[]) throws IOException, MotoPlusConnectionException {
         starter.startMpConvPulseToAngle(grp_no, pulse);
         return returner.getMpAngleReturn();
+    }
+    
+    public MpKinPulseReturn mpConvAngleToPulse(int grp_no, int pulse[]) throws IOException, MotoPlusConnectionException {
+        starter.startMpConvAngleToPulse(grp_no, pulse);
+        return returner.getMpPulseReturn();
+    }
+    
+    public MpKinPulseReturn mpConvFBPulseToPulse(int grp_no, int fbpulse[]) throws IOException, MotoPlusConnectionException {
+        starter.startMpConvFBPulseToPulse(grp_no, fbpulse);
+        return returner.getMpPulseReturn();
     }
 
 //    extern int mpConvPulseToAngle(unsigned int grp_no, long pulse[MP_GRP_AXES_NUM], long angle[MP_GRP_AXES_NUM]);
