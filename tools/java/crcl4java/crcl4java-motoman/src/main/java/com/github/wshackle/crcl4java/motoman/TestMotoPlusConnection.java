@@ -86,29 +86,34 @@ public class TestMotoPlusConnection {
 //            MpFcsGetSensorDataReturn getSensDataReturn = mpc.mpFcsGetSensorData(rob_id);
 //            System.out.println("getSensDataReturn = " + getSensDataReturn);
 //            
-            int angle[] = new int[]{0, 10, 15, 30, 45, 60, 75, 90};
-            int grp_no = 2;
-            int tool_no = 3;
-            MpKinCartPosReturn convAxesToCartPosReturn
-                    = mpc.mpConvAxesToCartPos(grp_no, angle, tool_no);
-            System.out.println("convAxesToCartPosReturn = " + convAxesToCartPosReturn);
-
-            MpKinAngleReturn convCartToAxesReturn
-                    = mpc.mpConvCartPosToAxes(
-                            grp_no,
-                            convAxesToCartPosReturn.coord,
-                            tool_no,
-                            convAxesToCartPosReturn.fig_ctrl,
-                            angle,
-                            MP_KINEMA_TYPE.MP_KINEMA_FIG);
-
-            System.out.println("convCartToAxesReturn = " + convCartToAxesReturn);
-
-            int pulse[] = new int[]{5,10,15,20,25,30,35,40};
-            MpKinAngleReturn convPulseToAnglesReturn
-                    = mpc.mpConvPulseToAngle(grp_no, pulse);
-            System.out.println("convPulseToAnglesReturn = " + convPulseToAnglesReturn);
+            MP_PULSE_POS_RSP_DATA currentPulseData = mpc.getPulsePos(0);
+            System.out.println("currentPulseData = " + currentPulseData);
+            MpKinAngleReturn currentAngle = mpc.mpConvPulseToAngle(0, currentPulseData.lPos);
+            System.out.println("currentAngle = " + currentAngle);
             
+//            int angle[] = new int[]{0, 10, 15, 30, 45, 60, 75, 90};
+//            int grp_no = 2;
+//            int tool_no = 3;
+//            MpKinCartPosReturn convAxesToCartPosReturn
+//                    = mpc.mpConvAxesToCartPos(grp_no, angle, tool_no);
+//            System.out.println("convAxesToCartPosReturn = " + convAxesToCartPosReturn);
+//
+//            MpKinAngleReturn convCartToAxesReturn
+//                    = mpc.mpConvCartPosToAxes(
+//                            grp_no,
+//                            convAxesToCartPosReturn.coord,
+//                            tool_no,
+//                            convAxesToCartPosReturn.fig_ctrl,
+//                            angle,
+//                            MP_KINEMA_TYPE.MP_KINEMA_FIG);
+//
+//            System.out.println("convCartToAxesReturn = " + convCartToAxesReturn);
+//
+//            int pulse[] = new int[]{5,10,15,20,25,30,35,40};
+//            MpKinAngleReturn convPulseToAnglesReturn
+//                    = mpc.mpConvPulseToAngle(grp_no, pulse);
+//            System.out.println("convPulseToAnglesReturn = " + convPulseToAnglesReturn);
+//            
 //    extern int mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale);
 //    extern int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data);
 //            MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
