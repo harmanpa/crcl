@@ -1084,15 +1084,19 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
     double inner_double_prod;
     int ret;
     int sendLen = 8;
-
-    memset(prev_angle, 0, sizeof (prev_angle)*MP_GRP_AXES_NUM);
-    printf("sizeof(prev_angle)*MP_GRP_AXES_NUM=%ld\n", sizeof (prev_angle)*MP_GRP_AXES_NUM);
-    memset(angle, 0, sizeof (angle)*MP_GRP_AXES_NUM);
-    printf("sizeof(angle)*MP_GRP_AXES_NUM=%ld\n", sizeof (angle)*MP_GRP_AXES_NUM);
-    memset(pulse, 0, sizeof (pulse)*MP_GRP_AXES_NUM);
-    printf("sizeof(pulse)*MP_GRP_AXES_NUM=%ld\n", sizeof (pulse)*MP_GRP_AXES_NUM);
-    memset(fbpulse, 0, sizeof (fbpulse)*MP_GRP_AXES_NUM);
-    printf("sizeof(fbpulse)*MP_GRP_AXES_NUM=%ld\n", sizeof (fbpulse)*MP_GRP_AXES_NUM);
+    
+    int anglelen = sizeof (long)*MP_GRP_AXES_NUM;
+    printf("anglelen=%d\n",anglelen);
+    memset(prev_angle, 1, anglelen);
+    printf("prev_angle[7]=%ld\n",prev_angle[7]);
+    printf("angle[0]=%ld\n",angle[0]);
+    memset(prev_angle, 0, anglelen);
+    printf("prev_angle[7]=%ld\n",prev_angle[7]);
+    printf("angle[0]=%ld\n",angle[0]);
+    memset(angle, 0, anglelen);
+    printf("angle[0]=%ld\n",angle[0]);
+    memset(pulse, 0, anglelen);
+    memset(fbpulse, 0, anglelen);
     memset(&coord, 0, sizeof (MP_COORD));
     printf("sizeof(coord)=%ld\n", sizeof (coord));
     printf("sizeof(MP_COORD)=%ld\n", sizeof (MP_COORD));

@@ -22,12 +22,10 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
-import com.github.wshackle.crcl4java.motoman.force.MP_FCS_ROB_ID;
-import com.github.wshackle.crcl4java.motoman.force.MpFcsBaseReturn;
-import com.github.wshackle.crcl4java.motoman.force.MpFcsGetSensorDataReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
+import com.github.wshackle.crcl4java.motoman.kinematics.MpKinPulseReturn;
 import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -108,6 +106,16 @@ public class TestMotoPlusConnection {
             MpKinAngleReturn convPulseToAnglesReturn
                     = mpc.mpConvPulseToAngle(grp_no, pulse);
             System.out.println("convPulseToAnglesReturn = " + convPulseToAnglesReturn);
+            
+            MpKinPulseReturn convAngleToPulseReturn
+                    = mpc.mpConvAngleToPulse(grp_no, angle);
+            System.out.println("convAngleToPulseReturn = " + convAngleToPulseReturn);
+            
+            int fbpulse[] = new int[]{50,100,150,200,250,300,350,400};
+            MpKinPulseReturn convFBPulseToPulseReturn
+                    = mpc.mpConvFBPulseToPulse(grp_no, fbpulse);
+            System.out.println("convFBPulseToPulseReturn = " + convFBPulseToPulseReturn);
+            
             
 //    extern int mpFcsConvForceScale(MP_FCS_ROB_ID rob_id, int scale);
 //    extern int mpFcsGetSensorData(MP_FCS_ROB_ID rob_id, MP_FCS_SENS_DATA sens_data);
