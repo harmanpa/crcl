@@ -1058,6 +1058,8 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     return 0;
 }
 
+const int anglelen = sizeof (long) * MP_GRP_AXES_NUM;
+
 int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
 
     unsigned int grp_no;
@@ -1089,10 +1091,10 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
     int sendLen = 8;
     int i;
 
-    memset(prev_angle, 0, sizeof (prev_angle) * MP_GRP_AXES_NUM);
-    memset(angle, 0, sizeof (angle) * MP_GRP_AXES_NUM);
-    memset(pulse, 0, sizeof (pulse) * MP_GRP_AXES_NUM);
-    memset(fbpulse, 0, sizeof (fbpulse) * MP_GRP_AXES_NUM);
+    memset(prev_angle, 0, anglelen);
+    memset(angle, 0, anglelen);
+    memset(pulse, 0, anglelen);
+    memset(fbpulse, 0, anglelen);
     memset(&coord, 0, sizeof (MP_COORD));
     switch (type) {
 

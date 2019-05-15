@@ -27,12 +27,16 @@ static int clientHandles[MAX_CLIENT_HANDLES];
 static int maxClientHandleIndex = 0;
 
 void printTcpSvrInfo() {
+    printf("tcpSvr: sizeof(short)=%ld\n", sizeof (short));
     printf("tcpSvr: sizeof(int)=%ld\n", sizeof (int));
     printf("tcpSvr: sizeof(long)=%ld\n", sizeof (long));
     printf("tcpSvr: sizeof(LONG)=%ld\n", sizeof (LONG));
     printf("tcpSvr: sizeof(ULONG)=%ld\n", sizeof (ULONG));
+    printf("tcpSvr: angleLen=%d\n", angleLen);
+    printf("tcpSvr: MP_GRP_AXES_NUM=%d\n", MP_GRP_AXES_NUM);
     printf("tcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%ld\n", sizeof (MP_CART_POS_RSP_DATA));
     printf("tcpSvr: sizeof(MP_TARGET)=%ld\n", sizeof (MP_TARGET));
+    printf("tcpSvr: sizeof(MP_COORD)=%ld\n", sizeof (MP_COORD));
     printf("tcpSvr: MP_R1_GID = %d\n", MP_R1_GID);
     printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R1_GID));
     printf("tcpSvr: MP_R2_GID = %d\n", MP_R2_GID);
