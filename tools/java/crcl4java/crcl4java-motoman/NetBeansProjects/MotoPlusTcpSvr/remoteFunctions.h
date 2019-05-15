@@ -141,7 +141,7 @@ extern "C" {
     // closing the socket.
     extern int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize);
 
-    extern const int angleLen;
+    extern const int getAngleLen();
     
 #ifdef __cplusplus
 }

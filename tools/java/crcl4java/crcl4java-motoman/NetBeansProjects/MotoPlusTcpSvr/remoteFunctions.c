@@ -1059,6 +1059,9 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 }
 
 const int anglelen = sizeof (long) * MP_GRP_AXES_NUM;
+const int getAngleLen() {
+    return anglelen;
+}
 
 int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, int type, int msgSize) {
 
