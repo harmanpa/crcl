@@ -301,6 +301,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     public static XFuture<Boolean> forceShowText(String init) {
+        Thread.dumpStack();
         return showText(init, null, "", false, true);
     }
 

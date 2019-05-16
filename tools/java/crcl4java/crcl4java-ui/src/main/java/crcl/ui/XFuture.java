@@ -1092,7 +1092,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                     }
                     super.cancel(mayInterrupt);
                 } else {
-                    cancelAllRecurse(mayInterrupt, this, 0);
+                    cancelAllRecurse(mayInterrupt, this, 0, false);
                 }
             }
         } catch (Exception e) {
@@ -1108,7 +1108,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             = Integer.parseInt(System.getProperty("crcl.XFuture.MaxRecurseCount", "250"));
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void cancelAllRecurse(boolean mayInterrupt, XFuture<?> topFuture, int recurseCount) {
+    private void cancelAllRecurse(boolean mayInterrupt, XFuture<?> topFuture, int recurseCount, boolean stackDumped) {
         if (recurseCount > MAX_RECURSE_COUNT) {
             throw new IllegalStateException("recurseCount=" + recurseCount + ", topFuture=" + topFuture);
         }
@@ -1121,10 +1121,14 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
         try {
             if (!this.isCancelled() && !this.isDone() && !this.isCompletedExceptionally()) {
-                if (!closingMode) {
-                    Thread.dumpStack();
+                if (!closingMode && !stackDumped) {
+                    System.err.println();
                     System.err.println("Cancelling XFuture " + getName());
-                    System.err.println("createTrace=" + traceToString(createTrace));
+                    Thread.dumpStack();
+                    System.err.println("    createTrace=" + traceToString(createTrace));
+                    System.err.println("End Cancelling XFuture " + getName());
+                    System.err.println();
+                    stackDumped = true;
                 }
                 this.cancel(false);
             }
@@ -1150,7 +1154,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         for (CompletableFuture<?> f : alsoCancelCopy) {
             if (null != f && f != this && !f.isCancelled() && !f.isDone() && !f.isCompletedExceptionally()) {
                 if (f instanceof XFuture) {
-                    ((XFuture) f).cancelAllRecurse(mayInterrupt, topFuture, recurseCount + 1);
+                    ((XFuture) f).cancelAllRecurse(mayInterrupt, topFuture, recurseCount + 1, stackDumped);
                 } else {
                     f.cancel(mayInterrupt && globalAllowInterupts);
                 }
