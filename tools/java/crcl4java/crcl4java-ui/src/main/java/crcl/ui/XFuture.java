@@ -1125,6 +1125,8 @@ public class XFuture<T> extends CompletableFuture<T> {
                     System.err.println();
                     System.err.println("Cancelling XFuture " + getName());
                     Thread.dumpStack();
+                    printStatus(System.err);
+                    printProfile(System.err);
                     System.err.println("    createTrace=" + traceToString(createTrace));
                     System.err.println("End Cancelling XFuture " + getName());
                     System.err.println();

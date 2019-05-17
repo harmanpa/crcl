@@ -21,12 +21,9 @@
 package crcl.ui.misc;
 
 import crcl.ui.XFuture;
-import crcl.utils.Utils;
 import java.awt.Component;
-import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -295,13 +292,17 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public static XFuture<Boolean> showException(Throwable throwable) {
         return showText(throwable.toString(), null, "Exception", false, true);
     }
+    
+    public static XFuture<Boolean> showException(Throwable throwable, StackTraceElement trace[]) {
+        return showText(throwable.toString() +"\n\n Thrown from:\r\n"+XFuture.traceToString(throwable.getStackTrace())+"\n\n Logged from:\r\n"+XFuture.traceToString(trace), null, "Exception", false, true);
+    }
+
 
     public static XFuture<Boolean> showText(String init) {
         return showText(init, null, "", false, false);
     }
 
     public static XFuture<Boolean> forceShowText(String init) {
-        Thread.dumpStack();
         return showText(init, null, "", false, true);
     }
 
