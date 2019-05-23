@@ -138,8 +138,8 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (null == trace) {
             return "";
         }
-        try (StringWriter stringWriter = new StringWriter()) {
-            try (PrintWriter printWriter = new PrintWriter(stringWriter)) {
+        try ( StringWriter stringWriter = new StringWriter()) {
+            try ( PrintWriter printWriter = new PrintWriter(stringWriter)) {
                 boolean first = true;
                 int firstExternal = 0;
                 int lastExternal = trace.length - 1;
@@ -502,9 +502,9 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public static XFuture<Object> anyOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
-        XFuture<Object> ret = staticwrap(name, orig);
-        ret.alsoCancelAddAll(Arrays.asList(cfs));
-        return ret;
+        XFuture<Object> retXF = staticwrap(name, orig);
+        retXF.alsoCancelAddAll(Arrays.asList(cfs));
+        return retXF;
     }
 
     public static XFutureVoid allOf(CompletableFuture<?>... cfs) {
@@ -513,9 +513,9 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public static XFuture<Object> anyOf(CompletableFuture<?>... cfs) {
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
-        XFuture<Object> ret = staticwrap("anyOfWithName", orig);
-        ret.alsoCancelAddAll(Arrays.asList(cfs));
-        return ret;
+        XFuture<Object> retXF = staticwrap("anyOfWithName", orig);
+        retXF.alsoCancelAddAll(Arrays.asList(cfs));
+        return retXF;
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -662,15 +662,15 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public static <T> XFuture<T> completedFutureWithName(String name, T object) {
-        XFuture<T> ret = new XFuture<>(name);
-        ret.complete(object);
-        return ret;
+        XFuture<T> retXF = new XFuture<>(name);
+        retXF.complete(object);
+        return retXF;
     }
 
     public static <T> XFuture<T> completedFuture(T object) {
-        XFuture<T> ret = new XFuture<>("completedFuture(" + object + ")");
-        ret.complete(object);
-        return ret;
+        XFuture<T> retXF = new XFuture<>("completedFuture(" + object + ")");
+        retXF.complete(object);
+        return retXF;
     }
 
     public static XFutureVoid runAsync(String name, Runnable r) {
@@ -749,26 +749,26 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public XFutureVoid thenComposeToVoid(String name, Function<? super T, ? extends XFuture<Void>> fn) {
         XFuture<Void> future = this.thenCompose(name, fn);
-        XFutureVoid ret = new XFutureVoid(name);
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        XFutureVoid retXF = new XFutureVoid(name);
+        future.handle(createVoidHandleBiFunction(retXF));
+        retXF.alsoCancelAdd(future);
+        return retXF;
     }
 
     public XFutureVoid thenComposeAsyncToVoid(String name, Function<? super T, ? extends XFuture<Void>> fn) {
         XFuture<Void> future = this.thenComposeAsync(name, fn);
-        XFutureVoid ret = new XFutureVoid(name);
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        XFutureVoid retXF = new XFutureVoid(name);
+        future.handle(createVoidHandleBiFunction(retXF));
+        retXF.alsoCancelAdd(future);
+        return retXF;
     }
 
     public XFutureVoid thenComposeAsyncToVoid(String name, Function<? super T, ? extends XFuture<Void>> fn, ExecutorService es) {
         XFuture<Void> future = this.thenComposeAsync(name, fn, es);
-        XFutureVoid ret = new XFutureVoid(name);
-        future.thenRun(() -> ret.complete());
-        ret.alsoCancelAdd(future);
-        return ret;
+        XFutureVoid retXF = new XFutureVoid(name);
+        future.handle(createVoidHandleBiFunction(retXF));
+        retXF.alsoCancelAdd(future);
+        return retXF;
     }
 
     private volatile boolean keepOldProfileStrings;
@@ -846,11 +846,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
         manuallyCompletedValue = value;
 
-        boolean ret = super.complete(value);
+        boolean retXF = super.complete(value);
         saveProfileStrings();
         clearAlsoCancel();
         setCompleteTime();
-        return ret;
+        return retXF;
     }
 
     private void saveProfileStrings() {
@@ -897,7 +897,7 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        boolean ret = super.cancel(mayInterruptIfRunning);
+        boolean retXF = super.cancel(mayInterruptIfRunning);
         if (null != cancelThread) {
             cancelThread = Thread.currentThread();
             cancelStack = cancelThread.getStackTrace();
@@ -906,7 +906,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         saveProfileStrings();
         clearAlsoCancel();
         setCompleteTime();
-        return ret;
+        return retXF;
     }
 
     @Nullable
@@ -921,11 +921,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         completedExceptionallyThread = Thread.currentThread();
         completedExceptionallyTrace = Thread.currentThread().getStackTrace();
 
-        boolean ret = super.completeExceptionally(ex);
+        boolean retXF = super.completeExceptionally(ex);
         saveProfileStrings();
         clearAlsoCancel();
         setCompleteTime();
-        return ret;
+        return retXF;
     }
 
     public long getRunTime() {
@@ -960,21 +960,65 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     public <U> XFuture<U> thenCompose(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
 
-        XFuture<U> myF = new XFuture<>(name);
-        myF.setKeepOldProfileStrings(this.keepOldProfileStrings);
+        XFuture<U> retXF = new XFuture<>(name);
+        retXF.setKeepOldProfileStrings(this.keepOldProfileStrings);
+        final Function<CompletionStage<U>, CompletionStage<U>> composeFunction = (CompletionStage<U> stage) -> {
+            CompletableFuture stageCf;
+            if (stage instanceof CompletableFuture) {
+                stageCf = (CompletableFuture) stage;
+            } else {
+                stageCf = stage.toCompletableFuture();
+            }
+
+            if (stageCf.isCancelled()) {
+                retXF.cancelAll(false);
+                System.out.println("composing with already cancelled stage");
+            }
+            retXF.alsoCancelAdd(stageCf);
+            return stage;
+        };
+
         CompletableFuture<U> f = super.thenApply(fname(fn, name))
-                .thenCompose((CompletionStage<U> stage) -> {
-                    if (stage instanceof CompletableFuture) {
-                        myF.alsoCancelAdd((CompletableFuture) stage);
-                    } else {
-                        myF.alsoCancelAdd(stage.toCompletableFuture());
-                    }
-                    return stage;
-                });
-        myF.alsoCancelAdd(f);
-        myF.alsoCancelAdd(f.thenAccept(x -> myF.complete(x)));
-        myF.alsoCancelAdd(this);
-        return myF;
+                .thenCompose(composeFunction);
+        BiFunction<U, Throwable, U> handleBiFunction = createHandleBiFunction(retXF);
+        retXF.alsoCancelAdd(f);
+        retXF.alsoCancelAdd(f.handle(handleBiFunction));
+        retXF.alsoCancelAdd(this);
+        return retXF;
+    }
+
+    private <U> BiFunction<U, Throwable, U> createHandleBiFunction(XFuture<U> retXF) {
+        final BiFunction<U, Throwable, U> handleBiFunction = (U value, Throwable throwable) -> {
+            if (null != throwable) {
+                retXF.completeExceptionally(throwable);
+                if (throwable instanceof RuntimeException) {
+                    throw (RuntimeException) throwable;
+                } else {
+                    throw new RuntimeException(throwable);
+                }
+            } else {
+                retXF.complete(value);
+            }
+            return value;
+        };
+        return handleBiFunction;
+    }
+
+    protected <U> BiFunction<U, Throwable, U> createVoidHandleBiFunction(XFutureVoid retXF) {
+        final BiFunction<U, Throwable, U> handleBiFunction = (U value, Throwable throwable) -> {
+            if (null != throwable) {
+                retXF.completeExceptionally(throwable);
+                if (throwable instanceof RuntimeException) {
+                    throw (RuntimeException) throwable;
+                } else {
+                    throw new RuntimeException(throwable);
+                }
+            } else {
+                retXF.complete();
+            }
+            return value;
+        };
+        return handleBiFunction;
     }
 
     @Override
@@ -983,21 +1027,23 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
-        XFuture<U> myF = new XFuture<>(name);
-        myF.setKeepOldProfileStrings(this.keepOldProfileStrings);
+        XFuture<U> retXF = new XFuture<>(name);
+        retXF.setKeepOldProfileStrings(this.keepOldProfileStrings);
+
         CompletableFuture<U> f = super.thenApplyAsync(fname(fn, name), executor)
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
-                        myF.alsoCancelAdd((CompletableFuture) stage);
+                        retXF.alsoCancelAdd((CompletableFuture) stage);
                     } else {
-                        myF.alsoCancelAdd(stage.toCompletableFuture());
+                        retXF.alsoCancelAdd(stage.toCompletableFuture());
                     }
                     return stage;
                 });
-        myF.alsoCancelAdd(f);
-        myF.alsoCancelAdd(f.thenAccept(x -> myF.complete(x)));
-        myF.alsoCancelAdd(this);
-        return myF;
+        final BiFunction<U, Throwable, U> handleBiFunction = createHandleBiFunction(retXF);
+        retXF.alsoCancelAdd(f);
+        retXF.alsoCancelAdd(f.handle(handleBiFunction));
+        retXF.alsoCancelAdd(this);
+        return retXF;
     }
 
     @Override
@@ -1006,21 +1052,22 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public <U> XFuture<U> thenComposeAsync(String name, Function<? super T, ? extends CompletionStage<U>> fn) {
-        XFuture<U> myF = new XFuture<>(name);
-        myF.setKeepOldProfileStrings(this.keepOldProfileStrings);
+        XFuture<U> retXF = new XFuture<>(name);
+        retXF.setKeepOldProfileStrings(this.keepOldProfileStrings);
         CompletableFuture<U> f = super.thenApplyAsync(fname(fn, name), getDefaultThreadPool())
                 .thenCompose((CompletionStage<U> stage) -> {
                     if (stage instanceof CompletableFuture) {
-                        myF.alsoCancelAdd((CompletableFuture) stage);
+                        retXF.alsoCancelAdd((CompletableFuture) stage);
                     } else {
-                        myF.alsoCancelAdd(stage.toCompletableFuture());
+                        retXF.alsoCancelAdd(stage.toCompletableFuture());
                     }
                     return stage;
                 });
-        myF.alsoCancelAdd(f);
-        myF.alsoCancelAdd(f.thenAccept(x -> myF.complete(x)));
-        myF.alsoCancelAdd(this);
-        return myF;
+        final BiFunction<U, Throwable, U> handleBiFunction = createHandleBiFunction(retXF);
+        retXF.alsoCancelAdd(f);
+        retXF.alsoCancelAdd(f.handle(handleBiFunction));
+        retXF.alsoCancelAdd(this);
+        return retXF;
     }
 
     @Nullable
@@ -1205,7 +1252,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return printCancellationExceptions;
     }
 
-    static private <T> T hiddenHandler(T ret, Throwable thrown, CompletableFuture<T> future, XFuture<T> newFuture) {
+    static private <T> T hiddenHandler(T retValue, Throwable thrown, CompletableFuture<T> future, XFuture<T> newFuture) {
         if (null != thrown) {
             if (thrown instanceof PrintedXFutureRuntimeException) {
                 newFuture.completeExceptionally(thrown);
@@ -1235,8 +1282,12 @@ public class XFuture<T> extends CompletableFuture<T> {
                 throw new PrintedXFutureRuntimeException(thrown);
             }
         }
-        newFuture.complete(ret);
-        return ret;
+        if (future.isCancelled()) {
+            newFuture.cancelAll(false);
+        } else {
+            newFuture.complete(retValue);
+        }
+        return retValue;
     }
 
     private static <T> XFuture<T> staticwrap(String name, CompletableFuture<T> future) {
@@ -1351,6 +1402,26 @@ public class XFuture<T> extends CompletableFuture<T> {
         Function<Throwable, T> func = (Throwable throwable1) -> {
             if (null != throwable1) {
                 consumer.accept(throwable1);
+                if (throwable1 instanceof RuntimeException) {
+                    throw (RuntimeException) throwable1;
+                } else {
+                    throw new RuntimeException(throwable1);
+                }
+            }
+            throw new NullPointerException("throwable1");
+        };
+        return wrap(this.name + ".exceptionally", super.exceptionally(func));
+    }
+
+    public XFuture<T> peekNoCancelException(Consumer<Throwable> consumer) {
+        Function<Throwable, T> func = (Throwable throwable1) -> {
+            if (null != throwable1) {
+                if (!(throwable1 instanceof CancellationException)) {
+                    Throwable cause = throwable1.getCause();
+                    if (!(cause instanceof CancellationException)) {
+                        consumer.accept(throwable1);
+                    }
+                }
                 if (throwable1 instanceof RuntimeException) {
                     throw (RuntimeException) throwable1;
                 } else {
@@ -1567,37 +1638,37 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
-        XFuture<V> ret = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
+        XFuture<V> retXF = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
         if (other instanceof CompletableFuture) {
-            ret.alsoCancelAdd((CompletableFuture) other);
+            retXF.alsoCancelAdd((CompletableFuture) other);
         }
-        return ret;
+        return retXF;
     }
 
     @Override
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
+        XFuture<V> retXF = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
         if (other instanceof CompletableFuture) {
-            ret.alsoCancelAdd((CompletableFuture) other);
+            retXF.alsoCancelAdd((CompletableFuture) other);
         }
-        return ret;
+        return retXF;
     }
 
     @Override
     public <U, V> XFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret = wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
+        XFuture<V> retXF = wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
         if (other instanceof CompletableFuture) {
-            ret.alsoCancelAdd((CompletableFuture) other);
+            retXF.alsoCancelAdd((CompletableFuture) other);
         }
-        return ret;
+        return retXF;
     }
 
     public <U, V> XFuture<V> thenCombine(String name, CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
-        XFuture<V> ret = wrap(name, super.thenCombine(other, fn));
+        XFuture<V> retXF = wrap(name, super.thenCombine(other, fn));
         if (other instanceof CompletableFuture) {
-            ret.alsoCancelAdd((CompletableFuture) other);
+            retXF.alsoCancelAdd((CompletableFuture) other);
         }
-        return ret;
+        return retXF;
     }
 
     public XFutureVoid thenRunAsync(String name, Runnable action, Executor executor) {
@@ -1693,7 +1764,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> alwaysCompose(String name, Supplier<XFutureVoid> supplier) {
-        XFuture<T> ret = new XFuture<T>(name);
+        XFuture<T> retXF = new XFuture<T>(name);
         XFuture<T> orig
                 = wrap(
                         name,
@@ -1702,14 +1773,14 @@ public class XFuture<T> extends CompletableFuture<T> {
                                 supplier.get()
                                         .thenRun(() -> {
                                             if (null != t) {
-                                                ret.completeExceptionally(t);
+                                                retXF.completeExceptionally(t);
                                                 if (t instanceof RuntimeException) {
                                                     throw ((RuntimeException) t);
                                                 } else {
                                                     throw new RuntimeException(t);
                                                 }
                                             }
-                                            ret.complete((T) x);
+                                            retXF.complete((T) x);
                                         });
                             } catch (Throwable t2) {
                                 logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
@@ -1730,8 +1801,8 @@ public class XFuture<T> extends CompletableFuture<T> {
                             }
                             return x;
                         }));
-        ret.alsoCancelAdd(orig);
-        return ret;
+        retXF.alsoCancelAdd(orig);
+        return retXF;
     }
 
     public XFuture<T> alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
@@ -1739,7 +1810,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public XFuture<T> alwaysComposeAsync(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
-        XFuture<T> ret = new XFuture<T>(name);
+        XFuture<T> retXF = new XFuture<T>(name);
         XFuture<T> orig
                 = wrap(
                         name,
@@ -1748,14 +1819,14 @@ public class XFuture<T> extends CompletableFuture<T> {
                                 supplier.get()
                                         .thenRun(() -> {
                                             if (null != t) {
-                                                ret.completeExceptionally(t);
+                                                retXF.completeExceptionally(t);
                                                 if (t instanceof RuntimeException) {
                                                     throw ((RuntimeException) t);
                                                 } else {
                                                     throw new RuntimeException(t);
                                                 }
                                             }
-                                            ret.complete((T) x);
+                                            retXF.complete((T) x);
                                         });
                             } catch (Throwable t2) {
                                 logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
@@ -1777,7 +1848,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                             return x;
                         },
                                 service));
-        ret.alsoCancelAdd(orig);
-        return ret;
+        retXF.alsoCancelAdd(orig);
+        return retXF;
     }
 }
