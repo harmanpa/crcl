@@ -21,8 +21,8 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux
-CND_DLIB_EXT=so
+CND_PLATFORM=Cygwin-Windows
+CND_DLIB_EXT=dll
 CND_CONF=Debug
 CND_DISTDIR=dist
 CND_BUILDDIR=build
@@ -60,33 +60,33 @@ LDLIBSOPTIONS=-lpthread
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/main.o: main.c
+${OBJECTDIR}/main.o: main.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
 
-${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c
+${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpFakeLib.o mpFakeLib.c
 
-${OBJECTDIR}/mpMain.o: mpMain.c
+${OBJECTDIR}/mpMain.o: mpMain.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpMain.o mpMain.c
 
-${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c
+${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/remoteFunctions.o remoteFunctions.c
 
-${OBJECTDIR}/tcpSvr.o: tcpSvr.c
+${OBJECTDIR}/tcpSvr.o: tcpSvr.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tcpSvr.o tcpSvr.c
@@ -97,6 +97,7 @@ ${OBJECTDIR}/tcpSvr.o: tcpSvr.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr.exe
 
 # Subprojects
 .clean-subprojects:
