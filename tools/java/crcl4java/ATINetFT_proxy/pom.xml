@@ -16,6 +16,8 @@
             <groupId>com.ati-ia</groupId>
             <artifactId>ATINetFT</artifactId>
             <version>1.0</version>
+            <optional>true</optional>
+            <type></type>
             <!-- 
   Download jar from 
       
