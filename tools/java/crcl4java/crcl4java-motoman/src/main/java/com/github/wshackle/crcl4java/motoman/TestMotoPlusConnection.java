@@ -37,8 +37,15 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -51,11 +58,60 @@ public class TestMotoPlusConnection {
     // 192.168.1.33");//"10.0.0.2";
     //    private static String host = "localhost";
     public static void main(String[] args) throws Exception {
+
+        Enumeration<NetworkInterface> netIFEnum = NetworkInterface.getNetworkInterfaces();
+        while (netIFEnum.hasMoreElements()) {
+            NetworkInterface netIfi = netIFEnum.nextElement();
+            System.out.println("netIfi = " + netIfi);
+            List<InterfaceAddress> ifAddrs = netIfi.getInterfaceAddresses();
+            System.out.println("ifAddrs = " + ifAddrs);
+        }
+//         System.out.println("netIFEnum = " + netIFEnum);
+        String net = "192.168.1";
+        NetworkInterface netIf = NetworkInterface.getByName("eth5");
+        System.out.println("netIf = " + netIf);
+        for (int i = 0; i < 255; i++) {
+            String addrString = net + "." + i;
+            InetAddress inetAddr = InetAddress.getByName(addrString);
+            long t1 = System.currentTimeMillis();
+            Thread thread2 = new Thread(() -> {
+                try {
+                    if (inetAddr.isReachable(netIf, 1, 10)) {
+                        System.out.println("inetAddr = " + inetAddr);
+                    }
+                } catch (IOException ex) {
+//                    Logger.getLogger(TestMotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+            thread2.start();
+            Thread.sleep(20);
+            thread2.interrupt();
+            long t2 = System.currentTimeMillis();
+            long d = t2 - t1;
+//            System.out.println("d = " + d);
+        }
         if (args.length > 0) {
             host = args[0];
         }
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
+//
+//            
+//            inetAddr = /192.168.1.31
+//inetAddr = /192.168.1.32
+//inetAddr = /192.168.1.33
+//inetAddr = /192.168.1.34
+//inetAddr = /192.168.1.50
+//inetAddr = /192.168.1.60
+//inetAddr = /192.168.1.80
+//inetAddr = /192.168.1.90
+//inetAddr = /192.168.1.101
+//inetAddr = /192.168.1.102
+//inetAddr = /192.168.1.103
+//inetAddr = /192.168.1.104
+//inetAddr = /192.168.1.105
+//inetAddr = /192.168.1.108
+//inetAddr = /192.168.1.239
 
 //            mpc.setDebug(true);
 //            MP_FCS_ROB_ID rob_id = MP_FCS_ROB_ID.MP_FCS_R2ID;
@@ -72,7 +128,6 @@ public class TestMotoPlusConnection {
 //                    FCS_COORD_TYPE.FCS_ROBO_TYPE, 
 //                    0, 7, 0);
 //            System.out.println("startImpRet = " + startImpRet);
-
 //              int fref_data[] = new int[]{7,6,5,4,3,2};
 //              MpFcsBaseReturn setRefReturn = mpc.mpFcsSetReferenceForce(rob_id, fref_data);
 //              System.out.println("setRefReturn = " + setRefReturn);
@@ -89,10 +144,10 @@ public class TestMotoPlusConnection {
             System.out.println("currentPulseData = " + currentPulseData);
             MpKinAngleReturn currentAngle = mpc.mpConvPulseToAngle(0, currentPulseData.lPos);
             System.out.println("currentAngle = " + currentAngle);
-            
+
             MpKinPulseReturn convPulseBackRet = mpc.mpConvAngleToPulse(0, currentAngle.angle);
             System.out.println("convPulseBackRet = " + convPulseBackRet);
-            
+
             MP_CART_POS_RSP_DATA currentCartPos = mpc.getCartPos(0);
             System.out.println("currentCartPos = " + currentCartPos);
             int prev_angle[] = new int[8];
@@ -104,16 +159,16 @@ public class TestMotoPlusConnection {
 //            
 //             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
 //            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
-             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, prev_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG);
+            convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, prev_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG);
             System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
             for (int i = 0; i < currentAngle.angle.length; i++) {
                 int diff = currentAngle.angle[i] - convCartPosToAxesRet.angle[i];
-                System.out.println("i="+i+", diff = " + diff);
+                System.out.println("i=" + i + ", diff = " + diff);
             }
-            
+
             MpKinCartPosReturn convAngleToCartRet = mpc.mpConvAxesToCartPos(0, currentAngle.angle, 0);
             System.out.println("convAngleToCartRet = " + convAngleToCartRet);
-            
+
 //            int angle[] = new int[]{0, 10, 15, 30, 45, 60, 75, 90};
 //            int grp_no = 2;
 //            int tool_no = 3;
