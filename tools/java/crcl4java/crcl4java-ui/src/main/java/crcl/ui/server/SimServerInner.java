@@ -3002,6 +3002,7 @@ public class SimServerInner {
             }
             restartingServerSocket.setStatSchema(statSchema);
             restartingServerSocket.setCmdSchema(cmdSchema);
+            restartingServerSocket.setThreadNamePrefix("CRCLSimServer");
             restartingServerSocket.addListener(crclServerSocketEventListener);
             restartingServerSocket.setServerSideStatus(status);
             restartingServerSocket.setAutomaticallySendServerSideStatus(true);

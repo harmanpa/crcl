@@ -26,7 +26,6 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
-import java.math.BigInteger;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /*

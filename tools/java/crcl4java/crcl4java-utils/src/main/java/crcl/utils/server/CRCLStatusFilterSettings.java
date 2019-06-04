@@ -313,10 +313,12 @@ public class CRCLStatusFilterSettings {
         }
         final JointStatusesType statusOutJointStatuses = statusOut.getJointStatuses();
         if (statusOutJointStatuses != null) {
+            List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
             if (!configureStatusReport.isReportJointStatuses()) {
                 statusOut.setJointStatuses(null);
-            } else {
-                List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
+            } else if (joints == null || joints.isEmpty()) {
+                statusOut.setJointStatuses(null);
+            }  else {
                 List<JointStatusType> jointsCopy = new ArrayList<>();
                 for (int i = 0; i < joints.size(); i++) {
                     JointStatusType jst = joints.get(i);

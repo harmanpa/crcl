@@ -479,6 +479,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final CRCLCommandType cmd = instanceIn.getCRCLCommand();
             if (cmd instanceof GetStatusType) {
                 CRCLSocket source = event.getSource();
+                if(updateStatusRunnable != null) { 
+                    updateStatusRunnable.run();
+                }
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                 statusToSend.getCommandStatus().setCommandID(state.cmdId);
                 PointType origPoint = CRCLPosemath.getPoint(serverSideStatus);
@@ -614,7 +617,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             return false;
                         }
 
-                    }  else if (cmd instanceof SetRotSpeedType) {
+                    } else if (cmd instanceof SetRotSpeedType) {
                         SetRotSpeedType setRotSpeedCmdIn = (SetRotSpeedType) cmd;
                         SetRotSpeedType setRotSpeedCmdOut = new SetRotSpeedType();
                         final RotSpeedType rotSpeedIn = setRotSpeedCmdIn.getRotSpeed();
@@ -650,7 +653,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             return false;
                         }
 
-                    }  else if (cmd instanceof SetRotAccelType) {
+                    } else if (cmd instanceof SetRotAccelType) {
                         SetRotAccelType setRotAccelCmdIn = (SetRotAccelType) cmd;
                         SetRotAccelType setRotAccelCmdOut = new SetRotAccelType();
                         final RotAccelType rotAccelIn = setRotAccelCmdIn.getRotAccel();
@@ -1274,6 +1277,26 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setThreadNamePrefix(String threadNamePrefix) {
         this.threadNamePrefix = threadNamePrefix;
+    }
+
+    private Runnable updateStatusRunnable;
+
+    /**
+     * Get the value of updateStatusRunnable
+     *
+     * @return the value of updateStatusRunnable
+     */
+    public Runnable getUpdateStatusRunnable() {
+        return updateStatusRunnable;
+    }
+
+    /**
+     * Set the value of updateStatusRunnable
+     *
+     * @param updateStatusRunnable new value of updateStatusRunnable
+     */
+    public void setUpdateStatusRunnable(Runnable updateStatusRunnable) {
+        this.updateStatusRunnable = updateStatusRunnable;
     }
 
     private ExecutorService initExecutorService() {

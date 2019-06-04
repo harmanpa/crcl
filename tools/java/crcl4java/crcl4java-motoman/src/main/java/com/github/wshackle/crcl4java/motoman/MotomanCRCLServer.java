@@ -92,6 +92,7 @@ import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
 import crcl.utils.server.CRCLServerSocketEventListener;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
+import crcl.utils.server.UnitsTypeSet;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -116,29 +117,19 @@ public class MotomanCRCLServer implements AutoCloseable {
     }
 
     public static final CRCLServerSocketStateGenerator<MotomanClientState> MOTOMAN_STATE_GENERATOR
-            = new CRCLServerSocketStateGenerator<MotomanClientState>() {
-        @Override
-        public MotomanClientState generate(CRCLSocket crclSocket) {
-            return new MotomanClientState(crclSocket);
-        }
-    };
+            = MotomanClientState::new;
 
-    private final CRCLServerSocketEventListener<MotomanClientState> eventListener
-            = new CRCLServerSocketEventListener<MotomanClientState>() {
-        @Override
-        public void accept(CRCLServerSocketEvent<MotomanClientState> evt) {
-            handleCrclServerSocketEvent(evt);
-        }
-    };
+    private final CRCLServerSocketEventListener<MotomanClientState> crclSocketEventListener
+            = this::handleCrclServerSocketEvent;
     
-    private final CRCLServerSocket<MotomanClientState> svrSocket;
+    private final CRCLServerSocket<MotomanClientState> crclServerSocket;
     private final MotoPlusConnection mpc;
 
     public MotomanCRCLServer(CRCLServerSocket<MotomanClientState> svrSocket, MotoPlusConnection mpConnection) {
-        this.svrSocket = svrSocket;
+        this.crclServerSocket = svrSocket;
         this.mpc = mpConnection;
-        this.svrSocket.addListener(eventListener);
-        this.svrSocket.setThreadNamePrefix("MotomanCrclServer");
+        this.crclServerSocket.addListener(crclSocketEventListener);
+        this.crclServerSocket.setThreadNamePrefix("MotomanCrclServer");
     }
 
     public MotoPlusConnection getMpc() {
@@ -150,12 +141,16 @@ public class MotomanCRCLServer implements AutoCloseable {
     }
 
     public Future<?> start() {
-        return svrSocket.start();
+        crclServerSocket.setServerSideStatus(crclStatus);
+        crclServerSocket.setAutomaticallySendServerSideStatus(true);
+        crclServerSocket.setAutomaticallyConvertUnits(true);
+        crclServerSocket.setServerUnits(new UnitsTypeSet());
+        return crclServerSocket.start();
     }
     
     @Override
     public void close() throws Exception {
-        svrSocket.close();
+        crclServerSocket.close();
         mpc.close();
     }
 
@@ -853,7 +848,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         try ( MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort,MOTOMAN_STATE_GENERATOR),
                 new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {
-            motomanCrclServer.svrSocket.runServer();
+            motomanCrclServer.crclServerSocket.runServer();
         }
     }
 
