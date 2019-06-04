@@ -47,11 +47,11 @@ import org.checkerframework.checker.nullness.qual.*;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class CrclCommandWrapper extends MessageType {
+public class CRCLCommandWrapper extends MessageType {
 
     public static interface CRCLCommandWrapperConsumer {
 
-        public void accept(CrclCommandWrapper wrapper);
+        public void accept(CRCLCommandWrapper wrapper);
     }
     private MiddleCommandType wrappedCommand;
     
@@ -78,7 +78,7 @@ public class CrclCommandWrapper extends MessageType {
         this.curProgram = curProgram;
     }
 
-    private CrclCommandWrapper(MiddleCommandType wrappedCommand) {
+    private CRCLCommandWrapper(MiddleCommandType wrappedCommand) {
         this.wrappedCommand = wrappedCommand;
         this.commandID = wrappedCommand.getCommandID();
         this.name = wrappedCommand.getName();
@@ -87,32 +87,32 @@ public class CrclCommandWrapper extends MessageType {
         }
     }
 
-    public static CrclCommandWrapper wrapWithOnDone(MiddleCommandType wrappedCommand,
+    public static CRCLCommandWrapper wrapWithOnDone(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
-        CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
+        CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
         cmd.addOnDoneListener(listener);
         return cmd;
     }
 
-    public static CrclCommandWrapper wrapWithOnStart(MiddleCommandType wrappedCommand,
+    public static CRCLCommandWrapper wrapWithOnStart(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
-        CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
+        CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
         cmd.addOnStartListener(listener);
         return cmd;
     }
 
-    public static CrclCommandWrapper wrapWithOnError(MiddleCommandType wrappedCommand,
+    public static CRCLCommandWrapper wrapWithOnError(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
-        CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
+        CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
         cmd.addOnErrorListener(listener);
         return cmd;
     }
 
-    public static CrclCommandWrapper wrap(MiddleCommandType wrappedCommand,
+    public static CRCLCommandWrapper wrap(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer onStartListener,
             CRCLCommandWrapperConsumer onDoneListener,
             CRCLCommandWrapperConsumer onErrorListener) {
-        CrclCommandWrapper cmd = new CrclCommandWrapper(wrappedCommand);
+        CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
         cmd.addOnStartListener(onStartListener);
         cmd.addOnDoneListener(onDoneListener);
         cmd.addOnErrorListener(onErrorListener);

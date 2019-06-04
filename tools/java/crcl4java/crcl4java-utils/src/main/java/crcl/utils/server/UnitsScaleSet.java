@@ -20,13 +20,49 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.utils;
+package crcl.utils.server;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface CRCLServerSocketEventListener {
+public class UnitsScaleSet {
+
+    final private  double angleScale;
+    final private  double lengthScale;
+    final private  double forceScale;
+    final private  double torqueScale;
+
+    public UnitsScaleSet(double angleScale, double lengthScale, double forceScale, double torqueScale) {
+        this.angleScale = angleScale;
+        this.lengthScale = lengthScale;
+        this.forceScale = forceScale;
+        this.torqueScale = torqueScale;
+    }
+
+    public UnitsScaleSet() {
+        this(1.0,1.0,1.0,1.0);
+    }
+
+    public double getAngleScale() {
+        return angleScale;
+    }
+
+    public double getLengthScale() {
+        return lengthScale;
+    }
+
+    public double getForceScale() {
+        return forceScale;
+    }
+
+    public double getTorqueScale() {
+        return torqueScale;
+    }
+
+    @Override
+    public String toString() {
+        return "UnitsScaleSet{" + "angleScale=" + angleScale + ", lengthScale=" + lengthScale + ", forceScale=" + forceScale + ", torqueScale=" + torqueScale + '}';
+    }
     
-    public void accept(CRCLServerSocketEvent event);
 }

@@ -20,6 +20,10 @@
  */
 package crcl.utils;
 
+import crcl.utils.server.CRCLServerClientState;
+import crcl.utils.server.CRCLServerSocket;
+import crcl.utils.server.CRCLServerSocketStateGenerator;
+import crcl.utils.server.CRCLServerSocketEvent;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -43,6 +47,22 @@ import java.util.logging.Logger;
 @SuppressWarnings("nullness")
 public class CRCLServerSocketPollingExample {
 
+    public static class PollingExampleClientState extends CRCLServerClientState {
+
+        public PollingExampleClientState(CRCLSocket cs) {
+            super(cs);
+        }
+        int i;
+    }
+    
+    private static final CRCLServerSocketStateGenerator<PollingExampleClientState> POLLING_EXAMPLE_STATE_GENERATOR
+            = new CRCLServerSocketStateGenerator<PollingExampleClientState>() {
+        @Override
+        public PollingExampleClientState generate(CRCLSocket crclSocket) {
+            return new PollingExampleClientState(crclSocket);
+        }
+    };
+    
     public static void main(String[] args) throws IOException, CRCLException, InterruptedException, Exception {
 
         final CRCLStatusType status = new CRCLStatusType();
@@ -52,18 +72,19 @@ public class CRCLServerSocketPollingExample {
         status.setCommandStatus(cmdStatus);
         final PoseStatusType poseStatus = new PoseStatusType();
 
-        try (final CRCLServerSocket serverSocket = new CRCLServerSocket(CRCLSocket.DEFAULT_PORT)) {
+        try (final CRCLServerSocket<PollingExampleClientState> serverSocket = new CRCLServerSocket<>(POLLING_EXAMPLE_STATE_GENERATOR)) {
             serverSocket.setQueueEvents(true);
             serverSocket.start();
             int requestCount = 1;
             while (!Thread.currentThread().isInterrupted()) {
-                List<CRCLServerSocketEvent> l = serverSocket.checkForEvents();
+                List<CRCLServerSocketEvent<PollingExampleClientState>> l = serverSocket.checkForEvents();
                 if (l.size() < 1) {
                     Thread.sleep(200);
                 }
-                for (CRCLServerSocketEvent e : l) {
+                for (CRCLServerSocketEvent<PollingExampleClientState> e : l) {
                     CRCLSocket crclSocket = e.getSource();
                     CRCLCommandInstanceType instance = e.getInstance();
+                    PollingExampleClientState state = e.getState();
                     if (null != instance) {
                         CRCLCommandType cmd = instance.getCRCLCommand();
                         if (cmd instanceof GetStatusType) {

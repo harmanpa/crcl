@@ -74,9 +74,7 @@ import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
 import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.pose;
-import crcl.utils.CRCLServerSocket;
-import crcl.utils.CRCLServerSocketEvent;
-import crcl.utils.CRCLServerSocketEventListener;
+
 import crcl.utils.CRCLSocket;
 import java.io.IOException;
 import java.net.Socket;
@@ -89,7 +87,13 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
+import crcl.utils.server.CRCLServerClientState;
+import crcl.utils.server.CRCLServerSocket;
+import crcl.utils.server.CRCLServerSocketEvent;
+import crcl.utils.server.CRCLServerSocketEventListener;
+import crcl.utils.server.CRCLServerSocketStateGenerator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import rcs.posemath.PmEulerZyx;
@@ -101,26 +105,54 @@ import rcs.posemath.Posemath;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventListener, Runnable {
+public class MotomanCRCLServer implements AutoCloseable {
 
-    private final CRCLServerSocket svrSocket;
+    public static class MotomanClientState extends CRCLServerClientState {
+
+        public MotomanClientState(CRCLSocket cs) {
+            super(cs);
+        }
+        int i;
+    }
+
+    public static final CRCLServerSocketStateGenerator<MotomanClientState> MOTOMAN_STATE_GENERATOR
+            = new CRCLServerSocketStateGenerator<MotomanClientState>() {
+        @Override
+        public MotomanClientState generate(CRCLSocket crclSocket) {
+            return new MotomanClientState(crclSocket);
+        }
+    };
+
+    private final CRCLServerSocketEventListener<MotomanClientState> eventListener
+            = new CRCLServerSocketEventListener<MotomanClientState>() {
+        @Override
+        public void accept(CRCLServerSocketEvent<MotomanClientState> evt) {
+            handleCrclServerSocketEvent(evt);
+        }
+    };
+    
+    private final CRCLServerSocket<MotomanClientState> svrSocket;
     private final MotoPlusConnection mpc;
 
-    
-    public MotomanCrclServer(CRCLServerSocket svrSocket, MotoPlusConnection mpConnection) {
+    public MotomanCRCLServer(CRCLServerSocket<MotomanClientState> svrSocket, MotoPlusConnection mpConnection) {
         this.svrSocket = svrSocket;
         this.mpc = mpConnection;
-        this.svrSocket.addListener(this);
+        this.svrSocket.addListener(eventListener);
+        this.svrSocket.setThreadNamePrefix("MotomanCrclServer");
     }
 
     public MotoPlusConnection getMpc() {
         return mpc;
     }
-    
+
     public boolean mpcConnected() {
         return mpc.isConnected();
     }
 
+    public Future<?> start() {
+        return svrSocket.start();
+    }
+    
     @Override
     public void close() throws Exception {
         svrSocket.close();
@@ -192,7 +224,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     }
 
     private AtomicInteger updatesSinceCommand = new AtomicInteger();
-    
+
     public CRCLStatusType getCrclStatus() {
         long time = System.currentTimeMillis();
         long status_time_diff = time - last_status_update_time;
@@ -266,7 +298,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                             }
                         } else {
                             System.out.println("recvId = " + Arrays.toString(recvId));
-                            System.err.println("cmd_time_diff="+cmd_time_diff);
+                            System.err.println("cmd_time_diff=" + cmd_time_diff);
                             System.err.println("updatesSinceCommand = " + updatesSinceCommand.get());
                             System.err.println("lastCommand=" + lastCommand);
                         }
@@ -326,7 +358,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     }
 
     private void logException(final java.lang.Exception ex) {
-        Logger.getLogger(MotomanCrclServer.class.getName()).log(Level.SEVERE, null, ex);
+        Logger.getLogger(MotomanCRCLServer.class.getName()).log(Level.SEVERE, null, ex);
         log(ex.toString());
     }
 
@@ -343,33 +375,22 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
 
-    private final AtomicInteger  lastSentTargetId = new AtomicInteger(1);
+    private final AtomicInteger lastSentTargetId = new AtomicInteger(1);
     private volatile int lastRecvdTargetId = 1;
     private double maxVelocity = 100.0;
 
-    private LengthUnitEnumType currentLengthUnits = LengthUnitEnumType.MILLIMETER;
-    private AngleUnitEnumType currentAngleUnits = AngleUnitEnumType.DEGREE;
+//    private LengthUnitEnumType currentLengthUnits = LengthUnitEnumType.MILLIMETER;
+//    private AngleUnitEnumType currentAngleUnits = AngleUnitEnumType.DEGREE;
 
     private final double MM_TO_INCH = 0.0393701;
 
-    private void setTransSpeed(SetTransSpeedType sts) throws IOException {
+    private void setTransSpeed(SetTransSpeedType sts, MotomanClientState clientState) throws IOException {
         MP_SPEED spd = new MP_SPEED();
         TransSpeedType ts = sts.getTransSpeed();
         if (ts instanceof TransSpeedAbsoluteType) {
             TransSpeedAbsoluteType tsa = (TransSpeedAbsoluteType) ts;
-            switch (currentLengthUnits) {
-                case MILLIMETER:
-                    spd.v = (int) (tsa.getSetting() * 10.0);
-                    break;
-
-                case INCH:
-                    spd.v = (int) (tsa.getSetting() * 10.0 / MM_TO_INCH);
-                    break;
-
-                case METER:
-                    spd.v = (int) (tsa.getSetting() * 10_000.0);
-                    break;
-            }
+//            spd.v = (int) clientState.filterSettings.convertLengthToServer(tsa.getSetting() * 10.0);
+            spd.v = (int) (tsa.getSetting() * 10.0);
             if (debug) {
                 System.out.println("spd = " + spd);
             }
@@ -383,12 +404,13 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         }
     }
 
-    private void setRotSpeed(SetRotSpeedType srs) throws IOException {
+    private void setRotSpeed(SetRotSpeedType srs, MotomanClientState clientState) throws IOException {
         MP_SPEED spd = new MP_SPEED();
         RotSpeedType rs = srs.getRotSpeed();
         if (rs instanceof RotSpeedAbsoluteType) {
             RotSpeedAbsoluteType rsa = (RotSpeedAbsoluteType) rs;
-            switch (currentAngleUnits) {
+            final AngleUnitEnumType angleUnit = clientState.filterSettings.getClientUserSet().getAngleUnit();
+            switch (angleUnit) {
                 case DEGREE:
                     spd.vr = (int) (rsa.getSetting() * 10.0);
                     break;
@@ -425,11 +447,11 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
         mpc.closeToolChanger();
     }
 
-    AngleUnitEnumType currentAngleUnit = AngleUnitEnumType.DEGREE;
-
-    private void setAngleUnits(SetAngleUnitsType sau) {
-        currentAngleUnit = sau.getUnitName();
-    }
+//    AngleUnitEnumType currentAngleUnit = AngleUnitEnumType.DEGREE;
+//
+//    private void setAngleUnits(SetAngleUnitsType sau) {
+//        currentAngleUnit = sau.getUnitName();
+//    }
 
     private void setLengthUnits(SetLengthUnitsType slu) {
         switch (slu.getUnitName()) {
@@ -479,10 +501,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     }
 
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
-        
+
         boolean isStraight = cmd.isMoveStraight();
         final int newTargetId = lastSentTargetId.incrementAndGet();
-        CoordTarget tgt = new CoordTarget(isStraight,newTargetId);
+        CoordTarget tgt = new CoordTarget(isStraight, newTargetId);
         mpc.mpSetServoPower(true);
         boolean power = mpc.mpGetServoPower();
         if (debug) {
@@ -715,8 +737,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
     private volatile CRCLCommandType lastCommand = null;
     private volatile long last_command_time = -1;
 
-    @Override
-    public void accept(CRCLServerSocketEvent event) {
+    public void handleCrclServerSocketEvent(CRCLServerSocketEvent<MotomanClientState> event) {
         try {
             CRCLCommandInstanceType cmdInstance = event.getInstance();
             if (null != cmdInstance) {
@@ -748,10 +769,10 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         actuateJoints((ActuateJointsType) cmd);
                         setStateDescription(CRCL_WORKING, "");
                     } else if (cmd instanceof SetTransSpeedType) {
-                        setTransSpeed((SetTransSpeedType) cmd);
+                        setTransSpeed((SetTransSpeedType) cmd,event.getState());
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof SetRotSpeedType) {
-                        setRotSpeed((SetRotSpeedType) cmd);
+                        setRotSpeed((SetRotSpeedType) cmd,event.getState());
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof MoveToType) {
                         moveTo((MoveToType) cmd);
@@ -766,7 +787,7 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
                         setLengthUnits((SetLengthUnitsType) cmd);
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof SetAngleUnitsType) {
-                        setAngleUnits((SetAngleUnitsType) cmd);
+//                        setAngleUnits((SetAngleUnitsType) cmd);
                         setStateDescription(CRCL_DONE, "");
                     } else if (cmd instanceof SetEndEffectorType) {
                         setEndEffector((SetEndEffectorType) cmd);
@@ -829,15 +850,11 @@ public class MotomanCrclServer implements AutoCloseable, CRCLServerSocketEventLi
             }
         }
         System.out.println("Starting MotomanCrclServer on port " + crclPort + " after connecting to Motoman robot " + motomanHost + " on port " + motomanPort);
-        try (MotomanCrclServer motomanCrclServer = new MotomanCrclServer(
-                new CRCLServerSocket(crclPort),
+        try ( MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
+                new CRCLServerSocket<>(crclPort,MOTOMAN_STATE_GENERATOR),
                 new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {
-            motomanCrclServer.run();
+            motomanCrclServer.svrSocket.runServer();
         }
     }
 
-    @Override
-    public void run() {
-        svrSocket.run();
-    }
 }

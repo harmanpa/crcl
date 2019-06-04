@@ -20,6 +20,10 @@
  */
 package crcl.utils;
 
+import crcl.utils.server.CRCLServerClientState;
+import crcl.utils.server.CRCLServerSocketEvent;
+import crcl.utils.server.CRCLServerSocketEventListener;
+import crcl.utils.server.CRCLServerSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -29,7 +33,6 @@ import crcl.base.GetStatusType;
 import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,13 +53,13 @@ public class CRCLServerSocketCallbackExample {
         status.setCommandStatus(cmdStatus);
         final PoseStatusType poseStatus = new PoseStatusType();
 
-        try (final CRCLServerSocket serverSocket = new CRCLServerSocket(CRCLSocket.DEFAULT_PORT)) {
+        try (final CRCLServerSocket<CRCLServerClientState> serverSocket = CRCLServerSocket.newDefaultServer()) {
             serverSocket.setQueueEvents(false);
-            serverSocket.addListener(new CRCLServerSocketEventListener() {
+            serverSocket.addListener(new CRCLServerSocketEventListener<CRCLServerClientState>() {
                 int requestCount = 1;
 
                 @Override
-                public void accept(CRCLServerSocketEvent e) {
+                public void accept(CRCLServerSocketEvent<CRCLServerClientState> e) {
                     CRCLSocket crclSocket = e.getSource();
                     CRCLCommandInstanceType instance = e.getInstance();
                     if (null != instance) {
@@ -88,7 +91,7 @@ public class CRCLServerSocketCallbackExample {
                     }
                 }
             });
-            serverSocket.run();
+            serverSocket.runServer();
         }
     }
 

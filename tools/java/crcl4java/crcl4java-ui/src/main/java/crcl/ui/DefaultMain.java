@@ -26,7 +26,7 @@ import crcl.ui.server.CmdLineSimServer;
 import crcl.ui.server.SimServerJFrame;
 import crcl.ui.client.PendantClientJFrame;
 import crcl.ui.client.CmdLineClient;
-import crcl.utils.SimRobotEnum;
+import crcl.utils.kinematics.SimRobotEnum;
 import java.util.Arrays;
 import java.util.logging.Logger;
 

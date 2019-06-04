@@ -41,7 +41,7 @@ import crcl.ui.misc.ObjTableJPanel;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PropertiesUtils;
-import crcl.utils.SimRobotEnum;
+import crcl.utils.kinematics.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
 import java.awt.Container;
@@ -95,11 +95,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         SimRobotEnum defaultRobotType
                 = DEFAULT_ROBOTTYPE;
         java.awt.EventQueue.invokeLater(() -> this.updatePanelsPrivate());
-        this.lengthUnitComboBox.setSelectedItem(LengthUnitEnumType.MILLIMETER);
-        for (SimRobotEnum srType : SimRobotEnum.values()) {
-            this.setRobotType(srType);
-            inner.setLengthUnit(LengthUnitEnumType.MILLIMETER);
-        }
+//        this.lengthUnitComboBox.setSelectedItem(LengthUnitEnumType.MILLIMETER);
+//        for (SimRobotEnum srType : SimRobotEnum.values()) {
+//            this.setRobotType(srType);
+//            inner.setLengthUnit(LengthUnitEnumType.MILLIMETER);
+//        }
         this.jComboBoxRobotType.setModel(new DefaultComboBoxModel<>(SimRobotEnum.values()));
         this.jComboBoxRobotType.setSelectedItem(defaultRobotType);
         this.setRobotType(defaultRobotType);
@@ -409,12 +409,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jTextFieldNumWaypoints = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jTextFieldCurWaypoint = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jTextFieldEndEffector = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         jTextFieldCurrentCommandType = new javax.swing.JTextField();
-        lengthUnitComboBox = new crcl.ui.misc.LengthUnitComboBox();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Overhead View"));
         jPanel1.setLayout(new java.awt.BorderLayout());
@@ -553,7 +551,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGap(0, 13, Short.MAX_VALUE)
+                        .addGap(0, 21, Short.MAX_VALUE)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel4Layout.createSequentialGroup()
                                 .addComponent(jButtonReset)
@@ -635,49 +633,35 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jTextFieldCurWaypoint.setEditable(false);
         jTextFieldCurWaypoint.setText("0");
 
-        jLabel7.setText("Length Units: ");
-
         jLabel8.setText("End Effector: ");
 
         jLabel9.setText("Current Commant Type:");
-
-        lengthUnitComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                lengthUnitComboBoxActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel9)))
-                    .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(jLabel7)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldEndEffector, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldCurrentCommandType, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldCurWaypoint, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldNumWaypoints, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldCycleCount, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextFieldConnectedClients, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lengthUnitComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jTextFieldConnectedClients, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
 
-        jPanel5Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldConnectedClients, jTextFieldCurWaypoint, jTextFieldCurrentCommandType, jTextFieldCycleCount, jTextFieldEndEffector, jTextFieldNumWaypoints, lengthUnitComboBox});
+        jPanel5Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldConnectedClients, jTextFieldCurWaypoint, jTextFieldCurrentCommandType, jTextFieldCycleCount, jTextFieldEndEffector, jTextFieldNumWaypoints});
 
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -705,11 +689,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldEndEffector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lengthUnitComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7))
-                .addContainerGap(30, Short.MAX_VALUE))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -1194,10 +1174,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.setToolChangerOpen(isOpen);
     }
 
-    @Override
-    public void updateLengthUnit(LengthUnitEnumType lu) {
-        this.lengthUnitComboBox.setSelectedItem(lu);
-    }
+//    @Override
+//    public void updateLengthUnit(LengthUnitEnumType lu) {
+//        this.lengthUnitComboBox.setSelectedItem(lu);
+//    }
 
     @Override
     public void updateConnectedClients(int numClients) {
@@ -1247,7 +1227,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private void jButtonRestartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRestartServerActionPerformed
         int new_port = Integer.parseInt(this.jTextFieldPort.getText());
-        ServerSocket oldServer = inner.closeServer();
+        inner.closeServer();
         new Thread(() -> {
             inner.setPort(new_port);
             inner.restartServer(inner.getServerIsDaemon());
@@ -1262,12 +1242,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private void jCheckBoxTeleportToGoalsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxTeleportToGoalsActionPerformed
         this.inner.setTeleportToGoals(this.jCheckBoxTeleportToGoals.isSelected());
     }//GEN-LAST:event_jCheckBoxTeleportToGoalsActionPerformed
-
-    private void lengthUnitComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lengthUnitComboBoxActionPerformed
-        if (this.inner.getLengthUnit() != lengthUnitComboBox.getSelectedItem()) {
-            this.inner.setLengthUnit(lengthUnitComboBox.getSelectedItem());
-        }
-    }//GEN-LAST:event_lengthUnitComboBoxActionPerformed
 
     private void jCheckBoxForceFailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxForceFailActionPerformed
         this.inner.setForceFail(jCheckBoxForceFail.isSelected());
@@ -1288,7 +1262,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -1306,7 +1279,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private javax.swing.JTextField jTextFieldEndEffector;
     private javax.swing.JTextField jTextFieldNumWaypoints;
     private javax.swing.JTextField jTextFieldPort;
-    private crcl.ui.misc.LengthUnitComboBox lengthUnitComboBox;
     private crcl.ui.server.OverHeadJPanel overHeadJPanel1;
     private crcl.ui.server.SideViewJPanel sideViewJPanel1;
     // End of variables declaration//GEN-END:variables

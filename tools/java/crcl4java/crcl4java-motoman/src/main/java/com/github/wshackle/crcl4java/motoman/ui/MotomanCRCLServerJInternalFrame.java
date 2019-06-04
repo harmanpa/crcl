@@ -22,16 +22,19 @@
  */
 package com.github.wshackle.crcl4java.motoman.ui;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class MotomanCrclServerJFrame extends javax.swing.JFrame {
+public class MotomanCRCLServerJInternalFrame extends javax.swing.JInternalFrame {
 
     /**
-     * Creates new form MotomanCrclServerJFrame
+     * Creates new form MotomanCrclServerJInternalFrame
      */
-    public MotomanCrclServerJFrame() {
+    public MotomanCRCLServerJInternalFrame() {
         initComponents();
     }
 
@@ -44,9 +47,11 @@ public class MotomanCrclServerJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        motomanCrclServerJPanel1 = new com.github.wshackle.crcl4java.motoman.ui.MotomanCrclServerJPanel();
+        motomanCrclServerJPanel1 = new com.github.wshackle.crcl4java.motoman.ui.MotomanCRCLServerJPanel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setIconifiable(true);
+        setMaximizable(true);
+        setResizable(true);
         setTitle("Motoman CRCL Server");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -61,50 +66,57 @@ public class MotomanCrclServerJFrame extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
                 .addComponent(motomanCrclServerJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGap(0, 0, 0))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MotomanCrclServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MotomanCrclServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MotomanCrclServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MotomanCrclServerJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MotomanCrclServerJFrame().setVisible(true);
-            }
-        });
+    public boolean isCrclMotoplusConnected() {
+        return motomanCrclServerJPanel1.isCrclMotoplusConnected();
+    }
+    
+     public void connectCrclMotoplus() throws IOException {
+
+       this.motomanCrclServerJPanel1.connectCrclMotoplus();
     }
 
+    public void disconnectCrclMotoplus() {
+        this.motomanCrclServerJPanel1.disconnectCrclMotoplus();
+    }
+    
+    public File getPropertiesFile() {
+        return motomanCrclServerJPanel1.getPropertiesFile();
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        motomanCrclServerJPanel1.setPropertiesFile(propertiesFile);
+    }
+
+    public void saveProperties() throws IOException {
+        motomanCrclServerJPanel1.saveProperties();
+    }
+    
+    public void loadProperties() throws IOException {
+        motomanCrclServerJPanel1.loadProperties();
+    }
+    
+    public void setCrclPort(int crclPort) {
+        motomanCrclServerJPanel1.setCrclPort(crclPort);
+    }
+    
+    public int getCrclPort() {
+        return motomanCrclServerJPanel1.getCrclPort();
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private com.github.wshackle.crcl4java.motoman.ui.MotomanCrclServerJPanel motomanCrclServerJPanel1;
+    private com.github.wshackle.crcl4java.motoman.ui.MotomanCRCLServerJPanel motomanCrclServerJPanel1;
     // End of variables declaration//GEN-END:variables
 }

@@ -119,9 +119,9 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
     public void finishSetCurrentWaypoint(int currentWaypoint) {
     }
 
-    @Override
-    public void updateLengthUnit(LengthUnitEnumType lu) {
-    }
+//    @Override
+//    public void updateLengthUnit(LengthUnitEnumType lu) {
+//    }
 
 
     @Override

@@ -40,7 +40,7 @@ public interface SimServerOuter  {
     
     public void showMessage(String msgString);
     public void finishSetCurrentWaypoint(int currentWaypoint);
-    public void updateLengthUnit(LengthUnitEnumType lu);
+//    public void updateLengthUnit(LengthUnitEnumType lu);
     public void showDebugMessage(final String s);
     public void updateNumWaypoints(int numWaypoints);
     

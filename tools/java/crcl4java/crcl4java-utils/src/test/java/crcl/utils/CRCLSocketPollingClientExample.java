@@ -104,7 +104,7 @@ import static crcl.utils.CRCLPosemath.vector;
 
 /**
  * Example Client using CRCLSocket and non-blocking polls for the status
- * messages on the read.
+ messages on the read.
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */

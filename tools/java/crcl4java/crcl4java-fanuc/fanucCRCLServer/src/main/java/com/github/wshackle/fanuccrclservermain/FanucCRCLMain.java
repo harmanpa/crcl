@@ -1,7 +1,24 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * This software is public domain software, however it is preferred
+ * that the following disclaimers be attached.
+ * Software Copywrite/Warranty Disclaimer
+ * 
+ * This software was developed at the National Institute of Standards and
+ * Technology by employees of the Federal Government in the course of their
+ * official duties. Pursuant to title 17 Section 105 of the United States
+ * Code this software is not subject to copyright protection and is in the
+ * public domain.
+ * 
+ * This software is experimental. NIST assumes no responsibility whatsoever 
+ * for its use by other parties, and makes no guarantees, expressed or 
+ * implied, about its quality, reliability, or any other characteristic. 
+ * We would appreciate acknowledgement if the software is used. 
+ * This software can be redistributed and/or modified freely provided 
+ * that any derivative works bear some notice that they are derived from it, 
+ * and any modified versions bear some notice that they have been modified.
+ * 
+ *  See http://www.copyright.gov/title17/92chap1.html#105
+ * 
  */
 package com.github.wshackle.fanuccrclservermain;
 
@@ -89,14 +106,11 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -129,12 +143,19 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import static crcl.utils.CRCLPosemath.point;
 import crcl.utils.Utils;
+import crcl.utils.server.CRCLServerClientState;
+import crcl.utils.server.CRCLServerSocket;
+import crcl.utils.server.CRCLServerSocketEvent;
+import crcl.utils.server.CRCLServerSocketEventListener;
+import crcl.utils.server.CRCLServerSocketStateGenerator;
 import java.util.Iterator;
 import javax.swing.SwingUtilities;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -348,12 +369,12 @@ public class FanucCRCLMain {
             this.neighborhoodname = neighborhoodname;
             this.remoteRobotHost = remoteRobotHost;
             this.localPort = localPort;
-
+            crclServerSocket.setPort(localPort);
             return connectRemoteRobot()
                     .thenRun(this::wrappedStartCrclServer);
         } catch (Exception exception) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
-                    "start("+preferRobotNeighborhood+","+neighborhoodname+","+remoteRobotHost+","+localPort+") : "+exception.getMessage(),
+                    "start(" + preferRobotNeighborhood + "," + neighborhoodname + "," + remoteRobotHost + "," + localPort + ") : " + exception.getMessage(),
                     exception);
             showError(exception.toString());
             throw new RuntimeException(exception);
@@ -380,39 +401,39 @@ public class FanucCRCLMain {
         this.validate = validate;
     }
 
-    private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
+//    private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
     private double lengthScale = 1.0;
 
-    /**
-     * Get the value of lengthUnit
-     *
-     * @return the value of lengthUnit
-     */
-    public LengthUnitEnumType getLengthUnit() {
-        return lengthUnit;
-    }
-
-    /**
-     * Set the value of lengthUnit
-     *
-     * @param lengthUnit new value of lengthUnit
-     */
-    public void setLengthUnit(LengthUnitEnumType lengthUnit) {
-        this.lengthUnit = lengthUnit;
-        switch (lengthUnit) {
-            case METER:
-                lengthScale = 1000.0;
-                break;
-
-            case MILLIMETER:
-                lengthScale = 1.0;
-                break;
-
-            case INCH:
-                lengthScale = 25.4;
-                break;
-        }
-    }
+//    /**
+//     * Get the value of lengthUnit
+//     *
+//     * @return the value of lengthUnit
+//     */
+//    public LengthUnitEnumType getLengthUnit() {
+//        return lengthUnit;
+//    }
+//
+//    /**
+//     * Set the value of lengthUnit
+//     *
+//     * @param lengthUnit new value of lengthUnit
+//     */
+//    public void setLengthUnit(LengthUnitEnumType lengthUnit) {
+//        this.lengthUnit = lengthUnit;
+//        switch (lengthUnit) {
+//            case METER:
+//                lengthScale = 1000.0;
+//                break;
+//
+//            case MILLIMETER:
+//                lengthScale = 1.0;
+//                break;
+//
+//            case INCH:
+//                lengthScale = 25.4;
+//                break;
+//        }
+//    }
 
     long statusUpdateTime = 0;
     private final CRCLStatusType status = new CRCLStatusType();
@@ -780,7 +801,7 @@ public class FanucCRCLMain {
                             }
                         }
                     } catch (Throwable ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i="+i+",js="+js+" : "+ex.getMessage(), ex);
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i=" + i + ",js=" + js + " : " + ex.getMessage(), ex);
                     }
                     jointStatuses.getJointStatus().add(js);
                     checkDonePrevCmd();
@@ -1102,7 +1123,7 @@ public class FanucCRCLMain {
 
     private boolean checkMoveDone(double dist, double rotDist, long curTime) {
         if ((curTime - expectedEndMoveToTime) > 2000) {
-            warnMoveTime(dist,rotDist,curTime);
+            warnMoveTime(dist, rotDist, curTime);
         }
         if (dist >= distanceTolerance) {
             addMoveReason(MoveStatus.DIST_OVER_TOLERANCE);
@@ -1113,7 +1134,7 @@ public class FanucCRCLMain {
             addMoveReason(MoveStatus.ROTDIST_OVER_TOLERANCE);
             return false;
         }
-        
+
         if (!posReg98.isAtCurPosition()) {
             addMoveReason(MoveStatus.POSREG98_AT_CUR_POSITION);
             return false;
@@ -1142,9 +1163,9 @@ public class FanucCRCLMain {
 
     private long lastWarnMoveTime = 0;
 
-    private void warnMoveTime(double dist, double rotDist,long curTime) {
+    private void warnMoveTime(double dist, double rotDist, long curTime) {
         if (curTime - lastWarnMoveTime > 2000) {
-            System.err.println("FanucCRCL: move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime)+", moveStatus="+moveStatus+",dist="+dist+",rotDist="+rotDist);
+            System.err.println("FanucCRCL: move taking much longer than expected : (curTime - expectedEndMoveToTime) =" + (curTime - expectedEndMoveToTime) + ", moveStatus=" + moveStatus + ",dist=" + dist + ",rotDist=" + rotDist);
             lastWarnMoveTime = curTime;
         }
     }
@@ -1217,10 +1238,60 @@ public class FanucCRCLMain {
     int last_safety_stat = 0;
     boolean lastServoReady = true;
 
-    private ExecutorService es;
-    private ServerSocket ss;
-    private Set<CRCLSocket> clients = new HashSet<>();
+    public static class FanucClientState extends CRCLServerClientState {
 
+        public FanucClientState(CRCLSocket cs) {
+            super(cs);
+        }
+        int i;
+    }
+
+    public static final CRCLServerSocketStateGenerator<FanucClientState> FANUC_STATE_GENERATOR
+            = new CRCLServerSocketStateGenerator<FanucClientState>() {
+        @Override
+        public FanucClientState generate(CRCLSocket crclSocket) {
+            return new FanucClientState(crclSocket);
+        }
+    };
+
+    private final CRCLServerSocketEventListener<FanucClientState> eventListener
+            = new CRCLServerSocketEventListener<FanucClientState>() {
+        @Override
+        public void accept(CRCLServerSocketEvent<FanucClientState> evt) {
+            handleCrclServerSocketEvent(evt);
+        }
+    };
+
+    private void handleCrclServerSocketEvent(CRCLServerSocketEvent<FanucClientState> evt) {
+        try {
+            switch (evt.getEventType()) {
+                case CRCL_COMMAND_RECIEVED:
+                    handleClientCommand(evt.getInstance(), evt.getSource());
+                    break;
+
+                case EXCEPTION_OCCURRED:
+                    break;
+
+                case NEW_CRCL_CLIENT:
+                    break;
+
+                case SERVER_CLOSED:
+                    break;
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, "evt="+evt, ex);
+            if(ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    private final CRCLServerSocket<FanucClientState> crclServerSocket;
+
+//    private ExecutorService es;
+//    private ServerSocket ss;
+//    private Set<CRCLSocket> clients = new HashSet<>();
     public static void stop() {
         if (null != main) {
             main.stopInternal();
@@ -1246,31 +1317,34 @@ public class FanucCRCLMain {
     }
 
     public synchronized void stopCrclServer() {
-        if (null != crclServerFuture) {
-            crclServerFuture.cancel(true);
+//        if (null != crclServerFuture) {
+//            crclServerFuture.cancel(true);
+////            try {
+////                crclServerFuture.get(100, TimeUnit.MILLISECONDS);
+////            } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+////                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+////            }
+//        }
+//        if (null != clients) {
+//            for (CRCLSocket cs : clients) {
+//                try {
+//                    cs.close();
+//                } catch (IOException ex) {
+//                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//            clients.clear();
+//        }
+//        if (null != ss) {
 //            try {
-//                crclServerFuture.get(100, TimeUnit.MILLISECONDS);
-//            } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+//                ss.close();
+//            } catch (IOException ex) {
 //                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
 //            }
-        }
-        if (null != clients) {
-            for (CRCLSocket cs : clients) {
-                try {
-                    cs.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            clients.clear();
-        }
-        if (null != ss) {
-            try {
-                ss.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            ss = null;
+//            ss = null;
+//        }
+        if (null != crclServerSocket) {
+            crclServerSocket.close();
         }
     }
 
@@ -1285,15 +1359,15 @@ public class FanucCRCLMain {
             moveThread = null;
         }
         stopCrclServer();
-        if (null != es) {
-            es.shutdownNow();
-            try {
-                es.awaitTermination(500, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            es = null;
-        }
+//        if (null != es) {
+//            es.shutdownNow();
+//            try {
+//                es.awaitTermination(500, TimeUnit.MILLISECONDS);
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//            es = null;
+//        }
         disconnectRemoteRobot();
         if (null != neighborhood) {
             neighborhood.dispose();
@@ -1404,16 +1478,16 @@ public class FanucCRCLMain {
         if (null != overrideVar) {
             overrideVar.refresh();
             Object overrideValueObject = overrideVar.value();
-            
+
             if (overrideValueObject instanceof Integer) {
                 int val = (Integer) overrideValueObject;
-                if(val != overrideValue) {
+                if (val != overrideValue) {
                     System.out.println("overrideValueObject = " + overrideValueObject);
                     setOverrideValue(val);
                 }
             } else {
                 System.out.println("overrideValueObject = " + overrideValueObject);
-                if(null != overrideValueObject) {
+                if (null != overrideValueObject) {
                     System.out.println("overrideValueObject.getClass() = " + overrideValueObject.getClass());
                 }
             }
@@ -1649,7 +1723,7 @@ public class FanucCRCLMain {
 
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
 
-        if(overrideValue < 50) {
+        if (overrideValue < 50) {
             recheckOverride();
         }
         moveReasons = new ArrayList<>();
@@ -1936,11 +2010,11 @@ public class FanucCRCLMain {
     public double distanceTolerance = 1.0; // millimeter
     public double distanceRotTolerance = 0.25; // degrees
 
-    private void handleSetLengthUnits(SetLengthUnitsType slu) {
-        this.setLengthUnit(slu.getUnitName());
-        setCommandState(CommandStateEnumType.CRCL_DONE);
-        settingsStatus.setLengthUnitName(slu.getUnitName());
-    }
+//    private void handleSetLengthUnits(SetLengthUnitsType slu) {
+//        this.setLengthUnit(slu.getUnitName());
+//        setCommandState(CommandStateEnumType.CRCL_DONE);
+//        settingsStatus.setLengthUnitName(slu.getUnitName());
+//    }
 
     private void handleSetEndPoseTolerance(SetEndPoseToleranceType sepCmd) {
         PoseToleranceType poseTol = sepCmd.getTolerance();
@@ -2242,10 +2316,11 @@ public class FanucCRCLMain {
 
     final CRCLSocket utilCrclSocket;
 
-    public FanucCRCLMain() throws CRCLException {
+    public FanucCRCLMain() throws CRCLException, IOException {
         utilCrclSocket = new CRCLSocket();
         setDefaultJointReports();
         poseStatus.setPose(CRCLPosemath.identityPose());
+        crclServerSocket = new CRCLServerSocket<>(FANUC_STATE_GENERATOR);
     }
 
     private boolean keepMoveToLog = false;
@@ -2356,80 +2431,81 @@ public class FanucCRCLMain {
         }
     }
 
-    private void handleClient(CRCLSocket cs) {
-        try {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
-                    long readRetTime = System.currentTimeMillis();
-                    final CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                    if (cmd instanceof GetStatusType) {
-                        updateStatus(cs);
-                        long updateStatusEndTime = System.currentTimeMillis();
-                        long updateStatusTimeDiff = updateStatusEndTime - readRetTime;
-                        totalUpdateStatusTime += updateStatusTimeDiff;
-                        if (updateStatusTimeDiff > maxUpdateStatusTime) {
-                            maxUpdateStatusTime = updateStatusTimeDiff;
-                        }
-                        updateStatusCount++;
-                    } else {
-                        try {
-                            if (null != this.displayInterface && this.displayInterface.getjCheckBoxLogAllCommands().isSelected()) {
-                                logInfoString(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
-                                logInfoString(cs.getLastCommandString());
-                            }
-                            CompletableFuture.runAsync(() -> handleCommand(cmdInstance), robotService).get();
-                            long handleCommandEndTime = System.currentTimeMillis();
-                            long handleCommandTimeDiff = handleCommandEndTime - readRetTime;
-                            totalHandleCommandTime += handleCommandTimeDiff;
-                            if (handleCommandTimeDiff > maxHandleCommandTime) {
-                                maxHandleCommandTime = handleCommandTimeDiff;
-                            }
-                            handleCommandCount++;
-                        } catch (ComException comEx) {
-                            showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
-                            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
-                            disconnectRemoteRobot();
-                            connectRemoteRobot();
-                        }
-                    }
-                    updatePerformance();
-                } catch (SocketException | EOFException se) {
-                    // probably just closing the connection.
-                    break;
-                } catch (ComException comEx) {
-                    showComException(comEx);
-                    disconnectRemoteRobot();
-                    connectRemoteRobot();
-                }
+//    private void handleClient(CRCLSocket cs) {
+//        try {
+//            while (!Thread.currentThread().isInterrupted()) {
+//                try {
+//                    CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
+//                    handleClientCommand(cmdInstance, cs);
+//                } catch (SocketException | EOFException se) {
+//                    // probably just closing the connection.
+//                    break;
+//                } catch (ComException comEx) {
+//                    showComException(comEx);
+//                    disconnectRemoteRobot();
+//                    connectRemoteRobot();
+//                }
+//            }
+//        } catch (SocketException | EOFException se) {
+//            // probably just closing the connection.
+//        } catch (Exception ex) {
+//            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//            showError(ex.getMessage());
+//        } finally {
+//            try {
+//                logDebug("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
+//                clients.remove(cs);
+//                cs.close();
+//                logDebug("clients = " + clients);
+//            } catch (IOException ex) {
+//                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//    }
+    private void handleClientCommand(CRCLCommandInstanceType cmdInstance, CRCLSocket cs) throws SAXException, InterruptedException, ExecutionException, JAXBException, IOException, ParserConfigurationException, CRCLException {
+        long readRetTime = System.currentTimeMillis();
+        final CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+        if (cmd instanceof GetStatusType) {
+            updateStatus(cs);
+            long updateStatusEndTime = System.currentTimeMillis();
+            long updateStatusTimeDiff = updateStatusEndTime - readRetTime;
+            totalUpdateStatusTime += updateStatusTimeDiff;
+            if (updateStatusTimeDiff > maxUpdateStatusTime) {
+                maxUpdateStatusTime = updateStatusTimeDiff;
             }
-        } catch (SocketException | EOFException se) {
-            // probably just closing the connection.
-        } catch (Exception ex) {
-            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            showError(ex.getMessage());
-        } finally {
+            updateStatusCount++;
+        } else {
             try {
-                logDebug("Closing connection with " + cs.getInetAddress() + ":" + cs.getPort());
-                clients.remove(cs);
-                cs.close();
-                logDebug("clients = " + clients);
-            } catch (IOException ex) {
-                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+                if (null != this.displayInterface && this.displayInterface.getjCheckBoxLogAllCommands().isSelected()) {
+                    logInfoString(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
+                    logInfoString(cs.getLastCommandString());
+                }
+                CompletableFuture.runAsync(() -> handleCommand(cmdInstance), robotService).get();
+                long handleCommandEndTime = System.currentTimeMillis();
+                long handleCommandTimeDiff = handleCommandEndTime - readRetTime;
+                totalHandleCommandTime += handleCommandTimeDiff;
+                if (handleCommandTimeDiff > maxHandleCommandTime) {
+                    maxHandleCommandTime = handleCommandTimeDiff;
+                }
+                handleCommandCount++;
+            } catch (ComException comEx) {
+                showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
+                Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
+                disconnectRemoteRobot();
+                connectRemoteRobot();
             }
         }
+        updatePerformance();
     }
 
     private final AtomicInteger startCrclServerCount = new AtomicInteger();
 
     private void wrappedStartCrclServer() {
-        ServerSocket startSs = this.ss;
         int startStartCrclServerCount = startCrclServerCount.incrementAndGet();
         try {
             startCrclServer();
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-            System.err.println("startSs = " + startSs);
             System.err.println("localPort = " + localPort);
             System.err.println("startStartCrclServerCount = " + startStartCrclServerCount);
             System.err.println("startCrclServerCount.get() = " + startCrclServerCount.get());
@@ -2437,28 +2513,28 @@ public class FanucCRCLMain {
         }
     }
 
-    Future<?> crclServerFuture = null;
-
+//    Future<?> crclServerFuture = null;
     public synchronized void startCrclServer() throws IOException {
-        stopCrclServer();
-        es = Executors.newCachedThreadPool(daemonThreadFactory);
-        ss = new ServerSocket(localPort);
-        crclServerFuture = es.submit(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Thread.currentThread().setName("FanucCRCL.acceptClients.ss=" + ss);
-                    CRCLSocket cs = new CRCLSocket(ss.accept());
-                    clients.add(cs);
-                    es.submit(() -> {
-                        Thread.currentThread().setName("FanucCRCL.handleClient.cs=" + cs);
-                        handleClient(cs);
-                    });
-                } catch (IOException ex) {
-                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
-                    return;
-                }
-            }
-        });
+//        stopCrclServer();
+//        es = Executors.newCachedThreadPool(daemonThreadFactory);
+//        ss = new ServerSocket(localPort);
+//        crclServerFuture = es.submit(() -> {
+//            while (!Thread.currentThread().isInterrupted()) {
+//                try {
+//                    Thread.currentThread().setName("FanucCRCL.acceptClients.ss=" + ss);
+//                    CRCLSocket cs = new CRCLSocket(ss.accept());
+//                    clients.add(cs);
+//                    es.submit(() -> {
+//                        Thread.currentThread().setName("FanucCRCL.handleClient.cs=" + cs);
+//                        handleClient(cs);
+//                    });
+//                } catch (IOException ex) {
+//                    Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, null, ex);
+//                    return;
+//                }
+//            }
+//        });
+        crclServerSocket.runServer();
     }
 
     private boolean robotIsConnected = false;
@@ -2525,7 +2601,7 @@ public class FanucCRCLMain {
             } else if (cmd instanceof ActuateJointsType) {
                 handleActuateJoints((ActuateJointsType) cmd);
             } else if (cmd instanceof SetLengthUnitsType) {
-                handleSetLengthUnits((SetLengthUnitsType) cmd);
+//                handleSetLengthUnits((SetLengthUnitsType) cmd);
             } else if (cmd instanceof SetEndPoseToleranceType) {
                 handleSetEndPoseTolerance((SetEndPoseToleranceType) cmd);
             } else if (cmd instanceof DwellType) {
@@ -2588,7 +2664,7 @@ public class FanucCRCLMain {
     public void loadProperties() {
         if (null != this.propertiesFile && propertiesFile.exists()) {
             Properties props = new Properties();
-            try (FileReader reader = new FileReader(propertiesFile)) {
+            try ( FileReader reader = new FileReader(propertiesFile)) {
                 props.load(reader);
                 String keepMoveToLogString = (String) props.get("keepMoveToLog");
                 if (null != keepMoveToLogString) {
@@ -2610,7 +2686,7 @@ public class FanucCRCLMain {
         if (null != this.propertiesFile) {
             Properties props = new Properties();
             props.put("keepMoveToLog", Boolean.valueOf(keepMoveToLog));
-            try (FileWriter fw = new FileWriter(propertiesFile)) {
+            try ( FileWriter fw = new FileWriter(propertiesFile)) {
                 props.store(fw, "");
             } catch (IOException exception) {
                 exception.printStackTrace();
@@ -2713,7 +2789,7 @@ public class FanucCRCLMain {
     }
 
     public void saveCartLimits(PmCartesian min, PmCartesian max) {
-        try (PrintWriter pw = new PrintWriter(cartLimitsFile)) {
+        try ( PrintWriter pw = new PrintWriter(cartLimitsFile)) {
             pw.println("min.x=" + min.x);
             pw.println("min.y=" + min.y);
             pw.println("min.z=" + min.z);
@@ -2739,7 +2815,7 @@ public class FanucCRCLMain {
     }
 
     public void saveJointLimits(float[] min, float[] max) {
-        try (PrintWriter pw = new PrintWriter(jointLimitsFile)) {
+        try ( PrintWriter pw = new PrintWriter(jointLimitsFile)) {
             for (int i = 0; i < max.length && i < min.length; i++) {
                 pw.println("min[" + i + "]=" + min[i]);
                 pw.println("max[" + i + "]=" + max[i]);
@@ -2821,7 +2897,7 @@ public class FanucCRCLMain {
         PmCartesian min = new PmCartesian(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
         PmCartesian max = new PmCartesian(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
         if (null != cartLimitsFile && cartLimitsFile.exists()) {
-            try (BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
+            try ( BufferedReader br = new BufferedReader(new FileReader(cartLimitsFile))) {
                 String line = null;
                 while ((line = br.readLine()) != null) {
                     findString(line, "min.x=", t -> min.x = Double.parseDouble(t));
@@ -2845,7 +2921,7 @@ public class FanucCRCLMain {
             max[i] = Float.POSITIVE_INFINITY;
             min[i] = Float.NEGATIVE_INFINITY;
         }
-        try (BufferedReader br = new BufferedReader(new FileReader(jointLimitsFile))) {
+        try ( BufferedReader br = new BufferedReader(new FileReader(jointLimitsFile))) {
             String line = null;
             while ((line = br.readLine()) != null) {
                 findIndexedString(line, "min[]=", (i, t) -> min[i] = Float.valueOf(t));

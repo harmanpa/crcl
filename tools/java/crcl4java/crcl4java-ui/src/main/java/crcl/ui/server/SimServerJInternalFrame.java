@@ -538,10 +538,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         simServerJPanel1.finishSetCurrentWaypoint(currentWaypoint);
     }
 
-    @Override
-    public void updateLengthUnit(LengthUnitEnumType lu) {
-        simServerJPanel1.updateLengthUnit(lu);
-    }
+//    @Override
+//    public void updateLengthUnit(LengthUnitEnumType lu) {
+//        simServerJPanel1.updateLengthUnit(lu);
+//    }
 
     @Override
     public void showDebugMessage(String s) {

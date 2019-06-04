@@ -24,19 +24,24 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStatusType;
+import crcl.base.CountSensorStatusType;
 import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
+import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
+import crcl.base.OnOffSensorStatusType;
 import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
+import crcl.base.ScalarSensorStatusType;
+import crcl.base.SensorStatusesType;
 import crcl.base.SettingsStatusType;
 import crcl.base.ThreeFingerGripperStatusType;
 import crcl.base.TwistType;
@@ -309,7 +314,7 @@ public class CRCLPosemath {
         newVec.setK(vec.getK());
         return newVec;
     }
-    
+
     /**
      * Copy or clone the pose.
      *
@@ -317,8 +322,8 @@ public class CRCLPosemath {
      * @return PoseType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ PoseType copyNullable(/*@Nullable*/ PoseType pose) {
-        if(null == pose) {
+    public static /*@Nullable*/ PoseType copyNullable(/*@Nullable*/PoseType pose) {
+        if (null == pose) {
             return null;
         }
         return copy(pose);
@@ -385,6 +390,10 @@ public class CRCLPosemath {
         if (null != settingsStatus) {
             newStatus.setSettingsStatus(settingsStatus);
         }
+        SensorStatusesType sensorsStatus = copy(status.getSensorStatuses());
+        if (null != sensorsStatus) {
+            newStatus.setSensorStatuses(sensorsStatus);
+        }
         return newStatus;
     }
 
@@ -395,7 +404,7 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-     /*@Nullable*/
+    /*@Nullable*/
     public static SettingsStatusType copy(SettingsStatusType settings) {
         if (null != settings) {
             SettingsStatusType newSettings = new SettingsStatusType();
@@ -428,6 +437,140 @@ public class CRCLPosemath {
         return null;
     }
 
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param sensorsStatuses to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    /*@Nullable*/
+    public static SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
+        if (null != sensorsStatuses) {
+            SensorStatusesType newSensorStatuses = new SensorStatusesType();
+            
+            if (null != sensorsStatuses.getOnOffSensorStatus()) {
+                newSensorStatuses.getOnOffSensorStatus().clear();
+                for (int i = 0; i < sensorsStatuses.getOnOffSensorStatus().size(); i++) {
+                    OnOffSensorStatusType onOffSensorStatus = sensorsStatuses.getOnOffSensorStatus().get(i);
+                    OnOffSensorStatusType onOffSensorStatusCopy = copy(onOffSensorStatus);
+                    newSensorStatuses.getOnOffSensorStatus().add(onOffSensorStatusCopy);
+                }
+            }
+            
+            if (null != sensorsStatuses.getScalarSensorStatus()) {
+                newSensorStatuses.getScalarSensorStatus().clear();
+                for (int i = 0; i < sensorsStatuses.getScalarSensorStatus().size(); i++) {
+                    ScalarSensorStatusType scalarSensorStatus = sensorsStatuses.getScalarSensorStatus().get(i);
+                    ScalarSensorStatusType scalarSensorStatusCopy = copy(scalarSensorStatus);
+                    newSensorStatuses.getScalarSensorStatus().add(scalarSensorStatusCopy);
+                }
+            }
+            
+            if (null != sensorsStatuses.getCountSensorStatus()) {
+                newSensorStatuses.getCountSensorStatus().clear();
+                for (int i = 0; i < sensorsStatuses.getCountSensorStatus().size(); i++) {
+                    CountSensorStatusType countSensorStatus = sensorsStatuses.getCountSensorStatus().get(i);
+                    CountSensorStatusType countSensorStatusCopy = copy(countSensorStatus);
+                    newSensorStatuses.getCountSensorStatus().add(countSensorStatusCopy);
+                }
+            }
+            
+            if (null != sensorsStatuses.getForceTorqueSensorStatus()) {
+                newSensorStatuses.getForceTorqueSensorStatus().clear();
+                for (int i = 0; i < sensorsStatuses.getForceTorqueSensorStatus().size(); i++) {
+                    ForceTorqueSensorStatusType forceTorqueSensorStatus = sensorsStatuses.getForceTorqueSensorStatus().get(i);
+                    ForceTorqueSensorStatusType forceTorqueSensorStatusCopy = copy(forceTorqueSensorStatus);
+                    newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param forceTorqueSensorStatus to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    /*@Nullable*/
+    public static ForceTorqueSensorStatusType copy(ForceTorqueSensorStatusType forceTorqueSensorStatus) {
+        if (null != forceTorqueSensorStatus) {
+            ForceTorqueSensorStatusType newForceTorqueSensorStatus = new ForceTorqueSensorStatusType();
+            newForceTorqueSensorStatus.setSensorID(forceTorqueSensorStatus.getSensorID());
+            newForceTorqueSensorStatus.setName(forceTorqueSensorStatus.getName());
+            newForceTorqueSensorStatus.setFx(forceTorqueSensorStatus.getFx());
+            newForceTorqueSensorStatus.setFy(forceTorqueSensorStatus.getFy());
+            newForceTorqueSensorStatus.setFz(forceTorqueSensorStatus.getFz());
+            newForceTorqueSensorStatus.setTx(forceTorqueSensorStatus.getTx());
+            newForceTorqueSensorStatus.setTy(forceTorqueSensorStatus.getTy());
+            newForceTorqueSensorStatus.setTz(forceTorqueSensorStatus.getTz());
+            return newForceTorqueSensorStatus;
+        }
+        return null;
+    }
+    
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param countSensorStatus to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    /*@Nullable*/
+    public static CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
+        if (null != countSensorStatus) {
+            CountSensorStatusType newCountSensorStatus = new CountSensorStatusType();
+            newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
+            newCountSensorStatus.setName(countSensorStatus.getName());
+            newCountSensorStatus.setCountValue(countSensorStatus.getCountValue());
+            return newCountSensorStatus;
+        }
+        return null;
+    }
+
+    
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param scalarSensorStatus to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    /*@Nullable*/
+    public static ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
+        if (null != scalarSensorStatus) {
+            ScalarSensorStatusType newScalarSensorStatus = new ScalarSensorStatusType();
+            newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
+            newScalarSensorStatus.setName(scalarSensorStatus.getName());
+            newScalarSensorStatus.setScalarValue(scalarSensorStatus.getScalarValue());
+            return newScalarSensorStatus;
+        }
+        return null;
+    }
+    
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param onOffSensorStatus to be cloned
+     * @return SettingsStatusType with same initial values as pose but can be
+     * independently modified.
+     */
+    /*@Nullable*/
+    public static OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
+        if (null != onOffSensorStatus) {
+            OnOffSensorStatusType newOnOffSensorStatus = new OnOffSensorStatusType();
+            newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
+            newOnOffSensorStatus.setName(onOffSensorStatus.getName());
+            newOnOffSensorStatus.setOn(onOffSensorStatus.isOn());
+            return newOnOffSensorStatus;
+        }
+        return null;
+    }
+
+    
     /**
      * Copy or clone a gripper status.
      *
@@ -1478,9 +1621,9 @@ public class CRCLPosemath {
      * @throws PmException if rotation vector can not be converted to matrix
      */
     static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat) throws PmException {
-       return toPoseType(tran,mat,((PoseType)null));
+        return toPoseType(tran, mat, ((PoseType) null));
     }
-    
+
     /**
      * Combine a translation and rotation in a PoseType
      *
@@ -1638,7 +1781,7 @@ public class CRCLPosemath {
      *
      * @param da first array of doubles
      * @param da2 second array of doubles
-     * @param mod optional modulus  set to zero or negative to ignore
+     * @param mod optional modulus set to zero or negative to ignore
      * @return maximum difference between corresponding elements of two arrays
      */
     public static double maxDiffDoubleArray(double da[], double da2[], double mod) {
@@ -1675,6 +1818,10 @@ public class CRCLPosemath {
         return r.s;
     }
 
+    private static boolean isFinite(double d) {
+        return !Double.isInfinite(d) && !Double.isNaN(d);
+    }
+
     /**
      * Convert a PmCartesian to a crcl.PointType
      *
@@ -1682,14 +1829,14 @@ public class CRCLPosemath {
      * @return Point equivalent of input cartesian
      */
     public static PointType toPointType(PmCartesian c) {
-        if(!Double.isFinite(c.x)) {
-            throw new IllegalArgumentException("c.x="+c.x+", c="+c);
+        if (!isFinite(c.x)) {
+            throw new IllegalArgumentException("c.x=" + c.x + ", c=" + c);
         }
-        if(!Double.isFinite(c.y)) {
-            throw new IllegalArgumentException("c.y="+c.y+", c="+c);
+        if (!isFinite(c.y)) {
+            throw new IllegalArgumentException("c.y=" + c.y + ", c=" + c);
         }
-        if(!Double.isFinite(c.z)) {
-            throw new IllegalArgumentException("c.z="+c.z+", c="+c);
+        if (!isFinite(c.z)) {
+            throw new IllegalArgumentException("c.z=" + c.z + ", c=" + c);
         }
         PointType pt = new PointType();
         pt.setX(c.x);

@@ -20,6 +20,8 @@
  */
 package crcl.utils;
 
+import crcl.utils.server.CRCLServerSocketEvent;
+import crcl.utils.server.CRCLServerSocket;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
@@ -29,8 +31,6 @@ import crcl.base.GetStatusType;
 import crcl.base.MoveToType;
 import crcl.base.PoseStatusType;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,7 +53,7 @@ public class CRCLServerSocketBlockingExample {
         final PoseStatusType poseStatus = new PoseStatusType();
 
         // Create as Server Socket object bound to the default port.
-        try (final CRCLServerSocket serverSocket = new CRCLServerSocket(CRCLSocket.DEFAULT_PORT)) {
+        try (final CRCLServerSocket serverSocket = CRCLServerSocket.newDefaultServer()) {
 
             // Enable queuing of events so we don't need a callback.
             serverSocket.setQueueEvents(true);

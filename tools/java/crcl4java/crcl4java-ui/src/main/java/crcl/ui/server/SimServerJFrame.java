@@ -469,10 +469,10 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         simServerJPanel1.finishSetCurrentWaypoint(currentWaypoint);
     }
 
-    @Override
-    public void updateLengthUnit(LengthUnitEnumType lu) {
-        simServerJPanel1.updateLengthUnit(lu);
-    }
+//    @Override
+//    public void updateLengthUnit(LengthUnitEnumType lu) {
+//        simServerJPanel1.updateLengthUnit(lu);
+//    }
 
     @Override
     public void showDebugMessage(String s) {

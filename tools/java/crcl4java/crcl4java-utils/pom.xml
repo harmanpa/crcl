@@ -60,7 +60,6 @@
         <checkerframework.version>1.9.13</checkerframework.version>
     </properties>
     <build>
-       
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -68,11 +67,8 @@
                 <version>3.8.1</version>
                 <configuration>
                     <compilerArgs>
-                        <arg>-source</arg>
-                        <arg>1.7</arg>
-                        <arg>-target</arg>
-                        <arg>1.7</arg>
-                        <arg>-parameters</arg>
+                        <arg>-Xdiags:verbose</arg>
+                        <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -103,6 +99,33 @@
     </build>
     <name>crcl4java-utils</name>
     <profiles>
+        
+        <profile>
+            <id>jdk8</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-Xdiags:verbose</arg>
+                                <arg>-Xlint:unchecked</arg>
+                                <arg>-source</arg>
+                                <arg>1.7</arg>
+                                <arg>-target</arg>
+                                <arg>1.7</arg>
+                                <arg>-parameters</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>checkerframework_jdk7</id>
             <properties>
@@ -176,7 +199,6 @@
                                 <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
                                 <!-- Uncomment the following line if using Java 7. -->
                                 <arg>-J-Xbootclasspath/p:${typeAnnotationsJavac}</arg>
-                                <arg>-parameters</arg>
                             </compilerArgs>
                         </configuration>
                     </plugin>
