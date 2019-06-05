@@ -857,7 +857,7 @@ public class PendantClientInner {
             return MultiLineStringJPanel.showText(s);
         } catch (Exception ex) {
             System.err.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
-            LOGGER.log(Level.SEVERE, "cmdObj="+cmdObj, ex);
+            LOGGER.log(Level.SEVERE, "cmdObj=" + cmdObj, ex);
             showMessage(ex);
         }
         return XFuture.completedFuture(false);
@@ -880,7 +880,7 @@ public class PendantClientInner {
 
     @MonotonicNonNull
     private volatile Schema cmdSchema = null;
-    
+
     final void setCmdSchema(File[] fa) {
         try {
             cmdSchema = CRCLSocket.filesToCmdSchema(fa);
@@ -2097,6 +2097,7 @@ public class PendantClientInner {
                 });
 
             } else if (ex instanceof JAXBException) {
+                System.out.println("this.statSchemaFiles = " + Arrays.toString(this.statSchemaFiles));
                 if (disconnecting) {
                     return false;
                 }

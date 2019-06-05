@@ -55,7 +55,6 @@ import crcl.base.JointDetailsType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
-import crcl.base.LengthUnitEnumType;
 import crcl.base.MessageType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
@@ -140,8 +139,22 @@ public class MotomanCRCLServer implements AutoCloseable {
         return mpc.isConnected();
     }
 
+    private void runUpdateStatus() {
+        try {
+            getCrclStatus();
+        } catch(Exception ex) {
+            logException(ex);
+            if(ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
     public Future<?> start() {
         crclServerSocket.setServerSideStatus(crclStatus);
+        crclServerSocket.setUpdateStatusRunnable(this::runUpdateStatus);
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());

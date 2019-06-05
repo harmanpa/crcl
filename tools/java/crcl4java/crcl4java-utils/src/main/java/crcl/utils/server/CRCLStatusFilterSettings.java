@@ -58,8 +58,6 @@ public class CRCLStatusFilterSettings {
         return clientUserSet;
     }
 
-   
-
     public UnitsTypeSet getServerUserSet() {
         return serverUserSet;
     }
@@ -76,7 +74,6 @@ public class CRCLStatusFilterSettings {
         this.serverToClientScaleSet = serverToClientScaleSet;
     }
 
-    
     public ConfigureStatusReportType getConfigureStatusReport() {
         return configureStatusReport;
     }
@@ -318,7 +315,9 @@ public class CRCLStatusFilterSettings {
                 statusOut.setJointStatuses(null);
             } else if (joints == null || joints.isEmpty()) {
                 statusOut.setJointStatuses(null);
-            }  else {
+            } else if (configJointsReportMap.isEmpty()) {
+                statusOut.setJointStatuses(null);
+            } else {
                 List<JointStatusType> jointsCopy = new ArrayList<>();
                 for (int i = 0; i < joints.size(); i++) {
                     JointStatusType jst = joints.get(i);

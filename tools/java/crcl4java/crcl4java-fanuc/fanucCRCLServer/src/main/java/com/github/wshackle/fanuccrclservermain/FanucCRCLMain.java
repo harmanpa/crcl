@@ -76,7 +76,6 @@ import crcl.base.JointLimitType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
-import crcl.base.LengthUnitEnumType;
 import crcl.base.MessageType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;

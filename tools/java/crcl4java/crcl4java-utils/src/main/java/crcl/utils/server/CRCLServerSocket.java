@@ -479,8 +479,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final CRCLCommandType cmd = instanceIn.getCRCLCommand();
             if (cmd instanceof GetStatusType) {
                 CRCLSocket source = event.getSource();
-                if(updateStatusRunnable != null) { 
+                if (updateStatusRunnable != null) {
                     updateStatusRunnable.run();
+                    updateStatusRunCount++;
                 }
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                 statusToSend.getCommandStatus().setCommandID(state.cmdId);
@@ -1108,6 +1109,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setupNewClientState(STATE_TYPE state) {
+        if (updateStatusRunnable != null && updateStatusRunCount == 0) {
+            updateStatusRunnable.run();
+            updateStatusRunCount++;
+        }
         if (automaticallyConvertUnits && null != serverToClientScales) {
             state.filterSettings.setServerToClientScaleSet(serverToClientScales);
         }
@@ -1279,6 +1284,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.threadNamePrefix = threadNamePrefix;
     }
 
+    private volatile int updateStatusRunCount = 0;
     private Runnable updateStatusRunnable;
 
     /**
