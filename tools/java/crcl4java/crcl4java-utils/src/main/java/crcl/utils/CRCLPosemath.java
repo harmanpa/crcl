@@ -484,6 +484,7 @@ public class CRCLPosemath {
                     newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
                 }
             }
+            return newSensorStatuses;
         }
         return null;
     }

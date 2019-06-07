@@ -30,11 +30,16 @@ import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
 import crcl.base.ConfigureStatusReportType;
+import crcl.base.CountSensorStatusType;
+import crcl.base.DisableSensorStatusType;
+import crcl.base.EnableSensorStatusType;
+import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
+import crcl.base.OnOffSensorStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
@@ -42,6 +47,8 @@ import crcl.base.RotAccelAbsoluteType;
 import crcl.base.RotAccelType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedType;
+import crcl.base.ScalarSensorStatusType;
+import crcl.base.SensorStatusType;
 import crcl.base.SensorStatusesType;
 import crcl.base.SetAngleUnitsType;
 import crcl.base.SetForceUnitsType;
@@ -80,8 +87,10 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -123,8 +132,49 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private volatile CRCLStatusType serverSideStatus;
 
+    private final Map<String, SensorServerInterface> sensorServers = new HashMap<>();
+
+    public void addSensorServer(String sensorId, SensorServerInterface sensorServer) {
+        sensorServers.put(sensorId, sensorServer);
+    }
+
+    public void removeSensorServer(String sensorId) {
+        sensorServers.remove(sensorId);
+    }
+
+    private final List<SensorServerFinderInterface> sensorFinders = new ArrayList<>();
+
+    public void addSensorFinder(SensorServerFinderInterface sensorFinder) {
+        sensorFinders.add(sensorFinder);
+    }
+
+    public void removeSensorFinder(SensorServerFinderInterface sensorFinder) {
+        sensorFinders.remove(sensorFinder);
+    }
+
     public CRCLStatusType getServerSideStatus() {
         return serverSideStatus;
+    }
+
+    private boolean automaticallyHandleSensorServers = true;
+
+    /**
+     * Get the value of automaticallyHandleSensorServers
+     *
+     * @return the value of automaticallyHandleSensorServers
+     */
+    public boolean isAutomaticallyHandleSensorServers() {
+        return automaticallyHandleSensorServers;
+    }
+
+    /**
+     * Set the value of automaticallyHandleSensorServers
+     *
+     * @param automaticallyHandleSensorServers new value of
+     * automaticallyHandleSensorServers
+     */
+    public void setAutomaticallyHandleSensorServers(boolean automaticallyHandleSensorServers) {
+        this.automaticallyHandleSensorServers = automaticallyHandleSensorServers;
     }
 
     public void setServerSideStatus(CRCLStatusType serverSideStatus) {
@@ -483,6 +533,71 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     updateStatusRunnable.run();
                     updateStatusRunCount++;
                 }
+                for (SensorServerInterface sensorServer : sensorServers.values()) {
+                    SensorStatusType sensorStat = sensorServer.getCurrentSensorStatus();
+                    if (null != sensorStat) {
+                        if (null == serverSideStatus.getSensorStatuses()) {
+                            serverSideStatus.setSensorStatuses(new SensorStatusesType());
+                        }
+                        SensorStatusesType sensorStatuses = serverSideStatus.getSensorStatuses();
+                        final List<OnOffSensorStatusType> onOffSensorStatusList = sensorStatuses.getOnOffSensorStatus();
+                        if (null != onOffSensorStatusList) {
+                            for (int i = 0; i < onOffSensorStatusList.size(); i++) {
+                                OnOffSensorStatusType onOffSensorStat = onOffSensorStatusList.get(i);
+                                if (onOffSensorStat.getSensorID().equals(sensorStat.getSensorID())) {
+                                    onOffSensorStatusList.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        final List<CountSensorStatusType> countSensorStatusList = sensorStatuses.getCountSensorStatus();
+                        if (null != countSensorStatusList) {
+                            for (int i = 0; i < countSensorStatusList.size(); i++) {
+                                CountSensorStatusType countSensorStat = countSensorStatusList.get(i);
+                                if (countSensorStat.getSensorID().equals(sensorStat.getSensorID())) {
+                                    countSensorStatusList.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        final List<ScalarSensorStatusType> scalarSensorStatusList = sensorStatuses.getScalarSensorStatus();
+                        if (null != scalarSensorStatusList) {
+                            for (int i = 0; i < scalarSensorStatusList.size(); i++) {
+                                ScalarSensorStatusType scalarSensorStat = scalarSensorStatusList.get(i);
+                                if (scalarSensorStat.getSensorID().equals(sensorStat.getSensorID())) {
+                                    scalarSensorStatusList.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList = sensorStatuses.getForceTorqueSensorStatus();
+                        if (null != forceTorqueSensorStatusList) {
+                            for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
+                                ForceTorqueSensorStatusType forceTorqueSensorStat = forceTorqueSensorStatusList.get(i);
+                                if (forceTorqueSensorStat.getSensorID().equals(sensorStat.getSensorID())) {
+                                    forceTorqueSensorStatusList.remove(i);
+                                    break;
+                                }
+                            }
+                        }
+                        if (sensorStat instanceof OnOffSensorStatusType) {
+                            OnOffSensorStatusType onOffSensorStat = (OnOffSensorStatusType) sensorStat;
+                            onOffSensorStatusList.add(onOffSensorStat);
+                        }
+                        if (sensorStat instanceof CountSensorStatusType) {
+                            CountSensorStatusType countSensorStat = (CountSensorStatusType) sensorStat;
+                            countSensorStatusList.add(countSensorStat);
+                        }
+                        if (sensorStat instanceof ScalarSensorStatusType) {
+                            ScalarSensorStatusType scalarSensorStat = (ScalarSensorStatusType) sensorStat;
+                            scalarSensorStatusList.add(scalarSensorStat);
+                        }
+                        if (sensorStat instanceof ForceTorqueSensorStatusType) {
+                            ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) sensorStat;
+                            forceTorqueSensorStatusList.add(forceTorqueSensorStat);
+                        }
+                    }
+                }
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                 statusToSend.getCommandStatus().setCommandID(state.cmdId);
                 PointType origPoint = CRCLPosemath.getPoint(serverSideStatus);
@@ -672,6 +787,49 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             return false;
                         }
 
+                    }
+                }
+                if (automaticallyHandleSensorServers) {
+                    if (cmd instanceof EnableSensorStatusType) {
+                        EnableSensorStatusType enableSensorCmd = (EnableSensorStatusType) cmd;
+                        for (SensorServerFinderInterface finder : sensorFinders) {
+                            final String sensorID = enableSensorCmd.getSensorID();
+                            SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
+                            if (null != sensorSvr) {
+                                SensorServerInterface oldSensorServr = this.sensorServers.get(sensorID);
+                                if (null != oldSensorServr) {
+                                    try {
+                                        oldSensorServr.close();
+                                    } catch (Exception ex) {
+                                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+                                        if (ex instanceof RuntimeException) {
+                                            throw (RuntimeException) ex;
+                                        } else {
+                                            throw new RuntimeException(ex);
+                                        }
+                                    }
+                                }
+                                this.sensorServers.put(sensorID, sensorSvr);
+                                break;
+                            }
+                        }
+                        return true;
+                    } else if (cmd instanceof DisableSensorStatusType) {
+                        DisableSensorStatusType disableSensorCmd = (DisableSensorStatusType) cmd;
+                        SensorServerInterface sensorSvr = sensorServers.remove(disableSensorCmd.getSensorID());
+                        if (null != sensorSvr) {
+                            try {
+                                sensorSvr.close();
+                            } catch (Exception ex) {
+                                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "", ex);
+                                if (ex instanceof RuntimeException) {
+                                    throw (RuntimeException) ex;
+                                } else {
+                                    throw new RuntimeException(ex);
+                                }
+                            }
+                        }
+                        return true;
                     }
                 }
             }

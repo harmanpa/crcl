@@ -37,6 +37,11 @@ C:\Users\Public\Documents\Downloaded_Tools\ApacheNetbeans10.0\netbeans\java\mave
             -->
            
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>crcl4java-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
      
 </project>
