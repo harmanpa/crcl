@@ -22,8 +22,6 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
-import com.github.wshackle.atinetft_proxy.ATIForceTorqueSensorFinder;
-import com.github.wshackle.atinetft_proxy.ATIForceTorqueSensorServer;
 import com.github.wshackle.crcl4java.motoman.MotoPlusConnection.MotoPlusConnectionException;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -160,7 +158,6 @@ public class MotomanCRCLServer implements AutoCloseable {
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());
-        crclServerSocket.addSensorFinder(new ATIForceTorqueSensorFinder());
         return crclServerSocket.start();
     }
     

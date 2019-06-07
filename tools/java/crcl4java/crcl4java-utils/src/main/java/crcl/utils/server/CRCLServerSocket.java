@@ -84,14 +84,17 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -152,11 +155,53 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         sensorFinders.remove(sensorFinder);
     }
 
+    public void clearSensorFinders() {
+        sensorFinders.clear();
+    }
+
     public CRCLStatusType getServerSideStatus() {
         return serverSideStatus;
     }
 
     private boolean automaticallyHandleSensorServers = true;
+
+    public final void refreshSensorFinders() {
+
+        clearSensorFinders();
+//        try {
+//            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+//            System.out.println("cl = " + cl);
+//            Class clzz = cl.loadClass("com.github.wshackle.atinetft_proxy.ATIForceTorqueSensorFinder");
+//            System.out.println("clzz = " + clzz);
+//            ProtectionDomain protDom = clzz.getProtectionDomain();
+//            System.out.println("protDom = " + protDom);
+//        } catch (ClassNotFoundException ex) {
+//            Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        try {
+//            Class clzz = Class.forName("com.github.wshackle.atinetft_proxy.ATIForceTorqueSensorFinder");
+//            System.out.println("clzz = " + clzz);
+//            ProtectionDomain protDom = clzz.getProtectionDomain();
+//            System.out.println("protDom = " + protDom);
+//        } catch (ClassNotFoundException ex) {
+//            Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        
+
+        ServiceLoader<SensorServerFinderInterface> loader
+                = ServiceLoader
+                        .load(SensorServerFinderInterface.class);
+
+        Iterator<SensorServerFinderInterface> it = loader.iterator();
+//        System.out.println("it = " + it);
+        while(it.hasNext()) {
+            SensorServerFinderInterface finder = it.next();
+//            System.out.println("finder = " + finder);
+            addSensorFinder(finder);
+        }
+//        System.out.println("this.sensorFinders = " + this.sensorFinders);
+
+    }
 
     /**
      * Get the value of automaticallyHandleSensorServers
@@ -1526,6 +1571,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.multithreaded = multithreaded;
         this.stateGenerator = stateGenerator;
         this.stateClass = stateClass;
+        refreshSensorFinders();
     }
 
     private static final CRCLServerSocketStateGenerator<CRCLServerClientState> DEFAULT_STATE_GENERATOR
