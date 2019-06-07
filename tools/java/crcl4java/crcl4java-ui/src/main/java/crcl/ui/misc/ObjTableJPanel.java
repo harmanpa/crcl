@@ -639,30 +639,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         }
         for (String name : names) {
             try {
-                Method m = map.get(name);
-                Class mclss = null;
-                if (m.getParameterCount() == 1) {
-                    mclss = m.getParameterTypes()[0];
-                } else {
-                    mclss = m.getReturnType();
-                }
-                Method mget = null;
-                try {
-                    mget = oclss.getMethod("get" + name);
-
-                } catch (NoSuchMethodException noSuchMethodException) {
-                } catch (SecurityException securityException) {
-                }
-                try {
-                    mget = clss.getMethod("is" + name);
-
-                } catch (NoSuchMethodException noSuchMethodException) {
-                } catch (SecurityException securityException) {
-                }
+                Method getMethod = map.get(name);
+                Class mclss = getMethod.getReturnType();
                 Object mo = null;
-                if (null != o && null != mget) {
+                if (null != o && null != getMethod) {
                     try {
-                        mo = mget.invoke(o);
+                        mo = getMethod.invoke(o);
                     } catch (Exception ex) {
                         Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -683,9 +665,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 }
                 String type = mclss.getCanonicalName();
                 String list_item_type = null;
-                if (List.class.isAssignableFrom(mclss) && null != mget) {
+                if (List.class.isAssignableFrom(mclss) && null != getMethod) {
                     try {
-                        ParameterizedType prt = (ParameterizedType) mget.getGenericReturnType();
+                        ParameterizedType prt = (ParameterizedType) getMethod.getGenericReturnType();
                         list_item_type = prt.getActualTypeArguments()[0].getTypeName();
                         type += "<" + list_item_type + ">";
                     } catch (Exception e) {
@@ -703,19 +685,20 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     if (mo == null) {
                         mo = Boolean.FALSE;
                     }
-                    final JCheckBox jc = new JCheckBox("false");
+                    boolean mo_boolean = (boolean) mo;
+                    final JCheckBox jc = new JCheckBox("",mo_boolean);
                     jc.setBackground(Color.LIGHT_GRAY);
-                    jc.addActionListener(new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            if (jc.isSelected()) {
-                                jc.setText("true");
-                            } else {
-                                jc.setText("false");
-                            }
-                        }
-                    });
+//                    jc.addActionListener(new ActionListener() {
+//
+//                        @Override
+//                        public void actionPerformed(ActionEvent e) {
+//                            if (jc.isSelected()) {
+//                                jc.setText("true");
+//                            } else {
+//                                jc.setText("false");
+//                            }
+//                        }
+//                    });
                     this.rendererMap.put(tm.getRowCount(), new DefaultTableCellRenderer() {
 
                         @Override
@@ -778,13 +761,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         }
                     });
                 }
-                if (List.class.isAssignableFrom(mclss) && null != mget && null != mo) {
+                if (List.class.isAssignableFrom(mclss) && null != getMethod && null != mo) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
                     this.colorMap.put(tm.getRowCount() - 1, Color.green.brighter());
                     List l = (List) mo;
                     Class lclss = Object.class;
                     try {
-                        ParameterizedType prt = (ParameterizedType) mget.getGenericReturnType();
+                        ParameterizedType prt = (ParameterizedType) getMethod.getGenericReturnType();
                         lclss = Class.forName(prt.getActualTypeArguments()[0].getTypeName());
                     } catch (Exception e) {
                     }

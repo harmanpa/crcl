@@ -339,8 +339,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
                 }
             });
             if (null != sub_fa) {
-                Arrays.sort(sub_fa, Comparator.comparing(File::lastModified));
-                for (int i = 0; i < sub_fa.length && i < 3; i++) {
+                Arrays.sort(sub_fa, Comparator.comparing(File::lastModified).reversed());
+                for (int i = 0; i < sub_fa.length && i < 4; i++) {
                     File xmlFile = sub_fa[i];
                     JMenuItem jmi = new JMenuItem(xmlFile.getName());
                     jmi.addActionListener(new ActionListener() {

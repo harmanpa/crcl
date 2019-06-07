@@ -3287,6 +3287,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         CRCLCommandInstanceType cmdInstance
                 = internal.getTempCRCLSocket().stringToCommand(s, internal.isValidateXmlSchema());
         CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+        cmd.setCommandID(internal.getCmdId());
         if (null == cmd) {
             return;
         }
@@ -3295,6 +3296,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 internal.getXpu(),
                 internal.getCmdSchemaFiles(),
                 internal.getCheckCommandValidPredicate());
+        cmd.setCommandID(internal.getCmdId());
         incAndSendCommandFromAwt(cmd);
         this.saveRecentCommand(cmd);
     }
