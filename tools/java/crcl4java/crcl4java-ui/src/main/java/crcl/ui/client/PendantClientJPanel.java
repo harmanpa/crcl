@@ -82,7 +82,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
-import java.awt.Dialog;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -1975,7 +1974,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             lastFinishSetStatusProgramCopy = null;
             lastFinishSetStatusInternalProgram = null;
-            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription,isRunning);
+            finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription, isRunning);
         } else {
             final CRCLStatusType curInternalStatusCopy
                     = requireNonNull(CRCLPosemath.copy(curInternalStatus), "CRCLPosemath.copy(curInternalStatus)");
@@ -1989,7 +1988,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription,isRunning);
+                    PendantClientJPanel.this.finishSetStatusPriv(program, curInternalStatusCopy, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription, isRunning);
                 }
             });
         }
@@ -5931,7 +5930,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                         internal.getCmdSchemaFiles(),
                                         internal.getCheckCommandValidPredicate());
                         if (null != cmd) {
-                                cmd.setCommandID(0);
+                            cmd.setCommandID(0);
                             internal.incAndSendCommand(cmd);
                             pendantClientJPanel1.saveRecentCommand(cmd);
                         }
