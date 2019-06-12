@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +125,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 String typenoparams = removeTypeParams(type);
                 Class<?> clss = null;
                 try {
-                    if(col0Val instanceof Class) {
+                    if (col0Val instanceof Class) {
                         clss = (Class) col0Val;
                     } else if (typenoparams.equals("boolean")) {
                         clss = boolean.class;
@@ -170,7 +171,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         jButtonRemoveFromList.setEnabled(true);
                         return;
                     }
-                    if (isCompound(clss)) {
+                    if (isCompound(clss, customExcludedPathStrings)) {
                         jButtonNew.setEnabled(true);
                         if (null != getObject(name)) {
                             jButtonDelete.setEnabled(true);
@@ -354,7 +355,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     String typenoparams = removeTypeParams(type);
                     Class<?> clss = Class.forName(typenoparams);
                     pnlMap.remove(row);
-                    if (isCompound(clss)) {
+                    if (isCompound(clss, customExcludedPathStrings)) {
                         NewDeletePanel pnl = new NewDeletePanel();
                         pnlMap.put(row, pnl);
                         int rheight = table.getRowHeight(row);
@@ -396,7 +397,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return List.class.isAssignableFrom(clss);
     }
 
-    private static boolean isCompound(Class<?> clss) {
+    private static boolean isCompound(Class<?> clss, List<String> customExcludedPathStrings) {
         if (clss.isPrimitive()) {
             return false;
         }
@@ -434,7 +435,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             return false;
         }
         if (null == classes) {
-            classes = getClasses();
+            classes = getClasses(customExcludedPathStrings);
         }
         List<Class<?>> availClasses = getAssignableClasses(clss, classes);
         return availClasses.size() > 0;
@@ -686,7 +687,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         mo = Boolean.FALSE;
                     }
                     boolean mo_boolean = (boolean) mo;
-                    final JCheckBox jc = new JCheckBox("",mo_boolean);
+                    final JCheckBox jc = new JCheckBox("", mo_boolean);
                     jc.setBackground(Color.LIGHT_GRAY);
 //                    jc.addActionListener(new ActionListener() {
 //
@@ -744,7 +745,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 }
                 Object rowArray[] = new Object[]{type, name_prefix + name, mo};
                 addRow(tm, rowArray);
-                if (isCompound(mclss)) {
+                if (isCompound(mclss, customExcludedPathStrings)) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
                 }
                 if (mclss.equals(String.class) && mo != null
@@ -1178,20 +1179,50 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return classes;
     }
 
-    static public List<Class<?>> getClasses() {
+    private static final List<String> staticExcludedPathStrings
+            = Arrays.asList(new String[]{
+        "vaadin",
+        "google",
+        "apache",
+        "commons-io",
+        "commons-math",
+        "xerces",
+        "exificient",
+        "activation",
+        "jaxb-impl",
+        "checker-qual",
+            });
+
+    private final List<String> customExcludedPathStrings = new ArrayList<>();
+
+    public void addCustomExcludedPathStrings(String s) {
+        if (null == s || s.length() < 1) {
+            throw new IllegalArgumentException("s=" + s);
+        }
+        customExcludedPathStrings.add(s);
+    }
+
+    private static boolean containsStringInCollection(String inputString, Collection<String> collection) {
+        for (String collectionElement : collection) {
+            if (inputString.contains(collectionElement)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static public List<Class<?>> getClasses(List<String> customExcludedPathStrings) {
         String name = "";
         File jar = null;
         List<Class<?>> classes = new ArrayList<>();
         try {
-            for (String classpathEntry : System.getProperty("java.class.path").split(System.getProperty("path.separator"))) {
+            final String[] classpaths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
+            System.out.println("classpaths = " + Arrays.toString(classpaths));
+            for (String classpathEntry : classpaths) {
                 if (classpathEntry.endsWith(".jar")
-                        && !classpathEntry.contains("vaadin")
-                        && !classpathEntry.contains("google")
-                        && !classpathEntry.contains("apache")
-                        && !classpathEntry.contains("commons-io")
-                        && !classpathEntry.contains("commons-math")
-                        && !classpathEntry.contains("xerces")
-                        && !classpathEntry.contains("exificient")) {
+                        && !containsStringInCollection(classpathEntry, staticExcludedPathStrings)
+                        && !containsStringInCollection(classpathEntry, customExcludedPathStrings)) {
+                    System.out.println("classpathEntry = " + classpathEntry);
                     JarInputStream is = null;
                     try {
                         jar = new File(classpathEntry);
@@ -1288,13 +1319,13 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         } catch (NoSuchMethodException ex) {
         }
         if (mget == null) {
-            if(name.endsWith("]")) {
+            if (name.endsWith("]")) {
                 int bIndex = name.lastIndexOf("[");
-                String indexString = name.substring(bIndex+1,name.length()-1);
+                String indexString = name.substring(bIndex + 1, name.length() - 1);
                 int indexVal = Integer.parseInt(indexString);
                 return Array.get(pobj, bIndex);
             }
-            if(pobjClass.isArray() && name.equals("length")) {
+            if (pobjClass.isArray() && name.equals("length")) {
                 return Array.getLength(pobj);
             }
             try {
@@ -1624,7 +1655,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             String name = (String) tm.getValueAt(row, 1);
             Class clss = this.stringToClass(type);
             if (null == classes) {
-                classes = getClasses();
+                classes = getClasses(customExcludedPathStrings);
             }
             List<Class<?>> availClasses = getAssignableClasses(clss, classes);
 
@@ -1673,7 +1704,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         String typeparams = getTypeParams(type);
         Class clss = Class.forName(typeparams);
         if (null == classes) {
-            classes = getClasses();
+            classes = getClasses(customExcludedPathStrings);
         }
         List<Class<?>> availClasses = getAssignableClasses(clss, classes);
         Class ca[] = availClasses.toArray(new Class[availClasses.size()]);

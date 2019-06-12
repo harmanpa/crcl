@@ -1911,6 +1911,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
+    public void saveStatusAs(File f) {
+        internal.saveStatusAs(f);
+    }
+        
     @Override
     public void finishConnect() {
         this.jButtonConnect.setEnabled(false);
@@ -3002,6 +3006,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         try (FileWriter fw = new FileWriter(f)) {
             fw.write(s);
         }
+        menuOuter.readRecentCommandFiles();
     }
 
     private static final String recent_programs_dir = ".crcl_pendant_client_recent_programs";
@@ -4865,13 +4870,15 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
 
+    private final List<String> customExcludedPathStrings = new ArrayList<>();
+    
     @SuppressWarnings("rawtypes")
     private void addProgramItem() throws SecurityException, InvocationTargetException, IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         int index = getProgramRow();
         if (index > 0 && index < this.jTableProgram.getRowCount() - 1) {
             Class<?> clss = MiddleCommandType.class;
             List<Class<?>> availClasses = getAssignableClasses(clss,
-                    ObjTableJPanel.getClasses());
+                    ObjTableJPanel.getClasses(customExcludedPathStrings));
             Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
             final Window outerWindow = this.getOuterWindow();
             if (null == outerWindow) {
@@ -5910,7 +5917,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public void addToCommandsMenu(JMenu commandsMenuParent) {
         PendantClientJPanel pendantClientJPanel1 = this;
-        List<Class<?>> allClasses = ObjTableJPanel.getClasses();
+        List<Class<?>> allClasses = ObjTableJPanel.getClasses(customExcludedPathStrings);
         List<Class<?>> cmdClasses = ObjTableJPanel.getAssignableClasses(CRCLCommandType.class,
                 allClasses);
         Collections.sort(cmdClasses, Comparator.comparing(PendantClientJPanel::comparableClassName));
@@ -5942,7 +5949,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             commandsMenuParent.add(jmi);
         }
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

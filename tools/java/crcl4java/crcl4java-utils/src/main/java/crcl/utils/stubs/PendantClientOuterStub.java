@@ -184,7 +184,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
             boolean recordPose,
             boolean exiSelected,
             boolean useReadStatusThreadSelected) {
-//        this.validateXml = validateXml;
         this.replaceState = replaceState;
         this.host = host;
         this.port = port;
@@ -298,6 +297,10 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 
     @Override
     public void clearProgramTimesDistances() {
+    }
+
+    @Override
+    public void readRecentCommandFiles() {
     }
 
 }

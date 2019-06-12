@@ -31,8 +31,8 @@ import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.CountSensorStatusType;
-import crcl.base.DisableSensorStatusType;
-import crcl.base.EnableSensorStatusType;
+import crcl.base.DisableSensorType;
+import crcl.base.EnableSensorType;
 import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.JointStatusType;
@@ -84,7 +84,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -188,6 +187,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 //        }
         
 
+        addSensorFinder(new RemoteCrclSensorExtractorFinder());
         ServiceLoader<SensorServerFinderInterface> loader
                 = ServiceLoader
                         .load(SensorServerFinderInterface.class);
@@ -645,13 +645,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                 statusToSend.getCommandStatus().setCommandID(state.cmdId);
-                PointType origPoint = CRCLPosemath.getPoint(serverSideStatus);
-                PointType pointToSend = CRCLPosemath.getPoint(statusToSend);
-                if (null == origPoint) {
-                    throw new IllegalStateException("origPoint = " + origPoint);
-                } else if (null == pointToSend) {
-                    throw new IllegalStateException("pointToSend = " + pointToSend);
-                }
                 source.writeStatus(statusToSend);
                 return true;
             } else {
@@ -835,8 +828,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     }
                 }
                 if (automaticallyHandleSensorServers) {
-                    if (cmd instanceof EnableSensorStatusType) {
-                        EnableSensorStatusType enableSensorCmd = (EnableSensorStatusType) cmd;
+                    if (cmd instanceof EnableSensorType) {
+                        EnableSensorType enableSensorCmd = (EnableSensorType) cmd;
                         for (SensorServerFinderInterface finder : sensorFinders) {
                             final String sensorID = enableSensorCmd.getSensorID();
                             SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
@@ -859,8 +852,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             }
                         }
                         return true;
-                    } else if (cmd instanceof DisableSensorStatusType) {
-                        DisableSensorStatusType disableSensorCmd = (DisableSensorStatusType) cmd;
+                    } else if (cmd instanceof DisableSensorType) {
+                        DisableSensorType disableSensorCmd = (DisableSensorType) cmd;
                         SensorServerInterface sensorSvr = sensorServers.remove(disableSensorCmd.getSensorID());
                         if (null != sensorSvr) {
                             try {

@@ -139,7 +139,8 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
-    private void readRecentCommandFiles() {
+    @Override
+    public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
                 recent_files_dir);
         if (!fMainDir.exists()) {

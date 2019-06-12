@@ -4893,4 +4893,14 @@ public class PendantClientInner {
         return true;
     }
 
+    public void saveStatusAs(File f) {
+        try {
+            String s = crclSocket.statusToPrettyString(status, false);
+            try (FileWriter fw = new FileWriter(f)) {
+                fw.write(s);
+            }
+        }   catch (Exception ex) {
+            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

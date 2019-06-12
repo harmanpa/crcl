@@ -305,7 +305,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.getLastMessage();
     }
 
-    private void readRecentCommandFiles() {
+    @Override
+    public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
                 recent_files_dir);
         if (!fMainDir.exists()) {
@@ -450,6 +451,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         jMenuItemSavePrefs = new javax.swing.JMenuItem();
         jMenuItemResetPrefs = new javax.swing.JMenuItem();
         jMenuItemViewLogFile = new javax.swing.JMenuItem();
+        jMenuItemSaveStatusAs = new javax.swing.JMenuItem();
         jMenuItemExit = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuTools = new javax.swing.JMenu();
@@ -588,6 +590,14 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
             }
         });
         jMenu1.add(jMenuItemViewLogFile);
+
+        jMenuItemSaveStatusAs.setText("Save Status As ...");
+        jMenuItemSaveStatusAs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSaveStatusAsActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSaveStatusAs);
 
         jMenuItemExit.setText("Exit");
         jMenuItemExit.addActionListener(new java.awt.event.ActionListener() {
@@ -972,6 +982,13 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.setDebugShowProgram(jCheckBoxMenuItemDebugShowProgram.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemDebugShowProgramActionPerformed
 
+    private void jMenuItemSaveStatusAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveStatusAsActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if(chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            pendantClientJPanel1.saveStatusAs(chooser.getSelectedFile());
+        }
+    }//GEN-LAST:event_jMenuItemSaveStatusAsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugInterrupts;
@@ -1009,6 +1026,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private javax.swing.JMenuItem jMenuItemSavePoseList;
     private javax.swing.JMenuItem jMenuItemSavePrefs;
     private javax.swing.JMenuItem jMenuItemSaveProgramAs;
+    private javax.swing.JMenuItem jMenuItemSaveStatusAs;
     private javax.swing.JMenuItem jMenuItemSetSchemaFiles;
     private javax.swing.JMenuItem jMenuItemShowCommandLog;
     private javax.swing.JMenuItem jMenuItemTransformProgram;

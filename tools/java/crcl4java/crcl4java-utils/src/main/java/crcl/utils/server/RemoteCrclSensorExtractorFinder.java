@@ -20,32 +20,35 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.utils.outer.interfaces;
+package crcl.utils.server;
+
+import crcl.base.ParameterSettingType;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface PendantClientMenuOuter {
+public class RemoteCrclSensorExtractorFinder implements SensorServerFinderInterface {
 
-    public boolean isPlotJointsSelected();
-
-    public boolean isPlotXyzSelected();
-
-    public boolean replaceStateSelected();
-
-    public boolean isDebugWaitForDoneSelected();
-
-    public boolean isDebugSendCommandSelected();
-
-    public boolean isDebugReadStatusSelected();
-
-    public boolean isRecordPoseSelected();
-
-    public boolean isEXISelected();
-
-    public boolean isUseReadStatusThreadSelected();
+    @Override
+    public SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList) {
+        if(sensorId.startsWith("RemoteCrclSensor")) { 
+            try {
+                return new RemoteCrclSensorExtractor(sensorId, parameterList);
+            } catch (Exception ex) {
+                Logger.getLogger(RemoteCrclSensorExtractorFinder.class.getName()).log(Level.SEVERE, "sensorId="+sensorId, ex);
+                if(ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                } else {
+                    throw new RuntimeException(ex);
+                }
+            }
+        } else {
+            return null;
+        }
+    }
     
-    public void readRecentCommandFiles();
-
 }
