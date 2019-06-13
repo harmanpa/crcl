@@ -1397,9 +1397,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return internal.checkPose(goalPose, ignoreCartTran);
     }
 
+    private volatile boolean polling = false;
+//    private volatile Thread pollingThread = null;
+    
     private void pollStatus(int startPollStopCount) {
 //        final int startPollStopCount = pollStopCount.get();
         try {
+            polling = true;
+            pollingThread = Thread.currentThread();
             while (!Thread.currentThread().isInterrupted()
                     && this.jCheckBoxPoll.isSelected()
                     && internal.isConnected()
@@ -1434,6 +1439,9 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     && startPollStopCount == pollStopCount.get()) {
                 Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } finally {
+            polling=false;
+            pollingThread = null;
         }
     }
 
@@ -1914,7 +1922,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void saveStatusAs(File f) {
         internal.saveStatusAs(f);
     }
-        
+
     @Override
     public void finishConnect() {
         this.jButtonConnect.setEnabled(false);
@@ -4785,6 +4793,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     public XFutureVoid abortProgram() {
         pauseTime = System.currentTimeMillis();
+        stopPollTimer();
         return internal.abort();
     }
 
@@ -4871,7 +4880,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
 
     private final List<String> customExcludedPathStrings = new ArrayList<>();
-    
+
     @SuppressWarnings("rawtypes")
     private void addProgramItem() throws SecurityException, InvocationTargetException, IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         int index = getProgramRow();
@@ -5020,32 +5029,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
-            if (internal.isUnpausing()) {
-                throw new RuntimeException("trying to prep program while still unpausing");
-            }
-            if (disconnecting) {
-                System.err.println("disconnectThread = " + disconnectThread);
-                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
-                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
-            }
-            boolean requestStatusResult = internal.requestStatus();
-            if (disconnecting) {
-                System.err.println("disconnectThread = " + disconnectThread);
-                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
-                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
-            }
-            if (!requestStatusResult) {
-                throw new RuntimeException("requestStatus() returned false");
-            }
-            boolean readStatusResult = internal.readStatus();
-            if (disconnecting) {
-                System.err.println("disconnectThread = " + disconnectThread);
-                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
-                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
-            }
-            if (!readStatusResult) {
-                throw new RuntimeException("readStatus() returned false");
-            }
+            requestAndReadStatus();
 //            System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
             PointType pt = internal.currentStatusPoint();
             if (null != pt) {
@@ -5062,6 +5046,53 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 throw (RuntimeException) exception;
             } else {
                 throw new RuntimeException(exception);
+            }
+        }
+    }
+
+    public void requestAndReadStatus() {
+        try {
+            boolean wasPolling = polling;
+            if(wasPolling) {
+                stopPollTimer();
+            }
+            synchronized (internal) {
+                if (internal.isUnpausing()) {
+                    throw new RuntimeException("trying to prep program while still unpausing");
+                }
+                if (disconnecting) {
+                    System.err.println("disconnectThread = " + disconnectThread);
+                    System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                    throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+                }
+                boolean requestStatusResult = internal.requestStatus();
+                if (disconnecting) {
+                    System.err.println("disconnectThread = " + disconnectThread);
+                    System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                    throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+                }
+                if (!requestStatusResult) {
+                    throw new RuntimeException("requestStatus() returned false");
+                }
+                boolean readStatusResult = internal.readStatus();
+                if (disconnecting) {
+                    System.err.println("disconnectThread = " + disconnectThread);
+                    System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                    throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+                }
+                if (!readStatusResult) {
+                    throw new RuntimeException("readStatus() returned false");
+                }
+            }
+            if(wasPolling && !disconnecting) {
+                startPollTimer();
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, "", ex);
+            if(ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
             }
         }
     }
@@ -5949,7 +5980,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             commandsMenuParent.add(jmi);
         }
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

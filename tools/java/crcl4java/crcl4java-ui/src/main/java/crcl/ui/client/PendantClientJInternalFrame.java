@@ -1144,6 +1144,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.currentStatus();
     }
 
+    public void requestAndReadStatus()  {
+        pendantClientJPanel1.requestAndReadStatus();
+    }
+    
     public Optional<CommandStateEnumType> getCurrentState() {
         return pendantClientJPanel1.currentState();
     }

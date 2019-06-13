@@ -3165,12 +3165,15 @@ public class PendantClientInner {
                 throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
             }
 
-            if (lastProgramIndex > startLine + 2 && startLine >= 0 && null != lastProgramName && lastProgramName.equals(prog.getName())) {
-                System.out.println("origStartLine = " + origStartLine);
-                System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
-                showErrorMessage("programIndex moving backwards: " + lastProgramName + ">" + startLine + ": lastProgramName= " + lastProgramName);
-                throw new IllegalStateException("programIndex moving backwards: " + lastProgramName + ">" + startLine);
-            }
+//            if (lastProgramIndex > startLine + 2 && startLine >= 0 && null != lastProgramName && lastProgramName.equals(prog.getName())) {
+//                System.out.println("origStartLine = " + origStartLine);
+//                System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
+//                System.out.println("lastProgramName = " + lastProgramName);
+//                System.out.println("lastProgramIndex = " + lastProgramIndex);
+//                System.out.println("prog.getName() = " + prog.getName());
+//                showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + startLine + ": lastProgramName= " + lastProgramName);
+//                throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
+//            }
             if (prog != program) {
                 setProgram(prog);
             }
@@ -3404,13 +3407,24 @@ public class PendantClientInner {
             if (null != lineCmd) {
                 System.err.println("lineCmd = " + CRCLSocket.cmdToString(lineCmd));
             }
+            try {
+                File tempStatusSaveFile = File.createTempFile("status_", ".xml");
+                System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
+                String s = crclSocket.statusToPrettyString(status, false);
+                System.err.println("status = "+s);
+                try(FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                    fw.write(s);
+                }
+            } catch (Exception ex2) {
+                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, "", ex2);
+            }
             final String newExMsg;
             String endExMsg = "Failed to run program " + progName + " : " + ex.getMessage();
             if (errorStateDescription != null) {
                 System.err.println("errorStateDescription = " + errorStateDescription);
-                newExMsg = errorStateDescription + endExMsg;
+                newExMsg = errorStateDescription + " " + endExMsg;
             } else {
-                newExMsg = errorStateDescription + endExMsg;
+                newExMsg = endExMsg;
             }
             throw new RuntimeException(newExMsg, ex);
         } finally {
@@ -4899,7 +4913,7 @@ public class PendantClientInner {
             try (FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
-        }   catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

@@ -66,6 +66,7 @@ import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import crcl.utils.Utils;
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -104,6 +105,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.bind.JAXBException;
 import javax.xml.validation.Schema;
 
 /*
@@ -645,6 +647,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                 statusToSend.getCommandStatus().setCommandID(state.cmdId);
+                if(null == statusToSend.getJointStatuses() || statusToSend.getJointStatuses().getJointStatus().isEmpty()) {
+                    try {
+                        System.out.println("serverSideStatus = " + source.statusToPrettyString(serverSideStatus, false));
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        System.out.println("statusToSend = " + source.statusToPrettyString(statusToSend, false));
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    throw new RuntimeException("no joints");
+                }
                 source.writeStatus(statusToSend);
                 return true;
             } else {
@@ -1443,6 +1458,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private STATE_TYPE generateNewClientState(final CRCLSocket crclSocket) {
         STATE_TYPE state = stateGenerator.generate(crclSocket);
         setupNewClientState(state);
+        if(state.filterSettings.getConfigJointsReportMap().isEmpty()) {
+            System.err.println("updateStatusRunnable = " + updateStatusRunnable);
+            System.err.println("updateStatusRunCount = " + updateStatusRunCount);
+            System.err.println("startTrace = " + Utils.traceToString(startTrace));
+            throw new RuntimeException("no joints");
+        }
         return state;
     }
 
@@ -1597,11 +1618,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private boolean started = false;
 
+    private volatile StackTraceElement startTrace[] = null;
     public Future<?> start() {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }
         ExecutorService serviceFoStart = initExecutorService();
+        startTrace = Thread.currentThread().getStackTrace();
         started = true;
         return serviceFoStart.submit(this.runnable);
     }

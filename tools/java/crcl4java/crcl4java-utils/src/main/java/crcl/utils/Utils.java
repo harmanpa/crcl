@@ -25,21 +25,17 @@ package crcl.utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author shackle
  */
 public class Utils {
-    
+
     private Utils() {
     }
-    
-    
-     public static String traceToString(StackTraceElement trace[]) {
+
+    public static String traceToString(StackTraceElement trace[]) {
         if (null == trace) {
             return "";
         }
@@ -62,7 +58,7 @@ public class Utils {
             throw new RuntimeException(ex);
         }
     }
-     
+
     public static String getCrclUserHomeDir() {
         boolean isWindows = System.getProperty("os.name").startsWith("Windows");
 
@@ -81,5 +77,5 @@ public class Utils {
 //        }
         return dir;
     }
-    
+
 }

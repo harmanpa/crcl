@@ -1179,6 +1179,15 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return classes;
     }
 
+    private static final List<String> staticIncludedPathStrings
+            = Arrays.asList(new String[]{
+        "target/classes",
+        "target\\classes",
+        "wshackle",
+        "rcslib",
+        "crcl",
+        "aprs",
+            });
     private static final List<String> staticExcludedPathStrings
             = Arrays.asList(new String[]{
         "vaadin",
@@ -1191,6 +1200,14 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         "activation",
         "jaxb-impl",
         "checker-qual",
+        "checker-compat-qual",
+        "javassist",
+        "xstream",
+        "logback",
+        "drools",
+        "eclipse-collections",
+        "jSerialComm",
+        "ATINetFT"
             });
 
     private final List<String> customExcludedPathStrings = new ArrayList<>();
@@ -1220,6 +1237,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             System.out.println("classpaths = " + Arrays.toString(classpaths));
             for (String classpathEntry : classpaths) {
                 if (classpathEntry.endsWith(".jar")
+                        && containsStringInCollection(classpathEntry, staticIncludedPathStrings)
                         && !containsStringInCollection(classpathEntry, staticExcludedPathStrings)
                         && !containsStringInCollection(classpathEntry, customExcludedPathStrings)) {
                     System.out.println("classpathEntry = " + classpathEntry);

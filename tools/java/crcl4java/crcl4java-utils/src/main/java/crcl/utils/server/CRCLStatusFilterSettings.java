@@ -35,6 +35,7 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.TorqueUnitEnumType;
 import crcl.utils.CRCLPosemath;
+import crcl.utils.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +54,10 @@ public class CRCLStatusFilterSettings {
     private final UnitsTypeSet clientUserSet = new UnitsTypeSet();
     private UnitsTypeSet serverUserSet;
     private UnitsScaleSet serverToClientScaleSet;
+
+    public Map<Integer, ConfigureJointReportType> getConfigJointsReportMap() {
+        return configJointsReportMap;
+    }
 
     public UnitsTypeSet getClientUserSet() {
         return clientUserSet;
@@ -312,11 +317,14 @@ public class CRCLStatusFilterSettings {
         if (statusOutJointStatuses != null) {
             List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
             if (!configureStatusReport.isReportJointStatuses()) {
-                statusOut.setJointStatuses(null);
+                throw new RuntimeException("no joints, isReportJointStatuses");
+//                statusOut.setJointStatuses(null);
             } else if (joints == null || joints.isEmpty()) {
                 statusOut.setJointStatuses(null);
+                throw new RuntimeException("no joints joints == null || joints.isEmpty()");
             } else if (configJointsReportMap.isEmpty()) {
                 statusOut.setJointStatuses(null);
+                throw new RuntimeException("no joints configJointsReportMap.isEmpty()");
             } else {
                 List<JointStatusType> jointsCopy = new ArrayList<>();
                 for (int i = 0; i < joints.size(); i++) {
