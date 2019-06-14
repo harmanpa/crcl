@@ -1301,4 +1301,22 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         this.pendantClientJPanel1.updateCommandStatusLog(log);
     }
+    
+    /**
+     * Get the value of preClosing
+     *
+     * @return the value of preClosing
+     */
+    public boolean isPreClosing() {
+        return pendantClientJPanel1.isPreClosing();
+    }
+
+    /**
+     * Set the value of preClosing
+     *
+     * @param preClosing new value of preClosing
+     */
+    public void setPreClosing(boolean preClosing) {
+        pendantClientJPanel1.setPreClosing(preClosing);
+    }
 }

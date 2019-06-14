@@ -2295,13 +2295,33 @@ public class PendantClientInner {
     private volatile StackTraceElement disconnectTrace @Nullable []  = null;
     private volatile long disconnnectTime = -1;
 
+    private volatile boolean preClosing = false;
+
+    /**
+     * Get the value of preClosing
+     *
+     * @return the value of preClosing
+     */
+    public boolean isPreClosing() {
+        return preClosing;
+    }
+
+    /**
+     * Set the value of preClosing
+     *
+     * @param preClosing new value of preClosing
+     */
+    public void setPreClosing(boolean preClosing) {
+        this.preClosing = preClosing;
+    }
+
     public synchronized void disconnect() {
 
-        if (isRunningProgram()) {
+        if (!preClosing && isRunningProgram()) {
             showErrorMessage("diconnect while isRunningProgram");
             throw new IllegalStateException("diconnect while isRunningProgram");
         }
-        if (debugConnectDisconnect) {
+        if (!preClosing && debugConnectDisconnect) {
             System.err.println("crclSocket = " + crclSocket);
             Thread.dumpStack();
         }
@@ -3411,8 +3431,8 @@ public class PendantClientInner {
                 File tempStatusSaveFile = File.createTempFile("status_", ".xml");
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
                 String s = crclSocket.statusToPrettyString(status, false);
-                System.err.println("status = "+s);
-                try(FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                System.err.println("status = " + s);
+                try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {

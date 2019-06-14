@@ -5170,6 +5170,24 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         internal.stopBlockingPrograms(count);
     }
+    
+    /**
+     * Get the value of preClosing
+     *
+     * @return the value of preClosing
+     */
+    public boolean isPreClosing() {
+        return internal.isPreClosing();
+    }
+
+    /**
+     * Set the value of preClosing
+     *
+     * @param preClosing new value of preClosing
+     */
+    public void setPreClosing(boolean preClosing) {
+        internal.setPreClosing(preClosing);
+    }
 
     public boolean isIgnoreTimeouts() {
         return internal.isIgnoreTimeouts();
