@@ -9,8 +9,6 @@
         <module>crcl4java-base</module>
         <module>crcl4java-utils</module>
         <module>crcl4java-ui</module>
-        <module>crcl4java-motoman</module>
-        <module>crcl4java-fanuc</module>
     </modules>
     
     <url>
@@ -230,6 +228,7 @@
                 <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-fanuc</module>
                 <module>ATINetFT_proxy</module>
+                <module>crcl4java-motoman</module>
             </modules>
         </profile>
         <profile> 
@@ -240,17 +239,7 @@
                 <module>crcl4java-restful-proxy</module>
                 <module>crcl4java-vaadin-webapp</module>
                 <module>ATINetFT_proxy</module>
-            </modules>
-        </profile>
-        <profile> 
-            <id>allexceptice</id>
-            <modules>
-                <module>crcl4java-exi</module>
-                <module>crcl4java-commons-math</module>
-                <module>crcl4java-restful-proxy</module>
-                <module>crcl4java-vaadin-webapp</module>
-                <module>crcl4java-fanuc</module>
-                <module>ATINetFT_proxy</module>
+                <module>crcl4java-motoman</module>
             </modules>
         </profile>
         <profile> 
