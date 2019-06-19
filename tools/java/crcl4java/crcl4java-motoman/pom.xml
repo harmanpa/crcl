@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.wshackle</groupId>
         <artifactId>crcl4java</artifactId>
-        <version>1.9.dev2-SNAPSHOT</version>
+        <version>1.9.1-SNAPSHOT</version>
     </parent>
     <artifactId>crcl4java-motoman</artifactId>
     <packaging>jar</packaging>
