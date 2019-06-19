@@ -753,37 +753,37 @@ public class CRCLSocket implements AutoCloseable {
         return EMPTY_FILE_ARRAY;
     }
 
-    public static void main(String[] args) {
-        try {
-            try {
-                System.out.println(CommandStateEnumType.class.getField("CRCL_WORKING").get(null));
-            } catch (NoSuchFieldException ex) {
-                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SecurityException ex) {
-                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
-                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            String intname = int.class.getName();
-            System.out.println("intname = " + intname);
-            InputStream is
-                    = resourceAsStream("CRCLStatus.xsd");
-            System.out.println("is = " + is);
-            Document doc
-                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
-            System.out.println("doc = " + doc);
-            Element el = doc.getDocumentElement();
-            System.out.println("el = " + el);
-            String version = el.getAttribute("version");
-            NamedNodeMap map = doc.getAttributes();
-            System.out.println("map = " + map);
-            System.out.println("version = " + version);
-        } catch (SAXException | ParserConfigurationException | IOException ex) {
-            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+//    public static void main(String[] args) {
+//        try {
+//            try {
+//                System.out.println(CommandStateEnumType.class.getField("CRCL_WORKING").get(null));
+//            } catch (NoSuchFieldException ex) {
+//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (SecurityException ex) {
+//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (IllegalArgumentException ex) {
+//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (IllegalAccessException ex) {
+//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//            String intname = int.class.getName();
+//            System.out.println("intname = " + intname);
+//            InputStream is
+//                    = resourceAsStream("CRCLStatus.xsd");
+//            System.out.println("is = " + is);
+//            Document doc
+//                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+//            System.out.println("doc = " + doc);
+//            Element el = doc.getDocumentElement();
+//            System.out.println("el = " + el);
+//            String version = el.getAttribute("version");
+//            NamedNodeMap map = doc.getAttributes();
+//            System.out.println("map = " + map);
+//            System.out.println("version = " + version);
+//        } catch (SAXException | ParserConfigurationException | IOException ex) {
+//            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 
     public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {

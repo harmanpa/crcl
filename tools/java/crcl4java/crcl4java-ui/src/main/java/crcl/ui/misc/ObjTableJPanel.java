@@ -20,7 +20,12 @@
  */
 package crcl.ui.misc;
 
+import crcl.base.CRCLCommandInstanceType;
+import crcl.base.CRCLCommandType;
 import crcl.ui.XFuture;
+import crcl.utils.CRCLException;
+import crcl.utils.CRCLSocket;
+import crcl.utils.Utils;
 import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
@@ -72,6 +77,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -157,11 +163,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                             Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         if (null != documentation) {
-                            jTextPane1.setText(documentation);
+                            jTextPaneDocumentation.setText(documentation);
                         } else if (null != defaultDocumentation) {
-                            jTextPane1.setText(defaultDocumentation);
+                            jTextPaneDocumentation.setText(defaultDocumentation);
                         }
-                        jTextPane1.setCaretPosition(0);
+                        jTextPaneDocumentation.setCaretPosition(0);
                         jScrollPaneDocumentation.getVerticalScrollBar().setValue(0);
                     }
                     if (name.equals("this") || row == 0) {
@@ -547,8 +553,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             return;
         }
         if (null != defaultDocumentation) {
-            jTextPane1.setText(defaultDocumentation);
-            jTextPane1.setCaretPosition(0);
+            jTextPaneDocumentation.setText(defaultDocumentation);
+            jTextPaneDocumentation.setCaretPosition(0);
             jScrollPaneDocumentation.getVerticalScrollBar().setValue(0);
         }
 
@@ -824,20 +830,24 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         addRow(tm, oa);
         colorMap.put(0, myBlue);
         addObjectToTable("", tm, obj, clss);
+        updateOutText(obj);
     }
 
     private JDialog dialog = null;
     private boolean cancelled = false;
     private Function<T, XFuture<Boolean>> isValid = null;
+    private volatile CRCLSocket crclSocket;
 
     private static <T> T editObjectPriv(JDialog _dialog, T _obj,
             XpathUtils xpu,
             File schemaFiles @Nullable [],
-            Function<T, XFuture<Boolean>> isValid) {
+            Function<T, XFuture<Boolean>> isValid,
+            CRCLSocket crclSocket) {
         ObjTableJPanel<T> panel = new ObjTableJPanel<>();
         panel.dialog = _dialog;
         panel.setObj(_obj);
         panel.isValid = isValid;
+        panel.crclSocket = crclSocket;
         String clssname = _obj.getClass().getCanonicalName();
         int pindex = clssname.lastIndexOf('.');
         if (pindex > 0) {
@@ -859,11 +869,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             panel.xpu = xpu;
             panel.schemaFiles = schemaFiles;
             if (null != documentation) {
-                panel.jTextPane1.setText(documentation);
+                panel.jTextPaneDocumentation.setText(documentation);
                 panel.defaultDocumentation = documentation;
             }
         }
-        panel.jTextPane1.setCaretPosition(0);
+        panel.updateOutText(_obj);
+        panel.jTextPaneDocumentation.setCaretPosition(0);
         panel.jScrollPaneDocumentation.getVerticalScrollBar().setValue(0);
         _dialog.add(panel);
         _dialog.pack();
@@ -874,25 +885,50 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return panel.getObj();
     }
 
+    private void updateOutText(T _obj) {
+        try {
+            if (null != crclSocket) {
+                if (_obj instanceof CRCLCommandType) {
+                    CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
+                    instance.setCRCLCommand((CRCLCommandType) _obj);
+                    String outText = crclSocket.commandInstanceToPrettyString(instance, true);
+                    jTextAreaOutput.setText(outText);
+                } else if (_obj instanceof CRCLCommandInstanceType) {
+                    CRCLCommandInstanceType instance = (CRCLCommandInstanceType) _obj;
+                    String outText = crclSocket.commandInstanceToPrettyString(instance, true);
+                    jTextAreaOutput.setText(outText);
+                }
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ObjTableJPanel.class
+                    .getName()).log(Level.SEVERE, null, ex);
+            String outText = ex.toString() + "\n\n"
+                    + Utils.traceToString(ex.getStackTrace());
+            jTextAreaOutput.setText(outText);
+        }
+    }
+
     public static <T> T editObject(T _obj,
             @Nullable Frame _owner,
             String _title,
             boolean _modal,
             XpathUtils xpu,
             File schemaFiles @Nullable [],
-            Function<T, XFuture<Boolean>> isValid) {
+            Function<T, XFuture<Boolean>> isValid,
+            CRCLSocket crclSocket) {
         JDialog dialog = new JDialog(_owner, _obj.getClass().getCanonicalName() + ":" + _title, _modal);
-        return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid);
+        return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid, crclSocket);
     }
 
     public static <T> T editObject(T _obj,
             XpathUtils xpu,
             File schemaFiles @Nullable [],
-            Function<T, XFuture<Boolean>> isValid) {
+            Function<T, XFuture<Boolean>> isValid,
+            CRCLSocket crclSocket) {
         JDialog dialog = new JDialog();
         dialog.setTitle(_obj.getClass().getCanonicalName());
         dialog.setModal(true);
-        return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid);
+        return editObjectPriv(dialog, _obj, xpu, schemaFiles, isValid, crclSocket);
     }
 
     /**
@@ -913,13 +949,18 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         jButtonRemoveFromList = new javax.swing.JButton();
         jButtonDelete = new javax.swing.JButton();
         jButtonEditMultiLineText = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        jPanelColorCode = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
+        jPanelDocumentationOutput = new javax.swing.JPanel();
+        jTabbedPanelDocOut = new javax.swing.JTabbedPane();
+        jScrollPaneOutput = new javax.swing.JScrollPane();
+        jTextAreaOutput = new javax.swing.JTextArea();
         jScrollPaneDocumentation = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        jTextPaneDocumentation = new javax.swing.JTextPane();
+        jButtonUpdateTableToText = new javax.swing.JButton();
+        jButtonTextToTable = new javax.swing.JButton();
 
         FormListener formListener = new FormListener();
 
@@ -976,7 +1017,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         jButtonEditMultiLineText.setEnabled(false);
         jButtonEditMultiLineText.addActionListener(formListener);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Color Code"));
+        jPanelColorCode.setBorder(javax.swing.BorderFactory.createTitledBorder("Color Code"));
 
         jLabel1.setBackground(new java.awt.Color(150, 150, 255));
         jLabel1.setText("Compound Type");
@@ -993,11 +1034,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         jLabel3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jLabel3.setOpaque(true);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout jPanelColorCodeLayout = new javax.swing.GroupLayout(jPanelColorCode);
+        jPanelColorCode.setLayout(jPanelColorCodeLayout);
+        jPanelColorCodeLayout.setHorizontalGroup(
+            jPanelColorCodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelColorCodeLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1006,38 +1047,49 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 .addComponent(jLabel3)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        jPanelColorCodeLayout.setVerticalGroup(
+            jPanelColorCodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelColorCodeLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanelColorCodeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(jLabel2)
                     .addComponent(jLabel3))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Documentation"));
+        jPanelDocumentationOutput.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-        jTextPane1.setEditable(false);
-        jScrollPaneDocumentation.setViewportView(jTextPane1);
+        jTextAreaOutput.setColumns(20);
+        jTextAreaOutput.setRows(5);
+        jScrollPaneOutput.setViewportView(jTextAreaOutput);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPaneDocumentation)
+        jTabbedPanelDocOut.addTab("Ouput", jScrollPaneOutput);
+
+        jTextPaneDocumentation.setEditable(false);
+        jScrollPaneDocumentation.setViewportView(jTextPaneDocumentation);
+
+        jTabbedPanelDocOut.addTab("Documentation", jScrollPaneDocumentation);
+
+        javax.swing.GroupLayout jPanelDocumentationOutputLayout = new javax.swing.GroupLayout(jPanelDocumentationOutput);
+        jPanelDocumentationOutput.setLayout(jPanelDocumentationOutputLayout);
+        jPanelDocumentationOutputLayout.setHorizontalGroup(
+            jPanelDocumentationOutputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPanelDocOut)
+        );
+        jPanelDocumentationOutputLayout.setVerticalGroup(
+            jPanelDocumentationOutputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelDocumentationOutputLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jTabbedPanelDocOut, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPaneDocumentation, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+
+        jButtonUpdateTableToText.setText("Table To Text");
+        jButtonUpdateTableToText.addActionListener(formListener);
+
+        jButtonTextToTable.setText("Text To Table");
+        jButtonTextToTable.addActionListener(formListener);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -1046,8 +1098,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanelDocumentationOutput, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanelColorCode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(jButtonNew)
@@ -1059,7 +1111,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         .addComponent(jButtonRemoveFromList)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonEditMultiLineText)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 200, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                        .addComponent(jButtonTextToTable)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonUpdateTableToText)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonOK)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonCancel)))
@@ -1069,12 +1125,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanelDocumentationOutput, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addComponent(jPanelColorCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonCancel)
                     .addComponent(jButtonOK)
@@ -1082,7 +1138,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     .addComponent(jButtonAddToList)
                     .addComponent(jButtonRemoveFromList)
                     .addComponent(jButtonDelete)
-                    .addComponent(jButtonEditMultiLineText))
+                    .addComponent(jButtonEditMultiLineText)
+                    .addComponent(jButtonUpdateTableToText)
+                    .addComponent(jButtonTextToTable))
                 .addContainerGap())
         );
     }
@@ -1112,6 +1170,12 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             }
             else if (evt.getSource() == jButtonEditMultiLineText) {
                 ObjTableJPanel.this.jButtonEditMultiLineTextActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonUpdateTableToText) {
+                ObjTableJPanel.this.jButtonUpdateTableToTextActionPerformed(evt);
+            }
+            else if (evt.getSource() == jButtonTextToTable) {
+                ObjTableJPanel.this.jButtonTextToTableActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -1186,8 +1250,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         "wshackle",
         "rcslib",
         "crcl",
-        "aprs",
-            });
+        "aprs",});
     private static final List<String> staticExcludedPathStrings
             = Arrays.asList(new String[]{
         "vaadin",
@@ -1208,7 +1271,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         "eclipse-collections",
         "jSerialComm",
         "ATINetFT"
-            });
+    });
 
     private final List<String> customExcludedPathStrings = new ArrayList<>();
 
@@ -1781,6 +1844,28 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonEditMultiLineTextActionPerformed
 
+    private void jButtonUpdateTableToTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpdateTableToTextActionPerformed
+        updateObjFromTable();
+        updateOutText(getObj());
+    }//GEN-LAST:event_jButtonUpdateTableToTextActionPerformed
+
+    @SuppressWarnings("unchecked")
+    private void jButtonTextToTableActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTextToTableActionPerformed
+        if (null != crclSocket) {
+            try {
+                String text = jTextAreaOutput.getText();
+                CRCLCommandInstanceType instance = crclSocket.stringToCommand(text, true);
+                CRCLCommandType cmd = instance.getCRCLCommand();
+                if (obj.getClass().isInstance(cmd)) {
+                    setObj((T) cmd);
+                    updateTableFromObject();
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButtonTextToTableActionPerformed
+
     public static List<Class<?>> getAssignableClasses(Class<?> baseClss, List<Class<?>> classes) {
         List<Class<?>> assignableClasses = new ArrayList<>();
         for (Class<?> clss : classes) {
@@ -1799,15 +1884,20 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     private javax.swing.JButton jButtonNew;
     private javax.swing.JButton jButtonOK;
     private javax.swing.JButton jButtonRemoveFromList;
+    private javax.swing.JButton jButtonTextToTable;
+    private javax.swing.JButton jButtonUpdateTableToText;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanelColorCode;
+    private javax.swing.JPanel jPanelDocumentationOutput;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPaneDocumentation;
+    private javax.swing.JScrollPane jScrollPaneOutput;
+    private javax.swing.JTabbedPane jTabbedPanelDocOut;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JTextArea jTextAreaOutput;
+    private javax.swing.JTextPane jTextPaneDocumentation;
     // End of variables declaration//GEN-END:variables
     private static final Logger LOG = Logger.getLogger(ObjTableJPanel.class.getName());
 }

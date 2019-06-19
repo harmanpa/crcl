@@ -49,24 +49,24 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
     private final List<ParameterSettingType> parameterList;
     private final CRCLSocket crclSocket;
 
-    private static String findParam(List<ParameterSettingType> sensorParameterSetting, String name) {
+    private static String findParam(List<ParameterSettingType> sensorParameterSetting, String name, String defaultValue) {
         for (ParameterSettingType param : sensorParameterSetting) {
             if (param.getParameterName().equals(name)) {
                 return param.getParameterValue();
             }
         }
-        return null;
+        return defaultValue;
     }
 
     public RemoteCrclSensorExtractor(String inSensorId, List<ParameterSettingType> parameterList) throws CRCLException, IOException {
 
         this.inSensorId = inSensorId;
         this.parameterList = parameterList;
-        this.remoteHost = findParam(parameterList, "host");
-        this.remotePort = Integer.parseInt(findParam(parameterList, "port"));
-        this.remoteSensorId = findParam(parameterList, "remoteSensorId");
-        this.outSensorId = findParam(parameterList, "outSensorId");
-        crclSocket = new CRCLSocket(outSensorId, remotePort);
+        this.remoteHost = findParam(parameterList, "host","localhost");
+        this.remotePort = Integer.parseInt(findParam(parameterList, "port","8888"));
+        this.remoteSensorId = findParam(parameterList, "remoteSensorId",inSensorId);
+        this.outSensorId = findParam(parameterList, "outSensorId",inSensorId);
+        crclSocket = new CRCLSocket(remoteHost, remotePort);
         getStatusCommandInstance = new CRCLCommandInstanceType();
         GetStatusType getStatusCmd = new GetStatusType();
         getStatusCommandInstance.setCRCLCommand(getStatusCmd);
@@ -83,37 +83,54 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                 return null;
             }
             SensorStatusesType sensors = status.getSensorStatuses();
+            SensorStatusType firstSensorStat = null;
             if (null != sensors) {
                 for (SensorStatusType sensorStat : sensors.getCountSensorStatus()) {
+                    if(null == firstSensorStat && null != sensorStat ) {
+                        firstSensorStat=sensorStat;
+                    }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         return sensorStat;
                     }
                 }
                 for (SensorStatusType sensorStat : sensors.getCountSensorStatus()) {
+                    if(null == firstSensorStat && null != sensorStat ) {
+                        firstSensorStat=sensorStat;
+                    }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         return sensorStat;
                     }
                 }
                 for (SensorStatusType sensorStat : sensors.getOnOffSensorStatus()) {
+                    if(null == firstSensorStat && null != sensorStat ) {
+                        firstSensorStat=sensorStat;
+                    }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         return sensorStat;
                     }
                 }
                 for (SensorStatusType sensorStat : sensors.getScalarSensorStatus()) {
+                    if(null == firstSensorStat && null != sensorStat ) {
+                        firstSensorStat=sensorStat;
+                    }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         return sensorStat;
                     }
                 }
                 for (SensorStatusType sensorStat : sensors.getForceTorqueSensorStatus()) {
+                    if(null == firstSensorStat && null != sensorStat ) {
+                        firstSensorStat=sensorStat;
+                    }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         return sensorStat;
                     }
                 }
+                return firstSensorStat;
             }
             return null;
         } catch (Exception ex) {

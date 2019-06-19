@@ -23,6 +23,7 @@
 package crcl.utils.server;
 
 import crcl.base.CRCLCommandInstanceType;
+import crcl.base.GuardType;
 import crcl.utils.CRCLSocket;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -50,6 +51,12 @@ import org.checkerframework.checker.nullness.qual.*;
  */
 public class CRCLServerSocketEvent<STATE_TYPE extends CRCLServerClientState> {
 
+    private final GuardType guard;
+
+    public GuardType getGuard() {
+        return guard;
+    }
+    
     private final CRCLServerSocketEventType eventType;
 
     public CRCLServerSocketEventType getEventType() {
@@ -62,7 +69,7 @@ public class CRCLServerSocketEvent<STATE_TYPE extends CRCLServerClientState> {
     public STATE_TYPE getState() {
         return state;
     }
-    
+
     /*@Nullable*/
     private final CRCLSocket source;
 
@@ -102,51 +109,60 @@ public class CRCLServerSocketEvent<STATE_TYPE extends CRCLServerClientState> {
         return exception;
     }
 
-    private CRCLServerSocketEvent(CRCLServerSocketEventType crclServerSocketEventType, /*@Nullable*/ STATE_TYPE state, /*@Nullable*/ CRCLCommandInstanceType instance, /*@Nullable*/ Exception exception) {
+    private CRCLServerSocketEvent(CRCLServerSocketEventType crclServerSocketEventType, /*@Nullable*/ STATE_TYPE state, /*@Nullable*/ CRCLCommandInstanceType instance, /*@Nullable*/ Exception exception,/*@Nullable*/ GuardType guard) {
         this.eventType = crclServerSocketEventType;
         this.state = state;
-        this.source = (state != null)?state.getCs():null;
+        this.source = (state != null) ? state.getCs() : null;
         this.instance = instance;
         this.exception = exception;
+        this.guard = guard;
     }
 
-    private CRCLServerSocketEvent(CRCLServerSocketEventType crclServerSocketEventType, /*@Nullable*/ Class<STATE_TYPE> state_clzz, /*@Nullable*/ CRCLCommandInstanceType instance, /*@Nullable*/ Exception exception) {
+    private CRCLServerSocketEvent(CRCLServerSocketEventType crclServerSocketEventType, /*@Nullable*/ Class<STATE_TYPE> state_clzz, /*@Nullable*/ CRCLCommandInstanceType instance, /*@Nullable*/ Exception exception,/*@Nullable*/ GuardType guard) {
         this.eventType = crclServerSocketEventType;
         this.state = null;
         this.source = null;
         this.instance = instance;
         this.exception = exception;
+        this.guard = guard;
     }
-    
+
     @Override
     public String toString() {
         String instanceString;
-        if(null != instance && null != source) {
+        if (null != instance && null != source) {
             try {
-                instanceString = ",instance="+source.commandToSimpleString(instance);
+                instanceString = ",instance=" + source.commandToSimpleString(instance);
             } catch (Exception ex) {
-                 instanceString ="";
+                instanceString = "";
             }
         } else {
-            instanceString ="";
+            instanceString = "";
         }
-        return "CRCLServerSocketEvent{" + "eventType=" + eventType + ", state=" + state + ", source=" + source  + instanceString + ", exception=" + exception + '}';
+        return "CRCLServerSocketEvent{" + "eventType=" + eventType + ", state=" + state + ", source=" + source + instanceString + ", exception=" + exception + '}';
     }
 
-    
     public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> newClient(STATE_TYPE state) {
-        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.NEW_CRCL_CLIENT, state, null, null);
+        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.NEW_CRCL_CLIENT, state, null, null,null);
     }
-    
+
     public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> commandRecieved(STATE_TYPE state, CRCLCommandInstanceType command) {
-        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED, state, command, null);
+        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED, state, command, null,null);
     }
-    
+
     public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> exceptionOccured(STATE_TYPE state, Exception ex) {
-        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.EXCEPTION_OCCURRED, state,null,ex);
+        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.EXCEPTION_OCCURRED, state, null, ex,null);
+    }
+
+    public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> badGuardSensorId(STATE_TYPE state,CRCLCommandInstanceType commandInstance,GuardType guard) {
+        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.BAD_GUARD_SENSOR_ID, state, commandInstance, null,guard);
+    }
+
+    public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> guardLimitReached(STATE_TYPE state,CRCLCommandInstanceType commandInstance,GuardType guard) {
+        return new CRCLServerSocketEvent<>(CRCLServerSocketEventType.GUARD_LIMIT_REACHED, state, commandInstance, null,guard);
     }
     
-     public static <STATE_TYPE extends CRCLServerClientState>  CRCLServerSocketEvent<STATE_TYPE> serverClosed(Class<STATE_TYPE> clzz) {
-        return new CRCLServerSocketEvent<STATE_TYPE>(CRCLServerSocketEventType.SERVER_CLOSED, clzz,null,null);
+    public static <STATE_TYPE extends CRCLServerClientState> CRCLServerSocketEvent<STATE_TYPE> serverClosed(Class<STATE_TYPE> clzz) {
+        return new CRCLServerSocketEvent<STATE_TYPE>(CRCLServerSocketEventType.SERVER_CLOSED, clzz, null, null,null);
     }
 }

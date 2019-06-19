@@ -283,5 +283,63 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>jdpa_listen_not_true</id>
+            <activation>
+                <property>
+                    <name>jpda.listen</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <properties>
+                <custom.nb.exec.args>-ea -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n ${exec.args}</custom.nb.exec.args>
+            </properties>
+        </profile>
+        
+        <profile>
+            <id>jdpa_listen_true</id>
+            <activation>
+                <property>
+                    <name>jpda.listen</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <custom.nb.exec.args>
+                    ${exec.args}
+                </custom.nb.exec.args>
+            </properties>
+        </profile>
+        <profile>
+            <id>custom_nb_exec</id>
+            <activation>
+                <property>
+                    <name>env.NB_EXEC_MAVEN_PROCESS_UUID</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>default-cli</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${exec.executable}</executable>
+                                    <commandlineArgs>
+                                        ${custom.nb.exec.args}
+                                    </commandlineArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

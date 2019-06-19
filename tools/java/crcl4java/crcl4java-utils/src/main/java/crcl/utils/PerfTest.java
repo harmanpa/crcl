@@ -101,7 +101,7 @@ public class PerfTest {
         return stat;
     }
 
-    public static void main(String[] args) {
+    private static void main(String[] args) {
         MinMaxAvg ft0 = runPerfTest(false, true, 200);
         MinMaxAvg ff0 = runPerfTest(false, false, 200);
         MinMaxAvg ft = runPerfTest(false, true, 25000);

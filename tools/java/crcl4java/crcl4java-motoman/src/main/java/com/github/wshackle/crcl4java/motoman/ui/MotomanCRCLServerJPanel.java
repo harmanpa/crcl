@@ -421,7 +421,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                             }
                             objectParam = newArray;
                         }
-                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null,null);
                         objectParams[i] = editedObjectParam;
                     } else if (parameterType.isEnum()) {
                         Object[] enumConstants = (Object[]) parameterType.getEnumConstants();
@@ -436,13 +436,13 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                             objectParams[i] = paramDouble;
                         } else {
                             objectParam = parameterType.newInstance();
-                            Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                            Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null,null);
                             logPrintln("editedObjectParam = " + editedObjectParam);
                             objectParams[i] = editedObjectParam;
                         }
                     } else {
                         objectParam = parameterType.newInstance();
-                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null);
+                        Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null,null);
                         objectParams[i] = editedObjectParam;
                     }
                     argsMap.put(i + ":" + parameterType + ":" + paramName, objectParams[i]);
@@ -453,7 +453,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                 Object returnValue = selectedMethod.invoke(mpc, objectParams);
                 mpc.setDebug(origMpcDebug);
                 logPrintln("returnValue = " + returnValue);
-                ObjTableJPanel.editObject(returnValue, parentJFrame, "returnValue", true, null, null, null);
+                ObjTableJPanel.editObject(returnValue, parentJFrame, "returnValue", true, null, null, null,null);
             } catch (Exception ex) {
                 appendLog(ex.getMessage());
                 Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);

@@ -203,7 +203,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
 
     private void sortFileArrayByLastModified(File[] sub_fa) {
         if (null != sub_fa) {
-            Arrays.sort(sub_fa, LAST_MODIFIED_COMPARATOR);
+            Arrays.sort(sub_fa, LAST_MODIFIED_COMPARATOR.reversed());
         }
     }
 

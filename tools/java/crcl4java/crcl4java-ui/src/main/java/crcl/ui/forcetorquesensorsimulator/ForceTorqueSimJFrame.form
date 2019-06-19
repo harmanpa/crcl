@@ -58,7 +58,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="com.github.wshackle.forcetorquesensorsimulator.ForceTorqueSimJPanel" name="forceTorqueSimJPanel2">
+    <Component class="crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel" name="forceTorqueSimJPanel2">
     </Component>
   </SubComponents>
 </Form>

@@ -30,7 +30,6 @@ import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
-import crcl.base.LengthUnitEnumType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.ui.DefaultSchemaFiles;
@@ -52,7 +51,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
@@ -896,7 +894,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             "Edit Status", true,
                             inner.getXpu(),
                             inner.getStatSchemaFiles(),
-                            this.checkStatusValidPredicate);
+                            this.checkStatusValidPredicate,
+                            CRCLSocket.getUtilSocket());
             if (null != newstat) {
                 inner.setStatus(newstat);
                 JointStatusesType jsst = this.getStatus().getJointStatuses();

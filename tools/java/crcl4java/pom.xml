@@ -11,7 +11,6 @@
         <module>crcl4java-ui</module>
         <module>crcl4java-motoman</module>
         <module>crcl4java-fanuc</module>
-        <module>ForceTorqueSensorSimulator</module>
     </modules>
     
     <url>

@@ -719,24 +719,24 @@ public class ProgramPlotter {
                 bounds.x + bounds.width + xMargin / (2 * scale) + widthUnder / 2.0, currentPoint2D.y));
     }
 
-    public static void main(String[] args) throws CRCLException, IOException {
-        ProgramPlotter ppOverHead = new ProgramPlotter(View.OVERHEAD);
-        ppOverHead.setAutoScale(true);
-        CRCLProgramType program = CRCLSocket.readProgramFile("../crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
-//        PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
-        ppOverHead.getSelectionMin()[0] = 0.2;
-        ppOverHead.getSelectionMax()[0] = 0.8;
-        ppOverHead.getSelectionMin()[1] = 0.2;
-        ppOverHead.getSelectionMax()[1] = 0.8;
-//        ppOverHead.setCurrentPoint(pt);
-        BufferedImage biOverhead = ppOverHead.plotProgram(program, 0);
-        ImageIO.write(biOverhead, "jpg", new File("overhead.jpg"));
-        ProgramPlotter ppSide = new ProgramPlotter(View.SIDE);
-//        ppSide.setCurrentPoint(pt);
-        ppSide.getSelectionMin()[2] = 0.2;
-        ppSide.getSelectionMax()[2] = 0.8;
-        ppSide.setAutoScale(true);
-        BufferedImage biSide = ppSide.plotProgram(program, 0);
-        ImageIO.write(biSide, "jpg", new File("side.jpg"));
-    }
+//    public static void main(String[] args) throws CRCLException, IOException {
+//        ProgramPlotter ppOverHead = new ProgramPlotter(View.OVERHEAD);
+//        ppOverHead.setAutoScale(true);
+//        CRCLProgramType program = CRCLSocket.readProgramFile("../crcl4java-base/src/test/resources/main/MOVE_ALL_RED_PEGS.xml");
+////        PointType pt = CRCLPosemath.toPointType(new PmCartesian(300, +100, 0));
+//        ppOverHead.getSelectionMin()[0] = 0.2;
+//        ppOverHead.getSelectionMax()[0] = 0.8;
+//        ppOverHead.getSelectionMin()[1] = 0.2;
+//        ppOverHead.getSelectionMax()[1] = 0.8;
+////        ppOverHead.setCurrentPoint(pt);
+//        BufferedImage biOverhead = ppOverHead.plotProgram(program, 0);
+//        ImageIO.write(biOverhead, "jpg", new File("overhead.jpg"));
+//        ProgramPlotter ppSide = new ProgramPlotter(View.SIDE);
+////        ppSide.setCurrentPoint(pt);
+//        ppSide.getSelectionMin()[2] = 0.2;
+//        ppSide.getSelectionMax()[2] = 0.8;
+//        ppSide.setAutoScale(true);
+//        BufferedImage biSide = ppSide.plotProgram(program, 0);
+//        ImageIO.write(biSide, "jpg", new File("side.jpg"));
+//    }
 }

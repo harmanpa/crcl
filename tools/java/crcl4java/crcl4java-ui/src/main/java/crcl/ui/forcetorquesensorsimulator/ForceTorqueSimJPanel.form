@@ -59,7 +59,7 @@
                               <Component id="jTextField1" pref="619" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <Component id="jCheckBoxConnected" min="-2" max="-2" attributes="0"/>
+                              <Component id="jCheckBoxStartServer" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -76,7 +76,7 @@
                           <Component id="jTextField1" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jCheckBoxConnected" min="-2" max="-2" attributes="0"/>
+                      <Component id="jCheckBoxStartServer" min="-2" max="-2" attributes="0"/>
                       <EmptySpace pref="522" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -93,12 +93,12 @@
                 <Property name="text" type="java.lang.String" value="8888"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JCheckBox" name="jCheckBoxConnected">
+            <Component class="javax.swing.JCheckBox" name="jCheckBoxStartServer">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Connected"/>
+                <Property name="text" type="java.lang.String" value="Start Server"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxConnectedActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxStartServerActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>
@@ -150,32 +150,32 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFx">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFx">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Fx" noResource="true"/>
               </Properties>
             </Component>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFy">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFy">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Fy" noResource="true"/>
               </Properties>
             </Component>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFz">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelFz">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Fz" noResource="true"/>
               </Properties>
             </Component>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTx">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTx">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Tx" noResource="true"/>
               </Properties>
             </Component>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTy">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTy">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Ty" noResource="true"/>
               </Properties>
             </Component>
-            <Component class="com.github.wshackle.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTz">
+            <Component class="crcl.ui.forcetorquesensorsimulator.ValueJPanel" name="valueJPanelTz">
               <Properties>
                 <Property name="name" type="java.lang.String" value="Tz" noResource="true"/>
               </Properties>

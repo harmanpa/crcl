@@ -20,7 +20,9 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package com.github.wshackle.forcetorquesensorsimulator;
+package crcl.ui.forcetorquesensorsimulator;
+
+import java.io.IOException;
 
 /**
  *
@@ -44,7 +46,7 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        forceTorqueSimJPanel2 = new com.github.wshackle.forcetorquesensorsimulator.ForceTorqueSimJPanel();
+        forceTorqueSimJPanel2 = new crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -114,8 +116,11 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame {
         });
     }
 
+    public void startServer() throws IOException, NumberFormatException {
+        forceTorqueSimJPanel2.startServer();
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private com.github.wshackle.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
+    private crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;

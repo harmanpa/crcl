@@ -35,6 +35,8 @@ import static crcl.base.CommandStateEnumType.CRCL_ERROR;
 import crcl.base.CommandStatusType;
 import crcl.base.EndCanonType;
 import crcl.base.GripperStatusType;
+import crcl.base.GuardLimitEnumType;
+import crcl.base.GuardType;
 import crcl.base.InitCanonType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
@@ -70,6 +72,9 @@ import crcl.ui.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLPosemath.point;
+import static crcl.utils.CRCLPosemath.pose;
+import static crcl.utils.CRCLPosemath.vector;
 import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -1399,7 +1404,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
 
     private volatile boolean polling = false;
 //    private volatile Thread pollingThread = null;
-    
+
     private void pollStatus(int startPollStopCount) {
 //        final int startPollStopCount = pollStopCount.get();
         try {
@@ -1440,7 +1445,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-            polling=false;
+            polling = false;
             pollingThread = null;
         }
     }
@@ -2472,7 +2477,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 p = CRCLPosemath.identityPose();
             }
             DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
-            updatePointTable(p, tm, 0);
+            PointType point = p.getPoint();
+            if (null != point) {
+                updatePointTable(point, tm, 0);
+            }
             switch (displayMode) {
                 case XYZ_XAXIS_ZAXIS:
                     updateXaxisZaxisTable(p, tm, 3);
@@ -2528,8 +2536,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         }
     }
 
-    public static void updatePointTable(PoseType p, DefaultTableModel tm, int index) {
-        PointType pt = p.getPoint();
+    public static void updatePointTable(PointType pt, DefaultTableModel tm, int index) {
         if (null != pt && tm.getRowCount() > 2 + index) {
             tm.setValueAt(pt.getX(), 0 + index, 1);
             tm.setValueAt(pt.getY(), 1 + index, 1);
@@ -3287,10 +3294,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     @Override
     public CRCLProgramType editProgram(CRCLProgramType program) {
 //        internal.getXpu().setSchemaFiles(internal.getProgramSchemaFiles());
-        program = ObjTableJPanel.editObject(program,
-                internal.getXpu(),
-                internal.getProgSchemaFiles(),
-                internal.getCheckProgramValidPredicate());
+        program = ObjTableJPanel
+                .editObject(program,
+                        internal.getXpu(),
+                        internal.getProgSchemaFiles(),
+                        internal.getCheckProgramValidPredicate(),
+                        internal.getCRCLSocket());
         return program;
     }
 
@@ -3307,7 +3316,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 cmd,
                 internal.getXpu(),
                 internal.getCmdSchemaFiles(),
-                internal.getCheckCommandValidPredicate());
+                internal.getCheckCommandValidPredicate(),
+                internal.getCRCLSocket());
         cmd.setCommandID(internal.getCmdId());
         incAndSendCommandFromAwt(cmd);
         this.saveRecentCommand(cmd);
@@ -3545,8 +3555,14 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jScrollPane4 = new javax.swing.JScrollPane();
         jTableMoveToPose = new javax.swing.JTable();
         jCheckBoxStraight = new javax.swing.JCheckBox();
-        jButtonMoveToCurrent = new javax.swing.JButton();
+        jButtonMoveToCurrentPose = new javax.swing.JButton();
         jComboBoxMoveToPoseDisplayMode = new javax.swing.JComboBox<>();
+        jButtonMoveToCurrentPoint = new javax.swing.JButton();
+        jButtonMoveToDownPosition = new javax.swing.JButton();
+        jScrollPaneMoveToGuardTable = new javax.swing.JScrollPane();
+        jTableMoveToGuard = new javax.swing.JTable();
+        jButtonAddGuard = new javax.swing.JButton();
+        jButtonRemoveGuard = new javax.swing.JButton();
         transformJPanel1 = new crcl.ui.misc.TransformJPanel();
         jPanelCommandStatusLogOuter = new javax.swing.JPanel();
         jScrollPane7 = new javax.swing.JScrollPane();
@@ -3782,7 +3798,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jButtonRunProgFromCurrentLine)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jCheckBoxStepping)))
-                        .addContainerGap(91, Short.MAX_VALUE))))
+                        .addContainerGap(184, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4150,7 +4166,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 .addComponent(jButton2))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(39, Short.MAX_VALUE))
+                .addContainerGap(106, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4258,10 +4274,10 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         jCheckBoxStraight.setSelected(true);
         jCheckBoxStraight.setText("Straight");
 
-        jButtonMoveToCurrent.setText("Current");
-        jButtonMoveToCurrent.addActionListener(new java.awt.event.ActionListener() {
+        jButtonMoveToCurrentPose.setText("Current Pose");
+        jButtonMoveToCurrentPose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonMoveToCurrentActionPerformed(evt);
+                jButtonMoveToCurrentPoseActionPerformed(evt);
             }
         });
 
@@ -4277,22 +4293,80 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             }
         });
 
+        jButtonMoveToCurrentPoint.setText("Current Point");
+        jButtonMoveToCurrentPoint.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonMoveToCurrentPointActionPerformed(evt);
+            }
+        });
+
+        jButtonMoveToDownPosition.setText("Down Orientation");
+        jButtonMoveToDownPosition.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonMoveToDownPositionActionPerformed(evt);
+            }
+        });
+
+        jTableMoveToGuard.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Sensor ID", "SubField", "Limit", "Limit Type"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.Double.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPaneMoveToGuardTable.setViewportView(jTableMoveToGuard);
+
+        jButtonAddGuard.setText("Add Guard");
+        jButtonAddGuard.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddGuardActionPerformed(evt);
+            }
+        });
+
+        jButtonRemoveGuard.setText("Remove Guard");
+        jButtonRemoveGuard.setEnabled(false);
+        jButtonRemoveGuard.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRemoveGuardActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelMoveToLayout = new javax.swing.GroupLayout(jPanelMoveTo);
         jPanelMoveTo.setLayout(jPanelMoveToLayout);
         jPanelMoveToLayout.setHorizontalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelMoveToLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jComboBoxMoveToPoseDisplayMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelMoveToLayout.createSequentialGroup()
+                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                        .addComponent(jScrollPaneMoveToGuardTable, javax.swing.GroupLayout.PREFERRED_SIZE, 306, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButtonAddGuard)
+                            .addComponent(jButtonRemoveGuard)))
+                    .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jComboBoxMoveToPoseDisplayMode, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE))
+                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
                         .addComponent(jButtonMoveTo)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jCheckBoxStraight)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonMoveToCurrent))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE))
-                .addContainerGap(408, Short.MAX_VALUE))
+                        .addComponent(jButtonMoveToCurrentPose)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonMoveToCurrentPoint)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonMoveToDownPosition)))
+                .addContainerGap(308, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4301,12 +4375,21 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                 .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonMoveTo)
                     .addComponent(jCheckBoxStraight)
-                    .addComponent(jButtonMoveToCurrent))
+                    .addComponent(jButtonMoveToCurrentPose)
+                    .addComponent(jButtonMoveToCurrentPoint)
+                    .addComponent(jButtonMoveToDownPosition))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jComboBoxMoveToPoseDisplayMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(329, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneMoveToGuardTable, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanelMoveToLayout.createSequentialGroup()
+                        .addComponent(jButtonAddGuard)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonRemoveGuard)))
+                .addContainerGap(191, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("MoveTo", jPanelMoveTo);
@@ -4356,7 +4439,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 690, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 738, Short.MAX_VALUE)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4624,7 +4707,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                         .addContainerGap()
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jScrollPane6)
+                            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
@@ -4643,7 +4726,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 17, Short.MAX_VALUE)))
                         .addGap(10, 10, 10))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addContainerGap()
@@ -4688,7 +4771,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 108, Short.MAX_VALUE)
+            .addGap(0, 84, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4771,7 +4854,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
+                .addComponent(jTabbedPaneLeftUpper)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPaneRightUpper)
                 .addGap(11, 11, 11))
@@ -4815,7 +4898,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                 cmdOrig,
                                 internal.getXpu(),
                                 internal.getCmdSchemaFiles(),
-                                PendantClientJPanel.this.internal.getCheckCommandValidPredicate());
+                                PendantClientJPanel.this.internal.getCheckCommandValidPredicate(),
+                                internal.getCRCLSocket());
                 if (null == cmdEdited) {
                     showDebugMessage("Edit Program Item cancelled. cmdEdited == null");
                     return;
@@ -4906,7 +4990,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                             cmdOrig,
                             internal.getXpu(),
                             internal.getCmdSchemaFiles(),
-                            PendantClientJPanel.this.internal.getCheckCommandValidPredicate());
+                            PendantClientJPanel.this.internal.getCheckCommandValidPredicate(),
+                            internal.getCRCLSocket());
             if (null == cmdEdited) {
                 showDebugMessage("Add Program Item cancelled. cmdEdited == null");
                 return;
@@ -5053,7 +5138,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void requestAndReadStatus() {
         try {
             boolean wasPolling = polling;
-            if(wasPolling) {
+            if (wasPolling) {
                 stopPollTimer();
             }
             synchronized (internal) {
@@ -5084,12 +5169,12 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                     throw new RuntimeException("readStatus() returned false");
                 }
             }
-            if(wasPolling && !disconnecting) {
+            if (wasPolling && !disconnecting) {
                 startPollTimer();
             }
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, "", ex);
-            if(ex instanceof RuntimeException) {
+            if (ex instanceof RuntimeException) {
                 throw (RuntimeException) ex;
             } else {
                 throw new RuntimeException(ex);
@@ -5170,7 +5255,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         internal.stopBlockingPrograms(count);
     }
-    
+
     /**
      * Get the value of preClosing
      *
@@ -5500,7 +5585,42 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
             PoseType p = tableToPose(this.jTableMoveToPose, lastMoveToPoseDisplayMode);
             moveto.setEndPosition(p);
             moveto.setMoveStraight(this.jCheckBoxStraight.isSelected());
+            for (int i = 0; i < jTableMoveToGuard.getRowCount(); i++) {
+                GuardType guard = new GuardType();
+                guard.setSensorID(jTableMoveToGuard.getValueAt(i, 0).toString());
+                final Object subfieldObject = jTableMoveToGuard.getValueAt(i, 1);
+                if (null != subfieldObject) {
+                    String subfieldString = subfieldObject.toString();
+                    if (subfieldString.length() > 0) {
+                        guard.setSubField(subfieldString);
+                    }
+                }
+                final Object limitObject = jTableMoveToGuard.getValueAt(i, 2);
+                if (null != limitObject) {
+                    if (limitObject instanceof Double) {
+                        guard.setLimitValue((Double) limitObject);
+                    } else {
+                        String limitString = limitObject.toString();
+                        if (limitString.length() > 0) {
+                            guard.setLimitValue(Double.valueOf(limitString));
+                        }
+                    }
+                }
+                final Object typeObject = jTableMoveToGuard.getValueAt(i, 3);
+                if (null != typeObject) {
+                    if (typeObject instanceof GuardLimitEnumType) {
+                        guard.setLimitType((GuardLimitEnumType) typeObject);
+                    } else {
+                        String typeString = typeObject.toString();
+                        if (typeString.length() > 0) {
+                            guard.setLimitType(GuardLimitEnumType.valueOf(typeString));
+                        }
+                    }
+                }
+                moveto.getGuard().add(guard);
+            }
             incAndSendCommandFromAwt(moveto);
+
         } catch (Exception ex) {
             Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -5510,13 +5630,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         return (PoseDisplayMode) jComboBoxPoseDisplayMode.getSelectedItem();
     }
 
-    private void jButtonMoveToCurrentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentActionPerformed
+    private void jButtonMoveToCurrentPoseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentPoseActionPerformed
         lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
         final PoseType pose = internal.currentStatusPose();
         if (null != pose) {
             updatePoseTable(pose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
         }
-    }//GEN-LAST:event_jButtonMoveToCurrentActionPerformed
+    }//GEN-LAST:event_jButtonMoveToCurrentPoseActionPerformed
 
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
         connectCurrent();
@@ -5828,6 +5948,54 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
         internal.setStepMode(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jCheckBoxSteppingActionPerformed
 
+    private void jButtonMoveToCurrentPointActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToCurrentPointActionPerformed
+        lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
+        final PointType point = internal.currentStatusPoint();
+        if (null != point) {
+            updatePointTable(point, (DefaultTableModel) this.jTableMoveToPose.getModel(), 0);
+        }
+    }//GEN-LAST:event_jButtonMoveToCurrentPointActionPerformed
+
+    private void jButtonMoveToDownPositionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToDownPositionActionPerformed
+        try {
+            lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
+            PoseType pose = pose(point(0, 0, 0), vector(1, 0, 0), vector(0, 0, -1));
+            DefaultTableModel tm = (DefaultTableModel) this.jTableMoveToPose.getModel();
+            switch (lastMoveToPoseDisplayMode) {
+                case XYZ_XAXIS_ZAXIS:
+                    updateXaxisZaxisTable(pose, tm, 3);
+                    break;
+
+                case XYZ_RPY:
+                    updateRpyTable(pose, tm, 3);
+                    break;
+
+                case XYZ_RX_RY_RZ:
+                    updateRxRyRzTable(pose, tm, 3);
+                    break;
+
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(PendantClientJPanel.class.getName()).log(Level.SEVERE, "evt=" + evt, exception);
+        }
+    }//GEN-LAST:event_jButtonMoveToDownPositionActionPerformed
+
+    private void jButtonAddGuardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddGuardActionPerformed
+        ((DefaultTableModel) jTableMoveToGuard.getModel()).addRow(new Object[]{"sensorId", "subfield", 0.0, GuardLimitEnumType.OVER_MAX});
+        jButtonRemoveGuard.setEnabled(true);
+    }//GEN-LAST:event_jButtonAddGuardActionPerformed
+
+    private void jButtonRemoveGuardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveGuardActionPerformed
+        final DefaultTableModel tm = (DefaultTableModel) jTableMoveToGuard.getModel();
+        final int count = tm.getRowCount();
+        if (count > 0) {
+            tm.setRowCount(count - 1);
+        }
+        if (tm.getRowCount() < 1) {
+            jButtonRemoveGuard.setEnabled(false);
+        }
+    }//GEN-LAST:event_jButtonRemoveGuardActionPerformed
+
     @Nullable
     public Thread getRunProgramThread() {
         return internal.getRunProgramThread();
@@ -5984,7 +6152,8 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
                                         cmd,
                                         internal.getXpu(),
                                         internal.getCmdSchemaFiles(),
-                                        internal.getCheckCommandValidPredicate());
+                                        internal.getCheckCommandValidPredicate(),
+                                        internal.getCRCLSocket());
                         if (null != cmd) {
                             cmd.setCommandID(0);
                             internal.incAndSendCommand(cmd);
@@ -6002,6 +6171,7 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButtonAddGuard;
     private javax.swing.JButton jButtonAddProgramItem;
     private javax.swing.JButton jButtonCloseGripper;
     private javax.swing.JButton jButtonConnect;
@@ -6011,13 +6181,16 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JButton jButtonEnd;
     private javax.swing.JButton jButtonInit;
     private javax.swing.JButton jButtonMoveTo;
-    private javax.swing.JButton jButtonMoveToCurrent;
+    private javax.swing.JButton jButtonMoveToCurrentPoint;
+    private javax.swing.JButton jButtonMoveToCurrentPose;
+    private javax.swing.JButton jButtonMoveToDownPosition;
     private javax.swing.JButton jButtonOpenGripper;
     private javax.swing.JButton jButtonPlotProgramItem;
     private javax.swing.JButton jButtonProgramAbort;
     private javax.swing.JButton jButtonProgramPause;
     private javax.swing.JButton jButtonProgramRun;
     private javax.swing.JButton jButtonRecordPoint;
+    private javax.swing.JButton jButtonRemoveGuard;
     private javax.swing.JButton jButtonResume;
     private javax.swing.JButton jButtonRunProgFromCurrentLine;
     private javax.swing.JButton jButtonShowCommandStatusLogFile;
@@ -6079,11 +6252,13 @@ public class PendantClientJPanel extends javax.swing.JPanel implements PendantCl
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JScrollPane jScrollPaneErrors;
+    private javax.swing.JScrollPane jScrollPaneMoveToGuardTable;
     private javax.swing.JScrollPane jScrollPaneProgram;
     private javax.swing.JTabbedPane jTabbedPaneLeftUpper;
     private javax.swing.JTabbedPane jTabbedPaneRightUpper;
     private javax.swing.JTable jTableCommandStatusLog;
     private javax.swing.JTable jTableJoints;
+    private javax.swing.JTable jTableMoveToGuard;
     private javax.swing.JTable jTableMoveToPose;
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTableProgram;

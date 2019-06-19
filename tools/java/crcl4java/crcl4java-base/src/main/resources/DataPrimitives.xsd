@@ -4,7 +4,7 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
-    version="2019Jun10">
+    version="2019Jun17">
 
     <xs:annotation>
         <xs:documentation>
@@ -590,6 +590,28 @@
         </xs:complexContent>
     </xs:complexType>
     
+    
+    <xs:simpleType name="GuardLimitEnumType">
+        <xs:annotation>
+            <xs:documentation>
+                GuardLimitEnumType enumerates the kinds of command guard limits.
+
+                OVER_MAX means to value exceeded a fixed limit.
+                UNDER_MIN means the value is less than a fixed minimum.
+                INCREASE_OVER_LIMIT means the value increased from the starting value
+                by more than the limit.
+                DECREASE_BEYOND_LIMIT means the value decrease from the starting value
+                by more than the limit.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="OVER_MAX"/>
+            <xs:enumeration value="UNDER_MIN"/>
+            <xs:enumeration value="INCREASE_OVER_LIMIT"/>
+            <xs:enumeration value="DECREASE_BEYOND_LIMIT"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
     <xs:complexType name="GuardType">
         <xs:annotation>
             <xs:documentation>
@@ -599,11 +621,9 @@
                 Name (inherited, optional)
                 SensorID
                 SubField (optional)
-                RecheckTimeMicroSeconds (optional)
-                MaxIncrease (optional)
-                MaxDecrease (optional)
-                MaxValue (optional)
-                MinValue (optional).
+                LimitType
+                LimitValue
+                RecheckTimeMicroSeconds (optional).
 
                 A GuardType can be added to any command to indicate the
                 command should be aborted if the value of the sensors subfield
@@ -627,20 +647,13 @@
                     <xs:element name="SubField"
                                 type="xs:token"
                                 minOccurs="0"/>
+                    <xs:element name="LimitType"
+                                type="GuardLimitEnumType"/>
+                    <xs:element name="LimitValue"
+                                type="xs:double"
+                                minOccurs="0" />
                     <xs:element name="RecheckTimeMicroSeconds"
                                 type="xs:long"
-                                minOccurs="0" />
-                    <xs:element name="MaxIncrease"
-                                type="xs:double"
-                                minOccurs="0" />
-                    <xs:element name="MaxDecrease"
-                                type="xs:double"
-                                minOccurs="0" />
-                    <xs:element name="MaxValue"
-                                type="xs:double"
-                                minOccurs="0" />
-                    <xs:element name="MinValue"
-                                type="xs:double"
                                 minOccurs="0" />
                 </xs:sequence>
             </xs:extension>

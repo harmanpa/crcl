@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.github.wshackle.forcetorquesensorsimulator;
+package crcl.ui.forcetorquesensorsimulator;
 
 import com.sun.istack.logging.Logger;
 import crcl.base.CRCLStatusType;
@@ -49,23 +49,23 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         jPanelCommunications = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
-        jCheckBoxConnected = new javax.swing.JCheckBox();
+        jCheckBoxStartServer = new javax.swing.JCheckBox();
         jPanelOffsets = new javax.swing.JPanel();
-        valueJPanelFx = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
-        valueJPanelFy = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
-        valueJPanelFz = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
-        valueJPanelTx = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
-        valueJPanelTy = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
-        valueJPanelTz = new com.github.wshackle.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelFx = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelFy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelFz = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelTx = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelTy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        valueJPanelTz = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
 
         jLabel1.setText("Port: ");
 
         jTextField1.setText("8888");
 
-        jCheckBoxConnected.setText("Connected");
-        jCheckBoxConnected.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxStartServer.setText("Start Server");
+        jCheckBoxStartServer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxConnectedActionPerformed(evt);
+                jCheckBoxStartServerActionPerformed(evt);
             }
         });
 
@@ -81,7 +81,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE))
                     .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
-                        .addComponent(jCheckBoxConnected)
+                        .addComponent(jCheckBoxStartServer)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -93,7 +93,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                     .addComponent(jLabel1)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxConnected)
+                .addComponent(jCheckBoxStartServer)
                 .addContainerGap(522, Short.MAX_VALUE))
         );
 
@@ -164,27 +164,41 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jCheckBoxConnectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxConnectedActionPerformed
-        boolean connect = jCheckBoxConnected.isSelected();
-        int port = Integer.parseInt(jTextField1.getText());
+    private void jCheckBoxStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxStartServerActionPerformed
+        boolean doStart = jCheckBoxStartServer.isSelected();
         try {
-            if (connect) {
-                crclServerSocket = new CRCLServerSocket<ForceTorqueSimClientState>(port, FORCE_TORQUE_SIM_STATE_GENERATOR);
-                crclServerSocket.addListener(crclSocketEventListener);
-                crclServerSocket.setServerSideStatus(status);
-                crclServerSocket.setAutomaticallySendServerSideStatus(true);
-                crclServerSocket.setAutomaticallyConvertUnits(true);
-                crclServerSocket.setUpdateStatusRunnable(this::updateSensorStatus);
-
-                crclServerSocket.start();
+            if (doStart) {
+                startServer();
             } else if (null != crclServerSocket) {
                 crclServerSocket.close();
                 crclServerSocket = null;
             }
         } catch (Exception ex) {
-            Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "connect=" + connect + ", port =" + port, ex);
+            Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "connect=" + doStart, ex);
         }
-    }//GEN-LAST:event_jCheckBoxConnectedActionPerformed
+    }//GEN-LAST:event_jCheckBoxStartServerActionPerformed
+
+    public void startServer() {
+        int port = Integer.parseInt(jTextField1.getText());
+        try {
+            startServer(port);
+        } catch (Exception ex) {
+            Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "port=" + port, ex);
+        }
+    }
+
+    private void startServer(int port) throws IOException {
+        if(!jCheckBoxStartServer.isSelected()) {
+            jCheckBoxStartServer.setSelected(true);
+        }
+        crclServerSocket = new CRCLServerSocket<>(port, FORCE_TORQUE_SIM_STATE_GENERATOR);
+        crclServerSocket.addListener(crclSocketEventListener);
+        crclServerSocket.setServerSideStatus(status);
+        crclServerSocket.setAutomaticallySendServerSideStatus(true);
+        crclServerSocket.setAutomaticallyConvertUnits(true);
+        crclServerSocket.setUpdateStatusRunnable(this::updateSensorStatus);
+        crclServerSocket.start();
+    }
 
     public static class ForceTorqueSimClientState extends CRCLServerClientState {
 
@@ -226,17 +240,17 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox jCheckBoxConnected;
+    private javax.swing.JCheckBox jCheckBoxStartServer;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanelCommunications;
     private javax.swing.JPanel jPanelOffsets;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelFx;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelFy;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelFz;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelTx;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelTy;
-    private com.github.wshackle.forcetorquesensorsimulator.ValueJPanel valueJPanelTz;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFx;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFy;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFz;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelTx;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelTy;
+    private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelTz;
     // End of variables declaration//GEN-END:variables
 }
