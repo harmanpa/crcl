@@ -364,8 +364,18 @@ public class FanucCRCLMain {
         return ret;
     }
 
+    private volatile StackTraceElement fanucStartTrace[] = null;
+    private volatile boolean started = false;
+
     public XFutureVoid start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
         try {
+            if (this.started) {
+                System.err.println("fanucStartTrace = " + Utils.traceToString(fanucStartTrace));
+                System.err.println("");
+                throw new IllegalStateException("started twice");
+            }
+            this.fanucStartTrace = Thread.currentThread().getStackTrace();
+            this.started = true;
             this.preferRobotNeighborhood = preferRobotNeighborhood;
             this.neighborhoodname = neighborhoodname;
             this.remoteRobotHost = remoteRobotHost;
@@ -581,7 +591,7 @@ public class FanucCRCLMain {
 
     boolean lastRobotIsConnected = true;
     private volatile Future lastReadStatusFromRobotFuture = null;
-    
+
     public CRCLStatusType readStatusFromRobot(boolean inline) {
         if (null == robot) {
             setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -2327,13 +2337,23 @@ public class FanucCRCLMain {
 
     final CRCLSocket utilCrclSocket;
 
-    public FanucCRCLMain() throws CRCLException, IOException {
-        utilCrclSocket = new CRCLSocket();
-        setDefaultJointReports();
-        poseStatus.setPose(CRCLPosemath.identityPose());
-        crclServerSocket = new CRCLServerSocket<>(FANUC_STATE_GENERATOR);
-        crclServerSocket.addListener(crclSocketEventListener);
+    public FanucCRCLMain() {
+        try {
+            utilCrclSocket = new CRCLSocket();
+            setDefaultJointReports();
+            poseStatus.setPose(CRCLPosemath.identityPose());
+            crclServerSocket = new CRCLServerSocket<>(FANUC_STATE_GENERATOR);
+            crclServerSocket.addListener(crclSocketEventListener);
+        } catch (Exception exception) {
+            Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, "", exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
+        }
     }
+
 
     private boolean keepMoveToLog = false;
 
@@ -2756,7 +2776,7 @@ public class FanucCRCLMain {
     private FanucCRCLServerDisplayInterface displayInterface = null;
 
     private IRobotNeighborhood neighborhood = null;
-    private String neighborhoodname = "AgilityLabLRMate200iD";
+    private String neighborhoodname = DEFAULT_AGILITY_FANUC_NEIGHBORHOOD_NAME;
 
     public String getNeighborhoodname() {
         return neighborhoodname;
@@ -3355,8 +3375,8 @@ public class FanucCRCLMain {
 
     public static void main(String[] args) throws IOException, CRCLException {
         main = new FanucCRCLMain();
-        String neighborhoodname = args.length > 0 ? args[0] : "AgilityLabLRMate200iD";
-        String host = args.length > 1 ? args[1] : "192.168.1.34"; //"129.6.78.111";
+        String neighborhoodname = args.length > 0 ? args[0] : DEFAULT_AGILITY_FANUC_NEIGHBORHOOD_NAME;
+        String host = args.length > 1 ? args[1] : DEFAULT_AGILITY_LAB_REMOTE_ROBOT_HOST; //"129.6.78.111";
         int port = args.length > 2 ? Integer.valueOf(args[2]) : CRCLSocket.DEFAULT_PORT;
         boolean prefRNN = (args.length > 3) ? Boolean.valueOf(args[3]) : false;
         main.startDisplayInterface();
@@ -3369,4 +3389,6 @@ public class FanucCRCLMain {
 //        main.stop();
 //        main = null;
     }
+    public static final String DEFAULT_AGILITY_FANUC_NEIGHBORHOOD_NAME = "AgilityLabLRMate200iD";
+    public static final String DEFAULT_AGILITY_LAB_REMOTE_ROBOT_HOST = "192.168.1.34";
 }

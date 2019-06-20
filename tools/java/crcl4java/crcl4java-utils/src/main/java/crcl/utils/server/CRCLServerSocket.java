@@ -68,6 +68,7 @@ import crcl.base.TransSpeedType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import crcl.utils.Utils;
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -130,6 +131,9 @@ import org.checkerframework.checker.nullness.qual.*;
  */
 public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implements AutoCloseable {
 
+    private static final Map<Integer,CRCLServerSocket> portMap =
+            new ConcurrentHashMap<>();
+    
     private final List<CRCLServerClientInfo> clients = new ArrayList<>();
 
     private final CRCLServerSocketStateGenerator<STATE_TYPE> stateGenerator;
@@ -360,6 +364,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (isRunning()) {
             throw new IllegalStateException("Can not set field when server is running.");
         }
+        int oldport = this.port;
+         if(portMap.get(oldport) == this) {
+            portMap.remove(oldport);
+        }
         this.port = port;
         if (serverSocket != null) {
             serverSocket.close();
@@ -369,6 +377,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             serverSocketChannel.close();
             serverSocketChannel = null;
         }
+        checkPortMap(port);
+        portMap.put(port, this);
     }
 
     /*@Nullable*/
@@ -484,6 +494,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         listeners.clear();
         queue.clear();
+        if(portMap.get(port) == this) {
+            portMap.remove(port);
+        }
     }
 
 //    @Override
@@ -1267,6 +1280,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     InetSocketAddress loclaInetSocketAddress = (InetSocketAddress) localAddressToBind;
                     System.err.println("localAdrress = " + loclaInetSocketAddress.getHostString() + ":" + loclaInetSocketAddress.getPort());
                 }
+                System.err.println("portMap = " + portMap);
+                System.err.println("Thread.currentThread() = " + Thread.currentThread());
+                System.err.println("startTrace = " + Utils.traceToString(startTrace));
                 throw new IOException(bindException);
             }
         }
@@ -1863,6 +1879,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this(port, backlog, addr, multithreaded, stateGenerator, classFromGenerator(stateGenerator));
     }
 
+    private volatile StackTraceElement createTrace[] = null;
+    
     public CRCLServerSocket(int port, int backlog, InetAddress addr, boolean multithreaded, CRCLServerSocketStateGenerator<STATE_TYPE> stateGenerator, Class<STATE_TYPE> stateClass) {
         this.port = port;
         this.backlog = backlog;
@@ -1872,6 +1890,31 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.stateGenerator = stateGenerator;
         this.stateClass = stateClass;
         refreshSensorFinders();
+        checkPortMap(port);
+        createTrace = Thread.currentThread().getStackTrace();
+        portMap.put(port, this);
+    }
+
+    private void checkPortMap(int port1) throws IllegalStateException {
+        if (portMap.containsKey(port1)) {
+            CRCLServerSocket otherServer = portMap.get(port1);
+            System.err.println("this = " + this);
+            if(null != this && this.startTrace != null) {
+                System.out.println("this.startTrace = " + Utils.traceToString(this.startTrace));
+            }
+            if(null != this && this.createTrace != null) {
+                System.out.println("this.createTrace = " + Utils.traceToString(this.createTrace));
+            }
+            System.err.println("otherServer = " + otherServer);
+            if(null != otherServer && otherServer.startTrace != null) {
+                System.out.println("otherServer.startTrace = " + Utils.traceToString(otherServer.startTrace));
+            }
+            if(null != otherServer && otherServer.createTrace != null) {
+                System.out.println("otherServer.createTrace = " + Utils.traceToString(otherServer.createTrace));
+            }
+            System.err.println("portMap = " + portMap);
+            throw new IllegalStateException("two servers for same port "+port);
+        }
     }
 
     private static final CRCLServerSocketStateGenerator<CRCLServerClientState> DEFAULT_STATE_GENERATOR
@@ -1915,4 +1958,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         started = true;
         return serviceFoStart.submit(this.runnable);
     }
+
+    @Override
+    public String toString() {
+        return "CRCLServerSocket{" + "port=" + port + ", localAddress=" + localAddress + ", bindAddress=" + bindAddress + ", multithreaded=" + multithreaded + ", threadNamePrefix=" + threadNamePrefix + ", started=" + started + '}';
+    }
+
+    
+    
+    
 }

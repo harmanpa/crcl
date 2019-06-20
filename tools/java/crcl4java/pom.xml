@@ -220,6 +220,14 @@
             </build>
         </profile>
         <profile> 
+            <id>motomanfanuc</id>
+            <modules>
+                <module>crcl4java-fanuc</module>
+                <module>ATINetFT_proxy</module>
+                <module>crcl4java-motoman</module>
+            </modules>
+        </profile>
+        <profile> 
             <id>all</id>
             <modules>
                 <module>crcl4java-exi</module>

@@ -73,20 +73,26 @@ public class MotomanCRCLServerJInternalFrame extends javax.swing.JInternalFrame 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-
     public boolean isCrclMotoplusConnected() {
         return motomanCrclServerJPanel1.isCrclMotoplusConnected();
     }
-    
-     public void connectCrclMotoplus() throws IOException {
 
-       this.motomanCrclServerJPanel1.connectCrclMotoplus();
+    public String getMotomanHost() {
+        return this.motomanCrclServerJPanel1.getMotomanHost();
+    }
+
+    public void setMotomanHost(String motomanHost) {
+        this.motomanCrclServerJPanel1.setMotomanHost(motomanHost);
+    }
+
+    public void connectCrclMotoplus() throws IOException {
+        this.motomanCrclServerJPanel1.connectCrclMotoplus();
     }
 
     public void disconnectCrclMotoplus() {
         this.motomanCrclServerJPanel1.disconnectCrclMotoplus();
     }
-    
+
     public File getPropertiesFile() {
         return motomanCrclServerJPanel1.getPropertiesFile();
     }
@@ -103,19 +109,19 @@ public class MotomanCRCLServerJInternalFrame extends javax.swing.JInternalFrame 
     public void saveProperties() throws IOException {
         motomanCrclServerJPanel1.saveProperties();
     }
-    
+
     public void loadProperties() throws IOException {
         motomanCrclServerJPanel1.loadProperties();
     }
-    
+
     public void setCrclPort(int crclPort) {
         motomanCrclServerJPanel1.setCrclPort(crclPort);
     }
-    
+
     public int getCrclPort() {
         return motomanCrclServerJPanel1.getCrclPort();
     }
-    
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.github.wshackle.crcl4java.motoman.ui.MotomanCRCLServerJPanel motomanCrclServerJPanel1;
     // End of variables declaration//GEN-END:variables

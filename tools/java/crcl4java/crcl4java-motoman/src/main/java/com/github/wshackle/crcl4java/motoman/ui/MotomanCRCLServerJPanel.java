@@ -233,6 +233,15 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
 
     private int connectTimeoutMillis = 2000;
 
+    public String getMotomanHost() {
+        return motomanHost;
+    }
+
+    public void setMotomanHost(String motomanHost) {
+        this.motomanHost = motomanHost;
+    }
+
+    
     /**
      * Get the value of connectTimeoutMillis
      *
@@ -533,6 +542,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             props.load(fr);
         }
         String crclPortString = props.getProperty(CRCL_PORT_PROPERTY_NAME);
+        logPrintln("MotomanCrclServerJPanel crclPortString="+crclPortString);
         if (null != crclPortString) {
             jTextFieldCrclPort.setText(crclPortString);
         }

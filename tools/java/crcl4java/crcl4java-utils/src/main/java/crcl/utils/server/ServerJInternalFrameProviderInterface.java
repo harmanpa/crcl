@@ -34,7 +34,7 @@ public interface ServerJInternalFrameProviderInterface {
     
     public void start(Object ...args);
     
-    public JInternalFrame getJInternlFrame();
+    public JInternalFrame getJInternalFrame();
     
     public String getName();
     
