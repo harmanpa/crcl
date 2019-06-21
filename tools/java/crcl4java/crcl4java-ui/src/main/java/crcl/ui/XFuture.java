@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
@@ -140,8 +141,8 @@ public class XFuture<T> extends CompletableFuture<T> {
         if (null == trace) {
             return "";
         }
-        try ( StringWriter stringWriter = new StringWriter()) {
-            try ( PrintWriter printWriter = new PrintWriter(stringWriter)) {
+        try (StringWriter stringWriter = new StringWriter()) {
+            try (PrintWriter printWriter = new PrintWriter(stringWriter)) {
                 boolean first = true;
                 int firstExternal = 0;
                 int lastExternal = trace.length - 1;
@@ -423,7 +424,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             sb.append(cf).append("\n");
             if (cf instanceof XFuture) {
                 XFuture<?> xf = (XFuture) cf;
-                if (xf.isCancelled() || xf.isCompletedExceptionally()) {
+                if (xf.isCompletedExceptionally() && !isPrintedOrCancellationException(xf.getCompletedExceptionallyThrowable())) {
                     sb.append(xf.name).append(" : forExceptionString=").append(xf.forExceptionString()).append("\n");
                     sb.append(xf.name).append(" :  end forExceptionString").append("\n");
                 }
@@ -598,8 +599,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 }
                 return result;
             } catch (Throwable throwable) {
-                String msg = "Exception in XFuture " + myf.forExceptionString();
-                checkAndLogExceptioni(throwable, msg);
+                checkAndLogExceptioni(throwable, ()-> "Exception in XFuture " + myf.forExceptionString());
                 try {
                     T result = handler.apply(throwable);
                     myf.complete(result);
@@ -619,10 +619,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         return myf;
     }
 
-    private static void checkAndLogExceptioni(Throwable throwable1, String msg) {
+    private static void checkAndLogExceptioni(Throwable throwable1, Supplier<String> msgGetter) {
         if (!closingMode) {
             if (!isPrintedOrCancellationException(throwable1) || printCancellationExceptions) {
-                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, msg, throwable1);
+                Logger.getLogger(XFuture.class.getName()).log(Level.SEVERE, msgGetter.get(), throwable1);
             }
         }
     }
@@ -655,8 +655,14 @@ public class XFuture<T> extends CompletableFuture<T> {
                 return result;
             } catch (Throwable throwable) {
                 myf.completeExceptionally(throwable);
-                checkAndLogExceptioni(throwable, "Exception in XFuture " + myf.forExceptionString());
-                throw new RuntimeException(throwable);
+                if (!isPrintedOrCancellationException(throwable)) {
+                    checkAndLogExceptioni(throwable, ()-> "Exception in XFuture " + myf.forExceptionString());
+                }
+                if (throwable instanceof RuntimeException) {
+                    throw (RuntimeException) throwable;
+                } else {
+                    throw new PrintedException(throwable);
+                }
             }
         });
         myf.futureFromExecSubmit = f;
@@ -722,7 +728,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                 setTName(name);
                 return fn.apply(x);
             } catch (Throwable t) {
-                checkAndLogExceptioni(t, "Exception in XFuture " + XFuture.this.forExceptionString());
+                checkAndLogExceptioni(t, ()-> "Exception in XFuture " + XFuture.this.forExceptionString());
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
                 } else {
@@ -909,6 +915,10 @@ public class XFuture<T> extends CompletableFuture<T> {
         clearAlsoCancel();
         setCompleteTime();
         return retXF;
+    }
+
+    public Throwable getCompletedExceptionallyThrowable() {
+        return completedExceptionallyThrowable;
     }
 
     @Nullable
@@ -1227,7 +1237,18 @@ public class XFuture<T> extends CompletableFuture<T> {
         cleared = true;
     }
 
-    public static class PrintedXFutureRuntimeException extends RuntimeException {
+    public static class PrintedException extends RuntimeException {
+
+        public PrintedException(Throwable cause) {
+            super(cause);
+        }
+
+        public PrintedException(String message) {
+            super(message);
+        }
+    }
+
+    public static class PrintedXFutureRuntimeException extends PrintedException {
 
         public PrintedXFutureRuntimeException(Throwable cause) {
             super(cause);
@@ -1337,7 +1358,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(x);
             } catch (Throwable t) {
-                checkAndLogExceptioni(t, "Exception in XFuture " + XFuture.this.forExceptionString());
+                checkAndLogExceptioni(t, ()-> "Exception in XFuture " + XFuture.this.forExceptionString());
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
                 } else {
@@ -1352,7 +1373,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             try {
                 return f.apply(a, b);
             } catch (Throwable t) {
-                checkAndLogExceptioni(t, "Exception in XFuture " + XFuture.this.forExceptionString());
+                checkAndLogExceptioni(t, ()-> "Exception in XFuture " + XFuture.this.forExceptionString());
                 if (t instanceof RuntimeException) {
                     throw ((RuntimeException) t);
                 } else {
@@ -1364,7 +1385,10 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     static boolean isPrintedOrCancellationException(Throwable t) {
         Throwable cause = t.getCause();
-        return (t instanceof CancellationException) || (t instanceof PrintedXFutureRuntimeException)
+        return (t instanceof CancellationException)
+               || (t instanceof CompletionException)
+               || (t instanceof PrintedException)
+                || (t instanceof PrintedXFutureRuntimeException)
                 || (null != cause && t != cause
                 && (cause instanceof CancellationException) || (cause instanceof PrintedXFutureRuntimeException));
     }
@@ -1706,7 +1730,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     private <T> T logAndRethrow(Throwable t) {
-        checkAndLogExceptioni(t, "Exception in XFuture " + XFuture.this.forExceptionString());
+        checkAndLogExceptioni(t, ()-> "Exception in XFuture " + XFuture.this.forExceptionString());
         return rethrow(t);
     }
 

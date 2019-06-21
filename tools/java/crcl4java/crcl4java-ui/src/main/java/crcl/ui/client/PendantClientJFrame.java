@@ -30,6 +30,7 @@ import crcl.ui.server.SimServerJFrame;
 import crcl.ui.misc.TransformSetupJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.ui.XFutureVoid;
+import static crcl.ui.client.PendantClientJInternalFrame.LOGGER;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.Utils;
@@ -73,8 +74,8 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         super(gc);
         init();
     }
-    
-     @Override
+
+    @Override
     public int getCurrentProgramLine() {
         return this.pendantClientJPanel1.getCurrentProgramLine();
     }
@@ -163,38 +164,52 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
                 return o1.getName().compareTo(o2.getName());
             }
         });
+        this.jMenuCommandRecent.removeAll();
         for (File fSubDir : fa) {
-            JMenu jm = new JMenu(fSubDir.getName());
-            this.jMenuCommandRecent.add(jm);
-            File sub_fa[] = fSubDir.listFiles(new java.io.FilenameFilter() {
+            addClassSubmenu(fSubDir);
+        }
+    }
 
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".xml");
-                }
-            });
-            if (null != sub_fa) {
-                sortFileArrayByLastModified(sub_fa);
-                for (int i = 0; i < sub_fa.length && i < 3; i++) {
-                    File xmlFile = sub_fa[i];
-                    JMenuItem jmi = new JMenuItem(xmlFile.getName());
-                    jmi.addActionListener(new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            try {
-                                pendantClientJPanel1.openXmlInstanceFile(xmlFile);
-                            } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
-                                LOGGER.log(Level.SEVERE, null, ex);
-                                showMessage(ex);
-                            }
+    private void addClassSubmenu( File fSubDir)  {
+        final String subdirName =fSubDir.getName();
+        try {
+            Class.forName("crcl.base."+subdirName);
+        } catch (ClassNotFoundException ex) {
+            System.out.println("ignoring subdir that doesn't match class "+subdirName);
+            return;
+        }
+        JMenu jm = new JMenu(subdirName);
+        
+        this.jMenuCommandRecent.add(jm);
+        File sub_fa[] = fSubDir.listFiles(new java.io.FilenameFilter() {
+            
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".xml");
+            }
+        });
+        if (null != sub_fa) {
+            Arrays.sort(sub_fa, Comparator.comparing(File::lastModified).reversed());
+            for (int i = 0; i < sub_fa.length && i < 4; i++) {
+                File xmlFile = sub_fa[i];
+                JMenuItem jmi = new JMenuItem(xmlFile.getName());
+                jmi.addActionListener(new ActionListener() {
+                    
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            pendantClientJPanel1.openXmlInstanceFile(xmlFile);
+                        } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                            showMessage(ex);
                         }
-                    });
-                    jm.add(jmi);
-                }
+                    }
+                });
+                jm.add(jmi);
             }
         }
     }
+
 
 //    private static final Comparator<File> LAST_MODIFIED_COMPARATOR
 //            = (File o1, File o2) -> Long.compare(o1.lastModified(), o2.lastModified());

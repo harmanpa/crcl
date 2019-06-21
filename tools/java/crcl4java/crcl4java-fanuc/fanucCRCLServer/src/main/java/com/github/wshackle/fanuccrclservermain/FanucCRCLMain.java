@@ -412,39 +412,6 @@ public class FanucCRCLMain {
         this.validate = validate;
     }
 
-//    private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
-    private double lengthScale = 1.0;
-
-//    /**
-//     * Get the value of lengthUnit
-//     *
-//     * @return the value of lengthUnit
-//     */
-//    public LengthUnitEnumType getLengthUnit() {
-//        return lengthUnit;
-//    }
-//
-//    /**
-//     * Set the value of lengthUnit
-//     *
-//     * @param lengthUnit new value of lengthUnit
-//     */
-//    public void setLengthUnit(LengthUnitEnumType lengthUnit) {
-//        this.lengthUnit = lengthUnit;
-//        switch (lengthUnit) {
-//            case METER:
-//                lengthScale = 1000.0;
-//                break;
-//
-//            case MILLIMETER:
-//                lengthScale = 1.0;
-//                break;
-//
-//            case INCH:
-//                lengthScale = 25.4;
-//                break;
-//        }
-//    }
     long statusUpdateTime = 0;
     private final CRCLStatusType status = new CRCLStatusType();
     volatile long moveDoneTime = 0;
@@ -784,7 +751,7 @@ public class FanucCRCLMain {
                 ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
                 Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
                 IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
-                PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
+                PmCartesian cart = new PmCartesian(pos.x(), pos.y(), pos.z());
                 PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
                 setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), getPose()));
                 Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
@@ -1299,6 +1266,10 @@ public class FanucCRCLMain {
 
                 case SERVER_CLOSED:
                     break;
+                    
+                case GUARD_LIMIT_REACHED:
+                    internalStopMotion();
+                    break;
             }
         } catch (Exception ex) {
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, "evt=" + evt, ex);
@@ -1517,6 +1488,10 @@ public class FanucCRCLMain {
     }
 
     private void handleStopMotion(StopMotionType stopCmd) {
+        internalStopMotion();
+    }
+
+    private void internalStopMotion() {
         if (null != moveThread) {
             moveThread.interrupt();
             try {
@@ -1652,7 +1627,7 @@ public class FanucCRCLMain {
             settingsStatus.setTransSpeedRelative(tsRel);
         } else if (ts instanceof TransSpeedAbsoluteType) {
             TransSpeedAbsoluteType tsAbs = (TransSpeedAbsoluteType) ts;
-            transSpeed = tsAbs.getSetting() * lengthScale;
+            transSpeed = tsAbs.getSetting();
             regNumeric98.regFloat((float) transSpeed);
             showInfo("R[98] = transSpeed = " + transSpeed);
 //            reg98Var.update();
@@ -1675,7 +1650,7 @@ public class FanucCRCLMain {
             settingsStatus.setRotSpeedRelative(rsRel);
         } else if (rs instanceof RotSpeedAbsoluteType) {
             RotSpeedAbsoluteType rsAbs = (RotSpeedAbsoluteType) rs;
-            rotSpeed = rsAbs.getSetting() * lengthScale;
+            rotSpeed = rsAbs.getSetting();
             setCommandState(CommandStateEnumType.CRCL_DONE);
             settingsStatus.setRotSpeedAbsolute(rsAbs);
         }
@@ -1756,7 +1731,7 @@ public class FanucCRCLMain {
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         PointType moveCmdEndPt = moveCmd.getEndPosition().getPoint();
         PmCartesian cart = CRCLPosemath.toPmCartesian(moveCmdEndPt);
-        PmCartesian endCart = new PmCartesian(cart.x * lengthScale, cart.y * lengthScale, cart.z * lengthScale);
+        PmCartesian endCart = new PmCartesian(cart.x, cart.y, cart.z);
         PmRpy rpy = CRCLPosemath.toPmRpy(moveCmd.getEndPosition());
         updatePosReg98();
         posReg98.refresh();
@@ -1769,9 +1744,9 @@ public class FanucCRCLMain {
         endCart.z = posReg98XyzWpr.z();
         double cartDiff = distTransFrom(moveCmd.getEndPosition());
         double rotDiff = distRotFrom(moveCmd.getEndPosition());
-        moveCmdEndPt.setX(endCart.x / lengthScale);
-        moveCmdEndPt.setY(endCart.y / lengthScale);
-        moveCmdEndPt.setZ(endCart.z / lengthScale);
+        moveCmdEndPt.setX(endCart.x);
+        moveCmdEndPt.setY(endCart.y);
+        moveCmdEndPt.setZ(endCart.z);
         double cartMoveTime = cartDiff / transSpeed;
         double rotMoveTime = rotDiff / rotSpeed;
         if (rotMoveTime > cartMoveTime) {
@@ -1995,7 +1970,7 @@ public class FanucCRCLMain {
                     IXyzWpr sys_pos = com4jobj_sys_pos.queryInterface(IXyzWpr.class);
                     long t0 = System.currentTimeMillis();
                     long t1 = System.currentTimeMillis();
-                    sys_pos.setAll(cart.x * lengthScale, cart.y * lengthScale, cart.z * lengthScale,
+                    sys_pos.setAll(cart.x, cart.y, cart.z,
                             Math.toDegrees(rpy.r), Math.toDegrees(rpy.p), Math.toDegrees(rpy.y));
                     groupPos.update();
                     moveToGroupPos();

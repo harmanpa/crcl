@@ -92,7 +92,11 @@ public class XFutureVoid extends XFuture<Void> {
 //                System.out.println("errMsg = " + errMsg);
 //                System.err.println(errMsg);
                 LOGGER.log(Level.SEVERE, errMsg, throwable);
-                throw new RuntimeException(throwable);
+                if(throwable instanceof RuntimeException) {
+                    throw (RuntimeException) throwable;
+                } else {
+                    throw new PrintedException(throwable);
+                }
             }
             myf.complete(null);
 //            myf.alsoCancel.clear();

@@ -71,7 +71,7 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
     }
 
     @Override
-    public ForceTorqueSensorStatusType getCurrentSensorStatus() {
+    public synchronized  ForceTorqueSensorStatusType getCurrentSensorStatus() {
         try {
             NetFTRDTPacketProxy packet = netFtSensor.readLowSpeedData(lowSpeedSocket);
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();

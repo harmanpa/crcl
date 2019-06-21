@@ -62,9 +62,7 @@ import crcl.base.PoseStatusType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
 import crcl.base.RotSpeedType;
-import crcl.base.SetAngleUnitsType;
 import crcl.base.SetEndEffectorType;
-import crcl.base.SetLengthUnitsType;
 import crcl.base.SetRotSpeedType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.StopMotionType;
@@ -120,7 +118,7 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private final CRCLServerSocketEventListener<MotomanClientState> crclSocketEventListener
             = this::handleCrclServerSocketEvent;
-    
+
     private final CRCLServerSocket<MotomanClientState> crclServerSocket;
     private final MotoPlusConnection mpc;
 
@@ -142,16 +140,16 @@ public class MotomanCRCLServer implements AutoCloseable {
     private void runUpdateStatus() {
         try {
             getCrclStatus();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             logException(ex);
-            if(ex instanceof RuntimeException) {
+            if (ex instanceof RuntimeException) {
                 throw (RuntimeException) ex;
             } else {
                 throw new RuntimeException(ex);
             }
         }
     }
-    
+
     public Future<?> start() {
         crclServerSocket.setServerSideStatus(crclStatus);
         crclServerSocket.setUpdateStatusRunnable(this::runUpdateStatus);
@@ -160,7 +158,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         crclServerSocket.setServerUnits(new UnitsTypeSet());
         return crclServerSocket.start();
     }
-    
+
     @Override
     public void close() throws Exception {
         crclServerSocket.close();
@@ -180,7 +178,6 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private long last_status_update_time = -1;
 
-    private double lengthScale = 1.0;
     private final int lastJointPos[] = new int[MP_PULSE_POS_RSP_DATA.MAX_PULSE_AXES];
     private boolean lastErrorWasWrongMode = false;
 
@@ -246,7 +243,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                     return crclStatus;
                 }
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
-                PmCartesian cart = new PmCartesian(pos.x() / lengthScale, pos.y() / lengthScale, pos.z() / lengthScale);
+                PmCartesian cart = new PmCartesian(pos.x(), pos.y(), pos.z());
                 PmEulerZyx zyx = new PmEulerZyx(Math.toRadians(pos.rz()), Math.toRadians(pos.ry()), Math.toRadians(pos.rx()));
                 PmRotationMatrix mat = Posemath.toMat(zyx);
                 crclStatus.getPoseStatus().setPose(CRCLPosemath.toPoseType(cart, mat, crclStatus.getPoseStatus().getPose()));
@@ -389,7 +386,6 @@ public class MotomanCRCLServer implements AutoCloseable {
 
 //    private LengthUnitEnumType currentLengthUnits = LengthUnitEnumType.MILLIMETER;
 //    private AngleUnitEnumType currentAngleUnits = AngleUnitEnumType.DEGREE;
-
     private final double MM_TO_INCH = 0.0393701;
 
     private void setTransSpeed(SetTransSpeedType sts, MotomanClientState clientState) throws IOException {
@@ -455,39 +451,6 @@ public class MotomanCRCLServer implements AutoCloseable {
         mpc.closeToolChanger();
     }
 
-//    AngleUnitEnumType currentAngleUnit = AngleUnitEnumType.DEGREE;
-//
-//    private void setAngleUnits(SetAngleUnitsType sau) {
-//        currentAngleUnit = sau.getUnitName();
-//    }
-
-    private void setLengthUnits(SetLengthUnitsType slu) {
-        switch (slu.getUnitName()) {
-            case MILLIMETER:
-                lengthScale = 1.0;
-                break;
-
-            case METER:
-                lengthScale = 1000.0;
-                break;
-
-            case INCH:
-                lengthScale = 25.4;
-                break;
-        }
-    }
-
-//    private static class RxRyRz  {
-//        public double rx,ry,rz;
-//    }
-//
-//    public static ToRxRyRz(VectorType xAxis, VectorType zAxis) {
-//        RxRyRz rxryrz = new RxRyRz();
-//        rxryrz.rx = Math.toDegrees(Math.atan2(zAxis.getJ(), zAxis.getK()));
-//        rxryrz.ry = Math.toDegrees(Math.atan2(zAxis.getJ(), zAxis.getI()));
-//        rxryrz.rz = Math.toDegrees(Math.atan2(xAxis.getJ(), xAxis.getI()));
-//        
-//    }
     private boolean debug = false;
 
     /**
@@ -509,7 +472,6 @@ public class MotomanCRCLServer implements AutoCloseable {
     }
 
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
-
         boolean isStraight = cmd.isMoveStraight();
         final int newTargetId = lastSentTargetId.incrementAndGet();
         CoordTarget tgt = new CoordTarget(isStraight, newTargetId);
@@ -539,9 +501,9 @@ public class MotomanCRCLServer implements AutoCloseable {
         } else {
             tgt.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
         }
-        tgt.getDst().x = (int) (cmd.getEndPosition().getPoint().getX() * 1000.0 * lengthScale);
-        tgt.getDst().y = (int) (cmd.getEndPosition().getPoint().getY() * 1000.0 * lengthScale);
-        tgt.getDst().z = (int) (cmd.getEndPosition().getPoint().getZ() * 1000.0 * lengthScale);
+        tgt.getDst().x = (int) (cmd.getEndPosition().getPoint().getX() * 1000.0);
+        tgt.getDst().y = (int) (cmd.getEndPosition().getPoint().getY() * 1000.0);
+        tgt.getDst().z = (int) (cmd.getEndPosition().getPoint().getZ() * 1000.0);
         PmRotationMatrix rotMat = CRCLPosemath.toPmRotationMatrix(cmd.getEndPosition());
         if (debug) {
             System.out.println("rotMat = " + rotMat);
@@ -563,9 +525,9 @@ public class MotomanCRCLServer implements AutoCloseable {
 //        System.out.println("zyzp = " + Math.toDegrees(zyz.z) + ", " + Math.toDegrees(zyz.y) + "," + Math.toDegrees(zyz.zp));
         MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
 
-        tgt.getAux().x = (int) (cmd.getEndPosition().getPoint().getX() * 1000.0 * lengthScale);
-        tgt.getAux().y = (int) (cmd.getEndPosition().getPoint().getY() * 1000.0 * lengthScale);
-        tgt.getAux().z = (int) (cmd.getEndPosition().getPoint().getZ() * 1000.0 * lengthScale);
+        tgt.getAux().x = (int) (cmd.getEndPosition().getPoint().getX() * 1000.0);
+        tgt.getAux().y = (int) (cmd.getEndPosition().getPoint().getY() * 1000.0);
+        tgt.getAux().z = (int) (cmd.getEndPosition().getPoint().getZ() * 1000.0);
 //        PmRpy rpy = CRCLPosemath.toPmRpy(cmd.getEndPosition());
 //        MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
 
@@ -707,29 +669,37 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private long dwellEnd = -1;
     private boolean dwelling = false;
+    private long initCanonTime = 0;
 
     private void initCanon() {
         try {
             initialized = false;
             if (!mpc.isConnected()) {
+                initCanonTime = 0;
                 mpc.reconnect();
-            }
-            if (!mpc.isConnected()) {
-                setStateDescription(CRCL_ERROR, "Can not connect to robot.");
-            }
-            stopMotion();
-            if (!mpc.mpGetServoPower()) {
-                mpc.mpSetServoPower(true);
-                if (!mpc.mpGetServoPower()) {
-                    MP_MODE_DATA modeData = mpc.mpGetMode();
-                    if (modeData.sRemote == 0) {
-                        setStateDescription(CRCL_ERROR, "Pendant switch must be set to REMOTE. : current mode = " + modeData.toString());
-                    } else {
-                        setStateDescription(CRCL_ERROR, "Can not enable servo power.");
-                    }
-                    mpc.mpSetServoPower(false);
-                    return;
+                if (!mpc.isConnected()) {
+                    setStateDescription(CRCL_ERROR, "Can not connect to robot.");
                 }
+            }
+            final long currentTimeMillis = System.currentTimeMillis();
+            final long timeDiff = currentTimeMillis - initCanonTime;
+
+            if (timeDiff < 10000) {
+                stopMotion();
+                if (!mpc.mpGetServoPower()) {
+                    mpc.mpSetServoPower(true);
+                    if (!mpc.mpGetServoPower()) {
+                        MP_MODE_DATA modeData = mpc.mpGetMode();
+                        if (modeData.sRemote == 0) {
+                            setStateDescription(CRCL_ERROR, "Pendant switch must be set to REMOTE. : current mode = " + modeData.toString());
+                        } else {
+                            setStateDescription(CRCL_ERROR, "Can not enable servo power.");
+                        }
+                        mpc.mpSetServoPower(false);
+                        return;
+                    }
+                }
+                initCanonTime = System.currentTimeMillis();
             }
             mpc.mpSetServoPower(false);
             initialized = true;
@@ -747,83 +717,99 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     public void handleCrclServerSocketEvent(CRCLServerSocketEvent<MotomanClientState> event) {
         try {
-            CRCLCommandInstanceType cmdInstance = event.getInstance();
-            if (null != cmdInstance) {
-                CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                if (cmd instanceof GetStatusType) {
-                    event.getSource().writeStatus(getCrclStatus());
-                } else {
-                    lastCommand = cmd;
-                    updatesSinceCommand.set(0);
-                    last_command_time = System.currentTimeMillis();
-                    getCommandStatus().setCommandID(cmd.getCommandID());
-                    if (getCommandState() != CRCL_ERROR) {
-                        getCommandStatus().setCommandState(CRCL_WORKING);
+            switch (event.getEventType()) {
+                case CRCL_COMMAND_RECIEVED:
+                    CRCLCommandInstanceType cmdInstance = event.getInstance();
+                    if (null != cmdInstance) {
+                        CRCLCommandType cmd = cmdInstance.getCRCLCommand();
+                        handleNewCommandFromServerSocket(cmd, event);
                     }
-                    if (cmd instanceof InitCanonType) {
-                        initCanon();
+                    break;
 
-                    } else if (!initialized) {
-                        if (getCommandState() != CRCL_ERROR
-                                || getCommandStatus().getStateDescription().length() < 1) {
-                            setStateDescription(CRCL_ERROR, "Command received when not initialized. cmd=" + cmd);
-                        } else {
-                            logErr("Command received when not initialized. cmd=" + cmd);
-                        }
-                    } else if (cmd instanceof StopMotionType) {
-                        stopMotion();
+                case GUARD_LIMIT_REACHED:
+                    stopMotion();
+                    if (getCommandStatus().getCommandState() == CRCL_WORKING) {
                         setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof ActuateJointsType) {
-                        actuateJoints((ActuateJointsType) cmd);
-                        setStateDescription(CRCL_WORKING, "");
-                    } else if (cmd instanceof SetTransSpeedType) {
-                        setTransSpeed((SetTransSpeedType) cmd,event.getState());
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof SetRotSpeedType) {
-                        setRotSpeed((SetRotSpeedType) cmd,event.getState());
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof MoveToType) {
-                        moveTo((MoveToType) cmd);
-                        setStateDescription(CRCL_WORKING, "");
-                    } else if (cmd instanceof DwellType) {
-                        dwellEnd = System.currentTimeMillis() + (long) (((DwellType) cmd).getDwellTime() * 1000.0);
-                        dwelling = true;
-                        setStateDescription(CRCL_WORKING, "");
-                    } else if (cmd instanceof ConfigureJointReportsType) {
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof SetLengthUnitsType) {
-                        setLengthUnits((SetLengthUnitsType) cmd);
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof SetAngleUnitsType) {
-//                        setAngleUnits((SetAngleUnitsType) cmd);
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof SetEndEffectorType) {
-                        setEndEffector((SetEndEffectorType) cmd);
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof OpenToolChangerType) {
-                        openToolChanger((OpenToolChangerType) cmd);
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof CloseToolChangerType) {
-                        closeToolChanger((CloseToolChangerType) cmd);
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof EndCanonType) {
-                        setStateDescription(CRCL_DONE, "");
-                    } else if (cmd instanceof MessageType) {
-                        setStateDescription(CRCL_DONE, ((MessageType) cmd).getMessage());
-                    } else {
-                        setStateDescription(CRCL_ERROR, cmd.getClass().getName() + " not implemented");
-                        try {
-                            System.err.println("Unrecognized cmd = " + CRCLSocket.getUtilSocket().commandToSimpleString(cmd));
-                        } catch (Exception ex) {
-                            logException(ex);
-                        }
                     }
-                    last_command_time = System.currentTimeMillis();
-                }
+                    break;
             }
+
         } catch (Exception ex) {
             setStateDescription(CRCL_ERROR, ex.getMessage());
             logException(ex);
+        }
+    }
+
+    private void handleNewCommandFromServerSocket(CRCLCommandType cmd, CRCLServerSocketEvent<MotomanClientState> event) throws Exception {
+        if (cmd instanceof GetStatusType) {
+            event.getSource().writeStatus(getCrclStatus());
+        } else {
+            lastCommand = cmd;
+            updatesSinceCommand.set(0);
+            last_command_time = System.currentTimeMillis();
+            getCommandStatus().setCommandID(cmd.getCommandID());
+            if (getCommandState() != CRCL_ERROR) {
+                getCommandStatus().setCommandState(CRCL_WORKING);
+            }
+            if (cmd instanceof InitCanonType) {
+                initCanon();
+
+            } else if (!initialized) {
+                if (getCommandState() != CRCL_ERROR
+                        || getCommandStatus().getStateDescription().length() < 1) {
+                    setStateDescription(CRCL_ERROR, "Command received when not initialized. cmd=" + cmd);
+                } else {
+                    logErr("Command received when not initialized. cmd=" + cmd);
+                }
+            } else if (cmd instanceof StopMotionType) {
+                stopMotion();
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof ActuateJointsType) {
+                actuateJoints((ActuateJointsType) cmd);
+                setStateDescription(CRCL_WORKING, "");
+            } else if (cmd instanceof SetTransSpeedType) {
+                setTransSpeed((SetTransSpeedType) cmd, event.getState());
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof SetRotSpeedType) {
+                setRotSpeed((SetRotSpeedType) cmd, event.getState());
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof MoveToType) {
+                moveTo((MoveToType) cmd);
+                setStateDescription(CRCL_WORKING, "");
+            } else if (cmd instanceof DwellType) {
+                dwellEnd = System.currentTimeMillis() + (long) (((DwellType) cmd).getDwellTime() * 1000.0);
+                dwelling = true;
+                setStateDescription(CRCL_WORKING, "");
+            } else if (cmd instanceof ConfigureJointReportsType) {
+                setStateDescription(CRCL_DONE, "");
+//            } else if (cmd instanceof SetLengthUnitsType) {
+//                setLengthUnits((SetLengthUnitsType) cmd);
+//                setStateDescription(CRCL_DONE, "");
+//            } else if (cmd instanceof SetAngleUnitsType) {
+////                        setAngleUnits((SetAngleUnitsType) cmd);
+//                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof SetEndEffectorType) {
+                setEndEffector((SetEndEffectorType) cmd);
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof OpenToolChangerType) {
+                openToolChanger((OpenToolChangerType) cmd);
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof CloseToolChangerType) {
+                closeToolChanger((CloseToolChangerType) cmd);
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof EndCanonType) {
+                setStateDescription(CRCL_DONE, "");
+            } else if (cmd instanceof MessageType) {
+                setStateDescription(CRCL_DONE, ((MessageType) cmd).getMessage());
+            } else {
+                setStateDescription(CRCL_ERROR, cmd.getClass().getName() + " not implemented");
+                try {
+                    System.err.println("Unrecognized cmd = " + CRCLSocket.getUtilSocket().commandToSimpleString(cmd));
+                } catch (Exception ex) {
+                    logException(ex);
+                }
+            }
+            last_command_time = System.currentTimeMillis();
         }
     }
 
@@ -858,8 +844,8 @@ public class MotomanCRCLServer implements AutoCloseable {
             }
         }
         System.out.println("Starting MotomanCrclServer on port " + crclPort + " after connecting to Motoman robot " + motomanHost + " on port " + motomanPort);
-        try ( MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
-                new CRCLServerSocket<>(crclPort,MOTOMAN_STATE_GENERATOR),
+        try (MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
+                new CRCLServerSocket<>(crclPort, MOTOMAN_STATE_GENERATOR),
                 new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {
             motomanCrclServer.crclServerSocket.runServer();
         }
