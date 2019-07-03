@@ -5,6 +5,8 @@
 .deps
 .dirstamp
 doxygen-doc
+crpi_crcl_dir
+ulapi_dir
 
 # unused files from base CRPI
 
