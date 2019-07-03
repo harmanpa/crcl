@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="DwellType">
+    <CommandID>19</CommandID>
+    <DwellTime>1.5</DwellTime>
+  </CRCLCommand>
+</CRCLCommandInstance>

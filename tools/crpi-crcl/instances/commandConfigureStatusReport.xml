@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="ConfigureStatusReportType">
+    <CommandID>29</CommandID>
+    <ReportJointStatuses>true</ReportJointStatuses>
+    <ReportPoseStatus>false</ReportPoseStatus>
+    <ReportGripperStatus>false</ReportGripperStatus>
+    <ReportSettingsStatus>false</ReportSettingsStatus>
+  </CRCLCommand>
+</CRCLCommandInstance>

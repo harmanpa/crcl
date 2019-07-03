@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<robot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="URDF_CRPI.xsd"
+       name="Motoman-SIA20D">
+
+  <Debug>true</Debug>
+
+  <TCP_IP Address="localhost" Port="64445" Client="false" />
+  
+  <ComType Val="TCP_IP"/>
+
+  <!-- This is a robot-specific sections for a CRCL robot -->
+  <CRCL_Robot>
+    <Status_Request_Period>0.2</Status_Request_Period>
+    <Command_Schema>CRCLCommandInstance.xsd</Command_Schema>
+    <Status_Schema>CRCLStatus.xsd</Status_Schema>
+  </CRCL_Robot>
+
+  <Mounting X="0" Y="0" Z="0" XR="0" YR="0" ZR="0"/>
+
+  <ToWorld X="0" Y="0" Z="0"
+	   XR="0" YR="0" ZR="0"
+	   M00="0" M01="0" M02="0" M03="0"
+	   M10="0" M11="0" M12="0" M13="0"
+	   M20="0" M21="0" M22="0" M23="0"
+	   M30="0" M31="0" M32="0" M33="0"/> 
+
+  <Tool ID="1" Name="Parallel" X="0" Y="0" Z="100"
+	XR="0" YR="0" ZR="0"
+	Mass="0.1" MX="0.1" MY="0.1" MZ="0.1"/> 
+
+  <Tool ID="2" Name="Vacuum" X="0" Y="0" Z="100"
+	XR="0" YR="0" ZR="0"
+	Mass="0.1" MX="0.1" MY="0.1" MZ="0.1"/> 
+
+  <link name="base_link"></link>
+  <link name="link_s"></link>
+  <link name="link_l"></link>
+  <link name="link_e"></link>
+  <link name="link_u"></link>
+  <link name="link_r"></link>
+  <link name="link_b"></link>
+  <link name="link_t"></link>
+
+  <joint name="joint_s" type="revolute">
+    <parent link="base_link"/>
+    <child link="link_s"/>
+    <origin rpy="0 0 0" xyz="0 0 0.41"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-3.1415" upper="3.1415" velocity="2.2689"/>
+  </joint>
+  <joint name="joint_l" type="revolute">
+    <parent link="link_s"/>
+    <child link="link_l"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.9198" upper="1.9198" velocity="2.2689"/>
+  </joint>
+  <joint name="joint_e" type="revolute">
+    <parent link="link_l"/>
+    <child link="link_e"/>
+    <origin rpy="0 0 0" xyz="0 0 0.49"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-2.9670" upper="2.9670" velocity="2.9670"/>
+  </joint>
+  <joint name="joint_u" type="revolute">
+    <parent link="link_e"/>
+    <child link="link_u"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit effort="100" lower="-2.2689" upper="2.2689" velocity="2.9670"/>
+  </joint>
+  <joint name="joint_r" type="revolute">
+    <parent link="link_u"/>
+    <child link="link_r"/>
+    <origin rpy="0 0 0" xyz="0 0 0.420"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="100" lower="-3.1415" upper="3.1415" velocity="3.4906"/>
+  </joint>
+  <joint name="joint_b" type="revolute">
+    <parent link="link_r"/>
+    <child link="link_b"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit effort="100" lower="-1.9198" upper="1.9198" velocity="3.4906"/>
+  </joint>
+  <joint name="joint_t" type="revolute">
+    <parent link="link_b"/>
+    <child link="link_t"/>
+    <origin rpy="0 0 0" xyz="0 0 0.18"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="100" lower="-3.1415" upper="3.1415" velocity="6.9813"/>
+  </joint>
+
+</robot>
+

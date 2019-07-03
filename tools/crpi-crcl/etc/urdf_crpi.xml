@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Hybrid robot description file that parses with no errors in both CRPI
+and URDF.
+-->
+
+<!-- Note that comments break a following tag in the CRPI parser -->
+
+<!--
+URDF requires a lowercase <robot> tag with a 'name' attribute.
+The <robot> tag doesn't appear to be used by the CRPI XML parser,
+e.g., change it to <TEST> and it still works. URDF requires a
+lowercase <robot> tag with a 'name' attribute, so it's set to that here.
+-->
+
+<robot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="URDF_CRPI.xsd"
+       name="robot">
+
+  <Debug>true</Debug>
+
+  <TCP_IP Address="localhost" Port="64444" Client="false" />
+  
+  <ComType Val="TCP_IP"/>
+
+  <!-- This is a robot-specific sections for a CRCL robot -->
+  <CRCL_Robot>
+    <Status_Request_Period>0.2</Status_Request_Period>
+    <Command_Schema>CRCLCommandInstance.xsd</Command_Schema>
+    <Status_Schema>CRCLStatus.xsd</Status_Schema>
+  </CRCL_Robot>
+
+  <Mounting X="0" Y="0" Z="0" XR="135" YR="0" ZR="0"/>
+
+  <ToWorld X="236.72" Y="678.641" Z="-722.799" XR="0.508279"
+	   YR="-0.319192" ZR="81.3383" M00="0.150599" M01="-0.988563"
+	   M02="0.00793089" M03="236.72" M10="0.988579" M11="0.150546"
+	   M12="-0.00684316" M13="678.641" M20="0.00557093"
+	   M21="0.00887088" M22="0.999945" M23="-722.799" M30="0"
+	   M31="0" M32="0" M33="1"/> 
+
+  <Tool ID="1" Name="gripper_gear_fred" X="0" Y="0" Z="140" XR="0"
+	YR="0" ZR="0" Mass="0.9" MX="0" MY="0" MZ="71"/> 
+
+  <Tool ID="2" Name="gripper_top_cover" X="0" Y="0" Z="140" XR="0"
+	YR="0" ZR="0" Mass="0.9" MX="0" MY="0" MZ="71"/> 
+
+  <Tool ID="3" Name="gripper_bottom_cover" X="0" Y="0" Z="140" XR="0"
+	YR="0" ZR="0" Mass="0.4" MX="0" MY="0" MZ="71"/> 
+
+  <Tool ID="4" Name="gripper_parallel" X="0" Y="0" Z="140" XR="0"
+	YR="0" ZR="0" Mass="0.9" MX="0" MY="0" MZ="71"/> 
+
+  <Tool ID="5" Name="schunk_hand" X="0" Y="0" Z="127" XR="0" YR="0"
+	ZR="0" Mass="2.2" MX="0" MY="0" MZ="125"/> 
+
+  <Tool ID="6" Name="robotiq" X="0" Y="0" Z="260" XR="0" YR="0" ZR="0"
+	Mass="2.7" MX="0" MY="0" MZ="125"/> 
+
+  <!-- FIXME: this comment will break the following tool tag -->
+  
+  <Tool ID="7" Name="flange_ring" X="0" Y="0" Z="92" XR="0" YR="0"
+	ZR="0" Mass="0.65" MX="0" MY="0" MZ="64"/> 
+
+  <Tool ID="8" Name="Para_grip_point" X="0" Y="0" Z="167" XR="0"
+	YR="0" ZR="0" Mass="0.9" MX="0" MY="0" MZ="71"/>
+
+  <!-- these are specific to URDF -->
+  
+  <link name="link1" />
+  <link name="link2" />
+  <link name="link3" />
+  <link name="link4" />
+  <link name="link5" />
+  <link name="link6" />
+  <link name="tool" />
+
+  <joint name="joint1" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+  <joint name="joint2" type="prismatic">
+    <parent link="link2"/>
+    <child link="link3"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+  <joint name="joint3" type="revolute">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+  <joint name="joint4" type="revolute">
+    <parent link="link4"/>
+    <child link="link5"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+  <joint name="joint5" type="prismatic">
+    <parent link="link5"/>
+    <child link="link6"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+  <joint name="joint6" type="revolute">
+    <parent link="link6"/>
+    <child link="tool"/>
+    <limit effort="1" velocity="1" lower="-1" upper="1" />
+  </joint>
+
+</robot>
+

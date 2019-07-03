@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="ActuateJointsType">
+    <CommandID>31</CommandID>
+    <ActuateJoint>
+      <JointNumber>1</JointNumber>
+      <JointPosition>0</JointPosition>
+      <JointDetails xsi:type="JointForceTorqueType">
+	<Setting>1.23</Setting>
+      </JointDetails>
+    </ActuateJoint>
+    <ActuateJoint>
+      <JointNumber>3</JointNumber>
+      <JointPosition>0</JointPosition>
+      <JointDetails xsi:type="JointForceTorqueType">
+	<Setting>-2.34</Setting>
+      </JointDetails>
+    </ActuateJoint>
+  </CRCLCommand>
+</CRCLCommandInstance>

@@ -1,0 +1,16 @@
+1. Some source code includes headers with relative prefixes, e.g.,
+#include "..\..\Header.h"
+and there is a mix of slashes and backslashes. Recommend eliminating
+the relative prefixes and using slashes.
+
+2. Headers sometimes use directory prefixes, e.g.,
+#include "Patterns/Pattern.h"
+and sometimes not, e.g.,
+#include "kMeansCluster.h"
+Recommend deciding how to structure all the libraries, and then to
+include prefixes or not, and do it consistently.
+
+You can see this here, in lib/Makefile.am:
+
+AM_CPPFLAGS = -I. -I../Libraries -I../Libraries/CRPI -I../Libraries/Math -I ../Libraries/Clustering -I../Libraries/Clustering/Cluster -I../Libraries/Clustering/kMeans -I../Libraries/Clustering/Patterns -std=gnu++11 -Wno-sign-compare -Wno-unused-variable -Wno-unused-value -Wno-return-type -Wno-parentheses -Wno-format-security -Wno-reorder -Wno-format-contains-nul -Wno-comment -Wno-unknown-pragmas -Wno-unused-but-set-variable
+

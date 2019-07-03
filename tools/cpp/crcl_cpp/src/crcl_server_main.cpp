@@ -230,8 +230,10 @@ int main(int argc, char * argv[])
   CRCLCommandType *cmd;
   int retval;
 
+#if 0
   test_two_point_transform();
   return 0;
+#endif
 
   me.getServer(1234);
 

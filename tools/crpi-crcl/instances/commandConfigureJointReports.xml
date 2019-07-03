@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="ConfigureJointReportsType">
+    <CommandID>31</CommandID>
+    <ResetAll>false</ResetAll>
+    <ConfigureJointReport>
+      <JointNumber>1</JointNumber>
+      <ReportPosition>true</ReportPosition>
+      <ReportTorqueOrForce>false</ReportTorqueOrForce>
+      <ReportVelocity>false</ReportVelocity>
+    </ConfigureJointReport>
+    <ConfigureJointReport>
+      <JointNumber>6</JointNumber>
+      <ReportPosition>false</ReportPosition>
+      <ReportTorqueOrForce>false</ReportTorqueOrForce>
+      <ReportVelocity>true</ReportVelocity>
+      </ConfigureJointReport>
+  </CRCLCommand>
+</CRCLCommandInstance>

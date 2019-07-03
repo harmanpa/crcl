@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CRCLCommandInstance
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="CRCLCommandInstance.xsd">
+  <CRCLCommand xsi:type="SetRobotParametersType">
+    <CommandID>23</CommandID>
+    <ParameterSetting>
+      <ParameterName>foo</ParameterName>
+      <ParameterValue>bar</ParameterValue>
+    </ParameterSetting>
+    <ParameterSetting>
+      <ParameterName>apple</ParameterName>
+      <ParameterValue>orange</ParameterValue>
+    </ParameterSetting>
+  </CRCLCommand>
+</CRCLCommandInstance>
