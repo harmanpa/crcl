@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -83,8 +84,8 @@ public class CRCLSocketIT {
 //        fail("forced failure");
     }
 
-    /*@Nullable*/
-    private Exception serverThreadEx = null;
+    private @Nullable
+    Exception serverThreadEx = null;
     
     private boolean interruptingServer = false;
     private boolean timeoutOccured = false;

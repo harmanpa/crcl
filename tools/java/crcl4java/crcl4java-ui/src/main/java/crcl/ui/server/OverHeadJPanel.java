@@ -219,7 +219,7 @@ public class OverHeadJPanel extends JPanel {
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/overhead");
         boolean made_dir = dir.mkdirs();
-        Logger.getLogger(OverHeadJPanel.class.getName()).finest(() -> "mkdir "+dir+" returned "+made_dir);
+//        Logger.getLogger(OverHeadJPanel.class.getName()).finest(() -> "mkdir "+dir+" returned "+made_dir);
         ImageIO.write(bi, "jpg", new File(dir, "overhead_" + System.currentTimeMillis() + ".jpg"));
     }
     private double maxSimpleJv0 = 0;

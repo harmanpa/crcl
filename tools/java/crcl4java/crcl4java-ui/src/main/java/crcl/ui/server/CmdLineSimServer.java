@@ -41,11 +41,11 @@ import rcs.posemath.Posemath;
  */
 public class CmdLineSimServer {
 
-    @Nullable
-    private static SimServerInner simServerInner = null;
+    private static @Nullable
+    SimServerInner simServerInner = null;
 
-    @Nullable
-    public static synchronized SimServerInner getSimServerInner() {
+    public static synchronized @Nullable
+    SimServerInner getSimServerInner() {
         return simServerInner;
     }
 
@@ -124,7 +124,7 @@ public class CmdLineSimServer {
             }
             SimServerOuterStub simServerOuterStub = new SimServerOuterStub();
             simServerInner = new SimServerInner(simServerOuterStub,
-                    useTempSchemaCopies? DefaultSchemaFiles.temp(): DefaultSchemaFiles.instance());
+                    useTempSchemaCopies ? DefaultSchemaFiles.temp() : DefaultSchemaFiles.instance());
             if (null != initPose) {
                 simServerInner.simulatedTeleportToPose(CRCLPosemath.toPose(initPose));
             }

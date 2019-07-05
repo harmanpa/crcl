@@ -4,10 +4,23 @@
 # Run with:
 # env CLASSPATH=crcl4java-utils-1.3-jar-with-dependencies.jar jython crclclient.py
 
+import sys
+import os
+
+print "sys.path"
+print sys.path
+jarfilename=os.getenv('CRCL4JAVA_UTILS_JAR')
+
+print "os.getenv('CRCL4JAVA_UTILS_JAR')"
+print jarfilename
+
+sys.path.append(jarfilename)
+
+import java.lang.Boolean
+
 from crcl.base import *
 from crcl.utils import CRCLSocket
 from crcl.utils import CRCLPosemath
-import java.lang.Boolean
 
 print "Connect"
 s = CRCLSocket("localhost", 64444)

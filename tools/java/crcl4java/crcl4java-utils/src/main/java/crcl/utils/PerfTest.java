@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /*
  * 
@@ -150,8 +151,8 @@ public class PerfTest {
         }
     }
 
-    /*@Nullable*/
-    public static MinMaxAvg runPerfTest(final boolean enableEXI, final boolean validate, final int repeats) throws RuntimeException {
+    
+    public static @Nullable MinMaxAvg runPerfTest(final boolean enableEXI, final boolean validate, final int repeats) throws RuntimeException {
         ServerSocket ss = null;
         try {
             System.out.println("Starting runPerfTest(enableEXI=" + enableEXI + ",validate=" + validate + ",repeats=" + repeats + ") ...");

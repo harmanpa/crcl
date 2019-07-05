@@ -97,7 +97,7 @@ public class CmdLineClient {
             programSucceeded = false;
             System.setProperty("crcjava.PendandClient.useReadStatusThreadSelected", "false");
             PendantClientOuterStub pendantClientOuterStub = new PendantClientOuterStub();
-            PendantClientInner pendantClientInner = new PendantClientInner(pendantClientOuterStub, 
+            CrclSwingClientInner pendantClientInner = new CrclSwingClientInner(pendantClientOuterStub, 
                     useTempSchemaCopies?DefaultSchemaFiles.temp():DefaultSchemaFiles.instance());
             pendantClientInner.setQuitOnTestCommandFailure(true);
             final String programPropertyString = System.getProperty("crcl4java.program");

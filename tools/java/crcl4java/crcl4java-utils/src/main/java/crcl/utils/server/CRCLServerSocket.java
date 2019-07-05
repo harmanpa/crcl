@@ -114,6 +114,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.validation.Schema;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /*
  * 
@@ -144,7 +146,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private final Class<STATE_TYPE> stateClass;
 
-    private volatile CRCLStatusType serverSideStatus;
+    private volatile @MonotonicNonNull
+    CRCLStatusType serverSideStatus;
 
     private final Map<String, SensorServerInterface> sensorServers = new HashMap<>();
 
@@ -170,7 +173,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         sensorFinders.clear();
     }
 
-    public CRCLStatusType getServerSideStatus() {
+    public @Nullable
+    CRCLStatusType getServerSideStatus() {
         return serverSideStatus;
     }
 
@@ -295,19 +299,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
         private final STATE_TYPE state;
 
-        /*@Nullable*/
-        private final Future<?> future;
+        private final @Nullable
+        Future<?> future;
 
         public CRCLSocket getSocket() {
             return socket;
         }
 
-        /*@Nullable*/
-        public Future<?> getFuture() {
+        public @Nullable
+        Future<?> getFuture() {
             return future;
         }
 
-        CRCLServerClientInfo(CRCLSocket socket, /*@Nullable*/ Future<?> future, STATE_TYPE state) {
+        CRCLServerClientInfo(CRCLSocket socket, @Nullable Future<?> future, STATE_TYPE state) {
             this.socket = socket;
             this.future = future;
             this.state = state;
@@ -375,26 +379,24 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.port = port;
         if (serverSocket != null) {
             serverSocket.close();
-            serverSocket = null;
         }
         if (serverSocketChannel != null) {
             serverSocketChannel.close();
-            serverSocketChannel = null;
         }
         checkPortMap(port);
         portMap.put(port, this);
     }
 
-    /*@Nullable*/
-    private ExecutorService callbackService = null;
+    private @MonotonicNonNull
+    ExecutorService callbackService = null;
 
     /**
      * Get the value of callbackService
      *
      * @return the value of callbackService
      */
-    /*@Nullable*/
-    public ExecutorService getCallbackService() {
+    public @Nullable
+    ExecutorService getCallbackService() {
         return callbackService;
     }
 
@@ -410,16 +412,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.callbackService = callbackService;
     }
 
-    /*@Nullable*/
-    private ExecutorService executorService;
+    private @MonotonicNonNull
+    ExecutorService executorService;
 
     /**
      * Get the value of executorService
      *
      * @return the value of executorService
      */
-    /*@Nullable*/
-    public ExecutorService getExecutorService() {
+    public @Nullable
+    ExecutorService getExecutorService() {
         return executorService;
     }
 
@@ -435,7 +437,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.executorService = executorService;
     }
 
-    /*@Nullable*/ private volatile ServerSocketChannel serverSocketChannel;
+    private volatile @MonotonicNonNull
+    ServerSocketChannel serverSocketChannel;
 
     private boolean closing = false;
 
@@ -455,21 +458,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 serverSocketChannel.close();
             } catch (IOException ignored) {
             }
-            serverSocketChannel = null;
         }
         if (null != serverSocket) {
             try {
                 serverSocket.close();
             } catch (IOException ignored) {
             }
-            serverSocket = null;
         }
         if (null != selector) {
             try {
                 selector.close();
             } catch (IOException ignored) {
             }
-            selector = null;
         }
         for (int i = 0; i < clients.size(); i++) {
             try {
@@ -531,7 +531,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.validate = validate;
     }
 
-    /*@Nullable*/ private ServerSocket serverSocket;
+    private @MonotonicNonNull
+    ServerSocket serverSocket;
 
     final List<CRCLServerSocketEventListener<STATE_TYPE>> listeners = new ArrayList<>();
 
@@ -584,6 +585,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         completeHandleEvent(event);
     }
 
+    @SuppressWarnings("nullness")
     private boolean handleAutomaticEvents(final CRCLServerSocketEvent<STATE_TYPE> event) throws IllegalStateException, CRCLException, InterruptedException {
         final CRCLCommandInstanceType instanceIn = event.getInstance();
         if (automaticallySendServerSideStatus
@@ -591,9 +593,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 && serverSideStatus != null
                 && instanceIn != null) {
             STATE_TYPE state = event.getState();
+            if (null == state) {
+                throw new NullPointerException("state");
+            }
             final CRCLCommandType cmd = instanceIn.getCRCLCommand();
             if (cmd instanceof GetStatusType) {
                 CRCLSocket source = event.getSource();
+                if (null == source) {
+                    throw new NullPointerException("source");
+                }
                 if (updateStatusRunnable != null) {
                     updateStatusRunnable.run();
                     updateStatusRunCount++;
@@ -628,6 +636,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     commandStatus.setProgramLength(instanceIn.getProgramLength());
                 }
                 commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                final SettingsStatusType serverSideSettingsStatus = serverSideStatus.getSettingsStatus();
                 if (cmd instanceof ConfigureStatusReportType) {
                     state.filterSettings.setConfigureStatusReport((ConfigureStatusReportType) cmd);
                     final ConfigureStatusReportType configStatusCmd = (ConfigureStatusReportType) cmd;
@@ -640,7 +649,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     if (configStatusCmd.isReportSensorsStatus() && null == serverSideStatus.getSensorStatuses()) {
                         serverSideStatus.setSensorStatuses(new SensorStatusesType());
                     }
-                    if (configStatusCmd.isReportSettingsStatus() && null == serverSideStatus.getSettingsStatus()) {
+                    if (configStatusCmd.isReportSettingsStatus() && null == serverSideSettingsStatus) {
                         serverSideStatus.setSettingsStatus(new SettingsStatusType());
                     }
                     commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
@@ -724,18 +733,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             transSpeedAbsOut.setSetting(state.filterSettings.convertLengthToServer(transSpeedAbsIn.getSetting()));
                             setTransSpeedCmdOut.setTransSpeed(transSpeedAbsOut);
                             CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransSpeedCmdOut, instanceIn);
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setTransSpeedAbsolute(transSpeedAbsOut);
-                                serverSideStatus.getSettingsStatus().setTransSpeedRelative(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setTransSpeedAbsolute(transSpeedAbsOut);
+                                serverSideSettingsStatus.setTransSpeedRelative(null);
                             }
                             completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                            
+
                             return true;
-                        } else if (transSpeedIn instanceof TransSpeedRelativeType) { 
+                        } else if (transSpeedIn instanceof TransSpeedRelativeType) {
                             TransSpeedRelativeType transSpeedRelativeIn = (TransSpeedRelativeType) transSpeedIn;
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setTransSpeedRelative(transSpeedRelativeIn);
-                                serverSideStatus.getSettingsStatus().setTransSpeedAbsolute(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setTransSpeedRelative(transSpeedRelativeIn);
+                                serverSideSettingsStatus.setTransSpeedAbsolute(null);
                             }
                             return false;
                         } else {
@@ -754,17 +763,17 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             rotSpeedAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotSpeedAbsIn.getSetting()));
                             setRotSpeedCmdOut.setRotSpeed(rotSpeedAbsOut);
                             CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotSpeedCmdOut, instanceIn);
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setRotSpeedAbsolute(rotSpeedAbsOut);
-                                serverSideStatus.getSettingsStatus().setRotSpeedRelative(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setRotSpeedAbsolute(rotSpeedAbsOut);
+                                serverSideSettingsStatus.setRotSpeedRelative(null);
                             }
                             completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
                             return true;
-                        }  else if (rotSpeedIn instanceof RotSpeedRelativeType) { 
+                        } else if (rotSpeedIn instanceof RotSpeedRelativeType) {
                             RotSpeedRelativeType rotSpeedRelativeIn = (RotSpeedRelativeType) rotSpeedIn;
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setRotSpeedRelative(rotSpeedRelativeIn);
-                                serverSideStatus.getSettingsStatus().setRotSpeedAbsolute(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setRotSpeedRelative(rotSpeedRelativeIn);
+                                serverSideSettingsStatus.setRotSpeedAbsolute(null);
                             }
                             return false;
                         } else {
@@ -783,18 +792,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             transAccelAbsOut.setSetting(state.filterSettings.convertLengthToServer(transAccelAbsIn.getSetting()));
                             setTransAccelCmdOut.setTransAccel(transAccelAbsOut);
                             CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransAccelCmdOut, instanceIn);
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setTransAccelAbsolute(transAccelAbsOut);
-                                serverSideStatus.getSettingsStatus().setTransAccelRelative(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setTransAccelAbsolute(transAccelAbsOut);
+                                serverSideSettingsStatus.setTransAccelRelative(null);
                             }
                             completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                            
+
                             return true;
-                        } else if (transAccelIn instanceof TransAccelRelativeType) { 
+                        } else if (transAccelIn instanceof TransAccelRelativeType) {
                             TransAccelRelativeType transAccelRelativeIn = (TransAccelRelativeType) transAccelIn;
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setTransAccelRelative(transAccelRelativeIn);
-                                serverSideStatus.getSettingsStatus().setTransAccelAbsolute(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setTransAccelRelative(transAccelRelativeIn);
+                                serverSideSettingsStatus.setTransAccelAbsolute(null);
                             }
                             return false;
                         } else {
@@ -813,17 +822,17 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             rotAccelAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotAccelAbsIn.getSetting()));
                             setRotAccelCmdOut.setRotAccel(rotAccelAbsOut);
                             CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotAccelCmdOut, instanceIn);
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setRotAccelAbsolute(rotAccelAbsOut);
-                                serverSideStatus.getSettingsStatus().setRotAccelRelative(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setRotAccelAbsolute(rotAccelAbsOut);
+                                serverSideSettingsStatus.setRotAccelRelative(null);
                             }
                             completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
                             return true;
-                        }  else if (rotAccelIn instanceof RotAccelRelativeType) { 
+                        } else if (rotAccelIn instanceof RotAccelRelativeType) {
                             RotAccelRelativeType rotAccelRelativeIn = (RotAccelRelativeType) rotAccelIn;
-                            if(null != serverSideStatus && null != serverSideStatus.getSettingsStatus()){
-                                serverSideStatus.getSettingsStatus().setRotAccelRelative(rotAccelRelativeIn);
-                                serverSideStatus.getSettingsStatus().setRotAccelAbsolute(null);
+                            if (null != serverSideSettingsStatus) {
+                                serverSideSettingsStatus.setRotAccelRelative(rotAccelRelativeIn);
+                                serverSideSettingsStatus.setRotAccelAbsolute(null);
                             }
                             return false;
                         } else {
@@ -882,6 +891,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private void checkSensorServers() {
         if (sensorServers.isEmpty()) {
+            return;
+        }
+        if (null == serverSideStatus) {
             return;
         }
         if (null == serverSideStatus.getSensorStatuses()) {
@@ -1005,7 +1017,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private void completeHandleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws InterruptedException {
         if (event.getEventType() == CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED) {
             CRCLCommandInstanceType instanceIn = event.getInstance();
+            if (null == instanceIn) {
+                throw new NullPointerException("event.getInstance() ==null : event=" + event);
+            }
             STATE_TYPE state = event.getState();
+            if (null == state) {
+                throw new NullPointerException("event.getState() ==null : event=" + event);
+            }
             CRCLCommandType cmd = instanceIn.getCRCLCommand();
             if (!cmd.getGuard().isEmpty()) {
                 startCheckingGuards(cmd.getGuard(), state, cmd.getCommandID(), instanceIn);
@@ -1073,16 +1091,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return l;
     }
 
-    /*@Nullable*/
-    private Selector selector;
+    private @MonotonicNonNull
+    Selector selector;
 
     /**
      * Get the value of selector
      *
      * @return the value of selector
      */
-    /*@Nullable*/
-    public Selector getSelector() {
+    public @Nullable
+    Selector getSelector() {
         return selector;
     }
 
@@ -1154,21 +1172,17 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (multithreaded) {
             if (null != serverSocketChannel) {
                 serverSocketChannel.close();
-                serverSocketChannel = null;
             }
             if (null != selector) {
                 selector.close();
-                selector = null;
             }
         } else {
             if (null != serverSocket) {
                 serverSocket.close();
-                serverSocket = null;
             }
             if (null != executorService) {
                 executorService.shutdownNow();
                 executorService.awaitTermination(1, TimeUnit.SECONDS);
-                executorService = null;
             }
         }
     }
@@ -1226,14 +1240,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private UnitsTypeSet serverUnits = null;
+    private @MonotonicNonNull
+    UnitsTypeSet serverUnits = null;
 
     /**
      * Get the value of serverUnits
      *
      * @return the value of serverUnits
      */
-    public UnitsTypeSet getServerUnits() {
+    public @Nullable
+    UnitsTypeSet getServerUnits() {
         return serverUnits;
     }
 
@@ -1246,14 +1262,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.serverUnits = serverUnits;
     }
 
-    private UnitsScaleSet serverToClientScales = null;
+    private @MonotonicNonNull
+    UnitsScaleSet serverToClientScales = null;
 
     /**
      * Get the value of serverToClientScales
      *
      * @return the value of serverToClientScales
      */
-    public UnitsScaleSet getServerToClientScales() {
+    public @Nullable
+    UnitsScaleSet getServerToClientScales() {
         return serverToClientScales;
     }
 
@@ -1266,13 +1284,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.serverToClientScales = serverToClientScales;
     }
 
-    // @MonotonicNonNull
-    private volatile Schema cmdSchema = null;
+    private volatile @MonotonicNonNull
+    Schema cmdSchema = null;
 
-    // @MonotonicNonNull
-    private volatile Schema statSchema = null;
+    private volatile @MonotonicNonNull
+    Schema statSchema = null;
 
-    public Schema getCmdSchema() {
+    public @Nullable
+    Schema getCmdSchema() {
         return cmdSchema;
     }
 
@@ -1280,7 +1299,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.cmdSchema = cmdSchema;
     }
 
-    public Schema getStatSchema() {
+    public @Nullable
+    Schema getStatSchema() {
         return statSchema;
     }
 
@@ -1494,11 +1514,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.backlog = backlog;
         if (serverSocket != null) {
             serverSocket.close();
-            serverSocket = null;
         }
         if (serverSocketChannel != null) {
             serverSocketChannel.close();
-            serverSocketChannel = null;
         }
     }
 
@@ -1535,11 +1553,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
         if (null != serverSocketChannel) {
             serverSocketChannel.close();
-            serverSocketChannel = null;
         }
         if (null != selector) {
             selector.close();
-            selector = null;
         }
 
         ExecutorService runMultiExecutorService = initExecutorService();
@@ -1609,14 +1625,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private volatile int updateStatusRunCount = 0;
-    private Runnable updateStatusRunnable;
+    private @MonotonicNonNull
+    Runnable updateStatusRunnable;
 
     /**
      * Get the value of updateStatusRunnable
      *
      * @return the value of updateStatusRunnable
      */
-    public Runnable getUpdateStatusRunnable() {
+    public @Nullable
+    Runnable getUpdateStatusRunnable() {
         return updateStatusRunnable;
     }
 
@@ -1690,9 +1708,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.automaticallyHandleGuards = automaticallyHandleGuards;
     }
 
-    private Executor handleGuardsExecutor = null;
+    private @Nullable
+    Executor handleGuardsExecutor = null;
 
-    public Executor getHandleGuardsExecutor() {
+    public @Nullable
+    Executor getHandleGuardsExecutor() {
         return handleGuardsExecutor;
     }
 
@@ -1700,7 +1720,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.handleGuardsExecutor = handleGuardsExecutor;
     }
 
-    private SensorStatusType getNewSensorStatus(String id) {
+    private @Nullable
+    SensorStatusType getNewSensorStatus(String id) {
         SensorServerInterface sensorServer = this.sensorServers.get(id);
         if (sensorServer == null) {
             return null;
@@ -1741,6 +1762,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 return false;
             }
             double value = getGuardValue(guard, sensorStatMap);
+            final String guardMapId = guardMapId(guard);
             switch (guard.getLimitType()) {
                 case OVER_MAX:
                     if (value > guard.getLimitValue()) {
@@ -1755,7 +1777,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     break;
 
                 case DECREASE_BEYOND_LIMIT: {
-                    double initialValue = guardInitialValues.get(guardMapId(guard));
+                    Double initialValue = guardInitialValues.get(guardMapId);
+                    if (null == initialValue) {
+                        throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                    }
                     double diff = initialValue - value;
                     if (diff > guard.getLimitValue()) {
                         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
@@ -1764,7 +1789,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 break;
 
                 case INCREASE_OVER_LIMIT: {
-                    double initialValue = guardInitialValues.get(guardMapId(guard));
+                    Double initialValue = guardInitialValues.get(guardMapId);
+                    if (null == initialValue) {
+                        throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                    }
                     double diff = value - initialValue;
                     if (diff > guard.getLimitValue()) {
                         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
@@ -1950,8 +1978,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this(port, backlog, addr, multithreaded, stateGenerator, classFromGenerator(stateGenerator));
     }
 
-    private volatile StackTraceElement createTrace[] = null;
+    private volatile StackTraceElement createTrace @Nullable []  = null;
 
+    @SuppressWarnings("initialization")
     public CRCLServerSocket(int port, int backlog, InetAddress addr, boolean multithreaded, CRCLServerSocketStateGenerator<STATE_TYPE> stateGenerator, Class<STATE_TYPE> stateClass) {
         this.port = port;
         this.backlog = backlog;
@@ -2018,7 +2047,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private boolean started = false;
 
-    private volatile StackTraceElement startTrace[] = null;
+    private volatile StackTraceElement startTrace @Nullable []  = null;
 
     public Future<?> start() {
         if (isRunning()) {

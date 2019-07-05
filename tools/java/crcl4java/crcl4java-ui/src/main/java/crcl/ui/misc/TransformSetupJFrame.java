@@ -24,7 +24,7 @@ package crcl.ui.misc;
 
 import crcl.base.PointType;
 import crcl.base.PoseType;
-import crcl.ui.client.PendantClientJPanel;
+import crcl.ui.client.CrclSwingClientJPanel;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import java.math.BigDecimal;
 import javax.swing.JTable;
@@ -41,7 +41,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
      *
      * @param parent new value of parent
      */
-    public void setPendantClient(PendantClientJPanel parent) {
+    public void setPendantClient(CrclSwingClientJPanel parent) {
         transformJPanel1.setPendantClient(parent);
     }
 

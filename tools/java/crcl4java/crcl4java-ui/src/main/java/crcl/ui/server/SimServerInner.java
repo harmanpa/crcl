@@ -487,8 +487,8 @@ public class SimServerInner {
         SimServerInner.runningServers.forEach(s -> s.printClientStates(ps));
     }
 
-    @Nullable
-    private CRCLSocket gripperSocket = null;
+    private @Nullable
+    CRCLSocket gripperSocket = null;
 
     private final XpathUtils xpu;
     private final SimServerOuter outer;
@@ -504,8 +504,8 @@ public class SimServerInner {
     private double @MonotonicNonNull [] jointmaxs = null;
     private double @MonotonicNonNull [] seglengths = null;
 
-    @Nullable
-    private PoseType goalPose = null;
+    private @Nullable
+    PoseType goalPose = null;
 
     private final double maxTransSpeed = getDoubleProperty("crcl4java.simserver.maxTransSpeed", 2.0);
     private final double maxTransAccel = getDoubleProperty("crcl4java.simserver.maxTransAccell", 20.0);
@@ -527,23 +527,26 @@ public class SimServerInner {
     private SimRobotEnum robotType = SimRobotEnum.PLAUSIBLE;
     private int port;
     private boolean moveStraight = false;
-    @Nullable
-    private volatile CRCLServerSocket<SimServerClientState> crclServerSocket = null;
+
+    private volatile @Nullable
+    CRCLServerSocket<SimServerClientState> crclServerSocket = null;
+
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
     final private CRCLStatusType status = new CRCLStatusType();
-    @Nullable
-    private CRCLCommandType multiStepCommand = null;
+
+    private @Nullable
+    CRCLCommandType multiStepCommand = null;
     private int moveScrewStep = 0;
     private BigDecimal moveScriptTurnComplete = BigDecimal.ZERO;
     private double jointSpeedMax = getDoubleProperty("crcl4java.simserver.jointSpeedMax", 200.0);
-    @Nullable
-    private PmRotationVector lastDiffRotv = null;
+    private @Nullable
+    PmRotationVector lastDiffRotv = null;
     private int cycle_count = 0;
     private final ConcurrentLinkedDeque<SimServerClientState> clientStates = new ConcurrentLinkedDeque<>();
     private final Map<CRCLSocket, Thread> clientThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
-    @Nullable
-    private volatile Thread simulationThread = null;
+    private volatile @Nullable
+    Thread simulationThread = null;
     private final AtomicInteger closeCount = new AtomicInteger();
     long maxCmdId = 1;
     private final Map<CRCLSocket, LastStatusInfo> lastStatusMap
@@ -629,8 +632,8 @@ public class SimServerInner {
 //    @Nullable
 //    private Thread acceptClientsThread = null;
     private long delayMillis = Long.getLong("crcl4java.simserver.delayMillis", 20);
-    @MonotonicNonNull
-    private ConfigureJointReportsType cjrs = null;
+    private @MonotonicNonNull
+    ConfigureJointReportsType cjrs = null;
     private final Map<Integer, ConfigureJointReportType> cjrMap = new HashMap<>();
     private PoseToleranceType expectedEndPoseTolerance = new PoseToleranceType();
     private PoseToleranceType expectedIntermediatePoseTolerance = new PoseToleranceType();
@@ -639,8 +642,8 @@ public class SimServerInner {
     private final long debugCmdQueueTime = 0;
     private long cmdQueueMaxSize = 0;
     private long maxCmdQueuePollTime = 0;
-    @Nullable
-    private CRCLCommandInstanceType lastReadCommandInstance = null;
+    private @Nullable
+    CRCLCommandInstanceType lastReadCommandInstance = null;
     private int cmdQueuePollReturnCount = 0;
     private int cmdQueuePollReturnNonNullCount = 0;
     long maxDiffCmdQueuePutEmpty = 0;
@@ -651,8 +654,8 @@ public class SimServerInner {
     private long maxUpdateStatusTime = 0;
     private long maxSimCycleTime = 0;
     private long simCycleCount = 0;
-    @Nullable
-    private CRCLSocket checkerCRCLSocket = null;
+    private @Nullable
+    CRCLSocket checkerCRCLSocket = null;
 
     private File[] statSchemaFiles;
 
@@ -700,8 +703,8 @@ public class SimServerInner {
      *
      * @return the value of gripperSocket
      */
-    @Nullable
-    public CRCLSocket getGripperSocket() {
+    public @Nullable
+    CRCLSocket getGripperSocket() {
         return gripperSocket;
     }
 
@@ -853,8 +856,8 @@ public class SimServerInner {
         this.teleportToGoals = teleportToGoals;
     }
 
-    @Nullable
-    public PoseType getPose() {
+    public @Nullable
+    PoseType getPose() {
         if (null == poseStatus) {
             return null;
         } else {
@@ -868,8 +871,12 @@ public class SimServerInner {
     }
 
     public void setPose(PoseType pose) {
-        if (pose.getPoint().getX() > 1200.0) {
-            System.err.println("pose.getPoint().getX()=" + pose.getPoint().getX());
+        final PointType posePoint = pose.getPoint();
+        if (null == posePoint) {
+            throw new NullPointerException("pose.getPoint() == null : pose =" + pose);
+        }
+        if (posePoint.getX() > 1200.0) {
+            System.err.println("pose.getPoint().getX()=" + posePoint.getX());
         }
         poseStatus.setPose(pose);
     }
@@ -1046,8 +1053,8 @@ public class SimServerInner {
         return maxdiff <= getJointDiffMax();
     }
 
-    @Nullable
-    public VectorType getXAxis() {
+    public @Nullable
+    VectorType getXAxis() {
         PoseType pose = getPose();
         if (pose == null) {
             return null;
@@ -1055,8 +1062,8 @@ public class SimServerInner {
         return pose.getXAxis();
     }
 
-    @Nullable
-    public VectorType getZAxis() {
+    public @Nullable
+    VectorType getZAxis() {
         PoseType pose = getPose();
         if (pose == null) {
             return null;
@@ -1325,8 +1332,8 @@ public class SimServerInner {
         return commandedJointPositions1;
     }
 
-    @MonotonicNonNull
-    private volatile Schema cmdSchema = null;
+    private volatile @MonotonicNonNull
+    Schema cmdSchema = null;
 
     final void setCmdSchema(File[] fa) {
         try {
@@ -1341,8 +1348,8 @@ public class SimServerInner {
         }
     }
 
-    @MonotonicNonNull
-    private volatile Schema statSchema = null;
+    private volatile @MonotonicNonNull
+    Schema statSchema = null;
 
     final void setStatSchema(File[] fa) {
         try {
@@ -1387,7 +1394,8 @@ public class SimServerInner {
         this.debugInterrupts = debugInterrupts;
     }
 
-    private volatile CRCLServerSocket lastClosedServerSocket = null;
+    private volatile @Nullable
+    CRCLServerSocket lastClosedServerSocket = null;
 
     public synchronized void closeServer() {
         try {
@@ -1751,6 +1759,15 @@ public class SimServerInner {
         if (null == newJointPositions) {
             throw new IllegalArgumentException("null == newJointPositions");
         }
+        if (null == jointPositions) {
+            throw new IllegalArgumentException("null == jointPositions");
+        }
+        if (null == commandedJointPositions) {
+            throw new IllegalArgumentException("null == commandedJointPositions");
+        }
+        if (null == jointVelocites) {
+            throw new IllegalArgumentException("null == jointVelocites");
+        }
         if (newJointPositions.length != jointPositions.length) {
             throw new IllegalArgumentException(newJointPositions.length + " newJointPositions.length != jointPositions.length " + jointPositions.length);
         }
@@ -1811,6 +1828,9 @@ public class SimServerInner {
                         setGoalPose(newGoalPose);
                     }
                     PoseType startingCurrentPose = getPose();
+                    if (null == startingCurrentPose) {
+                        throw new NullPointerException("getPose() returned null");
+                    }
                     PoseType currentPose = CRCLPosemath.copy(startingCurrentPose);
                     if (null != newGoalPose && null != currentPose) {
                         curGoalPose = this.limitSpeedAccel(newGoalPose, currentPose);
@@ -2230,11 +2250,11 @@ public class SimServerInner {
     }
 
     private void handleCommandReceived(final CRCLCommandInstanceType cmdInstance, SimServerClientState state) {
-        LOGGER.log(Level.FINER, () -> "cmdInstance = " + cmdInstance);
+//        LOGGER.log(Level.FINER, () -> "cmdInstance = " + cmdInstance);
         if (null != cmdInstance) {
             CRCLCommandType cmd = cmdInstance.getCRCLCommand();
             if (null != cmd) {
-                LOGGER.log(Level.FINEST, () -> "SimServerInner.readCommandsRepeatedly() : cmd = " + cmd + ", state=" + state);
+//                LOGGER.log(Level.FINEST, () -> "SimServerInner.readCommandsRepeatedly() : cmd = " + cmd + ", state=" + state);
                 if (cmd instanceof GetStatusType) {
                     state.getStatusRequests++;
                     state.lastStatRequestTime = System.currentTimeMillis();
@@ -2311,13 +2331,24 @@ public class SimServerInner {
         switch (evt.getEventType()) {
             case NEW_CRCL_CLIENT:
                 CRCLSocket cs = evt.getSource();
+                if (cs == null) {
+                    throw new NullPointerException("evt.getSource() == null : evt=" + evt);
+                }
                 handleNewClient(cs);
                 break;
 
             case CRCL_COMMAND_RECIEVED:
-                handleCommandReceived(evt.getInstance(), evt.getState());
+                final CRCLCommandInstanceType cmdInstance = evt.getInstance();
+                if (null == cmdInstance) {
+                    throw new NullPointerException("evt.getInstance() == null : evt=" + evt);
+                }
+                final SimServerClientState state = evt.getState();
+                if (null == state) {
+                    throw new NullPointerException("evt.getState() == null : evt=" + evt);
+                }
+                handleCommandReceived(cmdInstance, state);
                 break;
-                
+
             case GUARD_LIMIT_REACHED:
                 executeStopMotionCmd();
                 break;
@@ -2380,7 +2411,7 @@ public class SimServerInner {
 //        }
 //    }
     @SuppressWarnings("nullness")
-    private CRCLSocket createCrclSocket(@Nullable final Socket s) {
+    private CRCLSocket createCrclSocket(@Nullable Socket s) {
         if (null == cmdSchema) {
             throw new IllegalStateException("null==cmdSchema");
         }

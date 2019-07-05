@@ -74,7 +74,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     static private Optional<File> findJarInDir(@Nullable String dir) {
-        if(dir == null) {
+        if (dir == null) {
             return Optional.empty();
         }
         File fa[] = new File(dir).listFiles(new FilenameFilter() {
@@ -90,10 +90,10 @@ public class WebServerJFrame extends javax.swing.JFrame {
     }
 
     static private Optional<File> findFileInDir(@Nullable String dir, @Nullable String filename) {
-        if(dir == null) {
+        if (dir == null) {
             return Optional.empty();
         }
-        if(filename == null) {
+        if (filename == null) {
             return Optional.empty();
         }
         File fa[] = new File(dir).listFiles(new FilenameFilter() {
@@ -108,7 +108,8 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return Optional.empty();
     }
 
-    @Nullable private static File findJar() {
+    private static @Nullable
+    File findJar() {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
         return Stream.of(userDir,
@@ -124,7 +125,8 @@ public class WebServerJFrame extends javax.swing.JFrame {
                 .findFirst().orElse(null);
     }
 
-    @Nullable private static File findFile(String name) {
+    private static @Nullable
+    File findFile(String name) {
         String userDir = System.getProperty("user.dir");
         String parentDir = new File(userDir).getParent();
         Function<@Nullable String, Optional<File>> finder
@@ -240,7 +242,8 @@ public class WebServerJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    @Nullable volatile private Runnable onStopRunnable = null;
+    volatile private @Nullable
+    Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -424,9 +427,14 @@ public class WebServerJFrame extends javax.swing.JFrame {
         saveProperties();
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    @Nullable volatile private Process internalProcess;
-    @Nullable volatile private Thread monitorOutputThread;
-    @Nullable volatile private Thread monitorErrorThread;
+    private volatile @Nullable
+    Process internalProcess;
+    
+    private volatile @Nullable
+    Thread monitorOutputThread;
+    
+    private volatile @Nullable
+    Thread monitorErrorThread;
 
     private List<String> consoleStrings = new LinkedList<String>();
 
@@ -449,8 +457,11 @@ public class WebServerJFrame extends javax.swing.JFrame {
         this.maxLoggedStrings = maxLoggedStrings;
     }
 
-    @Nullable volatile private PrintWriter logger = null;
-    @Nullable private File logFile = null;
+    private volatile @Nullable
+    PrintWriter logger = null;
+
+    private @Nullable
+    File logFile = null;
 
     private synchronized PrintWriter getLogger() throws IOException {
         if (logger == null) {
@@ -464,7 +475,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     private void monitorInternalProcessOutput() {
         Process internalProcess1 = internalProcess;
-        if(null == internalProcess1) {
+        if (null == internalProcess1) {
             throw new IllegalStateException("null == internalProcess");
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getInputStream()))) {
@@ -483,14 +494,14 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     private void monitorInternalProcessError() {
         Process internalProcess1 = internalProcess;
-        if(null == internalProcess1) {
+        if (null == internalProcess1) {
             throw new IllegalStateException("null == internalProcess");
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getErrorStream()))) {
             String line = null;
             while (null != (line = br.readLine()) && !Thread.currentThread().isInterrupted()) {
                 System.err.println(line);
-                getLogger().println("#ERROR "+line);
+                getLogger().println("#ERROR " + line);
                 final String s = line;
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend("\nERROR:" + s + "\n"));
             }
@@ -653,7 +664,6 @@ public class WebServerJFrame extends javax.swing.JFrame {
 //        stop();
 //        super.finalize();
 //    }
-
 
     private void jButtonDirBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDirBrowseActionPerformed
         JFileChooser chooser = new JFileChooser(new File(jTextFieldDirectory.getText()));

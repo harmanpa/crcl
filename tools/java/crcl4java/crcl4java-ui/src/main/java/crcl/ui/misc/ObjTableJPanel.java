@@ -454,8 +454,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
      *
      * @return the value of obj
      */
-    @Nullable
-    public T getObj() {
+    public @Nullable
+    T getObj() {
         return obj;
     }
 

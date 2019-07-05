@@ -23,7 +23,7 @@ package crcl.ui;
 import crcl.ui.misc.WebServerJFrame;
 import crcl.ui.server.GripperJFrame;
 import crcl.ui.server.SimServerJFrame;
-import crcl.ui.client.PendantClientJFrame;
+import crcl.ui.client.CrclSwingClientJFrame;
 import static crcl.ui.IconImages.DONE_IMAGE;
 import crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJFrame;
 import java.awt.Frame;
@@ -178,11 +178,8 @@ public class LauncherJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonLaunchServerActionPerformed
 
     public void startSimServer() {
-        try {
-            new SimServerJFrame().setVisible(true);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        SimServerJFrame newSimServerJFrame = new SimServerJFrame();
+        newSimServerJFrame.setVisible(true);
     }
 
     private void jButtonLaunchClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLaunchClientActionPerformed
@@ -192,7 +189,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
 
     public void startPendantClient() {
         try {
-            new PendantClientJFrame().setVisible(true);
+            new CrclSwingClientJFrame().setVisible(true);
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -219,7 +216,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
                 gripperJFrame.setState(Frame.ICONIFIED);
             }
             if (jCheckBoxClient.isSelected()) {
-                PendantClientJFrame pendantClient = new PendantClientJFrame();
+                CrclSwingClientJFrame pendantClient = new CrclSwingClientJFrame();
                 pendantClient.setVisible(true);
                 javax.swing.Timer timer = new javax.swing.Timer(500,
                         e -> {
@@ -243,7 +240,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
                 webServer.start();
             }
         } catch (Exception ex) {
-            Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, "evt="+evt, ex);
+            Logger.getLogger(LauncherJFrame.class.getName()).log(Level.SEVERE, "evt=" + evt, ex);
         }
         this.setState(Frame.ICONIFIED);
     }//GEN-LAST:event_jButtonLaunchAllActionPerformed

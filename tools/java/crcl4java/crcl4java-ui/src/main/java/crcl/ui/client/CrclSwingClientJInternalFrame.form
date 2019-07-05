@@ -397,9 +397,9 @@
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="crcl.ui.client.PendantClientJPanel" name="pendantClientJPanel1">
+        <Component class="crcl.ui.client.CrclSwingClientJPanel" name="pendantClientJPanel1">
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new PendantClientJPanel(this,parentJFrame)"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new crcl.ui.client.CrclSwingClientJPanel(this,parentJFrame)"/>
           </AuxValues>
         </Component>
       </SubComponents>

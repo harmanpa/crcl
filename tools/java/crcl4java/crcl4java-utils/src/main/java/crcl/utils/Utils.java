@@ -25,6 +25,7 @@ package crcl.utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -35,7 +36,7 @@ public class Utils {
     private Utils() {
     }
 
-    public static String traceToString(StackTraceElement trace[]) {
+    public static String traceToString(StackTraceElement trace @Nullable []) {
         if (null == trace) {
             return "";
         }

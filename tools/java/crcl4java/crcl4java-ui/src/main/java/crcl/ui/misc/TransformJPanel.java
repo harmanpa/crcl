@@ -22,13 +22,13 @@
  */
 package crcl.ui.misc;
 
-import crcl.ui.client.PendantClientJPanel;
+import crcl.ui.client.CrclSwingClientJPanel;
 import crcl.base.CRCLProgramType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
-import static crcl.ui.client.PendantClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
+import static crcl.ui.client.CrclSwingClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -49,14 +49,14 @@ import javax.swing.table.TableModel;
  */
 public class TransformJPanel extends javax.swing.JPanel {
 
-    private PendantClientJPanel pendantClient;
+    private CrclSwingClientJPanel pendantClient;
 
     /**
      * Set the value of pendantClient
      *
      * @param pendantClient new value of pendantClient
      */
-    public void setPendantClient(PendantClientJPanel pendantClient) {
+    public void setPendantClient(CrclSwingClientJPanel pendantClient) {
         this.pendantClient = pendantClient;
     }
 
@@ -177,7 +177,7 @@ public class TransformJPanel extends javax.swing.JPanel {
      */
     public void setTransform(PoseType transform) {
         this.transform = transform;
-        PendantClientJPanel.updatePoseTable(transform, jTablePose, XYZ_XAXIS_ZAXIS);
+        CrclSwingClientJPanel.updatePoseTable(transform, jTablePose, XYZ_XAXIS_ZAXIS);
     }
 
     private void updateTransformBothPoints() {
@@ -905,7 +905,7 @@ public class TransformJPanel extends javax.swing.JPanel {
     }
     private void jButtonTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTransformProgramActionPerformed
         try {
-            PoseType transform = PendantClientJPanel.tableToPose(jTablePose, PendantClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS);
+            PoseType transform = CrclSwingClientJPanel.tableToPose(jTablePose, CrclSwingClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS);
             CRCLProgramType inProgram = pendantClient.getProgram();
             if (null != inProgram) {
                 CRCLProgramType newProgram = CRCLPosemath.transformProgram(transform, inProgram);

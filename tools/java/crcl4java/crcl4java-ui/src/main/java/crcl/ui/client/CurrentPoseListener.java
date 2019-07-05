@@ -22,37 +22,15 @@
  */
 package crcl.ui.client;
 
-import java.io.File;
-import java.io.IOException;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import crcl.base.CRCLCommandType;
+import crcl.base.CRCLStatusType;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class PendantClientJPanelTest {
-    
-    private final CrclSwingClientJPanel pendantClientJPanel = new CrclSwingClientJPanel();
-    
-    public PendantClientJPanelTest() {
-    }
-    
-    @Before
-    public void setUp() throws IOException {
-        pendantClientJPanel.setPropertiesFile(File.createTempFile("pendantClientJPanelProperties", ".txt"));
-    }
+public interface CurrentPoseListener {
 
-    @Test
-    public void testSaveProperties() {
-        int p1 = 99999;
-        pendantClientJPanel.setPort(p1);
-        pendantClientJPanel.saveProperties();
-        pendantClientJPanel.setPort(55555);
-        assertEquals(55555, pendantClientJPanel.getPort());
-        pendantClientJPanel.loadProperties();
-        assertEquals(p1, pendantClientJPanel.getPort());
-    }
-    
+    public void handlePoseUpdate(CrclSwingClientJPanel panel, CRCLStatusType stat, @Nullable CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime);
 }

@@ -73,31 +73,31 @@ import rcs.posemath.PmCartesian;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class PendantClientJInternalFrame extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
+public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     /**
      * Creates new form PendantClientJInternalFrame
      */
     @SuppressWarnings("initialization")
-    PendantClientJInternalFrame() {
+    CrclSwingClientJInternalFrame() {
         this(null);
     }
-    
+
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
-        return pendantClientJPanel1.checkPose(goalPose,ignoreCartTran);
+        return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran);
     }
 
     /**
      * Creates new form PendantClientJInternalFrame
+     *
      * @param parentJFrame parentJFrame
      */
     @SuppressWarnings("initialization")
-    public PendantClientJInternalFrame(@Nullable JFrame parentJFrame) {
+    public CrclSwingClientJInternalFrame(@Nullable JFrame parentJFrame) {
         this.parentJFrame = parentJFrame;
         initComponents();
         init();
     }
-
 
     /**
      * Get the value of minLimit
@@ -117,7 +117,6 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.setMinLimit(minLimit);
     }
 
-
     /**
      * Get the value of maxLimit
      *
@@ -133,9 +132,9 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
      * @param maxLimit new value of maxLimit
      */
     public void setMaxLimit(@Nullable PmCartesian maxLimit) {
-       pendantClientJPanel1.setMaxLimit(maxLimit);
+        pendantClientJPanel1.setMaxLimit(maxLimit);
     }
-    
+
     public void setStepMode(boolean step) {
         pendantClientJPanel1.setStepMode(step);
     }
@@ -144,7 +143,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isStepMode();
     }
 
-    @Nullable public String getCrclClientErrorMessage() {
+    public @Nullable
+    String getCrclClientErrorMessage() {
         return pendantClientJPanel1.getCrclClientErrorMessage();
     }
 
@@ -152,11 +152,13 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isPaused();
     }
 
-    @Nullable public Thread getRunProgramThread() {
+    public @Nullable
+    Thread getRunProgramThread() {
         return pendantClientJPanel1.getRunProgramThread();
     }
 
-    @Nullable public XFuture<Boolean> getRunProgramFuture() {
+    public @Nullable
+    XFuture<Boolean> getRunProgramFuture() {
         return pendantClientJPanel1.getRunProgramFuture();
     }
 
@@ -168,10 +170,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isRunningProgram();
     }
 
-    public String getLastRunningProgramTrueInfo() {
+    public @Nullable
+    String getLastRunningProgramTrueInfo() {
         return pendantClientJPanel1.getLastRunningProgramTrueInfo();
     }
-    
+
     public boolean isBlockPrograms() {
         return pendantClientJPanel1.isBlockPrograms();
     }
@@ -188,7 +191,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.isIgnoreTimeouts();
     }
 
-    @Nullable public List<ProgramRunData> getLastProgRunDataList() {
+    public @Nullable
+    List<ProgramRunData> getLastProgRunDataList() {
         return pendantClientJPanel1.getLastProgRunDataList();
     }
 
@@ -237,9 +241,11 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         pendantClientJPanel1.connect(host, port);
     }
 
-    @MonotonicNonNull private JFrame parentJFrame;
+    private @MonotonicNonNull
+    JFrame parentJFrame;
 
-    @Nullable public JFrame findParentJFrame() {
+    public @Nullable
+    JFrame findParentJFrame() {
         if (parentJFrame != null) {
             return parentJFrame;
         }
@@ -285,19 +291,19 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
-    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
+    public void addProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
     }
 
-    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
+    public void removeProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.removeProgramLineListener(l);
     }
 
-    public void addCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) {
+    public void addCurrentPoseListener(CurrentPoseListener l) {
         pendantClientJPanel1.addCurrentPoseListener(l);
     }
 
-    public void removeCurrentPoseListener(PendantClientJPanel.CurrentPoseListener l) {
+    public void removeCurrentPoseListener(CurrentPoseListener l) {
         pendantClientJPanel1.removeCurrentPoseListener(l);
     }
 
@@ -335,19 +341,19 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         }
     }
 
-    private void addClassSubmenu( File fSubDir)  {
-        final String subdirName =fSubDir.getName();
+    private void addClassSubmenu(File fSubDir) {
+        final String subdirName = fSubDir.getName();
         try {
-            Class.forName("crcl.base."+subdirName);
+            Class.forName("crcl.base." + subdirName);
         } catch (ClassNotFoundException ex) {
-            System.out.println("ignoring subdir that doesn't match class "+subdirName);
+            System.out.println("ignoring subdir that doesn't match class " + subdirName);
             return;
         }
         JMenu jm = new JMenu(subdirName);
-        
+
         this.jMenuCommandRecent.add(jm);
         File sub_fa[] = fSubDir.listFiles(new java.io.FilenameFilter() {
-            
+
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".xml");
@@ -359,7 +365,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
                 File xmlFile = sub_fa[i];
                 JMenuItem jmi = new JMenuItem(xmlFile.getName());
                 jmi.addActionListener(new ActionListener() {
-                    
+
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         try {
@@ -395,7 +401,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         }
     }
 
-    public static final Logger LOGGER = Logger.getLogger(PendantClientJInternalFrame.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(CrclSwingClientJInternalFrame.class.getName());
 
     @Override
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
@@ -450,7 +456,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        pendantClientJPanel1 = new PendantClientJPanel(this,parentJFrame);
+        pendantClientJPanel1 = new crcl.ui.client.CrclSwingClientJPanel(this,parentJFrame);
         jMenuBarPendantClient = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemOpenXmlCommandInstance = new javax.swing.JMenuItem();
@@ -997,7 +1003,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
 
     private void jMenuItemSaveStatusAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveStatusAsActionPerformed
         JFileChooser chooser = new JFileChooser();
-        if(chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             pendantClientJPanel1.saveStatusAs(chooser.getSelectedFile());
         }
     }//GEN-LAST:event_jMenuItemSaveStatusAsActionPerformed
@@ -1050,7 +1056,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     private javax.swing.JMenu jMenuTools;
     private javax.swing.JMenu jMenuXmlSchemas;
     private javax.swing.JPanel jPanel1;
-    private crcl.ui.client.PendantClientJPanel pendantClientJPanel1;
+    private crcl.ui.client.CrclSwingClientJPanel pendantClientJPanel1;
     // End of variables declaration//GEN-END:variables
 
     @Override
@@ -1157,10 +1163,10 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.currentStatus();
     }
 
-    public void requestAndReadStatus()  {
+    public void requestAndReadStatus() {
         pendantClientJPanel1.requestAndReadStatus();
     }
-    
+
     public Optional<CommandStateEnumType> getCurrentState() {
         return pendantClientJPanel1.currentState();
     }
@@ -1170,8 +1176,8 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.currentStatusPose();
     }
 
-    @Nullable
-    public CRCLProgramType getProgram() {
+    public @Nullable
+    CRCLProgramType getProgram() {
         return pendantClientJPanel1.getProgram();
     }
 
@@ -1297,16 +1303,16 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
         return pendantClientJPanel1.continueCurrentProgram(stepMode);
     }
 
-    @Nullable public File getTempLogDir() {
+    public @Nullable
+    File getTempLogDir() {
         return pendantClientJPanel1.getTempLogDir();
     }
 
     public void setTempLogDir(File tempLogDir) {
         this.pendantClientJPanel1.setTempLogDir(tempLogDir);
     }
-    
-    
-     public StackTraceElement[] getRunProgramReturnFalseTrace() {
+
+    public StackTraceElement @Nullable [] getRunProgramReturnFalseTrace() {
         return pendantClientJPanel1.getRunProgramReturnFalseTrace();
     }
 
@@ -1314,7 +1320,7 @@ public class PendantClientJInternalFrame extends javax.swing.JInternalFrame impl
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         this.pendantClientJPanel1.updateCommandStatusLog(log);
     }
-    
+
     /**
      * Get the value of preClosing
      *

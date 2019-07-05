@@ -48,9 +48,11 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
@@ -68,9 +70,9 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -82,14 +84,20 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     /**
      * Creates new form SimServerJPanel
      *
-     * @throws javax.xml.parsers.ParserConfigurationException when XML schemas
-     * not setup correctly.
-     *
      */
     @SuppressWarnings("initialization")
-    public SimServerJPanel() throws ParserConfigurationException {
+    public SimServerJPanel() {
         initComponents();
-        this.inner = new SimServerInner(this, DefaultSchemaFiles.instance());
+        try {
+            this.inner = new SimServerInner(this, DefaultSchemaFiles.instance());
+        } catch (Exception ex) {
+            Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, "", ex);
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
+        }
         SimRobotEnum defaultRobotType
                 = DEFAULT_ROBOTTYPE;
         java.awt.EventQueue.invokeLater(() -> this.updatePanelsPrivate());
@@ -137,6 +145,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.overHeadJPanel1.setLogImages(logImages);
         this.sideViewJPanel1.setLogImages(logImages);
         this.jCheckBoxTeleportToGoals.setSelected(inner.isTeleportToGoals());
+        jCheckBoxMenuItemValidateXML.setSelected(inner.isValidateXMLSelected());
+        this.jCheckBoxMenuItemLogImages.setSelected(logImages);
     }
 
     private final ConcurrentLinkedDeque<File> propsFiles = new ConcurrentLinkedDeque<>();
@@ -273,6 +283,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 restartServer();
             }
         }
+        jCheckBoxMenuItemValidateXML.setSelected(this.isValidateXMLSelected());
     }
 
     private static final String SIM_INIT_STATUS_PROPERTY_NAME = "crcl.sim.initStatus";
@@ -286,10 +297,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final static SimRobotEnum DEFAULT_ROBOTTYPE = SimRobotEnum.valueOf(System.getProperty("crcl4java.simserver.robottype", SimRobotEnum.SIMPLE.toString()));
 
-    @Nullable
-    private CRCLSocket gripperSocket = null;
-    @Nullable
-    private Thread gripperReadThread = null;
+    private @Nullable
+    CRCLSocket gripperSocket = null;
+
+    private @Nullable
+    Thread gripperReadThread = null;
     private int gripperPort = 4005;
     private String gripperHost = "localhost";
     private boolean sendGripperStatusRequests = true;
@@ -379,6 +391,33 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jMenu1 = new javax.swing.JMenu();
+        jMenuItemExit = new javax.swing.JMenuItem();
+        jMenuItemSaveProperties = new javax.swing.JMenuItem();
+        jMenuItemLoadProperties = new javax.swing.JMenuItem();
+        jMenuItemSaveStatusToFile = new javax.swing.JMenuItem();
+        jMenuItemSetInitalStatusFile = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItemEditStatus = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        jMenuItemSetSchema = new javax.swing.JMenuItem();
+        jCheckBoxMenuItemValidateXML = new javax.swing.JCheckBoxMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        jCheckBoxMenuItemRandomPacket = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemAppendZero = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemIncludeGripperStatus = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemReplaceState = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebugMoveDone = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebugReadCommand = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDebugSendStatus = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemReplaceXmlHeader = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemEXI = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemLogImages = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
+        jMenuItemAbout = new javax.swing.JMenuItem();
+        jMenu5 = new javax.swing.JMenu();
+        jMenuItemViewCommandLogBrief = new javax.swing.JMenuItem();
+        jMenuItemViewCommandLogFull = new javax.swing.JMenuItem();
         jPanel1 = new javax.swing.JPanel();
         overHeadJPanel1 = new crcl.ui.server.OverHeadJPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -411,6 +450,169 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jTextFieldEndEffector = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         jTextFieldCurrentCommandType = new javax.swing.JTextField();
+
+        jMenu1.setText("File");
+
+        jMenuItemExit.setText("Exit");
+        jMenuItemExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemExitActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemExit);
+
+        jMenuItemSaveProperties.setText("Save Properties As ...");
+        jMenuItemSaveProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSavePropertiesActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSaveProperties);
+
+        jMenuItemLoadProperties.setText("Load Properties ...");
+        jMenuItemLoadProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLoadPropertiesActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemLoadProperties);
+
+        jMenuItemSaveStatusToFile.setText("Save Status to File ...");
+        jMenuItemSaveStatusToFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSaveStatusToFileActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSaveStatusToFile);
+
+        jMenuItemSetInitalStatusFile.setText("Set Inital Status File ...");
+        jMenuItemSetInitalStatusFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSetInitalStatusFileActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemSetInitalStatusFile);
+
+        jMenuBarSimServer.add(jMenu1);
+
+        jMenu2.setText("Edit");
+
+        jMenuItemEditStatus.setText("Status in Table ...");
+        jMenuItemEditStatus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemEditStatusActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItemEditStatus);
+
+        jMenuBarSimServer.add(jMenu2);
+
+        jMenu3.setText("XML Schemas");
+
+        jMenuItemSetSchema.setText("Set Schema File(s)  ... ");
+        jMenuItemSetSchema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemSetSchemaActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jMenuItemSetSchema);
+
+        jCheckBoxMenuItemValidateXML.setSelected(true);
+        jCheckBoxMenuItemValidateXML.setText("Validate XML with Schema(s)");
+        jCheckBoxMenuItemValidateXML.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemValidateXMLActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jCheckBoxMenuItemValidateXML);
+
+        jMenuBarSimServer.add(jMenu3);
+
+        jMenu4.setText("Options");
+
+        jCheckBoxMenuItemRandomPacket.setText("Randomize Packeting");
+        jMenu4.add(jCheckBoxMenuItemRandomPacket);
+
+        jCheckBoxMenuItemAppendZero.setText("Append 0 for string termination");
+        jMenu4.add(jCheckBoxMenuItemAppendZero);
+
+        jCheckBoxMenuItemIncludeGripperStatus.setText("Connect to Gripper Server ...");
+        jCheckBoxMenuItemIncludeGripperStatus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemIncludeGripperStatusActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItemIncludeGripperStatus);
+
+        jCheckBoxMenuItemReplaceState.setText("Replace CRCL_Working,CRCL_Done with Working,Done ...");
+        jMenu4.add(jCheckBoxMenuItemReplaceState);
+
+        jCheckBoxMenuItemDebugMoveDone.setText("Debug MOVE Done");
+        jMenu4.add(jCheckBoxMenuItemDebugMoveDone);
+
+        jCheckBoxMenuItemDebugReadCommand.setText("Debug Read Command");
+        jMenu4.add(jCheckBoxMenuItemDebugReadCommand);
+
+        jCheckBoxMenuItemDebugSendStatus.setText("Debug Send Status");
+        jMenu4.add(jCheckBoxMenuItemDebugSendStatus);
+
+        jCheckBoxMenuItemReplaceXmlHeader.setSelected(true);
+        jCheckBoxMenuItemReplaceXmlHeader.setText("Replace XML Headers");
+        jMenu4.add(jCheckBoxMenuItemReplaceXmlHeader);
+
+        jCheckBoxMenuItemEXI.setText("Use EXI (Efficient XML Interchange)");
+        jCheckBoxMenuItemEXI.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemEXIActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItemEXI);
+
+        jCheckBoxMenuItemLogImages.setText("Log Images");
+        jCheckBoxMenuItemLogImages.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemLogImagesActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItemLogImages);
+
+        jCheckBoxMenuItemDisableTextPopups.setText("Disable Text Popups");
+        jCheckBoxMenuItemDisableTextPopups.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jCheckBoxMenuItemDisableTextPopups);
+
+        jMenuItemAbout.setText("About");
+        jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemAboutActionPerformed(evt);
+            }
+        });
+        jMenu4.add(jMenuItemAbout);
+
+        jMenuBarSimServer.add(jMenu4);
+
+        jMenu5.setText("Tools");
+
+        jMenuItemViewCommandLogBrief.setText("View Command Log Brief");
+        jMenuItemViewCommandLogBrief.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemViewCommandLogBriefActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItemViewCommandLogBrief);
+
+        jMenuItemViewCommandLogFull.setText("View Command Log Full");
+        jMenuItemViewCommandLogFull.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemViewCommandLogFullActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItemViewCommandLogFull);
+
+        jMenuBarSimServer.add(jMenu5);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Overhead View"));
         jPanel1.setLayout(new java.awt.BorderLayout());
@@ -1036,12 +1238,12 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldNumWaypoints.setText(Integer.toString(numWaypoints));
     }
 
-    @Nullable
-    private JFrame outerFrame;
+    private @Nullable
+    JFrame outerFrame;
     private boolean searchedForOuterFrame = false;
 
-    @Nullable
-    private JFrame searchForOuterFrame() {
+    private @Nullable
+    JFrame searchForOuterFrame() {
         if (searchedForOuterFrame) {
             return outerFrame;
         }
@@ -1060,8 +1262,8 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      *
      * @return the value of outerFrame
      */
-    @Nullable
-    public JFrame getOuterFrame() {
+    public @Nullable
+    JFrame getOuterFrame() {
         if (null == outerFrame) {
             outerFrame = searchForOuterFrame();
         }
@@ -1177,7 +1379,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 //    public void updateLengthUnit(LengthUnitEnumType lu) {
 //        this.lengthUnitComboBox.setSelectedItem(lu);
 //    }
-
     @Override
     public void updateConnectedClients(int numClients) {
         this.jTextFieldConnectedClients.setText(Integer.toString(numClients));
@@ -1246,12 +1447,226 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.inner.setForceFail(jCheckBoxForceFail.isSelected());
     }//GEN-LAST:event_jCheckBoxForceFailActionPerformed
 
+    private void jMenuItemExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemExitActionPerformed
+        System.exit(0);
+    }//GEN-LAST:event_jMenuItemExitActionPerformed
+
+    private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+            setPropertiesFile(chooser.getSelectedFile());
+            try {
+                saveProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jMenuItemSavePropertiesActionPerformed
+
+    private void jMenuItemLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemLoadPropertiesActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+            try {
+                setPropertiesFile(chooser.getSelectedFile());
+                loadProperties();
+            } catch (IOException ex) {
+                Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jMenuItemLoadPropertiesActionPerformed
+
+    private void jMenuItemSaveStatusToFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveStatusToFileActionPerformed
+        try {
+            JFileChooser chooser;
+            File propertiesFileToSave = this.getPropertiesFile();
+
+            if (propertiesFileToSave != null) {
+                final File parentFile = propertiesFileToSave.getParentFile();
+                if (null != parentFile) {
+                    chooser = new JFileChooser(parentFile);
+                } else {
+                    chooser = new JFileChooser();
+                }
+            } else {
+                chooser = new JFileChooser();
+            }
+            FileFilter xmlFilter = new FileNameExtensionFilter("XML", "xml");
+            chooser.addChoosableFileFilter(xmlFilter);
+            chooser.setFileFilter(xmlFilter);
+            if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+                File f = chooser.getSelectedFile();
+                String name = f.getName();
+                final File fParentFile = f.getParentFile();
+                if (!name.endsWith(".xml")) {
+                    name = name + ".xml";
+                    f = new File(fParentFile, name);
+                }
+                try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+                    pw.println(CRCLSocket.statusToPrettyString(this.getStatus()));
+                }
+                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Set as IntialStatus file?")) {
+                    if (null != propertiesFileToSave) {
+                        File propertiesParentFile = propertiesFileToSave.getParentFile();
+                        if (null != propertiesParentFile
+                                && null != fParentFile
+                                && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                        fParentFile.getCanonicalPath()
+                                )) {
+                            File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                            Files.copy(f.toPath(), copy.toPath());
+                            this.setInitStatusFilename(copy.getName());
+                        } else {
+                            this.setInitStatusFilename(name);
+                        }
+                    } else {
+                        this.setInitStatusFilename(name);
+                    }
+                    this.saveProperties();
+                }
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, exception);
+        }
+    }//GEN-LAST:event_jMenuItemSaveStatusToFileActionPerformed
+
+    private void jMenuItemSetInitalStatusFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSetInitalStatusFileActionPerformed
+        try {
+            JFileChooser chooser;
+            File propertiesFile = this.getPropertiesFile();
+            if (propertiesFile != null) {
+                final File parentFile = propertiesFile.getParentFile();
+                if (null != parentFile) {
+                    chooser = new JFileChooser(parentFile);
+                } else {
+                    chooser = new JFileChooser();
+                }
+            } else {
+                chooser = new JFileChooser();
+            }
+            FileFilter xmlFilter = new FileNameExtensionFilter("XML", "xml");
+            chooser.addChoosableFileFilter(xmlFilter);
+            chooser.setFileFilter(xmlFilter);
+            if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+                File f = chooser.getSelectedFile();
+                String name = f.getName();
+                if (null != propertiesFile) {
+                    final File propertiesParentFile = propertiesFile.getParentFile();
+                    final File fParentFile = f.getParentFile();
+                    if (null != propertiesParentFile
+                            && null != fParentFile
+                            && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                    fParentFile.getCanonicalPath()
+                            )) {
+                        File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                        Files.copy(f.toPath(), copy.toPath());
+                        this.setInitStatusFilename(copy.getName());
+                    } else {
+                        this.setInitStatusFilename(name);
+                    }
+                } else {
+                    this.setInitStatusFilename(name);
+                }
+                this.saveProperties();
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, exception);
+        }
+    }//GEN-LAST:event_jMenuItemSetInitalStatusFileActionPerformed
+
+    private void jMenuItemEditStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemEditStatusActionPerformed
+        this.editStatusAction();
+    }//GEN-LAST:event_jMenuItemEditStatusActionPerformed
+
+    private void jMenuItemSetSchemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSetSchemaActionPerformed
+        this.setSchemaAction();
+    }//GEN-LAST:event_jMenuItemSetSchemaActionPerformed
+
+    private void jCheckBoxMenuItemValidateXMLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXMLActionPerformed
+        this.setValidateXMLSelected(jCheckBoxMenuItemValidateXML.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemValidateXMLActionPerformed
+
+    private void jCheckBoxMenuItemIncludeGripperStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemIncludeGripperStatusActionPerformed
+        if (this.jCheckBoxMenuItemIncludeGripperStatus.isSelected()) {
+            this.setIncludeGripperAction();
+        }
+    }//GEN-LAST:event_jCheckBoxMenuItemIncludeGripperStatusActionPerformed
+
+    private void jCheckBoxMenuItemEXIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemEXIActionPerformed
+        this.restartServer();
+    }//GEN-LAST:event_jCheckBoxMenuItemEXIActionPerformed
+
+    private void jCheckBoxMenuItemLogImagesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemLogImagesActionPerformed
+        //        this.overHeadJPanel1.setLogImages(this.jCheckBoxMenuItemLogImages.isSelected());
+        //        this.sideViewJPanel1.setLogImages(this.jCheckBoxMenuItemLogImages.isSelected());
+        this.setLogImages(jCheckBoxMenuItemLogImages.isSelected());
+    }//GEN-LAST:event_jCheckBoxMenuItemLogImagesActionPerformed
+
+    private void jCheckBoxMenuItemDisableTextPopupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+        crcl.ui.misc.MultiLineStringJPanel.disableShowText = jCheckBoxMenuItemDisableTextPopups.isSelected();
+    }//GEN-LAST:event_jCheckBoxMenuItemDisableTextPopupsActionPerformed
+
+    private void jMenuItemAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAboutActionPerformed
+        this.aboutAction();
+    }//GEN-LAST:event_jMenuItemAboutActionPerformed
+
+    private void jMenuItemViewCommandLogBriefActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemViewCommandLogBriefActionPerformed
+        this.viewCommandLogBriefAction();
+    }//GEN-LAST:event_jMenuItemViewCommandLogBriefActionPerformed
+
+    private void jMenuItemViewCommandLogFullActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemViewCommandLogFullActionPerformed
+        this.viewCommandLogFullAction();
+    }//GEN-LAST:event_jMenuItemViewCommandLogFullActionPerformed
+
+    public boolean isDebugMoveDoneSelected() {
+        return this.jCheckBoxMenuItemDebugMoveDone.isSelected();
+    }
+
+    public boolean isDebugReadCommandSelected() {
+        return this.jCheckBoxMenuItemDebugReadCommand.isSelected();
+    }
+
+    public boolean isDebugSendStatusSelected() {
+        return this.jCheckBoxMenuItemDebugSendStatus.isSelected();
+    }
+
+    public boolean isAppendZeroSelected() {
+        return jCheckBoxMenuItemAppendZero.isSelected();
+    }
+
+    public boolean isReplaceXmlHeaderSelected() {
+        return jCheckBoxMenuItemReplaceXmlHeader.isSelected();
+    }
+
+    public boolean isRandomPacketSelected() {
+        return jCheckBoxMenuItemRandomPacket.isSelected();
+    }
+
+    public boolean isReplaceStateSelected() {
+        return jCheckBoxMenuItemReplaceState.isSelected();
+    }
+
+    public boolean isEXISelected() {
+        return jCheckBoxMenuItemEXI.isSelected();
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonReset;
     private javax.swing.JButton jButtonRestartServer;
     private javax.swing.JCheckBox jCheckBoxForceFail;
     private javax.swing.JCheckBox jCheckBoxInitialized;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemAppendZero;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugMoveDone;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugReadCommand;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugSendStatus;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEXI;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIncludeGripperStatus;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemLogImages;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRandomPacket;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceState;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceXmlHeader;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXML;
     private javax.swing.JCheckBox jCheckBoxSendStatusWithoutRequest;
     private javax.swing.JCheckBox jCheckBoxTeleportToGoals;
     private javax.swing.JComboBox<SimRobotEnum> jComboBoxRobotType;
@@ -1263,6 +1678,22 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
+    public final javax.swing.JMenuBar jMenuBarSimServer = new javax.swing.JMenuBar();
+    private javax.swing.JMenuItem jMenuItemAbout;
+    private javax.swing.JMenuItem jMenuItemEditStatus;
+    private javax.swing.JMenuItem jMenuItemExit;
+    private javax.swing.JMenuItem jMenuItemLoadProperties;
+    private javax.swing.JMenuItem jMenuItemSaveProperties;
+    private javax.swing.JMenuItem jMenuItemSaveStatusToFile;
+    private javax.swing.JMenuItem jMenuItemSetInitalStatusFile;
+    private javax.swing.JMenuItem jMenuItemSetSchema;
+    private javax.swing.JMenuItem jMenuItemViewCommandLogBrief;
+    private javax.swing.JMenuItem jMenuItemViewCommandLogFull;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

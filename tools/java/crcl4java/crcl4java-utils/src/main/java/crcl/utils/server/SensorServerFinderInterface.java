@@ -24,12 +24,14 @@ package crcl.utils.server;
 
 import crcl.base.ParameterSettingType;
 import java.util.List;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author shackle
  */
 public interface SensorServerFinderInterface {
-    
-    public SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList);
+
+    public @Nullable
+    SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList);
 }

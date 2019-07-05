@@ -38,6 +38,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.PmCartesian;
 
 /*
@@ -375,15 +377,16 @@ public class ProgramPlotter {
         return bi;
     }
 
-    /*@Nullable*/
-    private PointType currentPoint;
+    private @MonotonicNonNull
+    PointType currentPoint;
 
     /**
      * Get the value of currentPoint
      *
      * @return the value of currentPoint
      */
-    public /*@Nullable*/ PointType getCurrentPoint() {
+    public @Nullable
+    PointType getCurrentPoint() {
         return currentPoint;
     }
 
@@ -397,8 +400,8 @@ public class ProgramPlotter {
     }
 
     private Color currentPointColor = Color.red.darker();
-    private Color currentPointAlphaColor = new Color( currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(),100);
-    
+    private Color currentPointAlphaColor = new Color(currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(), 100);
+
     /**
      * Get the value of currentPointColor
      *
@@ -415,7 +418,7 @@ public class ProgramPlotter {
      */
     public void setCurrentPointColor(Color currentPointColor) {
         this.currentPointColor = currentPointColor;
-        currentPointAlphaColor = new Color( currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(),100);
+        currentPointAlphaColor = new Color(currentPointColor.getRed(), currentPointColor.getGreen(), currentPointColor.getBlue(), 100);
     }
 
     private Color marginColor = new Color(100, 100, 100);
@@ -458,16 +461,16 @@ public class ProgramPlotter {
         this.outerColor = outerColor;
     }
 
-    /*@Nullable*/
-    private PointType initPoint;
+    private @MonotonicNonNull
+    PointType initPoint;
 
     /**
      * Get the value of initPoint
      *
      * @return the value of initPoint
      */
-    /*@Nullable*/
-    public PointType getInitPoint() {
+    public @Nullable
+    PointType getInitPoint() {
         return initPoint;
     }
 
@@ -476,7 +479,7 @@ public class ProgramPlotter {
      *
      * @param initPoint new value of initPoint
      */
-    public void setInitPoint(/*@Nullable*/ PointType initPoint) {
+    public void setInitPoint(/*@Nullable*/PointType initPoint) {
         this.initPoint = initPoint;
     }
 
@@ -538,7 +541,6 @@ public class ProgramPlotter {
         g2d.translate(-bounds.x + fullMarginWidth / (2 * scale),
                 -bounds.y + fullMarginHeight / (2 * scale));
 
-        
         Point2D.Double initPoint2D = null;
         if (null != initPoint) {
             initPoint2D = toPoint2D(initPoint);
@@ -551,7 +553,7 @@ public class ProgramPlotter {
             g2d.setColor(currentPointAlphaColor);
             paintFullCrossHairs(g2d, currentPoint2D, halfPointSize, pointSize, scale, heightUnder, widthUnder);
         }
-        
+
         for (int i = 0; i < program.getMiddleCommand().size(); i++) {
             MiddleCommandType cmd = program.getMiddleCommand().get(i);
             if (cmd instanceof MoveToType) {
@@ -706,7 +708,7 @@ public class ProgramPlotter {
         g2d.draw(new Line2D.Double(bounds.x - xMargin / (2 * scale) - widthUnder / 2.0, currentPoint2D.y,
                 bounds.x + bounds.width + xMargin / (2 * scale) + widthUnder / 2.0, currentPoint2D.y));
     }
-    
+
     public void paintCrossHairs(Graphics2D g2d, Point2D.Double currentPoint2D, final double halfPointSize, final double pointSize, double scale, double heightUnder, double widthUnder) {
         g2d.fill(new Arc2D.Double(currentPoint2D.x - halfPointSize, currentPoint2D.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
         g2d.draw(new Line2D.Double(currentPoint2D.x, bounds.y - yMargin / (2 * scale) - heightUnder / 2.0,

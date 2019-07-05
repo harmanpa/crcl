@@ -16,6 +16,7 @@ public class ValueJPanel extends javax.swing.JPanel {
     /**
      * Creates new form ValueJPanel
      */
+    @SuppressWarnings("initialization")
     public ValueJPanel() {
         initComponents();
         jLabelName.setText(super.getName());
@@ -24,6 +25,7 @@ public class ValueJPanel extends javax.swing.JPanel {
     /**
      * Creates new form ValueJPanel
      */
+    @SuppressWarnings("initialization")
     public ValueJPanel(String name) {
         initComponents();
         jLabelName.setText(name);

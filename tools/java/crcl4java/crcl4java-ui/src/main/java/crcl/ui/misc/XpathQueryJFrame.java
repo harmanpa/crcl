@@ -20,7 +20,7 @@
  */
 package crcl.ui.misc;
 
-import crcl.ui.client.PendantClientJFrame;
+import crcl.ui.client.CrclSwingClientJFrame;
 import crcl.utils.XpathUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -249,7 +249,8 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
         });
     }
 
-    @Nullable String failedQuery = null;
+    @Nullable
+    String failedQuery = null;
 
     public void message(String s) {
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -261,13 +262,14 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
         });
     }
 
-     final XpathUtils xpu;
+    final XpathUtils xpu;
 
     public boolean isUpdateAutomaticallySelected() {
         return this.jCheckBoxUpdateAutomatically.isSelected();
     }
-    
-    @Nullable public String runQuery(String query, String status) {
+
+    public @Nullable
+    String runQuery(String query, String status) {
         String resultString = "";
         try {
             if (query.equals(failedQuery)) {
@@ -275,7 +277,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
             }
             resultString = xpu.queryXmlString(status, query);
         } catch (Exception ex) {
-            Logger.getLogger(PendantClientJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CrclSwingClientJFrame.class.getName()).log(Level.SEVERE, null, ex);
             message("Query :" + query + " of " + status + " failed");
             failedQuery = query;
         }

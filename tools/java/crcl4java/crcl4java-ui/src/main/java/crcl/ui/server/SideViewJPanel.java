@@ -115,7 +115,7 @@ public class SideViewJPanel extends JPanel {
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/side");
         boolean made_dir = dir.mkdirs();
-        Logger.getLogger(SideViewJPanel.class.getName()).finest(() -> "mkdir " + dir + " returned " + made_dir);
+//        Logger.getLogger(SideViewJPanel.class.getName()).finest(() -> "mkdir " + dir + " returned " + made_dir);
         ImageIO.write(bi, "jpg", new File(dir, "side_" + System.currentTimeMillis() + ".jpg"));
     }
     private boolean logImages = false;

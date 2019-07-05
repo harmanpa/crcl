@@ -23,13 +23,15 @@
 package crcl.utils.server;
 
 import crcl.base.SensorStatusType;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author shackle
  */
 public interface SensorServerInterface extends AutoCloseable {
-    
-    public SensorStatusType getCurrentSensorStatus() ;
-    
+
+    public @Nullable
+    SensorStatusType getCurrentSensorStatus();
+
 }

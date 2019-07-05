@@ -52,10 +52,12 @@ import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
+import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmException;
@@ -218,8 +220,8 @@ public class CRCLPosemath {
         return max;
     }
 
-    /*@Nullable*/
-    public static PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
+    public static @Nullable
+    PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {
             PoseStatusType poseStatus = stat.getPoseStatus();
             if (null != poseStatus) {
@@ -236,7 +238,8 @@ public class CRCLPosemath {
      * @return PointType with same initial values as pt but can be independently
      * modified.
      */
-    public static /*@Nullable*/ PointType copy(/*@Nullable*/PointType pt) {
+    public static @Nullable
+    PointType copy(/*@Nullable*/PointType pt) {
         if (null == pt) {
             return null;
         }
@@ -303,7 +306,8 @@ public class CRCLPosemath {
      * @return VectorType with same initial values as vec but can be
      * independently modified.
      */
-    public static /*@Nullable*/ VectorType copy( /*@Nullable*/VectorType vec) {
+    public static @Nullable
+    VectorType copy( /*@Nullable*/VectorType vec) {
         if (null == vec) {
             return null;
         }
@@ -322,7 +326,8 @@ public class CRCLPosemath {
      * @return PoseType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ PoseType copyNullable(/*@Nullable*/PoseType pose) {
+    public static @Nullable
+    PoseType copyNullable(/*@Nullable*/PoseType pose) {
         if (null == pose) {
             return null;
         }
@@ -404,8 +409,8 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static SettingsStatusType copy(SettingsStatusType settings) {
+    public static @Nullable
+    SettingsStatusType copy(SettingsStatusType settings) {
         if (null != settings) {
             SettingsStatusType newSettings = new SettingsStatusType();
             newSettings.setName(settings.getName());
@@ -444,51 +449,59 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
+    public static @Nullable
+    SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
         if (null != sensorsStatuses) {
             SensorStatusesType newSensorStatuses = new SensorStatusesType();
-            
+
             if (null != sensorsStatuses.getOnOffSensorStatus()) {
                 newSensorStatuses.getOnOffSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getOnOffSensorStatus().size(); i++) {
                     OnOffSensorStatusType onOffSensorStatus = sensorsStatuses.getOnOffSensorStatus().get(i);
                     OnOffSensorStatusType onOffSensorStatusCopy = copy(onOffSensorStatus);
-                    newSensorStatuses.getOnOffSensorStatus().add(onOffSensorStatusCopy);
+                    if (null != onOffSensorStatusCopy) {
+                        newSensorStatuses.getOnOffSensorStatus().add(onOffSensorStatusCopy);
+                    }
                 }
             }
-            
+
             if (null != sensorsStatuses.getScalarSensorStatus()) {
                 newSensorStatuses.getScalarSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getScalarSensorStatus().size(); i++) {
                     ScalarSensorStatusType scalarSensorStatus = sensorsStatuses.getScalarSensorStatus().get(i);
                     ScalarSensorStatusType scalarSensorStatusCopy = copy(scalarSensorStatus);
-                    newSensorStatuses.getScalarSensorStatus().add(scalarSensorStatusCopy);
+                    if (null != scalarSensorStatusCopy) {
+                        newSensorStatuses.getScalarSensorStatus().add(scalarSensorStatusCopy);
+                    }
                 }
             }
-            
+
             if (null != sensorsStatuses.getCountSensorStatus()) {
                 newSensorStatuses.getCountSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getCountSensorStatus().size(); i++) {
                     CountSensorStatusType countSensorStatus = sensorsStatuses.getCountSensorStatus().get(i);
                     CountSensorStatusType countSensorStatusCopy = copy(countSensorStatus);
-                    newSensorStatuses.getCountSensorStatus().add(countSensorStatusCopy);
+                    if (null != countSensorStatusCopy) {
+                        newSensorStatuses.getCountSensorStatus().add(countSensorStatusCopy);
+                    }
                 }
             }
-            
+
             if (null != sensorsStatuses.getForceTorqueSensorStatus()) {
                 newSensorStatuses.getForceTorqueSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getForceTorqueSensorStatus().size(); i++) {
                     ForceTorqueSensorStatusType forceTorqueSensorStatus = sensorsStatuses.getForceTorqueSensorStatus().get(i);
                     ForceTorqueSensorStatusType forceTorqueSensorStatusCopy = copy(forceTorqueSensorStatus);
-                    newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
+                    if (null != forceTorqueSensorStatusCopy) {
+                        newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
+                    }
                 }
             }
             return newSensorStatuses;
         }
         return null;
     }
-    
+
     /**
      * Copy or clone a settings status.
      *
@@ -496,8 +509,8 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static ForceTorqueSensorStatusType copy(ForceTorqueSensorStatusType forceTorqueSensorStatus) {
+    public static @Nullable
+    ForceTorqueSensorStatusType copy(ForceTorqueSensorStatusType forceTorqueSensorStatus) {
         if (null != forceTorqueSensorStatus) {
             ForceTorqueSensorStatusType newForceTorqueSensorStatus = new ForceTorqueSensorStatusType();
             newForceTorqueSensorStatus.setSensorID(forceTorqueSensorStatus.getSensorID());
@@ -512,7 +525,7 @@ public class CRCLPosemath {
         }
         return null;
     }
-    
+
     /**
      * Copy or clone a settings status.
      *
@@ -520,8 +533,8 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
+    public static @Nullable
+    CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
         if (null != countSensorStatus) {
             CountSensorStatusType newCountSensorStatus = new CountSensorStatusType();
             newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
@@ -532,7 +545,6 @@ public class CRCLPosemath {
         return null;
     }
 
-    
     /**
      * Copy or clone a settings status.
      *
@@ -540,8 +552,8 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
+    public static @Nullable
+    ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
         if (null != scalarSensorStatus) {
             ScalarSensorStatusType newScalarSensorStatus = new ScalarSensorStatusType();
             newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
@@ -551,7 +563,7 @@ public class CRCLPosemath {
         }
         return null;
     }
-    
+
     /**
      * Copy or clone a settings status.
      *
@@ -559,8 +571,8 @@ public class CRCLPosemath {
      * @return SettingsStatusType with same initial values as pose but can be
      * independently modified.
      */
-    /*@Nullable*/
-    public static OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
+    public static @Nullable
+    OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
         if (null != onOffSensorStatus) {
             OnOffSensorStatusType newOnOffSensorStatus = new OnOffSensorStatusType();
             newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
@@ -571,7 +583,6 @@ public class CRCLPosemath {
         return null;
     }
 
-    
     /**
      * Copy or clone a gripper status.
      *
@@ -579,7 +590,8 @@ public class CRCLPosemath {
      * @return GripperStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
+    public static @Nullable
+    GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
         if (null == status) {
             return null;
         }
@@ -621,7 +633,8 @@ public class CRCLPosemath {
      * @return PoseStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
+    public static @Nullable
+    PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
         if (null == status) {
             return null;
         }
@@ -647,7 +660,8 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ TwistType copy(/*@Nullable*/TwistType twist) {
+    public static @Nullable
+    TwistType copy(/*@Nullable*/TwistType twist) {
         if (null == twist) {
             return null;
         }
@@ -671,7 +685,8 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ WrenchType copy(/*@Nullable*/WrenchType wrench) {
+    public static @Nullable
+    WrenchType copy(/*@Nullable*/WrenchType wrench) {
         if (null == wrench) {
             return null;
         }
@@ -695,7 +710,8 @@ public class CRCLPosemath {
      * @return JointStatusesType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
+    public static @Nullable
+    JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
         if (null == status) {
             return null;
         }
@@ -734,7 +750,8 @@ public class CRCLPosemath {
      * @return CommandStatusType with same initial values as pose but can be
      * independently modified.
      */
-    public static /*@Nullable*/ CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
+    public static @Nullable
+    CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
         if (null == status) {
             return null;
         }
@@ -792,7 +809,8 @@ public class CRCLPosemath {
         public boolean test(PoseType pose);
     }
 
-    public static CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
+    public static @Nullable
+    CRCLProgramType transformProgram(PoseType pose, CRCLProgramType programIn) {
         return transformProgramWithFilter(pose, programIn, null);
     }
 
@@ -807,7 +825,7 @@ public class CRCLPosemath {
 
     public static CRCLProgramType transformProgramWithFilter(PoseType pose,
             CRCLProgramType programIn,
-            /*@Nullable*/ PoseFilter filter) {
+            @Nullable PoseFilter filter) {
         CRCLProgramType programOut = new CRCLProgramType();
         InitCanonType initCmdOut = new InitCanonType();
         InitCanonType initCmdIn = programIn.getInitCanon();
@@ -1023,8 +1041,8 @@ public class CRCLPosemath {
         }
     }
 
-    /*@Nullable*/
-    public static PointType getPoint(/*@Nullable*/CRCLStatusType stat) {
+    public static @Nullable
+    PointType getPoint(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1034,8 +1052,8 @@ public class CRCLPosemath {
         return null;
     }
 
-    /*@Nullable*/
-    public static VectorType getXAxis(/*@Nullable*/CRCLStatusType stat) {
+    public static @Nullable
+    VectorType getXAxis(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1045,8 +1063,8 @@ public class CRCLPosemath {
         return null;
     }
 
-    /*@Nullable*/
-    public static VectorType getZAxis(/*@Nullable*/CRCLStatusType stat) {
+    public static @Nullable
+    VectorType getZAxis(/*@Nullable*/CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1634,7 +1652,7 @@ public class CRCLPosemath {
      * @return new Pose creating from combining inputs or pose_in if not null
      * @throws PmException if rotation vector can not be converted to matrix
      */
-    static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat, /*@Nullable*/ PoseType pose_in) throws PmException {
+    static public PoseType toPoseType(PmCartesian tran, PmRotationMatrix mat, @Nullable PoseType pose_in) throws PmException {
         PoseType pose = pose_in;
         if (pose == null) {
             pose = new PoseType();
@@ -1662,7 +1680,7 @@ public class CRCLPosemath {
      * @return new Pose creating from combining inputs or pose_in if not null
      * @throws PmException if rotation vector can not be converted to matrix
      */
-    static public PoseType toPoseType(PmCartesian tran, PmRotationVector v, /*@Nullable*/ PoseType pose_in) throws PmException {
+    static public PoseType toPoseType(PmCartesian tran, PmRotationVector v, @Nullable PoseType pose_in) throws PmException {
         PoseType pose = pose_in;
         if (pose == null) {
             pose = new PoseType();
@@ -1692,7 +1710,7 @@ public class CRCLPosemath {
      * @return new Pose creating from combining inputs or pose_in if not null
      * @throws PmException if rotation vector can not be converted to matrix
      */
-    static public PoseType toPoseType(PmCartesian tran, PmRpy v, /*@Nullable*/ PoseType pose_in) throws PmException {
+    static public PoseType toPoseType(PmCartesian tran, PmRpy v, @Nullable PoseType pose_in) throws PmException {
         PoseType pose = pose_in;
         if (pose == null) {
             pose = new PoseType();

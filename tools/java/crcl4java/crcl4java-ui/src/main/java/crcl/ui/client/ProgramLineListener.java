@@ -22,37 +22,14 @@
  */
 package crcl.ui.client;
 
-import java.io.File;
-import java.io.IOException;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import crcl.base.CRCLProgramType;
+import crcl.base.CRCLStatusType;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class PendantClientJPanelTest {
-    
-    private final CrclSwingClientJPanel pendantClientJPanel = new CrclSwingClientJPanel();
-    
-    public PendantClientJPanelTest() {
-    }
-    
-    @Before
-    public void setUp() throws IOException {
-        pendantClientJPanel.setPropertiesFile(File.createTempFile("pendantClientJPanelProperties", ".txt"));
-    }
+public interface ProgramLineListener {
 
-    @Test
-    public void testSaveProperties() {
-        int p1 = 99999;
-        pendantClientJPanel.setPort(p1);
-        pendantClientJPanel.saveProperties();
-        pendantClientJPanel.setPort(55555);
-        assertEquals(55555, pendantClientJPanel.getPort());
-        pendantClientJPanel.loadProperties();
-        assertEquals(p1, pendantClientJPanel.getPort());
-    }
-    
+    public void accept(CrclSwingClientJPanel panel, int line, CRCLProgramType program, CRCLStatusType status);
 }

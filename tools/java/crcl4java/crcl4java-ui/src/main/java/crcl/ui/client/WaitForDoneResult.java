@@ -27,6 +27,7 @@ package crcl.ui.client;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public enum WaitForDoneResult {
+    WFD_NOT_CALLED,
     WFD_DONE,
     WFD_ERROR,
     WFD_INTERRUPTED,

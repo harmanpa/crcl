@@ -27,6 +27,7 @@ import crcl.base.CRCLProgramType;
 import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /*
  * 
@@ -53,10 +54,10 @@ public class CRCLCommandWrapper extends MessageType {
         public void accept(CRCLCommandWrapper wrapper);
     }
     private MiddleCommandType wrappedCommand;
-    
-    /*@Nullable*/
-    private CRCLProgramType curProgram = null;
-    
+
+    private @Nullable
+    CRCLProgramType curProgram = null;
+
     private int curProgramIndex = -1;
 
     public int getCurProgramIndex() {
@@ -66,10 +67,9 @@ public class CRCLCommandWrapper extends MessageType {
     public void setCurProgramIndex(int curProgramIndex) {
         this.curProgramIndex = curProgramIndex;
     }
-    
-    
-    /*@Nullable*/
-    public CRCLProgramType getCurProgram() {
+
+    public @Nullable
+    CRCLProgramType getCurProgram() {
         return curProgram;
     }
 
@@ -128,20 +128,20 @@ public class CRCLCommandWrapper extends MessageType {
     }
 
     private static String createAssertErrorString(CRCLCommandType cmd, long id) {
-        return "command id being reduced id="+id+", cmd="+CRCLSocket.cmdToString(cmd);
+        return "command id being reduced id=" + id + ", cmd=" + CRCLSocket.cmdToString(cmd);
     }
 
     private static void setCommandId(CRCLCommandType cmd, long id) {
         assert cmd.getCommandID() <= id :
-                createAssertErrorString(cmd,id);
+                createAssertErrorString(cmd, id);
         cmd.setCommandID(id);
     }
-    
+
     @Override
     public void setCommandID(long id) {
         setCommandId(wrappedCommand, id);
         assert this.getCommandID() <= id :
-                createAssertErrorString(this,id);
+                createAssertErrorString(this, id);
         this.commandID = id;
     }
 
@@ -216,6 +216,5 @@ public class CRCLCommandWrapper extends MessageType {
     public String toString() {
         return "CrclCommandWrapper{" + "wrappedCommand=" + CRCLSocket.cmdToString(wrappedCommand) + ", curProgram=" + curProgram + ", curProgramIndex=" + curProgramIndex + ", onStartListeners=" + onStartListeners + ", onDoneListeners=" + onDoneListeners + ", onErrorListeners=" + onErrorListeners + '}';
     }
-    
-    
+
 }

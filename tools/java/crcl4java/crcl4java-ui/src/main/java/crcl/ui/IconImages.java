@@ -22,20 +22,17 @@
  */
 package crcl.ui;
 
-import crcl.ui.client.PendantClientJFrame;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -54,8 +51,8 @@ public class IconImages {
     public static final Image WORKING_IMAGE = createImage(ICON_SIZE, Color.green, Color.BLACK, BASE_IMAGE);
     public static final Image DISCONNECTED_IMAGE = createImage(ICON_SIZE, Color.GRAY, Color.BLACK, BASE_IMAGE);
 
-    @MonotonicNonNull
-    private static Image robotImage = null;
+    private static @MonotonicNonNull
+    Image robotImage = null;
 
     private static class DefaultRobotImageLoader {
 

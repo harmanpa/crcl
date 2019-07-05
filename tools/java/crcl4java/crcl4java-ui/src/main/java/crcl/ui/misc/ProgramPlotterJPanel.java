@@ -38,19 +38,20 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class ProgramPlotterJPanel extends JPanel {
 
-    
     @SuppressWarnings("initialization")
-    public ProgramPlotterJPanel(){
+    public ProgramPlotterJPanel() {
     }
-    
-    @Nullable  private  ProgramPlotter plotter=null;
+
+    private @Nullable
+    ProgramPlotter plotter = null;
 
     /**
      * Get the value of plotter
      *
      * @return the value of plotter
      */
-    @Nullable public ProgramPlotter getPlotter() {
+    public @Nullable
+    ProgramPlotter getPlotter() {
         return plotter;
     }
 
@@ -63,14 +64,16 @@ public class ProgramPlotterJPanel extends JPanel {
         this.plotter = plotter;
     }
 
-    @Nullable  private CRCLProgramType program=null;
+    private @Nullable
+    CRCLProgramType program = null;
 
     /**
      * Get the value of program
      *
      * @return the value of program
      */
-    @Nullable public CRCLProgramType getProgram() {
+    public @Nullable
+    CRCLProgramType getProgram() {
         return program;
     }
 

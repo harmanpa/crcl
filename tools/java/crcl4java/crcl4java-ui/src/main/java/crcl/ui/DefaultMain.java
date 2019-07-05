@@ -24,7 +24,7 @@ package crcl.ui;
 
 import crcl.ui.server.CmdLineSimServer;
 import crcl.ui.server.SimServerJFrame;
-import crcl.ui.client.PendantClientJFrame;
+import crcl.ui.client.CrclSwingClientJFrame;
 import crcl.ui.client.CmdLineClient;
 import crcl.utils.kinematics.SimRobotEnum;
 import java.util.Arrays;
@@ -125,7 +125,7 @@ public class DefaultMain {
                 break;
 
             case "GraphicalClient":
-                PendantClientJFrame.main(args);
+                CrclSwingClientJFrame.main(args);
                 break;
                 
             default:

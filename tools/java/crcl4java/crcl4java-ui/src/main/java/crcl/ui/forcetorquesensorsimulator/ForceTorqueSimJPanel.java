@@ -28,6 +28,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     /**
      * Creates new form ForceTorqueSimJPanel
      */
+    @SuppressWarnings("initialization")
     public ForceTorqueSimJPanel() {
         status = new CRCLStatusType();
         status.setSensorStatuses(new SensorStatusesType());
@@ -171,7 +172,6 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 startServer();
             } else if (null != crclServerSocket) {
                 crclServerSocket.close();
-                crclServerSocket = null;
             }
         } catch (Exception ex) {
             Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "connect=" + doStart, ex);
@@ -220,6 +220,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     public static final CRCLServerSocketStateGenerator<ForceTorqueSimClientState> FORCE_TORQUE_SIM_STATE_GENERATOR
             = ForceTorqueSimClientState::new;
 
+    @SuppressWarnings("initialization")
     private final CRCLServerSocketEventListener<ForceTorqueSimClientState> crclSocketEventListener
             = this::handleCrclServerSocketEvent;
 

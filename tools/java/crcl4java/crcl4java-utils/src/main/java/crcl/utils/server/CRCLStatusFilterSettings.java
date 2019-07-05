@@ -36,13 +36,14 @@ import crcl.base.PoseType;
 import crcl.base.SettingsStatusType;
 import crcl.base.TorqueUnitEnumType;
 import crcl.utils.CRCLPosemath;
-import crcl.utils.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -50,11 +51,14 @@ import java.util.Map;
  */
 public class CRCLStatusFilterSettings {
 
-    private ConfigureStatusReportType configureStatusReport = null;
+    private @MonotonicNonNull
+    ConfigureStatusReportType configureStatusReport = null;
     private final Map<Integer, ConfigureJointReportType> configJointsReportMap = new HashMap<>();
     private final UnitsTypeSet clientUserSet = new UnitsTypeSet();
-    private UnitsTypeSet serverUserSet;
-    private UnitsScaleSet serverToClientScaleSet;
+    private @MonotonicNonNull
+    UnitsTypeSet serverUserSet = null;
+    private @MonotonicNonNull
+    UnitsScaleSet serverToClientScaleSet = null;
 
     public Map<Integer, ConfigureJointReportType> getConfigJointsReportMap() {
         return configJointsReportMap;
@@ -64,7 +68,8 @@ public class CRCLStatusFilterSettings {
         return clientUserSet;
     }
 
-    public UnitsTypeSet getServerUserSet() {
+    public @Nullable
+    UnitsTypeSet getServerUserSet() {
         return serverUserSet;
     }
 
@@ -72,7 +77,8 @@ public class CRCLStatusFilterSettings {
         this.serverUserSet = serverUserSet;
     }
 
-    public UnitsScaleSet getServerToClientScaleSet() {
+    public @Nullable
+    UnitsScaleSet getServerToClientScaleSet() {
         return serverToClientScaleSet;
     }
 
@@ -80,7 +86,8 @@ public class CRCLStatusFilterSettings {
         this.serverToClientScaleSet = serverToClientScaleSet;
     }
 
-    public ConfigureStatusReportType getConfigureStatusReport() {
+    public @Nullable
+    ConfigureStatusReportType getConfigureStatusReport() {
         return configureStatusReport;
     }
 
@@ -306,10 +313,14 @@ public class CRCLStatusFilterSettings {
         return scale;
     }
 
+    @SuppressWarnings("nullness")
     public CRCLStatusType filterStatus(CRCLStatusType statusIn) {
         CRCLStatusType statusOut = CRCLPosemath.copy(statusIn);
+        if(null == statusOut) {
+            throw new NullPointerException("statusOut");
+        }
         if (null == configureStatusReport) {
-            setConfigureStatusReport(createDefaultConfigureStatusReportType());
+            configureStatusReport = createDefaultConfigureStatusReportType();
         }
         if (statusOut.getGripperStatus() != null && !configureStatusReport.isReportGripperStatus()) {
             statusOut.setGripperStatus(null);
@@ -379,16 +390,16 @@ public class CRCLStatusFilterSettings {
                     settingsStatusOut.setLengthUnitName(clientUserSet.getLengthUnit());
                     settingsStatusOut.setTorqueUnitName(clientUserSet.getTorqueUnit());
                     settingsStatusOut.setForceUnitName(clientUserSet.getForceUnit());
-                    if(null != settingsStatusOut.getTransSpeedAbsolute()) {
+                    if (null != settingsStatusOut.getTransSpeedAbsolute()) {
                         settingsStatusOut.getTransSpeedAbsolute().setSetting(convertLengthToClient(statusIn.getSettingsStatus().getTransSpeedAbsolute().getSetting()));
                     }
-                    if(null != settingsStatusOut.getRotSpeedAbsolute()) {
+                    if (null != settingsStatusOut.getRotSpeedAbsolute()) {
                         settingsStatusOut.getRotSpeedAbsolute().setSetting(convertAngleToClient(statusIn.getSettingsStatus().getRotSpeedAbsolute().getSetting()));
                     }
-                    if(null != settingsStatusOut.getTransAccelAbsolute()) {
+                    if (null != settingsStatusOut.getTransAccelAbsolute()) {
                         settingsStatusOut.getTransAccelAbsolute().setSetting(convertLengthToClient(statusIn.getSettingsStatus().getTransAccelAbsolute().getSetting()));
                     }
-                    if(null != settingsStatusOut.getRotAccelAbsolute()) {
+                    if (null != settingsStatusOut.getRotAccelAbsolute()) {
                         settingsStatusOut.getRotAccelAbsolute().setSetting(convertAngleToClient(statusIn.getSettingsStatus().getRotAccelAbsolute().getSetting()));
                     }
                 }

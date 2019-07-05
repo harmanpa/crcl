@@ -26,6 +26,7 @@ import crcl.base.ParameterSettingType;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -34,13 +35,14 @@ import java.util.logging.Logger;
 public class RemoteCrclSensorExtractorFinder implements SensorServerFinderInterface {
 
     @Override
-    public SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList) {
-        if(sensorId.startsWith("RemoteCrclSensor")) { 
+    public @Nullable
+    SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList) {
+        if (sensorId.startsWith("RemoteCrclSensor")) {
             try {
                 return new RemoteCrclSensorExtractor(sensorId, parameterList);
             } catch (Exception ex) {
-                Logger.getLogger(RemoteCrclSensorExtractorFinder.class.getName()).log(Level.SEVERE, "sensorId="+sensorId, ex);
-                if(ex instanceof RuntimeException) {
+                Logger.getLogger(RemoteCrclSensorExtractorFinder.class.getName()).log(Level.SEVERE, "sensorId=" + sensorId, ex);
+                if (ex instanceof RuntimeException) {
                     throw (RuntimeException) ex;
                 } else {
                     throw new RuntimeException(ex);
@@ -50,5 +52,5 @@ public class RemoteCrclSensorExtractorFinder implements SensorServerFinderInterf
             return null;
         }
     }
-    
+
 }

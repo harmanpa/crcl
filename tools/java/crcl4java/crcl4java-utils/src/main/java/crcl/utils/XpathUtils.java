@@ -54,7 +54,7 @@ import org.xml.sax.SAXException;
  * the framework allows potential NullPointerExceptions to be found.
  */
 
-/*>>>
+ /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
 public class XpathUtils {
@@ -68,7 +68,6 @@ public class XpathUtils {
         documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilder = documentBuilderFactory.newDocumentBuilder();
     }
-
 
     public String getDocumentation(/*@Nullable*/File schemaFiles[], String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
         return queryXml(schemaFiles, "/schema/complexType[@name=\"" + name + "\"]/annotation/documentation/text()");
@@ -111,7 +110,9 @@ public class XpathUtils {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-            sb.append(nodeToString(n));
+            if (n != null) {
+                sb.append(nodeToString(n));
+            }
         }
         return sb.toString();
     }

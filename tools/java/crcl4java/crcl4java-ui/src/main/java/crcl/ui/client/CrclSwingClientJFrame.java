@@ -30,7 +30,7 @@ import crcl.ui.server.SimServerJFrame;
 import crcl.ui.misc.TransformSetupJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.ui.XFutureVoid;
-import static crcl.ui.client.PendantClientJInternalFrame.LOGGER;
+import static crcl.ui.client.CrclSwingClientJInternalFrame.LOGGER;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.Utils;
@@ -67,10 +67,10 @@ import org.xml.sax.SAXException;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
-public class PendantClientJFrame extends javax.swing.JFrame implements PendantClientOuter, PendantClientMenuOuter {
+public class CrclSwingClientJFrame extends javax.swing.JFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     @SuppressWarnings("initialization")
-    public PendantClientJFrame(GraphicsConfiguration gc) throws ParserConfigurationException {
+    public CrclSwingClientJFrame(GraphicsConfiguration gc) throws ParserConfigurationException {
         super(gc);
         init();
     }
@@ -81,7 +81,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     }
 
     @SuppressWarnings("initialization")
-    public PendantClientJFrame(String title) throws ParserConfigurationException {
+    public CrclSwingClientJFrame(String title) throws ParserConfigurationException {
         super(title);
         init();
         setTitle(title);
@@ -94,7 +94,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
      * javax.xml.parsers.DocumentBuilderFactory fails in XpathUtils
      */
     @SuppressWarnings("initialization")
-    public PendantClientJFrame() throws ParserConfigurationException {
+    public CrclSwingClientJFrame() throws ParserConfigurationException {
         super();
         init();
     }
@@ -170,19 +170,19 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
-    private void addClassSubmenu( File fSubDir)  {
-        final String subdirName =fSubDir.getName();
+    private void addClassSubmenu(File fSubDir) {
+        final String subdirName = fSubDir.getName();
         try {
-            Class.forName("crcl.base."+subdirName);
+            Class.forName("crcl.base." + subdirName);
         } catch (ClassNotFoundException ex) {
-            System.out.println("ignoring subdir that doesn't match class "+subdirName);
+            System.out.println("ignoring subdir that doesn't match class " + subdirName);
             return;
         }
         JMenu jm = new JMenu(subdirName);
-        
+
         this.jMenuCommandRecent.add(jm);
         File sub_fa[] = fSubDir.listFiles(new java.io.FilenameFilter() {
-            
+
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".xml");
@@ -194,7 +194,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
                 File xmlFile = sub_fa[i];
                 JMenuItem jmi = new JMenuItem(xmlFile.getName());
                 jmi.addActionListener(new ActionListener() {
-                    
+
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         try {
@@ -210,7 +210,6 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
-
 //    private static final Comparator<File> LAST_MODIFIED_COMPARATOR
 //            = (File o1, File o2) -> Long.compare(o1.lastModified(), o2.lastModified());
     private static final Comparator<File> LAST_MODIFIED_COMPARATOR
@@ -222,7 +221,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         }
     }
 
-    public static final Logger LOGGER = Logger.getLogger(PendantClientJFrame.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(CrclSwingClientJFrame.class.getName());
 
     private void readRecentPrograms() {
         Set<String> pathSet = pendantClientJPanel1.getRecentPrograms();
@@ -253,7 +252,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        pendantClientJPanel1 = new PendantClientJPanel(this,this);
+        pendantClientJPanel1 = new crcl.ui.client.CrclSwingClientJPanel(this,this);
         jMenuBarPendantClient = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemOpenXmlCommandInstance = new javax.swing.JMenuItem();
@@ -479,85 +478,85 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         FormListener() {}
         public void actionPerformed(java.awt.event.ActionEvent evt) {
             if (evt.getSource() == jMenu1) {
-                PendantClientJFrame.this.jMenu1ActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenu1ActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemOpenXmlCommandInstance) {
-                PendantClientJFrame.this.jMenuItemOpenXmlCommandInstanceActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemOpenXmlCommandInstanceActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemOpenXmlProgram) {
-                PendantClientJFrame.this.jMenuItemOpenXmlProgramActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemOpenXmlProgramActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemSaveProgramAs) {
-                PendantClientJFrame.this.jMenuItemSaveProgramAsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemSaveProgramAsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemClearRecordedPoints) {
-                PendantClientJFrame.this.jMenuItemClearRecordedPointsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemClearRecordedPointsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemSavePoseList) {
-                PendantClientJFrame.this.jMenuItemSavePoseListActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemSavePoseListActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemLoadPrefs) {
-                PendantClientJFrame.this.jMenuItemLoadPrefsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemLoadPrefsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemSavePrefs) {
-                PendantClientJFrame.this.jMenuItemSavePrefsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemSavePrefsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemResetPrefs) {
-                PendantClientJFrame.this.jMenuItemResetPrefsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemResetPrefsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemViewLogFile) {
-                PendantClientJFrame.this.jMenuItemViewLogFileActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemViewLogFileActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemExit) {
-                PendantClientJFrame.this.jMenuItemExitActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemExitActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemXPathQuery) {
-                PendantClientJFrame.this.jMenuItemXPathQueryActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemXPathQueryActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemPlotXYZ) {
-                PendantClientJFrame.this.jCheckBoxMenuItemPlotXYZActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemPlotXYZActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemJoints) {
-                PendantClientJFrame.this.jCheckBoxMenuItemJointsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemJointsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemRunTest) {
-                PendantClientJFrame.this.jMenuItemRunTestActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemRunTestActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemPoseList3DPlot) {
-                PendantClientJFrame.this.jMenuItemPoseList3DPlotActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemPoseList3DPlotActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemOpenStatusLog) {
-                PendantClientJFrame.this.jMenuItemOpenStatusLogActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemOpenStatusLogActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemShowCommandLog) {
-                PendantClientJFrame.this.jMenuItemShowCommandLogActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemShowCommandLogActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemTransformProgram) {
-                PendantClientJFrame.this.jMenuItemTransformProgramActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemTransformProgramActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemSetSchemaFiles) {
-                PendantClientJFrame.this.jMenuItemSetSchemaFilesActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemSetSchemaFilesActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemValidateXml) {
-                PendantClientJFrame.this.jCheckBoxMenuItemValidateXmlActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemValidateXmlActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemUseEXI) {
-                PendantClientJFrame.this.jCheckBoxMenuItemUseEXIActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemUseEXIActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemUseReadStatusThread) {
-                PendantClientJFrame.this.jCheckBoxMenuItemUseReadStatusThreadActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemUseReadStatusThreadActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemRecordCommands) {
-                PendantClientJFrame.this.jCheckBoxMenuItemRecordCommandsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemRecordCommandsActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemQuitProgramOnTestCommandFail) {
-                PendantClientJFrame.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemQuitProgramOnTestCommandFailActionPerformed(evt);
             }
             else if (evt.getSource() == jCheckBoxMenuItemDisableTextPopups) {
-                PendantClientJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
+                CrclSwingClientJFrame.this.jCheckBoxMenuItemDisableTextPopupsActionPerformed(evt);
             }
             else if (evt.getSource() == jMenuItemAbout) {
-                PendantClientJFrame.this.jMenuItemAboutActionPerformed(evt);
+                CrclSwingClientJFrame.this.jMenuItemAboutActionPerformed(evt);
             }
         }
     }// </editor-fold>//GEN-END:initComponents
@@ -726,11 +725,11 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return this.jCheckBoxMenuItemUseReadStatusThread.isSelected();
     }
 
-    public void addProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
+    public void addProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
     }
 
-    public void removeProgramLineListener(PendantClientJPanel.ProgramLineListener l) {
+    public void removeProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.removeProgramLineListener(l);
     }
 
@@ -756,7 +755,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
                     }
                 }
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-                java.util.logging.Logger.getLogger(PendantClientJFrame.class
+                java.util.logging.Logger.getLogger(CrclSwingClientJFrame.class
                         .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
             }
@@ -766,7 +765,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
             @Override
             public void run() {
                 try {
-                    new PendantClientJFrame().setVisible(true);
+                    new CrclSwingClientJFrame().setVisible(true);
                 } catch (ParserConfigurationException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
@@ -816,7 +815,7 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
     private javax.swing.JMenu jMenuRecentProgram;
     private javax.swing.JMenu jMenuTools;
     private javax.swing.JMenu jMenuXmlSchemas;
-    private crcl.ui.client.PendantClientJPanel pendantClientJPanel1;
+    private crcl.ui.client.CrclSwingClientJPanel pendantClientJPanel1;
     // End of variables declaration//GEN-END:variables
 
     @Override
@@ -924,8 +923,8 @@ public class PendantClientJFrame extends javax.swing.JFrame implements PendantCl
         return pendantClientJPanel1.currentStatusPose();
     }
 
-    @Nullable
-    public CRCLProgramType getProgram() {
+    public @Nullable
+    CRCLProgramType getProgram() {
         return pendantClientJPanel1.getProgram();
     }
 

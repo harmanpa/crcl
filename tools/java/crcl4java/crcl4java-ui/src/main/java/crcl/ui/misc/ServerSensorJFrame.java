@@ -122,7 +122,8 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         return jTextFieldDirectory.getText();
     }
 
-    @Nullable private Runnable onStopRunnable = null;
+    private @Nullable
+    Runnable onStopRunnable = null;
 
     public void setOnStopRunnable(Runnable r) {
         this.onStopRunnable = r;
@@ -321,10 +322,14 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextFieldDirectoryActionPerformed
 
-    @Nullable private Process internalProcess = null;
-    @Nullable private Thread monitorOutputThread = null;
-    @Nullable private Thread monitorErrorThread = null;
-    @Nullable private Thread readSocketThread = null;
+    private @Nullable
+    Process internalProcess = null;
+    private @Nullable
+    Thread monitorOutputThread = null;
+    private @Nullable
+    Thread monitorErrorThread = null;
+    private @Nullable
+    Thread readSocketThread = null;
 
     private final int SERVER_PORT_NUM = 4567;
 
@@ -393,7 +398,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
 
     private void monitorInternalProcessOutput() {
         Process internalProcess1 = internalProcess;
-        if(null == internalProcess1) {
+        if (null == internalProcess1) {
             throw new IllegalStateException("null == internalProcess1");
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getInputStream()))) {
@@ -415,7 +420,7 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
 
     private void monitorInternalProcessError() {
         Process internalProcess1 = internalProcess;
-        if(null == internalProcess1) {
+        if (null == internalProcess1) {
             throw new IllegalStateException("null == internalProcess1");
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(internalProcess1.getErrorStream()))) {
@@ -514,7 +519,6 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
 //        stop();
 //        super.finalize();
 //    }
-
 
     private void jButtonDirBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDirBrowseActionPerformed
         JFileChooser chooser = new JFileChooser(new File(jTextFieldDirectory.getText()));

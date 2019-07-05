@@ -33,6 +33,7 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame {
     /**
      * Creates new form ForceTorqueSimJFrame
      */
+    @SuppressWarnings("initialization")
     public ForceTorqueSimJFrame() {
         initComponents();
     }

@@ -215,12 +215,13 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jTextArea1MouseReleased
 
-    @Nullable
-    private JDialog dialog = null;
+    private @Nullable
+    JDialog dialog = null;
+
     private boolean cancelled = false;
 
-    @Nullable
-    private static String editTextPrivate(JDialog _dialog, String init) {
+    private static @Nullable
+    String editTextPrivate(JDialog _dialog, String init) {
         MultiLineStringJPanel panel = new MultiLineStringJPanel();
         panel.jTextArea1.setText(init);
         panel.jScrollPane1.getVerticalScrollBar().setValue(0);
@@ -235,16 +236,16 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return panel.jTextArea1.getText();
     }
 
-    @Nullable
-    public static String editText(String init, Frame _owner,
+    public static @Nullable
+    String editText(String init, Frame _owner,
             String _title,
             boolean _modal) {
         JDialog dialog = new JDialog(_owner, _title, _modal);
         return editTextPrivate(dialog, init);
     }
 
-    @Nullable
-    public static String editText(String init) {
+    public static @Nullable
+    String editText(String init) {
         JDialog dialog = new JDialog();
         dialog.setModal(true);
         return editTextPrivate(dialog, init);
@@ -292,11 +293,10 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     public static XFuture<Boolean> showException(Throwable throwable) {
         return showText(throwable.toString(), null, "Exception", false, true);
     }
-    
-    public static XFuture<Boolean> showException(Throwable throwable, StackTraceElement trace[]) {
-        return showText(throwable.toString() +"\n\n Thrown from:\r\n"+XFuture.traceToString(throwable.getStackTrace())+"\n\n Logged from:\r\n"+XFuture.traceToString(trace), null, "Exception", false, true);
-    }
 
+    public static XFuture<Boolean> showException(Throwable throwable, StackTraceElement trace[]) {
+        return showText(throwable.toString() + "\n\n Thrown from:\r\n" + XFuture.traceToString(throwable.getStackTrace()) + "\n\n Logged from:\r\n" + XFuture.traceToString(trace), null, "Exception", false, true);
+    }
 
     public static XFuture<Boolean> showText(String init) {
         return showText(init, null, "", false, false);

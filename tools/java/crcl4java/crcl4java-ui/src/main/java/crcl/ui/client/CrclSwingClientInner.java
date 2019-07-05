@@ -86,7 +86,7 @@ import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLCommandWrapper;
 import crcl.ui.XFuture;
 import crcl.ui.XFutureVoid;
-import static crcl.ui.client.PendantClientJPanel.getTimeString;
+import static crcl.ui.client.CrclSwingClientJPanel.getTimeString;
 
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.server.SimServerInner;
@@ -163,11 +163,11 @@ import rcs.posemath.Posemath;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class PendantClientInner {
+public class CrclSwingClientInner {
 
     //    public static final BigDecimal BIG_DECIMAL_POINT_01 = new BigDecimal("0.01");
     public static final double FIVE_DEGREES_IN_RADIANS = Math.toRadians(5.0);
-    public static final Logger LOGGER = Logger.getLogger(PendantClientInner.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(CrclSwingClientInner.class.getName());
     public static final String PROP_LENGTHUNIT = "lengthUnit";
 
     private static long getLongProperty(String propName, long defaultLong) {
@@ -206,17 +206,17 @@ public class PendantClientInner {
                 .collect(Collectors.joining(","));
     }
 
-    @MonotonicNonNull
-    private CRCLStatusType status = null;
+    private @MonotonicNonNull
+    CRCLStatusType status = null;
 
-    @Nullable
-    private volatile CRCLSocket crclSocket = null;
+    private volatile @MonotonicNonNull
+    CRCLSocket crclSocket = null;
 
     private final PendantClientOuter outer;
     private static final double JOG_INCREMENT_DEFAULT = 3.0;
     private double jogIncrement = JOG_INCREMENT_DEFAULT;
-    @Nullable
-    private volatile CRCLProgramType program = null;
+    private volatile @Nullable
+    CRCLProgramType program = null;
 
     private PoseToleranceType expectedEndPoseTolerance = new PoseToleranceType();
     private PoseToleranceType expectedIntermediatePoseTolerance;
@@ -230,10 +230,11 @@ public class PendantClientInner {
     private int poll_ms = jogInterval;
 
     private final XpathUtils xpu;
-    @MonotonicNonNull
-    private CRCLSocket checkerCRCLSocket = null;
-    @MonotonicNonNull
-    private CRCLCommandInstanceType checkerCommandInstance = null;
+
+    private @MonotonicNonNull
+    CRCLSocket checkerCRCLSocket = null;
+    private @MonotonicNonNull
+    CRCLCommandInstanceType checkerCommandInstance = null;
 
     @SuppressWarnings("initialization")
     private final Function<CRCLProgramType, XFuture<Boolean>> checkProgramValidPredicate
@@ -243,18 +244,16 @@ public class PendantClientInner {
     private final Function<CRCLCommandType, XFuture<Boolean>> checkCommandValidPredicate
             = this::checkCommandValid;
 
-//    private File[] cmdSchemaFiles = null;
-//    private File[] programSchemaFiles = null;
-    @Nullable
-    private CRCLCommandType lastCommandSent = null;
+    private @Nullable
+    CRCLCommandType lastCommandSent = null;
 
-    @Nullable
-    public CRCLCommandType getLastCommandSent() {
+    public @Nullable
+    CRCLCommandType getLastCommandSent() {
         return this.lastCommandSent;
     }
 
-    @Nullable
-    private CRCLCommandType prevLastCommandSent = null;
+    private @Nullable
+    CRCLCommandType prevLastCommandSent = null;
     private boolean recordCommands = false;
     private int maxRecordCommandsCount = 1000;
 
@@ -270,8 +269,8 @@ public class PendantClientInner {
             = new ConcurrentLinkedQueue<>();
     private final List<CRCLCommandType> recordedCommandsList = new ArrayList<>();
     private long waitForDoneDelay = getLongProperty("PendantClient.waitForDoneDelay", 100);
-    @Nullable
-    private Thread readerThread = null;
+    private @Nullable
+    Thread readerThread = null;
     final private List<AnnotatedPose> poseList = new ArrayList<>();
     final private Queue<AnnotatedPose> poseQueue = new ConcurrentLinkedQueue<>();
     private boolean disconnecting = false;
@@ -296,8 +295,8 @@ public class PendantClientInner {
     long runEndMillis = 0;
     private double jointMoveAccel;
     private double jointMoveSpeed;
-    @Nullable
-    private volatile CRCLStatusType testCommandStartStatus = null;
+    private volatile @Nullable
+    CRCLStatusType testCommandStartStatus = null;
     private boolean lengthUnitSent = false;
     private LengthUnitEnumType testCommandStartLengthUnit = LengthUnitEnumType.MILLIMETER;
     boolean testCommandStartLengthUnitSent = false;
@@ -373,7 +372,8 @@ public class PendantClientInner {
     private final StackTraceElement createStackTrace[];
     private final DefaultSchemaFiles defaultsInstance;
 
-    PendantClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
+    @SuppressWarnings("initialization")
+    CrclSwingClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
         this.defaultsInstance = defaultsInstance;
@@ -441,8 +441,8 @@ public class PendantClientInner {
      *
      * @return the value of program
      */
-    @Nullable
-    public CRCLProgramType getProgram() {
+    public @Nullable
+    CRCLProgramType getProgram() {
         return program;
     }
 
@@ -468,8 +468,8 @@ public class PendantClientInner {
         outer.clearProgramTimesDistances();
     }
 
-    @Nullable
-    public CRCLSocket getCRCLSocket() {
+    public @Nullable
+    CRCLSocket getCRCLSocket() {
         return this.crclSocket;
     }
 
@@ -498,8 +498,8 @@ public class PendantClientInner {
     private volatile boolean blockPrograms = false;
     private final AtomicInteger blockProgramsSetCount = new AtomicInteger();
 
-    @Nullable
-    private volatile Thread startBlockProgramsThread = null;
+    private volatile @Nullable
+    Thread startBlockProgramsThread = null;
     private volatile StackTraceElement startBlockProgramsTrace @Nullable []  = null;
     private volatile long startBlockProgramsTime = -1;
 
@@ -532,8 +532,8 @@ public class PendantClientInner {
 
     private volatile StackTraceElement @Nullable [] closeTestProgramRunProgramThreadTrace = null;
     private volatile StackTraceElement @Nullable [] closeTestProgramThreadTrace = null;
-    @Nullable
-    private volatile Thread closeTestProgramThreadThead = null;
+    private volatile @Nullable
+    Thread closeTestProgramThreadThead = null;
 
     public void closeTestProgramThread() {
         if (!isRunningProgram()) {
@@ -547,10 +547,11 @@ public class PendantClientInner {
         } else {
             closeTestProgramRunProgramThreadTrace = rpt.getStackTrace();
         }
-        if (null != runProgramFuture) {
-            if (!runProgramFuture.isDone()) {
-                System.err.println("PendantClientInner.runProgramFuture : cancelling runProgramFuture=" + runProgramFuture);
-                runProgramFuture.cancelAll(true);
+        final XFuture<Boolean> runProgramFutureFinal = runProgramFuture;
+        if (null != runProgramFutureFinal) {
+            if (!runProgramFutureFinal.isDone()) {
+                System.err.println("PendantClientInner.runProgramFuture : cancelling runProgramFuture=" + runProgramFutureFinal);
+                runProgramFutureFinal.cancelAll(true);
             }
             runProgramFuture = null;
         }
@@ -558,7 +559,7 @@ public class PendantClientInner {
             if (null != runProgramThread) {
                 System.err.println("closeTestProgramRunProgramThreadTrace = " + Arrays.toString(closeTestProgramRunProgramThreadTrace));
             }
-            showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFuture + ", runProgramThread=" + runProgramThread);
+            showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFutureFinal + ", runProgramThread=" + runProgramThread);
         }
     }
 
@@ -574,22 +575,26 @@ public class PendantClientInner {
         return false;
     }
 
-    private volatile String errorStateDescription = null;
-    private volatile CRCLStatusType lastErrorStat = null;
+    private volatile @Nullable
+    String errorStateDescription = null;
+
+    private volatile @Nullable
+    CRCLStatusType lastErrorStat = null;
 
     public boolean isError(long minCmdId) {
-        CRCLStatusType stat = this.status;
-        if (null != stat) {
-            final CommandStatusType commandStatus = stat.getCommandStatus();
-            if (null != commandStatus) {
-                boolean ret = commandStatus.getCommandID() == minCmdId
-                        && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR;
-                if (ret) {
-                    lastErrorStat = CRCLPosemath.copy(stat);
-                    errorStateDescription = commandStatus.getStateDescription();
-                }
-                return ret;
+        final CRCLStatusType stat = this.status;
+        if (stat == null) {
+            return false;
+        }
+        final CommandStatusType commandStatus = stat.getCommandStatus();
+        if (null != commandStatus) {
+            boolean ret = commandStatus.getCommandID() == minCmdId
+                    && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR;
+            if (ret) {
+                lastErrorStat = CRCLPosemath.copy(stat);
+                errorStateDescription = commandStatus.getStateDescription();
             }
+            return ret;
         }
         return false;
     }
@@ -623,27 +628,27 @@ public class PendantClientInner {
 
     public boolean requestStatus() throws JAXBException {
         request_status_count++;
-        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
+//        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
         boolean result = false;
         setCommandId(getStatusMsg, commandId.get());
         result = this.sendCommand(getStatusMsg);
-        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : returning from RequestStatus() " + request_status_count);
+//        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : returning from RequestStatus() " + request_status_count);
         return result;
     }
 
-    @Nullable
-    private PrintStream logStream = null;
+    private @Nullable
+    PrintStream logStream = null;
 
-    @Nullable
-    private File tempLogDir = null;
+    private @Nullable
+    File tempLogDir = null;
 
     /**
      * Get the value of tempLogDir
      *
      * @return the value of tempLogDir
      */
-    @Nullable
-    public File getTempLogDir() {
+    public @Nullable
+    File getTempLogDir() {
         return tempLogDir;
     }
 
@@ -669,11 +674,11 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable
-    private volatile String crclClientErrorMessage = null;
+    private volatile @Nullable
+    String crclClientErrorMessage = null;
 
-    @Nullable
-    public String getCrclClientErrorMessage() {
+    public @Nullable
+    String getCrclClientErrorMessage() {
         return crclClientErrorMessage;
     }
 
@@ -715,6 +720,10 @@ public class PendantClientInner {
 
     public void showErrorMessage(String s) {
         System.err.println(s);
+        System.out.println();
+        System.err.println();
+        System.out.flush();
+        System.err.flush();
         if (!disconnecting && !aborting) {
             Thread.dumpStack();
         }
@@ -727,6 +736,10 @@ public class PendantClientInner {
             logStream.println(s);
         }
         pause();
+        System.out.println();
+        System.err.println();
+        System.out.flush();
+        System.err.flush();
     }
 
     private void showMessage(String s) {
@@ -863,8 +876,8 @@ public class PendantClientInner {
         return XFuture.completedFuture(false);
     }
 
-    @MonotonicNonNull
-    private volatile Schema statSchema = null;
+    private volatile @MonotonicNonNull
+    Schema statSchema = null;
 
     final synchronized void setStatSchema(File[] fa) {
         try {
@@ -878,8 +891,8 @@ public class PendantClientInner {
         }
     }
 
-    @MonotonicNonNull
-    private volatile Schema cmdSchema = null;
+    private volatile @MonotonicNonNull
+    Schema cmdSchema = null;
 
     final void setCmdSchema(File[] fa) {
         try {
@@ -893,8 +906,8 @@ public class PendantClientInner {
         }
     }
 
-    @MonotonicNonNull
-    private volatile Schema progSchema = null;
+    private volatile @MonotonicNonNull
+    Schema progSchema = null;
 
     final synchronized void setProgramSchema(File[] fa) {
         try {
@@ -911,8 +924,8 @@ public class PendantClientInner {
         }
     }
 
-    @MonotonicNonNull
-    private File logFile = null;
+    private @MonotonicNonNull
+    File logFile = null;
 
     public void openLogFile() {
         if (null != logStream) {
@@ -1031,8 +1044,8 @@ public class PendantClientInner {
     private volatile StackTraceElement lastCommandSentStackTrace @Nullable []  = null;
     private volatile StackTraceElement prevLastCommandSentStackTrace @Nullable []  = null;
 
-    @Nullable
-    public CRCLCommandType getPrevLastCommandSent() {
+    public @Nullable
+    CRCLCommandType getPrevLastCommandSent() {
         return prevLastCommandSent;
     }
 
@@ -1163,13 +1176,13 @@ public class PendantClientInner {
 
     private final AtomicLong commandId = new AtomicLong(3);
 
-    @Nullable
-    private volatile Thread lastIncCommandThread = null;
+    private volatile @Nullable
+    Thread lastIncCommandThread = null;
     private volatile StackTraceElement lastIncCommandThreadStackTrace @Nullable []  = null;
     private volatile long lastIncCommandThreadStackId;
     private volatile long lastIncCommandThreadStackTime;
-    @Nullable
-    private volatile Thread secondLastIncCommandThread = null;
+    private volatile @Nullable
+    Thread secondLastIncCommandThread = null;
     private volatile StackTraceElement secondLastIncCommandThreadStackTrace @Nullable []  = null;
     private volatile long secondLastIncCommandThreadStackId;
     private volatile long secondLastIncCommandThreadStackTime;
@@ -1303,7 +1316,14 @@ public class PendantClientInner {
             holdingErrorOccured = false;
         } else if (cmd instanceof MoveToType) {
             MoveToType moveToCmd = (MoveToType) cmd;
-            PointType pt = moveToCmd.getEndPosition().getPoint();
+            final PoseType endPosition = moveToCmd.getEndPosition();
+            if (null == endPosition) {
+                throw new NullPointerException("moveToCmd.getEndPosition() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
+            }
+            PointType pt = endPosition.getPoint();
+            if (null == pt) {
+                throw new NullPointerException("moveToCmd.getEndPosition()getPoint() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
+            }
             if (null != maxLimit) {
                 if (pt.getX() > maxLimit.x) {
                     throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
@@ -1483,8 +1503,8 @@ public class PendantClientInner {
     private long lastWaitForDoneTimeDiff = -1;
     private long lastWaitForDoneFullTimeout = -1;
     private long lastWaitForDoneMinCmdId = -1;
-    @Nullable
-    private Exception lastWaitForDoneException = null;
+    private @Nullable
+    Exception lastWaitForDoneException = null;
 
     private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION
             = Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension", "5000"));
@@ -1620,13 +1640,13 @@ public class PendantClientInner {
         outer.finishSetStatus();
     }
 
-    @Nullable
-    public CRCLStatusType getStatus() {
+    public @Nullable
+    CRCLStatusType getStatus() {
         return this.status;
     }
 
-    @Nullable
-    public CommandStatusType getCommandStatus() {
+    public @Nullable
+    CommandStatusType getCommandStatus() {
         CRCLStatusType s = this.getStatus();
         if (null != s) {
             return s.getCommandStatus();
@@ -1803,10 +1823,10 @@ public class PendantClientInner {
     private int holdingErrorRepCount = 0;
 
     private volatile long lastLogCmdTime = System.currentTimeMillis();
-    @MonotonicNonNull
-    private volatile PointType lastLogMoveToCmdPoint = null;
-    @MonotonicNonNull
-    private volatile PointType lastLogStatusPoint = null;
+    private volatile @MonotonicNonNull
+    PointType lastLogMoveToCmdPoint = null;
+    private volatile @MonotonicNonNull
+    PointType lastLogStatusPoint = null;
 
     private double distFromLastLogMoveToCmdPoint() {
         if (null == lastLogMoveToCmdPoint) {
@@ -1818,11 +1838,11 @@ public class PendantClientInner {
         return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, lastLogStatusPoint);
     }
 
-    @Nullable
-    private volatile PointType lastMoveToCmdPoint = null;
+    private volatile @Nullable
+    PointType lastMoveToCmdPoint = null;
 
-    @Nullable
-    private Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
+    private @Nullable
+    Double distFromLastMoveToCmdPoint(CRCLStatusType status) {
         if (null == lastLogMoveToCmdPoint) {
             return null;
         }
@@ -1925,8 +1945,8 @@ public class PendantClientInner {
         printCommandStatusLog(System.out, false);
     }
 
-    @Nullable
-    private volatile Appendable lastPrintCommandStatusAppendable = null;
+    private volatile @Nullable
+    Appendable lastPrintCommandStatusAppendable = null;
 
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
@@ -2089,7 +2109,7 @@ public class PendantClientInner {
                     @Override
                     public void run() {
                         try {
-                            PendantClientInner.this.disconnect();
+                            CrclSwingClientInner.this.disconnect();
                         } catch (Exception e) {
                             LOGGER.log(Level.FINEST, "", e);
                         }
@@ -2124,11 +2144,11 @@ public class PendantClientInner {
         return true;
     }
 
-    @Nullable
-    private volatile CommandStatusLogElement lastCommandStatusLogElement = null;
+    private volatile @Nullable
+    CommandStatusLogElement lastCommandStatusLogElement = null;
 
-    @Nullable
-    private CommandStatusLogElement getLastCommandStatusLogElement() {
+    private @Nullable
+    CommandStatusLogElement getLastCommandStatusLogElement() {
         CommandStatusLogElement lastEl = commandStatusLog.peekLast();
         if (lastEl == null) {
             return lastCommandStatusLogElement;
@@ -2181,7 +2201,7 @@ public class PendantClientInner {
     }
 
     public boolean isConnected() {
-        return null != this.crclSocket && this.crclSocket.isConnected();
+        return null != this.crclSocket && this.crclSocket.isConnected() && !this.crclSocket.isClosed();
     }
 
     private final AtomicInteger connectCount = new AtomicInteger();
@@ -2206,8 +2226,8 @@ public class PendantClientInner {
         this.debugConnectDisconnect = debugConnectDisconnect;
     }
 
-    @Nullable
-    private volatile Thread connectThread = null;
+    private volatile @Nullable
+    Thread connectThread = null;
     private volatile StackTraceElement connectTrace @Nullable []  = null;
     private volatile long connnectTime = -1;
     private volatile int lastSocketLocalPort = -1;
@@ -2280,7 +2300,7 @@ public class PendantClientInner {
                             && !stopStatusReaderFlag
                             && null != crclSocket
                             && crclSocket.isConnected()) {
-                        PendantClientInner.this.readStatus();
+                        CrclSwingClientInner.this.readStatus();
                     }
                 }
             }, "PendantClientInner.statusReaderThread");
@@ -2290,8 +2310,8 @@ public class PendantClientInner {
 
     private final AtomicInteger disconnectCount = new AtomicInteger();
 
-    @Nullable
-    private volatile Thread disconnectThread = null;
+    private volatile @Nullable
+    Thread disconnectThread = null;
     private volatile StackTraceElement disconnectTrace @Nullable []  = null;
     private volatile long disconnnectTime = -1;
 
@@ -2347,11 +2367,11 @@ public class PendantClientInner {
                 crclSocket.close();
                 Thread.sleep(100);
             } catch (Exception ex) {
-                if (!disconnecting) {
-                    LOGGER.log(Level.SEVERE, null, ex);
+                if (!preClosing) {
+                    LOGGER.log(Level.SEVERE, "crclSocket="+crclSocket, ex);
+                    throw new RuntimeException(ex);
                 }
             }
-            crclSocket = null;
         }
         stopStatusReaderThread();
         closeTestProgramThread();
@@ -2433,7 +2453,7 @@ public class PendantClientInner {
      *
      * @param maxLimit new value of maxLimit
      */
-    public void setMaxLimit(PmCartesian maxLimit) {
+    public void setMaxLimit(@Nullable PmCartesian maxLimit) {
         if (null == maxLimit) {
             this.maxLimit = DEFAULT_MAX_LIMIT;
         } else {
@@ -2517,8 +2537,8 @@ public class PendantClientInner {
         return Double.parseDouble(System.getProperty(propName, Double.toString(defaultVal)));
     }
 
-    @MonotonicNonNull
-    private String effectFailedMessage = null;
+    private @MonotonicNonNull
+    String effectFailedMessage = null;
 
     private boolean testActuateJointsEffect(ActuateJointsType ajst) {
         if (null == status) {
@@ -2775,10 +2795,10 @@ public class PendantClientInner {
 
     }
 
-    @Nullable
-    private volatile ProgramState pauseProgramState = null;
-    @Nullable
-    private volatile Thread pauseRunningProgramThread = null;
+    private volatile @Nullable
+    ProgramState pauseProgramState = null;
+    private volatile @Nullable
+    Thread pauseRunningProgramThread = null;
 
     private volatile boolean ignoreTimeouts;
 
@@ -2800,8 +2820,8 @@ public class PendantClientInner {
         this.ignoreTimeouts = ignoreTimeouts;
     }
 
-    @Nullable
-    private volatile Thread pauseThread = null;
+    private volatile @Nullable
+    Thread pauseThread = null;
     private volatile long pauseStartTime = -1;
     private volatile StackTraceElement pauseTrace @Nullable []  = null;
 
@@ -2857,10 +2877,10 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable
-    private volatile Thread unpauseThread = null;
-    @Nullable
-    private volatile ProgramState unpauseProgramState = null;
+    private volatile @Nullable
+    Thread unpauseThread = null;
+    private volatile @Nullable
+    ProgramState unpauseProgramState = null;
     private volatile long unpauseTime = 0;
     private volatile long unpausePauseCount = 0;
 
@@ -2929,16 +2949,16 @@ public class PendantClientInner {
         this.quitOnTestCommandFailure = quitOnTestCommandFailure;
     }
 
-    @Nullable
-    private String outgoingProgramFile = null;
+    private @Nullable
+    String outgoingProgramFile = null;
 
     /**
      * Get the value of outgoingProgramFile
      *
      * @return the value of outgoingProgramFile
      */
-    @Nullable
-    public String getOutgoingProgramFile() {
+    public @Nullable
+    String getOutgoingProgramFile() {
         return outgoingProgramFile;
     }
 
@@ -2951,16 +2971,16 @@ public class PendantClientInner {
         this.outgoingProgramFile = outgoingProgramFile;
     }
 
-    @Nullable
-    private Integer outgoingProgramIndex;
+    private @Nullable
+    Integer outgoingProgramIndex;
 
     /**
      * Get the value of outgoingProgramIndex
      *
      * @return the value of outgoingProgramIndex
      */
-    @Nullable
-    public Integer getOutgoingProgramIndex() {
+    public @Nullable
+    Integer getOutgoingProgramIndex() {
         return outgoingProgramIndex;
     }
 
@@ -2973,16 +2993,16 @@ public class PendantClientInner {
         this.outgoingProgramIndex = outgoingProgramIndex;
     }
 
-    @Nullable
-    private Integer outgoingProgramLength = null;
+    private @Nullable
+    Integer outgoingProgramLength = null;
 
     /**
      * Get the value of outgoingProgramLength
      *
      * @return the value of outgoingProgramLength
      */
-    @Nullable
-    public Integer getOutgoingProgramLength() {
+    public @Nullable
+    Integer getOutgoingProgramLength() {
         return outgoingProgramLength;
     }
 
@@ -3030,16 +3050,16 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable
-    private volatile ProgramState programState = null;
+    private volatile @Nullable
+    ProgramState programState = null;
 
     /**
      * Get the value of programState
      *
      * @return the value of programState
      */
-    @Nullable
-    public ProgramState getProgramState() {
+    public @Nullable
+    ProgramState getProgramState() {
         return programState;
     }
 
@@ -3076,12 +3096,12 @@ public class PendantClientInner {
 //        }
 //        return true;
 //    }
-    @Nullable
-    private volatile String programName = null;
+    private volatile @Nullable
+    String programName = null;
     private volatile int programIndex = -1;
     private volatile int lastProgramIndex = -1;
-    @MonotonicNonNull
-    private volatile String lastProgramName = null;
+    private volatile @MonotonicNonNull
+    String lastProgramName = null;
     private volatile int lastShowCurrentProgramLine = 0;
 
     public void showCurrentProgramLine(final int line, CRCLProgramType program, @Nullable CRCLStatusType status) {
@@ -3091,16 +3111,16 @@ public class PendantClientInner {
         }
     }
 
-    @Nullable
-    private volatile Thread runProgramThread = null;
+    private volatile @Nullable
+    Thread runProgramThread = null;
 
-    @Nullable
-    public Thread getRunProgramThread() {
+    public @Nullable
+    Thread getRunProgramThread() {
         return runProgramThread;
     }
 
-    @Nullable
-    public XFuture<Boolean> getRunProgramFuture() {
+    public @Nullable
+    XFuture<Boolean> getRunProgramFuture() {
         return runProgramFuture;
     }
 
@@ -3108,11 +3128,11 @@ public class PendantClientInner {
         return lastShowCurrentProgramLine;
     }
 
-    @MonotonicNonNull
-    private volatile List<ProgramRunData> lastProgRunDataList = null;
+    private volatile @MonotonicNonNull
+    List<ProgramRunData> lastProgRunDataList = null;
 
-    @Nullable
-    public List<ProgramRunData> getLastProgRunDataList() {
+    public @Nullable
+    List<ProgramRunData> getLastProgRunDataList() {
         return lastProgRunDataList;
     }
 
@@ -3134,9 +3154,9 @@ public class PendantClientInner {
         saveProgramRunDataListToCsv(f, lastProgRunDataList);
     }
 
-    private volatile StackTraceElement[] runProgramReturnFalseTrace = null;
+    private volatile StackTraceElement @Nullable [] runProgramReturnFalseTrace = null;
 
-    public StackTraceElement[] getRunProgramReturnFalseTrace() {
+    public StackTraceElement @Nullable [] getRunProgramReturnFalseTrace() {
         return runProgramReturnFalseTrace;
     }
 
@@ -3144,7 +3164,8 @@ public class PendantClientInner {
         runProgramReturnFalseTrace = Thread.currentThread().getStackTrace();
     }
 
-    private volatile MiddleCommandType lastMidddleCmd = null;
+    private volatile @Nullable
+    MiddleCommandType lastMidddleCmd = null;
 
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement @Nullable [] threadCreateCallStack,
@@ -3420,7 +3441,7 @@ public class PendantClientInner {
             return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
 
         } catch (Exception ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, "", ex);
+            Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", ex);
             System.err.println("startLine = " + startLine);
             System.err.println("index = " + index);
             System.err.println("progName = " + progName);
@@ -3430,13 +3451,13 @@ public class PendantClientInner {
             try {
                 File tempStatusSaveFile = File.createTempFile("status_", ".xml");
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
-                String s = crclSocket.statusToPrettyString(status, false);
+                String s = statusToPrettyString();
                 System.err.println("status = " + s);
                 try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, "", ex2);
+                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", ex2);
             }
             final String newExMsg;
             String endExMsg = "Failed to run program " + progName + " : " + ex.getMessage();
@@ -3453,7 +3474,7 @@ public class PendantClientInner {
                     stopMotion(StopConditionEnumType.FAST);
                 }
             } catch (JAXBException jAXBException) {
-                Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, jAXBException);
+                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, jAXBException);
             }
 
             setOutgoingProgramIndex(-1);
@@ -3463,6 +3484,24 @@ public class PendantClientInner {
             lastProgRunDataList = new ArrayList<>(progRunDataList);
             runProgramThread = null;
         }
+    }
+
+    private String statusToPrettyString() {
+        String s;
+        try {
+            final CRCLSocket crclSocketFinal = crclSocket;
+            final CRCLStatusType statusFinal = status;
+            if (null == statusFinal) {
+                s = "status = null";
+            } else if (null != crclSocketFinal) {
+                s = crclSocketFinal.statusToPrettyString(statusFinal, false);
+            } else {
+                s = CRCLSocket.getUtilSocket().statusToPrettyString(statusFinal, false);
+            }
+        } catch (Exception exception) {
+            s = exception.toString();
+        }
+        return s;
     }
 
     private void logRunProgramDebugInfo(int startLine, long id, long progId) {
@@ -3500,10 +3539,12 @@ public class PendantClientInner {
     private volatile boolean lastRunProgramFutureNotCompleted = false;
     private volatile boolean lastRunProgramThreadAlive = false;
 
-    private volatile String lastRunningProgramTrueInfo = null;
+    private volatile @Nullable
+    String lastRunningProgramTrueInfo = null;
     private volatile boolean lastIsRunningProgram = false;
 
-    public String getLastRunningProgramTrueInfo() {
+    public @Nullable
+    String getLastRunningProgramTrueInfo() {
         return lastRunningProgramTrueInfo;
     }
 
@@ -3512,24 +3553,26 @@ public class PendantClientInner {
         boolean runProgramThreadAlive = isRunProgramThreadAlive();
         lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
         lastRunProgramThreadAlive = runProgramThreadAlive;
+        final XFuture<Boolean> runProgramFutureFinal = runProgramFuture;
         boolean ret
                 = runProgramFutureNotCompleted
-                || (null == runProgramFuture && runProgramThreadAlive);
+                || (null == runProgramFutureFinal && runProgramThreadAlive);
         lastIsRunningProgram = ret;
         if (ret) {
             StringBuilder sb = new StringBuilder();
-            sb.append("runProgramFuture").append(runProgramFuture).append("\n");
-            if (null != runProgramFuture) {
-                final Throwable throwable = runProgramFuture.getThrowable();
+            sb.append("runProgramFuture").append(runProgramFutureFinal).append("\n");
+            if (null != runProgramFutureFinal) {
+                final Throwable throwable = runProgramFutureFinal.getThrowable();
                 sb.append("runProgramFuture.getThrowable()=\n").append(throwable).append("\n");
                 if (null != throwable) {
                     sb.append("runProgramFuture.getThrowable().getStackTrace()=\n").append(XFuture.traceToString(throwable.getStackTrace())).append("\n");
                 }
-                sb.append("runProgramFuture.createTrace=\n").append(XFuture.traceToString(runProgramFuture.getCreateTrace())).append("\n");
+                sb.append("runProgramFuture.createTrace=\n").append(XFuture.traceToString(runProgramFutureFinal.getCreateTrace())).append("\n");
             }
-            sb.append("runProgramThread").append(runProgramThread).append("/n");
-            if (null != runProgramThread) {
-                sb.append("runProgramFuture.getStackTrace()=\n").append(XFuture.traceToString(runProgramThread.getStackTrace())).append("\n");
+            final Thread runProgramThreadFinal = runProgramThread;
+            sb.append("runProgramThread").append(runProgramThreadFinal).append("/n");
+            if (null != runProgramThreadFinal) {
+                sb.append("runProgramFuture.getStackTrace()=\n").append(XFuture.traceToString(runProgramThreadFinal.getStackTrace())).append("\n");
             }
             lastRunningProgramTrueInfo = sb.toString();
         } else {
@@ -3769,7 +3812,7 @@ public class PendantClientInner {
             setUnitType.setUnitName(LengthUnitEnumType.MILLIMETER);
             testProgram.getMiddleCommand().add(setUnitType);
             PoseType pose = Optional.ofNullable(this)
-                    .map(PendantClientInner::getStatus)
+                    .map(CrclSwingClientInner::getStatus)
                     .map(CRCLPosemath::getPose)
                     .map(CRCLPosemath::copy)
                     .orElse(null);
@@ -4314,6 +4357,30 @@ public class PendantClientInner {
 
     private final AtomicInteger runProgramAbortCount = new AtomicInteger();
 
+    private String statusToMessageString(String label, @Nullable CRCLStatusType tmpStatus) {
+        try {
+            if (null == tmpStatus) {
+                return label + " status = null";
+            }
+            String tmpXmlStatusString
+                    = getTempCRCLSocket().statusToString(tmpStatus, false);
+            final PoseStatusType tmpPoseStatus = tmpStatus.getPoseStatus();
+            final PoseType tmpStatusPose = (null != tmpPoseStatus) ? tmpPoseStatus.getPose() : null;
+            final String tmpPoseStatusString = (null != tmpStatusPose) ? label + " status.getPose()=" + CRCLPosemath.toString(tmpStatusPose) + "." + NEW_LINE : "";
+            final JointStatusesType tmpJointStatuses = tmpStatus.getJointStatuses();
+            final String tmpJointStatusesString = (tmpJointStatuses != null) ? label + " status.getJoints()=" + (tmpJointStatuses.getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition))) + "." + NEW_LINE : "";
+            final CommandStatusType tmpCommandStatus = tmpStatus.getCommandStatus();
+            final String tmpStatusString = label + " status=" + tmpXmlStatusString + "." + NEW_LINE
+                    + tmpPoseStatusString
+                    + tmpJointStatusesString
+                    + ((tmpCommandStatus == null) ? label + " status.getCommandStatus()=null\n" : label + " status.getCommandStatus().getCommandID()=" + tmpCommandStatus.getCommandID() + NEW_LINE
+                            + label + " status.getCommandStatus().getCommandState()=" + tmpCommandStatus.getCommandState() + NEW_LINE);
+            return tmpStatusString;
+        } catch (Exception exception) {
+            return exception.toString();
+        }
+    }
+
     /**
      * Test a command by sending it and waiting for the status to indicate it
      * succeeded of failed. Additional effect properties are also checked for
@@ -4378,11 +4445,11 @@ public class PendantClientInner {
         }
         CRCLStatusType origStatus = copyStatus(origStatuPrep);
         CRCLStatusType lastCmdStartStatus = origStatus;
-        CRCLStatusType curStatus = origStatus;
+        CRCLStatusType startStatus = copyStatus(origStatus);
+        WaitForDoneResult wfdResult = WaitForDoneResult.WFD_NOT_CALLED;
         final long timeout = getTimeout(cmd);
 
         final long testCommandStartTime = System.currentTimeMillis();
-        final String cmdString = cmdString(cmd);
         long sendCommandTime = testCommandStartTime;
         long curTime = testCommandStartTime;
         String poseListSaveFileName = null;
@@ -4410,7 +4477,7 @@ public class PendantClientInner {
                         }
                     }
                     boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
-                    WaitForDoneResult wfdResult = waitForDone(id, timeout, pause_count_start);
+                    wfdResult = waitForDone(id, timeout, pause_count_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
                         break;
                     }
@@ -4460,7 +4527,7 @@ public class PendantClientInner {
                 showMessage("testCommand can not get starting status");
                 throw new RuntimeException("failed to get starting status");
             }
-            CRCLStatusType startStatus = copyStatus(startStatusPrep);
+            startStatus = copyStatus(startStatusPrep);
             lastCmdStartStatus = startStatus;
             this.testCommandStartStatus = startStatus;
             sendCommandTime = System.currentTimeMillis();
@@ -4468,46 +4535,22 @@ public class PendantClientInner {
                 if (pause_count_start != this.pause_count.get()) {
                     continue;
                 }
+                final String cmdString = cmdString(cmd);
                 showMessage("Can not send " + cmdString + ".");
                 throw new RuntimeException("incAndSendCommand failed");
             }
-            curStatus = this.getStatus();
             if (cmd.getCommandID() == startStatus.getCommandStatus().getCommandID() && cmd.getCommandID() > 1) {
                 String commandLogString = commandStatusLogToString();
                 System.err.println("commandLogString = " + commandLogString);
                 String lastCmdString = commandToSimpleString(lastCommandSent);
                 String intString = this.createInterrupStackString();
-                String curStatusString
-                        = (curStatus != null)
-                                ? getTempCRCLSocket().statusToString(curStatus, false)
-                                : "null";
-                String messageString
-                        = "Id of command to send already matches status id. cmd=" + CRCLSocket.cmdToString(cmd) + NEW_LINE
-                        + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
-                        + "cmd=" + cmdString + "." + NEW_LINE
-                        + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
-                        + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(startStatus, false) + "." + NEW_LINE
-                        + "current status=" + curStatusString + "." + NEW_LINE
-                        + "sendCommandTime=" + sendCommandTime + NEW_LINE
-                        + "curTime = " + curTime + NEW_LINE
-                        + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
-                        + "lastReadStatusTime = " + lastReadStatusTime + NEW_LINE
-                        + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
-                        + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
-                        + "timeout=" + timeout + NEW_LINE
-                        + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
-                        + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
-                        + ((status == null || status.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
-                        + "intString=" + intString + NEW_LINE
-                        + "commandLogString = " + commandLogString + NEW_LINE;
+                String messageString = createTestCommandFailMessage("Id of command to send already matches status id.", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
                 System.out.println(messageString);
                 showErrorMessage(messageString);
+                throw new RuntimeException("Id of command to send already matches status id : messageString=" + messageString);
             }
             sendCommandTime = System.currentTimeMillis();
-            WaitForDoneResult wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start);
+            wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start);
             if (cmd instanceof CRCLCommandWrapper) {
                 CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
                 if (wfdResult == WaitForDoneResult.WFD_DONE) {
@@ -4529,12 +4572,6 @@ public class PendantClientInner {
             }
             if (cmd instanceof EndCanonType) {
                 return;
-//                return wfdResult != WaitForDoneResult.WFD_ERROR
-//                        && wfdResult != WaitForDoneResult.WFD_EXCEPTION
-//                        && wfdResult != WaitForDoneResult.WFD_HOLDING_ERROR
-//                        && null != curStatus
-//                        && null != curStatus.getCommandStatus()
-//                        && curStatus.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR;
             }
             if (wfdResult != WaitForDoneResult.WFD_DONE) {
                 if (pause_count_start != this.pause_count.get()) {
@@ -4551,53 +4588,7 @@ public class PendantClientInner {
                 }
                 printCommandStatusLog();
                 String intString = this.createInterrupStackString();
-                String lastCmdString = commandToSimpleString(lastCommandSent);
-                String curStatusString
-                        = (curStatus != null)
-                                ? getTempCRCLSocket().statusToString(curStatus, false)
-                                : "null";
-                JointStatusesType jointStatuses
-                        = startStatus.getJointStatuses();
-                List<JointStatusType> jointStatus
-                        = (jointStatuses == null) ? null
-                                : jointStatuses.getJointStatus();
-                Map<Integer, Double> startStatusJointsMap
-                        = (null == jointStatus) ? null
-                                : jointStatus.stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition));
-                String startStatusJointsMapString
-                        = (null == startStatusJointsMap) ? null
-                                : startStatusJointsMap.toString();
-                String messageString = cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
-                        + "wfdResult=" + wfdResult + NEW_LINE
-                        + "errorStateDescription=" + errorStateDescription + NEW_LINE
-                        + "lastErrorStat=" + ((lastErrorStat != null) ? getTempCRCLSocket().statusToString(lastErrorStat, false) : "null") + NEW_LINE
-                        + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
-                        + "cmd=" + cmdString + "." + NEW_LINE
-                        + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
-                        + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(startStatus, false) + "." + NEW_LINE
-                        + "testCommandStartStatus.getPose=" + CRCLPosemath.toString(startStatus.getPoseStatus().getPose()) + "." + NEW_LINE
-                        + "testCommandStartStatus.getJoints()=" + startStatusJointsMapString + "." + NEW_LINE
-                        + "current status=" + curStatusString + "." + NEW_LINE
-                        + "current status.getPose()=" + ((curStatus != null) ? CRCLPosemath.toString(curStatus.getPoseStatus().getPose()) : "null") + "." + NEW_LINE
-                        + "current status.getJoints()=" + ((curStatus != null) ? curStatus.getJointStatuses().getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition)) : "null") + "." + NEW_LINE
-                        + "sendCommandTime=" + sendCommandTime + NEW_LINE
-                        + "curTime = " + curTime + NEW_LINE
-                        + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
-                        + "lastReadStatusTime = " + lastReadStatusTime + NEW_LINE
-                        + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
-                        + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
-                        + "timeout=" + timeout + NEW_LINE
-                        + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
-                        + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
-                        + ((startStatus == null || startStatus.getCommandStatus() == null)
-                        ? "startStatus.getCommandStatus()=null\n"
-                        : ("startStatus.getCommandStatus().getCommandID()=" + startStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "startStatus.getCommandStatus().getCommandState()=" + startStatus.getCommandStatus().getCommandState() + NEW_LINE))
-                        + ((curStatus == null || curStatus.getCommandStatus() == null)
-                        ? "status.getCommandStatus()=null\n"
-                        : ("status.getCommandStatus().getCommandID()=" + curStatus.getCommandStatus().getCommandID() + NEW_LINE
-                        + "status.getCommandStatus().getCommandState()=" + curStatus.getCommandStatus().getCommandState() + NEW_LINE))
-                        + "intString=" + intString + NEW_LINE;
+                String messageString = createTestCommandFailMessage("wfdResult != WaitForDoneResult.WFD_DONE", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
                 System.out.println(messageString);
                 showErrorMessage(messageString);
                 if (debugInterrupts || printDetailedCommandFailureInfo) {
@@ -4619,40 +4610,90 @@ public class PendantClientInner {
             }
         } while (pause_count_start != this.pause_count.get());
 
+        final CRCLStatusType endStatus = getStatus();
+        if (null == endStatus) {
+            String intString = this.createInterrupStackString();
+            String messageString = createTestCommandFailMessage("testCommand after command loop : endStatus==null", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+            System.out.println(messageString);
+            showErrorMessage(messageString);
+            throw new RuntimeException(messageString);
+        }
+        CommandStatusType endCommandStats = endStatus.getCommandStatus();
+        if (null == endCommandStats) {
+            String intString = this.createInterrupStackString();
+            String messageString = createTestCommandFailMessage("testCommand after command loop : endCommandStats==null", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+            System.out.println(messageString);
+            showErrorMessage(messageString);
+            throw new RuntimeException(messageString);
+        }
+        if (cmd.getCommandID() != endCommandStats.getCommandID()) {
+            String intString = this.createInterrupStackString();
+            String messageString = createTestCommandFailMessage("testCommand after command loop : cmd.getCommandID() !=  curStatus.getCommandStatus().getCommandID()", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+            System.out.println(messageString);
+            showErrorMessage(messageString);
+            throw new RuntimeException(messageString);
+        }
+
         boolean effectOk = testCommandEffect(cmd, sendCommandTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
-            String lastCmdString = commandToSimpleString(lastCommandSent);
-            String commandLogString = commandStatusLogToString();
-            System.err.println("commandLogString = " + commandLogString);
-            String curStatusString
-                    = (curStatus != null)
-                            ? getTempCRCLSocket().statusToString(curStatus, false)
-                            : "null";
-            String messageString = cmd.getClass().getName() + " testCommandEffect failed " + NEW_LINE
-                    + "cmd=" + cmdString + "." + NEW_LINE
-                    + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
-                    + "effectFailedMessage=" + effectFailedMessage + "." + NEW_LINE
-                    + "origStatus=" + getTempCRCLSocket().statusToString(origStatus, false) + "." + NEW_LINE
-                    + "lastCmdStartStatus=" + getTempCRCLSocket().statusToString(lastCmdStartStatus, false) + "." + NEW_LINE
-                    + "current status=" + curStatusString + "." + NEW_LINE
-                    + "sendCommandTime=" + sendCommandTime + NEW_LINE
-                    + "curTime = " + curTime + NEW_LINE
-                    + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
-                    + "timeout=" + timeout + NEW_LINE
-                    + "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE
-                    + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
-                    + ((status == null || status.getCommandStatus() == null)
-                    ? "status.getCommandStatus()=null\n"
-                    : ("status.getCommandStatus().getCommandID()=" + status.getCommandStatus().getCommandID() + NEW_LINE
-                    + "status.getCommandStatus().getCommandState()=" + status.getCommandStatus().getCommandState() + NEW_LINE))
-                    + "intString=" + intString + NEW_LINE
-                    + "commandLogString = " + commandLogString + NEW_LINE;
+            String messageString = createTestCommandFailMessage("!effectOk", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
             System.out.println(messageString);
             showErrorMessage(messageString);
             throw new RuntimeException("testCommandEffect returned false : messageString=" + messageString);
         }
         return;
+    }
+
+    private String createTestCommandFailMessage(String prefix, CRCLCommandType cmd, CRCLStatusType startStatus,  WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
+        try {
+            CRCLStatusType curStatus = getStatus();
+            final String cmdString = cmdString(cmd);
+            String lastCmdString = commandToSimpleString(lastCommandSent);
+            JointStatusesType jointStatuses
+                    = startStatus.getJointStatuses();
+            List<JointStatusType> jointStatus
+                    = (jointStatuses == null) ? null
+                            : jointStatuses.getJointStatus();
+            Map<Integer, Double> startStatusJointsMap
+                    = (null == jointStatus) ? null
+                            : jointStatus.stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition));
+            String startStatusJointsMapString
+                    = (null == startStatusJointsMap) ? null
+                            : startStatusJointsMap.toString();
+            final String curStatusString = statusToMessageString("current", curStatus);
+            final String startStatusString = statusToMessageString("start", startStatus);
+            final CRCLStatusType lastErrorStatFinal = lastErrorStat;
+            String messageString
+                    = prefix + NEW_LINE
+                    + cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
+                    + "wfdResult=" + wfdResult + NEW_LINE
+                    + "errorStateDescription=" + errorStateDescription + NEW_LINE
+                    + "lastErrorStat=" + ((lastErrorStatFinal != null) ? getTempCRCLSocket().statusToString(lastErrorStatFinal, false) : "null") + NEW_LINE
+                    + "lastWaitForDoneException=" + lastWaitForDoneException + NEW_LINE
+                    + "cmd=" + cmdString + "." + NEW_LINE
+                    + "lastCommandSent=" + lastCmdString + "." + NEW_LINE
+                    + "testCommandStartStatus=" + getTempCRCLSocket().statusToString(startStatus, false) + "." + NEW_LINE
+                    + "testCommandStartStatus.getJoints()=" + startStatusJointsMapString + "." + NEW_LINE
+                    + "sendCommandTime=" + sendCommandTime + NEW_LINE
+                    + "curTime = " + curTime + NEW_LINE
+                    + "(curTime-sendCommandTime)=" + (curTime - sendCommandTime) + NEW_LINE
+                    + "lastReadStatusTime = " + lastReadStatusTime + NEW_LINE
+                    + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
+                    + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
+                    + "timeout=" + timeout + NEW_LINE
+                    +  ((poseListSaveFileName!=null)?"poseListSaveFileName=" + poseListSaveFileName + NEW_LINE:"")
+                    + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
+                    + startStatusString
+                    + curStatusString
+                    + ((null != intString)?"intString=" + intString + NEW_LINE:"")
+                    + suffix;
+            return messageString;
+        } catch (Exception exception) {
+            Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", exception);
+            showErrorMessage(exception.toString());
+            throw new RuntimeException(exception);
+        }
     }
 
     final static private AtomicInteger runProgramThreadCount = new AtomicInteger();
@@ -4685,8 +4726,8 @@ public class PendantClientInner {
     private volatile long lastStartRunProgramThreadProgId = -1;
     private volatile int lastStartRunProgramThreadStartLine = -1;
 
-    @Nullable
-    private volatile XFuture<Boolean> runProgramFuture = null;
+    private volatile @Nullable
+    XFuture<Boolean> runProgramFuture = null;
 
     public XFuture<Boolean> startRunProgramThread(final int startLine) {
 
@@ -4792,28 +4833,18 @@ public class PendantClientInner {
 //
 //            }
 //
-//        }, "PendantClientInner.runProgram");
+//        }, "CrclSwingClientInner.runProgram");
 //        rtpt.start();
 //        runTestProgramThread.set(rtpt);
         return runProgramFuture;
     }
 
     public void startRunTestThread(final Map<String, String> testProperties) {
-//        this.closeTestProgramThread();
-//        Thread rtpt = new Thread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                runTest(testProperties);
-//            }
-//
-//        }, "PendantClientInner.runTest");
-//        rtpt.start();
-//        this.runTestProgramThread.set(rtpt);
-        if (null != runProgramFuture) {
-            if (!runProgramFuture.isDone()) {
-                System.err.println("PendantClientInner.startRunTestThread : cancelling runProgramFuture=" + runProgramFuture);
-                runProgramFuture.cancelAll(true);
+        final XFuture<Boolean> runProgramFutureFinal = runProgramFuture;
+        if (null != runProgramFutureFinal) {
+            if (!runProgramFutureFinal.isDone()) {
+                System.err.println("PendantClientInner.startRunTestThread : cancelling runProgramFuture=" + runProgramFutureFinal);
+                runProgramFutureFinal.cancelAll(true);
             }
         }
         runProgramFuture = XFuture.supplyAsync("startRunTestThread", () -> runTest(testProperties), runProgramService);
@@ -4876,6 +4907,9 @@ public class PendantClientInner {
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
         PointType point = goalPose.getPoint();
 
+        if (null == point) {
+            throw new NullPointerException("goalPose.getPoint() returned null : goalPose =" + CRCLPosemath.toString(goalPose));
+        }
         if (!ignoreCartTran) {
             if (null != maxLimit) {
                 if (point.getX() > maxLimit.x) {
@@ -4929,12 +4963,12 @@ public class PendantClientInner {
 
     public void saveStatusAs(File f) {
         try {
-            String s = crclSocket.statusToPrettyString(status, false);
+            String s = statusToPrettyString();
             try (FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
         } catch (Exception ex) {
-            Logger.getLogger(PendantClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

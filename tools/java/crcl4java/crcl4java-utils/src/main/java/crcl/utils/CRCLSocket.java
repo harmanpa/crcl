@@ -24,7 +24,6 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
-import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.GetStatusType;
 import crcl.base.JointStatusType;
@@ -87,9 +86,10 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -217,7 +217,7 @@ public class CRCLSocket implements AutoCloseable {
         static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
     }
 
-//    /*@Nullable*/
+//     @Nullable  
 //    private static CRCLSocket utilSocket = null;
 //
 //    public static void setUtilSocket(CRCLSocket newUtilSocket) {
@@ -227,8 +227,8 @@ public class CRCLSocket implements AutoCloseable {
         return UtilSocketHider.UTIL_SOCKET;
     }
 
-    /*@Nullable*/
-    final public Socket getSocket() {
+    final public @Nullable
+    Socket getSocket() {
         if (null != socketChannel) {
             return socketChannel.socket();
         }
@@ -340,12 +340,13 @@ public class CRCLSocket implements AutoCloseable {
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLProgramInstance.xsd\">";
     final public static boolean DEFAULT_JAXB_FRAGMENT = true;
 
-    private static File defaultStatSchemaFiles /*@Nullable*/[] = null;
-    private static File defaultCmdSchemaFiles /*@Nullable*/[] = null;
-    private static File defaultProgramSchemaFiles /*@Nullable*/[] = null;
+    private static File defaultStatSchemaFiles @Nullable []  = null;
+    private static File defaultCmdSchemaFiles @Nullable []  = null;
+    private static File defaultProgramSchemaFiles @Nullable []  = null;
 
     @SuppressWarnings("nullness")
-    /*@Nullable*/ public static synchronized Schema filesToCmdSchema(File fa /*@Nullable*/[]) throws CRCLException {
+    public static @Nullable
+    synchronized Schema filesToCmdSchema(File fa @Nullable []) throws CRCLException {
         if (null == fa) {
             return null;
         }
@@ -356,7 +357,8 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized /*@Nullable*/ Schema getDefaultCmdSchema() throws CRCLException {
+    public static synchronized @Nullable
+    Schema getDefaultCmdSchema() throws CRCLException {
         return filesToCmdSchema(defaultCmdSchemaFiles);
     }
 
@@ -377,7 +379,8 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized /*@Nullable*/ Schema filesToStatSchema(File fa /*@Nullable*/[]) throws CRCLException {
+    public static synchronized @Nullable
+    Schema filesToStatSchema(File fa @Nullable []) throws CRCLException {
         if (null == fa) {
             return null;
         }
@@ -392,7 +395,8 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    public static synchronized /*@Nullable*/ Schema filesToProgramSchema(File fa /*@Nullable*/[]) throws CRCLException {
+    public static synchronized @Nullable
+    Schema filesToProgramSchema(File fa @Nullable []) throws CRCLException {
         if (null == fa) {
             return null;
         }
@@ -406,11 +410,11 @@ public class CRCLSocket implements AutoCloseable {
         return filesToProgramSchema(defaultProgramSchemaFiles);
     }
 
-    /*@Nullable*/
-    private static File commandXsdFile = null;
+    private static @Nullable
+    File commandXsdFile = null;
 
-    /*@Nullable*/
-    public static File getCommandXsdFile() {
+    public static @Nullable
+    File getCommandXsdFile() {
         return commandXsdFile;
     }
 
@@ -445,8 +449,8 @@ public class CRCLSocket implements AutoCloseable {
                 .replaceAll("<CommandState>CRCL_Ready</CommandState>", "<CommandState>Ready</CommandState>");
     }
 
-    /*@Nullable*/
-    static public File generateSchema(Class<?> clss) throws CRCLException {
+    static public @Nullable
+    File generateSchema(Class<?> clss) throws CRCLException {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(clss);
             CRCLSchemaOutputResolver sor = new CRCLSchemaOutputResolver();
@@ -457,13 +461,13 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    /*@Nullable*/
-    public static JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
+    public static @Nullable
+    JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
         return getJointStatus(_status, bi.intValue());
     }
 
-    /*@Nullable*/
-    public static JointStatusType getJointStatus(CRCLStatusType _status, int bi) {
+    public static @Nullable
+    JointStatusType getJointStatus(CRCLStatusType _status, int bi) {
         if (null == _status) {
             return null;
         }
@@ -480,35 +484,35 @@ public class CRCLSocket implements AutoCloseable {
         return null;
     }
 
-    private static String vectorToDebugString(final VectorType v) {
+    private static String vectorToDebugString(final @Nullable VectorType v) {
         return v == null ? "null" : v.toString() + " { "
                 + "I=" + v.getI() + ","
                 + "J=" + v.getJ() + ","
                 + "K=" + v.getK() + " } ";
     }
 
-    private static String pointToDebugString(/*@Nullable*/final PointType p) {
+    private static String pointToDebugString(final @Nullable PointType p) {
         return p == null ? "null" : p.toString() + " { "
                 + "X=" + p.getX() + ","
                 + "Y=" + p.getY() + ","
                 + "Z=" + p.getZ() + " } ";
     }
 
-    private static String poseToDebugString(/*@Nullable*/final PoseType p) {
+    private static String poseToDebugString(final @Nullable PoseType p) {
         return p == null ? "null" : p.toString() + " { "
                 + "Point=" + pointToDebugString(p.getPoint()) + ","
                 + "XAxis=" + vectorToDebugString(p.getXAxis()) + ","
                 + "ZAxis=" + vectorToDebugString(p.getZAxis()) + " } ";
     }
 
-    private static String commandStatToDebugString(/*@Nullable*/final CommandStatusType c) {
+    private static String commandStatToDebugString(final @Nullable CommandStatusType c) {
         return c == null ? "null" : c.toString() + " { "
                 + "CommandId=" + c.getCommandID() + ","
                 + "CommandState=" + c.getCommandState() + ","
                 + "StatusId=" + c.getStatusID() + " } ";
     }
 
-    private static String jointStatusToDebugString(/*@Nullable*/final JointStatusType j) {
+    private static String jointStatusToDebugString(final @Nullable JointStatusType j) {
         return j == null ? "null" : j.toString() + " { "
                 + "JointNumber=" + j.getJointNumber() + ","
                 + "Position=" + j.getJointPosition() + ","
@@ -666,7 +670,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     static private void copyInputStreamToFile(InputStream is, File f) throws IOException {
-        try ( FileOutputStream fos = new FileOutputStream(f)) {
+        try (FileOutputStream fos = new FileOutputStream(f)) {
             while (true) {
                 byte buf[] = new byte[4096];
                 int bytes_read = is.read(buf);
@@ -735,6 +739,7 @@ public class CRCLSocket implements AutoCloseable {
         return fl;
     }
 
+    @SuppressWarnings("nullness")
     public static File[] reorderStatSchemaFiles(File fa[]) {
         if (null == fa || fa.length < 1) {
             return EMPTY_FILE_ARRAY;
@@ -743,7 +748,6 @@ public class CRCLSocket implements AutoCloseable {
         fl.addAll(Arrays.asList(fa));
         List<File> newList = reorderStatSchemaFiles(fl);
         if (null != newList) {
-            /*@Nullable*/
             File files[] = newList.toArray(EMPTY_FILE_ARRAY);
             if (null != files) {
                 File newFiles[] = (/*@NonNull*/File[]) files;
@@ -784,7 +788,6 @@ public class CRCLSocket implements AutoCloseable {
 //            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-
     public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
@@ -831,7 +834,7 @@ public class CRCLSocket implements AutoCloseable {
 
     private static List<File> readSchemaListFile(File schemaListFile) throws IOException {
         List<File> fl = new ArrayList<>();
-        try ( BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
             String line = null;
 
             while (null != (line = br.readLine())) {
@@ -867,7 +870,13 @@ public class CRCLSocket implements AutoCloseable {
         PrintStream ps = null;
         try {
             File schemaParent = schemaListFile.getParentFile();
+            if (null == schemaParent) {
+                throw new NullPointerException("schemaListFile.getParentFile() schemaListFile=" + schemaListFile);
+            }
             String schemaParentPath = schemaParent.getCanonicalPath();
+            if (null == schemaParentPath) {
+                throw new NullPointerException("schemaParent.getCanonicalPath() schemaParent=" + schemaParent);
+            }
             ps = new PrintStream(new FileOutputStream(schemaListFile));
             for (int i = 0; i < fa.length; i++) {
                 String elementCanonicalPath = fa[i].getCanonicalPath();
@@ -890,13 +899,14 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    /*@NonNull*/
+    @SuppressWarnings("nullness")
     private static <T> T[] toNonNullArray(List<T> list,
             T inArray[], /*@NonNull*/ T altArray[]) {
         if (null == list) {
             return altArray;
         }
-        /*@Nullable*/ T nullableArray[] = list.toArray(inArray);
+        @Nullable
+        T nullableArray[] = list.toArray(inArray);
         if (nullableArray == null) {
             return altArray;
         }
@@ -1047,14 +1057,16 @@ public class CRCLSocket implements AutoCloseable {
         saveSchemaListFile(schemasListFile, fa);
     }
 
-    /*@Nullable*/ private SocketChannel socketChannel;
+    private @MonotonicNonNull
+    SocketChannel socketChannel;
 
     /**
      * Get the value of socketChannel
      *
      * @return the value of socketChannel
      */
-    /*@Nullable*/ public SocketChannel getSocketChannel() {
+    public @Nullable
+    SocketChannel getSocketChannel() {
         return socketChannel;
     }
 
@@ -1070,15 +1082,22 @@ public class CRCLSocket implements AutoCloseable {
     private UnaryOperator<String> statusStringInputFilter = STRING_IDENTITY_OPERATOR;
     private UnaryOperator<String> statusStringOutputFilter = STRING_IDENTITY_OPERATOR;
     private boolean jaxbFragment = DEFAULT_JAXB_FRAGMENT;
-    /*@Nullable*/ private final Socket socket;
+    private final @Nullable
+    Socket socket;
 
-    /*@Nullable*/ private String lastStatusString = null;
-    /*@Nullable*/ private String lastCommandString = null;
-    /*@Nullable*/ private String lastProgramString = null;
+    private @Nullable
+    String lastStatusString = null;
+    private @Nullable
+    String lastCommandString = null;
+    private @Nullable
+    String lastProgramString = null;
 
-    /*@Nullable*/ private Schema cmdSchema = null;
-    /*@Nullable*/ private Schema programSchema = null;
-    /*@Nullable*/ private Schema statSchema = null;
+    private @Nullable
+    Schema cmdSchema = null;
+    private @Nullable
+    Schema programSchema = null;
+    private @Nullable
+    Schema statSchema = null;
     /*@NonNull*/ protected final Marshaller m_cmd;
     /*@NonNull*/ protected final Unmarshaller u_cmd;
     /*@NonNull*/ protected final Marshaller m_prog;
@@ -1087,18 +1106,24 @@ public class CRCLSocket implements AutoCloseable {
     /*@NonNull*/ protected final Unmarshaller u_stat;
     private String readInProgressString = "";
 
-    /*@Nullable*/ private BufferedInputStream bufferedInputStream = null;
+    private @Nullable
+    BufferedInputStream bufferedInputStream = null;
     private boolean useBufferedInputStream = true;
-    /*@Nullable*/ private SAXSource exiCommandInSaxSource = null;
-    /*@Nullable*/ private SAXSource exiStatusInSaxSource = null;
+    private @Nullable
+    SAXSource exiCommandInSaxSource = null;
+    private @Nullable
+    SAXSource exiStatusInSaxSource = null;
     private final ObjectFactory objectFactory
             = new ObjectFactory();
     public boolean appendTrailingZero = DEFAULT_APPEND_TRAILING_ZERO;
     public boolean randomPacketing = DEFAULT_RANDOM_PACKETING;
-    /*@Nullable*/ private Random random = null;
+    private @Nullable
+    Random random = null;
     public int rand_seed = 12345;
-    /*@Nullable*/ private String last_xml_version_header = null;
-    /*@Nullable*/ private String last_orig_first_tag = null;
+    private @Nullable
+    String last_xml_version_header = null;
+    private @Nullable
+    String last_orig_first_tag = null;
     private boolean replaceHeader;
 
     private static volatile boolean protectionDomainChecked = false;
@@ -1186,9 +1211,9 @@ public class CRCLSocket implements AutoCloseable {
         this(null, cmdSchema, statSchema, programSchema);
     }
 
-    private volatile StackTraceElement cmdSchemSetTrace[] = null;
+    private volatile StackTraceElement cmdSchemSetTrace @Nullable []  = null;
 
-    public CRCLSocket(/*@Nullable*/Socket socket, Schema cmdSchema, Schema statSchema, Schema programSchema) {
+    public CRCLSocket(@Nullable Socket socket, @Nullable Schema cmdSchema, @Nullable Schema statSchema, @Nullable Schema programSchema) {
         this.socket = socket;
         this.cmdSchema = cmdSchema;
         this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
@@ -1196,9 +1221,8 @@ public class CRCLSocket implements AutoCloseable {
         this.programSchema = programSchema;
     }
 
-    public CRCLSocket(/*@Nullable*/Socket socket) {
+    public CRCLSocket(@Nullable Socket socket) {
         this.socket = socket;
-//        creatorInfo = addCrclSocketCreator(socket.getLocalPort(),socket.getPort(),true);
     }
 
     public CRCLSocket(SocketChannel socketChannel) {
@@ -1240,6 +1264,14 @@ public class CRCLSocket implements AutoCloseable {
         }
         return socket.isConnected();
     }
+    
+    public boolean isClosed() {
+        Socket socket = getSocket();
+        if (null == socket) {
+            return false;
+        }
+        return socket.isClosed();
+    }
 
     public int getLocalPort() {
         if (null != socketChannel) {
@@ -1261,8 +1293,8 @@ public class CRCLSocket implements AutoCloseable {
         return this.socket.getPort();
     }
 
-    /*@Nullable*/
-    public InetAddress getInetAddress() {
+    public @Nullable
+    InetAddress getInetAddress() {
         if (null != socketChannel) {
             return socketChannel.socket().getInetAddress();
         }
@@ -1336,7 +1368,8 @@ public class CRCLSocket implements AutoCloseable {
      * @return the value of lastStatusString or null if no status has been
      * read/converted.
      */
-    public /*@Nullable*/ String getLastStatusString() {
+    public @Nullable
+    String getLastStatusString() {
         return lastStatusString;
     }
 
@@ -1346,7 +1379,8 @@ public class CRCLSocket implements AutoCloseable {
      * @return the value of lastCommandString or null if no command has been
      * read/converted.
      */
-    public /*@Nullable*/ String getLastCommandString() {
+    public @Nullable
+    String getLastCommandString() {
         return lastCommandString;
     }
 
@@ -1355,7 +1389,8 @@ public class CRCLSocket implements AutoCloseable {
      *
      * @return the value of cmdSchema
      */
-    public /*@Nullable*/ Schema getProgramSchema() {
+    public @Nullable
+    Schema getProgramSchema() {
         return programSchema;
     }
 
@@ -1364,7 +1399,7 @@ public class CRCLSocket implements AutoCloseable {
      *
      * @param programSchema new value of cmdSchema
      */
-    public void setProgramSchema(/*@Nullable*/Schema programSchema) {
+    public void setProgramSchema(@Nullable Schema programSchema) {
         this.programSchema = programSchema;
         if (null != programSchema) {
             if (null != this.m_prog) {
@@ -1381,7 +1416,8 @@ public class CRCLSocket implements AutoCloseable {
      *
      * @return the value of cmdSchema
      */
-    public /*@Nullable*/ Schema getCmdSchema() {
+    public @Nullable
+    Schema getCmdSchema() {
         return cmdSchema;
     }
 
@@ -1408,7 +1444,8 @@ public class CRCLSocket implements AutoCloseable {
      *
      * @return the value of statSchema
      */
-    public /*@Nullable*/ Schema getStatSchema() {
+    public @Nullable
+    Schema getStatSchema() {
         return statSchema;
     }
 
@@ -1437,31 +1474,48 @@ public class CRCLSocket implements AutoCloseable {
             bufferedInputStream.close();
             bufferedInputStream = null;
         }
+        IOException exception = null;
         if (null != socketChannel) {
-            socketChannel.close();
+            try {
+                socketChannel.close();
+            } catch (IOException iOException) {
+                exception = iOException;
+            }
         }
 
-        if (null == socket) {
+        if (null == socket || socket.isClosed()) {
+            cmdSchema = null;
+            statSchema = null;
+            programSchema = null;
+            if (null != exception) {
+                throw exception;
+            }
             return;
         }
 
         try {
             socket.shutdownInput();
         } catch (IOException iOException) {
+            exception = iOException;
         }
 
         try {
             socket.shutdownOutput();
         } catch (IOException iOException) {
+            exception = iOException;
         }
 
         try {
             socket.close();
         } catch (IOException iOException) {
+            exception = iOException;
         }
         cmdSchema = null;
         statSchema = null;
         programSchema = null;
+        if (null != exception) {
+            throw exception;
+        }
     }
 
 //    @Override
@@ -1593,7 +1647,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    private static void setUnmarshallerSchema(/*@Nullable*/Unmarshaller u, /*@Nullable*/ Schema schema) {
+    private static void setUnmarshallerSchema(@Nullable Unmarshaller u, @Nullable Schema schema) {
         // we need to be able to set the schema to null but since 
         // the setSchema method is not annotated there is no way 
         // for a nullness checker to know this is safe.
@@ -1697,6 +1751,9 @@ public class CRCLSocket implements AutoCloseable {
                         = (JAXBElement) u_cmd.unmarshal(new StringReader(str));
                 CRCLCommandInstanceType instance
                         = (CRCLCommandInstanceType) el.getValue();
+                if (null == instance) {
+                    throw new RuntimeException("el.getValue() == null : el=" + el);
+                }
                 return instance;
             } catch (JAXBException ex) {
                 throw new CRCLException(ex);
@@ -1712,6 +1769,9 @@ public class CRCLSocket implements AutoCloseable {
             JAXBElement<?> el = (JAXBElement) u_cmd.unmarshal(is);
             CRCLCommandInstanceType instance
                     = (CRCLCommandInstanceType) el.getValue();
+            if (null == instance) {
+                throw new RuntimeException("el.getValue() == null : el=" + el);
+            }
             return instance;
         }
     }
@@ -1725,6 +1785,9 @@ public class CRCLSocket implements AutoCloseable {
                 JAXBElement<?> el = (JAXBElement) u_prog.unmarshal(new StringReader(str));
                 CRCLProgramType prog
                         = (CRCLProgramType) el.getValue();
+                if (null == prog) {
+                    throw new RuntimeException("el.getValue() == null : el=" + el);
+                }
                 return prog;
             }
         } catch (Exception ex) {
@@ -1826,6 +1889,9 @@ public class CRCLSocket implements AutoCloseable {
                 JAXBElement<?> el = (JAXBElement) u_stat.unmarshal(new StringReader(str));
                 CRCLStatusType instance
                         = (CRCLStatusType) el.getValue();
+                if (null == instance) {
+                    throw new RuntimeException("el.getValue() == null : el=" + el);
+                }
                 return instance;
             } catch (JAXBException ex) {
                 throw new CRCLException(ex);
@@ -1839,6 +1905,9 @@ public class CRCLSocket implements AutoCloseable {
             JAXBElement<?> el = (JAXBElement) u_stat.unmarshal(is);
             CRCLStatusType instance
                     = (CRCLStatusType) el.getValue();
+            if (null == instance) {
+                throw new RuntimeException("el.getValue() == null : el=" + el);
+            }
             return instance;
         }
     }
@@ -1992,7 +2061,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     @SuppressWarnings("nullness")
-    private void setMarshallerSchema(Marshaller marshaller, /*@Nullable*/ Schema schema) {
+    private void setMarshallerSchema(Marshaller marshaller, @Nullable Schema schema) {
         if (null != marshaller) {
             marshaller.setSchema(schema);
         }
@@ -2674,10 +2743,11 @@ public class CRCLSocket implements AutoCloseable {
 
     static private class CRCLSchemaOutputResolver extends SchemaOutputResolver {
 
-        /*@Nullable*/ private File file = null;
+        private @Nullable
+        File file = null;
 
-        /*@Nullable*/
-        public File getFile() {
+        public @Nullable
+        File getFile() {
             return file;
         }
 
