@@ -1752,11 +1752,11 @@ public class CRCLSocket implements AutoCloseable {
                 CRCLCommandInstanceType instance
                         = (CRCLCommandInstanceType) el.getValue();
                 if (null == instance) {
-                    throw new RuntimeException("el.getValue() == null : el=" + el);
+                    throw new RuntimeException("el.getValue() == null : el=" + el+", str="+str);
                 }
                 return instance;
             } catch (JAXBException ex) {
-                throw new CRCLException(ex);
+                throw new CRCLException("str="+str+" \n"+ex,ex);
             }
         }
 
