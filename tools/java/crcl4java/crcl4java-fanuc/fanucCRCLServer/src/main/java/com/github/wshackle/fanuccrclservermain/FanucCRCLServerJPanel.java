@@ -38,7 +38,7 @@ import crcl.base.SetEndPoseToleranceType;
 import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.TransSpeedAbsoluteType;
-import crcl.ui.client.PendantClientJFrame;
+import crcl.ui.client.CrclSwingClientJFrame;
 import crcl.ui.misc.ServerSensorJFrame;
 import crcl.ui.misc.WebServerJFrame;
 import crcl.utils.CRCLException;
@@ -965,7 +965,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     public void launchClient() {
         try {
-            PendantClientJFrame client = new PendantClientJFrame();
+            CrclSwingClientJFrame client = new CrclSwingClientJFrame();
             client.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             client.setVisible(true);
             client.connect("localhost", getLocalCrclPort());
