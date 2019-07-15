@@ -201,29 +201,38 @@ public class MotomanCRCLServer implements AutoCloseable {
         System.err.println(s);
         log(s);
     }
+    
+    private final AtomicInteger recheckCoordTargetFailConsecutive = new AtomicInteger();
 
     private void recheckCoordTarget(MP_CART_POS_RSP_DATA pos) throws IOException, MotoPlusConnectionException, PmException {
         boolean resendNeeded = false;
         int diffx = pos.lx() - lastMoveToCoordTarget.getDst().x;
         if(Math.abs(diffx) > 100) {
-            System.out.println("diffx = " + diffx);
+            System.err.println("MotomanCRCLServer.recheckCoordTarget: diffx = " + diffx+",pos="+pos+",lastMoveToCoordTarget="+lastMoveToCoordTarget);
             resendNeeded = true;
         }
          int diffy = pos.ly() - lastMoveToCoordTarget.getDst().y;
         if(Math.abs(diffy) > 100) {
-            System.out.println("diffy = " + diffy);
+            System.out.println("MotomanCRCLServer.recheckCoordTarget: diffy = " + diffy+",pos="+pos+",lastMoveToCoordTarget="+lastMoveToCoordTarget);
             resendNeeded = true;
         }
          int diffz = pos.lz() - lastMoveToCoordTarget.getDst().z;
         if(Math.abs(diffz) > 100) {
-            System.out.println("diffz = " + diffz);
+            System.out.println("MotomanCRCLServer.recheckCoordTarget: diffz = " + diffz +",pos="+pos+",lastMoveToCoordTarget="+lastMoveToCoordTarget);
             resendNeeded = true;
         }
         if (resendNeeded) {
-            getCommandStatus().setCommandState(CRCL_WORKING);
-            moveTo((MoveToType) lastCommand);
+            int failCount = recheckCoordTargetFailConsecutive.incrementAndGet();
+            if(failCount > 10) {
+                getCommandStatus().setCommandState(CRCL_ERROR);
+                getCommandStatus().setStateDescription("MotomanCRCLServer.recheckCoordTarget: diffx="+diffx+",diffy="+diffy+",diffz="+diffz+",failCount="+failCount+",pos="+pos+",lastMoveToCoordTarget="+lastMoveToCoordTarget);
+            } else {
+                getCommandStatus().setCommandState(CRCL_WORKING);
+                moveTo((MoveToType) lastCommand);
+            }
         } else {
             getCommandStatus().setCommandState(CRCL_DONE);
+            recheckCoordTargetFailConsecutive.set(0);
         }
     }
     
