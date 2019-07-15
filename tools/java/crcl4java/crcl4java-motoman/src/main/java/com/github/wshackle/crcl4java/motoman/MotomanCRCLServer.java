@@ -202,6 +202,31 @@ public class MotomanCRCLServer implements AutoCloseable {
         log(s);
     }
 
+    private void recheckCoordTarget(MP_CART_POS_RSP_DATA pos) throws IOException, MotoPlusConnectionException, PmException {
+        boolean resendNeeded = false;
+        int diffx = pos.lx() - lastMoveToCoordTarget.getDst().x;
+        if(Math.abs(diffx) > 100) {
+            System.out.println("diffx = " + diffx);
+            resendNeeded = true;
+        }
+         int diffy = pos.ly() - lastMoveToCoordTarget.getDst().y;
+        if(Math.abs(diffy) > 100) {
+            System.out.println("diffy = " + diffy);
+            resendNeeded = true;
+        }
+         int diffz = pos.lz() - lastMoveToCoordTarget.getDst().z;
+        if(Math.abs(diffz) > 100) {
+            System.out.println("diffz = " + diffz);
+            resendNeeded = true;
+        }
+        if (resendNeeded) {
+            getCommandStatus().setCommandState(CRCL_WORKING);
+            moveTo((MoveToType) lastCommand);
+        } else {
+            getCommandStatus().setCommandState(CRCL_DONE);
+        }
+    }
+    
     private void recheckJoints(MP_PULSE_POS_RSP_DATA curPulseData, int recvId[]) throws IOException, MotoPlusConnectionException {
         System.out.println("recvId = " + Arrays.toString(recvId));
         System.out.println("actuateJointsLastJointTarget.getId() = " + actuateJointsLastJointTarget.getId());
@@ -298,7 +323,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                                 if (lastCommand instanceof ActuateJointsType) {
                                     recheckJoints(pulseData, recvId);
                                 } else {
-                                    getCommandStatus().setCommandState(CRCL_DONE);
+                                    recheckCoordTarget(pos);
                                 }
                             }
                         } else {
@@ -471,6 +496,8 @@ public class MotomanCRCLServer implements AutoCloseable {
         this.debug = debug;
     }
 
+    private volatile CoordTarget lastMoveToCoordTarget = null;
+    
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
         boolean isStraight = cmd.isMoveStraight();
         final int newTargetId = lastSentTargetId.incrementAndGet();
@@ -599,6 +626,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             System.out.println("motStartRet = " + motStartRet);
             System.out.println("lastSentTargetId = " + lastSentTargetId.get());
         }
+        lastMoveToCoordTarget = tgt;
     }
 
     private volatile MP_PULSE_POS_RSP_DATA actuateJointsStartPulseData = null;
@@ -774,6 +802,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 setRotSpeed((SetRotSpeedType) cmd, event.getState());
                 setStateDescription(CRCL_DONE, "");
             } else if (cmd instanceof MoveToType) {
+                setStateDescription(CRCL_WORKING, "");
                 moveTo((MoveToType) cmd);
                 setStateDescription(CRCL_WORKING, "");
             } else if (cmd instanceof DwellType) {
