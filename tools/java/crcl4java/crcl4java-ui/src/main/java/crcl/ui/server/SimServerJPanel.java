@@ -1228,7 +1228,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
             @Override
             public void run() {
-                jTextAreaErrors.setText(jTextAreaErrors.getText() + "\n" + sWithThread);
+                if (jTextAreaErrors.getText().length() > 50000) {
+                    jTextAreaErrors.setText(sWithThread);
+                } else {
+                    jTextAreaErrors.append("\n" + sWithThread);
+                }
             }
         });
     }
