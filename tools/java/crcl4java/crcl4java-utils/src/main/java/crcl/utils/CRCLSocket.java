@@ -217,12 +217,6 @@ public class CRCLSocket implements AutoCloseable {
         static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
     }
 
-//     @Nullable  
-//    private static CRCLSocket utilSocket = null;
-//
-//    public static void setUtilSocket(CRCLSocket newUtilSocket) {
-//        utilSocket = newUtilSocket;
-//    }
     public static CRCLSocket getUtilSocket() {
         return UtilSocketHider.UTIL_SOCKET;
     }

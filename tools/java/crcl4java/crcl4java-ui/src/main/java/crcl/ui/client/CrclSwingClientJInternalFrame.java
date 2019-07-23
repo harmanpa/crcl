@@ -1167,6 +1167,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         pendantClientJPanel1.requestAndReadStatus();
     }
 
+    public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
+        pendantClientJPanel1.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService,crclSocketActionThread);
+    }
+    
     public Optional<CommandStateEnumType> getCurrentState() {
         return pendantClientJPanel1.currentState();
     }
@@ -1273,17 +1277,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         pendantClientJPanel1.setPropertiesFile(propertiesFile);
     }
 
-    public ExecutorService getRunProgramService() {
-        return pendantClientJPanel1.getRunProgramService();
+    public ExecutorService getCrclSocketActionExecutorService() {
+        return pendantClientJPanel1.getCrclSocketActionExecutorService();
     }
 
-    public void setRunProgramService(ExecutorService runProgramService) {
-        pendantClientJPanel1.setRunProgramService(runProgramService);
-    }
-
-    public void resetRunProgramServiceToDefault() {
-        pendantClientJPanel1.resetRunProgramServiceToDefault();
-    }
 
     @Override
     public void loadProperties() {

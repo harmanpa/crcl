@@ -1332,6 +1332,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.sendAllJointPositionsByDefault = sendAllJointPositionsByDefault;
     }
 
+    private volatile StackTraceElement bindTrace @Nullable []  = null;
+    private volatile @Nullable
+    Thread bindThread = null;
+
     private void runSingleThreaded() throws Exception {
         ServerSocketChannel channelForRun = this.serverSocketChannel;
         if (null == channelForRun) {
@@ -1340,17 +1344,32 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 throw new IllegalStateException("null == localAddressToBind");
             }
             try {
+
                 channelForRun = (ServerSocketChannel) ServerSocketChannel.open()
                         .bind(localAddressToBind)
                         .setOption(StandardSocketOptions.SO_REUSEADDR, true)
                         .configureBlocking(false);
+                bindTrace = Thread.currentThread().getStackTrace();
+                bindThread = Thread.currentThread();
                 this.serverSocketChannel = channelForRun;
             } catch (BindException bindException) {
                 if (localAddressToBind instanceof InetSocketAddress) {
                     InetSocketAddress loclaInetSocketAddress = (InetSocketAddress) localAddressToBind;
                     System.err.println("localAdrress = " + loclaInetSocketAddress.getHostString() + ":" + loclaInetSocketAddress.getPort());
+
+                }
+                CRCLServerSocket otherServer = portMap.get(port);
+                System.out.println("otherServer = " + otherServer);
+                if (null != otherServer) {
+                    final boolean sameServer = otherServer == this;
+                    System.out.println("(otherServer==this) = " + sameServer);
+                    if (!sameServer) {
+                        System.out.println("otherServer.bindTrace = " + Utils.traceToString(otherServer.bindTrace));
+                        System.out.println("otherServer.bindThread = " + otherServer.bindThread);
+                    }
                 }
                 System.err.println("portMap = " + portMap);
+
                 System.err.println("Thread.currentThread() = " + Thread.currentThread());
                 System.err.println("startTrace = " + Utils.traceToString(startTrace));
                 throw new IOException(bindException);
@@ -1563,6 +1582,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             throw new IllegalStateException("null == runMultiExcututorService");
         }
         if (null == serverSocket) {
+            bindTrace = Thread.currentThread().getStackTrace();
+            bindThread = Thread.currentThread();
             if (null != bindAddress) {
                 serverSocket = new ServerSocket(port, backlog, bindAddress);
             } else {

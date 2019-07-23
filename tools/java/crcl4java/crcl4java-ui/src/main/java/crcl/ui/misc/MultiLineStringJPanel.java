@@ -302,8 +302,11 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         return showText(init, null, "", false, false);
     }
 
-    public static XFuture<Boolean> forceShowText(String init) {
-        return showText(init, null, "", false, true);
+    public static XFuture<Boolean> forceShowText(String init , JFrame parentJframe) {
+        if(null == parentJframe) {
+            throw new IllegalArgumentException("null == parentJframe");
+        }
+        return showText(init, parentJframe, "Message from " +parentJframe.getTitle(), false, true);
     }
 
     public static XFuture<Boolean> showText(String init,

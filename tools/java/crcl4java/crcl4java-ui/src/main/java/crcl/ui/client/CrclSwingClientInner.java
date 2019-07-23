@@ -114,6 +114,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.file.Files;
@@ -134,9 +135,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -468,11 +472,6 @@ public class CrclSwingClientInner {
         outer.clearProgramTimesDistances();
     }
 
-    public @Nullable
-    CRCLSocket getCRCLSocket() {
-        return this.crclSocket;
-    }
-
     private boolean debugInterrupts;
 
     /**
@@ -541,7 +540,7 @@ public class CrclSwingClientInner {
         }
         closeTestProgramThreadThead = Thread.currentThread();
         closeTestProgramThreadTrace = Thread.currentThread().getStackTrace();
-        Thread rpt = this.runProgramThread;
+        Thread rpt = this.crclSocketActionThread;
         if (null == rpt) {
             closeTestProgramRunProgramThreadTrace = null;
         } else {
@@ -556,10 +555,10 @@ public class CrclSwingClientInner {
             runProgramFuture = null;
         }
         if (isRunningProgram()) {
-            if (null != runProgramThread) {
+            if (null != crclSocketActionThread) {
                 System.err.println("closeTestProgramRunProgramThreadTrace = " + Arrays.toString(closeTestProgramRunProgramThreadTrace));
             }
-            showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFutureFinal + ", runProgramThread=" + runProgramThread);
+            showErrorMessage("still running after cancel: runProgramFuture=" + runProgramFutureFinal + ", runProgramThread=" + crclSocketActionThread);
         }
     }
 
@@ -626,7 +625,7 @@ public class CrclSwingClientInner {
         setCommandId(cmd, commandId.incrementAndGet());
     }
 
-    public boolean requestStatus() throws JAXBException {
+    private boolean requestStatus() throws JAXBException {
         request_status_count++;
 //        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
         boolean result = false;
@@ -1064,13 +1063,10 @@ public class CrclSwingClientInner {
     private volatile boolean lastCmdTriedWasStop = false;
 
     private volatile int initCount = 0;
-//    private final AtomicReference<StackTraceElement @Nullable[]> initTrace0 = new AtomicReference<>();
-//    private final AtomicReference<StackTraceElement @Nullable[]> initTrace1 = new AtomicReference<>();
-//    private final AtomicReference<StackTraceElement @Nullable[]> initTrace2 = new AtomicReference<>();
-//    private final AtomicReference<StackTraceElement @Nullable[]> initTrace3 = new AtomicReference<>();
 
     private boolean sendCommandPrivate(CRCLCommandType cmd) {
         try {
+            checkCrclActionThread();
             CRCLSocket crclSocketForSend = this.crclSocket;
             if (null == crclSocketForSend) {
                 showMessage("Can not send command when not connected.");
@@ -1253,7 +1249,18 @@ public class CrclSwingClientInner {
         }
     }
 
-    public boolean incAndSendCommand(CRCLCommandType cmd) throws JAXBException {
+    public XFuture<Boolean> scheduleIncAndSendCommand(CRCLCommandType cmd) {
+        if (Thread.currentThread() == crclSocketActionThread) {
+            boolean ret = incAndSendCommand(cmd);
+            return XFuture.completedFuture(ret);
+        } else if (null != crclSocketActionExecutorService) {
+            return XFuture.supplyAsync("scheduleIncAndSendCommand", () -> incAndSendCommand(cmd), crclSocketActionExecutorService);
+        } else {
+            throw new RuntimeException("crclSocketActionExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
+        }
+    }
+
+    private boolean incAndSendCommand(CRCLCommandType cmd) {
         this.incCommandID(cmd);
         long sid = statusCommandId();
         if (cmd.getCommandID() == sid) {
@@ -1275,88 +1282,108 @@ public class CrclSwingClientInner {
         return sendCommand(cmd);
     }
 
-    public boolean sendCommand(CRCLCommandType cmd) throws JAXBException {
-        if (null == cmd) {
-            throw new IllegalArgumentException("cmd can not be null");
+    public XFuture<Boolean> scheduleSendCommand(CRCLCommandType cmd) {
+        if (Thread.currentThread() == crclSocketActionThread) {
+            boolean ret = sendCommand(cmd);
+            return XFuture.completedFuture(ret);
+        } else if (null != crclSocketActionExecutorService) {
+            return XFuture.supplyAsync("scheduleSendCommand", () -> sendCommand(cmd), crclSocketActionExecutorService);
+        } else {
+            throw new RuntimeException("crclSocketActionExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
         }
-        if (null == this.crclSocket) {
-            throw new IllegalStateException("crclSocket must not be null.");
-        }
-        if (cmd instanceof CRCLCommandWrapper) {
-            CRCLCommandWrapper wrapped = (CRCLCommandWrapper) cmd;
-            wrapped.notifyOnStartListeners();
-            cmd = wrapped.getWrappedCommand();
-        }
-        if (!(cmd instanceof GetStatusType) && menuOuter().isDebugSendCommandSelected()) {
-            showDebugMessage("Debugging Send Command : cmd = " + cmdString(cmd));
-        }
-        if (cmd instanceof InitCanonType) {
-            initSent = true;
-        } else if (cmd instanceof SetAngleUnitsType) {
-            SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
-            this.setAngleType(setAngle.getUnitName());
-        } else if (cmd instanceof SetLengthUnitsType) {
-            SetLengthUnitsType setLengthUnit = (SetLengthUnitsType) cmd;
-            this.setLengthUnit(setLengthUnit.getUnitName());
-            this.lengthUnitSent = true;
-        } else if (cmd instanceof SetEndPoseToleranceType) {
-            SetEndPoseToleranceType endPoseTol = (SetEndPoseToleranceType) cmd;
-            this.setExpectedEndPoseTolerance(endPoseTol.getTolerance());
-        } else if (cmd instanceof SetIntermediatePoseToleranceType) {
-            SetIntermediatePoseToleranceType intermediatePoseTol = (SetIntermediatePoseToleranceType) cmd;
-            this.setExpectedIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
-        } else if (cmd instanceof ConfigureJointReportsType) {
-            ConfigureJointReportsType cjrs = (ConfigureJointReportsType) cmd;
-            for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
-                cjrMap.put(cjr.getJointNumber(), cjr);
-            }
-        } else if (cmd instanceof SetEndEffectorType) {
-            SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
-            this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
-            holdingErrorOccured = false;
-        } else if (cmd instanceof MoveToType) {
-            MoveToType moveToCmd = (MoveToType) cmd;
-            final PoseType endPosition = moveToCmd.getEndPosition();
-            if (null == endPosition) {
-                throw new NullPointerException("moveToCmd.getEndPosition() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
-            }
-            PointType pt = endPosition.getPoint();
-            if (null == pt) {
-                throw new NullPointerException("moveToCmd.getEndPosition()getPoint() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
-            }
-            if (null != maxLimit) {
-                if (pt.getX() > maxLimit.x) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
-                }
-                if (pt.getY() > maxLimit.y) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
-                }
-                if (pt.getZ() > maxLimit.z) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
-                }
-            }
-            if (null != minLimit) {
-                if (pt.getX() < minLimit.x) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
-                }
-                if (pt.getY() < minLimit.y) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
-                }
-                if (pt.getZ() < minLimit.z) {
-                    throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
-                }
-            }
-        }
-        boolean ret = this.sendCommandPrivate(cmd);
+    }
 
-        if (!(cmd instanceof GetStatusType)) {
-            if (menuOuter().isDebugSendCommandSelected()) {
-                showDebugMessage("PendantClientInner.sendCommand() : ret = " + ret);
+    private boolean sendCommand(CRCLCommandType cmd) {
+        try {
+            if (null == cmd) {
+                throw new IllegalArgumentException("cmd can not be null");
             }
-        } else if (getCommandState() == CommandStateEnumType.CRCL_DONE) {
-            setCommandState(CommandStateEnumType.CRCL_WORKING);
+            if (null == this.crclSocket) {
+                throw new IllegalStateException("crclSocket must not be null.");
+            }
+            if (cmd instanceof CRCLCommandWrapper) {
+                CRCLCommandWrapper wrapped = (CRCLCommandWrapper) cmd;
+                wrapped.notifyOnStartListeners();
+                cmd = wrapped.getWrappedCommand();
+            }
+            if (!(cmd instanceof GetStatusType) && menuOuter().isDebugSendCommandSelected()) {
+                showDebugMessage("Debugging Send Command : cmd = " + cmdString(cmd));
+            }
+            if (cmd instanceof InitCanonType) {
+                initSent = true;
+            } else if (cmd instanceof SetAngleUnitsType) {
+                SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
+                this.setAngleType(setAngle.getUnitName());
+            } else if (cmd instanceof SetLengthUnitsType) {
+                SetLengthUnitsType setLengthUnit = (SetLengthUnitsType) cmd;
+                this.setLengthUnit(setLengthUnit.getUnitName());
+                this.lengthUnitSent = true;
+            } else if (cmd instanceof SetEndPoseToleranceType) {
+                SetEndPoseToleranceType endPoseTol = (SetEndPoseToleranceType) cmd;
+                this.setExpectedEndPoseTolerance(endPoseTol.getTolerance());
+            } else if (cmd instanceof SetIntermediatePoseToleranceType) {
+                SetIntermediatePoseToleranceType intermediatePoseTol = (SetIntermediatePoseToleranceType) cmd;
+                this.setExpectedIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
+            } else if (cmd instanceof ConfigureJointReportsType) {
+                ConfigureJointReportsType cjrs = (ConfigureJointReportsType) cmd;
+                for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
+                    cjrMap.put(cjr.getJointNumber(), cjr);
+                }
+            } else if (cmd instanceof SetEndEffectorType) {
+                SetEndEffectorType seeCmd = (SetEndEffectorType) cmd;
+                this.setHoldingObjectExpected(seeCmd.getSetting() < 0.5);
+                holdingErrorOccured = false;
+            } else if (cmd instanceof MoveToType) {
+                MoveToType moveToCmd = (MoveToType) cmd;
+                final PoseType endPosition = moveToCmd.getEndPosition();
+                if (null == endPosition) {
+                    throw new NullPointerException("moveToCmd.getEndPosition() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
+                }
+                PointType pt = endPosition.getPoint();
+                if (null == pt) {
+                    throw new NullPointerException("moveToCmd.getEndPosition()getPoint() == null: moveToCmd=" + CRCLSocket.cmdToString(cmd));
+                }
+                if (null != maxLimit) {
+                    if (pt.getX() > maxLimit.x) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.x=" + maxLimit.x);
+                    }
+                    if (pt.getY() > maxLimit.y) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.y=" + maxLimit.y);
+                    }
+                    if (pt.getZ() > maxLimit.z) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds maxLimit.z=" + maxLimit.z);
+                    }
+                }
+                if (null != minLimit) {
+                    if (pt.getX() < minLimit.x) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.x=" + minLimit.x);
+                    }
+                    if (pt.getY() < minLimit.y) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.y=" + minLimit.y);
+                    }
+                    if (pt.getZ() < minLimit.z) {
+                        throw commandErrorState("MoveToCmd : " + CRCLSocket.cmdToString(cmd) + " exceeds minLimit.z=" + minLimit.z);
+                    }
+                }
+            }
+            boolean ret = this.sendCommandPrivate(cmd);
+
+            if (!(cmd instanceof GetStatusType)) {
+                if (menuOuter().isDebugSendCommandSelected()) {
+                    showDebugMessage("PendantClientInner.sendCommand() : ret = " + ret);
+                }
+            } else if (getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                setCommandState(CommandStateEnumType.CRCL_WORKING);
+            }
+            return ret;
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "cmd=" + CRCLSocket.commandToSimpleString(cmd), ex);
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
         }
-        return ret;
     }
 
     public void setCommandState(CommandStateEnumType state) {
@@ -1432,7 +1459,7 @@ public class CrclSwingClientInner {
             notRunningTimerA[0] = notRunningTimer;
             notRunningTimer.start();
             return notRunningFuture;
-        } catch (JAXBException | InterruptedException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             aborting = false;
             XFutureVoid notRunningFuture = new XFutureVoid("abort");
@@ -1452,27 +1479,44 @@ public class CrclSwingClientInner {
      * Send a new command to stop motion.
      *
      * @param stopType the value of stop condition
-     * @throws javax.xml.bind.JAXBException when xml can not be generated.
      */
-    public void stopMotion(StopConditionEnumType stopType) throws JAXBException {
+    public void stopMotion(StopConditionEnumType stopType) {
 
-        StopMotionType stop = new StopMotionType();
-        stop.setStopCondition(stopType);
-        stop.setCommandID(Math.max(1, commandId.get() - 1));
-        programName = null;
-        programIndex = -1;
-        this.sendCommand(stop);
+        try {
+            StopMotionType stop = new StopMotionType();
+            stop.setStopCondition(stopType);
+            stop.setCommandID(Math.max(1, commandId.get() - 1));
+            programName = null;
+            programIndex = -1;
+            this.scheduleSendCommand(stop).get(1000, TimeUnit.MILLISECONDS);
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "", exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
+        }
     }
 
-    public long resendInit() throws JAXBException, InterruptedException {
-        InitCanonType init = new InitCanonType();
-        init.setCommandID(Math.max(1, commandId.get() - 3));
-        this.sendCommand(init);
-        waitForDone(init.getCommandID(), 2000, this.pause_count.get());
-        return init.getCommandID();
+    private long resendInit() {
+        try {
+            InitCanonType init = new InitCanonType();
+            init.setCommandID(Math.max(1, commandId.get() - 3));
+            this.sendCommand(init);
+            waitForDone(init.getCommandID(), 2000, this.pause_count.get());
+            return init.getCommandID();
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "", exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
+        }
     }
 
-    public boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count, int startRunProgramAbortCount) throws InterruptedException, JAXBException {
+    private boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count, int startRunProgramAbortCount) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
         while (null == this.getStatus() && !Thread.currentThread().isInterrupted()) {
             if (startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount) {
@@ -1485,14 +1529,7 @@ public class CrclSwingClientInner {
             if (delay > 0) {
                 Thread.sleep(delay);
             }
-            synchronized (this) {
-                if (!requestStatus()) {
-                    return false;
-                }
-                if (null == readerThread) {
-                    readStatus();
-                }
-            }
+            internalRequestAndReadStatus();
             if (this.pause_count.get() != starting_pause_count || this.paused) {
                 return false;
             }
@@ -1564,14 +1601,7 @@ public class CrclSwingClientInner {
                 if (!isConnected()) {
                     return WaitForDoneResult.WFD_SOCKET_DISCONNECTED;
                 }
-                synchronized (this) {
-                    if (!requestStatus()) {
-                        return WaitForDoneResult.WFD_REQUEST_STATUS_FAILED;
-                    }
-                    if (null == readerThread) {
-                        readStatus();
-                    }
-                }
+                internalRequestAndReadStatus();
                 if (this.pause_count.get() != pause_count_start || this.paused) {
                     return WaitForDoneResult.WFD_PAUSED;
                 }
@@ -2034,7 +2064,8 @@ public class CrclSwingClientInner {
         return unpausing;
     }
 
-    boolean readStatus() {
+    private boolean readStatus() {
+        checkCrclActionThread();
         CRCLSocket readSocket = this.crclSocket;
         try {
             if (null == readSocket || null == menuOuter()) {
@@ -2157,6 +2188,22 @@ public class CrclSwingClientInner {
         return lastEl;
     }
 
+    public int getPort() {
+        return crclSocket.getPort();
+    }
+
+    public int getLocalPort() {
+        return crclSocket.getLocalPort();
+    }
+
+    public @Nullable
+    InetAddress getInetAddress() {
+        if (null == crclSocket) {
+            return null;
+        }
+        return crclSocket.getInetAddress();
+    }
+
     public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
         long curTime = System.currentTimeMillis();
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
@@ -2192,7 +2239,7 @@ public class CrclSwingClientInner {
                 System.currentTimeMillis(),
                 programName,
                 programIndex,
-                (null != crclSocket) ? crclSocket.toString() : "");
+                (null != crclSocket) ? getCrclSocketString() : "");
         lastCommandStatusLogElement = statEl;
         commandStatusLog.add(statEl);
         while (commandStatusLog.size() > maxLogSize) {
@@ -2368,7 +2415,7 @@ public class CrclSwingClientInner {
                 Thread.sleep(100);
             } catch (Exception ex) {
                 if (!preClosing) {
-                    LOGGER.log(Level.SEVERE, "crclSocket="+crclSocket, ex);
+                    LOGGER.log(Level.SEVERE, "crclSocket=" + crclSocket, ex);
                     throw new RuntimeException(ex);
                 }
             }
@@ -2847,7 +2894,7 @@ public class CrclSwingClientInner {
             if (isConnected() && !lastCmdTriedWasStop) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
-        } catch (JAXBException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -3112,11 +3159,11 @@ public class CrclSwingClientInner {
     }
 
     private volatile @Nullable
-    Thread runProgramThread = null;
+    Thread crclSocketActionThread = null;
 
     public @Nullable
-    Thread getRunProgramThread() {
-        return runProgramThread;
+    Thread getCrclSocketActionThread() {
+        return crclSocketActionThread;
     }
 
     public @Nullable
@@ -3167,9 +3214,12 @@ public class CrclSwingClientInner {
     private volatile @Nullable
     MiddleCommandType lastMidddleCmd = null;
 
+    private volatile boolean runningProgram = false;
+
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement @Nullable [] threadCreateCallStack,
             @Nullable XFuture<Boolean> future) {
+        runningProgram = true;
         int index = startLine;
         String progName = prog.getName();
         CRCLCommandType lineCmd = null;
@@ -3194,7 +3244,7 @@ public class CrclSwingClientInner {
                 setRunProgramReturnFalseTrace();
                 throw new RuntimeException("runProgram() failed waiting for initial status");
             }
-            runProgramThread = Thread.currentThread();
+            checkCrclActionThread();
             if (startLine == -2) {
                 startLine = lastShowCurrentProgramLine;
             }
@@ -3314,7 +3364,7 @@ public class CrclSwingClientInner {
                 if (null != future && future.isCancelled()) {
                     try {
                         stopMotion(StopConditionEnumType.FAST);
-                    } catch (JAXBException ex) {
+                    } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
                     }
                     System.err.println("runProgram() stopped when future.isCancelled() returned true");
@@ -3322,7 +3372,7 @@ public class CrclSwingClientInner {
                     throw new RuntimeException("runProgram() stopped when future.isCancelled() returned true");
                 }
                 programCommandStartTime = System.currentTimeMillis();
-                runProgramThread = Thread.currentThread();
+                checkCrclActionThread();
                 setOutgoingProgramIndex(i);
                 cmd = middleCommands.get(i - 1);
                 do {
@@ -3473,8 +3523,8 @@ public class CrclSwingClientInner {
                 if (null != crclSocket) {
                     stopMotion(StopConditionEnumType.FAST);
                 }
-            } catch (JAXBException jAXBException) {
-                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, jAXBException);
+            } catch (Exception exception) {
+                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, exception);
             }
 
             setOutgoingProgramIndex(-1);
@@ -3482,7 +3532,7 @@ public class CrclSwingClientInner {
             outer.checkPollSelected();
             callingRunProgramStackTrace.set(null);
             lastProgRunDataList = new ArrayList<>(progRunDataList);
-            runProgramThread = null;
+            runningProgram = false;
         }
     }
 
@@ -3550,13 +3600,10 @@ public class CrclSwingClientInner {
 
     public synchronized boolean isRunningProgram() {
         boolean runProgramFutureNotCompleted = isRunProgramFutureNotCompleted();
-        boolean runProgramThreadAlive = isRunProgramThreadAlive();
         lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
-        lastRunProgramThreadAlive = runProgramThreadAlive;
         final XFuture<Boolean> runProgramFutureFinal = runProgramFuture;
         boolean ret
-                = runProgramFutureNotCompleted
-                || (null == runProgramFutureFinal && runProgramThreadAlive);
+                = runProgramFutureNotCompleted || runningProgram;
         lastIsRunningProgram = ret;
         if (ret) {
             StringBuilder sb = new StringBuilder();
@@ -3569,7 +3616,7 @@ public class CrclSwingClientInner {
                 }
                 sb.append("runProgramFuture.createTrace=\n").append(XFuture.traceToString(runProgramFutureFinal.getCreateTrace())).append("\n");
             }
-            final Thread runProgramThreadFinal = runProgramThread;
+            final Thread runProgramThreadFinal = crclSocketActionThread;
             sb.append("runProgramThread").append(runProgramThreadFinal).append("/n");
             if (null != runProgramThreadFinal) {
                 sb.append("runProgramFuture.getStackTrace()=\n").append(XFuture.traceToString(runProgramThreadFinal.getStackTrace())).append("\n");
@@ -3581,8 +3628,8 @@ public class CrclSwingClientInner {
         return ret;
     }
 
-    private boolean isRunProgramThreadAlive() {
-        return null != runProgramThread && runProgramThread.isAlive();
+    private boolean isCrclSocketActionThreadAlive() {
+        return null != crclSocketActionThread && crclSocketActionThread.isAlive();
     }
 
     private boolean isRunProgramFutureNotCompleted() {
@@ -4399,6 +4446,7 @@ public class CrclSwingClientInner {
     private void testCommand(CRCLCommandType cmd, final int startingRunProgramAbortCount) throws JAXBException, InterruptedException, IOException, PmException, CRCLException {
         int rpac = runProgramAbortCount.get();
 
+        checkCrclActionThread();
         if (rpac != startingRunProgramAbortCount) {
             setRunProgramReturnFalseTrace();
             throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
@@ -4645,7 +4693,7 @@ public class CrclSwingClientInner {
         return;
     }
 
-    private String createTestCommandFailMessage(String prefix, CRCLCommandType cmd, CRCLStatusType startStatus,  WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
+    private String createTestCommandFailMessage(String prefix, CRCLCommandType cmd, CRCLStatusType startStatus, WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
         try {
             CRCLStatusType curStatus = getStatus();
             final String cmdString = cmdString(cmd);
@@ -4682,11 +4730,11 @@ public class CrclSwingClientInner {
                     + "(curTime-lastReadStatusTime)=" + (curTime - lastReadStatusTime) + NEW_LINE
                     + "(lastReadStatusTime-sendCommandTime)=" + (lastReadStatusTime - sendCommandTime) + NEW_LINE
                     + "timeout=" + timeout + NEW_LINE
-                    +  ((poseListSaveFileName!=null)?"poseListSaveFileName=" + poseListSaveFileName + NEW_LINE:"")
+                    + ((poseListSaveFileName != null) ? "poseListSaveFileName=" + poseListSaveFileName + NEW_LINE : "")
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + startStatusString
                     + curStatusString
-                    + ((null != intString)?"intString=" + intString + NEW_LINE:"")
+                    + ((null != intString) ? "intString=" + intString + NEW_LINE : "")
                     + suffix;
             return messageString;
         } catch (Exception exception) {
@@ -4696,30 +4744,33 @@ public class CrclSwingClientInner {
         }
     }
 
-    final static private AtomicInteger runProgramThreadCount = new AtomicInteger();
+    final static private AtomicInteger serviceCount = new AtomicInteger();
 
-    private final ExecutorService defaultRunProgramService
+    private final ExecutorService defaultCrclSocketActionService
             = Executors.newSingleThreadExecutor(new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
-                    Thread thread = new Thread(r, "PendantClientInner.runProgram" + runProgramThreadCount.incrementAndGet());
+                    Thread thread = new Thread(r, "CRCLSwingClientInner" + serviceCount.incrementAndGet() + ":" + getCrclSocketString());
                     thread.setDaemon(true);
                     return thread;
                 }
             });
 
-    private ExecutorService runProgramService = defaultRunProgramService;
+    private ExecutorService crclSocketActionExecutorService = defaultCrclSocketActionService;
 
-    public ExecutorService getRunProgramService() {
-        return runProgramService;
+    public ExecutorService getCrclSocketActionExecutorService() {
+        return crclSocketActionExecutorService;
     }
 
-    public void setRunProgramService(ExecutorService runProgramService) {
-        this.runProgramService = runProgramService;
-    }
-
-    public void resetRunProgramServiceToDefault() {
-        runProgramService = defaultRunProgramService;
+    public synchronized void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
+        if (null != this.crclSocketActionExecutorService && crclSocketActionExecutorService != this.crclSocketActionExecutorService) {
+            this.crclSocketActionExecutorService.shutdown();
+        }
+        this.crclSocketActionExecutorService = crclSocketActionExecutorService;
+        this.crclSocketActionThread = crclSocketActionThread;
+        if (null != crclSocketActionThread) {
+            crclSocketActtionThreadSetTrace = Thread.currentThread().getStackTrace();
+        }
     }
 
     private volatile long lastStartRunProgramThreadCommandId = -1;
@@ -4820,23 +4871,19 @@ public class CrclSwingClientInner {
         }
         final CRCLProgramType progFinal = prog;
         runProgramFuture
-                = XFuture.supplyAsync("startRunProgramThread(" + startLine + ":" + progFinal.getName() + ").socket=" + getCRCLSocket(), () -> {
+                = XFuture.supplyAsync("startRunProgramThread(" + startLine + ":" + progFinal.getName() + ").socket=" + getCrclSocketString(), () -> {
 //                    this.closeTestProgramThread();
                     return runProgram(progFinal, startLine, callingStackTrace, null);
                 },
-                        runProgramService);
-//        Thread rtpt = new Thread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                future.complete(runProgram(program, startLine, callingStackTrace, future));
-//
-//            }
-//
-//        }, "CrclSwingClientInner.runProgram");
-//        rtpt.start();
-//        runTestProgramThread.set(rtpt);
+                        crclSocketActionExecutorService);
         return runProgramFuture;
+    }
+
+    public String getCrclSocketString() {
+        if (null == crclSocket) {
+            return "null";
+        }
+        return crclSocket.toString();
     }
 
     public void startRunTestThread(final Map<String, String> testProperties) {
@@ -4847,7 +4894,7 @@ public class CrclSwingClientInner {
                 runProgramFutureFinal.cancelAll(true);
             }
         }
-        runProgramFuture = XFuture.supplyAsync("startRunTestThread", () -> runTest(testProperties), runProgramService);
+        runProgramFuture = XFuture.supplyAsync("startRunTestThread", () -> runTest(testProperties), crclSocketActionExecutorService);
     }
 
     public int getPoll_ms() {
@@ -4969,6 +5016,79 @@ public class CrclSwingClientInner {
             }
         } catch (Exception ex) {
             Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private volatile StackTraceElement crclSocketActtionThreadSetTrace  @Nullable []  = null;
+
+    private final AtomicInteger scheduleReadAndRequestStatusCount = new AtomicInteger();
+
+    public XFutureVoid scheduleReadAndRequestStatus() {
+        int count = scheduleReadAndRequestStatusCount.incrementAndGet();
+        final Runnable sheduledRunnable = this::internalRequestAndReadStatus;
+        final String label = "scheduleReadAndRequestStatus" + count;
+        return scheduleCrclSocketActionRunnable(sheduledRunnable, label);
+    }
+
+    private XFutureVoid scheduleCrclSocketActionRunnable(final Runnable sheduledRunnable, final String label) throws RuntimeException {
+        if (Thread.currentThread() == crclSocketActionThread || null == crclSocketActionThread) {
+            sheduledRunnable.run();
+            return XFutureVoid.completedFuture();
+        } else if (null != crclSocketActionExecutorService) {
+            return XFutureVoid.runAsync(label, sheduledRunnable, crclSocketActionExecutorService);
+        } else {
+            throw new RuntimeException("requestAndReadExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
+        }
+    }
+
+    private synchronized void internalRequestAndReadStatus() {
+        try {
+            checkCrclActionThread();
+            if (isUnpausing()) {
+                throw new RuntimeException("trying to prep program while still unpausing");
+            }
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
+            boolean requestStatusResult = requestStatus();
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
+            if (!requestStatusResult) {
+                throw new RuntimeException("requestStatus() returned false");
+            }
+            boolean readStatusResult = readStatus();
+            if (disconnecting) {
+                System.err.println("disconnectThread = " + disconnectThread);
+                System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+                throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
+            if (!readStatusResult) {
+                throw new RuntimeException("readStatus() returned false");
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    private void checkCrclActionThread() throws RuntimeException {
+        if (null != crclSocketActionThread) {
+            if (Thread.currentThread() != crclSocketActionThread) {
+                System.err.println("crclSocketActtionThreadSetTrace = " + Utils.traceToString(crclSocketActtionThreadSetTrace));
+                throw new RuntimeException("Thread.currentThread()=" + Thread.currentThread() + ", crclSocketActionThread=" + crclSocketActionThread);
+            }
+        } else {
+            crclSocketActionThread = Thread.currentThread();
+            crclSocketActtionThreadSetTrace = Thread.currentThread().getStackTrace();
         }
     }
 }

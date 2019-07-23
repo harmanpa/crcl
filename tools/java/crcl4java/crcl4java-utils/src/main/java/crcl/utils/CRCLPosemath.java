@@ -1237,6 +1237,9 @@ public class CRCLPosemath {
 
     public static String poseToString(PoseType pose) {
         try {
+            if(null == pose) {
+                return "null";
+            }
             PmRotationMatrix rmat = toPmRotationMatrix(pose);
             PmCartesian cart = toPmCartesian(pose.getPoint());
             return String.format("{%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g}%n}",
