@@ -7,6 +7,8 @@ jdk:
   - openjdk12
 
 script:
+  - lsb_release -a
+  - uname -a
   - java -version
   - cd tools/java/crcl4java
   - mvn -version
