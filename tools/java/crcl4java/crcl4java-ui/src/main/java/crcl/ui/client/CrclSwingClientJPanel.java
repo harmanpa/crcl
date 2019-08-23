@@ -111,7 +111,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -132,6 +131,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1394,15 +1394,22 @@ public class CrclSwingClientJPanel
     private volatile boolean polling = false;
 //    private volatile Thread pollingThread = null;
 
+    private volatile InterruptedException lastPollStatusInterruptedException = null;
+    private volatile Exception lastPollStatusException = null;
+    private volatile int lastPollStatusStartPollStopCount = -1;
+    private final AtomicInteger pollStatusCallCount = new AtomicInteger();
+
     private void pollStatus(int startPollStopCount) {
 //        final int startPollStopCount = pollStopCount.get();
         try {
+            int callCount = pollStatusCallCount.incrementAndGet();
             polling = true;
+            lastPollStatusStartPollStopCount = startPollStopCount;
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                internal.scheduleReadAndRequestStatus().get(2*internal.getPoll_ms()+100, TimeUnit.MILLISECONDS);
-                if(!(continuePolling(startPollStopCount))) {
+                internal.scheduleReadAndRequestStatus().get(2 * internal.getPoll_ms() + 100, TimeUnit.MILLISECONDS);
+                if (!(continuePolling(startPollStopCount))) {
                     return;
                 }
                 Thread.sleep(internal.getPoll_ms());
@@ -1413,7 +1420,9 @@ public class CrclSwingClientJPanel
                 }
             }
         } catch (InterruptedException interruptedException) {
+            lastPollStatusInterruptedException = interruptedException;
         } catch (Exception ex) {
+            lastPollStatusException = ex;
             if (!Thread.currentThread().isInterrupted()
                     && this.jCheckBoxPoll.isSelected()
                     && startPollStopCount == pollStopCount.get()) {
@@ -1424,9 +1433,9 @@ public class CrclSwingClientJPanel
 //            pollingThread = null;
         }
     }
-    
+
     public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
-        internal.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService,crclSocketActionThread);
+        internal.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService, crclSocketActionThread);
     }
 
     private boolean continuePolling(int startPollStopCount) {
@@ -1437,8 +1446,10 @@ public class CrclSwingClientJPanel
     }
 
     private volatile ExecutorService pollStatusService = null;
+    private volatile Future<?> lastStartPollTimerFuture = null;
+    private volatile Thread pollStatusServiceThread = null;
 
-    private void startPollTimer() {
+    private Future<?> startPollTimer() {
 //        pollTimer = new javax.swing.Timer(internal.getPoll_ms(), new ActionListener() {
 //
 //            private boolean toggler = false;
@@ -1466,13 +1477,25 @@ public class CrclSwingClientJPanel
             pollStatusService = Executors.newSingleThreadExecutor(new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
-                    Thread thread = new Thread("CRCL Client pollStatus:" + internal.getCrclSocketString());
+                    Thread thread = new Thread(r, "CRCL Client pollStatus:" + internal.getCrclSocketString());
                     thread.setDaemon(true);
+                    pollStatusServiceThread = thread;
+                    System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
                     return thread;
                 }
             });
         }
-        pollStatusService.submit(() -> pollStatus(startPollStopCount));
+        System.out.println("pollStatusServiceThread = " + pollStatusServiceThread);
+        if (null != pollStatusServiceThread) {
+            System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
+        }
+        Future<?> ret = pollStatusService.submit(() -> pollStatus(startPollStopCount));
+        System.out.println("pollStatusServiceThread = " + pollStatusServiceThread);
+        if (null != pollStatusServiceThread) {
+            System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
+        }
+        lastStartPollTimerFuture = ret;
+        return ret;
     }
 
     public void setDebugInterrupts(boolean debugInterrupts) {
@@ -2627,7 +2650,7 @@ public class CrclSwingClientJPanel
             jInternalFrame.setTitle("CRCL Client: " + _host + ":" + _port);
         }
         disconnecting = !internal.isConnected();
-        if(internal.isConnected() && jCheckBoxPoll.isSelected()) {
+        if (internal.isConnected() && jCheckBoxPoll.isSelected()) {
             startPollTimer();
         }
     }
@@ -3321,7 +3344,7 @@ public class CrclSwingClientJPanel
         }
         cmd.setCommandID(internal.getCmdId());
         CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();;
-        
+
         cmd = ObjTableJPanel.editObject(
                 cmd,
                 internal.getXpu(),
@@ -4903,7 +4926,7 @@ public class CrclSwingClientJPanel
                     return;
                 }
                 MiddleCommandType cmdOrig = program.getMiddleCommand().get(index - 1);
-                CRCLSocket editCrclSocket= CRCLSocket.getUtilSocket(); 
+                CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();
                 MiddleCommandType cmdEdited
                         = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
                                 internal.getXpu(),
@@ -4995,7 +5018,7 @@ public class CrclSwingClientJPanel
                 return;
             }
             MiddleCommandType cmdOrig = (MiddleCommandType) selectedClss.getDeclaredConstructor().newInstance();
-            
+
             CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();;
             MiddleCommandType cmdEdited
                     = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
@@ -5096,7 +5119,7 @@ public class CrclSwingClientJPanel
         try {
             boolean startAsConnected = isConnected();
             int startPollStopCount = pollStopCount.get();
-            
+
             int startlocalPort = internal.getLocalPort();
             int startRemotePort = internal.getPort();
             if (!startAsConnected) {
@@ -5104,7 +5127,7 @@ public class CrclSwingClientJPanel
             }
             int step2localPort = internal.getLocalPort();
             int step2RemotePort = internal.getPort();
-            
+
             stopPollTimer();
 
             this.clearProgramTimesDistances();
