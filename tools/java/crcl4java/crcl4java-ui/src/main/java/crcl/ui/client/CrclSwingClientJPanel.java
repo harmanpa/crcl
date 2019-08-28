@@ -1410,7 +1410,7 @@ public class CrclSwingClientJPanel
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                if(null == lastPollSocketRequestFuture && lastPollSocketRequestFuture.isDone()) {
+                if(null == lastPollSocketRequestFuture || lastPollSocketRequestFuture.isDone()) {
                    lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
                 }
                 if (!(continuePolling(startPollStopCount))) {
