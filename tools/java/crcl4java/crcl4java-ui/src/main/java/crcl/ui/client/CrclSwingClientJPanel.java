@@ -1401,6 +1401,7 @@ public class CrclSwingClientJPanel
     private final AtomicInteger pollStatusCallCount = new AtomicInteger();
 
     private void pollStatus(int startPollStopCount) {
+        XFutureVoid lastPollSocketRequestFuture = null;
 //        final int startPollStopCount = pollStopCount.get();
         try {
             int callCount = pollStatusCallCount.incrementAndGet();
@@ -1409,12 +1410,8 @@ public class CrclSwingClientJPanel
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                XFutureVoid future = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
-                if (!(continuePolling(startPollStopCount))) {
-                    return;
-                }
-                if (!future.isDone()) {
-                    future.get(internal.getPoll_ms(), TimeUnit.MILLISECONDS);
+                if(null == lastPollSocketRequestFuture && lastPollSocketRequestFuture.isDone()) {
+                   lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
                 }
                 if (!(continuePolling(startPollStopCount))) {
                     return;
@@ -1450,6 +1447,9 @@ public class CrclSwingClientJPanel
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
+            if(null == lastPollSocketRequestFuture && !lastPollSocketRequestFuture.isDone()) {
+                lastPollSocketRequestFuture.cancelAll(false);
+            }
             polling = false;
 //            pollingThread = null;
         }
