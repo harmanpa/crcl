@@ -168,8 +168,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
                 prop("crcjava.PendandClient.debugSendCommand", false),// debugSendCommand
                 prop("crcjava.PendandClient.debugReadStatus", false),// debugReadStatus
                 prop("crcjava.PendandClient.recordPose", false),// recordPose
-                prop("crcjava.PendandClient.exiSelected", false),// exiSelected
-                prop("crcjava.PendandClient.useReadStatusThreadSelected", true)// exiSelected
+                prop("crcjava.PendandClient.exiSelected", false)// exiSelected
         );
     }
 
@@ -182,8 +181,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
             boolean debugSendCommand,
             boolean debugReadStatus,
             boolean recordPose,
-            boolean exiSelected,
-            boolean useReadStatusThreadSelected) {
+            boolean exiSelected) {
         this.replaceState = replaceState;
         this.host = host;
         this.port = port;
@@ -192,7 +190,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         this.debugReadStatus = debugReadStatus;
         this.recordPose = recordPose;
         this.exiSelected = exiSelected;
-        this.useReadStatusThreadSelected = useReadStatusThreadSelected;
     }
 
     private final boolean exiSelected;
@@ -200,13 +197,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     @Override
     public boolean isEXISelected() {
         return this.exiSelected;
-    }
-
-    private final boolean useReadStatusThreadSelected;
-
-    @Override
-    public boolean isUseReadStatusThreadSelected() {
-        return this.useReadStatusThreadSelected;
     }
 
     @Override

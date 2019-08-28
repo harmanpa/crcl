@@ -32,7 +32,7 @@ import java.net.UnknownHostException;
 
 /**
  *
- * @author shackle
+ *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class NetFTSensorProxy {
 

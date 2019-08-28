@@ -44,7 +44,7 @@ public interface PendantClientMenuOuter {
 
     public boolean isEXISelected();
 
-    public boolean isUseReadStatusThreadSelected();
+//    public boolean isUseReadStatusThreadSelected();
     
     public void readRecentCommandFiles();
 

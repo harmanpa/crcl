@@ -26,7 +26,7 @@ import crcl.utils.server.ServerJInternalFrameProviderFinderInterface;
 
 /**
  *
- * @author shackle
+ *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MotomanCRCLServerJInternalFrameProviderFinder implements ServerJInternalFrameProviderFinderInterface {
 

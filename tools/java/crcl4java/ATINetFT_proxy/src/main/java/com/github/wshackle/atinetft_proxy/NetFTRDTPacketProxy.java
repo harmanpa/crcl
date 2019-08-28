@@ -26,7 +26,7 @@ import com.atiia.automation.sensors.NetFTRDTPacket;
 
 /**
  *
- * @author shackle
+ *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class NetFTRDTPacketProxy {
 

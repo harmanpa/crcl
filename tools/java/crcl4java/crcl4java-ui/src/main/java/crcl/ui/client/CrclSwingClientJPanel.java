@@ -134,6 +134,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1408,7 +1409,13 @@ public class CrclSwingClientJPanel
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                internal.scheduleReadAndRequestStatus().get(2 * internal.getPoll_ms() + 100, TimeUnit.MILLISECONDS);
+                XFutureVoid future = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
+                if (!(continuePolling(startPollStopCount))) {
+                    return;
+                }
+                if (!future.isDone()) {
+                    future.get(internal.getPoll_ms(), TimeUnit.MILLISECONDS);
+                }
                 if (!(continuePolling(startPollStopCount))) {
                     return;
                 }
@@ -1420,8 +1427,22 @@ public class CrclSwingClientJPanel
                 }
             }
         } catch (InterruptedException interruptedException) {
+//            System.out.println("crclSocketActionThread = " + internal.getCrclSocketActionThread());
+//            StackTraceElement ste[] = internal.getCrclSocketActionThread().getStackTrace();
+//            System.out.println("crclSocketActionThread.getStackTrace() = " + Utils.traceToString(ste));
+//            System.err.println("");
+//            System.out.flush();
+//
+//            System.err.flush();
             lastPollStatusInterruptedException = interruptedException;
         } catch (Exception ex) {
+//            System.out.println("crclSocketActionThread = " + internal.getCrclSocketActionThread());
+//            StackTraceElement ste[] = internal.getCrclSocketActionThread().getStackTrace();
+//            System.out.println("crclSocketActionThread.getStackTrace() = " + Utils.traceToString(ste));
+//            System.err.println("");
+//            System.out.flush();
+//
+//            System.err.flush();
             lastPollStatusException = ex;
             if (!Thread.currentThread().isInterrupted()
                     && this.jCheckBoxPoll.isSelected()
@@ -1489,6 +1510,14 @@ public class CrclSwingClientJPanel
         if (null != pollStatusServiceThread) {
             System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
         }
+//        try {
+//            CRCLSocket pollingSocket = internal.getCrclStatusPollingSocket();
+//            if (null != pollingSocket && !pollingSocket.isConnected()) {
+//                pollingSocket.reconnect();
+//            }
+//        } catch (IOException ex) {
+//            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         Future<?> ret = pollStatusService.submit(() -> pollStatus(startPollStopCount));
         System.out.println("pollStatusServiceThread = " + pollStatusServiceThread);
         if (null != pollStatusServiceThread) {
@@ -1509,42 +1538,6 @@ public class CrclSwingClientJPanel
     @Override
     public void stopPollTimer() {
         pollStopCount.incrementAndGet();
-//        Thread pt = pollingThread;
-//        if (null != pt) {
-//            try {
-//                pt.join(100 + internal.getPoll_ms());
-//            } catch (InterruptedException ex) {
-//            }
-//            if (pt.isAlive()) {
-//                if (this.internal.isDebugInterrupts()) {
-//                    Thread.dumpStack();
-//                    System.err.println("Interruptint pollingThread = " + pt);
-//                    System.out.println("Interruptint pollingThread = " + pt);
-//                    System.out.println("pollingThread.getStackTrace() = " + Arrays.toString(pt.getStackTrace()));
-//                    StackTraceElement ste[] = internal.getCallingRunProgramStackTrace().get();
-//                    if (null != ste) {
-//                        System.out.println("CallingRunProgramStackTrace: ");
-//                        for (StackTraceElement el : ste) {
-//                            System.out.println(el);
-//                        }
-//                        System.out.println("End CallingRunProgramStackTrace");
-//                        System.out.println("");
-//                    }
-//                }
-//                pt.interrupt();
-//                try {
-//                    pt.join(1000);
-//                } catch (InterruptedException ex) {
-//                    if (internal.isConnected()) {
-//                        Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                }
-//            }
-//            pollingThread = null;
-//            if (statusRequested && !disconnecting) {
-//                internal.readStatus();
-//            }
-//        }
     }
 
     CrclSwingClientInner getInternal() {
@@ -3134,10 +3127,6 @@ public class CrclSwingClientJPanel
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    public void startStatusReaderThread() {
-        internal.startStatusReaderThread();
     }
 
     public void stopStatusReaderThread() {
@@ -5162,21 +5151,22 @@ public class CrclSwingClientJPanel
     }
 
     public void requestAndReadStatus() {
+        boolean wasPolling = polling;
         try {
-            boolean wasPolling = polling;
             if (wasPolling) {
                 stopPollTimer();
             }
-            internal.scheduleReadAndRequestStatus().join();
-            if (wasPolling && !disconnecting) {
-                startPollTimer();
-            }
+            internal.scheduleReadAndRequestStatus().get(1000, TimeUnit.MILLISECONDS);
         } catch (Exception ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, "", ex);
             if (ex instanceof RuntimeException) {
                 throw (RuntimeException) ex;
             } else {
                 throw new RuntimeException(ex);
+            }
+        } finally {
+            if (wasPolling && !disconnecting) {
+                startPollTimer();
             }
         }
     }

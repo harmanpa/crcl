@@ -32,7 +32,7 @@ import javax.swing.JLabel;
 
 /**
  *
- * @author shackle
+ *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class ConfigurationReader {
 

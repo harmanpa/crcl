@@ -47,6 +47,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -1257,6 +1258,13 @@ public class CRCLSocket implements AutoCloseable {
             return false;
         }
         return socket.isConnected();
+    }
+    
+    public void reconnect() throws IOException {
+        if(null != socketChannel) {
+            throw new RuntimeException("socketChannel != null");
+        }
+        socket.connect(socket.getRemoteSocketAddress());
     }
     
     public boolean isClosed() {

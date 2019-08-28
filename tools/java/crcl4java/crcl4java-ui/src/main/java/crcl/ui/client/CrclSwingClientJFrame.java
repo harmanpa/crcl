@@ -288,7 +288,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         jCheckBoxMenuItemDebugSendCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemUseEXI = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItemUseReadStatusThread = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
@@ -426,10 +425,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         jCheckBoxMenuItemUseEXI.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemUseEXI);
 
-        jCheckBoxMenuItemUseReadStatusThread.setText("Use seperate read status thread.");
-        jCheckBoxMenuItemUseReadStatusThread.addActionListener(formListener);
-        jMenuOptions.add(jCheckBoxMenuItemUseReadStatusThread);
-
         jCheckBoxMenuItemRecordCommands.setText("Record Commands");
         jCheckBoxMenuItemRecordCommands.addActionListener(formListener);
         jMenuOptions.add(jCheckBoxMenuItemRecordCommands);
@@ -543,9 +538,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
             else if (evt.getSource() == jCheckBoxMenuItemUseEXI) {
                 CrclSwingClientJFrame.this.jCheckBoxMenuItemUseEXIActionPerformed(evt);
             }
-            else if (evt.getSource() == jCheckBoxMenuItemUseReadStatusThread) {
-                CrclSwingClientJFrame.this.jCheckBoxMenuItemUseReadStatusThreadActionPerformed(evt);
-            }
             else if (evt.getSource() == jCheckBoxMenuItemRecordCommands) {
                 CrclSwingClientJFrame.this.jCheckBoxMenuItemRecordCommandsActionPerformed(evt);
             }
@@ -637,14 +629,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         pendantClientJPanel1.useExiAction();
     }//GEN-LAST:event_jCheckBoxMenuItemUseEXIActionPerformed
 
-    private void jCheckBoxMenuItemUseReadStatusThreadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemUseReadStatusThreadActionPerformed
-        if (this.jCheckBoxMenuItemDebugReadStatus.isSelected()) {
-            pendantClientJPanel1.startStatusReaderThread();
-        } else {
-            pendantClientJPanel1.stopStatusReaderThread();
-        }
-    }//GEN-LAST:event_jCheckBoxMenuItemUseReadStatusThreadActionPerformed
-
     private void jCheckBoxMenuItemRecordCommandsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemRecordCommandsActionPerformed
         boolean selected = this.jCheckBoxMenuItemRecordCommands.isSelected();
         try {
@@ -720,10 +704,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         return this.jCheckBoxMenuItemUseEXI.isSelected();
     }
 
-    @Override
-    public boolean isUseReadStatusThreadSelected() {
-        return this.jCheckBoxMenuItemUseReadStatusThread.isSelected();
-    }
+    
 
     public void addProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
@@ -786,7 +767,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordPoseList;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceState;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemUseEXI;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemUseReadStatusThread;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXml;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
