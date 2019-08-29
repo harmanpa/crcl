@@ -561,6 +561,7 @@ public class FanucCRCLMain {
 
     public CRCLStatusType readStatusFromRobot(boolean inline) {
         if (null == robot) {
+            setStatusErrorDescription("Robot is NOT connected.");
             setCommandState(CommandStateEnumType.CRCL_ERROR);
             if (lastRobotIsConnected) {
                 showError("Robot is NOT connected.");
@@ -569,6 +570,7 @@ public class FanucCRCLMain {
             return status;
         }
         if (!robotIsConnected) {
+            setStatusErrorDescription("Robot is NOT connected.");
             setCommandState(CommandStateEnumType.CRCL_ERROR);
             if (lastRobotIsConnected) {
                 showError("Robot is NOT connected.");
@@ -684,6 +686,7 @@ public class FanucCRCLMain {
         try {
             readStatusFromRobotInternalStartCount.incrementAndGet();
             if (null == robot) {
+                setStatusErrorDescription("Robot is NOT connected.");
                 setCommandState(CommandStateEnumType.CRCL_ERROR);
                 if (lastRobotIsConnected) {
                     showError("Robot is NOT connected.");
@@ -692,6 +695,7 @@ public class FanucCRCLMain {
                 return;
             }
             if (!robotIsConnected) {
+                setStatusErrorDescription("Robot is NOT connected.");
                 setCommandState(CommandStateEnumType.CRCL_ERROR);
                 if (lastRobotIsConnected) {
                     showError("Robot is NOT connected.");
@@ -738,6 +742,7 @@ public class FanucCRCLMain {
                     lastCheckAtPosition = false;
                 }
                 if (null == robot) {
+                    setStatusErrorDescription("fanucCRCLServer not connected to robot");
                     setCommandState(CommandStateEnumType.CRCL_ERROR);
                     showError("fanucCRCLServer not connected to robot");
                     return;
@@ -1034,6 +1039,7 @@ public class FanucCRCLMain {
                         boolean secondInitSafetyStatError = checkSafetyStatError();
 //                                logDebug("secondInitSafetyStatError = " + secondInitSafetyStatError);
                         if (secondInitSafetyStatError) {
+                            setStatusErrorDescription(morSafetyStatToString(last_safety_stat));
                             setCommandState(CommandStateEnumType.CRCL_ERROR);
                         } else if (robotResetCount < 3) {
                             boolean secondInitCheckServoReady = checkServoReady();
@@ -1266,7 +1272,7 @@ public class FanucCRCLMain {
 
                 case SERVER_CLOSED:
                     break;
-                    
+
                 case GUARD_LIMIT_REACHED:
                     internalStopMotion();
                     break;
@@ -1442,6 +1448,7 @@ public class FanucCRCLMain {
         boolean initSafetyStatError = checkSafetyStatError();
 //        logDebug("initSafetyStatError = " + initSafetyStatError);
         if (initSafetyStatError) {
+            setStatusErrorDescription(morSafetyStatToString(last_safety_stat));
             setCommandState(CommandStateEnumType.CRCL_ERROR);
         } else {
             boolean initCheckServoReady = checkServoReady();
@@ -1568,7 +1575,7 @@ public class FanucCRCLMain {
         logInfoString(error);
     }
 
-    public void setStatusErrorDescription(String error) {
+    public synchronized void setStatusErrorDescription(String error) {
         if (null != status) {
             if (null == status.getCommandStatus()) {
                 status.setCommandStatus(new CommandStatusType());
@@ -2328,7 +2335,6 @@ public class FanucCRCLMain {
             }
         }
     }
-
 
     private boolean keepMoveToLog = false;
 

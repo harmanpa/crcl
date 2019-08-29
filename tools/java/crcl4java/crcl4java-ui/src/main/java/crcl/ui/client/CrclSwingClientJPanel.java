@@ -5646,7 +5646,12 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
-        this.disconnect();
+        if(isRunningProgram()) {
+                this.abortProgram()
+                .thenRun(this::disconnect);
+        } else {
+            this.disconnect();
+        }
     }//GEN-LAST:event_jButtonDisconnectActionPerformed
 
     private void jButtonEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEndActionPerformed

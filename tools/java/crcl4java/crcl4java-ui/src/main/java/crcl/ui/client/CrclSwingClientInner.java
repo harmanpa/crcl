@@ -224,8 +224,6 @@ public class CrclSwingClientInner {
         return crclStatusPollingSocket;
     }
 
-    
-    
     private final PendantClientOuter outer;
     private static final double JOG_INCREMENT_DEFAULT = 3.0;
     private double jogIncrement = JOG_INCREMENT_DEFAULT;
@@ -1614,6 +1612,14 @@ public class CrclSwingClientInner {
                     return WaitForDoneResult.WFD_DONE;
                 }
                 if (isError(minCmdId)) {
+                    if (null == errorStateDescription || errorStateDescription.length() <= 0) {
+                        System.out.println("");
+                        System.out.flush();
+                        Thread.dumpStack();
+                        System.err.println("");
+                        System.err.flush();
+                        System.out.println("ERROR occured but error state description not set");
+                    }
                     return WaitForDoneResult.WFD_ERROR;
                 }
                 if (holdingErrorOccured) {
@@ -1652,6 +1658,15 @@ public class CrclSwingClientInner {
                         return WaitForDoneResult.WFD_DONE;
                     }
                     if (isError(minCmdId)) {
+                        if (null == errorStateDescription || errorStateDescription.length() <= 0) {
+                            System.out.println("");
+                            System.out.flush();
+                            Thread.dumpStack();
+                            System.err.println("");
+                            System.err.flush();
+                            System.out.println("ERROR occured but error state description not set");
+                        }
+                        errorStateDescription = newStatus.getCommandStatus().getStateDescription();
                         return WaitForDoneResult.WFD_ERROR;
                     }
                     return WaitForDoneResult.WFD_TIMEOUT;
@@ -5096,10 +5111,10 @@ public class CrclSwingClientInner {
 
     public XFutureVoid pollSocketRequestAndReadStatus(Supplier<Boolean> continueCheck) {
         CRCLStatusType newStatus = internalRequestAndReadStatus(crclStatusPollingSocket);
-        if(newStatus== null) {
+        if (newStatus == null) {
             return XFutureVoid.completedFutureWithName("newStatus==null");
         }
-        if(!continueCheck.get()) {
+        if (!continueCheck.get()) {
             return XFutureVoid.completedFutureWithName("continueCheck");
         }
         final String label = "pollSocketRequestAndReadStatus";
