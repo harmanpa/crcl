@@ -608,7 +608,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
                 checkSensorServers();
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
-                statusToSend.getCommandStatus().setCommandID(state.cmdId);
+                state.cmdId =statusToSend.getCommandStatus().getCommandID();
+//                statusToSend.getCommandStatus().setCommandID(state.cmdId);
                 source.writeStatus(statusToSend);
                 return true;
             } else {

@@ -3820,7 +3820,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonRunProgFromCurrentLine)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jCheckBoxStepping)))
-                        .addContainerGap(184, Short.MAX_VALUE))))
+                        .addContainerGap(245, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4188,7 +4188,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButton2))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(106, Short.MAX_VALUE))
+                .addContainerGap(167, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4388,7 +4388,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonMoveToCurrentPoint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToDownPosition)))
-                .addContainerGap(308, Short.MAX_VALUE))
+                .addContainerGap(369, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4461,7 +4461,7 @@ public class CrclSwingClientJPanel
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 738, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 799, Short.MAX_VALUE)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4700,7 +4700,7 @@ public class CrclSwingClientJPanel
 
         jLabel10.setText("Status ID:");
 
-        jLabel18.setText("State Description:");
+        jLabel18.setText("State Description: .....................");
 
         jTextAreaStateDescription.setColumns(20);
         jTextAreaStateDescription.setFont(new java.awt.Font("Monospaced", 0, 10)); // NOI18N
@@ -4729,14 +4729,11 @@ public class CrclSwingClientJPanel
                         .addContainerGap()
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE)
+                            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelStatusLayout.createSequentialGroup()
-                                .addComponent(jLabel18)
-                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel6)
@@ -4748,7 +4745,8 @@ public class CrclSwingClientJPanel
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 17, Short.MAX_VALUE)))
+                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE))
+                            .addComponent(jLabel18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(10, 10, 10))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addContainerGap()
@@ -4775,7 +4773,7 @@ public class CrclSwingClientJPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 184, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 183, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4793,7 +4791,7 @@ public class CrclSwingClientJPanel
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 84, Short.MAX_VALUE)
+            .addGap(0, 145, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
