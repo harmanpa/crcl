@@ -37,6 +37,7 @@ import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
+import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
@@ -1095,13 +1096,28 @@ public class CrclSwingClientInner {
         return sendCommandPrivate(cmd, this.crclSocket);
     }
 
+    private volatile @Nullable
+    ConfigureJointReportsType configureJointReportTypeForPollSocket = null;
+
+    private volatile @Nullable
+    ConfigureStatusReportType configureStatusReportTypeForPollSocket = null;
+
     private boolean sendCommandPrivate(CRCLCommandType cmd, CRCLSocket crclSocketForSend) {
         final boolean cmdIsGetStatus = cmd instanceof GetStatusType;
         try {
+            if (crclSocketForSend != this.crclStatusPollingSocket) {
+                if (cmd instanceof ConfigureJointReportsType) {
+                    configureJointReportTypeForPollSocket = (ConfigureJointReportsType) cmd;
+                } else if (cmd instanceof ConfigureStatusReportType) {
+                    configureStatusReportTypeForPollSocket = (ConfigureStatusReportType) cmd;
+                }
+            }
             final boolean cmdIsStop = cmd instanceof StopMotionType;
+            final boolean cmdIsConfigureJoints = cmd instanceof ConfigureJointReportsType;
+            final boolean cmdIsConfigureStatus = cmd instanceof ConfigureStatusReportType;
             final boolean socketToSendIsMainSocket = crclSocketForSend == this.crclSocket;
             boolean needCheckActionThread
-                    = (!cmdIsStop && !cmdIsGetStatus)
+                    = (!cmdIsStop && !cmdIsGetStatus && !cmdIsConfigureJoints && !cmdIsConfigureStatus)
                     || socketToSendIsMainSocket;
             if (needCheckActionThread) {
                 checkCrclActionThread();
@@ -5110,6 +5126,14 @@ public class CrclSwingClientInner {
     private final AtomicInteger scheduleReadAndRequestStatusCount = new AtomicInteger();
 
     public XFutureVoid pollSocketRequestAndReadStatus(Supplier<Boolean> continueCheck) {
+        if(null != configureJointReportTypeForPollSocket) {
+            this.sendCommandPrivate(configureJointReportTypeForPollSocket, crclStatusPollingSocket);
+            configureJointReportTypeForPollSocket=null;
+        }
+        if(null != configureStatusReportTypeForPollSocket) {
+            this.sendCommandPrivate(configureStatusReportTypeForPollSocket, crclStatusPollingSocket);
+            configureStatusReportTypeForPollSocket=null;
+        }
         CRCLStatusType newStatus = internalRequestAndReadStatus(crclStatusPollingSocket);
         if (newStatus == null) {
             return XFutureVoid.completedFutureWithName("newStatus==null");

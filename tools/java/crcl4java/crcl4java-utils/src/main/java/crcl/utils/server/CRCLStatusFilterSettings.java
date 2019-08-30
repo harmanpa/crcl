@@ -329,14 +329,17 @@ public class CRCLStatusFilterSettings {
         if (statusOutJointStatuses != null) {
             List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
             if (!configureStatusReport.isReportJointStatuses()) {
-                throw new RuntimeException("no joints, isReportJointStatuses");
-//                statusOut.setJointStatuses(null);
-            } else if (joints == null || joints.isEmpty()) {
+//                throw new RuntimeException("no joints, isReportJointStatuses");
                 statusOut.setJointStatuses(null);
-                throw new RuntimeException("no joints joints == null || joints.isEmpty()");
+            } else if (joints == null) {
+                statusOut.setJointStatuses(null);
+//                throw new RuntimeException("statusOutJointStatuses.getJointStatus() == null");
+            } else if ( joints.isEmpty()) {
+                statusOut.setJointStatuses(null);
+//                throw new RuntimeException("statusOutJointStatuses.getJointStatus().isEmpty()");
             } else if (configJointsReportMap.isEmpty()) {
                 statusOut.setJointStatuses(null);
-                throw new RuntimeException("no joints configJointsReportMap.isEmpty()");
+//                throw new RuntimeException("no joints configJointsReportMap.isEmpty()");
             } else {
                 List<JointStatusType> jointsCopy = new ArrayList<>();
                 for (int i = 0; i < joints.size(); i++) {
