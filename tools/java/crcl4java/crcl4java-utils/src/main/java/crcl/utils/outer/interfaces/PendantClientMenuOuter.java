@@ -48,4 +48,5 @@ public interface PendantClientMenuOuter {
     
     public void readRecentCommandFiles();
 
+    public void setEnableSaveProgram(boolean enable);
 }

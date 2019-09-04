@@ -39,6 +39,7 @@ import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
+import crcl.base.EnableSensorType;
 import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
@@ -479,6 +480,9 @@ public class CrclSwingClientInner {
         this.program = program;
         progRunDataList.clear();
         outer.clearProgramTimesDistances();
+        final boolean enableSave = program != null && !program.getMiddleCommand().isEmpty();
+        final PendantClientMenuOuter outerMenuOuter = menuOuter();
+        outerMenuOuter.setEnableSaveProgram(enableSave);
     }
 
     private boolean debugInterrupts;
@@ -2646,6 +2650,7 @@ public class CrclSwingClientInner {
     }
 
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
+        effectFailedMessage = "effectFailedMessage NOT set";
         if (cmd instanceof MessageType) {
             setLastMessage(((MessageType) cmd).getMessage());
             return true;
@@ -2906,12 +2911,16 @@ public class CrclSwingClientInner {
     private boolean testMoveToEffect(MoveToType moveTo) {
         PoseType curPose = this.currentStatusPose();
         if (curPose == null || PoseToleranceChecker.containsNull(curPose)) {
-            outer.showMessage("MoveTo Failed current pose contains null.");
+            final String errmsg = "MoveTo Failed current pose contains null.";
+            this.effectFailedMessage =errmsg;
+            outer.showMessage(errmsg);
             return false;
         }
         PoseType cmdPose = moveTo.getEndPosition();
         if (cmdPose == null || PoseToleranceChecker.containsNull(cmdPose)) {
-            outer.showMessage("MoveTo Failed cmdPose contains null.");
+            final String errmsg = "MoveTo Failed cmdPose contains null.";
+            this.effectFailedMessage =errmsg;
+            outer.showMessage(errmsg);
             return false;
         }
         if (!PoseToleranceChecker.isInTolerance(curPose, cmdPose, expectedEndPoseTolerance, angleType)) {
@@ -3245,6 +3254,16 @@ public class CrclSwingClientInner {
     String programName = null;
     private volatile int programIndex = -1;
     private volatile int lastProgramIndex = -1;
+
+    public int getLastProgramIndex() {
+        return lastProgramIndex;
+    }
+
+    public void setLastProgramIndex(int lastProgramIndex) {
+        this.lastProgramIndex = lastProgramIndex;
+    }
+    
+    
     private volatile @MonotonicNonNull
     String lastProgramName = null;
     private volatile int lastShowCurrentProgramLine = 0;
@@ -4156,6 +4175,9 @@ public class CrclSwingClientInner {
         if (cmd instanceof InitCanonType) {
             return 30000;
         }
+        if (cmd instanceof EnableSensorType) {
+            return 30000;
+        }
         return 3000;
     }
 
@@ -4742,6 +4764,8 @@ public class CrclSwingClientInner {
                 System.out.println(messageString);
                 showErrorMessage(messageString);
                 if (debugInterrupts || printDetailedCommandFailureInfo) {
+                    System.out.println("");
+                    System.out.flush();
                     SimServerInner.printAllClientStates(System.err);
                     Thread.getAllStackTraces().entrySet().forEach((x) -> {
                         System.err.println("Thread:" + x.getKey().getName());
@@ -4751,6 +4775,10 @@ public class CrclSwingClientInner {
                         System.err.println("");
                     });
                     System.err.println("intString=" + intString);
+                    System.err.println("");
+                    System.err.flush();
+                    System.out.println("");
+                    System.out.flush();
                 }
                 if (null != errorStateDescription && errorStateDescription.length() > 0) {
                     throw new RuntimeException(errorStateDescription + ": wfdResult=" + wfdResult + ", messageString=" + messageString);
@@ -4787,7 +4815,7 @@ public class CrclSwingClientInner {
         boolean effectOk = testCommandEffect(cmd, sendCommandTime);
         if (!effectOk) {
             String intString = this.createInterrupStackString();
-            String messageString = createTestCommandFailMessage("!effectOk", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+            String messageString = createTestCommandFailMessage(effectFailedMessage, cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
             System.out.println(messageString);
             showErrorMessage(messageString);
             throw new RuntimeException("testCommandEffect returned false : messageString=" + messageString);

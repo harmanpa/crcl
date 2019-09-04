@@ -286,6 +286,10 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
+    public void setEnableSaveProgram(boolean enable) {
+    }
+    
+    @Override
     public void clearProgramTimesDistances() {
     }
 

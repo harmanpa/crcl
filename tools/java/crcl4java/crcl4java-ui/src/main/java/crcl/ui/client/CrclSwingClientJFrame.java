@@ -141,6 +141,11 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
     @Override
+    public void setEnableSaveProgram(boolean enable) {
+        this.jMenuItemSaveProgramAs.setEnabled(enable);
+    }
+    
+    @Override
     public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
                 recent_files_dir);

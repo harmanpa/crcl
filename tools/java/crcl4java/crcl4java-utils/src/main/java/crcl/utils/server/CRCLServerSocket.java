@@ -608,7 +608,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
                 checkSensorServers();
                 CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
-                state.cmdId =statusToSend.getCommandStatus().getCommandID();
+                state.cmdId = statusToSend.getCommandStatus().getCommandID();
 //                statusToSend.getCommandStatus().setCommandID(state.cmdId);
                 source.writeStatus(statusToSend);
                 return true;
@@ -845,41 +845,66 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 if (automaticallyHandleSensorServers) {
                     if (cmd instanceof EnableSensorType) {
                         EnableSensorType enableSensorCmd = (EnableSensorType) cmd;
-                        for (SensorServerFinderInterface finder : sensorFinders) {
-                            final String sensorID = enableSensorCmd.getSensorID();
-                            SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
-                            if (null != sensorSvr) {
-                                SensorServerInterface oldSensorServr = this.sensorServers.get(sensorID);
-                                if (null != oldSensorServr) {
-                                    try {
-                                        oldSensorServr.close();
-                                    } catch (Exception ex) {
-                                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
-                                        if (ex instanceof RuntimeException) {
-                                            throw (RuntimeException) ex;
-                                        } else {
-                                            throw new RuntimeException(ex);
+                        boolean errorOccured = false;
+                        boolean sensorFound = false;
+                        final String sensorID = enableSensorCmd.getSensorID();
+                        if (sensorServers.containsKey(sensorID)) {
+                            sensorFound = true;
+                        } else {
+                            for (SensorServerFinderInterface finder : sensorFinders) {
+                                SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
+                                if (null != sensorSvr) {
+                                    SensorServerInterface oldSensorServr = this.sensorServers.get(sensorID);
+                                    if (null != oldSensorServr) {
+                                        try {
+                                            oldSensorServr.close();
+                                        } catch (Exception ex) {
+                                            Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+                                            commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                            errorOccured = true;
+                                            commandStatus.setStateDescription(ex.getMessage());
                                         }
                                     }
+                                    sensorFound = true;
+                                    this.sensorServers.put(sensorID, sensorSvr);
+                                    break;
                                 }
-                                this.sensorServers.put(sensorID, sensorSvr);
-                                break;
+                            }
+                        }
+                        if (!errorOccured) {
+                            if (sensorFound) {
+                                commandStatus.setStateDescription("");
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            } else {
+                                commandStatus.setStateDescription(sensorID + " not found.");
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         }
                         return true;
                     } else if (cmd instanceof DisableSensorType) {
+                        boolean errorOccured = false;
+                        boolean sensorFound = false;
                         DisableSensorType disableSensorCmd = (DisableSensorType) cmd;
-                        SensorServerInterface sensorSvr = sensorServers.remove(disableSensorCmd.getSensorID());
+                        final String sensorID = disableSensorCmd.getSensorID();
+                        SensorServerInterface sensorSvr = sensorServers.remove(sensorID);
                         if (null != sensorSvr) {
                             try {
                                 sensorSvr.close();
+                                sensorFound = true;
                             } catch (Exception ex) {
                                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "", ex);
-                                if (ex instanceof RuntimeException) {
-                                    throw (RuntimeException) ex;
-                                } else {
-                                    throw new RuntimeException(ex);
-                                }
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                errorOccured = true;
+                                commandStatus.setStateDescription(ex.getMessage());
+                            }
+                        }
+                        if (!errorOccured) {
+                            if (sensorFound) {
+                                commandStatus.setStateDescription("");
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            } else {
+                                commandStatus.setStateDescription(sensorID + " not found.");
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
                             }
                         }
                         return true;
@@ -1845,6 +1870,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         if (stat instanceof ForceTorqueSensorStatusType) {
             ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;
+            if(null == guard.getSubField()) {
+                 throw new RuntimeException("stat instanceof ForceTorqueSensorStatusType but null == guard.getSubField() " + sensorID+", guard="+guard+", stat="+stat);
+            }
             switch (guard.getSubField()) {
                 case "Fx":
                     value = forceTorqueSensorStat.getFx();
@@ -1935,7 +1963,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
             }
             if (guardI.getLimitType() == GuardLimitEnumType.INCREASE_OVER_LIMIT
-                    || guardI.getLimitType() == GuardLimitEnumType.INCREASE_OVER_LIMIT) {
+                    || guardI.getLimitType() == GuardLimitEnumType.DECREASE_BEYOND_LIMIT) {
                 newInitalialValuesMap.put(guardMapId(guardI), getGuardValue(guardI, sensorStatMap));
             }
         }

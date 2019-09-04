@@ -312,6 +312,11 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     }
 
     @Override
+    public void setEnableSaveProgram(boolean enable) {
+        jMenuItemSaveProgramAs.setEnabled(enable);
+    }
+    
+    @Override
     public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
                 recent_files_dir);

@@ -1206,9 +1206,11 @@ public class CrclSwingClientJPanel
             }
             moveToCmd.setEndPosition(endPose);
             moveToCmd.setMoveStraight(this.jCheckBoxStraight.isSelected());
-            setCommandId(moveToCmd, program.getMiddleCommand().size() + 1);
             program.getMiddleCommand().add(moveToCmd);
-            setCommandId(program.getEndCanon(), moveToCmd.getCommandID() + 1);
+            setCommandId(moveToCmd, program.getMiddleCommand().size() + 1);
+            if (moveToCmd.getCommandID() + 1 > program.getEndCanon().getCommandID()) {
+                setCommandId(program.getEndCanon(), moveToCmd.getCommandID() + 1);
+            }
             internal.setProgram(program);
             showProgram(program, Collections.emptyList(), 0);
         } catch (Exception ex) {
@@ -1410,8 +1412,8 @@ public class CrclSwingClientJPanel
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
-                if(null == lastPollSocketRequestFuture || lastPollSocketRequestFuture.isDone()) {
-                   lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
+                if (null == lastPollSocketRequestFuture || lastPollSocketRequestFuture.isDone()) {
+                    lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
                 }
                 if (!(continuePolling(startPollStopCount))) {
                     return;
@@ -1447,7 +1449,7 @@ public class CrclSwingClientJPanel
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-            if(null == lastPollSocketRequestFuture && !lastPollSocketRequestFuture.isDone()) {
+            if (null == lastPollSocketRequestFuture && !lastPollSocketRequestFuture.isDone()) {
                 lastPollSocketRequestFuture.cancelAll(false);
             }
             polling = false;
@@ -2055,7 +2057,6 @@ public class CrclSwingClientJPanel
         return null;
     }
 
-    private int lastProgramIndex = 0;
 
     public @Nullable
     List<ProgramRunData> getLastProgRunDataList() {
@@ -2082,7 +2083,7 @@ public class CrclSwingClientJPanel
                         Integer ccstProgramIndex = ccst.getProgramIndex();
                         if (null != ccstProgramIndex) {
                             int index = ccstProgramIndex.intValue();
-                            if (index != lastProgramIndex) {
+                            if (index != internal.getLastProgramIndex()) {
                                 return true;
                             }
                         }
@@ -2191,9 +2192,9 @@ public class CrclSwingClientJPanel
                         Integer ccstProgramIndex = ccst.getProgramIndex();
                         if (null != ccstProgramIndex) {
                             int index = ccstProgramIndex.intValue();
-                            if (index != lastProgramIndex && null != program) {
+                            if (index != internal.getLastProgramIndex() && null != program) {
                                 finishShowCurrentProgramLine(index, program, curInternalStatus, internal.getProgRunDataList(), ste);
-                                lastProgramIndex = index;
+                                internal.setLastProgramIndex(index);
                             }
                         }
                     }
@@ -3331,6 +3332,8 @@ public class CrclSwingClientJPanel
         if (null == cmd) {
             return;
         }
+        String sOrigToCheck = internal.getTempCRCLSocket().commandToString(cmdInstance, false);
+        long origCommandId = cmd.getCommandID();
         cmd.setCommandID(internal.getCmdId());
         CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();;
 
@@ -3340,9 +3343,24 @@ public class CrclSwingClientJPanel
                 internal.getCmdSchemaFiles(),
                 internal.getCheckCommandValidPredicate(),
                 editCrclSocket);
+        cmd.setCommandID(origCommandId);
+        cmdInstance.setCRCLCommand(cmd);
+        String sToCheck = internal.getTempCRCLSocket().commandToString(cmdInstance, false);
         cmd.setCommandID(internal.getCmdId());
+        if (!sToCheck.equals(sOrigToCheck)) {
+            this.saveRecentCommand(cmd);
+        }
+        if (cmd instanceof MiddleCommandType) {
+            MiddleCommandType cmdToAdd = (MiddleCommandType) cmd;
+            CRCLProgramType program = internal.getProgram();
+            if (program != null && JOptionPane.showConfirmDialog(this.getOuterWindow(), "Add command to program") == JOptionPane.YES_OPTION) {
+                program.getMiddleCommand().add(cmdToAdd);
+                setCommandId(cmdToAdd, internal.getCmdId() + 1);
+                setCommandId(program.getEndCanon(), internal.getCmdId() + 2);
+            }
+            showProgram(program, Collections.emptyList(), 0);
+        }
         incAndSendCommandFromAwt(cmd);
-        this.saveRecentCommand(cmd);
     }
 
     private String tableCommandString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException, JAXBException {
@@ -5032,7 +5050,10 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
-
+        if (internal.isPaused()) {
+            resumeButtonAction();
+        }
+        internal.setLastProgramIndex(-1);
         runCurrentProgramAsync(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
@@ -5183,6 +5204,10 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
+        resumeButtonAction();
+    }//GEN-LAST:event_jButtonResumeActionPerformed
+
+    private void resumeButtonAction() {
         if (pauseTime > this.internal.getRunStartMillis()) {
             this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
             pauseTime = -1;
@@ -5192,7 +5217,7 @@ public class CrclSwingClientJPanel
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
-    }//GEN-LAST:event_jButtonResumeActionPerformed
+    }
 
     private void jButtonPlotProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotProgramItemActionPerformed
 //        final int index = getProgramRow();
@@ -5211,6 +5236,9 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
     private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
+        if (internal.isPaused()) {
+            resumeButtonAction();
+        }
         continueCurrentProgram(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
@@ -5389,6 +5417,7 @@ public class CrclSwingClientJPanel
             internal.unpause();
         }
         if (!wasRunning) {
+            internal.setLastProgramIndex(this.getCurrentProgramLine());
             internal.startRunProgramThread(this.getCurrentProgramLine());
         }
     }//GEN-LAST:event_jButtonStepFwdActionPerformed
@@ -5644,9 +5673,9 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonDisconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDisconnectActionPerformed
-        if(isRunningProgram()) {
-                this.abortProgram()
-                .thenRun(this::disconnect);
+        if (isRunningProgram()) {
+            this.abortProgram()
+                    .thenRun(this::disconnect);
         } else {
             this.disconnect();
         }
