@@ -2912,14 +2912,14 @@ public class CrclSwingClientInner {
         PoseType curPose = this.currentStatusPose();
         if (curPose == null || PoseToleranceChecker.containsNull(curPose)) {
             final String errmsg = "MoveTo Failed current pose contains null.";
-            this.effectFailedMessage =errmsg;
+            this.effectFailedMessage = errmsg;
             outer.showMessage(errmsg);
             return false;
         }
         PoseType cmdPose = moveTo.getEndPosition();
         if (cmdPose == null || PoseToleranceChecker.containsNull(cmdPose)) {
             final String errmsg = "MoveTo Failed cmdPose contains null.";
-            this.effectFailedMessage =errmsg;
+            this.effectFailedMessage = errmsg;
             outer.showMessage(errmsg);
             return false;
         }
@@ -2998,7 +2998,8 @@ public class CrclSwingClientInner {
             internalSetPausedTrue();
             pause_count.incrementAndGet();
             pauseQueue.clear();
-            if (isConnected() && !lastCmdTriedWasStop) {
+            if (isConnected() && !lastCmdTriedWasStop && 
+                    (!isRunningProgram() || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING)) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (Exception ex) {
@@ -3262,8 +3263,7 @@ public class CrclSwingClientInner {
     public void setLastProgramIndex(int lastProgramIndex) {
         this.lastProgramIndex = lastProgramIndex;
     }
-    
-    
+
     private volatile @MonotonicNonNull
     String lastProgramName = null;
     private volatile int lastShowCurrentProgramLine = 0;
@@ -4760,7 +4760,7 @@ public class CrclSwingClientInner {
                 }
                 printCommandStatusLog();
                 String intString = this.createInterrupStackString();
-                String messageString = createTestCommandFailMessage("wfdResult != WaitForDoneResult.WFD_DONE", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+                String messageString = createTestCommandFailMessage("wfdResult="+wfdResult, cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
                 System.out.println(messageString);
                 showErrorMessage(messageString);
                 if (debugInterrupts || printDetailedCommandFailureInfo) {
@@ -5154,13 +5154,16 @@ public class CrclSwingClientInner {
     private final AtomicInteger scheduleReadAndRequestStatusCount = new AtomicInteger();
 
     public XFutureVoid pollSocketRequestAndReadStatus(Supplier<Boolean> continueCheck) {
-        if(null != configureJointReportTypeForPollSocket) {
+        if (null != configureJointReportTypeForPollSocket) {
             this.sendCommandPrivate(configureJointReportTypeForPollSocket, crclStatusPollingSocket);
-            configureJointReportTypeForPollSocket=null;
+            configureJointReportTypeForPollSocket = null;
         }
-        if(null != configureStatusReportTypeForPollSocket) {
+        if (null != configureStatusReportTypeForPollSocket) {
             this.sendCommandPrivate(configureStatusReportTypeForPollSocket, crclStatusPollingSocket);
-            configureStatusReportTypeForPollSocket=null;
+            configureStatusReportTypeForPollSocket = null;
+        }
+        if (isUnpausing()) {
+            return XFutureVoid.completedFutureWithName("isUnpausing");
         }
         CRCLStatusType newStatus = internalRequestAndReadStatus(crclStatusPollingSocket);
         if (newStatus == null) {
@@ -5198,9 +5201,9 @@ public class CrclSwingClientInner {
         try {
             if (crclReadSocket == this.crclSocket) {
                 checkCrclActionThread();
-            }
-            if (isUnpausing()) {
-                throw new RuntimeException("trying to prep program while still unpausing");
+                if (isUnpausing()) {
+                    throw new RuntimeException("trying to prep program while still unpausing");
+                }
             }
             if (disconnecting) {
                 System.err.println("disconnectThread = " + disconnectThread);

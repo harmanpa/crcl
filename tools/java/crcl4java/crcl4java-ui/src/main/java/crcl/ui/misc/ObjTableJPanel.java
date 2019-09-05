@@ -509,7 +509,11 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         if (clss.isEnum()) {
             return clss.getEnumConstants()[0];
         }
-        return clss.getDeclaredConstructor().newInstance();
+        if (!Modifier.isAbstract(clss.getModifiers())) {
+            final Constructor<?> declaredConstructor = clss.getDeclaredConstructor();
+            return declaredConstructor.newInstance();
+        }
+        return null;
     }
 
     private Field getField(Class<?> clss, String name) {
@@ -742,7 +746,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                                             mset.invoke(o, mo);
                                         }
                                     } catch (Exception ex) {
-                                        ex.printStackTrace();
+                                        Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, "mclss=" + mclss + ", mo=" + mo + ",o=" + o + ",xe=" + xe, ex);
                                     }
                                 }
                             }
@@ -900,8 +904,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(ObjTableJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(ObjTableJPanel.class
+//                    .getName()).log(Level.SEVERE, null, ex);
             String outText = ex.toString() + "\n\n"
                     + Utils.traceToString(ex.getStackTrace());
             jTextAreaOutput.setText(outText);
