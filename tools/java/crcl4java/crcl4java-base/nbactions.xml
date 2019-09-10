@@ -48,13 +48,14 @@
         </goals>
     </action>
     <action>
-        <actionName>CUSTOM-getNewSchema</actionName>
-        <displayName>getNewSchema</displayName>
+        <actionName>CUSTOM-copySchema</actionName>
+        <displayName>copySchema</displayName>
         <goals>
-            <goal>org.apache.maven.plugins:maven-antrun-plugin:1.8:run</goal>
+            <goal>clean</goal>
+            <goal>install</goal>
         </goals>
         <activatedProfiles>
-            <activatedProfile>newSchema</activatedProfile>
+            <activatedProfile>copySchema</activatedProfile>
         </activatedProfiles>
     </action>
 </actions>

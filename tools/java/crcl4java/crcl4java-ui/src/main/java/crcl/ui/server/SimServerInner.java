@@ -28,6 +28,7 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CloseToolChangerType;
 import crcl.base.CommandStateEnumType;
+import static crcl.base.CommandStateEnumType.CRCL_ERROR;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
@@ -1150,7 +1151,9 @@ public class SimServerInner {
             if (null == cst) {
                 cst = new CommandStatusType();
             }
-            cst.setCommandState(state);
+            if (cst.getCommandState() != CRCL_ERROR) {
+                cst.setCommandState(state);
+            }
             status.setCommandStatus(cst);
         }
     }
@@ -2969,6 +2972,11 @@ public class SimServerInner {
 
     public void initialize() {
         setCommandState(CommandStateEnumType.CRCL_DONE);
+        CommandStatusType cst = status.getCommandStatus();
+        if (null == cst) {
+            cst = new CommandStatusType();
+        }
+        cst.setCommandState(CommandStateEnumType.CRCL_DONE);
         outer.updateIsInitialized(true);
         this.setWaypoints(null);
         this.setGoalPose(null);

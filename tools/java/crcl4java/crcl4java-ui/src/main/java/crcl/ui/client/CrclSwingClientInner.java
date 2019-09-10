@@ -1569,14 +1569,25 @@ public class CrclSwingClientInner {
 
     private boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count, int startRunProgramAbortCount) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
+        int cycles = 0;
         while (null == this.getStatus() && !Thread.currentThread().isInterrupted()) {
             if (startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount) {
+                System.out.println("(startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount)");
                 return false;
             }
+            final long timeDiff = System.currentTimeMillis() - start;
             if (timeoutMilliSeconds >= 0
-                    && System.currentTimeMillis() - start > timeoutMilliSeconds) {
+                    && cycles > 0
+                    && timeDiff > timeoutMilliSeconds) {
+                System.out.println("cycles = " + cycles);
+                System.out.println("timeDiff = " + timeDiff);
+                System.out.println("timeoutMilliSeconds = " + timeoutMilliSeconds);
+                System.out.println("timeoutMilliSeconds >= 0\n" +
+"                    && cycles > 0\n" +
+"                    && timeDiff > timeoutMilliSeconds");
                 return false;
             }
+            cycles++;
             if (delay > 0) {
                 Thread.sleep(delay);
             }
@@ -1584,7 +1595,9 @@ public class CrclSwingClientInner {
             if (newStatus == null) {
                 throw new NullPointerException("internalRequestAndReadStatus(" + crclSocket + ") returned null");
             }
+            setStatus(newStatus);
             if (this.pause_count.get() != starting_pause_count || this.paused) {
+                System.out.println("this.pause_count.get() != starting_pause_count || this.paused");
                 return false;
             }
         }
@@ -2276,10 +2289,16 @@ public class CrclSwingClientInner {
     }
 
     public int getPort() {
+        if (null == crclSocket) {
+            return -1;
+        }
         return crclSocket.getPort();
     }
 
     public int getLocalPort() {
+        if (null == crclSocket) {
+            return -1;
+        }
         return crclSocket.getLocalPort();
     }
 
@@ -2909,6 +2928,9 @@ public class CrclSwingClientInner {
     private final String NEW_LINE = System.lineSeparator();
 
     private boolean testMoveToEffect(MoveToType moveTo) {
+        if (!moveTo.getGuard().isEmpty()) {
+            return true;
+        }
         PoseType curPose = this.currentStatusPose();
         if (curPose == null || PoseToleranceChecker.containsNull(curPose)) {
             final String errmsg = "MoveTo Failed current pose contains null.";
@@ -2998,8 +3020,8 @@ public class CrclSwingClientInner {
             internalSetPausedTrue();
             pause_count.incrementAndGet();
             pauseQueue.clear();
-            if (isConnected() && !lastCmdTriedWasStop && 
-                    (!isRunningProgram() || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING)) {
+            if (isConnected() && !lastCmdTriedWasStop
+                    && (!isRunningProgram() || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING)) {
                 stopMotion(StopConditionEnumType.NORMAL);
             }
         } catch (Exception ex) {
@@ -3358,6 +3380,10 @@ public class CrclSwingClientInner {
                 System.out.println("readerThread = " + readerThread);
                 System.out.println("pause_count.get() = " + pause_count.get());
                 System.out.println("pause_count_start = " + pause_count_start);
+                System.out.println("waitForStatusResult = " + waitForStatusResult);
+                System.out.println("startRunProgramAbortCount = " + startRunProgramAbortCount);
+                System.out.println("runProgramAbortCount.get() = " + runProgramAbortCount.get());
+                System.out.println("this.paused = " + this.paused);
                 setRunProgramReturnFalseTrace();
                 throw new RuntimeException("runProgram() failed waiting for initial status");
             }
@@ -4760,7 +4786,7 @@ public class CrclSwingClientInner {
                 }
                 printCommandStatusLog();
                 String intString = this.createInterrupStackString();
-                String messageString = createTestCommandFailMessage("wfdResult="+wfdResult, cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+                String messageString = createTestCommandFailMessage("wfdResult=" + wfdResult, cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
                 System.out.println(messageString);
                 showErrorMessage(messageString);
                 if (debugInterrupts || printDetailedCommandFailureInfo) {

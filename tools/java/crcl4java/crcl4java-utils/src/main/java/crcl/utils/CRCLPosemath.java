@@ -29,6 +29,8 @@ import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
 import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GripperStatusType;
+import crcl.base.GuardType;
+import crcl.base.GuardsStatusesType;
 import crcl.base.InitCanonType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
@@ -399,6 +401,10 @@ public class CRCLPosemath {
         if (null != sensorsStatus) {
             newStatus.setSensorStatuses(sensorsStatus);
         }
+        GuardsStatusesType guardsStatus = copy(status.getGuardsStatuses());
+        if (null != guardsStatus) {
+            newStatus.setGuardsStatuses(guardsStatus);
+        }
         return newStatus;
     }
 
@@ -498,6 +504,55 @@ public class CRCLPosemath {
                 }
             }
             return newSensorStatuses;
+        }
+        return null;
+    }
+
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param guardStatuses to be cloned
+     * @return GuardsStatusesType with same initial values as pose but can be
+     * independently modified.
+     */
+    public static @Nullable
+    GuardsStatusesType copy(GuardsStatusesType guardStatuses) {
+        if (null != guardStatuses) {
+            GuardsStatusesType newGuardStatuses = new GuardsStatusesType();
+
+            newGuardStatuses.setTriggerCount(guardStatuses.getTriggerCount());
+            newGuardStatuses.setTriggerValue(guardStatuses.getTriggerValue());
+            final PoseType triggerPose = guardStatuses.getTriggerPose();
+            if (null != triggerPose) {
+                newGuardStatuses.setTriggerPose(copy(triggerPose));
+            }
+            for (GuardType g : guardStatuses.getGuard()) {
+                newGuardStatuses.getGuard().add(copy(g));
+            }
+            return newGuardStatuses;
+        }
+        return null;
+    }
+
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param guard to be cloned
+     * @return GuardType with same initial values as pose but can be
+     * independently modified.
+     */
+    public static @Nullable
+    GuardType copy(GuardType guard) {
+        if (null != guard) {
+            GuardType newGuard = new GuardType();
+
+            newGuard.setName(guard.getName());
+            newGuard.setLimitType(guard.getLimitType());
+            newGuard.setLimitValue(guard.getLimitValue());
+            newGuard.setRecheckTimeMicroSeconds(guard.getRecheckTimeMicroSeconds());
+            newGuard.setSensorID(guard.getSensorID());
+            newGuard.setSubField(guard.getSubField());
+            return newGuard;
         }
         return null;
     }
@@ -912,6 +967,10 @@ public class CRCLPosemath {
                 moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
                 moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                for (GuardType g : moveToCmdIn.getGuard()) {
+                    moveToCmdOut.getGuard().add(g);
+                }
+                moveToCmdOut.setName(moveToCmdIn.getName());
                 programOut.getMiddleCommand().add(moveToCmdOut);
             } else {
                 programOut.getMiddleCommand().add(cmd);
@@ -1237,7 +1296,7 @@ public class CRCLPosemath {
 
     public static String poseToString(PoseType pose) {
         try {
-            if(null == pose) {
+            if (null == pose) {
                 return "null";
             }
             PmRotationMatrix rmat = toPmRotationMatrix(pose);

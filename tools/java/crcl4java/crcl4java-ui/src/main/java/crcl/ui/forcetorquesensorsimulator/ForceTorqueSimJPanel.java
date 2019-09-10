@@ -6,10 +6,16 @@
 package crcl.ui.forcetorquesensorsimulator;
 
 import com.sun.istack.logging.Logger;
+import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
+import crcl.base.GetStatusType;
+import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
+import crcl.ui.PoseDisplay;
+import crcl.ui.PoseDisplayMode;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
@@ -30,11 +36,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
      */
     @SuppressWarnings("initialization")
     public ForceTorqueSimJPanel() {
-        status = new CRCLStatusType();
-        status.setSensorStatuses(new SensorStatusesType());
+        statusOut = new CRCLStatusType();
+        statusOut.setSensorStatuses(new SensorStatusesType());
         sensorStatus = new ForceTorqueSensorStatusType();
-        status.getSensorStatuses().getForceTorqueSensorStatus().add(sensorStatus);
+        statusOut.getSensorStatuses().getForceTorqueSensorStatus().add(sensorStatus);
         initComponents();
+        PoseDisplay.updateDisplayMode(jTablePose, PoseDisplayMode.XYZ_RPY, false);
+        PoseDisplay.updateDisplayMode(jTablePoseForceOut, PoseDisplayMode.XYZ_RPY, false);
+        updateSensorStatus();
     }
 
     /**
@@ -46,11 +55,25 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jMenu1 = new javax.swing.JMenu();
+        jMenu2 = new javax.swing.JMenu();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanelCommunications = new javax.swing.JPanel();
+        jPanelCrclSensorServerOut = new javax.swing.JPanel();
+        jCheckBoxStartSensorOutServer = new javax.swing.JCheckBox();
+        jTextFieldCRCLSensorOutPort = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jCheckBoxStartServer = new javax.swing.JCheckBox();
+        jPanelCRCLPositionIn = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jTextFieldPoseCRCLHost = new javax.swing.JTextField();
+        jCheckBoxEnablePoseInConnection = new javax.swing.JCheckBox();
+        jTextFieldPoseCRCLPort = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jTablePose = new javax.swing.JTable();
+        jPanelForceOut = new javax.swing.JPanel();
+        jTablePoseForceOut = new javax.swing.JTable();
         jPanelOffsets = new javax.swing.JPanel();
         valueJPanelFx = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         valueJPanelFy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
@@ -59,16 +82,218 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         valueJPanelTy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         valueJPanelTz = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
 
-        jLabel1.setText("Port: ");
+        jMenu1.setText("File");
+        jMenuBar1.add(jMenu1);
 
-        jTextField1.setText("8888");
+        jMenu2.setText("Edit");
+        jMenuBar1.add(jMenu2);
 
-        jCheckBoxStartServer.setText("Start Server");
-        jCheckBoxStartServer.addActionListener(new java.awt.event.ActionListener() {
+        jPanelCrclSensorServerOut.setBorder(javax.swing.BorderFactory.createTitledBorder("CRCL Sensor Out Server"));
+
+        jCheckBoxStartSensorOutServer.setText("Start");
+        jCheckBoxStartSensorOutServer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxStartServerActionPerformed(evt);
+                jCheckBoxStartSensorOutServerActionPerformed(evt);
             }
         });
+
+        jTextFieldCRCLSensorOutPort.setText("8888");
+
+        jLabel1.setText("Port: ");
+
+        javax.swing.GroupLayout jPanelCrclSensorServerOutLayout = new javax.swing.GroupLayout(jPanelCrclSensorServerOut);
+        jPanelCrclSensorServerOut.setLayout(jPanelCrclSensorServerOutLayout);
+        jPanelCrclSensorServerOutLayout.setHorizontalGroup(
+            jPanelCrclSensorServerOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCrclSensorServerOutLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCrclSensorServerOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelCrclSensorServerOutLayout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldCRCLSensorOutPort))
+                    .addGroup(jPanelCrclSensorServerOutLayout.createSequentialGroup()
+                        .addComponent(jCheckBoxStartSensorOutServer)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanelCrclSensorServerOutLayout.setVerticalGroup(
+            jPanelCrclSensorServerOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCrclSensorServerOutLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCrclSensorServerOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextFieldCRCLSensorOutPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jCheckBoxStartSensorOutServer)
+                .addContainerGap())
+        );
+
+        jPanelCRCLPositionIn.setBorder(javax.swing.BorderFactory.createTitledBorder("CRCL Pose In Connection"));
+
+        jLabel3.setText("Host: ");
+
+        jLabel2.setText("Port: ");
+
+        jTextFieldPoseCRCLHost.setText("localhost");
+
+        jCheckBoxEnablePoseInConnection.setText("Enable");
+        jCheckBoxEnablePoseInConnection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxEnablePoseInConnectionActionPerformed(evt);
+            }
+        });
+
+        jTextFieldPoseCRCLPort.setText("64444");
+
+        jButton1.setText("Update Pose");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanelCRCLPositionInLayout = new javax.swing.GroupLayout(jPanelCRCLPositionIn);
+        jPanelCRCLPositionIn.setLayout(jPanelCRCLPositionInLayout);
+        jPanelCRCLPositionInLayout.setHorizontalGroup(
+            jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCRCLPositionInLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanelCRCLPositionInLayout.createSequentialGroup()
+                            .addComponent(jLabel3)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jTextFieldPoseCRCLHost))
+                        .addGroup(jPanelCRCLPositionInLayout.createSequentialGroup()
+                            .addComponent(jLabel2)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jTextFieldPoseCRCLPort, javax.swing.GroupLayout.PREFERRED_SIZE, 601, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanelCRCLPositionInLayout.createSequentialGroup()
+                        .addComponent(jCheckBoxEnablePoseInConnection)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)))
+                .addContainerGap())
+        );
+        jPanelCRCLPositionInLayout.setVerticalGroup(
+            jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCRCLPositionInLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTextFieldPoseCRCLPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addComponent(jTextFieldPoseCRCLHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanelCRCLPositionInLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxEnablePoseInConnection)
+                    .addComponent(jButton1))
+                .addContainerGap())
+        );
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Pose In"));
+
+        jTablePose.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI", null},
+                {"XJ", null},
+                {"XK", null},
+                {"ZI", null},
+                {"ZJ", null},
+                {"Zk", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTablePose, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTablePose, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        jPanelForceOut.setBorder(javax.swing.BorderFactory.createTitledBorder("Force  Torque Out"));
+
+        jTablePoseForceOut.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI", null},
+                {"XJ", null},
+                {"XK", null},
+                {"ZI", null},
+                {"ZJ", null},
+                {"Zk", null}
+            },
+            new String [] {
+                "Pose Axis", "Position"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+
+        javax.swing.GroupLayout jPanelForceOutLayout = new javax.swing.GroupLayout(jPanelForceOut);
+        jPanelForceOut.setLayout(jPanelForceOutLayout);
+        jPanelForceOutLayout.setHorizontalGroup(
+            jPanelForceOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelForceOutLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTablePoseForceOut, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanelForceOutLayout.setVerticalGroup(
+            jPanelForceOutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelForceOutLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTablePoseForceOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout jPanelCommunicationsLayout = new javax.swing.GroupLayout(jPanelCommunications);
         jPanelCommunications.setLayout(jPanelCommunicationsLayout);
@@ -77,12 +302,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanelCrclSensorServerOut, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE))
-                    .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
-                        .addComponent(jCheckBoxStartServer)
+                        .addGroup(jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanelCRCLPositionIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanelForceOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -90,12 +317,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelCommunicationsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBoxStartServer)
-                .addContainerGap(522, Short.MAX_VALUE))
+                .addComponent(jPanelCrclSensorServerOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanelCRCLPositionIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanelForceOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(107, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Communications", jPanelCommunications);
@@ -142,7 +371,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 .addComponent(valueJPanelTy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(valueJPanelTz, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(154, Short.MAX_VALUE))
+                .addContainerGap(176, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Offset: ", jPanelOffsets);
@@ -165,8 +394,8 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jCheckBoxStartServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxStartServerActionPerformed
-        boolean doStart = jCheckBoxStartServer.isSelected();
+    private void jCheckBoxStartSensorOutServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxStartSensorOutServerActionPerformed
+        boolean doStart = jCheckBoxStartSensorOutServer.isSelected();
         try {
             if (doStart) {
                 startServer();
@@ -176,10 +405,62 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         } catch (Exception ex) {
             Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "connect=" + doStart, ex);
         }
-    }//GEN-LAST:event_jCheckBoxStartServerActionPerformed
+    }//GEN-LAST:event_jCheckBoxStartSensorOutServerActionPerformed
+
+    private volatile CRCLSocket poseInConnection = null;
+    private volatile CRCLStatusType poseStatus = null;
+    private volatile javax.swing.Timer timer = null;
+    private void jCheckBoxEnablePoseInConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnablePoseInConnectionActionPerformed
+        if (jCheckBoxEnablePoseInConnection.isSelected()) {
+            try {
+                poseInConnection = new CRCLSocket(jTextFieldPoseCRCLHost.getText(), Integer.parseInt(jTextFieldPoseCRCLPort.getText().trim()));
+                ConfigureStatusReportType confStatus = new ConfigureStatusReportType();
+                confStatus.setReportPoseStatus(true);
+                poseInConnection.writeCommand(confStatus);
+                timer = new javax.swing.Timer(50, e -> updatePose());
+                timer.start();
+            } catch (CRCLException | IOException ex) {
+                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                if(null != poseInConnection) {
+                    poseInConnection.close();
+                    poseInConnection = null;
+                }
+                if(null != timer) {
+                    timer.stop();
+                    timer = null;
+                }
+            } catch (IOException ex) {
+                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jCheckBoxEnablePoseInConnectionActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+            updatePose();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    public synchronized PoseType updatePose()  {
+        if (null != poseInConnection) {
+            try {
+                poseInConnection.writeCommand(new GetStatusType());
+                poseStatus = poseInConnection.readStatus();
+                final PoseType pose = poseStatus.getPoseStatus().getPose();
+                PoseDisplay.updatePoseTable(pose, jTablePose, PoseDisplayMode.XYZ_RPY);
+                return pose;
+            } catch (CRCLException ex) {
+                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
 
     public void startServer() {
-        int port = Integer.parseInt(jTextField1.getText());
+        int port = Integer.parseInt(jTextFieldCRCLSensorOutPort.getText());
         try {
             startServer(port);
         } catch (Exception ex) {
@@ -188,16 +469,17 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     private void startServer(int port) throws IOException {
-        if(!jCheckBoxStartServer.isSelected()) {
-            jCheckBoxStartServer.setSelected(true);
+        if (!jCheckBoxStartSensorOutServer.isSelected()) {
+            jCheckBoxStartSensorOutServer.setSelected(true);
         }
         crclServerSocket = new CRCLServerSocket<>(port, FORCE_TORQUE_SIM_STATE_GENERATOR);
         crclServerSocket.addListener(crclSocketEventListener);
-        crclServerSocket.setServerSideStatus(status);
+        crclServerSocket.setServerSideStatus(statusOut);
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setUpdateStatusRunnable(this::updateSensorStatus);
         crclServerSocket.start();
+        updateSensorStatus();
     }
 
     public static class ForceTorqueSimClientState extends CRCLServerClientState {
@@ -214,7 +496,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
         int i;
     }
-    private final CRCLStatusType status;
+    private final CRCLStatusType statusOut;
     private final ForceTorqueSensorStatusType sensorStatus;
 
     public static final CRCLServerSocketStateGenerator<ForceTorqueSimClientState> FORCE_TORQUE_SIM_STATE_GENERATOR
@@ -231,22 +513,51 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     private void updateSensorStatus() {
+        double zposeEffect = 0.0;
+        if(null != poseStatus) {
+            zposeEffect = poseStatus.getPoseStatus().getPose().getPoint().getZ();
+        }
         sensorStatus.setFx(valueJPanelFx.getValue());
         sensorStatus.setFy(valueJPanelFy.getValue());
-        sensorStatus.setFz(valueJPanelFz.getValue());
+        sensorStatus.setFz(valueJPanelFz.getValue() + zposeEffect);
         sensorStatus.setTx(valueJPanelTx.getValue());
         sensorStatus.setTy(valueJPanelTy.getValue());
         sensorStatus.setTz(valueJPanelTz.getValue());
         sensorStatus.setSensorID("ForceTorqueSim");
+        updateForceTorqueDisplay();
+    }
+
+    private void updateForceTorqueDisplay() {
+        jTablePoseForceOut.setValueAt(sensorStatus.getFx(), 0, 1);
+        jTablePoseForceOut.setValueAt(sensorStatus.getFy(), 1, 1);
+        jTablePoseForceOut.setValueAt(sensorStatus.getFz(), 2, 1);
+        jTablePoseForceOut.setValueAt(sensorStatus.getTx(), 3, 1);
+        jTablePoseForceOut.setValueAt(sensorStatus.getTy(), 4, 1);
+        jTablePoseForceOut.setValueAt(sensorStatus.getTz(), 5, 1);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox jCheckBoxStartServer;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JCheckBox jCheckBoxEnablePoseInConnection;
+    private javax.swing.JCheckBox jCheckBoxStartSensorOutServer;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
+    final javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanelCRCLPositionIn;
     private javax.swing.JPanel jPanelCommunications;
+    private javax.swing.JPanel jPanelCrclSensorServerOut;
+    private javax.swing.JPanel jPanelForceOut;
     private javax.swing.JPanel jPanelOffsets;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTable jTablePose;
+    private javax.swing.JTable jTablePoseForceOut;
+    private javax.swing.JTextField jTextFieldCRCLSensorOutPort;
+    private javax.swing.JTextField jTextFieldPoseCRCLHost;
+    private javax.swing.JTextField jTextFieldPoseCRCLPort;
     private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFx;
     private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFy;
     private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFz;

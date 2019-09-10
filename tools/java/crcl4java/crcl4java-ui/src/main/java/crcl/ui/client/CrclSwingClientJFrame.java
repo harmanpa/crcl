@@ -30,7 +30,6 @@ import crcl.ui.server.SimServerJFrame;
 import crcl.ui.misc.TransformSetupJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.ui.XFutureVoid;
-import static crcl.ui.client.CrclSwingClientJInternalFrame.LOGGER;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
 import crcl.utils.Utils;

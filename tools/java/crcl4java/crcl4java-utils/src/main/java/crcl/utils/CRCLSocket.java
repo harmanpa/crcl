@@ -1977,6 +1977,7 @@ public class CRCLSocket implements AutoCloseable {
             CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
             instance.setCRCLCommand(cmd);
             String str = removeHeader(this.commandToString(instance, validate));
+            str = str.trim();
             if (str.endsWith("</CRCLCommandInstance>")) {
                 str = str.substring(0, str.length() - "</CRCLCommandInstance>".length());
             }
@@ -2298,6 +2299,16 @@ public class CRCLSocket implements AutoCloseable {
         } catch (IOException | InterruptedException ex) {
             throw new CRCLException(ex);
         }
+    }
+    
+    public void writeCommand(CRCLCommandType cc) throws CRCLException {
+        writeCommand(cc, false);
+    }
+    
+    public synchronized void writeCommand(CRCLCommandType cc, boolean validate) throws CRCLException {
+        CRCLCommandInstanceType commandInstance = new CRCLCommandInstanceType();
+        commandInstance.setCRCLCommand(cc);
+        writeCommand(commandInstance, validate);
     }
 
     protected void writePackets(byte ba[]) throws IOException, InterruptedException {
@@ -2642,7 +2653,7 @@ public class CRCLSocket implements AutoCloseable {
             }
             return cmdName + " " + content;
         } catch (SAXException sAXException) {
-            throw new SAXException("xmlString=" + xmlString, sAXException);
+            throw new SAXException("xmlString=\"" + xmlString+"\"", sAXException);
         } catch (IOException iOException) {
             throw new IOException("xmlString=" + xmlString, iOException);
         }

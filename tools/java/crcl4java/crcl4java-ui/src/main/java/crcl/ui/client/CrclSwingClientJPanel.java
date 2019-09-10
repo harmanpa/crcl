@@ -67,6 +67,13 @@ import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
 import static crcl.ui.IconImages.WORKING_IMAGE;
+import static crcl.ui.PoseDisplay.updateDisplayMode;
+import static crcl.ui.PoseDisplay.updatePointTable;
+import static crcl.ui.PoseDisplay.updatePoseTable;
+import crcl.ui.PoseDisplayMode;
+import static crcl.ui.PoseDisplayMode.XYZ_RPY;
+import static crcl.ui.PoseDisplayMode.XYZ_RX_RY_RZ;
+import static crcl.ui.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.ui.XFuture;
 import crcl.ui.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
@@ -134,7 +141,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -2057,7 +2063,6 @@ public class CrclSwingClientJPanel
         return null;
     }
 
-
     public @Nullable
     List<ProgramRunData> getLastProgRunDataList() {
         return internal.getLastProgRunDataList();
@@ -2115,12 +2120,7 @@ public class CrclSwingClientJPanel
                 pt = CRCLPosemath.copy(pt);
                 setPlottersInitPoint(pt);
                 needInitPoint = false;
-            } else {
-                setPlottersInitPoint(null);
-//                programPlotterJPanelOverhead.getPlotter().setInitPoint(null);
-//                programPlotterJPanelSide.getPlotter().setInitPoint(null);
-                needInitPoint = true;
-            }
+            } 
         }
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             ccst = curInternalStatus.getCommandStatus();
@@ -2476,85 +2476,6 @@ public class CrclSwingClientJPanel
             for (UpdateTitleListener utl : updateTitleListeners) {
                 utl.titleChanged(ccst, outerContainer, stateString, stateDescription);
             }
-        }
-    }
-
-    public static enum PoseDisplayMode {
-        XYZ_XAXIS_ZAXIS,
-        XYZ_RPY,
-        XYZ_RX_RY_RZ
-    };
-
-    public static void updatePoseTable(PoseType p, JTable jTable, PoseDisplayMode displayMode) {
-        try {
-            if (null == p) {
-                p = CRCLPosemath.identityPose();
-            }
-            DefaultTableModel tm = (DefaultTableModel) jTable.getModel();
-            PointType point = p.getPoint();
-            if (null != point) {
-                updatePointTable(point, tm, 0);
-            }
-            switch (displayMode) {
-                case XYZ_XAXIS_ZAXIS:
-                    updateXaxisZaxisTable(p, tm, 3);
-                    break;
-
-                case XYZ_RPY:
-                    updateRpyTable(p, tm, 3);
-                    break;
-
-                case XYZ_RX_RY_RZ:
-                    updateRxRyRzTable(p, tm, 3);
-                    break;
-
-            }
-        } catch (PmException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private static void updateRpyTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
-        PmRpy rpy = CRCLPosemath.toPmRpy(p);
-        if (null != rpy && tm.getRowCount() > 2 + index) {
-            tm.setValueAt(Math.toDegrees(rpy.r), 0 + index, 1);
-            tm.setValueAt(Math.toDegrees(rpy.p), 1 + index, 1);
-            tm.setValueAt(Math.toDegrees(rpy.y), 2 + index, 1);
-        }
-    }
-
-    private static void updateRxRyRzTable(PoseType p, DefaultTableModel tm, int index) throws PmException {
-        PmRotationMatrix mat = CRCLPosemath.toPmRotationMatrix(p);
-        PmEulerZyx zyx = new PmEulerZyx();
-        Posemath.pmMatZyxConvert(mat, zyx);
-
-        if (tm.getRowCount() > 2 + index) {
-            tm.setValueAt(Math.toDegrees(zyx.x), 0 + index, 1);
-            tm.setValueAt(Math.toDegrees(zyx.y), 1 + index, 1);
-            tm.setValueAt(Math.toDegrees(zyx.z), 2 + index, 1);
-        }
-    }
-
-    private static void updateXaxisZaxisTable(PoseType p, DefaultTableModel tm, int index) {
-        VectorType xv = p.getXAxis();
-        VectorType zv = p.getZAxis();
-        if (null != xv && tm.getRowCount() > 2 + index) {
-            tm.setValueAt(xv.getI(), 0 + index, 1);
-            tm.setValueAt(xv.getJ(), 1 + index, 1);
-            tm.setValueAt(xv.getK(), 2 + index, 1);
-        }
-        if (null != zv && tm.getRowCount() > 5 + index) {
-            tm.setValueAt(zv.getI(), 3 + index, 1);
-            tm.setValueAt(zv.getJ(), 4 + index, 1);
-            tm.setValueAt(zv.getK(), 5 + index, 1);
-        }
-    }
-
-    public static void updatePointTable(PointType pt, DefaultTableModel tm, int index) {
-        if (null != pt && tm.getRowCount() > 2 + index) {
-            tm.setValueAt(pt.getX(), 0 + index, 1);
-            tm.setValueAt(pt.getY(), 1 + index, 1);
-            tm.setValueAt(pt.getZ(), 2 + index, 1);
         }
     }
 
@@ -3343,6 +3264,9 @@ public class CrclSwingClientJPanel
                 internal.getCmdSchemaFiles(),
                 internal.getCheckCommandValidPredicate(),
                 editCrclSocket);
+        if (null == cmd) {
+            return;
+        }
         cmd.setCommandID(origCommandId);
         cmdInstance.setCRCLCommand(cmd);
         String sToCheck = internal.getTempCRCLSocket().commandToString(cmdInstance, false);
@@ -5011,6 +4935,7 @@ public class CrclSwingClientJPanel
             List<Class<?>> availClasses = getAssignableClasses(clss,
                     ObjTableJPanel.getClasses(customExcludedPathStrings));
             Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
+            Arrays.sort(ca, Comparator.comparing((Class clss_in_ca) -> clss_in_ca.getSimpleName()));
             final Window outerWindow = this.getOuterWindow();
             if (null == outerWindow) {
                 return;
@@ -5148,17 +5073,20 @@ public class CrclSwingClientJPanel
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
-            requestAndReadStatus();
+//            if (null != internal.getStatus()) {
+//                PointType pt = internal.currentStatusPoint();
+//                if (null != pt) {
+////                            pt = CRCLPosemath.copy(pt);
+//                    setPlottersInitPoint(pt);
+//                    needInitPoint = false;
+//                }
+//            } 
+//            return internal.scheduleReadAndRequestStatus()
+//                    .thenRun(() -> {
+//                        
+//                    });
 //            System.out.println("prepRunCurrentProgram: readStatusResult = " + readStatusResult);
-            PointType pt = internal.currentStatusPoint();
-            if (null != pt) {
-                pt = CRCLPosemath.copy(pt);
-                setPlottersInitPoint(pt);
-                needInitPoint = false;
-            } else {
-                setPlottersInitPoint(null);
-                needInitPoint = true;
-            }
+
         } catch (Exception exception) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, exception);
             if (exception instanceof RuntimeException) {
@@ -5746,41 +5674,6 @@ public class CrclSwingClientJPanel
         }
     }//GEN-LAST:event_jTextAreaErrorsMouseClicked
 
-    @SuppressWarnings({"nullness", "rawtypes"})
-    private void setPoseDisplayModelXAxisZAxis(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                    {"X", null},
-                    {"Y", null},
-                    {"Z", null},
-                    {"XI", null},
-                    {"XJ", null},
-                    {"XK", null},
-                    {"ZI", null},
-                    {"ZJ", null},
-                    {"Zk", null}
-                },
-                new String[]{
-                    "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, editable
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-    }
-
     private boolean disableTextPopups = true;
 
     /**
@@ -5810,69 +5703,6 @@ public class CrclSwingClientJPanel
         internal.setDebugConnectDisconnect(enableDebugConnect);
     }
 
-    @SuppressWarnings({"nullness", "rawtypes"})
-    private void setPoseDisplayModelRpy(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                    {"X", null},
-                    {"Y", null},
-                    {"Z", null},
-                    {"Roll", null},
-                    {"Pitch", null},
-                    {"Yaw", null}
-                },
-                new String[]{
-                    "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, editable
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-    }
-
-    @SuppressWarnings({"nullness", "rawtypes"})
-    private void setPoseDisplayModelRxRyRz(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                    {"X", null},
-                    {"Y", null},
-                    {"Z", null},
-                    {"Rx", null},
-                    {"Ry", null},
-                    {"Rz", null}
-                },
-                new String[]{
-                    "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, editable
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-    }
 
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
         updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
@@ -5987,21 +5817,7 @@ public class CrclSwingClientJPanel
         try {
             lastMoveToPoseDisplayMode = (PoseDisplayMode) jComboBoxMoveToPoseDisplayMode.getSelectedItem();
             PoseType pose = pose(point(0, 0, 0), vector(1, 0, 0), vector(0, 0, -1));
-            DefaultTableModel tm = (DefaultTableModel) this.jTableMoveToPose.getModel();
-            switch (lastMoveToPoseDisplayMode) {
-                case XYZ_XAXIS_ZAXIS:
-                    updateXaxisZaxisTable(pose, tm, 3);
-                    break;
-
-                case XYZ_RPY:
-                    updateRpyTable(pose, tm, 3);
-                    break;
-
-                case XYZ_RX_RY_RZ:
-                    updateRxRyRzTable(pose, tm, 3);
-                    break;
-
-            }
+            updatePoseTable(pose, this.jTableMoveToPose, lastMoveToPoseDisplayMode);
         } catch (Exception exception) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, "evt=" + evt, exception);
         }
@@ -6034,22 +5850,6 @@ public class CrclSwingClientJPanel
     }
 
     private volatile boolean logCommandStatusToFile = false;
-
-    private void updateDisplayMode(JTable table, PoseDisplayMode displayMode, boolean editable) {
-        switch (displayMode) {
-            case XYZ_XAXIS_ZAXIS:
-                setPoseDisplayModelXAxisZAxis(table, editable);
-                break;
-
-            case XYZ_RPY:
-                setPoseDisplayModelRpy(table, editable);
-                break;
-
-            case XYZ_RX_RY_RZ:
-                setPoseDisplayModelRxRyRz(table, editable);
-                break;
-        }
-    }
 
     private static final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 

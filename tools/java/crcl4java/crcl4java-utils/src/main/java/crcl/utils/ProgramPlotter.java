@@ -161,37 +161,61 @@ public class ProgramPlotter {
         double xmax = Double.NEGATIVE_INFINITY;
         double ymin = Double.POSITIVE_INFINITY;
         double ymax = Double.NEGATIVE_INFINITY;
+        int movecount = 0;
         for (MiddleCommandType cmd : program.getMiddleCommand()) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
                 PoseType endPose = moveCmd.getEndPosition();
                 if (null != endPose) {
+                    movecount++;
                     Point2D.Double pt2D = toPoint2D(((MoveToType) cmd).getEndPosition());
-                    xmin = Math.min(xmin, pt2D.x);
-                    xmax = Math.max(xmax, pt2D.x);
-                    ymin = Math.min(ymin, pt2D.y);
-                    ymax = Math.max(ymax, pt2D.y);
+                    if (Double.isFinite(pt2D.x) && Double.isFinite(pt2D.y)) {
+                        xmin = Math.min(xmin, pt2D.x);
+                        xmax = Math.max(xmax, pt2D.x);
+                        ymin = Math.min(ymin, pt2D.y);
+                        ymax = Math.max(ymax, pt2D.y);
+                    }
                 }
             }
         }
         if (null != currentPoint) {
             Point2D.Double pt2D = toPoint2D(currentPoint);
-            xmin = Math.min(xmin, pt2D.x);
-            xmax = Math.max(xmax, pt2D.x);
-            ymin = Math.min(ymin, pt2D.y);
-            ymax = Math.max(ymax, pt2D.y);
+            if (Double.isFinite(pt2D.x) && Double.isFinite(pt2D.y)) {
+                xmin = Math.min(xmin, pt2D.x);
+                xmax = Math.max(xmax, pt2D.x);
+                ymin = Math.min(ymin, pt2D.y);
+                ymax = Math.max(ymax, pt2D.y);
+            }
         }
         if (null != initPoint) {
             Point2D.Double pt2D = toPoint2D(initPoint);
-            xmin = Math.min(xmin, pt2D.x);
-            xmax = Math.max(xmax, pt2D.x);
-            ymin = Math.min(ymin, pt2D.y);
-            ymax = Math.max(ymax, pt2D.y);
+            if (Double.isFinite(pt2D.x) && Double.isFinite(pt2D.y)) {
+                xmin = Math.min(xmin, pt2D.x);
+                xmax = Math.max(xmax, pt2D.x);
+                ymin = Math.min(ymin, pt2D.y);
+                ymax = Math.max(ymax, pt2D.y);
+            }
+        }
+        if (movecount < 4 && null != bounds && Double.isFinite(bounds.x) && Double.isFinite(bounds.width) && Double.isFinite(bounds.y) && Double.isFinite(bounds.height)) {
+            xmin = Math.min(xmin, bounds.x);
+            xmax = Math.max(xmax, bounds.x + bounds.width);
+            ymin = Math.min(ymin, bounds.y);
+            ymax = Math.max(ymax, bounds.y + bounds.height);
         }
         rect.x = xmin;
         rect.width = xmax - xmin;
         rect.y = ymin;
         rect.height = ymax - ymin;
+        if (rect.width < 10 || rect.height < 10) {
+            xmin -= 5;
+            xmax += 5;
+            ymin -= 5;
+            ymax += 5;
+            rect.x = xmin;
+            rect.width = xmax - xmin;
+            rect.y = ymin;
+            rect.height = ymax - ymin;
+        }
         return rect;
     }
 

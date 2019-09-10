@@ -732,6 +732,14 @@
                                 type="GuardType"
                                 maxOccurs="unbounded"
                                 minOccurs="0"/>
+                    <xs:element name="TriggerCount"
+                                type="xs:int"/>
+                    <xs:element name="TriggerValue"
+                                type="xs:double"
+                                minOccurs="0"/>
+                    <xs:element name="TriggerPose"
+                                type="PoseType"
+                                minOccurs="0"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

@@ -28,10 +28,11 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
-import static crcl.ui.client.CrclSwingClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
+import crcl.ui.PoseDisplay;
+import crcl.ui.PoseDisplayMode;
+import static crcl.ui.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
-import crcl.utils.outer.interfaces.PendantClientOuter;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -177,7 +178,7 @@ public class TransformJPanel extends javax.swing.JPanel {
      */
     public void setTransform(PoseType transform) {
         this.transform = transform;
-        CrclSwingClientJPanel.updatePoseTable(transform, jTablePose, XYZ_XAXIS_ZAXIS);
+        PoseDisplay.updatePoseTable(transform, jTablePose, XYZ_XAXIS_ZAXIS);
     }
 
     private void updateTransformBothPoints() {
@@ -903,9 +904,10 @@ public class TransformJPanel extends javax.swing.JPanel {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'at'HHmm");
         return sdf.format(new Date());
     }
+    
     private void jButtonTransformProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonTransformProgramActionPerformed
         try {
-            PoseType transform = CrclSwingClientJPanel.tableToPose(jTablePose, CrclSwingClientJPanel.PoseDisplayMode.XYZ_XAXIS_ZAXIS);
+            PoseType transform = CrclSwingClientJPanel.tableToPose(jTablePose, PoseDisplayMode.XYZ_XAXIS_ZAXIS);
             CRCLProgramType inProgram = pendantClient.getProgram();
             if (null != inProgram) {
                 CRCLProgramType newProgram = CRCLPosemath.transformProgram(transform, inProgram);
