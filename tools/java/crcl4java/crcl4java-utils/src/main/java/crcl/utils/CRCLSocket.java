@@ -1896,6 +1896,7 @@ public class CRCLSocket implements AutoCloseable {
                 }
                 return instance;
             } catch (JAXBException ex) {
+                System.err.println("defaultStatSchemaFiles = " + Arrays.toString(defaultStatSchemaFiles));
                 throw new CRCLException(ex);
             }
         }

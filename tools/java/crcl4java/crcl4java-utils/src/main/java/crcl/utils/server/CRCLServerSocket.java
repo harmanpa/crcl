@@ -608,13 +608,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     if (null == source) {
                         throw new NullPointerException("source");
                     }
-                    if (updateStatusRunnable != null) {
-                        updateStatusRunnable.run();
-                        updateStatusRunCount++;
+                    CRCLStatusType statusToSend;
+                    synchronized (this) {
+                        if (updateStatusRunnable != null) {
+                            updateStatusRunnable.run();
+                            updateStatusRunCount++;
+                        }
+                        checkSensorServers();
+                        statusToSend = state.filterSettings.filterStatus(serverSideStatus);
+                        state.cmdId = statusToSend.getCommandStatus().getCommandID();
                     }
-                    checkSensorServers();
-                    CRCLStatusType statusToSend = state.filterSettings.filterStatus(serverSideStatus);
-                    state.cmdId = statusToSend.getCommandStatus().getCommandID();
 //                statusToSend.getCommandStatus().setCommandID(state.cmdId);
                     source.writeStatus(statusToSend);
                     return true;
@@ -1895,12 +1898,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void triggerGuard(double value, STATE_TYPE guard_client_state, CRCLCommandInstanceType commandInstance, GuardType guard) throws Exception {
-        if(null == serverSideStatus.getGuardsStatuses()) {
+        if (null == serverSideStatus.getGuardsStatuses()) {
             serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
         }
-        serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount()+1);
+        serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount() + 1);
         serverSideStatus.getGuardsStatuses().setTriggerValue(value);
-        if(null != serverSideStatus.getPoseStatus() && null != serverSideStatus.getPoseStatus().getPose()) {
+        if (null != serverSideStatus.getPoseStatus() && null != serverSideStatus.getPoseStatus().getPose()) {
             serverSideStatus.getGuardsStatuses().setTriggerPose(CRCLPosemath.copy(serverSideStatus.getPoseStatus().getPose()));
         }
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));

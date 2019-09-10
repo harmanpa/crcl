@@ -4867,7 +4867,7 @@ public class CrclSwingClientJPanel
                     return;
                 }
                 program.getMiddleCommand().set(index - 1, cmdEdited);
-                this.showProgram(program, internal.getProgRunDataList(), -1);
+                this.showProgram(program, null, -1);
                 this.showCurrentProgramLine(index, program, internal.getStatus(), internal.getProgRunDataList());
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);

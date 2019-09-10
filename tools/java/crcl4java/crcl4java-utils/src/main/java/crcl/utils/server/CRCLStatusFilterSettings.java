@@ -328,6 +328,11 @@ public class CRCLStatusFilterSettings {
         final JointStatusesType statusOutJointStatuses = statusOut.getJointStatuses();
         if (statusOutJointStatuses != null) {
             List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
+            if(joints.size() != statusIn.getJointStatuses().getJointStatus().size()) {
+                System.out.println("bad  status copy ");
+                CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+                
+            }
             if (!configureStatusReport.isReportJointStatuses()) {
 //                throw new RuntimeException("no joints, isReportJointStatuses");
                 statusOut.setJointStatuses(null);

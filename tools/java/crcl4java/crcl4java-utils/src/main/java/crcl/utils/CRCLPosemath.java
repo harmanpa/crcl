@@ -54,7 +54,7 @@ import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
-import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -772,8 +772,10 @@ public class CRCLPosemath {
         }
         JointStatusesType newStatus = new JointStatusesType();
         newStatus.setName(status.getName());
-        for (int i = 0; i < status.getJointStatus().size(); i++) {
-            newStatus.getJointStatus().add(copy(status.getJointStatus().get(i)));
+        final List<JointStatusType> jl = new ArrayList<>( status.getJointStatus());
+        for (int i = 0; i < jl.size(); i++) {
+            final JointStatusType jointI = jl.get(i);
+            newStatus.getJointStatus().add(copy(jointI));
         }
         return newStatus;
     }
