@@ -1544,9 +1544,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setupNewClientState(STATE_TYPE state) {
-        if (updateStatusRunnable != null && updateStatusRunCount == 0) {
-            updateStatusRunnable.run();
-            updateStatusRunCount++;
+        synchronized (this) {
+            if (updateStatusRunnable != null && updateStatusRunCount == 0) {
+                updateStatusRunnable.run();
+                updateStatusRunCount++;
+            }
         }
         if (automaticallyConvertUnits && null != serverToClientScales) {
             state.filterSettings.setServerToClientScaleSet(serverToClientScales);

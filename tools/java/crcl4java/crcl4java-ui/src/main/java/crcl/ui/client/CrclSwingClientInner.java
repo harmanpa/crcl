@@ -2049,9 +2049,9 @@ public class CrclSwingClientInner {
                 sel.getProgIndex(),
                 sel.getSvrSocket(),
                 status.getName(),
-                point.getX(),
-                point.getY(),
-                point.getZ(),
+                (null != point)?point.getX():null,
+                (null != point)?point.getY():null,
+                (null != point)? point.getZ():null,
                 status.getCommandStatus().getStateDescription()
             };
         } else {

@@ -88,6 +88,7 @@ import crcl.base.PoseType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.RotSpeedRelativeType;
 import crcl.base.RotSpeedType;
+import crcl.base.SensorStatusesType;
 import crcl.base.SetAngleUnitsType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.SetEndPoseToleranceType;
@@ -414,6 +415,7 @@ public class FanucCRCLMain {
 
     long statusUpdateTime = 0;
     private final CRCLStatusType status = new CRCLStatusType();
+    private final CRCLStatusType serverSocketStatus = new CRCLStatusType();
     volatile long moveDoneTime = 0;
     volatile boolean lastCheckAtPosition = false;
     volatile int moveChecksDone = 0;
@@ -532,7 +534,7 @@ public class FanucCRCLMain {
 
     private volatile boolean firstUpdate = true;
 
-    public synchronized CRCLStatusType readCachedStatusFromRobot() throws PmException {
+    public CRCLStatusType readCachedStatusFromRobot() throws PmException {
 
         CRCLStatusType status;
         if (System.currentTimeMillis() - lastUpdateStatusTime > 30) {
@@ -682,138 +684,143 @@ public class FanucCRCLMain {
     private final AtomicInteger readStatusFromRobotInternalStartCount = new AtomicInteger();
     private final AtomicInteger readStatusFromRobotInternalEndCount = new AtomicInteger();
 
-    private synchronized void readStatusFromRobotInternal() {
+    private void readStatusFromRobotInternal() {
         try {
-            readStatusFromRobotInternalStartCount.incrementAndGet();
-            if (null == robot) {
-                setStatusErrorDescription("Robot is NOT connected.");
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
-                if (lastRobotIsConnected) {
-                    showError("Robot is NOT connected.");
-                }
-                lastRobotIsConnected = false;
-                return;
-            }
-            if (!robotIsConnected) {
-                setStatusErrorDescription("Robot is NOT connected.");
-                setCommandState(CommandStateEnumType.CRCL_ERROR);
-                if (lastRobotIsConnected) {
-                    showError("Robot is NOT connected.");
-                }
-                lastRobotIsConnected = false;
-                return;
-            }
-            lastRobotIsConnected = true;
-            long start = System.currentTimeMillis();
-            synchronized (status) {
-                readStatusCount.incrementAndGet();
-                CommandStatusType commandStatus = status.getCommandStatus();
-                if (commandStatus == null) {
-                    commandStatus = new CommandStatusType();
-                    status.setCommandStatus(commandStatus);
-                    setCommandState(CommandStateEnumType.CRCL_WORKING);
-                }
-                if (commandStatus.getCommandID() < 1) {
-                    commandStatus.setCommandID(1);
-                }
-                if (null == commandStatus.getCommandState()) {
-                    setCommandState(CommandStateEnumType.CRCL_WORKING);
-                }
-                if (holdingObjectKnown) {
-                    if (null == status.getGripperStatus()) {
-                        ParallelGripperStatusType parallelGripperStatus = new ParallelGripperStatusType();
-                        parallelGripperStatus.setGripperName("SCHUNK_MPG40");
-                        status.setGripperStatus(parallelGripperStatus);
-                    }
-                    GripperStatusType gripperStatus = status.getGripperStatus();
-                    if (null != gripperStatus) {
-                        gripperStatus.setHoldingObject(holdingObject);
-                    }
-                }
-                if (null != status.getGripperStatus()) {
-                    if (status.getGripperStatus() instanceof ParallelGripperStatusType) {
-                        ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status.getGripperStatus();
-                        parallelGripperStatus.setSeparation(gripperSeperation);
-                    }
-                }
-                commandStatus.setStatusID(commandStatus.getStatusID() + 1);
-                commandStatus.setOverridePercent(overrideValue);
-                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
-                    lastCheckAtPosition = false;
-                }
+            copyFromServerSocketStatus();
+            synchronized (this) {
+                readStatusFromRobotInternalStartCount.incrementAndGet();
                 if (null == robot) {
-                    setStatusErrorDescription("fanucCRCLServer not connected to robot");
+                    setStatusErrorDescription("Robot is NOT connected.");
                     setCommandState(CommandStateEnumType.CRCL_ERROR);
-                    showError("fanucCRCLServer not connected to robot");
+                    if (lastRobotIsConnected) {
+                        showError("Robot is NOT connected.");
+                    }
+                    lastRobotIsConnected = false;
                     return;
                 }
-                ICurPosition icp = robot.curPosition();
-                if (null == icp) {
-                    showError("robot.curPosition() returned null");
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                if (!robotIsConnected) {
+                    setStatusErrorDescription("Robot is NOT connected.");
+                    setCommandState(CommandStateEnumType.CRCL_ERROR);
+                    if (lastRobotIsConnected) {
+                        showError("Robot is NOT connected.");
+                    }
+                    lastRobotIsConnected = false;
                     return;
                 }
-                ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-                Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
-                IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
-                PmCartesian cart = new PmCartesian(pos.x(), pos.y(), pos.z());
-                PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
-                setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), getPose()));
-                Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
-                IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
-                assert (jointStatuses != null);
-                jointStatuses.getJointStatus().clear();
-                for (short i = 1; i <= joint_pos.count(); i++) {
-                    JointStatusType js = new JointStatusType();
-                    js.setJointNumber(i);
-                    double cur_joint_pos = joint_pos.item(i);
-                    double last_joint_pos = lastJointPosArray[i];
-                    long last_joint_pos_time = lastJointPosTimeArray[i];
-                    long cur_time = System.currentTimeMillis();
-                    double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
-                    lastJointPosArray[i] = cur_joint_pos;
-                    lastJointPosTimeArray[i] = cur_time;
-                    js.setJointPosition(cur_joint_pos);
-                    try {
-                        if (null != cjrMap && cjrMap.size() > 0) {
-                            js.setJointPosition(null);
-                            js.setJointVelocity(null);
-                            js.setJointTorqueOrForce(null);
-                            ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
-                            if (null != cjrt) {
-                                if (cjrt.getJointNumber() == js.getJointNumber()) {
-                                    if (cjrt.isReportPosition()) {
-                                        js.setJointPosition(cur_joint_pos);
-                                    }
-                                    if (cjrt.isReportVelocity()) {
-                                        js.setJointVelocity(joint_vel);
-                                    }
-                                    if (cjrt.isReportTorqueOrForce()) {
-                                        js.setJointTorqueOrForce(0.0);
+                lastRobotIsConnected = true;
+                long start = System.currentTimeMillis();
+
+                synchronized (status) {
+                    readStatusCount.incrementAndGet();
+                    CommandStatusType commandStatus = status.getCommandStatus();
+                    if (commandStatus == null) {
+                        commandStatus = new CommandStatusType();
+                        status.setCommandStatus(commandStatus);
+                        setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    }
+                    if (commandStatus.getCommandID() < 1) {
+                        commandStatus.setCommandID(1);
+                    }
+                    if (null == commandStatus.getCommandState()) {
+                        setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    }
+                    if (holdingObjectKnown) {
+                        if (null == status.getGripperStatus()) {
+                            ParallelGripperStatusType parallelGripperStatus = new ParallelGripperStatusType();
+                            parallelGripperStatus.setGripperName("SCHUNK_MPG40");
+                            status.setGripperStatus(parallelGripperStatus);
+                        }
+                        GripperStatusType gripperStatus = status.getGripperStatus();
+                        if (null != gripperStatus) {
+                            gripperStatus.setHoldingObject(holdingObject);
+                        }
+                    }
+                    if (null != status.getGripperStatus()) {
+                        if (status.getGripperStatus() instanceof ParallelGripperStatusType) {
+                            ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status.getGripperStatus();
+                            parallelGripperStatus.setSeparation(gripperSeperation);
+                        }
+                    }
+                    commandStatus.setStatusID(commandStatus.getStatusID() + 1);
+                    commandStatus.setOverridePercent(overrideValue);
+                    if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+                        lastCheckAtPosition = false;
+                    }
+                    if (null == robot) {
+                        setStatusErrorDescription("fanucCRCLServer not connected to robot");
+                        setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        showError("fanucCRCLServer not connected to robot");
+                        return;
+                    }
+                    ICurPosition icp = robot.curPosition();
+                    if (null == icp) {
+                        showError("robot.curPosition() returned null");
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        return;
+                    }
+                    ICurGroupPosition icgp = icp.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+                    Com4jObject com4jobj_pos = icgp.formats(FRETypeCodeConstants.frXyzWpr);
+                    IXyzWpr pos = com4jobj_pos.queryInterface(IXyzWpr.class);
+                    PmCartesian cart = new PmCartesian(pos.x(), pos.y(), pos.z());
+                    PmRpy rpy = new PmRpy(Math.toRadians(pos.w()), Math.toRadians(pos.p()), Math.toRadians(pos.r()));
+                    setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), getPose()));
+                    Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
+                    IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
+                    assert (jointStatuses != null);
+                    jointStatuses.getJointStatus().clear();
+                    for (short i = 1; i <= joint_pos.count(); i++) {
+                        JointStatusType js = new JointStatusType();
+                        js.setJointNumber(i);
+                        double cur_joint_pos = joint_pos.item(i);
+                        double last_joint_pos = lastJointPosArray[i];
+                        long last_joint_pos_time = lastJointPosTimeArray[i];
+                        long cur_time = System.currentTimeMillis();
+                        double joint_vel = 1000.0 * (cur_joint_pos - last_joint_pos) / (cur_time - last_joint_pos_time + 1);
+                        lastJointPosArray[i] = cur_joint_pos;
+                        lastJointPosTimeArray[i] = cur_time;
+                        js.setJointPosition(cur_joint_pos);
+                        try {
+                            if (null != cjrMap && cjrMap.size() > 0) {
+                                js.setJointPosition(null);
+                                js.setJointVelocity(null);
+                                js.setJointTorqueOrForce(null);
+                                ConfigureJointReportType cjrt = this.cjrMap.get(js.getJointNumber());
+                                if (null != cjrt) {
+                                    if (cjrt.getJointNumber() == js.getJointNumber()) {
+                                        if (cjrt.isReportPosition()) {
+                                            js.setJointPosition(cur_joint_pos);
+                                        }
+                                        if (cjrt.isReportVelocity()) {
+                                            js.setJointVelocity(joint_vel);
+                                        }
+                                        if (cjrt.isReportTorqueOrForce()) {
+                                            js.setJointTorqueOrForce(0.0);
+                                        }
                                     }
                                 }
+                                if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                        && prevCmd instanceof ConfigureJointReportsType) {
+                                    this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
+                                if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
+                                        && prevCmd instanceof ConfigureStatusReportType) {
+                                    this.setCommandState(CommandStateEnumType.CRCL_DONE);
+                                }
                             }
-                            if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
-                                    && prevCmd instanceof ConfigureJointReportsType) {
-                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                            }
-                            if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING
-                                    && prevCmd instanceof ConfigureStatusReportType) {
-                                this.setCommandState(CommandStateEnumType.CRCL_DONE);
-                            }
+                        } catch (Throwable ex) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i=" + i + ",js=" + js + " : " + ex.getMessage(), ex);
                         }
-                    } catch (Throwable ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "i=" + i + ",js=" + js + " : " + ex.getMessage(), ex);
+                        jointStatuses.getJointStatus().add(js);
+                        checkDonePrevCmd();
                     }
-                    jointStatuses.getJointStatus().add(js);
-                    checkDonePrevCmd();
+                    if (null == prevCmd || !(prevCmd instanceof InitCanonType)
+                            || commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+                        checkServoReady();
+                    }
+                    updateTimes.add(System.currentTimeMillis() - start);
                 }
-                if (null == prevCmd || !(prevCmd instanceof InitCanonType)
-                        || commandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
-                    checkServoReady();
-                }
-                updateTimes.add(System.currentTimeMillis() - start);
             }
+            copyToServerSocketStatus();
         } catch (PmException ex) {
             showError(ex.toString());
             Logger.getLogger(FanucCRCLMain.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
@@ -821,6 +828,37 @@ public class FanucCRCLMain {
         } finally {
             readStatusFromRobotInternalEndCount.incrementAndGet();
         }
+    }
+
+    private void copyToServerSocketStatus() {
+        if (null != crclServerSocket && null != serverSocketStatus) {
+            synchronized (status) {
+                synchronized (crclServerSocket) {
+                    serverSocketStatus.setJointStatuses(CRCLPosemath.copy(status.getJointStatuses()));
+                    if (null == status.getPoseStatus()) {
+                        serverSocketStatus.setPoseStatus(CRCLPosemath.copy(poseStatus));
+                    } else {
+                        serverSocketStatus.setPoseStatus(CRCLPosemath.copy(status.getPoseStatus()));
+                    }
+                    serverSocketStatus.setGripperStatus(CRCLPosemath.copy(status.getGripperStatus()));
+                }
+            }
+        }
+    }
+
+    private void copyFromServerSocketStatus() {
+//        if (null != crclServerSocket && null != serverSocketStatus) {
+//            synchronized (status) {
+//                synchronized (crclServerSocket) {
+////                    status.setCommandStatus(CRCLPosemath.copy(serverSocketStatus.getCommandStatus()));
+//                    status.setSensorStatuses(CRCLPosemath.copy(serverSocketStatus.getSensorStatuses()));
+//                    status.setSettingsStatus(CRCLPosemath.copy(serverSocketStatus.getSettingsStatus()));
+//                    status.setJointStatuses(CRCLPosemath.copy(serverSocketStatus.getJointStatuses()));
+////                    status.setPoseStatus(CRCLPosemath.copy(serverSocketStatus.getPoseStatus()));
+//                    status.setGripperStatus(CRCLPosemath.copy(serverSocketStatus.getGripperStatus()));
+//                }
+//            }
+//        }
     }
 
     private volatile double distToGoal = 0.0;
@@ -2039,13 +2077,24 @@ public class FanucCRCLMain {
     private void setCommandState(CommandStateEnumType newState) {
         if (null == status.getCommandStatus()) {
             status.setCommandStatus(new CommandStatusType());
+            if (null != crclServerSocket && null != serverSocketStatus) {
+                synchronized (crclServerSocket) {
+                    serverSocketStatus.setCommandStatus(status.getCommandStatus());
+                }
+            } 
         }
         if (checkSafetyStatError()) {
             newState = CommandStateEnumType.CRCL_ERROR;
         }
         CommandStatusType cmdStatus = status.getCommandStatus();
         if (null != cmdStatus) {
-            cmdStatus.setCommandState(newState);
+            if (null != crclServerSocket && null != serverSocketStatus) {
+                synchronized (crclServerSocket) {
+                    cmdStatus.setCommandState(newState);
+                }
+            } else {
+                cmdStatus.setCommandState(newState);
+            }
 //            if (newState != CommandStateEnumType.CRCL_ERROR && null != prevCmd) {
 //                cmdStatus.setStateDescription(prevCmd.getClass().getName());
 //            }
@@ -2415,6 +2464,7 @@ public class FanucCRCLMain {
                 }
                 cs.writeStatus(status, validate);
             }
+            copyToServerSocketStatus();
         } catch (Throwable t) {
             showError(t.toString());
         }
@@ -2562,7 +2612,19 @@ public class FanucCRCLMain {
 //        });
         crclServerSocket.setPort(localPort);
         crclServerSocket.setThreadNamePrefix("FanucCRCLServer");
-        crclServerSocket.setServerSideStatus(status);
+        if (null == status.getCommandStatus()) {
+            status.setCommandStatus(new CommandStatusType());
+        }
+        if (null == status.getSettingsStatus()) {
+            status.setSettingsStatus(new SettingsStatusType());
+        }
+        if (null == status.getSensorStatuses()) {
+            status.setSensorStatuses(new SensorStatusesType());
+        }
+        serverSocketStatus.setCommandStatus(status.getCommandStatus());
+        serverSocketStatus.setSettingsStatus(status.getSettingsStatus());
+        serverSocketStatus.setSensorStatuses(status.getSensorStatuses());
+        crclServerSocket.setServerSideStatus(serverSocketStatus);
         crclServerSocket.setUpdateStatusRunnable(this::runUpdateCachedStatus);
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
@@ -2576,6 +2638,7 @@ public class FanucCRCLMain {
         CRCLCommandType cmd = cmdInstance.getCRCLCommand();
         cmdStartTime = System.currentTimeMillis();
         try {
+            copyFromServerSocketStatus();
             synchronized (status) {
                 if (null == status.getCommandStatus()) {
                     status.setCommandStatus(new CommandStatusType());
@@ -2594,7 +2657,6 @@ public class FanucCRCLMain {
                     cst.setProgramLength(cmdInstance.getProgramLength());
                 }
             }
-
             lastCheckAtPosition = false;
             if (cmd instanceof StopMotionType) {
                 handleStopMotion((StopMotionType) cmd);
@@ -2652,6 +2714,7 @@ public class FanucCRCLMain {
             showError(ex.getMessage());
             Logger.getLogger(FanucCRCLMain.class.getCanonicalName()).log(Level.SEVERE, "handle command", ex);
         }
+        copyToServerSocketStatus();
         setPrevCmd(cmd);
     }
 

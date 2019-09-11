@@ -315,8 +315,11 @@ public class CRCLStatusFilterSettings {
 
     @SuppressWarnings("nullness")
     public CRCLStatusType filterStatus(CRCLStatusType statusIn) {
+        final JointStatusesType jointStatusesIn1 = statusIn.getJointStatuses();
+        final List<JointStatusType> jointStatusIn1List = (null != jointStatusesIn1) ? jointStatusesIn1.getJointStatus() : null;
+        final int jointStatusesIn1ListSize = (null != jointStatusIn1List) ? jointStatusIn1List.size() : -1;
         CRCLStatusType statusOut = CRCLPosemath.copy(statusIn);
-        if(null == statusOut) {
+        if (null == statusOut) {
             throw new NullPointerException("statusOut");
         }
         if (null == configureStatusReport) {
@@ -325,21 +328,46 @@ public class CRCLStatusFilterSettings {
         if (statusOut.getGripperStatus() != null && !configureStatusReport.isReportGripperStatus()) {
             statusOut.setGripperStatus(null);
         }
+        final JointStatusesType jointStatusesIn2 = statusIn.getJointStatuses();
+        final List<JointStatusType> jointStatusIn2List = (null != jointStatusesIn2) ? jointStatusesIn2.getJointStatus() : null;
+        final int jointStatusesIn2ListSize = (null != jointStatusIn2List) ? jointStatusIn2List.size() : -1;
+        if (jointStatusesIn2 != jointStatusesIn1) {
+            System.out.println("bad copy");
+            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            throw new RuntimeException("jointStatusesIn2 != jointStatusesIn1");
+        }
+        if (jointStatusIn2List != jointStatusIn1List) {
+            System.out.println("bad copy");
+            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            throw new RuntimeException("jointStatusIn2List != jointStatusIn1List");
+        }
+        if (jointStatusesIn2ListSize != jointStatusesIn1ListSize) {
+            System.out.println("bad copy");
+            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            throw new RuntimeException("jointStatusesIn2ListSize != jointStatusesIn1ListSize");
+        }
         final JointStatusesType statusOutJointStatuses = statusOut.getJointStatuses();
         if (statusOutJointStatuses != null) {
-            List<JointStatusType> joints = statusOutJointStatuses.getJointStatus();
-            if(joints.size() != statusIn.getJointStatuses().getJointStatus().size()) {
-                System.out.println("bad  status copy ");
+            List<JointStatusType> jointStatusOutList = statusOutJointStatuses.getJointStatus();
+            if (jointStatusOutList == null && jointStatusIn1List != null) {
+                System.out.println("bad copy");
                 CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
-                
+                throw new RuntimeException("joints == null && jointStatusIn1List != null");
+            }
+            if (null != jointStatusOutList) {
+                if (jointStatusOutList.size() != jointStatusesIn1ListSize) {
+                    System.out.println("bad copy");
+                    CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+                    throw new RuntimeException("joints.size() != jointStatusesIn1ListSize");
+                }
             }
             if (!configureStatusReport.isReportJointStatuses()) {
 //                throw new RuntimeException("no joints, isReportJointStatuses");
                 statusOut.setJointStatuses(null);
-            } else if (joints == null) {
+            } else if (jointStatusOutList == null) {
                 statusOut.setJointStatuses(null);
 //                throw new RuntimeException("statusOutJointStatuses.getJointStatus() == null");
-            } else if ( joints.isEmpty()) {
+            } else if (jointStatusOutList.isEmpty()) {
                 statusOut.setJointStatuses(null);
 //                throw new RuntimeException("statusOutJointStatuses.getJointStatus().isEmpty()");
             } else if (configJointsReportMap.isEmpty()) {
@@ -347,8 +375,8 @@ public class CRCLStatusFilterSettings {
 //                throw new RuntimeException("no joints configJointsReportMap.isEmpty()");
             } else {
                 List<JointStatusType> jointsCopy = new ArrayList<>();
-                for (int i = 0; i < joints.size(); i++) {
-                    JointStatusType jst = joints.get(i);
+                for (int i = 0; i < jointStatusOutList.size(); i++) {
+                    JointStatusType jst = jointStatusOutList.get(i);
                     final int jointNumber = jst.getJointNumber();
                     ConfigureJointReportType cjr = configJointsReportMap.get(jointNumber);
                     if (cjr != null) {
