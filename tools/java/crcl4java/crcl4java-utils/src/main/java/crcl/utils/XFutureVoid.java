@@ -20,7 +20,7 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.ui;
+package crcl.utils;
 
 import java.io.PrintStream;
 import java.util.Arrays;

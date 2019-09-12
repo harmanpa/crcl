@@ -86,8 +86,8 @@ import crcl.base.VectorType;
 import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLCommandWrapper;
-import crcl.ui.XFuture;
-import crcl.ui.XFutureVoid;
+import crcl.utils.XFuture;
+import crcl.utils.XFutureVoid;
 import static crcl.ui.client.CrclSwingClientJPanel.getTimeString;
 
 import crcl.ui.misc.MultiLineStringJPanel;

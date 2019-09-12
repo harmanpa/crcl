@@ -74,6 +74,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.Utils;
+import crcl.utils.XFuture;
 import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -112,6 +113,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.validation.Schema;
@@ -608,12 +610,30 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     if (null == source) {
                         throw new NullPointerException("source");
                     }
+
+                    if (null != updateStatusSupplier) {
+                        XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
+                        supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
+                            try {
+                                CRCLStatusType statusToSend;
+                                synchronized (this) {
+
+                                    checkSensorServers();
+                                    statusToSend = state.filterSettings.filterStatus(suppliedStatus);
+                                    state.cmdId = statusToSend.getCommandStatus().getCommandID();
+                                }
+                                source.writeStatus(statusToSend);
+                            } catch (Exception ex) {
+                                Logger.getLogger(CRCLServerSocket.class
+                                        .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
+                                commandStatus.setStateDescription(ex.getMessage());
+                                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                            }
+                        });
+                        return true;
+                    }
                     CRCLStatusType statusToSend;
                     synchronized (this) {
-                        if (updateStatusRunnable != null) {
-                            updateStatusRunnable.run();
-                            updateStatusRunCount++;
-                        }
                         checkSensorServers();
                         statusToSend = state.filterSettings.filterStatus(serverSideStatus);
                         state.cmdId = statusToSend.getCommandStatus().getCommandID();
@@ -1544,12 +1564,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setupNewClientState(STATE_TYPE state) {
-        synchronized (this) {
-            if (updateStatusRunnable != null && updateStatusRunCount == 0) {
-                updateStatusRunnable.run();
-                updateStatusRunCount++;
-            }
+        if(null != updateStatusSupplier) {
+            XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
+            supplierFuture.thenRun(() -> completeSetupNewClientState(state));
+        } else {
+            completeSetupNewClientState(state);
         }
+    }
+
+    private void completeSetupNewClientState(STATE_TYPE state) {
         if (automaticallyConvertUnits && null != serverToClientScales) {
             state.filterSettings.setServerToClientScaleSet(serverToClientScales);
         }
@@ -1719,28 +1742,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.threadNamePrefix = threadNamePrefix;
     }
 
+    private @Nullable
+    Supplier<XFuture<CRCLStatusType>> updateStatusSupplier = null;
+
+    public Supplier<XFuture<CRCLStatusType>> getUpdateStatusSupplier() {
+        return updateStatusSupplier;
+    }
+
+    public void setUpdateStatusSupplier(Supplier<XFuture<CRCLStatusType>> updateStatusSupplier) {
+        this.updateStatusSupplier = updateStatusSupplier;
+    }
+
     private volatile int updateStatusRunCount = 0;
-    private @MonotonicNonNull
-    Runnable updateStatusRunnable;
-
-    /**
-     * Get the value of updateStatusRunnable
-     *
-     * @return the value of updateStatusRunnable
-     */
-    public @Nullable
-    Runnable getUpdateStatusRunnable() {
-        return updateStatusRunnable;
-    }
-
-    /**
-     * Set the value of updateStatusRunnable
-     *
-     * @param updateStatusRunnable new value of updateStatusRunnable
-     */
-    public void setUpdateStatusRunnable(Runnable updateStatusRunnable) {
-        this.updateStatusRunnable = updateStatusRunnable;
-    }
 
     private ExecutorService initExecutorService() {
         ExecutorService es = this.executorService;

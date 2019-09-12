@@ -22,10 +22,10 @@
 
 
  */
-package crcl.ui;
+package crcl.utils;
 
-import static crcl.ui.XFutureVoid.allOf;
-import static crcl.ui.XFutureVoid.allOfWithName;
+import static crcl.utils.XFutureVoid.allOf;
+import static crcl.utils.XFutureVoid.allOfWithName;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;

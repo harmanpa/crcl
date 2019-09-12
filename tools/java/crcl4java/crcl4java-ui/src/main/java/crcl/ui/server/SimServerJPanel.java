@@ -33,7 +33,7 @@ import crcl.base.JointStatusesType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.ui.DefaultSchemaFiles;
-import crcl.ui.XFuture;
+import crcl.utils.XFuture;
 
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;

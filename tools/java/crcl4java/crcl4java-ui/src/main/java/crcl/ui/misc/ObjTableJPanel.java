@@ -22,7 +22,7 @@ package crcl.ui.misc;
 
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
-import crcl.ui.XFuture;
+import crcl.utils.XFuture;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.Utils;

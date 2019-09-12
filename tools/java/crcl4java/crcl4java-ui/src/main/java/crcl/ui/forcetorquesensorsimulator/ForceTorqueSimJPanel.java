@@ -17,6 +17,7 @@ import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.XFuture;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
@@ -477,7 +478,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         crclServerSocket.setServerSideStatus(statusOut);
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
-        crclServerSocket.setUpdateStatusRunnable(this::updateSensorStatus);
+        crclServerSocket.setUpdateStatusSupplier(this::updateSensorStatus);
         crclServerSocket.start();
         updateSensorStatus();
     }
@@ -512,7 +513,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
     }
 
-    private void updateSensorStatus() {
+    private XFuture<CRCLStatusType>  updateSensorStatus() {
         double zposeEffect = 0.0;
         if(null != poseStatus) {
             zposeEffect = poseStatus.getPoseStatus().getPose().getPoint().getZ();
@@ -525,6 +526,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         sensorStatus.setTz(valueJPanelTz.getValue());
         sensorStatus.setSensorID("ForceTorqueSim");
         updateForceTorqueDisplay();
+        return XFuture.completedFuture(statusOut);
     }
 
     private void updateForceTorqueDisplay() {
