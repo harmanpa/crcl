@@ -69,6 +69,7 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.pose;
 
@@ -84,6 +85,7 @@ import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.vector;
+import crcl.utils.XFuture;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
@@ -139,7 +141,7 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private void runUpdateStatus() {
         try {
-            getCrclStatus();
+            getCrclStatusFuture();
         } catch (Exception ex) {
             logException(ex);
             if (ex instanceof RuntimeException) {
@@ -152,7 +154,7 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     public Future<?> start() {
         crclServerSocket.setServerSideStatus(crclStatus);
-        crclServerSocket.setUpdateStatusRunnable(this::runUpdateStatus);
+        crclServerSocket.setUpdateStatusSupplier(this::getCrclStatusFuture);
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());
@@ -264,7 +266,7 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private AtomicInteger updatesSinceCommand = new AtomicInteger();
 
-    public CRCLStatusType getCrclStatus() {
+    public XFuture<CRCLStatusType> getCrclStatusFuture() {
         long time = System.currentTimeMillis();
         long status_time_diff = time - last_status_update_time;
         long cmd_time_diff = time - last_command_time;
@@ -274,7 +276,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 if (null == mpc || !mpc.isConnected()) {
                     setStateDescription(CRCL_ERROR, "Not connected to Robot.");
                     getCommandStatus().setStatusID(getCommandStatus().getStatusID() + 1);
-                    return crclStatus;
+                    return XFuture.completedFuture(crclStatus);
                 }
                 MP_CART_POS_RSP_DATA pos = mpc.getCartPos(0);
                 PmCartesian cart = new PmCartesian(pos.x(), pos.y(), pos.z());
@@ -380,7 +382,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             }
         }
         getCommandStatus().setStatusID(getCommandStatus().getStatusID() + 1);
-        return crclStatus;
+        return XFuture.completedFuture(crclStatus);
     }
 
     private CommandStateEnumType lastState = CRCL_WORKING;
@@ -779,7 +781,19 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private void handleNewCommandFromServerSocket(CRCLCommandType cmd, CRCLServerSocketEvent<MotomanClientState> event) throws Exception {
         if (cmd instanceof GetStatusType) {
-            event.getSource().writeStatus(getCrclStatus());
+            getCrclStatusFuture().thenAccept((CRCLStatusType suppliedStatus) -> {
+                 try {
+                    event.getSource().writeStatus(suppliedStatus);
+                } catch (Exception ex) {
+                    logException(ex);
+                    if(ex instanceof RuntimeException) {
+                        throw (RuntimeException) ex;
+                    } else {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+//            event.getSource().writeStatus(getCrclStatusFuture());
         } else {
             lastCommand = cmd;
             updatesSinceCommand.set(0);

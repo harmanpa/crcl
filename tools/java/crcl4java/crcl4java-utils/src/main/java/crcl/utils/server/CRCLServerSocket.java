@@ -1564,7 +1564,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setupNewClientState(STATE_TYPE state) {
-        if(null != updateStatusSupplier) {
+        if (null != updateStatusSupplier) {
             XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
             supplierFuture.thenRun(() -> completeSetupNewClientState(state));
         } else {
@@ -1841,7 +1841,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             STATE_TYPE guard_client_state,
             long cmdID,
             CRCLCommandInstanceType commandInstance,
-            Map<String, Double> guardInitialValues) throws Exception {
+            Map<String, Double> guardInitialValues,
+            int count,
+            long time) throws Exception {
         if (null == serverSideStatus) {
             return false;
         }
@@ -1890,6 +1892,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
                     }
                     double diff = initialValue - value;
+                    System.out.println("guard: diff = " + diff + ", count=" + count + ", time=" + time);
                     if (diff > guard.getLimitValue()) {
                         triggerGuard(value, guard_client_state, commandInstance, guard);
                     }
@@ -1988,6 +1991,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             CRCLCommandInstanceType commandInstance,
             long delayMillis,
             Map<String, Double> guardInitialValues) throws Exception {
+        long startTime = System.currentTimeMillis();
+        int count = 0;
         while (!Thread.currentThread().isInterrupted()) {
             if (null == serverSideStatus) {
                 return;
@@ -2005,9 +2010,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             if (serverSideCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
                 return;
             }
-            if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues)) {
+            final long timeDiff = System.currentTimeMillis() - startTime;
+            if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
                 return;
             }
+            count++;
             Thread.sleep(delayMillis);
         }
     }
@@ -2024,13 +2031,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
         for (int i = 0; i < guards.size(); i++) {
             final GuardType guardI = guards.get(i);
-            Long l = guardI.getRecheckTimeMicroSeconds();
-            if (null != l) {
-                if (l < delayMillis) {
-                    if (l < MIN_GUARDS_CHECK_DELAY_MILLIs) {
+            Long microsLong = guardI.getRecheckTimeMicroSeconds();
+            if (null != microsLong) {
+                long micros = microsLong;
+                long millis = micros / 1000;
+                if (millis < delayMillis) {
+                    if (microsLong < MIN_GUARDS_CHECK_DELAY_MILLIs) {
                         delayMillis = MIN_GUARDS_CHECK_DELAY_MILLIs;
                     } else {
-                        delayMillis = l;
+                        delayMillis = millis;
                     }
                 }
             }

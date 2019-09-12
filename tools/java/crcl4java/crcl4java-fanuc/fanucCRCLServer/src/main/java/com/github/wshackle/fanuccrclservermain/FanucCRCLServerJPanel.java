@@ -380,7 +380,9 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                                 CommandStatusType cmdStatus = stat.getCommandStatus();
                                 if (null != cmdStatus) {
                                     CommandStateEnumType cmdState = cmdStatus.getCommandState();
-                                    cmdStateString = cmdState.toString();
+                                    if(null != cmdState) {
+                                        cmdStateString = cmdState.toString();
+                                    }
                                 }
                                 JointStatusesType jointStatuses = stat.getJointStatuses();
                                 if (null != jointStatuses) {
