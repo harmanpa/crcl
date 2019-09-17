@@ -222,7 +222,8 @@ public class CrclSwingClientInner {
     private volatile @MonotonicNonNull
     CRCLSocket crclStatusPollingSocket = null;
 
-    public CRCLSocket getCrclStatusPollingSocket() {
+    public @Nullable
+    CRCLSocket getCrclStatusPollingSocket() {
         return crclStatusPollingSocket;
     }
 
@@ -638,7 +639,10 @@ public class CrclSwingClientInner {
         setCommandId(cmd, commandId.incrementAndGet());
     }
 
-    private boolean requestStatus(CRCLSocket crclRequestSocket) throws JAXBException {
+    private boolean requestStatus(@Nullable CRCLSocket crclRequestSocket) throws JAXBException {
+        if (null == crclRequestSocket) {
+            throw new IllegalArgumentException("null == crclRequestSocket");
+        }
         request_status_count++;
 //        LOGGER.log(Level.FINEST, () -> "PendantClientInner.requestStatus() : request_status_count=" + request_status_count);
         boolean result = false;
@@ -1096,10 +1100,9 @@ public class CrclSwingClientInner {
 
     private volatile int initCount = 0;
 
-    private boolean sendCommandPrivate(CRCLCommandType cmd) {
-        return sendCommandPrivate(cmd, this.crclSocket);
-    }
-
+//    private boolean sendCommandPrivate(CRCLCommandType cmd) {
+//        return sendCommandPrivate(cmd, this.crclSocket);
+//    }
     private volatile @Nullable
     ConfigureJointReportsType configureJointReportTypeForPollSocket = null;
 
@@ -1341,6 +1344,9 @@ public class CrclSwingClientInner {
     }
 
     private boolean sendCommand(CRCLCommandType cmd) {
+        if (null == this.crclSocket) {
+            throw new RuntimeException("crclSocket == null");
+        }
         return sendCommand(cmd, this.crclSocket);
     }
 
@@ -1539,6 +1545,9 @@ public class CrclSwingClientInner {
             stop.setCommandID(Math.max(1, commandId.get() - 1));
             programName = null;
             programIndex = -1;
+            if (null == crclEmergencyStopSocket) {
+                throw new RuntimeException("null == crclEmergencyStopSocket");
+            }
             sendCommand(stop, crclEmergencyStopSocket);
         } catch (Exception exception) {
             LOGGER.log(Level.SEVERE, "", exception);
@@ -1582,14 +1591,17 @@ public class CrclSwingClientInner {
                 System.out.println("cycles = " + cycles);
                 System.out.println("timeDiff = " + timeDiff);
                 System.out.println("timeoutMilliSeconds = " + timeoutMilliSeconds);
-                System.out.println("timeoutMilliSeconds >= 0\n" +
-"                    && cycles > 0\n" +
-"                    && timeDiff > timeoutMilliSeconds");
+                System.out.println("timeoutMilliSeconds >= 0\n"
+                        + "                    && cycles > 0\n"
+                        + "                    && timeDiff > timeoutMilliSeconds");
                 return false;
             }
             cycles++;
             if (delay > 0) {
                 Thread.sleep(delay);
+            }
+            if (null == crclSocket) {
+                throw new RuntimeException("null == crclSocket");
             }
             CRCLStatusType newStatus = internalRequestAndReadStatus(crclSocket);
             if (newStatus == null) {
@@ -1675,6 +1687,9 @@ public class CrclSwingClientInner {
                 }
                 if (!isConnected()) {
                     return WaitForDoneResult.WFD_SOCKET_DISCONNECTED;
+                }
+                if (null == crclSocket) {
+                    throw new RuntimeException("null == crclSocket");
                 }
                 CRCLStatusType newStatus = internalRequestAndReadStatus(crclSocket);
                 if (newStatus == null) {
@@ -2049,9 +2064,9 @@ public class CrclSwingClientInner {
                 sel.getProgIndex(),
                 sel.getSvrSocket(),
                 status.getName(),
-                (null != point)?point.getX():null,
-                (null != point)?point.getY():null,
-                (null != point)? point.getZ():null,
+                (null != point) ? point.getX() : null,
+                (null != point) ? point.getY() : null,
+                (null != point) ? point.getZ() : null,
                 status.getCommandStatus().getStateDescription()
             };
         } else {
@@ -3020,10 +3035,15 @@ public class CrclSwingClientInner {
             internalSetPausedTrue();
             pause_count.incrementAndGet();
             pauseQueue.clear();
-            if (isConnected() && !lastCmdTriedWasStop
-                    && (!isRunningProgram() || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING)) {
-                stopMotion(StopConditionEnumType.NORMAL);
+            if (isConnected()
+                    && status != null
+                    && !lastCmdTriedWasStop) {
+                if (!isRunningProgram()
+                        || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                    stopMotion(StopConditionEnumType.NORMAL);
+                }
             }
+
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -3884,15 +3904,19 @@ public class CrclSwingClientInner {
                 System.out.println("readerThread = " + readerThread);
                 System.out.println("pause_count.get() = " + pause_count.get());
                 System.out.println("orig_pause_count_start = " + orig_pause_count_start);
+
                 synchronized (this) {
-                    boolean requestStatusResult = requestStatus(this.crclSocket);
-                    System.out.println("requestStatusResult = " + requestStatusResult);
-                    CRCLStatusType readStatusResult = readStatus(this.crclSocket);
-                    if (null == readStatusResult) {
-                        return false;
+                    final CRCLSocket crclSocket1 = this.crclSocket;
+                    if (null != crclSocket1) {
+                        boolean requestStatusResult = requestStatus(crclSocket1);
+                        System.out.println("requestStatusResult = " + requestStatusResult);
+                        CRCLStatusType readStatusResult = readStatus(crclSocket1);
+                        if (null == readStatusResult) {
+                            return false;
+                        }
+                        this.setStatus(readStatusResult);
+                        System.out.println("readStatusResult = " + readStatusResult);
                     }
-                    this.setStatus(readStatusResult);
-                    System.out.println("readStatusResult = " + readStatusResult);
                 }
                 return false;
             }
@@ -4667,11 +4691,15 @@ public class CrclSwingClientInner {
                     long id = resendInit();
                     pause_count_start = this.pause_count.get();
                     synchronized (this) {
-                        if (!requestStatus(crclSocket)) {
+                        final CRCLSocket crclSocket1 = this.crclSocket;
+                        if (null == crclSocket1) {
+                            throw new IllegalStateException("crclSocket must not be null");
+                        }
+                        if (!requestStatus(crclSocket1)) {
                             throw new RuntimeException("attempt to requestStatus() failed.");
                         }
                         if (null == readerThread) {
-                            readStatus(this.crclSocket);
+                            readStatus(crclSocket1);
                         }
                     }
                     boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
@@ -4688,7 +4716,7 @@ public class CrclSwingClientInner {
                 } while (true);
             }
             pause_count_start = this.pause_count.get();
-            if (null == crclSocket) {
+            if (null == this.crclSocket) {
                 throw new IllegalStateException("crclSocket must not be null");
             }
             if (cmd instanceof GetStatusType) {
@@ -4849,7 +4877,7 @@ public class CrclSwingClientInner {
         return;
     }
 
-    private String createTestCommandFailMessage(String prefix, CRCLCommandType cmd, CRCLStatusType startStatus, WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
+    private String createTestCommandFailMessage(@Nullable String prefix, CRCLCommandType cmd, CRCLStatusType startStatus, WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
         try {
             CRCLStatusType curStatus = getStatus();
             final String cmdString = cmdString(cmd);
@@ -4868,8 +4896,14 @@ public class CrclSwingClientInner {
             final String curStatusString = statusToMessageString("current", curStatus);
             final String startStatusString = statusToMessageString("start", startStatus);
             final CRCLStatusType lastErrorStatFinal = lastErrorStat;
+            String prefixLine;
+            if (null != prefix) {
+                prefixLine = prefix + NEW_LINE;
+            } else {
+                prefixLine = "";
+            }
             String messageString
-                    = prefix + NEW_LINE
+                    = prefixLine
                     + cmd.getClass().getName() + ((wfdResult != WaitForDoneResult.WFD_TIMEOUT) ? " failed. " : " timed out. ") + NEW_LINE
                     + "wfdResult=" + wfdResult + NEW_LINE
                     + "errorStateDescription=" + errorStateDescription + NEW_LINE
@@ -4902,15 +4936,20 @@ public class CrclSwingClientInner {
 
     final static private AtomicInteger serviceCount = new AtomicInteger();
 
+    private ThreadFactory createDefaultThreadFactory() {
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, "CRCLSwingClientInner" + serviceCount.incrementAndGet() + ":" + getCrclSocketString());
+                thread.setDaemon(true);
+                return thread;
+            }
+        };
+    }
+
+    @SuppressWarnings("initialization")
     private final ExecutorService defaultCrclSocketActionService
-            = Executors.newSingleThreadExecutor(new ThreadFactory() {
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread thread = new Thread(r, "CRCLSwingClientInner" + serviceCount.incrementAndGet() + ":" + getCrclSocketString());
-                    thread.setDaemon(true);
-                    return thread;
-                }
-            });
+            = Executors.newSingleThreadExecutor(createDefaultThreadFactory());
 
     private ExecutorService crclSocketActionExecutorService = defaultCrclSocketActionService;
 
@@ -4918,7 +4957,7 @@ public class CrclSwingClientInner {
         return crclSocketActionExecutorService;
     }
 
-    public synchronized void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
+    public synchronized void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, @Nullable Thread crclSocketActionThread) {
         if (null != this.crclSocketActionExecutorService && crclSocketActionExecutorService != this.crclSocketActionExecutorService) {
             this.crclSocketActionExecutorService.shutdown();
         }
@@ -5180,6 +5219,9 @@ public class CrclSwingClientInner {
     private final AtomicInteger scheduleReadAndRequestStatusCount = new AtomicInteger();
 
     public XFutureVoid pollSocketRequestAndReadStatus(Supplier<Boolean> continueCheck) {
+        if (null == crclStatusPollingSocket) {
+            throw new RuntimeException("null == crclStatusPollingSocket");
+        }
         if (null != configureJointReportTypeForPollSocket) {
             this.sendCommandPrivate(configureJointReportTypeForPollSocket, crclStatusPollingSocket);
             configureJointReportTypeForPollSocket = null;
@@ -5204,7 +5246,13 @@ public class CrclSwingClientInner {
 
     public XFutureVoid scheduleReadAndRequestStatus() {
         int count = scheduleReadAndRequestStatusCount.incrementAndGet();
+        if (null == crclSocket) {
+            throw new RuntimeException("null == crclSocket");
+        }
         final Runnable sheduledRunnable = () -> {
+            if (null == crclSocket) {
+                throw new RuntimeException("null == crclSocket");
+            }
             CRCLStatusType newStatus = internalRequestAndReadStatus(crclSocket);
             this.setStatus(newStatus);
         };
@@ -5250,6 +5298,9 @@ public class CrclSwingClientInner {
                 System.err.println("disconnectThread = " + disconnectThread);
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
                 throw new RuntimeException("prepRunCurrentProgram.disconnecting");
+            }
+            if (readStatusResult== null) {
+                throw new RuntimeException("readStatus(crclReadSocket) returned null");
             }
             return readStatusResult;
         } catch (Exception ex) {

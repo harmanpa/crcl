@@ -1154,7 +1154,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         pendantClientJPanel1.requestAndReadStatus();
     }
 
-    public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
+    public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, @Nullable Thread crclSocketActionThread) {
         pendantClientJPanel1.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService,crclSocketActionThread);
     }
     

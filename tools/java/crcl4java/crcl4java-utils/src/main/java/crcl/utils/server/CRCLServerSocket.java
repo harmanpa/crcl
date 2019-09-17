@@ -1745,7 +1745,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private @Nullable
     Supplier<XFuture<CRCLStatusType>> updateStatusSupplier = null;
 
-    public Supplier<XFuture<CRCLStatusType>> getUpdateStatusSupplier() {
+    public @Nullable
+    Supplier<XFuture<CRCLStatusType>> getUpdateStatusSupplier() {
         return updateStatusSupplier;
     }
 
@@ -1916,6 +1917,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void triggerGuard(double value, STATE_TYPE guard_client_state, CRCLCommandInstanceType commandInstance, GuardType guard) throws Exception {
+        if (null == serverSideStatus) {
+            throw new RuntimeException("null == serverSideStatus)");
+        }
         if (null == serverSideStatus.getGuardsStatuses()) {
             serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
         }
@@ -2026,6 +2030,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final STATE_TYPE guard_client_state,
             final long cmdID,
             final CRCLCommandInstanceType commandInstance) {
+        if(null == serverSideStatus) {
+            throw new RuntimeException("null == serverSideStatus)");
+        }
         long delayMillis = MAX_GUARDS_CHECK_DELAY_MILLIS;
         final Map<String, Double> newInitalialValuesMap = new HashMap<>();
         Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
@@ -2047,6 +2054,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     || guardI.getLimitType() == GuardLimitEnumType.DECREASE_BEYOND_LIMIT) {
                 if (guardI.getLimitValue() <= 0) {
                     Runnable r = () -> {
+                        if (null == serverSideStatus) {
+                            throw new RuntimeException("null == serverSideStatus)");
+                        }
                         serverSideStatus.getCommandStatus().setStateDescription("Invalid guard:" + guardI.getName() + " for sensor " + guardI.getSensorID() + " with limit type " + guardI.getLimitType() + " must have positive limit value. limit value=" + guardI.getLimitValue());
                         serverSideStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
                     };
@@ -2096,8 +2106,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (serverSideCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
             return;
         }
-        if (null == handleGuardsExecutor) {
-            handleGuardsExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        Executor executor = handleGuardsExecutor;
+        if (null == executor) {
+            executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
 
                 int num = 0;
 
@@ -2109,9 +2120,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     return t;
                 }
             });
+            handleGuardsExecutor = executor;
         }
         final Runnable guardRunnable = createGuardsCheckerRunnable(guards, guard_client_state, cmdID, commandInstance);
-        handleGuardsExecutor.execute(guardRunnable);
+        executor.execute(guardRunnable);
     }
 
     public CRCLServerSocket(int port, int backlog, InetAddress addr, boolean multithreaded, CRCLServerSocketStateGenerator<STATE_TYPE> stateGenerator) throws IOException {

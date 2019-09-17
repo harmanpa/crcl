@@ -50,6 +50,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -1264,7 +1265,15 @@ public class CRCLSocket implements AutoCloseable {
         if(null != socketChannel) {
             throw new RuntimeException("socketChannel != null");
         }
-        socket.connect(socket.getRemoteSocketAddress());
+        Socket socketToReconnect = this.socket;
+        if(null == socketToReconnect) {
+            throw new RuntimeException("null == socket");
+        }
+        final SocketAddress remoteSocketAddress = socketToReconnect.getRemoteSocketAddress();
+        if(null == remoteSocketAddress) {
+            throw new RuntimeException("null == remoteSocketAddress");
+        }
+        socketToReconnect.connect(remoteSocketAddress);
     }
     
     public boolean isClosed() {

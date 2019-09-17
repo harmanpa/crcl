@@ -1403,8 +1403,10 @@ public class CrclSwingClientJPanel
     private volatile boolean polling = false;
 //    private volatile Thread pollingThread = null;
 
-    private volatile InterruptedException lastPollStatusInterruptedException = null;
-    private volatile Exception lastPollStatusException = null;
+    private volatile @Nullable
+    InterruptedException lastPollStatusInterruptedException = null;
+    private volatile @Nullable
+    Exception lastPollStatusException = null;
     private volatile int lastPollStatusStartPollStopCount = -1;
     private final AtomicInteger pollStatusCallCount = new AtomicInteger();
 
@@ -1455,7 +1457,7 @@ public class CrclSwingClientJPanel
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } finally {
-            if (null == lastPollSocketRequestFuture && !lastPollSocketRequestFuture.isDone()) {
+            if (null != lastPollSocketRequestFuture && !lastPollSocketRequestFuture.isDone()) {
                 lastPollSocketRequestFuture.cancelAll(false);
             }
             polling = false;
@@ -1463,7 +1465,7 @@ public class CrclSwingClientJPanel
         }
     }
 
-    public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, Thread crclSocketActionThread) {
+    public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, @Nullable Thread crclSocketActionThread) {
         internal.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService, crclSocketActionThread);
     }
 
@@ -1474,9 +1476,12 @@ public class CrclSwingClientJPanel
                 && startPollStopCount == pollStopCount.get();
     }
 
-    private volatile ExecutorService pollStatusService = null;
-    private volatile Future<?> lastStartPollTimerFuture = null;
-    private volatile Thread pollStatusServiceThread = null;
+    private volatile @Nullable
+    ExecutorService pollStatusService = null;
+    private volatile @Nullable
+    Future<?> lastStartPollTimerFuture = null;
+    private volatile @Nullable
+    Thread pollStatusServiceThread = null;
 
     private Future<?> startPollTimer() {
 //        pollTimer = new javax.swing.Timer(internal.getPoll_ms(), new ActionListener() {
@@ -1502,8 +1507,9 @@ public class CrclSwingClientJPanel
 //        pollTimer.start();
         this.stopPollTimer();
         int startPollStopCount = pollStopCount.incrementAndGet();
-        if (null == pollStatusService) {
-            pollStatusService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        ExecutorService service = this.pollStatusService;
+        if (null == service) {
+            service = Executors.newSingleThreadExecutor(new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
                     Thread thread = new Thread(r, "CRCL Client pollStatus:" + internal.getCrclSocketString());
@@ -1513,6 +1519,7 @@ public class CrclSwingClientJPanel
                     return thread;
                 }
             });
+            this.pollStatusService = service;
         }
         System.out.println("pollStatusServiceThread = " + pollStatusServiceThread);
         if (null != pollStatusServiceThread) {
@@ -1526,7 +1533,7 @@ public class CrclSwingClientJPanel
 //        } catch (IOException ex) {
 //            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //        }
-        Future<?> ret = pollStatusService.submit(() -> pollStatus(startPollStopCount));
+        Future<?> ret = service.submit(() -> pollStatus(startPollStopCount));
         System.out.println("pollStatusServiceThread = " + pollStatusServiceThread);
         if (null != pollStatusServiceThread) {
             System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
@@ -2120,7 +2127,7 @@ public class CrclSwingClientJPanel
                 pt = CRCLPosemath.copy(pt);
                 setPlottersInitPoint(pt);
                 needInitPoint = false;
-            } 
+            }
         }
         if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
             ccst = curInternalStatus.getCommandStatus();
@@ -3245,6 +3252,7 @@ public class CrclSwingClientJPanel
         return program;
     }
 
+    @SuppressWarnings("nullness")
     public void openXmlInstanceFile(File f) throws CRCLException, SAXException, JAXBException, IOException, ParserConfigurationException, XPathExpressionException {
         String s = internal.getXpu().queryXml(f, "/");
         CRCLCommandInstanceType cmdInstance
@@ -3307,36 +3315,51 @@ public class CrclSwingClientJPanel
         return showProgramLogPrintStream;
     }
 
-    private void logShowProgramInfo(CRCLProgramType program, @Nullable List<ProgramRunData> progRunDataList, int line) throws IOException, JAXBException {
-        if (!debugShowProgram) {
-            return;
-        }
-        PrintStream ps = getShowProgramLogPrintStream();
-        int count = logShowProgramCount.incrementAndGet();
+    private void logShowProgramInfo(CRCLProgramType program,
+            @Nullable List<ProgramRunData> progRunDataList,
+            int line) {
+        try {
+            if (!debugShowProgram) {
+                return;
+            }
+            PrintStream ps = getShowProgramLogPrintStream();
+            int count = logShowProgramCount.incrementAndGet();
 
-        String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
-        File programFile = File.createTempFile("showProgramLog_" + getPort() + "_" + count, ".xml");
-        try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
-            psProgramFile.println(programString);
+            String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
+            File programFile = File.createTempFile("showProgramLog_" + getPort() + "_" + count, ".xml");
+            try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+                psProgramFile.println(programString);
+            }
+            File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
+            int programRunDataListSize = -1;
+            if (null != progRunDataList) {
+                saveProgramRunDataListToCsv(progRunDataListFile, progRunDataList);
+                programRunDataListSize = progRunDataList.size();
+            } else {
+                progRunDataListFile = null;
+            }
+            long time = System.currentTimeMillis();
+            ps.println("count=" + count + ",time=" + time + ",(time-showProgramLogStartTime)=" + (time - showProgramLogStartTime));
+            ps.println("logShowProgramInfo(program=\"" + programFile + "\", programRunDataList=\"" + progRunDataListFile + "\" (size=" + programRunDataListSize + "),line=" + line + ")");
+            ps.flush();
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, null, exception);
+            showMessage(exception);
+            if (exception instanceof RuntimeException) {
+                throw (RuntimeException) exception;
+            } else {
+                throw new RuntimeException(exception);
+            }
         }
-        File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
-        int programRunDataListSize = -1;
-        if (null != progRunDataList) {
-            saveProgramRunDataListToCsv(progRunDataListFile, progRunDataList);
-            programRunDataListSize = progRunDataList.size();
-        } else {
-            progRunDataListFile = null;
-        }
-        long time = System.currentTimeMillis();
-        ps.println("count=" + count + ",time=" + time + ",(time-showProgramLogStartTime)=" + (time - showProgramLogStartTime));
-        ps.println("logShowProgramInfo(program=\"" + programFile + "\", programRunDataList=\"" + progRunDataListFile + "\" (size=" + programRunDataListSize + "),line=" + line + ")");
-        ps.flush();
     }
 
     private volatile @MonotonicNonNull
     CRCLProgramType programShowing = null;
 
-    public void showProgram(CRCLProgramType program, List<ProgramRunData> progRunDataList, int line) {
+    public void showProgram(
+            CRCLProgramType program,
+            @Nullable List<ProgramRunData> progRunDataList,
+            int line) {
         try {
             programShowing = program;
             logShowProgramInfo(program, progRunDataList, line);
@@ -3345,14 +3368,12 @@ public class CrclSwingClientJPanel
                 dtm.setRowCount(0);
                 return;
             }
-//            long maxCmdId = 1;
             InitCanonType init = program.getInitCanon();
             List<MiddleCommandType> middleCommands
                     = new ArrayList<>(program.getMiddleCommand());
             EndCanonType endCommand = program.getEndCanon();
             dtm.setRowCount(2 + middleCommands.size());
             long initCmdId = init.getCommandID();
-//            maxCmdId = Math.max(maxCmdId, initCmdId);
             dtm.setValueAt(-1, 0, 0);
             dtm.setValueAt(initCmdId, 0, 1);
             try {

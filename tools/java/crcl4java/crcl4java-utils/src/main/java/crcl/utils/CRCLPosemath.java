@@ -526,8 +526,17 @@ public class CRCLPosemath {
             if (null != triggerPose) {
                 newGuardStatuses.setTriggerPose(copy(triggerPose));
             }
-            for (GuardType g : guardStatuses.getGuard()) {
-                newGuardStatuses.getGuard().add(copy(g));
+            final List<GuardType> oldGuardList = guardStatuses.getGuard();
+            final List<GuardType> newGuardList = newGuardStatuses.getGuard();
+            for (GuardType g : oldGuardList) {
+                if(null == g) {
+                    throw new RuntimeException("oldGuardList contains nulls: "+oldGuardList);
+                }
+                final GuardType copyOfG = copy(g);
+                if(null == copyOfG) {
+                    throw new RuntimeException("null == copyOfG");
+                }
+                newGuardList.add(copyOfG);
             }
             return newGuardStatuses;
         }
@@ -542,7 +551,7 @@ public class CRCLPosemath {
      * independently modified.
      */
     public static @Nullable
-    GuardType copy(GuardType guard) {
+    GuardType copy(@Nullable GuardType guard) {
         if (null != guard) {
             GuardType newGuard = new GuardType();
 
@@ -772,7 +781,7 @@ public class CRCLPosemath {
         }
         JointStatusesType newStatus = new JointStatusesType();
         newStatus.setName(status.getName());
-        final List<JointStatusType> jl = new ArrayList<>( status.getJointStatus());
+        final List<JointStatusType> jl = new ArrayList<>(status.getJointStatus());
         for (int i = 0; i < jl.size(); i++) {
             final JointStatusType jointI = jl.get(i);
             newStatus.getJointStatus().add(copy(jointI));
