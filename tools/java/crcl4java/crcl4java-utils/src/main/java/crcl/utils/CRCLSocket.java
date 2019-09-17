@@ -1173,18 +1173,8 @@ public class CRCLSocket implements AutoCloseable {
                             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-//                    throw new RuntimeException("javaClassVersion="+javaClassVersion+", javaSpecVmVersion="+javaSpecVmVersion+", javaVmVersion="+javaVmVersion);
                 }
-//                else {
-//                    String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
-//                    throw new RuntimeException("jAXBContextFactoryProperty="+jAXBContextFactoryProperty);
-//                }
-
             }
-//            String jAXBContextFactoryProperty =System.getProperty("javax.xml.bind.JAXBContextFactory");
-//            if(null != jAXBContextFactoryProperty) {
-//                    throw new RuntimeException("jAXBContextFactoryProperty="+jAXBContextFactoryProperty);
-//            }
             JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
             assert null != context : "@AssumeAssertion(nullness)";
             u_cmd = context.createUnmarshaller();
@@ -1200,7 +1190,6 @@ public class CRCLSocket implements AutoCloseable {
             System.exit(0);
             throw new RuntimeException(ex);
         }
-//        System.exit(0);
     }
 
     public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {

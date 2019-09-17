@@ -3419,15 +3419,6 @@ public class CrclSwingClientInner {
                 throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
             }
 
-//            if (lastProgramIndex > startLine + 2 && startLine >= 0 && null != lastProgramName && lastProgramName.equals(prog.getName())) {
-//                System.out.println("origStartLine = " + origStartLine);
-//                System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
-//                System.out.println("lastProgramName = " + lastProgramName);
-//                System.out.println("lastProgramIndex = " + lastProgramIndex);
-//                System.out.println("prog.getName() = " + prog.getName());
-//                showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + startLine + ": lastProgramName= " + lastProgramName);
-//                throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
-//            }
             if (prog != program) {
                 setProgram(prog);
             }
@@ -3571,18 +3562,7 @@ public class CrclSwingClientInner {
                 }
                 lineCmd = cmd;
                 testCommand(cmd, startRunProgramAbortCount);
-//                if (!result) {
-//                    if (this.isQuitOnTestCommandFailure()) {
-//                        if (isConnected()) {
-//                            stopMotion(StopConditionEnumType.FAST);
-//                        }
-//                        if (null != future) {
-//                            future.cancelAll(false);
-//                        }
-//                        setRunProgramReturnFalseTrace();
-//                        throw new RuntimeException("runProgram() failed with index=" + index + " because cmd=" + cmdString(cmd) + " failed.");
-//                    }
-//                }
+
                 curStatus
                         = requireNonNull(
                                 this.getStatus(),
