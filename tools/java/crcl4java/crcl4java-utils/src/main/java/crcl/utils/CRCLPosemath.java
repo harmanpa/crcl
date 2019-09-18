@@ -520,6 +520,7 @@ public class CRCLPosemath {
         if (null != guardStatuses) {
             GuardsStatusesType newGuardStatuses = new GuardsStatusesType();
 
+            newGuardStatuses.setTriggerStopTimeMicros(guardStatuses.getTriggerStopTimeMicros());
             newGuardStatuses.setTriggerCount(guardStatuses.getTriggerCount());
             newGuardStatuses.setTriggerValue(guardStatuses.getTriggerValue());
             final PoseType triggerPose = guardStatuses.getTriggerPose();
@@ -579,6 +580,8 @@ public class CRCLPosemath {
             ForceTorqueSensorStatusType newForceTorqueSensorStatus = new ForceTorqueSensorStatusType();
             newForceTorqueSensorStatus.setSensorID(forceTorqueSensorStatus.getSensorID());
             newForceTorqueSensorStatus.setName(forceTorqueSensorStatus.getName());
+            newForceTorqueSensorStatus.setLastReadTime(forceTorqueSensorStatus.getLastReadTime());
+            newForceTorqueSensorStatus.setReadCount(forceTorqueSensorStatus.getReadCount());
             newForceTorqueSensorStatus.setFx(forceTorqueSensorStatus.getFx());
             newForceTorqueSensorStatus.setFy(forceTorqueSensorStatus.getFy());
             newForceTorqueSensorStatus.setFz(forceTorqueSensorStatus.getFz());
@@ -601,6 +604,8 @@ public class CRCLPosemath {
     CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
         if (null != countSensorStatus) {
             CountSensorStatusType newCountSensorStatus = new CountSensorStatusType();
+            newCountSensorStatus.setLastReadTime(countSensorStatus.getLastReadTime());
+            newCountSensorStatus.setReadCount(countSensorStatus.getReadCount());
             newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
             newCountSensorStatus.setName(countSensorStatus.getName());
             newCountSensorStatus.setCountValue(countSensorStatus.getCountValue());
@@ -620,6 +625,8 @@ public class CRCLPosemath {
     ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
         if (null != scalarSensorStatus) {
             ScalarSensorStatusType newScalarSensorStatus = new ScalarSensorStatusType();
+            newScalarSensorStatus.setLastReadTime(scalarSensorStatus.getLastReadTime());
+            newScalarSensorStatus.setReadCount(scalarSensorStatus.getReadCount());
             newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
             newScalarSensorStatus.setName(scalarSensorStatus.getName());
             newScalarSensorStatus.setScalarValue(scalarSensorStatus.getScalarValue());
@@ -639,6 +646,8 @@ public class CRCLPosemath {
     OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
         if (null != onOffSensorStatus) {
             OnOffSensorStatusType newOnOffSensorStatus = new OnOffSensorStatusType();
+            newOnOffSensorStatus.setLastReadTime(onOffSensorStatus.getLastReadTime());
+            newOnOffSensorStatus.setReadCount(onOffSensorStatus.getReadCount());
             newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
             newOnOffSensorStatus.setName(onOffSensorStatus.getName());
             newOnOffSensorStatus.setOn(onOffSensorStatus.isOn());

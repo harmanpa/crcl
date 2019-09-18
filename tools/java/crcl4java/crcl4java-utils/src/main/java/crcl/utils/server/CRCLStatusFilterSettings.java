@@ -450,6 +450,8 @@ public class CRCLStatusFilterSettings {
                 for (int i = 0; i < forceTorqueSensorStatusOutList.size(); i++) {
                     ForceTorqueSensorStatusType sensorIn = forceTorqueSensorStatusInList.get(i);
                     ForceTorqueSensorStatusType sensorOut = forceTorqueSensorStatusOutList.get(i);
+                    sensorOut.setReadCount(sensorIn.getReadCount());
+                    sensorOut.setLastReadTime(sensorIn.getLastReadTime());
                     sensorOut.setFx(convertForceToClient(sensorIn.getFx()));
                     sensorOut.setFy(convertForceToClient(sensorIn.getFy()));
                     sensorOut.setFz(convertForceToClient(sensorIn.getFz()));

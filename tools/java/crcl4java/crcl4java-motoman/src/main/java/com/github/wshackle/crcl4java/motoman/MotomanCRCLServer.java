@@ -770,6 +770,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                     if (getCommandStatus().getCommandState() == CRCL_WORKING) {
                         setStateDescription(CRCL_DONE, "");
                     }
+                    crclServerSocket.comleteGuardTrigger();
                     break;
             }
 

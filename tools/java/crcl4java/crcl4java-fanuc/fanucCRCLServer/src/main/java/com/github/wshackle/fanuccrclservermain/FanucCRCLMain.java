@@ -155,7 +155,7 @@ import crcl.utils.server.CRCLServerSocketEventListener;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
 import crcl.utils.server.UnitsTypeSet;
 import java.util.Iterator;
-import java.util.concurrent.Future;
+import java.util.Objects;
 import javax.swing.SwingUtilities;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -184,7 +184,7 @@ public class FanucCRCLMain {
      * @param remoteRobotHost new value of remoteRobotHost
      */
     public XFutureVoid setRemoteRobotHost(String remoteRobotHost) {
-        if (this.remoteRobotHost != remoteRobotHost) {
+        if (!Objects.equals(this.remoteRobotHost, remoteRobotHost)) {
             this.remoteRobotHost = remoteRobotHost;
             if (null != displayInterface) {
                 displayInterface.getjTextFieldHostName().setText(remoteRobotHost);
@@ -1329,8 +1329,19 @@ public class FanucCRCLMain {
                     break;
 
                 case GUARD_LIMIT_REACHED:
+                    long stopTimeStart = System.currentTimeMillis();
                     internalStopMotion();
+                    isMovingLastCheckTime = -1;
+                    int movingChecks = 0;
+                    while(isMoving()) {
+                        Thread.sleep(10);
+                        isMovingLastCheckTime = -1;
+                        movingChecks++;
+                    }
                     crclServerSocket.comleteGuardTrigger();
+                    long timeDiff = System.currentTimeMillis()-stopTimeStart;
+                    System.out.println("timeDiff = " + timeDiff);
+                    System.out.println("movingChecks = " + movingChecks);
                     break;
             }
         } catch (Exception ex) {
