@@ -30,6 +30,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,9 +71,11 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
         this(sensorId, sensorParameterSetting, findParam(sensorParameterSetting, "host"));
     }
 
+    
     @Override
     public synchronized  ForceTorqueSensorStatusType getCurrentSensorStatus() {
         try {
+            long now = System.currentTimeMillis();
             NetFTRDTPacketProxy packet = netFtSensor.readLowSpeedData(lowSpeedSocket);
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();
             double countsPerForce = configurationReader.getCountsPerForce();
@@ -85,6 +88,8 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
             sensorStatus.setTz(packet.getTz() / countsPerTorque);
             sensorStatus.setSensorID(sensorId);
             sensorStatus.getSensorParameterSetting().addAll(sensorParameterSetting);
+            sensorStatus.setLastReadTime(now);
+            sensorStatus.setReadCount((int) packet.getRDTSequence());
             return sensorStatus;
         } catch (Exception ex) {
             Logger.getLogger(ATIForceTorqueSensorServer.class.getName()).log(Level.SEVERE, "", ex);

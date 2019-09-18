@@ -1330,6 +1330,7 @@ public class FanucCRCLMain {
 
                 case GUARD_LIMIT_REACHED:
                     internalStopMotion();
+                    crclServerSocket.comleteGuardTrigger();
                     break;
             }
         } catch (Exception ex) {
