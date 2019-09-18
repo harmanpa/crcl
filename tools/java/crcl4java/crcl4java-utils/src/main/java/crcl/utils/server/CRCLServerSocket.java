@@ -578,6 +578,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private BlockingQueue<CRCLServerSocketEvent<STATE_TYPE>> queue = new LinkedBlockingQueue<>();
 
+    public void comleteGuardTrigger() {
+        if(null != serverSideStatus) {
+            long now = System.currentTimeMillis();
+            long timeDiff = now - this.guardTriggerStartTime;
+            long timeDiffMicros = 1000*timeDiff;
+            serverSideStatus.getGuardsStatuses().setTriggerStopTimeMicros(timeDiffMicros);
+        }
+    }
+    
     private void handleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws Exception {
         if (closing) {
             return;
@@ -1916,12 +1925,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return true;
     }
 
+    private volatile long guardTriggerStartTime = -1;
+    
     private void triggerGuard(double value, STATE_TYPE guard_client_state, CRCLCommandInstanceType commandInstance, GuardType guard) throws Exception {
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
         if (null == serverSideStatus.getGuardsStatuses()) {
             serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
+        }
+        if(guard.getLastCheckTime() != null) {
+            guardTriggerStartTime = guard.getLastCheckTime();
+        } else {
+            guardTriggerStartTime = System.currentTimeMillis();
         }
         serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount() + 1);
         serverSideStatus.getGuardsStatuses().setTriggerValue(value);
@@ -1946,6 +1962,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             } else {
                 throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
             }
+        }
+        guard.setLastCheckTime(stat.getLastReadTime());
+        if(null == guard.getCheckCount()) {
+            guard.setCheckCount(1L);
+        } else {
+            guard.setCheckCount(guard.getCheckCount()+1);
         }
         if (stat instanceof ForceTorqueSensorStatusType) {
             ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;
@@ -1985,6 +2007,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         } else {
             value = 0;
         }
+        guard.setLastCheckValue(value);
         System.out.println("guard : value = " + value);
         return value;
     }

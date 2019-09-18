@@ -79,6 +79,7 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
     public @Nullable
     SensorStatusType getCurrentSensorStatus() {
         try {
+            long startReadTime = System.currentTimeMillis();
             crclSocket.writeCommand(getStatusCommandInstance);
             CRCLStatusType status = crclSocket.readStatus();
             if (status == null) {
@@ -93,6 +94,9 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                     }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
+                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
+                            sensorStat.setLastReadTime(startReadTime);
+                        }
                         return sensorStat;
                     }
                 }
@@ -102,6 +106,9 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                     }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
+                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
+                            sensorStat.setLastReadTime(startReadTime);
+                        }
                         return sensorStat;
                     }
                 }
@@ -111,6 +118,9 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                     }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
+                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
+                            sensorStat.setLastReadTime(startReadTime);
+                        }
                         return sensorStat;
                     }
                 }
@@ -120,6 +130,9 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                     }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
+                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
+                            sensorStat.setLastReadTime(startReadTime);
+                        }
                         return sensorStat;
                     }
                 }
@@ -129,6 +142,9 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                     }
                     if (sensorStat.getSensorID().equals(remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
+                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
+                            sensorStat.setLastReadTime(startReadTime);
+                        }
                         return sensorStat;
                     }
                 }

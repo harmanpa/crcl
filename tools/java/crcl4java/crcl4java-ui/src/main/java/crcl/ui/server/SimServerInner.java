@@ -2354,6 +2354,7 @@ public class SimServerInner {
 
             case GUARD_LIMIT_REACHED:
                 executeStopMotionCmd();
+                crclServerSocket.comleteGuardTrigger();
                 break;
         }
     }
