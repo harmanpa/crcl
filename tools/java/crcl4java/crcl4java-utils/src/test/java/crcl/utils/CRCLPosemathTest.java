@@ -32,7 +32,6 @@ import crcl.base.MoveToType;
 import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
-import crcl.base.PoseToleranceType;
 import crcl.base.PoseType;
 import crcl.base.TwistType;
 import crcl.base.VectorType;
@@ -41,9 +40,22 @@ import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.pose;
 import static crcl.utils.CRCLPosemath.vector;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -90,6 +102,354 @@ public class CRCLPosemathTest {
 
     static final private double ASSERT_TOLERANCE_DELTA = 1e-6;
 
+    static final String RANDOM_STRING
+            = "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUV1234567890-=!@#$%^&*()_+\r\n\t\b ,./<>?;':\"[]\\{}|`~";
+
+    private static final List<String> staticIncludedPathStrings
+            = Arrays.asList(new String[]{
+        "target/classes",
+        "target\\classes",
+        "wshackle",
+        "rcslib",
+        "crcl",
+        "aprs",});
+    private static final List<String> staticExcludedPathStrings
+            = Arrays.asList(new String[]{
+        "vaadin",
+        "google",
+        "apache",
+        "commons-io",
+        "commons-math",
+        "xerces",
+        "exificient",
+        "activation",
+        "jaxb-impl",
+        "checker-qual",
+        "checker-compat-qual",
+        "javassist",
+        "xstream",
+        "logback",
+        "drools",
+        "eclipse-collections",
+        "jSerialComm",
+        "ATINetFT"
+    });
+
+    private static boolean containsStringInCollection(String inputString, Collection<String> collection) {
+        for (String collectionElement : collection) {
+            if (inputString.contains(collectionElement)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static public List<Class<?>> getClasses(List<String> customExcludedPathStrings) {
+        String name = "";
+        File jar = null;
+        List<Class<?>> classes = new ArrayList<>();
+        try {
+            final String[] classpaths = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
+            System.out.println("classpaths = " + Arrays.toString(classpaths));
+            for (String classpathEntry : classpaths) {
+                if (classpathEntry.endsWith(".jar")
+                        && containsStringInCollection(classpathEntry, staticIncludedPathStrings)
+                        && !containsStringInCollection(classpathEntry, staticExcludedPathStrings)
+                        && !containsStringInCollection(classpathEntry, customExcludedPathStrings)) {
+                    System.out.println("classpathEntry = " + classpathEntry);
+                    JarInputStream is = null;
+                    try {
+                        jar = new File(classpathEntry);
+                        is = new JarInputStream(new FileInputStream(jar));
+                        JarEntry entry;
+                        while ((entry = is.getNextJarEntry()) != null) {
+//                            System.out.println("entry.getName() = " + entry.getName());
+                            if (!entry.getName().startsWith("crcl/base/")) {
+                                continue;
+                            }
+                            if (entry.getName().endsWith(".class")) {
+                                name = entry.getName();
+                                name = name.substring(0, name.length() - 6);
+                                name = name.replaceAll("/", ".");
+                                if (name.indexOf('$') >= 0) {
+                                    continue;
+                                }
+                                Class<?> clss;
+                                try {
+                                    clss = Class.forName(name);
+                                    if (!Modifier.isAbstract(clss.getModifiers())
+                                            && !clss.isSynthetic()
+                                            && !clss.isAnonymousClass()
+                                            && !clss.isMemberClass()) {
+                                        classes.add(clss);
+
+                                    }
+                                } catch (Throwable ex) {
+                                    System.err.println("entry.getName() = " + entry.getName());
+                                    System.err.println("entry.getName().startsWith(\"crcl\") = " + entry.getName().startsWith("crcl"));
+                                    System.err.println("entry = " + entry);
+                                    System.err.println("name = " + name);
+                                    Logger.getLogger(CRCLPosemathTest.class
+                                            .getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(CRCLPosemathTest.class
+                                .getName()).log(Level.SEVERE, null, ex);
+                    } finally {
+                        try {
+                            if (null != is) {
+                                is.close();
+                            }
+                        } catch (IOException ex) {
+                            Logger.getLogger(CRCLPosemathTest.class
+                                    .getName()).log(Level.SEVERE, "classpathEntry=" + classpathEntry, ex);
+                        }
+                    }
+                } else {
+                    File dir = new File(classpathEntry);
+                    classes = addClasses("", dir, classes);
+                }
+            }
+        } catch (Throwable t) {
+            System.err.println("name = " + name);
+            System.err.println("jar = " + jar);
+            Logger.getLogger(CRCLPosemathTest.class
+                    .getName()).log(Level.SEVERE, null, t);
+        }
+        return classes;
+    }
+
+    static private List<Class<?>> addClasses(String prefix, File dir, List<Class<?>> classes) {
+        File fa[] = dir.listFiles();
+        if (fa == null) {
+            return classes;
+        }
+        for (File f : fa) {
+            if (f.isDirectory()) {
+                classes = addClasses(prefix + f.getName() + ".", f, classes);
+            } else if (f.getName().endsWith(".class")) {
+                String clssNameToLookup = "";
+                try {
+                    String name = f.getName();
+                    name = name.substring(0, name.length() - 6);
+                    if (name.indexOf('$') >= 0) {
+                        continue;
+                    }
+                    clssNameToLookup = prefix + name;
+                    Class<?> clss = Class.forName(clssNameToLookup);
+                    if (!Modifier.isAbstract(clss.getModifiers())
+                            && !clss.isSynthetic()
+                            && !clss.isAnonymousClass()
+                            && !clss.isMemberClass()) {
+                        classes.add(clss);
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(CRCLPosemathTest.class
+                            .getName()).log(Level.SEVERE, "clssNameToLookup={0}", clssNameToLookup);
+                    Logger.getLogger(CRCLPosemathTest.class
+                            .getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return classes;
+    }
+    static private List<Class<?>> classes = null;
+    private final List<String> customExcludedPathStrings = new ArrayList<>();
+
+    public static List<Class<?>> getAssignableClasses(Class<?> baseClss, List<Class<?>> classes) {
+        List<Class<?>> assignableClasses = new ArrayList<>();
+        for (Class<?> clss : classes) {
+            if (baseClss.isAssignableFrom(clss)) {
+                assignableClasses.add(clss);
+            }
+        }
+        return assignableClasses;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private <T> T reflexRandomGenerate(Class<T> clzz, Random random) {
+        if (clzz == int.class || clzz == Integer.class || Integer.class.isAssignableFrom(clzz)) {
+            return (T) Integer.valueOf(random.nextInt());
+        } else if (clzz == long.class || clzz == Long.class || Long.class.isAssignableFrom(clzz)) {
+            return (T) Long.valueOf(random.nextLong());
+        } else if (clzz == float.class || clzz == Float.class || Float.class.isAssignableFrom(clzz)) {
+            return (T) Float.valueOf(random.nextFloat());
+        } else if (clzz == double.class || clzz == Double.class || Double.class.isAssignableFrom(clzz)) {
+            return (T) Double.valueOf(random.nextDouble());
+        } else if (clzz == boolean.class || clzz == Boolean.class || Boolean.class.isAssignableFrom(clzz)) {
+            return (T) Boolean.valueOf(random.nextBoolean());
+        } else if (clzz == String.class) {
+            byte b[] = new byte[random.nextInt(20)];
+            for (int i = 0; i < b.length; i++) {
+                b[i] = (byte) RANDOM_STRING.charAt(random.nextInt(RANDOM_STRING.length()));
+
+            }
+            return (T) (new String(b));
+        } else if (clzz.isArray()) {
+            final int arrayLength = random.nextInt(10);
+            Object a[] = (Object[]) Array.newInstance(clzz.getComponentType(), arrayLength);
+            for (int i = 0; i < a.length; i++) {
+                a[i] = reflexRandomGenerate(clzz.getComponentType(), random);
+            }
+            return (T) a;
+        } else if (clzz.isEnum()) {
+            final T[] enumConstants = clzz.getEnumConstants();
+            return enumConstants[random.nextInt(enumConstants.length)];
+        } else {
+            T newObj;
+            try {
+                if (null == classes) {
+                    classes = getClasses(customExcludedPathStrings);
+                }
+                List<Class<?>> availClasses = getAssignableClasses(clzz, classes);
+                final int availClassesSize = availClasses.size();
+                if (availClassesSize < 1) {
+                    throw new RuntimeException("no available classes for " + clzz);
+                }
+                Class<?> randClzz = availClasses.get(random.nextInt(availClassesSize));
+                newObj = (T) randClzz.newInstance();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                return null;
+            }
+            randomFillObjectFields(clzz.getFields(), newObj, random);
+            randomFillObjectFields(clzz.getDeclaredFields(), newObj, random);
+            Method method[] = clzz.getMethods();
+            for (int i = 0; i < method.length; i++) {
+                Method method1 = method[i];
+                try {
+                    if (method1.getReturnType() == Void.class || method1.getReturnType() == void.class) {
+                        if (method1.getParameterCount() == 1) {
+                            if (method1.getName().startsWith("set")) {
+                                method1.invoke(newObj, reflexRandomGenerate(method1.getParameterTypes()[0], random));
+                            }
+                        }
+                    } else if (Collection.class.isAssignableFrom(method1.getReturnType())) {
+                        if (method1.getParameterCount() == 0 && method1.getName().startsWith("get")) {
+                            Type genRetType = method1.getGenericReturnType();
+                            if (null != genRetType) {
+                                final String genRetTypeName = genRetType.getTypeName();
+                                int i1 = genRetTypeName.indexOf('<');
+                                int i2 = genRetTypeName.lastIndexOf('>');
+                                if (i1 > 0 && i2 > i1 && i2 < genRetTypeName.length()) {
+                                    String containedTypeString = genRetTypeName.substring(i1 + 1, i2);
+                                    Class<?> containedClzz = Class.forName(containedTypeString);
+                                    Collection collection = (Collection) method1.invoke(newObj);
+                                    int collsize = collection.size();
+                                    int addsize = random.nextInt(10) - collsize;
+                                    for (int j = 0; j < addsize; j++) {
+                                        collection.add(reflexRandomGenerate(containedClzz, random));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return newObj;
+        }
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private void reflexiveCheckEquals(String msg, Object o1, Object o2, int recursion) {
+        if (recursion > 20) {
+            throw new RuntimeException("msg=" + msg + ",o1=" + o1 + ",o2=" + o2 + ",recursion=" + recursion);
+        }
+        assertEquals(msg + " == null", o1 == null, o2 == null);
+        if (o1 == null && o2 == null) {
+            return;
+        }
+        assertEquals(msg + ".getClass()", o1.getClass(), o2.getClass());
+        Class<?> clzz = o1.getClass();
+        if (clzz == int.class || clzz == Integer.class || Integer.class.isAssignableFrom(clzz)) {
+            assertEquals(msg, o1, o2);
+        } else if (clzz == long.class || clzz == Long.class || Long.class.isAssignableFrom(clzz)) {
+            assertEquals(msg, o1, o2);
+        } else if (clzz == float.class || clzz == Float.class || Float.class.isAssignableFrom(clzz)) {
+            assertEquals(msg, (double) o1, (double) o2, ASSERT_TOLERANCE_DELTA);
+        } else if (clzz == double.class || clzz == Double.class || Double.class.isAssignableFrom(clzz)) {
+            assertEquals(msg, (double) o1, (double) o2, ASSERT_TOLERANCE_DELTA);
+        } else if (clzz == boolean.class || clzz == Boolean.class || Boolean.class.isAssignableFrom(clzz)) {
+            assertEquals(msg, o1, o2);
+        } else if (clzz == String.class) {
+            assertEquals(msg, o1, o2);
+        } else if (clzz.isEnum()) {
+            assertEquals(msg, o1, o2);
+        } else if (clzz.isArray()) {
+            assertEquals(msg + ".length", Array.getLength(o1), Array.getLength(o2));
+            for (int i = 0; i < Array.getLength(o1); i++) {
+                reflexiveCheckEquals(msg + "[" + i + "]", Array.get(o1, i), Array.get(o2, i), recursion + 1);
+            }
+        } else if (List.class.isAssignableFrom(clzz)) {
+            List l1 = (List) o1;
+            List l2 = (List) o2;
+            assertEquals(msg + ".size()", l1.size(), l2.size());
+            for (int i = 0; i < l1.size(); i++) {
+                reflexiveCheckEquals(msg + ".get(" + i + ")", l1.get(i), l2.get(i), recursion + 1);
+            }
+        } else if (Collection.class.isAssignableFrom(clzz)) {
+            Collection c1 = (Collection) o1;
+            Collection c2 = (Collection) o2;
+            assertEquals(msg + ".size()", c1.size(), c2.size());
+            assertTrue(msg + ".c1.containsAll(c2) c1=" + c1 + ", c2=" + c2, c1.containsAll(c2));
+            assertTrue(msg + ".c2.containsAll(c1) c1=" + c1 + ", c2=" + c2, c2.containsAll(c1));
+        } else {
+            reflexiveCheckFields(clzz.getFields(), msg, o1, o2, recursion + 1);
+            reflexiveCheckFields(clzz.getDeclaredFields(), msg, o1, o2, recursion + 1);
+            Method methods[] = clzz.getMethods();
+            for (int i = 0; i < methods.length; i++) {
+                Method method = methods[i];
+                try {
+                    if (method.getReturnType() != void.class && method.getReturnType() != Void.class && method.getReturnType() != Class.class) {
+                        if (method.getParameterCount() == 0 && method.getName().startsWith("get") && !method.getName().equals("getClass")) {
+                            reflexiveCheckEquals(msg + "." + method.getName() + "()", method.invoke(o1), method.invoke(o2), recursion + 1);
+                        }
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(CRCLPosemathTest.class.getName()).log(Level.SEVERE, "method=" + method + ",o1=" + o1 + ",o2=" + o2, ex);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private void reflexiveCheckFields(Field[] fa, String msg, Object o1, Object o2, int recursion) {
+        for (int i = 0; i < fa.length; i++) {
+            Field field = fa[i];
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                reflexiveCheckEquals(msg + "." + field.getName(), field.get(o1), field.get(o2), recursion + 1);
+            } catch (Exception ex) {
+                Logger.getLogger(CRCLPosemathTest.class.getName()).log(Level.SEVERE, "field=" + field + ",msg=" + msg + ",o1=" + o1 + ",o2=" + o2, ex);
+            }
+        }
+    }
+
+    private <T> void randomFillObjectFields(Field[] fields, T newObj, Random random) {
+        for (int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                if (Collection.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                field.set(newObj, reflexRandomGenerate(field.getType(), random));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void checkEquals(String msg, double v1, double v2) {
         assertEquals(msg, v1, v2, ASSERT_TOLERANCE_DELTA);
     }
@@ -97,18 +457,11 @@ public class CRCLPosemathTest {
     private void checkEquals(String msg, BigDecimal v1, double v2) {
         assertEquals(msg, v1.doubleValue(), v2, ASSERT_TOLERANCE_DELTA);
     }
-    
+
     private void checkEquals(String msg, double v1, BigDecimal v2) {
         assertEquals(msg, v1, v2.doubleValue(), ASSERT_TOLERANCE_DELTA);
     }
-    
-//    private void checkEquals(String msg, BigDecimal v1,double v2) {
-//        assertEquals(msg, v1.doubleValue(), v2, ASSERT_TOLERANCE_DELTA);
-//    }
-//    
-//    private void checkEquals(String msg, double v1, BigDecimal v2) {
-//        assertEquals(msg, v1, v2.doubleValue(), ASSERT_TOLERANCE_DELTA);
-//    }
+
     private void checkEquals(String msg, BigDecimal v1, BigDecimal v2) {
         assertTrue(msg + " both are null or neither is null", (v1 == null) == (v2 == null));
         if (v1 == null) {
@@ -343,10 +696,10 @@ public class CRCLPosemathTest {
         double[] da = new double[]{0, 0, 0.2, 0};
         double[] da2 = new double[]{0, 0, -0.2, 0};
         double expResult = 0.4;
-        double result = CRCLPosemath.maxDiffDoubleArray(da, da2,0.0);
+        double result = CRCLPosemath.maxDiffDoubleArray(da, da2, 0.0);
         assertEquals(expResult, result, ASSERT_TOLERANCE_DELTA);
         try {
-            CRCLPosemath.maxDiffDoubleArray(da, new double[1],0.0);
+            CRCLPosemath.maxDiffDoubleArray(da, new double[1], 0.0);
             fail("Expected IllegalArgumentException since array lengths don't match");
         } catch (IllegalArgumentException expectedException) {
         }
@@ -792,9 +1145,9 @@ public class CRCLPosemathTest {
         PoseType p = this.pose123;
         PoseType expResult = new PoseType();
         PointType pt = new PointType();
-        pt.setX(DOUBLE_1* -1.0 );
-        pt.setY(DOUBLE_2* -1.0 );
-        pt.setZ(DOUBLE_3* -1.0 );
+        pt.setX(DOUBLE_1 * -1.0);
+        pt.setY(DOUBLE_2 * -1.0);
+        pt.setZ(DOUBLE_3 * -1.0);
         expResult.setPoint(pt);
         expResult.setXAxis(xvec);
         expResult.setZAxis(zvec);
@@ -1161,7 +1514,7 @@ public class CRCLPosemathTest {
         assertTrue(status.getPoseStatus().getPose().getXAxis() != null);
         assertTrue(status.getPoseStatus().getPose().getZAxis() != null);
     }
-    
+
     /**
      * Test of toPmCartesian method, of class CRCLPosemath.
      */
@@ -1458,6 +1811,16 @@ public class CRCLPosemathTest {
         assertTrue(result.getCommandStatus() != status.getCommandStatus());
         assertEquals(result.getCommandStatus().getCommandID(), expResult.getCommandStatus().getCommandID());
         assertTrue(result.getCommandStatus() != status.getCommandStatus());
+
+        try {
+            CRCLStatusType randStatus = reflexRandomGenerate(CRCLStatusType.class, new Random(30));
+            String randStatusString = CRCLSocket.getUtilSocket().statusToPrettyString(randStatus, true);
+            System.out.println("randStatusString = \n" + randStatusString);
+            CRCLStatusType randStatusCopy = CRCLPosemath.copy(randStatus);
+            reflexiveCheckEquals("randStatus", randStatus, randStatusCopy, 0);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     /**
@@ -1717,6 +2080,16 @@ public class CRCLPosemathTest {
         MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
 
         checkEquals("pose", transformedMoveCmd.getEndPosition(), moveCmd.getEndPosition());
+
+//        try {
+//            CRCLProgramType randProgram = reflexRandomGenerate(CRCLProgramType.class, new Random(10));
+//            String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
+//            System.out.println("randProgramString = " + randProgramString);
+//            CRCLProgramType randProgramCopy = CRCLPosemath.copy(randProgram);
+//            reflexiveCheckEquals("randProgram", randProgram, randProgramCopy, 0);
+//        } catch (Exception exception) {
+//            exception.printStackTrace();
+//        }
     }
 
     /**
@@ -1750,7 +2123,6 @@ public class CRCLPosemathTest {
         PointType result = CRCLPosemath.point(x, y, z);
         checkEquals("pt", result, expResult);
     }
-
 
     /**
      * Test of vector method, of class CRCLPosemath.

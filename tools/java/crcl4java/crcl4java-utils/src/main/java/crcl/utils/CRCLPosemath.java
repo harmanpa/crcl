@@ -38,7 +38,9 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.OnOffSensorStatusType;
 import crcl.base.ParallelGripperStatusType;
+import crcl.base.ParameterSettingType;
 import crcl.base.PointType;
+import crcl.base.PoseAndSetType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
@@ -343,9 +345,40 @@ public class CRCLPosemath {
      * @return PoseType with same initial values as pose but can be
      * independently modified.
      */
+    public static PoseAndSetType copy(PoseAndSetType pose) {
+        if (null == pose) {
+            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
+        }
+        PoseAndSetType newPose = new PoseAndSetType();
+        newPose.setName(pose.getName());
+        PointType pt = copy(pose.getPoint());
+        if (null != pt) {
+            newPose.setPoint(pt);
+        }
+        VectorType xAxis = copy(pose.getXAxis());
+        if (null != xAxis) {
+            newPose.setXAxis(xAxis);
+        }
+        VectorType zAxis = copy(pose.getZAxis());
+        if (null != zAxis) {
+            newPose.setZAxis(zAxis);
+        }
+        return newPose;
+    }
+
+    /**
+     * Copy or clone the pose.
+     *
+     * @param pose pose to be cloned
+     * @return PoseType with same initial values as pose but can be
+     * independently modified.
+     */
     public static PoseType copy(PoseType pose) {
         if (null == pose) {
             throw new IllegalArgumentException("copy(PoseType) called with null argument.");
+        }
+        if (pose instanceof PoseAndSetType) {
+            return copy((PoseAndSetType) pose);
         }
         PoseType newPose = new PoseType();
         newPose.setName(pose.getName());
@@ -443,6 +476,7 @@ public class CRCLPosemath {
             newSettings.setTransAccelRelative(settings.getTransAccelRelative());
             newSettings.setTransSpeedAbsolute(settings.getTransSpeedAbsolute());
             newSettings.setTransSpeedRelative(settings.getTransSpeedRelative());
+            newSettings.setMotionCoordinated(settings.isMotionCoordinated());
             return newSettings;
         }
         return null;
@@ -459,7 +493,7 @@ public class CRCLPosemath {
     SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
         if (null != sensorsStatuses) {
             SensorStatusesType newSensorStatuses = new SensorStatusesType();
-
+            newSensorStatuses.setName(sensorsStatuses.getName());
             if (null != sensorsStatuses.getOnOffSensorStatus()) {
                 newSensorStatuses.getOnOffSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getOnOffSensorStatus().size(); i++) {
@@ -470,7 +504,6 @@ public class CRCLPosemath {
                     }
                 }
             }
-
             if (null != sensorsStatuses.getScalarSensorStatus()) {
                 newSensorStatuses.getScalarSensorStatus().clear();
                 for (int i = 0; i < sensorsStatuses.getScalarSensorStatus().size(); i++) {
@@ -520,6 +553,7 @@ public class CRCLPosemath {
         if (null != guardStatuses) {
             GuardsStatusesType newGuardStatuses = new GuardsStatusesType();
 
+            newGuardStatuses.setName(guardStatuses.getName());
             newGuardStatuses.setTriggerStopTimeMicros(guardStatuses.getTriggerStopTimeMicros());
             newGuardStatuses.setTriggerCount(guardStatuses.getTriggerCount());
             newGuardStatuses.setTriggerValue(guardStatuses.getTriggerValue());
@@ -530,11 +564,11 @@ public class CRCLPosemath {
             final List<GuardType> oldGuardList = guardStatuses.getGuard();
             final List<GuardType> newGuardList = newGuardStatuses.getGuard();
             for (GuardType g : oldGuardList) {
-                if(null == g) {
-                    throw new RuntimeException("oldGuardList contains nulls: "+oldGuardList);
+                if (null == g) {
+                    throw new RuntimeException("oldGuardList contains nulls: " + oldGuardList);
                 }
                 final GuardType copyOfG = copy(g);
-                if(null == copyOfG) {
+                if (null == copyOfG) {
                     throw new RuntimeException("null == copyOfG");
                 }
                 newGuardList.add(copyOfG);
@@ -555,7 +589,9 @@ public class CRCLPosemath {
     GuardType copy(@Nullable GuardType guard) {
         if (null != guard) {
             GuardType newGuard = new GuardType();
-
+            newGuard.setCheckCount(guard.getCheckCount());
+            newGuard.setLastCheckTime(guard.getLastCheckTime());
+            newGuard.setLastCheckValue(guard.getLastCheckValue());
             newGuard.setName(guard.getName());
             newGuard.setLimitType(guard.getLimitType());
             newGuard.setLimitValue(guard.getLimitValue());
@@ -588,6 +624,7 @@ public class CRCLPosemath {
             newForceTorqueSensorStatus.setTx(forceTorqueSensorStatus.getTx());
             newForceTorqueSensorStatus.setTy(forceTorqueSensorStatus.getTy());
             newForceTorqueSensorStatus.setTz(forceTorqueSensorStatus.getTz());
+            copyOptionList(newForceTorqueSensorStatus.getSensorParameterSetting(), forceTorqueSensorStatus.getSensorParameterSetting());
             return newForceTorqueSensorStatus;
         }
         return null;
@@ -609,6 +646,7 @@ public class CRCLPosemath {
             newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
             newCountSensorStatus.setName(countSensorStatus.getName());
             newCountSensorStatus.setCountValue(countSensorStatus.getCountValue());
+            copyOptionList(newCountSensorStatus.getSensorParameterSetting(), countSensorStatus.getSensorParameterSetting());
             return newCountSensorStatus;
         }
         return null;
@@ -630,7 +668,27 @@ public class CRCLPosemath {
             newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
             newScalarSensorStatus.setName(scalarSensorStatus.getName());
             newScalarSensorStatus.setScalarValue(scalarSensorStatus.getScalarValue());
+            copyOptionList(newScalarSensorStatus.getSensorParameterSetting(), scalarSensorStatus.getSensorParameterSetting());
             return newScalarSensorStatus;
+        }
+        return null;
+    }
+
+    /**
+     * Copy or clone a settings status.
+     *
+     * @param ParameterSettingType to be cloned
+     * @return ParameterSettingType with same initial values as arg but can be
+     * independently modified.
+     */
+    public static @Nullable
+    ParameterSettingType copy(ParameterSettingType parmSet) {
+        if (null != parmSet) {
+            ParameterSettingType newParmSet = new ParameterSettingType();
+            newParmSet.setName(parmSet.getName());
+            newParmSet.setParameterName(parmSet.getParameterName());
+            newParmSet.setParameterValue(parmSet.getParameterValue());
+            return newParmSet;
         }
         return null;
     }
@@ -651,6 +709,7 @@ public class CRCLPosemath {
             newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
             newOnOffSensorStatus.setName(onOffSensorStatus.getName());
             newOnOffSensorStatus.setOn(onOffSensorStatus.isOn());
+            copyOptionList(newOnOffSensorStatus.getSensorParameterSetting(), onOffSensorStatus.getSensorParameterSetting());
             return newOnOffSensorStatus;
         }
         return null;
@@ -696,7 +755,19 @@ public class CRCLPosemath {
 
         newStatus.setName(status.getName());
         newStatus.setGripperName(status.getGripperName());
+        final List<ParameterSettingType> optionListOut = newStatus.getGripperOption();
+        final List<ParameterSettingType> optionListIn = status.getGripperOption();
+        copyOptionList(optionListOut, optionListIn);
         return newStatus;
+    }
+
+    private static void copyOptionList(final List<ParameterSettingType> optionListOut, final List<ParameterSettingType> optionListIn) {
+        optionListOut.clear();
+        List<ParameterSettingType> l = new ArrayList<>();
+        for (ParameterSettingType parmSet : optionListIn) {
+            l.add(copy(parmSet));
+        }
+        optionListOut.addAll(l);
     }
 
     /**
@@ -714,6 +785,7 @@ public class CRCLPosemath {
         PoseStatusType newStatus = new PoseStatusType();
         newStatus.setName(status.getName());
         newStatus.setPose(copy(status.getPose()));
+        newStatus.setConfiguration(status.getConfiguration());
         TwistType twist = copy(status.getTwist());
         if (twist != null) {
             newStatus.setTwist(twist);
@@ -836,6 +908,10 @@ public class CRCLPosemath {
         newStatus.setCommandState(status.getCommandState());
         newStatus.setStateDescription(status.getStateDescription());
         newStatus.setStatusID(status.getStatusID());
+        newStatus.setProgramFile(status.getProgramFile());
+        newStatus.setProgramIndex(status.getProgramIndex());
+        newStatus.setProgramLength(status.getProgramLength());
+        newStatus.setOverridePercent(status.getOverridePercent());
         return newStatus;
     }
 
