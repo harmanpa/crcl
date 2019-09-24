@@ -43,9 +43,9 @@ import static org.junit.Assert.*;
  */
 @SuppressWarnings("nullness")
 public class CRCLSocketTest {
-    
+
     private static final Logger LOGGER = Logger.getLogger(CRCLSocketTest.class.getName());
-    
+
     static final String programAllXmlTrimmed
             = "<CRCLProgram\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -560,6 +560,7 @@ public class CRCLSocketTest {
             + "  </EndCanon>\n"
             + "</CRCLProgram>\n"
             + "";
+
     private static final String MOVETHROUGHTO_XML
             = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLCommandInstance>\n"
@@ -591,7 +592,9 @@ public class CRCLSocketTest {
             + "    <NumPositions>2</NumPositions>\n"
             + "  </CRCLCommand>\n"
             + "</CRCLCommandInstance>";
-    private static final String STATUS_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+
+    private static final String STATUS_XML
+            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLStatus\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLStatus.xsd\">\n"
@@ -630,7 +633,7 @@ public class CRCLSocketTest {
             + "    <Separation>0.44</Separation>\n"
             + "  </GripperStatus>\n"
             + "</CRCLStatus>";
-    
+
     public CRCLSocketTest() {
     }
 
@@ -645,7 +648,7 @@ public class CRCLSocketTest {
         CRCLSocket s = new CRCLSocket();
         ByteArrayInputStream bais = new ByteArrayInputStream(programAllXml.getBytes());
         String out = s.readUntilEndTag("CRCLProgram", bais);
-        
+
         assertEquals(programAllXmlTrimmed, out);
         bais = new ByteArrayInputStream(STATUS_XML.getBytes());
         boolean validate = false;
@@ -717,8 +720,8 @@ public class CRCLSocketTest {
         MoveThroughToType mttt = new MoveThroughToType();
         mttt.setCommandID(99);
         mttt.setNumPositions(2);
-        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(1,2,3), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
-        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(3,4,4), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
+        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(1, 2, 3), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
+        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(3, 4, 4), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
         CRCLCommandInstanceType mttInstanceType = new CRCLCommandInstanceType();
         mttInstanceType.setCRCLCommand(mttt);
         CRCLSocket.cmdToString(mttt);
@@ -726,6 +729,8 @@ public class CRCLSocketTest {
         CRCLSocket instance = new CRCLSocket();
         String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
         System.out.println("mttString = " + mttString);
+
+        CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
         CRCLCommandInstanceType result = null;
         try {
             result = instance.stringToCommand(str, validate);
@@ -734,11 +739,11 @@ public class CRCLSocketTest {
             System.out.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
             for (int i = 0; i < cmdSchemaFiles.length; i++) {
                 File cmdSchemaFile = cmdSchemaFiles[i];
-                try(BufferedReader br = new BufferedReader(new FileReader(cmdSchemaFile))) {
+                try (BufferedReader br = new BufferedReader(new FileReader(cmdSchemaFile))) {
                     String line = br.readLine();
-                    while(null != line) {
-                        if(line.contains("version=")) {
-                            System.out.println("file="+cmdSchemaFile+", line = " + line);
+                    while (null != line) {
+                        if (line.contains("version=")) {
+                            System.out.println("file=" + cmdSchemaFile + ", line = " + line);
                         }
                         line = br.readLine();
                     }
@@ -809,5 +814,5 @@ public class CRCLSocketTest {
         assertEquals(1, result.getCommandStatus().getCommandID());
         assertEquals(1, result.getCommandStatus().getStatusID());
     }
-    
+
 }
