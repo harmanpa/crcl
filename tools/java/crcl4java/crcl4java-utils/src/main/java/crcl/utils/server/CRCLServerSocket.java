@@ -70,8 +70,8 @@ import crcl.base.TransAccelType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
-import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.Utils;
 import crcl.utils.XFuture;
@@ -730,7 +730,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
                             moveToCmdOut.setName(moveToCmdIn.getName());
                             moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-                            moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
+                            moveToCmdOut.setEndPosition(copy(moveToCmdIn.getEndPosition()));
                             PointType outPoint = moveToCmdOut.getEndPosition().getPoint();
                             PointType inPoint = moveToCmdIn.getEndPosition().getPoint();
                             outPoint.setX(state.filterSettings.convertLengthToServer(inPoint.getX()));
@@ -1942,7 +1942,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount() + 1);
         serverSideStatus.getGuardsStatuses().setTriggerValue(value);
         if (null != serverSideStatus.getPoseStatus() && null != serverSideStatus.getPoseStatus().getPose()) {
-            serverSideStatus.getGuardsStatuses().setTriggerPose(CRCLPosemath.copy(serverSideStatus.getPoseStatus().getPose()));
+            serverSideStatus.getGuardsStatuses().setTriggerPose(copy(serverSideStatus.getPoseStatus().getPose()));
         }
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
     }

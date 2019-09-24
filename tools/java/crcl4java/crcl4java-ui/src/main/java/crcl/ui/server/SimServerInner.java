@@ -82,6 +82,7 @@ import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
 import crcl.ui.DefaultSchemaFiles;
+import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.kinematics.SimRobotEnum;
@@ -864,7 +865,7 @@ public class SimServerInner {
         } else {
             PoseType pose = poseStatus.getPose();
             if (null != pose) {
-                return CRCLPosemath.copy(pose);
+                return copy(pose);
             } else {
                 return null;
             }
@@ -1834,7 +1835,7 @@ public class SimServerInner {
                     if (null == startingCurrentPose) {
                         throw new NullPointerException("getPose() returned null");
                     }
-                    PoseType currentPose = CRCLPosemath.copy(startingCurrentPose);
+                    PoseType currentPose = copy(startingCurrentPose);
                     if (null != newGoalPose && null != currentPose) {
                         curGoalPose = this.limitSpeedAccel(newGoalPose, currentPose);
                         if (this.moveStraight || isCoordinated(newGoalPose)) {

@@ -77,6 +77,7 @@ import static crcl.ui.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
+import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.point;
@@ -622,11 +623,11 @@ public class CrclSwingClientJPanel
             @Nullable CRCLStatusType status,
             List<ProgramRunData> progRunDataList) {
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
-        final CRCLProgramType crclProgramCopy = CRCLPosemath.copy(program);
+        final CRCLProgramType crclProgramCopy = copy(program);
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
             finishShowCurrentProgramLine(line, crclProgramCopy, status, progRunDataList, ste);
         } else {
-            final CRCLStatusType curInternalStatus = (null == status) ? null : CRCLPosemath.copy(status);
+            final CRCLStatusType curInternalStatus = (null == status) ? null : copy(status);
             List<ProgramRunData> progRunDataListCopy = (null != progRunDataList) ? new ArrayList<>(progRunDataList) : Collections.emptyList();
             java.awt.EventQueue.invokeLater(new Runnable() {
                 @Override
@@ -1623,7 +1624,7 @@ public class CrclSwingClientJPanel
             prevSetProgramProgram = null;
             showProgramCopy = null;
         } else if (showProgramCopy == null || prevSetProgramProgram != program || program.getMiddleCommand().size() != prevSetProgramLength) {
-            showProgramCopy = CRCLPosemath.copy(program);
+            showProgramCopy = copy(program);
             prevSetProgramProgram = program;
             prevSetProgramLength = program.getMiddleCommand().size();
         }
@@ -1955,7 +1956,7 @@ public class CrclSwingClientJPanel
                 && lastFinishSetStatusInternalProgramLength == internalProgram.getMiddleCommand().size()) {
             return lastFinishSetStatusProgramCopy;
         } else {
-            lastFinishSetStatusProgramCopy = CRCLPosemath.copy(internalProgram);
+            lastFinishSetStatusProgramCopy = copy(internalProgram);
             lastFinishSetStatusInternalProgramLength = internalProgram.getMiddleCommand().size();
             return lastFinishSetStatusProgramCopy;
         }
@@ -1989,7 +1990,7 @@ public class CrclSwingClientJPanel
             finishSetStatusPriv(internalProgram, curInternalStatus, lastCmd, isHoldingObjectExpected, ste, statRecieveTime, ccst, stateDescription, isRunning);
         } else {
             final CRCLStatusType curInternalStatusCopy
-                    = requireNonNull(CRCLPosemath.copy(curInternalStatus), "CRCLPosemath.copy(curInternalStatus)");
+                    = requireNonNull(copy(curInternalStatus), "copy(curInternalStatus)");
             if (null == internalProgram) {
                 lastFinishSetStatusProgramCopy = null;
                 lastFinishSetStatusInternalProgram = null;
@@ -2089,7 +2090,7 @@ public class CrclSwingClientJPanel
         if (needInitPoint && null != curInternalStatus) {
             PointType pt = CRCLPosemath.getPoint(curInternalStatus);
             if (null != pt) {
-                pt = CRCLPosemath.copy(pt);
+                pt = copy(pt);
                 setPlottersInitPoint(pt);
                 needInitPoint = false;
             }

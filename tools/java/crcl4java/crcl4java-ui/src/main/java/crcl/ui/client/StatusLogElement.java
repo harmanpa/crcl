@@ -24,7 +24,7 @@ package crcl.ui.client;
 
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.base.CRCLStatusType;
-import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLCopier.copy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -36,7 +36,7 @@ public class StatusLogElement extends CommandStatusLogElement {
     @SuppressWarnings("nullness")
     public StatusLogElement(CRCLStatusType status, long time,@Nullable String progName, int progIndex, @Nullable String svrString) {
         super(status.getCommandStatus().getCommandID(), time,progName,progIndex,svrString);
-        this.status = CRCLPosemath.copy(status);
+        this.status = copy(status);
     }
     final CRCLStatusType status;
 

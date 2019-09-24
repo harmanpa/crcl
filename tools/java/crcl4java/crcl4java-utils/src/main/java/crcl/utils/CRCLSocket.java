@@ -47,7 +47,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -119,88 +118,6 @@ public class CRCLSocket implements AutoCloseable {
 
     public static final int DEFAULT_PORT = 64444;
 
-//    public static class CrclSocketCreatorInfo {
-//
-//        final StackTraceElement[] trace;
-//        final String threadName;
-//        final long time;
-//        final int clientPort;
-//        final boolean isServer;
-//        volatile boolean closed = false;
-//
-//        public CrclSocketCreatorInfo(int clientPort, boolean isServer) {
-//            this.clientPort = clientPort;
-//            this.isServer = isServer;
-//            Thread t = Thread.currentThread();
-//            this.trace = t.getStackTrace();
-//            this.threadName = t.getName();
-//            this.time = System.currentTimeMillis();
-//        }
-//
-//    }
-//    private final CrclSocketCreatorInfo creatorInfo;
-//
-//    private static final ConcurrentMap<Integer, ConcurrentLinkedDeque<CrclSocketCreatorInfo>> creatorMap = new ConcurrentHashMap<>();
-//
-//    private static CrclSocketCreatorInfo addCrclSocketCreator(int serverPort, int clientPort, boolean isServer) {
-//        int notClosedCount = 0;
-//        CrclSocketCreatorInfo ret;
-//        synchronized (creatorMap) {
-//            ConcurrentLinkedDeque<CrclSocketCreatorInfo> deque = creatorMap.get(serverPort);
-//            if (null == deque) {
-//                deque = new ConcurrentLinkedDeque<>();
-//            }
-//            for(CrclSocketCreatorInfo info : deque) {
-//                if(!info.closed) {
-//                    notClosedCount++;
-//                }
-//            }
-//            ret = new CrclSocketCreatorInfo(clientPort,isServer);
-//            deque.add(ret);
-//            creatorMap.put(serverPort, deque);
-//        }
-//        if (notClosedCount > 1 && serverPort > 0) {
-//            printCreatorMap();
-//            System.out.println("debug me");
-//        }
-//        return ret;
-//    }
-//
-//    public static Map<Integer, List<CrclSocketCreatorInfo>> getCreatorMap() {
-//        Map<Integer, List<CrclSocketCreatorInfo>> map = new TreeMap<>();
-//        synchronized (creatorMap) {
-//            for (Integer key : creatorMap.keySet()) {
-//                map.put(key, new ArrayList<>(creatorMap.get(key)));
-//            }
-//        }
-//        return map;
-//    }
-//
-//    public static void printCreatorMap() {
-//        Map<Integer, List<CrclSocketCreatorInfo>> map = getCreatorMap();
-//        long t0 = System.currentTimeMillis();
-//        for (Integer key : map.keySet()) {
-//            System.out.println("key = " + key);
-//            List<CrclSocketCreatorInfo> l = map.get(key);
-//            int closedCount = 0;
-//            int nonClosedCount = 0;
-//            for (CrclSocketCreatorInfo info : l) {
-//                if(info.closed) {
-//                    System.out.println("already closed : clientPort="+info.clientPort+",isServer="+info.isServer+", time="+ (t0 - info.time)+", " + info.threadName);
-//                    closedCount++;
-//                    continue;
-//                }
-//                System.out.println("info.isServer = " + info.isServer);
-//                System.out.println("info.clientPort = " + info.clientPort);
-//                System.out.println("info.time = " + (t0 - info.time));
-//                System.out.println("info.threadName = " + info.threadName);
-//                System.out.println("traceArray = " + Arrays.toString(info.trace));
-//                nonClosedCount++;
-//            }
-//            System.out.println("closedCount = " + closedCount);
-//            System.out.println("nonClosedCount = " + nonClosedCount);
-//        }
-//    }
     static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
 
         @Override
@@ -347,7 +264,7 @@ public class CRCLSocket implements AutoCloseable {
             return null;
         }
         File arrayCopy[] = Arrays.copyOf(fa, fa.length);
-        File[] reorderedFa = reorderCommandSchemaFiles(arrayCopy);
+        File[] reorderedFa = reorderAndFilterCommandSchemaFiles(arrayCopy);
         defaultCmdSchemaFiles = reorderedFa;
         return filesToSchema(reorderedFa);
     }
@@ -380,7 +297,7 @@ public class CRCLSocket implements AutoCloseable {
         if (null == fa) {
             return null;
         }
-        File[] reorderedFa = reorderStatSchemaFiles(Arrays.copyOf(fa, fa.length));
+        File[] reorderedFa = reorderAndFilterStatSchemaFiles(Arrays.copyOf(fa, fa.length));
         defaultStatSchemaFiles = reorderedFa;
         return filesToSchema(reorderedFa);
     }
@@ -713,8 +630,15 @@ public class CRCLSocket implements AutoCloseable {
     }
     private static final long RESOURCE_CHANGE_TIME = getLongProperty("crcl.resourceChangeTime", 600000);
 
-    public static List<File> reorderStatSchemaFiles(List<File> fl) {
-        Collections.sort(fl, new Comparator<File>() {
+    public static List<File> reorderAndFilterStatSchemaFiles(List<File> fl) {
+        List<File> newList = new ArrayList<>();
+        for (int i = 0; i < fl.size(); i++) {
+            File fileI = fl.get(i);
+            if(fileI.getName().contains("Status") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
+                newList.add(fileI);
+            }
+        }
+        Collections.sort(newList, new Comparator<File>() {
 
             @Override
             public int compare(File o1, File o2) {
@@ -722,27 +646,27 @@ public class CRCLSocket implements AutoCloseable {
             }
         });
         int statIndex = -1;
-        for (int i = 0; i < fl.size(); i++) {
-            if (fl.get(i).getName().contains("Status")) {
+        for (int i = 0; i < newList.size(); i++) {
+            if (newList.get(i).getName().contains("Status")) {
                 statIndex = i;
                 break;
             }
         }
-        if (statIndex > 0 && statIndex < fl.size()) {
-            File f = fl.remove(statIndex);
-            fl.add(0, f);
+        if (statIndex > 0 && statIndex < newList.size()) {
+            File f = newList.remove(statIndex);
+            newList.add(0, f);
         }
-        return fl;
+        return newList;
     }
 
     @SuppressWarnings("nullness")
-    public static File[] reorderStatSchemaFiles(File fa[]) {
+    public static File[] reorderAndFilterStatSchemaFiles(File fa[]) {
         if (null == fa || fa.length < 1) {
             return EMPTY_FILE_ARRAY;
         }
         List<File> fl = new ArrayList<>();
         fl.addAll(Arrays.asList(fa));
-        List<File> newList = reorderStatSchemaFiles(fl);
+        List<File> newList = reorderAndFilterStatSchemaFiles(fl);
         if (null != newList) {
             File files[] = newList.toArray(EMPTY_FILE_ARRAY);
             if (null != files) {
@@ -784,6 +708,7 @@ public class CRCLSocket implements AutoCloseable {
 //            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
+    
     public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
@@ -816,7 +741,7 @@ public class CRCLSocket implements AutoCloseable {
         }
         try {
             List<File> fl = readSchemaListFile(schemaListFile);
-            fl = reorderStatSchemaFiles(fl);
+            fl = reorderAndFilterStatSchemaFiles(fl);
             return fl.toArray(new File[fl.size()]);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Failed to read " + schemaListFile, ex);
@@ -858,7 +783,7 @@ public class CRCLSocket implements AutoCloseable {
         if (null == fa) {
             return;
         }
-        fa = reorderStatSchemaFiles(fa);
+        fa = reorderAndFilterStatSchemaFiles(fa);
         saveSchemaListFile(schemaListFile, fa);
     }
 
@@ -909,21 +834,28 @@ public class CRCLSocket implements AutoCloseable {
         return (/*@NonNull*/T[]) nullableArray;
     }
 
-    public static File[] reorderCommandSchemaFiles(File[] fa) {
+    public static File[] reorderAndFilterCommandSchemaFiles(File[] fa) {
         if (null == fa || fa.length < 1) {
             return EMPTY_FILE_ARRAY;
         }
         List<File> fl = new ArrayList<>();
         fl.addAll(Arrays.asList(fa));
-        List<File> newList = reorderCommandSchemaFiles(fl);
+        List<File> newList = reorderAndFilterCommandSchemaFiles(fl);
         if (newList != null) {
             return toNonNullArray(newList, fa, EMPTY_FILE_ARRAY);
         }
         return EMPTY_FILE_ARRAY;
     }
 
-    public static List<File> reorderCommandSchemaFiles(List<File> fl) {
-        Collections.sort(fl, new Comparator<File>() {
+    public static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
+        List<File> newList = new ArrayList<>();
+        for (int i = 0; i < fl.size(); i++) {
+            File fileI = fl.get(i);
+            if(fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
+                newList.add(fileI);
+            }
+        }
+        Collections.sort(newList, new Comparator<File>() {
 
             @Override
             public int compare(File o1, File o2) {
@@ -931,14 +863,14 @@ public class CRCLSocket implements AutoCloseable {
             }
         });
         int cmdInstanceIndex = -1;
-        for (int i = 0; i < fl.size(); i++) {
-            if (fl.get(i).getName().contains("CommandInstance")) {
+        for (int i = 0; i < newList.size(); i++) {
+            if (newList.get(i).getName().contains("CommandInstance")) {
                 cmdInstanceIndex = i;
                 break;
             }
         }
-        if (cmdInstanceIndex > 0 && cmdInstanceIndex < fl.size()) {
-            File f = fl.remove(cmdInstanceIndex);
+        if (cmdInstanceIndex > 0 && cmdInstanceIndex < newList.size()) {
+            File f = newList.remove(cmdInstanceIndex);
             CRCLSocket.commandXsdFile = f;
             fl.add(0, f);
         }
@@ -995,7 +927,7 @@ public class CRCLSocket implements AutoCloseable {
         }
         try {
             List<File> fl = readSchemaListFile(schemaListFile);
-            fl = reorderCommandSchemaFiles(fl);
+            fl = reorderAndFilterCommandSchemaFiles(fl);
             return toNonNullArray(fl, EMPTY_FILE_ARRAY, EMPTY_FILE_ARRAY);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
@@ -1049,7 +981,7 @@ public class CRCLSocket implements AutoCloseable {
         if (null == fa) {
             return;
         }
-        fa = reorderCommandSchemaFiles(fa);
+        fa = reorderAndFilterCommandSchemaFiles(fa);
         saveSchemaListFile(schemasListFile, fa);
     }
 

@@ -23,41 +23,21 @@ package crcl.utils;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
-import crcl.base.CommandStatusType;
-import crcl.base.CountSensorStatusType;
 import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
-import crcl.base.ForceTorqueSensorStatusType;
-import crcl.base.GripperStatusType;
-import crcl.base.GuardType;
-import crcl.base.GuardsStatusesType;
 import crcl.base.InitCanonType;
-import crcl.base.JointStatusType;
-import crcl.base.JointStatusesType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
-import crcl.base.OnOffSensorStatusType;
-import crcl.base.ParallelGripperStatusType;
-import crcl.base.ParameterSettingType;
 import crcl.base.PointType;
-import crcl.base.PoseAndSetType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
-import crcl.base.ScalarSensorStatusType;
-import crcl.base.SensorStatusesType;
-import crcl.base.SettingsStatusType;
-import crcl.base.ThreeFingerGripperStatusType;
-import crcl.base.TwistType;
-import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
-import crcl.base.WrenchType;
+import static crcl.utils.CRCLCopier.copy;
 import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -235,25 +215,25 @@ public class CRCLPosemath {
         return null;
     }
 
-    /**
-     * Copy or clone the point.
-     *
-     * @param pt point to be cloned.
-     * @return PointType with same initial values as pt but can be independently
-     * modified.
-     */
-    public static @Nullable
-    PointType copy(/*@Nullable*/PointType pt) {
-        if (null == pt) {
-            return null;
-        }
-        PointType newPt = new PointType();
-        newPt.setName(pt.getName());
-        newPt.setX(pt.getX());
-        newPt.setY(pt.getY());
-        newPt.setZ(pt.getZ());
-        return newPt;
-    }
+//    /**
+//     * Copy or clone the point.
+//     *
+//     * @param pt point to be cloned.
+//     * @return PointType with same initial values as pt but can be independently
+//     * modified.
+//     */
+//    public static @Nullable
+//    PointType copy(/*@Nullable*/PointType pt) {
+//        if (null == pt) {
+//            return null;
+//        }
+//        PointType newPt = new PointType();
+//        newPt.setName(pt.getName());
+//        newPt.setX(pt.getX());
+//        newPt.setY(pt.getY());
+//        newPt.setZ(pt.getZ());
+//        return newPt;
+//    }
 
     /**
      * Extract the X and Y coordinates for a Point2D.Double. The Z coordinate is
@@ -303,617 +283,617 @@ public class CRCLPosemath {
         return rzPoint2D(pose.getPoint());
     }
 
-    /**
-     * Copy or clone the vector.
-     *
-     * @param vec vector to be cloned
-     * @return VectorType with same initial values as vec but can be
-     * independently modified.
-     */
-    public static @Nullable
-    VectorType copy( /*@Nullable*/VectorType vec) {
-        if (null == vec) {
-            return null;
-        }
-        VectorType newVec = new VectorType();
-        newVec.setName(vec.getName());
-        newVec.setI(vec.getI());
-        newVec.setJ(vec.getJ());
-        newVec.setK(vec.getK());
-        return newVec;
-    }
-
-    /**
-     * Copy or clone the pose.
-     *
-     * @param pose pose to be cloned
-     * @return PoseType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    PoseType copyNullable(/*@Nullable*/PoseType pose) {
-        if (null == pose) {
-            return null;
-        }
-        return copy(pose);
-    }
-
-    /**
-     * Copy or clone the pose.
-     *
-     * @param pose pose to be cloned
-     * @return PoseType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static PoseAndSetType copy(PoseAndSetType pose) {
-        if (null == pose) {
-            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
-        }
-        PoseAndSetType newPose = new PoseAndSetType();
-        newPose.setName(pose.getName());
-        PointType pt = copy(pose.getPoint());
-        if (null != pt) {
-            newPose.setPoint(pt);
-        }
-        VectorType xAxis = copy(pose.getXAxis());
-        if (null != xAxis) {
-            newPose.setXAxis(xAxis);
-        }
-        VectorType zAxis = copy(pose.getZAxis());
-        if (null != zAxis) {
-            newPose.setZAxis(zAxis);
-        }
-        return newPose;
-    }
-
-    /**
-     * Copy or clone the pose.
-     *
-     * @param pose pose to be cloned
-     * @return PoseType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static PoseType copy(PoseType pose) {
-        if (null == pose) {
-            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
-        }
-        if (pose instanceof PoseAndSetType) {
-            return copy((PoseAndSetType) pose);
-        }
-        PoseType newPose = new PoseType();
-        newPose.setName(pose.getName());
-        PointType pt = copy(pose.getPoint());
-        if (null != pt) {
-            newPose.setPoint(pt);
-        }
-        VectorType xAxis = copy(pose.getXAxis());
-        if (null != xAxis) {
-            newPose.setXAxis(xAxis);
-        }
-        VectorType zAxis = copy(pose.getZAxis());
-        if (null != zAxis) {
-            newPose.setZAxis(zAxis);
-        }
-        return newPose;
-    }
-
-    /**
-     * Copy or clone a status.
-     *
-     * @param status to be cloned
-     * @return CRCLStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static CRCLStatusType copy(CRCLStatusType status) {
-        if (null == status) {
-            throw new IllegalArgumentException("copy(CRCLStatusType) called with null argument.");
-        }
-        CRCLStatusType newStatus = new CRCLStatusType();
-        newStatus.setName(status.getName());
-        CommandStatusType commandStatus = copy(status.getCommandStatus());
-        if (null != commandStatus) {
-            newStatus.setCommandStatus(commandStatus);
-        }
-        JointStatusesType jointStatuses = copy(status.getJointStatuses());
-        if (null != jointStatuses) {
-            newStatus.setJointStatuses(jointStatuses);
-        }
-        PoseStatusType poseStatus = copy(status.getPoseStatus());
-        if (null != poseStatus) {
-            newStatus.setPoseStatus(poseStatus);
-        }
-        GripperStatusType gripperStatus = copy(status.getGripperStatus());
-        if (null != gripperStatus) {
-            newStatus.setGripperStatus(gripperStatus);
-        }
-        SettingsStatusType settingsStatus = copy(status.getSettingsStatus());
-        if (null != settingsStatus) {
-            newStatus.setSettingsStatus(settingsStatus);
-        }
-        SensorStatusesType sensorsStatus = copy(status.getSensorStatuses());
-        if (null != sensorsStatus) {
-            newStatus.setSensorStatuses(sensorsStatus);
-        }
-        GuardsStatusesType guardsStatus = copy(status.getGuardsStatuses());
-        if (null != guardsStatus) {
-            newStatus.setGuardsStatuses(guardsStatus);
-        }
-        return newStatus;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param settings to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    SettingsStatusType copy(SettingsStatusType settings) {
-        if (null != settings) {
-            SettingsStatusType newSettings = new SettingsStatusType();
-            newSettings.setName(settings.getName());
-            newSettings.setAngleUnitName(settings.getAngleUnitName());
-            newSettings.setEndEffectorSetting(settings.getEndEffectorSetting());
-            newSettings.getEndEffectorParameterSetting().clear();
-            newSettings.getEndEffectorParameterSetting().addAll(settings.getEndEffectorParameterSetting());
-            newSettings.setForceUnitName(settings.getForceUnitName());
-            newSettings.setIntermediatePoseTolerance(settings.getIntermediatePoseTolerance());
-            newSettings.getJointLimits().clear();
-            newSettings.getJointLimits().addAll(settings.getJointLimits());
-            newSettings.setLengthUnitName(settings.getLengthUnitName());
-            newSettings.setMaxCartesianLimit(settings.getMaxCartesianLimit());
-            newSettings.setMinCartesianLimit(settings.getMinCartesianLimit());
-            newSettings.setPoseTolerance(settings.getPoseTolerance());
-            newSettings.getRobotParameterSetting().clear();
-            newSettings.getRobotParameterSetting().addAll(settings.getRobotParameterSetting());
-            newSettings.setRotAccelAbsolute(settings.getRotAccelAbsolute());
-            newSettings.setRotAccelRelative(settings.getRotAccelRelative());
-            newSettings.setRotSpeedAbsolute(settings.getRotSpeedAbsolute());
-            newSettings.setRotSpeedRelative(settings.getRotSpeedRelative());
-            newSettings.setTorqueUnitName(settings.getTorqueUnitName());
-            newSettings.setTransAccelAbsolute(settings.getTransAccelAbsolute());
-            newSettings.setTransAccelRelative(settings.getTransAccelRelative());
-            newSettings.setTransSpeedAbsolute(settings.getTransSpeedAbsolute());
-            newSettings.setTransSpeedRelative(settings.getTransSpeedRelative());
-            newSettings.setMotionCoordinated(settings.isMotionCoordinated());
-            return newSettings;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param sensorsStatuses to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
-        if (null != sensorsStatuses) {
-            SensorStatusesType newSensorStatuses = new SensorStatusesType();
-            newSensorStatuses.setName(sensorsStatuses.getName());
-            if (null != sensorsStatuses.getOnOffSensorStatus()) {
-                newSensorStatuses.getOnOffSensorStatus().clear();
-                for (int i = 0; i < sensorsStatuses.getOnOffSensorStatus().size(); i++) {
-                    OnOffSensorStatusType onOffSensorStatus = sensorsStatuses.getOnOffSensorStatus().get(i);
-                    OnOffSensorStatusType onOffSensorStatusCopy = copy(onOffSensorStatus);
-                    if (null != onOffSensorStatusCopy) {
-                        newSensorStatuses.getOnOffSensorStatus().add(onOffSensorStatusCopy);
-                    }
-                }
-            }
-            if (null != sensorsStatuses.getScalarSensorStatus()) {
-                newSensorStatuses.getScalarSensorStatus().clear();
-                for (int i = 0; i < sensorsStatuses.getScalarSensorStatus().size(); i++) {
-                    ScalarSensorStatusType scalarSensorStatus = sensorsStatuses.getScalarSensorStatus().get(i);
-                    ScalarSensorStatusType scalarSensorStatusCopy = copy(scalarSensorStatus);
-                    if (null != scalarSensorStatusCopy) {
-                        newSensorStatuses.getScalarSensorStatus().add(scalarSensorStatusCopy);
-                    }
-                }
-            }
-
-            if (null != sensorsStatuses.getCountSensorStatus()) {
-                newSensorStatuses.getCountSensorStatus().clear();
-                for (int i = 0; i < sensorsStatuses.getCountSensorStatus().size(); i++) {
-                    CountSensorStatusType countSensorStatus = sensorsStatuses.getCountSensorStatus().get(i);
-                    CountSensorStatusType countSensorStatusCopy = copy(countSensorStatus);
-                    if (null != countSensorStatusCopy) {
-                        newSensorStatuses.getCountSensorStatus().add(countSensorStatusCopy);
-                    }
-                }
-            }
-
-            if (null != sensorsStatuses.getForceTorqueSensorStatus()) {
-                newSensorStatuses.getForceTorqueSensorStatus().clear();
-                for (int i = 0; i < sensorsStatuses.getForceTorqueSensorStatus().size(); i++) {
-                    ForceTorqueSensorStatusType forceTorqueSensorStatus = sensorsStatuses.getForceTorqueSensorStatus().get(i);
-                    ForceTorqueSensorStatusType forceTorqueSensorStatusCopy = copy(forceTorqueSensorStatus);
-                    if (null != forceTorqueSensorStatusCopy) {
-                        newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
-                    }
-                }
-            }
-            return newSensorStatuses;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param guardStatuses to be cloned
-     * @return GuardsStatusesType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    GuardsStatusesType copy(GuardsStatusesType guardStatuses) {
-        if (null != guardStatuses) {
-            GuardsStatusesType newGuardStatuses = new GuardsStatusesType();
-
-            newGuardStatuses.setName(guardStatuses.getName());
-            newGuardStatuses.setTriggerStopTimeMicros(guardStatuses.getTriggerStopTimeMicros());
-            newGuardStatuses.setTriggerCount(guardStatuses.getTriggerCount());
-            newGuardStatuses.setTriggerValue(guardStatuses.getTriggerValue());
-            final PoseType triggerPose = guardStatuses.getTriggerPose();
-            if (null != triggerPose) {
-                newGuardStatuses.setTriggerPose(copy(triggerPose));
-            }
-            final List<GuardType> oldGuardList = guardStatuses.getGuard();
-            final List<GuardType> newGuardList = newGuardStatuses.getGuard();
-            for (GuardType g : oldGuardList) {
-                if (null == g) {
-                    throw new RuntimeException("oldGuardList contains nulls: " + oldGuardList);
-                }
-                final GuardType copyOfG = copy(g);
-                if (null == copyOfG) {
-                    throw new RuntimeException("null == copyOfG");
-                }
-                newGuardList.add(copyOfG);
-            }
-            return newGuardStatuses;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param guard to be cloned
-     * @return GuardType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    GuardType copy(@Nullable GuardType guard) {
-        if (null != guard) {
-            GuardType newGuard = new GuardType();
-            newGuard.setCheckCount(guard.getCheckCount());
-            newGuard.setLastCheckTime(guard.getLastCheckTime());
-            newGuard.setLastCheckValue(guard.getLastCheckValue());
-            newGuard.setName(guard.getName());
-            newGuard.setLimitType(guard.getLimitType());
-            newGuard.setLimitValue(guard.getLimitValue());
-            newGuard.setRecheckTimeMicroSeconds(guard.getRecheckTimeMicroSeconds());
-            newGuard.setSensorID(guard.getSensorID());
-            newGuard.setSubField(guard.getSubField());
-            return newGuard;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param forceTorqueSensorStatus to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    ForceTorqueSensorStatusType copy(ForceTorqueSensorStatusType forceTorqueSensorStatus) {
-        if (null != forceTorqueSensorStatus) {
-            ForceTorqueSensorStatusType newForceTorqueSensorStatus = new ForceTorqueSensorStatusType();
-            newForceTorqueSensorStatus.setSensorID(forceTorqueSensorStatus.getSensorID());
-            newForceTorqueSensorStatus.setName(forceTorqueSensorStatus.getName());
-            newForceTorqueSensorStatus.setLastReadTime(forceTorqueSensorStatus.getLastReadTime());
-            newForceTorqueSensorStatus.setReadCount(forceTorqueSensorStatus.getReadCount());
-            newForceTorqueSensorStatus.setFx(forceTorqueSensorStatus.getFx());
-            newForceTorqueSensorStatus.setFy(forceTorqueSensorStatus.getFy());
-            newForceTorqueSensorStatus.setFz(forceTorqueSensorStatus.getFz());
-            newForceTorqueSensorStatus.setTx(forceTorqueSensorStatus.getTx());
-            newForceTorqueSensorStatus.setTy(forceTorqueSensorStatus.getTy());
-            newForceTorqueSensorStatus.setTz(forceTorqueSensorStatus.getTz());
-            copyOptionList(newForceTorqueSensorStatus.getSensorParameterSetting(), forceTorqueSensorStatus.getSensorParameterSetting());
-            return newForceTorqueSensorStatus;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param countSensorStatus to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
-        if (null != countSensorStatus) {
-            CountSensorStatusType newCountSensorStatus = new CountSensorStatusType();
-            newCountSensorStatus.setLastReadTime(countSensorStatus.getLastReadTime());
-            newCountSensorStatus.setReadCount(countSensorStatus.getReadCount());
-            newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
-            newCountSensorStatus.setName(countSensorStatus.getName());
-            newCountSensorStatus.setCountValue(countSensorStatus.getCountValue());
-            copyOptionList(newCountSensorStatus.getSensorParameterSetting(), countSensorStatus.getSensorParameterSetting());
-            return newCountSensorStatus;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param scalarSensorStatus to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
-        if (null != scalarSensorStatus) {
-            ScalarSensorStatusType newScalarSensorStatus = new ScalarSensorStatusType();
-            newScalarSensorStatus.setLastReadTime(scalarSensorStatus.getLastReadTime());
-            newScalarSensorStatus.setReadCount(scalarSensorStatus.getReadCount());
-            newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
-            newScalarSensorStatus.setName(scalarSensorStatus.getName());
-            newScalarSensorStatus.setScalarValue(scalarSensorStatus.getScalarValue());
-            copyOptionList(newScalarSensorStatus.getSensorParameterSetting(), scalarSensorStatus.getSensorParameterSetting());
-            return newScalarSensorStatus;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param ParameterSettingType to be cloned
-     * @return ParameterSettingType with same initial values as arg but can be
-     * independently modified.
-     */
-    public static @Nullable
-    ParameterSettingType copy(ParameterSettingType parmSet) {
-        if (null != parmSet) {
-            ParameterSettingType newParmSet = new ParameterSettingType();
-            newParmSet.setName(parmSet.getName());
-            newParmSet.setParameterName(parmSet.getParameterName());
-            newParmSet.setParameterValue(parmSet.getParameterValue());
-            return newParmSet;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a settings status.
-     *
-     * @param onOffSensorStatus to be cloned
-     * @return SettingsStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
-        if (null != onOffSensorStatus) {
-            OnOffSensorStatusType newOnOffSensorStatus = new OnOffSensorStatusType();
-            newOnOffSensorStatus.setLastReadTime(onOffSensorStatus.getLastReadTime());
-            newOnOffSensorStatus.setReadCount(onOffSensorStatus.getReadCount());
-            newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
-            newOnOffSensorStatus.setName(onOffSensorStatus.getName());
-            newOnOffSensorStatus.setOn(onOffSensorStatus.isOn());
-            copyOptionList(newOnOffSensorStatus.getSensorParameterSetting(), onOffSensorStatus.getSensorParameterSetting());
-            return newOnOffSensorStatus;
-        }
-        return null;
-    }
-
-    /**
-     * Copy or clone a gripper status.
-     *
-     * @param status status to be cloned
-     * @return GripperStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
-        if (null == status) {
-            return null;
-        }
-        GripperStatusType newStatus = null;
-        if (status instanceof VacuumGripperStatusType) {
-            VacuumGripperStatusType vacuumGripperStatus = (VacuumGripperStatusType) status;
-            VacuumGripperStatusType newVacuumGripperStatus = new VacuumGripperStatusType();
-            newVacuumGripperStatus.setIsPowered(vacuumGripperStatus.isIsPowered());
-            newStatus = newVacuumGripperStatus;
-        } else if (status instanceof ParallelGripperStatusType) {
-            ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status;
-            ParallelGripperStatusType newParallelGripperStatus = new ParallelGripperStatusType();
-            newParallelGripperStatus.setSeparation(parallelGripperStatus.getSeparation());
-            newStatus = newParallelGripperStatus;
-        } else if (status instanceof ThreeFingerGripperStatusType) {
-            ThreeFingerGripperStatusType threeFingerGripperStatus = (ThreeFingerGripperStatusType) status;
-            ThreeFingerGripperStatusType newThreeFingerGripperStatusType = new ThreeFingerGripperStatusType();
-            newThreeFingerGripperStatusType.setFinger1Force(threeFingerGripperStatus.getFinger1Force());
-            newThreeFingerGripperStatusType.setFinger2Force(threeFingerGripperStatus.getFinger2Force());
-            newThreeFingerGripperStatusType.setFinger3Force(threeFingerGripperStatus.getFinger2Force());
-            newThreeFingerGripperStatusType.setFinger1Position(threeFingerGripperStatus.getFinger1Position());
-            newThreeFingerGripperStatusType.setFinger2Position(threeFingerGripperStatus.getFinger2Position());
-            newThreeFingerGripperStatusType.setFinger3Position(threeFingerGripperStatus.getFinger2Position());
-            newStatus = newThreeFingerGripperStatusType;
-        }
-        if (null == newStatus) {
-            throw new IllegalArgumentException("status has unrecognized subtype" + status.getClass());
-        }
-
-        newStatus.setName(status.getName());
-        newStatus.setGripperName(status.getGripperName());
-        final List<ParameterSettingType> optionListOut = newStatus.getGripperOption();
-        final List<ParameterSettingType> optionListIn = status.getGripperOption();
-        copyOptionList(optionListOut, optionListIn);
-        return newStatus;
-    }
-
-    private static void copyOptionList(final List<ParameterSettingType> optionListOut, final List<ParameterSettingType> optionListIn) {
-        optionListOut.clear();
-        List<ParameterSettingType> l = new ArrayList<>();
-        for (ParameterSettingType parmSet : optionListIn) {
-            l.add(copy(parmSet));
-        }
-        optionListOut.addAll(l);
-    }
-
-    /**
-     * Copy or clone a pose status.
-     *
-     * @param status status to be cloned
-     * @return PoseStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
-        if (null == status) {
-            return null;
-        }
-        PoseStatusType newStatus = new PoseStatusType();
-        newStatus.setName(status.getName());
-        newStatus.setPose(copy(status.getPose()));
-        newStatus.setConfiguration(status.getConfiguration());
-        TwistType twist = copy(status.getTwist());
-        if (twist != null) {
-            newStatus.setTwist(twist);
-        }
-        WrenchType wrench = copy(status.getWrench());
-        if (wrench != null) {
-            newStatus.setWrench(wrench);
-        }
+//    /**
+//     * Copy or clone the vector.
+//     *
+//     * @param vec vector to be cloned
+//     * @return VectorType with same initial values as vec but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    VectorType copy( /*@Nullable*/VectorType vec) {
+//        if (null == vec) {
+//            return null;
+//        }
+//        VectorType newVec = new VectorType();
+//        newVec.setName(vec.getName());
+//        newVec.setI(vec.getI());
+//        newVec.setJ(vec.getJ());
+//        newVec.setK(vec.getK());
+//        return newVec;
+//    }
+//
+//    /**
+//     * Copy or clone the pose.
+//     *
+//     * @param pose pose to be cloned
+//     * @return PoseType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    PoseType copyNullable(/*@Nullable*/PoseType pose) {
+//        if (null == pose) {
+//            return null;
+//        }
+//        return copy(pose);
+//    }
+//
+//    /**
+//     * Copy or clone the pose.
+//     *
+//     * @param pose pose to be cloned
+//     * @return PoseType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static PoseAndSetType copy(PoseAndSetType pose) {
+//        if (null == pose) {
+//            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
+//        }
+//        PoseAndSetType newPose = new PoseAndSetType();
+//        newPose.setName(pose.getName());
+//        PointType pt = copy(pose.getPoint());
+//        if (null != pt) {
+//            newPose.setPoint(pt);
+//        }
+//        VectorType xAxis = copy(pose.getXAxis());
+//        if (null != xAxis) {
+//            newPose.setXAxis(xAxis);
+//        }
+//        VectorType zAxis = copy(pose.getZAxis());
+//        if (null != zAxis) {
+//            newPose.setZAxis(zAxis);
+//        }
+//        return newPose;
+//    }
+//
+//    /**
+//     * Copy or clone the pose.
+//     *
+//     * @param pose pose to be cloned
+//     * @return PoseType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static PoseType copy(PoseType pose) {
+//        if (null == pose) {
+//            throw new IllegalArgumentException("copy(PoseType) called with null argument.");
+//        }
+//        if (pose instanceof PoseAndSetType) {
+//            return copy((PoseAndSetType) pose);
+//        }
+//        PoseType newPose = new PoseType();
+//        newPose.setName(pose.getName());
+//        PointType pt = copy(pose.getPoint());
+//        if (null != pt) {
+//            newPose.setPoint(pt);
+//        }
+//        VectorType xAxis = copy(pose.getXAxis());
+//        if (null != xAxis) {
+//            newPose.setXAxis(xAxis);
+//        }
+//        VectorType zAxis = copy(pose.getZAxis());
+//        if (null != zAxis) {
+//            newPose.setZAxis(zAxis);
+//        }
+//        return newPose;
+//    }
+//
+//    /**
+//     * Copy or clone a status.
+//     *
+//     * @param status to be cloned
+//     * @return CRCLStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static CRCLStatusType copy(CRCLStatusType status) {
+//        if (null == status) {
+//            throw new IllegalArgumentException("copy(CRCLStatusType) called with null argument.");
+//        }
+//        CRCLStatusType newStatus = new CRCLStatusType();
+//        newStatus.setName(status.getName());
+//        CommandStatusType commandStatus = copy(status.getCommandStatus());
+//        if (null != commandStatus) {
+//            newStatus.setCommandStatus(commandStatus);
+//        }
+//        JointStatusesType jointStatuses = copy(status.getJointStatuses());
+//        if (null != jointStatuses) {
+//            newStatus.setJointStatuses(jointStatuses);
+//        }
+//        PoseStatusType poseStatus = copy(status.getPoseStatus());
+//        if (null != poseStatus) {
+//            newStatus.setPoseStatus(poseStatus);
+//        }
+//        GripperStatusType gripperStatus = copy(status.getGripperStatus());
+//        if (null != gripperStatus) {
+//            newStatus.setGripperStatus(gripperStatus);
+//        }
+//        SettingsStatusType settingsStatus = copy(status.getSettingsStatus());
+//        if (null != settingsStatus) {
+//            newStatus.setSettingsStatus(settingsStatus);
+//        }
+//        SensorStatusesType sensorsStatus = copy(status.getSensorStatuses());
+//        if (null != sensorsStatus) {
+//            newStatus.setSensorStatuses(sensorsStatus);
+//        }
+//        GuardsStatusesType guardsStatus = copy(status.getGuardsStatuses());
+//        if (null != guardsStatus) {
+//            newStatus.setGuardsStatuses(guardsStatus);
+//        }
+//        return newStatus;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param settings to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    SettingsStatusType copy(SettingsStatusType settings) {
+//        if (null != settings) {
+//            SettingsStatusType newSettings = new SettingsStatusType();
+//            newSettings.setName(settings.getName());
+//            newSettings.setAngleUnitName(settings.getAngleUnitName());
+//            newSettings.setEndEffectorSetting(settings.getEndEffectorSetting());
+//            newSettings.getEndEffectorParameterSetting().clear();
+//            newSettings.getEndEffectorParameterSetting().addAll(settings.getEndEffectorParameterSetting());
+//            newSettings.setForceUnitName(settings.getForceUnitName());
+//            newSettings.setIntermediatePoseTolerance(settings.getIntermediatePoseTolerance());
+//            newSettings.getJointLimits().clear();
+//            newSettings.getJointLimits().addAll(settings.getJointLimits());
+//            newSettings.setLengthUnitName(settings.getLengthUnitName());
+//            newSettings.setMaxCartesianLimit(settings.getMaxCartesianLimit());
+//            newSettings.setMinCartesianLimit(settings.getMinCartesianLimit());
+//            newSettings.setPoseTolerance(settings.getPoseTolerance());
+//            newSettings.getRobotParameterSetting().clear();
+//            newSettings.getRobotParameterSetting().addAll(settings.getRobotParameterSetting());
+//            newSettings.setRotAccelAbsolute(settings.getRotAccelAbsolute());
+//            newSettings.setRotAccelRelative(settings.getRotAccelRelative());
+//            newSettings.setRotSpeedAbsolute(settings.getRotSpeedAbsolute());
+//            newSettings.setRotSpeedRelative(settings.getRotSpeedRelative());
+//            newSettings.setTorqueUnitName(settings.getTorqueUnitName());
+//            newSettings.setTransAccelAbsolute(settings.getTransAccelAbsolute());
+//            newSettings.setTransAccelRelative(settings.getTransAccelRelative());
+//            newSettings.setTransSpeedAbsolute(settings.getTransSpeedAbsolute());
+//            newSettings.setTransSpeedRelative(settings.getTransSpeedRelative());
+//            newSettings.setMotionCoordinated(settings.isMotionCoordinated());
+//            return newSettings;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param sensorsStatuses to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    SensorStatusesType copy(SensorStatusesType sensorsStatuses) {
+//        if (null != sensorsStatuses) {
+//            SensorStatusesType newSensorStatuses = new SensorStatusesType();
+//            newSensorStatuses.setName(sensorsStatuses.getName());
+//            if (null != sensorsStatuses.getOnOffSensorStatus()) {
+//                newSensorStatuses.getOnOffSensorStatus().clear();
+//                for (int i = 0; i < sensorsStatuses.getOnOffSensorStatus().size(); i++) {
+//                    OnOffSensorStatusType onOffSensorStatus = sensorsStatuses.getOnOffSensorStatus().get(i);
+//                    OnOffSensorStatusType onOffSensorStatusCopy = copy(onOffSensorStatus);
+//                    if (null != onOffSensorStatusCopy) {
+//                        newSensorStatuses.getOnOffSensorStatus().add(onOffSensorStatusCopy);
+//                    }
+//                }
+//            }
+//            if (null != sensorsStatuses.getScalarSensorStatus()) {
+//                newSensorStatuses.getScalarSensorStatus().clear();
+//                for (int i = 0; i < sensorsStatuses.getScalarSensorStatus().size(); i++) {
+//                    ScalarSensorStatusType scalarSensorStatus = sensorsStatuses.getScalarSensorStatus().get(i);
+//                    ScalarSensorStatusType scalarSensorStatusCopy = copy(scalarSensorStatus);
+//                    if (null != scalarSensorStatusCopy) {
+//                        newSensorStatuses.getScalarSensorStatus().add(scalarSensorStatusCopy);
+//                    }
+//                }
+//            }
+//
+//            if (null != sensorsStatuses.getCountSensorStatus()) {
+//                newSensorStatuses.getCountSensorStatus().clear();
+//                for (int i = 0; i < sensorsStatuses.getCountSensorStatus().size(); i++) {
+//                    CountSensorStatusType countSensorStatus = sensorsStatuses.getCountSensorStatus().get(i);
+//                    CountSensorStatusType countSensorStatusCopy = copy(countSensorStatus);
+//                    if (null != countSensorStatusCopy) {
+//                        newSensorStatuses.getCountSensorStatus().add(countSensorStatusCopy);
+//                    }
+//                }
+//            }
+//
+//            if (null != sensorsStatuses.getForceTorqueSensorStatus()) {
+//                newSensorStatuses.getForceTorqueSensorStatus().clear();
+//                for (int i = 0; i < sensorsStatuses.getForceTorqueSensorStatus().size(); i++) {
+//                    ForceTorqueSensorStatusType forceTorqueSensorStatus = sensorsStatuses.getForceTorqueSensorStatus().get(i);
+//                    ForceTorqueSensorStatusType forceTorqueSensorStatusCopy = copy(forceTorqueSensorStatus);
+//                    if (null != forceTorqueSensorStatusCopy) {
+//                        newSensorStatuses.getForceTorqueSensorStatus().add(forceTorqueSensorStatusCopy);
+//                    }
+//                }
+//            }
+//            return newSensorStatuses;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param guardStatuses to be cloned
+//     * @return GuardsStatusesType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    GuardsStatusesType copy(GuardsStatusesType guardStatuses) {
+//        if (null != guardStatuses) {
+//            GuardsStatusesType newGuardStatuses = new GuardsStatusesType();
+//
+//            newGuardStatuses.setName(guardStatuses.getName());
+//            newGuardStatuses.setTriggerStopTimeMicros(guardStatuses.getTriggerStopTimeMicros());
+//            newGuardStatuses.setTriggerCount(guardStatuses.getTriggerCount());
+//            newGuardStatuses.setTriggerValue(guardStatuses.getTriggerValue());
+//            final PoseType triggerPose = guardStatuses.getTriggerPose();
+//            if (null != triggerPose) {
+//                newGuardStatuses.setTriggerPose(copy(triggerPose));
+//            }
+//            final List<GuardType> oldGuardList = guardStatuses.getGuard();
+//            final List<GuardType> newGuardList = newGuardStatuses.getGuard();
+//            for (GuardType g : oldGuardList) {
+//                if (null == g) {
+//                    throw new RuntimeException("oldGuardList contains nulls: " + oldGuardList);
+//                }
+//                final GuardType copyOfG = copy(g);
+//                if (null == copyOfG) {
+//                    throw new RuntimeException("null == copyOfG");
+//                }
+//                newGuardList.add(copyOfG);
+//            }
+//            return newGuardStatuses;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param guard to be cloned
+//     * @return GuardType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    GuardType copy(@Nullable GuardType guard) {
+//        if (null != guard) {
+//            GuardType newGuard = new GuardType();
+//            newGuard.setCheckCount(guard.getCheckCount());
+//            newGuard.setLastCheckTime(guard.getLastCheckTime());
+//            newGuard.setLastCheckValue(guard.getLastCheckValue());
+//            newGuard.setName(guard.getName());
+//            newGuard.setLimitType(guard.getLimitType());
+//            newGuard.setLimitValue(guard.getLimitValue());
+//            newGuard.setRecheckTimeMicroSeconds(guard.getRecheckTimeMicroSeconds());
+//            newGuard.setSensorID(guard.getSensorID());
+//            newGuard.setSubField(guard.getSubField());
+//            return newGuard;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param forceTorqueSensorStatus to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    ForceTorqueSensorStatusType copy(ForceTorqueSensorStatusType forceTorqueSensorStatus) {
+//        if (null != forceTorqueSensorStatus) {
+//            ForceTorqueSensorStatusType newForceTorqueSensorStatus = new ForceTorqueSensorStatusType();
+//            newForceTorqueSensorStatus.setSensorID(forceTorqueSensorStatus.getSensorID());
+//            newForceTorqueSensorStatus.setName(forceTorqueSensorStatus.getName());
+//            newForceTorqueSensorStatus.setLastReadTime(forceTorqueSensorStatus.getLastReadTime());
+//            newForceTorqueSensorStatus.setReadCount(forceTorqueSensorStatus.getReadCount());
+//            newForceTorqueSensorStatus.setFx(forceTorqueSensorStatus.getFx());
+//            newForceTorqueSensorStatus.setFy(forceTorqueSensorStatus.getFy());
+//            newForceTorqueSensorStatus.setFz(forceTorqueSensorStatus.getFz());
+//            newForceTorqueSensorStatus.setTx(forceTorqueSensorStatus.getTx());
+//            newForceTorqueSensorStatus.setTy(forceTorqueSensorStatus.getTy());
+//            newForceTorqueSensorStatus.setTz(forceTorqueSensorStatus.getTz());
+//            copyOptionList(newForceTorqueSensorStatus.getSensorParameterSetting(), forceTorqueSensorStatus.getSensorParameterSetting());
+//            return newForceTorqueSensorStatus;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param countSensorStatus to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    CountSensorStatusType copy(CountSensorStatusType countSensorStatus) {
+//        if (null != countSensorStatus) {
+//            CountSensorStatusType newCountSensorStatus = new CountSensorStatusType();
+//            newCountSensorStatus.setLastReadTime(countSensorStatus.getLastReadTime());
+//            newCountSensorStatus.setReadCount(countSensorStatus.getReadCount());
+//            newCountSensorStatus.setSensorID(countSensorStatus.getSensorID());
+//            newCountSensorStatus.setName(countSensorStatus.getName());
+//            newCountSensorStatus.setCountValue(countSensorStatus.getCountValue());
+//            copyOptionList(newCountSensorStatus.getSensorParameterSetting(), countSensorStatus.getSensorParameterSetting());
+//            return newCountSensorStatus;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param scalarSensorStatus to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    ScalarSensorStatusType copy(ScalarSensorStatusType scalarSensorStatus) {
+//        if (null != scalarSensorStatus) {
+//            ScalarSensorStatusType newScalarSensorStatus = new ScalarSensorStatusType();
+//            newScalarSensorStatus.setLastReadTime(scalarSensorStatus.getLastReadTime());
+//            newScalarSensorStatus.setReadCount(scalarSensorStatus.getReadCount());
+//            newScalarSensorStatus.setSensorID(scalarSensorStatus.getSensorID());
+//            newScalarSensorStatus.setName(scalarSensorStatus.getName());
+//            newScalarSensorStatus.setScalarValue(scalarSensorStatus.getScalarValue());
+//            copyOptionList(newScalarSensorStatus.getSensorParameterSetting(), scalarSensorStatus.getSensorParameterSetting());
+//            return newScalarSensorStatus;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param ParameterSettingType to be cloned
+//     * @return ParameterSettingType with same initial values as arg but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    ParameterSettingType copy(ParameterSettingType parmSet) {
+//        if (null != parmSet) {
+//            ParameterSettingType newParmSet = new ParameterSettingType();
+//            newParmSet.setName(parmSet.getName());
+//            newParmSet.setParameterName(parmSet.getParameterName());
+//            newParmSet.setParameterValue(parmSet.getParameterValue());
+//            return newParmSet;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a settings status.
+//     *
+//     * @param onOffSensorStatus to be cloned
+//     * @return SettingsStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    OnOffSensorStatusType copy(OnOffSensorStatusType onOffSensorStatus) {
+//        if (null != onOffSensorStatus) {
+//            OnOffSensorStatusType newOnOffSensorStatus = new OnOffSensorStatusType();
+//            newOnOffSensorStatus.setLastReadTime(onOffSensorStatus.getLastReadTime());
+//            newOnOffSensorStatus.setReadCount(onOffSensorStatus.getReadCount());
+//            newOnOffSensorStatus.setSensorID(onOffSensorStatus.getSensorID());
+//            newOnOffSensorStatus.setName(onOffSensorStatus.getName());
+//            newOnOffSensorStatus.setOn(onOffSensorStatus.isOn());
+//            copyOptionList(newOnOffSensorStatus.getSensorParameterSetting(), onOffSensorStatus.getSensorParameterSetting());
+//            return newOnOffSensorStatus;
+//        }
+//        return null;
+//    }
+//
+//    /**
+//     * Copy or clone a gripper status.
+//     *
+//     * @param status status to be cloned
+//     * @return GripperStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
+//        if (null == status) {
+//            return null;
+//        }
+//        GripperStatusType newStatus = null;
+//        if (status instanceof VacuumGripperStatusType) {
+//            VacuumGripperStatusType vacuumGripperStatus = (VacuumGripperStatusType) status;
+//            VacuumGripperStatusType newVacuumGripperStatus = new VacuumGripperStatusType();
+//            newVacuumGripperStatus.setIsPowered(vacuumGripperStatus.isIsPowered());
+//            newStatus = newVacuumGripperStatus;
+//        } else if (status instanceof ParallelGripperStatusType) {
+//            ParallelGripperStatusType parallelGripperStatus = (ParallelGripperStatusType) status;
+//            ParallelGripperStatusType newParallelGripperStatus = new ParallelGripperStatusType();
+//            newParallelGripperStatus.setSeparation(parallelGripperStatus.getSeparation());
+//            newStatus = newParallelGripperStatus;
+//        } else if (status instanceof ThreeFingerGripperStatusType) {
+//            ThreeFingerGripperStatusType threeFingerGripperStatus = (ThreeFingerGripperStatusType) status;
+//            ThreeFingerGripperStatusType newThreeFingerGripperStatusType = new ThreeFingerGripperStatusType();
+//            newThreeFingerGripperStatusType.setFinger1Force(threeFingerGripperStatus.getFinger1Force());
+//            newThreeFingerGripperStatusType.setFinger2Force(threeFingerGripperStatus.getFinger2Force());
+//            newThreeFingerGripperStatusType.setFinger3Force(threeFingerGripperStatus.getFinger2Force());
+//            newThreeFingerGripperStatusType.setFinger1Position(threeFingerGripperStatus.getFinger1Position());
+//            newThreeFingerGripperStatusType.setFinger2Position(threeFingerGripperStatus.getFinger2Position());
+//            newThreeFingerGripperStatusType.setFinger3Position(threeFingerGripperStatus.getFinger2Position());
+//            newStatus = newThreeFingerGripperStatusType;
+//        }
+//        if (null == newStatus) {
+//            throw new IllegalArgumentException("status has unrecognized subtype" + status.getClass());
+//        }
+//
+//        newStatus.setName(status.getName());
+//        newStatus.setGripperName(status.getGripperName());
+//        final List<ParameterSettingType> optionListOut = newStatus.getGripperOption();
+//        final List<ParameterSettingType> optionListIn = status.getGripperOption();
+//        copyOptionList(optionListOut, optionListIn);
+//        return newStatus;
+//    }
+//
+//    private static void copyOptionList(final List<ParameterSettingType> optionListOut, final List<ParameterSettingType> optionListIn) {
+//        optionListOut.clear();
+//        List<ParameterSettingType> l = new ArrayList<>();
+//        for (ParameterSettingType parmSet : optionListIn) {
+//            l.add(copy(parmSet));
+//        }
+//        optionListOut.addAll(l);
+//    }
+//
+//    /**
+//     * Copy or clone a pose status.
+//     *
+//     * @param status status to be cloned
+//     * @return PoseStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
+//        if (null == status) {
+//            return null;
+//        }
+//        PoseStatusType newStatus = new PoseStatusType();
+//        newStatus.setName(status.getName());
+//        newStatus.setPose(copy(status.getPose()));
 //        newStatus.setConfiguration(status.getConfiguration());
-        return newStatus;
-    }
+//        TwistType twist = copy(status.getTwist());
+//        if (twist != null) {
+//            newStatus.setTwist(twist);
+//        }
+//        WrenchType wrench = copy(status.getWrench());
+//        if (wrench != null) {
+//            newStatus.setWrench(wrench);
+//        }
+////        newStatus.setConfiguration(status.getConfiguration());
+//        return newStatus;
+//    }
+//
+//    /**
+//     * Copy or clone a command status.
+//     *
+//     * @param twist status to be cloned
+//     * @return JointStatusesType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    TwistType copy(/*@Nullable*/TwistType twist) {
+//        if (null == twist) {
+//            return null;
+//        }
+//        TwistType newTwist = new TwistType();
+//        newTwist.setName(twist.getName());
+//        VectorType angularVelocity = copy(twist.getAngularVelocity());
+//        if (null != angularVelocity) {
+//            newTwist.setAngularVelocity(angularVelocity);
+//        }
+//        VectorType linearVelocity = copy(twist.getLinearVelocity());
+//        if (null != linearVelocity) {
+//            newTwist.setLinearVelocity(linearVelocity);
+//        }
+//        return newTwist;
+//    }
 
-    /**
-     * Copy or clone a command status.
-     *
-     * @param twist status to be cloned
-     * @return JointStatusesType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    TwistType copy(/*@Nullable*/TwistType twist) {
-        if (null == twist) {
-            return null;
-        }
-        TwistType newTwist = new TwistType();
-        newTwist.setName(twist.getName());
-        VectorType angularVelocity = copy(twist.getAngularVelocity());
-        if (null != angularVelocity) {
-            newTwist.setAngularVelocity(angularVelocity);
-        }
-        VectorType linearVelocity = copy(twist.getLinearVelocity());
-        if (null != linearVelocity) {
-            newTwist.setLinearVelocity(linearVelocity);
-        }
-        return newTwist;
-    }
-
-    /**
-     * Copy or clone a command status.
-     *
-     * @param wrench status to be cloned
-     * @return JointStatusesType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    WrenchType copy(/*@Nullable*/WrenchType wrench) {
-        if (null == wrench) {
-            return null;
-        }
-        WrenchType newWrench = new WrenchType();
-        newWrench.setName(wrench.getName());
-        VectorType force = copy(wrench.getForce());
-        if (null != force) {
-            newWrench.setForce(force);
-        }
-        VectorType moment = copy(wrench.getMoment());
-        if (null != moment) {
-            newWrench.setMoment(moment);
-        }
-        return newWrench;
-    }
-
-    /**
-     * Copy or clone a command status.
-     *
-     * @param status status to be cloned
-     * @return JointStatusesType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
-        if (null == status) {
-            return null;
-        }
-        JointStatusesType newStatus = new JointStatusesType();
-        newStatus.setName(status.getName());
-        final List<JointStatusType> jl = new ArrayList<>(status.getJointStatus());
-        for (int i = 0; i < jl.size(); i++) {
-            final JointStatusType jointI = jl.get(i);
-            newStatus.getJointStatus().add(copy(jointI));
-        }
-        return newStatus;
-    }
-
-    /**
-     * Copy or clone a command status.
-     *
-     * @param status status to be cloned
-     * @return JointStatusesType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static JointStatusType copy(JointStatusType status) {
-        if (null == status) {
-            throw new IllegalArgumentException("copy(JointStatusType) should not be passed null.");
-        }
-        JointStatusType newStatus = new JointStatusType();
-        newStatus.setName(status.getName());
-        newStatus.setJointNumber(status.getJointNumber());
-        newStatus.setJointPosition(status.getJointPosition());
-        newStatus.setJointVelocity(status.getJointVelocity());
-        newStatus.setJointTorqueOrForce(status.getJointTorqueOrForce());
-        return newStatus;
-    }
-
-    /**
-     * Copy or clone a command status.
-     *
-     * @param status status to be cloned
-     * @return CommandStatusType with same initial values as pose but can be
-     * independently modified.
-     */
-    public static @Nullable
-    CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
-        if (null == status) {
-            return null;
-        }
-        CommandStatusType newStatus = new CommandStatusType();
-        newStatus.setName(status.getName());
-        newStatus.setCommandID(status.getCommandID());
-        newStatus.setCommandState(status.getCommandState());
-        newStatus.setStateDescription(status.getStateDescription());
-        newStatus.setStatusID(status.getStatusID());
-        newStatus.setProgramFile(status.getProgramFile());
-        newStatus.setProgramIndex(status.getProgramIndex());
-        newStatus.setProgramLength(status.getProgramLength());
-        newStatus.setOverridePercent(status.getOverridePercent());
-        return newStatus;
-    }
+//    /**
+//     * Copy or clone a command status.
+//     *
+//     * @param wrench status to be cloned
+//     * @return JointStatusesType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    WrenchType copy(/*@Nullable*/WrenchType wrench) {
+//        if (null == wrench) {
+//            return null;
+//        }
+//        WrenchType newWrench = new WrenchType();
+//        newWrench.setName(wrench.getName());
+//        VectorType force = copy(wrench.getForce());
+//        if (null != force) {
+//            newWrench.setForce(force);
+//        }
+//        VectorType moment = copy(wrench.getMoment());
+//        if (null != moment) {
+//            newWrench.setMoment(moment);
+//        }
+//        return newWrench;
+//    }
+//
+//    /**
+//     * Copy or clone a command status.
+//     *
+//     * @param status status to be cloned
+//     * @return JointStatusesType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
+//        if (null == status) {
+//            return null;
+//        }
+//        JointStatusesType newStatus = new JointStatusesType();
+//        newStatus.setName(status.getName());
+//        final List<JointStatusType> jl = new ArrayList<>(status.getJointStatus());
+//        for (int i = 0; i < jl.size(); i++) {
+//            final JointStatusType jointI = jl.get(i);
+//            newStatus.getJointStatus().add(copy(jointI));
+//        }
+//        return newStatus;
+//    }
+//
+//    /**
+//     * Copy or clone a command status.
+//     *
+//     * @param status status to be cloned
+//     * @return JointStatusesType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static JointStatusType copy(JointStatusType status) {
+//        if (null == status) {
+//            throw new IllegalArgumentException("copy(JointStatusType) should not be passed null.");
+//        }
+//        JointStatusType newStatus = new JointStatusType();
+//        newStatus.setName(status.getName());
+//        newStatus.setJointNumber(status.getJointNumber());
+//        newStatus.setJointPosition(status.getJointPosition());
+//        newStatus.setJointVelocity(status.getJointVelocity());
+//        newStatus.setJointTorqueOrForce(status.getJointTorqueOrForce());
+//        return newStatus;
+//    }
+//
+//    /**
+//     * Copy or clone a command status.
+//     *
+//     * @param status status to be cloned
+//     * @return CommandStatusType with same initial values as pose but can be
+//     * independently modified.
+//     */
+//    public static @Nullable
+//    CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
+//        if (null == status) {
+//            return null;
+//        }
+//        CommandStatusType newStatus = new CommandStatusType();
+//        newStatus.setName(status.getName());
+//        newStatus.setCommandID(status.getCommandID());
+//        newStatus.setCommandState(status.getCommandState());
+//        newStatus.setStateDescription(status.getStateDescription());
+//        newStatus.setStatusID(status.getStatusID());
+//        newStatus.setProgramFile(status.getProgramFile());
+//        newStatus.setProgramIndex(status.getProgramIndex());
+//        newStatus.setProgramLength(status.getProgramLength());
+//        newStatus.setOverridePercent(status.getOverridePercent());
+//        return newStatus;
+//    }
 
     /**
      * Copy or clone the pose.
@@ -992,7 +972,7 @@ public class CRCLPosemath {
                 MoveToType moveToCmdOut = new MoveToType();
                 setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
-                    moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
+                    moveToCmdOut.setEndPosition(copy(moveToCmdIn.getEndPosition()));
                 } else {
                     moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
                 }
@@ -1045,42 +1025,42 @@ public class CRCLPosemath {
         return programOut;
     }
 
-    public static CRCLProgramType copy(CRCLProgramType programIn) {
-        CRCLProgramType programOut = new CRCLProgramType();
-        InitCanonType initCmdOut = new InitCanonType();
-        InitCanonType initCmdIn = programIn.getInitCanon();
-        long id = 1;
-        if (null != initCmdIn) {
-            initCmdOut.setCommandID(initCmdIn.getCommandID());
-            id = initCmdIn.getCommandID();
-            programOut.setInitCanon(initCmdOut);
-        }
-        final List<MiddleCommandType> programInMiddleCommands = programIn.getMiddleCommand();
-        for (MiddleCommandType cmd : programInMiddleCommands) {
-            if (cmd instanceof MoveToType) {
-                MoveToType moveToCmdIn = (MoveToType) cmd;
-                MoveToType moveToCmdOut = new MoveToType();
-                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-                moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
-                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-                for (GuardType g : moveToCmdIn.getGuard()) {
-                    moveToCmdOut.getGuard().add(g);
-                }
-                moveToCmdOut.setName(moveToCmdIn.getName());
-                programOut.getMiddleCommand().add(moveToCmdOut);
-            } else {
-                programOut.getMiddleCommand().add(cmd);
-            }
-            id = Math.max(id, cmd.getCommandID()) + 1;
-        }
-        EndCanonType endCmdOut = new EndCanonType();
-        EndCanonType endCmdIn = programIn.getEndCanon();
-        if (null != endCmdIn) {
-            endCmdOut.setCommandID(endCmdIn.getCommandID());
-        }
-        programOut.setEndCanon(endCmdOut);
-        return programOut;
-    }
+//    public static CRCLProgramType copy(CRCLProgramType programIn) {
+//        CRCLProgramType programOut = new CRCLProgramType();
+//        InitCanonType initCmdOut = new InitCanonType();
+//        InitCanonType initCmdIn = programIn.getInitCanon();
+//        long id = 1;
+//        if (null != initCmdIn) {
+//            initCmdOut.setCommandID(initCmdIn.getCommandID());
+//            id = initCmdIn.getCommandID();
+//            programOut.setInitCanon(initCmdOut);
+//        }
+//        final List<MiddleCommandType> programInMiddleCommands = programIn.getMiddleCommand();
+//        for (MiddleCommandType cmd : programInMiddleCommands) {
+//            if (cmd instanceof MoveToType) {
+//                MoveToType moveToCmdIn = (MoveToType) cmd;
+//                MoveToType moveToCmdOut = new MoveToType();
+//                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+//                moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
+//                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+//                for (GuardType g : moveToCmdIn.getGuard()) {
+//                    moveToCmdOut.getGuard().add(g);
+//                }
+//                moveToCmdOut.setName(moveToCmdIn.getName());
+//                programOut.getMiddleCommand().add(moveToCmdOut);
+//            } else {
+//                programOut.getMiddleCommand().add(cmd);
+//            }
+//            id = Math.max(id, cmd.getCommandID()) + 1;
+//        }
+//        EndCanonType endCmdOut = new EndCanonType();
+//        EndCanonType endCmdIn = programIn.getEndCanon();
+//        if (null != endCmdIn) {
+//            endCmdOut.setCommandID(endCmdIn.getCommandID());
+//        }
+//        programOut.setEndCanon(endCmdOut);
+//        return programOut;
+//    }
 
     /**
      * Compute a transform such that two points on a rigid body taken in one

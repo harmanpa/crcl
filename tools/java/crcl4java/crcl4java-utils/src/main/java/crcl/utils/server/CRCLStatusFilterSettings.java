@@ -35,7 +35,7 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.SettingsStatusType;
 import crcl.base.TorqueUnitEnumType;
-import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLCopier.copy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -318,7 +318,7 @@ public class CRCLStatusFilterSettings {
         final JointStatusesType jointStatusesIn1 = statusIn.getJointStatuses();
         final List<JointStatusType> jointStatusIn1List = (null != jointStatusesIn1) ? jointStatusesIn1.getJointStatus() : null;
         final int jointStatusesIn1ListSize = (null != jointStatusIn1List) ? jointStatusIn1List.size() : -1;
-        CRCLStatusType statusOut = CRCLPosemath.copy(statusIn);
+        CRCLStatusType statusOut = copy(statusIn);
         if (null == statusOut) {
             throw new NullPointerException("statusOut");
         }
@@ -333,17 +333,17 @@ public class CRCLStatusFilterSettings {
         final int jointStatusesIn2ListSize = (null != jointStatusIn2List) ? jointStatusIn2List.size() : -1;
         if (jointStatusesIn2 != jointStatusesIn1) {
             System.out.println("bad copy");
-            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            CRCLStatusType statusOut2 = copy(statusIn);
             throw new RuntimeException("jointStatusesIn2 != jointStatusesIn1");
         }
         if (jointStatusIn2List != jointStatusIn1List) {
             System.out.println("bad copy");
-            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            CRCLStatusType statusOut2 = copy(statusIn);
             throw new RuntimeException("jointStatusIn2List != jointStatusIn1List");
         }
         if (jointStatusesIn2ListSize != jointStatusesIn1ListSize) {
             System.out.println("bad copy");
-            CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+            CRCLStatusType statusOut2 = copy(statusIn);
             throw new RuntimeException("jointStatusesIn2ListSize != jointStatusesIn1ListSize");
         }
         final JointStatusesType statusOutJointStatuses = statusOut.getJointStatuses();
@@ -351,13 +351,13 @@ public class CRCLStatusFilterSettings {
             List<JointStatusType> jointStatusOutList = statusOutJointStatuses.getJointStatus();
             if (jointStatusOutList == null && jointStatusIn1List != null) {
                 System.out.println("bad copy");
-                CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+                CRCLStatusType statusOut2 = copy(statusIn);
                 throw new RuntimeException("joints == null && jointStatusIn1List != null");
             }
             if (null != jointStatusOutList) {
                 if (jointStatusOutList.size() != jointStatusesIn1ListSize) {
                     System.out.println("bad copy");
-                    CRCLStatusType statusOut2 = CRCLPosemath.copy(statusIn);
+                    CRCLStatusType statusOut2 = copy(statusIn);
                     throw new RuntimeException("joints.size() != jointStatusesIn1ListSize");
                 }
             }

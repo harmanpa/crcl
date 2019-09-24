@@ -93,6 +93,8 @@ import static crcl.ui.client.CrclSwingClientJPanel.getTimeString;
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.server.SimServerInner;
 import crcl.utils.AnnotatedPose;
+import crcl.utils.CRCLCopier;
+import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
@@ -604,7 +606,7 @@ public class CrclSwingClientInner {
             boolean ret = commandStatus.getCommandID() == minCmdId
                     && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR;
             if (ret) {
-                lastErrorStat = CRCLPosemath.copy(stat);
+                lastErrorStat = copy(stat);
                 errorStateDescription = commandStatus.getStateDescription();
             }
             return ret;
@@ -1178,7 +1180,7 @@ public class CrclSwingClientInner {
                     final MoveToType moveToCmd = (MoveToType) cmd;
                     final PoseType endPosition = requireNonNull(moveToCmd.getEndPosition(), "moveToCmd.getEndPosition()");
                     final PointType endPositionPoint = requireNonNull(endPosition.getPoint(), "endPosition.getPoint()");
-                    lastMoveToCmdPoint = CRCLPosemath.copy(endPositionPoint);
+                    lastMoveToCmdPoint = copy(endPositionPoint);
                 }
                 CommandLogElement cmdLogEl = new CommandLogElement(cmd, System.currentTimeMillis(), programName, programIndex, crclSocketForSend.toString());
                 lastCommandStatusLogElement = cmdLogEl;
@@ -2226,7 +2228,7 @@ public class CrclSwingClientInner {
                 final CommandStatusType commandStatus = curStatus.getCommandStatus();
                 if (null != commandStatus) {
                     if (poseQueue.size() < 2 * maxPoseListLength + 100) {
-                        CRCLStatusType curStatusCopy = CRCLPosemath.copy(curStatus);
+                        CRCLStatusType curStatusCopy = copy(curStatus);
                         if (null != curStatusCopy) {
                             AnnotatedPose annotatedPose
                                     = new AnnotatedPose(System.currentTimeMillis(),
@@ -3422,7 +3424,7 @@ public class CrclSwingClientInner {
             if (prog != program) {
                 setProgram(prog);
             }
-            CRCLProgramType origProg = CRCLPosemath.copy(prog);
+            CRCLProgramType origProg = copy(prog);
             final int start_close_test_count = this.close_test_count.get();
             lastRunProgramStartLine = startLine;
             holdingErrorOccured = false;
@@ -4012,7 +4014,7 @@ public class CrclSwingClientInner {
             PoseType pose = Optional.ofNullable(this)
                     .map(CrclSwingClientInner::getStatus)
                     .map(CRCLPosemath::getPose)
-                    .map(CRCLPosemath::copy)
+                    .map(CRCLCopier::copy)
                     .orElse(null);
             if (null != pose) {
                 MoveToType moveToOrig = new MoveToType();
