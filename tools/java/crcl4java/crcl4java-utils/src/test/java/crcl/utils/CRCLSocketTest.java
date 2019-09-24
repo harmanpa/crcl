@@ -103,7 +103,6 @@ public class CRCLSocketTest {
             + "    <CommandID>7</CommandID>\n"
             + "    <Message>Hi Mom</Message>\n"
             + "  </MiddleCommand>\n"
-            + "\n"
             + "  <MiddleCommand xsi:type=\"MoveScrewType\">\n"
             + "    <CommandID>8</CommandID>\n"
             + "    <AxisPoint>\n"
@@ -299,16 +298,13 @@ public class CRCLSocketTest {
     static final String programAllXml
             = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!--\n"
-            + "\n"
             + "This is a program file with instances of all CRCL commands in alphabetical\n"
             + "order (except that InitCanon is first and EndCanon is last). The file\n"
             + "is syntactically valid (so it is valid in XMLSpy) but violates semantic\n"
             + "rules given in the in-line documentation of CRCLCommands.xsd, so it\n"
             + "should not be executed.\n"
-            + "\n"
             + "All instances of complexType may be given a Name. This file has a Name\n"
             + "only in the InitCanon command.\n"
-            + "\n"
             + "-->\n"
             + "<CRCLProgram\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -366,7 +362,6 @@ public class CRCLSocketTest {
             + "    <CommandID>7</CommandID>\n"
             + "    <Message>Hi Mom</Message>\n"
             + "  </MiddleCommand>\n"
-            + "\n"
             + "  <MiddleCommand xsi:type=\"MoveScrewType\">\n"
             + "    <CommandID>8</CommandID>\n"
             + "    <AxisPoint>\n"
@@ -562,6 +557,50 @@ public class CRCLSocketTest {
             + "";
 
     private static final String MOVETHROUGHTO_XML
+            = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+            + "<CRCLCommandInstance>\n"
+            + "    <CRCLCommand xsi:type=\"MoveThroughToType\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+            + "        <CommandID>99</CommandID>\n"
+            + "        <MoveStraight>false</MoveStraight>\n"
+            + "        <Waypoint>\n"
+            + "            <Point>\n"
+            + "                <X>1.0</X>\n"
+            + "                <Y>2.0</Y>\n"
+            + "                <Z>3.0</Z>\n"
+            + "            </Point>\n"
+            + "            <XAxis>\n"
+            + "                <I>1.0</I>\n"
+            + "                <J>0.0</J>\n"
+            + "                <K>0.0</K>\n"
+            + "            </XAxis>\n"
+            + "            <ZAxis>\n"
+            + "                <I>0.0</I>\n"
+            + "                <J>0.0</J>\n"
+            + "                <K>1.0</K>\n"
+            + "            </ZAxis>\n"
+            + "        </Waypoint>\n"
+            + "        <Waypoint>\n"
+            + "            <Point>\n"
+            + "                <X>3.0</X>\n"
+            + "                <Y>4.0</Y>\n"
+            + "                <Z>4.0</Z>\n"
+            + "            </Point>\n"
+            + "            <XAxis>\n"
+            + "                <I>1.0</I>\n"
+            + "                <J>0.0</J>\n"
+            + "                <K>0.0</K>\n"
+            + "            </XAxis>\n"
+            + "            <ZAxis>\n"
+            + "                <I>0.0</I>\n"
+            + "                <J>0.0</J>\n"
+            + "                <K>1.0</K>\n"
+            + "            </ZAxis>\n"
+            + "        </Waypoint>\n"
+            + "        <NumPositions>2</NumPositions>\n"
+            + "    </CRCLCommand>\n"
+            + "</CRCLCommandInstance>\n"
+            + " ";
+    private static final String OLD_MOVETHROUGHTO_XML
             = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLCommandInstance>\n"
             + " <CRCLCommand xsi:type=\"MoveThroughToType\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
@@ -731,6 +770,7 @@ public class CRCLSocketTest {
         System.out.println("mttString = " + mttString);
 
         CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
+        System.out.println("mtt2Instance = " + mtt2Instance);
         CRCLCommandInstanceType result = null;
         try {
             result = instance.stringToCommand(str, validate);
