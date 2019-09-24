@@ -26,9 +26,13 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.MoveThroughToType;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -39,9 +43,9 @@ import static org.junit.Assert.*;
  */
 @SuppressWarnings("nullness")
 public class CRCLSocketTest {
-
+    
     private static final Logger LOGGER = Logger.getLogger(CRCLSocketTest.class.getName());
-
+    
     static final String programAllXmlTrimmed
             = "<CRCLProgram\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -556,7 +560,8 @@ public class CRCLSocketTest {
             + "  </EndCanon>\n"
             + "</CRCLProgram>\n"
             + "";
-    private static final String MOVETHROUGHTO_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    private static final String MOVETHROUGHTO_XML
+            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLCommandInstance\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLCommandInstance.xsd\">\n"
@@ -628,7 +633,7 @@ public class CRCLSocketTest {
             + "    <Separation>0.44</Separation>\n"
             + "  </GripperStatus>\n"
             + "</CRCLStatus>";
-
+    
     public CRCLSocketTest() {
     }
 
@@ -643,7 +648,7 @@ public class CRCLSocketTest {
         CRCLSocket s = new CRCLSocket();
         ByteArrayInputStream bais = new ByteArrayInputStream(programAllXml.getBytes());
         String out = s.readUntilEndTag("CRCLProgram", bais);
-
+        
         assertEquals(programAllXmlTrimmed, out);
         bais = new ByteArrayInputStream(STATUS_XML.getBytes());
         boolean validate = false;
@@ -714,7 +719,28 @@ public class CRCLSocketTest {
         String str = MOVETHROUGHTO_XML;
         boolean validate = true;
         CRCLSocket instance = new CRCLSocket();
-        CRCLCommandInstanceType result = instance.stringToCommand(str, validate);
+        CRCLCommandInstanceType result = null;
+        try {
+            result = instance.stringToCommand(str, validate);
+        } catch (CRCLException cRCLException) {
+            File cmdSchemaFiles[] = CRCLSocket.getDefaultCmdSchemaFiles();
+            System.out.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
+            for (int i = 0; i < cmdSchemaFiles.length; i++) {
+                File cmdSchemaFile = cmdSchemaFiles[i];
+                try(BufferedReader br = new BufferedReader(new FileReader(cmdSchemaFile))) {
+                    String line = br.readLine();
+                    while(null != line) {
+                        if(line.contains("version=")) {
+                            System.out.println("file="+cmdSchemaFile+", line = " + line);
+                        }
+                        line = br.readLine();
+                    }
+                }
+            }
+            System.out.println("str = " + str);
+            cRCLException.printStackTrace();
+            throw new RuntimeException(cRCLException);
+        }
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
@@ -776,5 +802,5 @@ public class CRCLSocketTest {
         assertEquals(1, result.getCommandStatus().getCommandID());
         assertEquals(1, result.getCommandStatus().getStatusID());
     }
-
+    
 }
