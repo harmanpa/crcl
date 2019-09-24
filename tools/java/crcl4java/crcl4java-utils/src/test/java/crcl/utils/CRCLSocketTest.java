@@ -717,8 +717,18 @@ public class CRCLSocketTest {
     public void testStringToCommand() throws Exception {
         System.out.println("stringToCommand");
         String str = MOVETHROUGHTO_XML;
+        MoveThroughToType mttt = new MoveThroughToType();
+        mttt.setCommandID(99);
+        mttt.setNumPositions(2);
+        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(1,2,3), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
+        mttt.getWaypoint().add(CRCLPosemath.pose(CRCLPosemath.point(3,4,4), CRCLPosemath.vector(1, 0, 0), CRCLPosemath.vector(0, 0, 1)));
+        CRCLCommandInstanceType mttInstanceType = new CRCLCommandInstanceType();
+        mttInstanceType.setCRCLCommand(mttt);
+        CRCLSocket.cmdToString(mttt);
         boolean validate = true;
         CRCLSocket instance = new CRCLSocket();
+        String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
+        System.out.println("mttString = " + mttString);
         CRCLCommandInstanceType result = null;
         try {
             result = instance.stringToCommand(str, validate);
