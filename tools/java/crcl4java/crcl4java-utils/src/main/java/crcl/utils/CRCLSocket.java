@@ -634,7 +634,7 @@ public class CRCLSocket implements AutoCloseable {
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
-            if(fileI.getName().contains("Status") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
+            if (fileI.getName().contains("Status") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
                 newList.add(fileI);
             }
         }
@@ -708,7 +708,6 @@ public class CRCLSocket implements AutoCloseable {
 //            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-    
     public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
@@ -851,7 +850,7 @@ public class CRCLSocket implements AutoCloseable {
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
-            if(fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
+            if (fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
                 newList.add(fileI);
             }
         }
@@ -1181,22 +1180,22 @@ public class CRCLSocket implements AutoCloseable {
         }
         return socket.isConnected();
     }
-    
+
     public void reconnect() throws IOException {
-        if(null != socketChannel) {
+        if (null != socketChannel) {
             throw new RuntimeException("socketChannel != null");
         }
         Socket socketToReconnect = this.socket;
-        if(null == socketToReconnect) {
+        if (null == socketToReconnect) {
             throw new RuntimeException("null == socket");
         }
         final SocketAddress remoteSocketAddress = socketToReconnect.getRemoteSocketAddress();
-        if(null == remoteSocketAddress) {
+        if (null == remoteSocketAddress) {
             throw new RuntimeException("null == remoteSocketAddress");
         }
         socketToReconnect.connect(remoteSocketAddress);
     }
-    
+
     public boolean isClosed() {
         Socket socket = getSocket();
         if (null == socket) {
@@ -1684,11 +1683,11 @@ public class CRCLSocket implements AutoCloseable {
                 CRCLCommandInstanceType instance
                         = (CRCLCommandInstanceType) el.getValue();
                 if (null == instance) {
-                    throw new RuntimeException("el.getValue() == null : el=" + el+", str="+str);
+                    throw new RuntimeException("el.getValue() == null : el=" + el + ", str=" + str);
                 }
                 return instance;
             } catch (JAXBException ex) {
-                throw new CRCLException("str="+str+" \n"+ex,ex);
+                throw new CRCLException("str=" + str + " \n" + ex, ex);
             }
         }
 
@@ -2117,34 +2116,37 @@ public class CRCLSocket implements AutoCloseable {
         return ret;
     }
 
-    public String commandInstanceToPrettyDocString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException {
-        if (null == cmd.getCRCLCommand()) {
-            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
-        }
-//        if (null == cmd.getCRCLCommand().getCommandID()) {
-//            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
-//        }
-        JAXBElement<CRCLCommandInstanceType> jaxb_cmd
-                = objectFactory.createCRCLCommandInstance(cmd);
-        StringWriter sw = new StringWriter();
-        String ret = null;
-        synchronized (m_cmd) {
-            setMarshallerSchema(m_cmd, validate ? cmdSchema : null);
-            m_cmd.setProperty(Marshaller.JAXB_FRAGMENT, false);
-            m_cmd.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m_cmd.marshal(jaxb_cmd, sw);
-            m_cmd.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-            m_cmd.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
-            String str = sw.toString();
-            if (replaceHeader) {
-                str = removeHeader(str);
-                ret = cmdHeader + str;
-            } else {
-                ret = str;
+    public String commandInstanceToPrettyDocString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
+        try {
+            if (null == cmd.getCRCLCommand()) {
+                throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
             }
+            JAXBElement<CRCLCommandInstanceType> jaxb_cmd
+                    = objectFactory.createCRCLCommandInstance(cmd);
+            StringWriter sw = new StringWriter();
+            String ret = null;
+            checkCommandSchema(validate);
+
+            synchronized (m_cmd) {
+                setMarshallerSchema(m_cmd, validate ? cmdSchema : null);
+                m_cmd.setProperty(Marshaller.JAXB_FRAGMENT, false);
+                m_cmd.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+                m_cmd.marshal(jaxb_cmd, sw);
+                m_cmd.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+                m_cmd.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
+                String str = sw.toString();
+                if (replaceHeader) {
+                    str = removeHeader(str);
+                    ret = cmdHeader + str;
+                } else {
+                    ret = str;
+                }
+            }
+            this.lastCommandString = ret;
+            return ret;
+        } catch (Exception ex) {
+            throw new CRCLException(ex);
         }
-        this.lastCommandString = ret;
-        return ret;
     }
 
     public String programToPrettyString(CRCLProgramType prog, boolean validate) throws CRCLException {
@@ -2231,11 +2233,11 @@ public class CRCLSocket implements AutoCloseable {
             throw new CRCLException(ex);
         }
     }
-    
+
     public void writeCommand(CRCLCommandType cc) throws CRCLException {
         writeCommand(cc, false);
     }
-    
+
     public synchronized void writeCommand(CRCLCommandType cc, boolean validate) throws CRCLException {
         CRCLCommandInstanceType commandInstance = new CRCLCommandInstanceType();
         commandInstance.setCRCLCommand(cc);
@@ -2584,7 +2586,7 @@ public class CRCLSocket implements AutoCloseable {
             }
             return cmdName + " " + content;
         } catch (SAXException sAXException) {
-            throw new SAXException("xmlString=\"" + xmlString+"\"", sAXException);
+            throw new SAXException("xmlString=\"" + xmlString + "\"", sAXException);
         } catch (IOException iOException) {
             throw new IOException("xmlString=" + xmlString, iOException);
         }
