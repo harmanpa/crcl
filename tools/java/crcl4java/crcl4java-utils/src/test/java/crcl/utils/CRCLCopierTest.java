@@ -38,8 +38,10 @@ import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
 import static crcl.utils.CRCLCopier.copy;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
@@ -74,18 +76,18 @@ import rcs.posemath.PmRotationMatrix;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CRCLCopierTest {
-    
+
     public CRCLCopierTest() {
     }
-    
+
     @BeforeClass
     public static void setUpClass() {
     }
-    
+
     @AfterClass
     public static void tearDownClass() {
     }
-    
+
     private PointType pt123 = null;
     private PointType pt321 = null;
     private PmCartesian cart123 = null;
@@ -97,12 +99,12 @@ public class CRCLCopierTest {
     private PoseType pose321 = null;
     private PoseType pose321rot90 = null;
     private PmPose pmPose123 = null;
-    
+
     private static final double DOUBLE_1 = 1.0;
     private static final double DOUBLE_2 = 2.0;
     private static final double DOUBLE_3 = 3.0;
     private static final double DOUBLE_4 = 4.0;
-    
+
     @Before
     public void setUp() {
         pt123 = new PointType();
@@ -148,14 +150,14 @@ public class CRCLCopierTest {
         cart123 = new PmCartesian(1.0, 2.0, 3.0);
         cart321 = new PmCartesian(3.0, 2.0, 1.0);
     }
-    
+
     @After
     public void tearDown() {
     }
 
-     static final private double ASSERT_TOLERANCE_DELTA = 1e-6;
-     
-     private void checkEquals(String msg, double v1, double v2) {
+    static final private double ASSERT_TOLERANCE_DELTA = 1e-6;
+
+    private void checkEquals(String msg, double v1, double v2) {
         assertEquals(msg, v1, v2, ASSERT_TOLERANCE_DELTA);
     }
 
@@ -216,8 +218,7 @@ public class CRCLCopierTest {
         checkEquals(msg + ".getXAxis()", pose1.getXAxis(), pt2.getXAxis());
         checkEquals(msg + ".getZAxis()", pose1.getZAxis(), pt2.getZAxis());
     }
-    
-    
+
     static final String RANDOM_STRING
             = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -516,7 +517,7 @@ public class CRCLCopierTest {
                     System.out.println("clzz = " + clzz);
                     System.out.println("method1 = " + method1);
                     ex.printStackTrace();
-                    throw new RuntimeException("clzz="+clzz+", method1="+method1,ex);
+                    throw new RuntimeException("clzz=" + clzz + ", method1=" + method1, ex);
                 }
             }
             return newObj;
@@ -640,24 +641,38 @@ public class CRCLCopierTest {
         checkEquals("pose", transformedMoveCmd.getEndPosition(), moveCmd.getEndPosition());
 
         try {
-            CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10));
-            String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
             final File randomProgramFile = File.createTempFile("randomProgram", ".xml");
+            try {
+                CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10));
+                String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
 //            System.out.println("randomProgramFile = " + randomProgramFile);
-            try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
-                pw.println(randProgramString);
-            }
-            CRCLProgramType readBackRandProgram = CRCLSocket.readProgramFile(randomProgramFile);
-            reflectiveCheckEquals("readBackRandProgram", randProgram, readBackRandProgram, 0);
+                try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
+                    pw.println(randProgramString);
+                }
+                CRCLProgramType readBackRandProgram = CRCLSocket.readProgramFile(randomProgramFile);
+                reflectiveCheckEquals("readBackRandProgram", randProgram, readBackRandProgram, 0);
 //            System.out.println("randProgramString = " + randProgramString);
-            CRCLProgramType randProgramCopy = copy(randProgram);
-            reflectiveCheckEquals("randProgramCopy", randProgram, randProgramCopy, 0);
-        } catch (Exception exception) {
-            exception.printStackTrace();
+                CRCLProgramType randProgramCopy = copy(randProgram);
+                reflectiveCheckEquals("randProgramCopy", randProgram, randProgramCopy, 0);
+            } catch (Exception exception) {
+                try(BufferedReader br = new BufferedReader(new FileReader(randomProgramFile))) {
+                    String line = br.readLine();
+                    int count = 1;
+                    while(null != line) {
+                        System.out.printf("%04d:    %s", count,line);
+                        count++;
+                        line = br.readLine();
+                    }
+                }
+                exception.printStackTrace();
+                throw new RuntimeException(exception);
+            }
+        } catch (IOException iOException) {
+            iOException.printStackTrace();
+            throw new RuntimeException(iOException);
         }
     }
 
-    
     /**
      * Test of copy method, of class CRCLPosemath.
      */
@@ -739,7 +754,7 @@ public class CRCLCopierTest {
                 throw new RuntimeException(exception);
             }
         } catch (IOException iOException) {
-             iOException.printStackTrace();
+            iOException.printStackTrace();
         }
     }
 
@@ -850,8 +865,7 @@ public class CRCLCopierTest {
         checkEquals("Velocity", result.getJointVelocity(), expResult.getJointVelocity());
         assertTrue(result != status);
     }
-    
-    
+
     /**
      * Test of copy method, of class CRCLPosemath.
      */
