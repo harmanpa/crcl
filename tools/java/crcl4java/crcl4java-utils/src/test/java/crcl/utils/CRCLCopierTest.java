@@ -659,7 +659,7 @@ public class CRCLCopierTest {
                     String line = br.readLine();
                     int count = 1;
                     while(null != line) {
-                        System.out.printf("%04d:    %s", count,line);
+                        System.out.printf("%04d:    %s\n", count,line);
                         count++;
                         line = br.readLine();
                     }
