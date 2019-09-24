@@ -448,6 +448,7 @@ public class CRCLCopierTest {
                     throw new RuntimeException("no available classes for " + clzz);
                 }
                 Class<?> randClzz = availClasses.get(random.nextInt(availClassesSize));
+
                 try {
                     newObj = (T) randClzz.newInstance();
                 } catch (Throwable throwable) {
@@ -461,9 +462,12 @@ public class CRCLCopierTest {
                 throwable.printStackTrace();
                 return null;
             }
+            Class newObjClass = newObj.getClass();
             randomFillObjectFields(clzz.getFields(), newObj, random);
             randomFillObjectFields(clzz.getDeclaredFields(), newObj, random);
-            Method method[] = clzz.getMethods();
+            randomFillObjectFields(newObjClass.getFields(), newObj, random);
+            randomFillObjectFields(newObjClass.getDeclaredFields(), newObj, random);
+            Method method[] = newObjClass.getMethods();
             if (clzz.getName().contains("DisableGripperType")) {
                 System.out.println("clzz = " + clzz);
             }
@@ -520,6 +524,19 @@ public class CRCLCopierTest {
                     throw new RuntimeException("clzz=" + clzz + ", method1=" + method1, ex);
                 }
             }
+//            if (newObj instanceof crcl.base.RunProgramType) {
+//                System.out.println("here");
+//            } else if (newObj instanceof crcl.base.EnableGripperType) {
+//                System.out.println("here");
+//            }
+            
+            if (null == newObj) {
+                throw new NullPointerException("newObj = " + newObj);
+            }
+            checkForNullObjectFields(clzz.getFields(), newObj);
+            checkForNullObjectFields(clzz.getDeclaredFields(), newObj);
+            checkForNullObjectFields(newObjClass.getFields(), newObj);
+            checkForNullObjectFields(newObjClass.getDeclaredFields(), newObj);
             return newObj;
         }
     }
@@ -616,6 +633,29 @@ public class CRCLCopierTest {
                 field.set(newObj, reflectiveRandomGenerate(field.getType(), random));
             } catch (Exception ex) {
                 ex.printStackTrace();
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    private <T> void checkForNullObjectFields(Field[] fields, T newObj) {
+        for (int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            try {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                if (Collection.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                Object obj = field.get(newObj);
+                if (null == obj) {
+                    throw new NullPointerException("field=" + field + ", newObj=" + newObj);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
         }
     }
@@ -642,8 +682,9 @@ public class CRCLCopierTest {
 
         try {
             final File randomProgramFile = File.createTempFile("randomProgram", ".xml");
+            CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10));
             try {
-                CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10));
+
                 String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
 //            System.out.println("randomProgramFile = " + randomProgramFile);
                 try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
@@ -655,11 +696,14 @@ public class CRCLCopierTest {
                 CRCLProgramType randProgramCopy = copy(randProgram);
                 reflectiveCheckEquals("randProgramCopy", randProgram, randProgramCopy, 0);
             } catch (Exception exception) {
-                try(BufferedReader br = new BufferedReader(new FileReader(randomProgramFile))) {
+                System.out.println("randomProgramFile = " + randomProgramFile);
+                System.out.println("randProgram = " + randProgram);
+                System.out.println("exception.getMessage() = " + exception.getMessage());
+                try (BufferedReader br = new BufferedReader(new FileReader(randomProgramFile))) {
                     String line = br.readLine();
                     int count = 1;
-                    while(null != line) {
-                        System.out.printf("%04d:    %s\n", count,line);
+                    while (null != line) {
+                        System.out.printf("%04d:    %s\n", count, line);
                         count++;
                         line = br.readLine();
                     }
