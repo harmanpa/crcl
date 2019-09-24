@@ -562,10 +562,8 @@ public class CRCLSocketTest {
             + "";
     private static final String MOVETHROUGHTO_XML
             = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<CRCLCommandInstance\n"
-            + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-            + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLCommandInstance.xsd\">\n"
-            + "  <CRCLCommand xsi:type=\"MoveThroughToType\">\n"
+            + "<CRCLCommandInstance>\n"
+            + " <CRCLCommand xsi:type=\"MoveThroughToType\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
             + "    <CommandID>2</CommandID>\n"
             + "    <MoveStraight>false</MoveStraight>\n"
             + "    <Waypoint>\n"
@@ -597,7 +595,6 @@ public class CRCLSocketTest {
             + "<CRCLStatus\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLStatus.xsd\">\n"
-            + "\n"
             + "  <CommandStatus>\n"
             + "    <CommandID>1</CommandID>\n"
             + "    <StatusID>1</StatusID>\n"
