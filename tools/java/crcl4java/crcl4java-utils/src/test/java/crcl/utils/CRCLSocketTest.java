@@ -775,20 +775,6 @@ public class CRCLSocketTest {
         try {
             result = instance.stringToCommand(str, validate);
         } catch (CRCLException cRCLException) {
-            File cmdSchemaFiles[] = CRCLSocket.getDefaultCmdSchemaFiles();
-            System.out.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
-            for (int i = 0; i < cmdSchemaFiles.length; i++) {
-                File cmdSchemaFile = cmdSchemaFiles[i];
-                try (BufferedReader br = new BufferedReader(new FileReader(cmdSchemaFile))) {
-                    String line = br.readLine();
-                    while (null != line) {
-                        if (line.contains("version=")) {
-                            System.out.println("file=" + cmdSchemaFile + ", line = " + line);
-                        }
-                        line = br.readLine();
-                    }
-                }
-            }
             System.out.println("str = " + str);
             cRCLException.printStackTrace();
             throw new RuntimeException(cRCLException);
@@ -796,7 +782,7 @@ public class CRCLSocketTest {
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
-        assertEquals(2, c.getCommandID());
+        assertEquals(99, c.getCommandID());
         assertEquals(2, moveCommand.getNumPositions());
     }
 
@@ -819,7 +805,7 @@ public class CRCLSocketTest {
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);
         final MoveThroughToType moveCommand = (MoveThroughToType) c;
-        assertEquals(2, c.getCommandID());
+        assertEquals(99, c.getCommandID());
         assertEquals(2, moveCommand.getNumPositions());
     }
 
