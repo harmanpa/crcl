@@ -803,7 +803,11 @@ public class CRCLSocket implements AutoCloseable {
             }
             ps = new PrintStream(new FileOutputStream(schemaListFile));
             for (int i = 0; i < fa.length; i++) {
-                String elementCanonicalPath = fa[i].getCanonicalPath();
+                final File fai = fa[i];
+                if(null == fai) {
+                    throw new NullPointerException("fa="+Arrays.toString(fa)+", contains null at i="+i);
+                }
+                String elementCanonicalPath = fai.getCanonicalPath();
                 if (elementCanonicalPath.startsWith(schemaParentPath)) {
                     elementCanonicalPath = elementCanonicalPath.substring(schemaParentPath.length() + 1);
                 }
@@ -862,6 +866,7 @@ public class CRCLSocket implements AutoCloseable {
                 newList.add(fileI);
             }
         }
+        System.out.println("reorderAndFilterCommandSchemaFiles: newList = " + newList);
         Collections.sort(newList, new Comparator<File>() {
 
             @Override
@@ -869,6 +874,7 @@ public class CRCLSocket implements AutoCloseable {
                 return o1.getName().compareTo(o2.getName());
             }
         });
+        System.out.println("reorderAndFilterCommandSchemaFiles: newList = " + newList);
         int cmdInstanceIndex = -1;
         for (int i = 0; i < newList.size(); i++) {
             final File fileI = newList.get(i);
@@ -885,7 +891,7 @@ public class CRCLSocket implements AutoCloseable {
             CRCLSocket.commandXsdFile = f;
             fl.add(0, f);
         }
-        return fl;
+        return newList;
     }
 
     public static File[] reorderProgramSchemaFiles(File[] fa) {
