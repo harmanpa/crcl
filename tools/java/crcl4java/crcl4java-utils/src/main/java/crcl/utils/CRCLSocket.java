@@ -45,6 +45,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -804,8 +805,8 @@ public class CRCLSocket implements AutoCloseable {
             ps = new PrintStream(new FileOutputStream(schemaListFile));
             for (int i = 0; i < fa.length; i++) {
                 final File fai = fa[i];
-                if(null == fai) {
-                    throw new NullPointerException("fa="+Arrays.toString(fa)+", contains null at i="+i);
+                if (null == fai) {
+                    throw new NullPointerException("fa=" + Arrays.toString(fa) + ", contains null at i=" + i);
                 }
                 String elementCanonicalPath = fai.getCanonicalPath();
                 if (elementCanonicalPath.startsWith(schemaParentPath)) {
@@ -828,16 +829,23 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings("nullness")
-    private static <T> T[] toNonNullArray(List<T> list,
-            T inArray[], /*@NonNull*/ T altArray[]) {
+    @SuppressWarnings({"nullness","unchecked"})
+    private static <T> T[] toNonNullArray(List<T> list, Class<T> clzz) {
+        final T[] zeroArray = (T[]) Array.newInstance(clzz, 0);
         if (null == list) {
-            return altArray;
+            return zeroArray;
+        }
+        List<T> listCopy = new ArrayList<>(list);
+        for (int i = 0; i < list.size(); i++) {
+            if(list.get(i) == null) {
+                list.remove(i);
+                i--;
+            }
         }
         @Nullable
-        T nullableArray[] = list.toArray(inArray);
+        T nullableArray[] = listCopy.toArray(zeroArray);
         if (nullableArray == null) {
-            return altArray;
+            return zeroArray;
         }
         return (/*@NonNull*/T[]) nullableArray;
     }
@@ -850,7 +858,7 @@ public class CRCLSocket implements AutoCloseable {
         fl.addAll(Arrays.asList(fa));
         List<File> newList = reorderAndFilterCommandSchemaFiles(fl);
         if (newList != null) {
-            return toNonNullArray(newList, fa, EMPTY_FILE_ARRAY);
+            return toNonNullArray(newList,File.class);
         }
         return EMPTY_FILE_ARRAY;
     }
@@ -889,8 +897,9 @@ public class CRCLSocket implements AutoCloseable {
             File f = newList.remove(cmdInstanceIndex);
             System.out.println("reorderAndFilterCommandSchemaFiles: newList.remove(cmdInstanceIndex) = " + f);
             CRCLSocket.commandXsdFile = f;
-            fl.add(0, f);
+            newList.add(0, f);
         }
+        System.out.println("reorderAndFilterCommandSchemaFiles: returning newList = " + newList);
         return newList;
     }
 
@@ -900,7 +909,7 @@ public class CRCLSocket implements AutoCloseable {
         }
         List<File> fl = new ArrayList<>();
         fl.addAll(Arrays.asList(fa));
-        return toNonNullArray(fl, fa, EMPTY_FILE_ARRAY);
+        return toNonNullArray(fl, File.class);
     }
 
     public static List<File> reorderProgramSchemaFiles(List<File> fl) {
@@ -949,7 +958,7 @@ public class CRCLSocket implements AutoCloseable {
         try {
             List<File> fl = readSchemaListFile(schemaListFile);
             fl = reorderAndFilterCommandSchemaFiles(fl);
-            return toNonNullArray(fl, EMPTY_FILE_ARRAY, EMPTY_FILE_ARRAY);
+            return toNonNullArray(fl, File.class);
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
             if (ex instanceof RuntimeException) {
