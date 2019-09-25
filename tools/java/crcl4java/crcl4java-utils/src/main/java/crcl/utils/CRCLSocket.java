@@ -753,11 +753,15 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private static List<File> readSchemaListFile(File schemaListFile) throws IOException {
+        Thread.dumpStack();
+        System.out.println("Thread.currentThread() = " + Thread.currentThread());
+        System.out.println("readSchemaListFile: schemaListFile = " + schemaListFile);
         List<File> fl = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
             String line = null;
 
             while (null != (line = br.readLine())) {
+                System.out.println("readSchemaListFile: line = " + line);
                 File file = new File(line.trim());
                 if (file.isAbsolute()) {
                     fl.add(file);
@@ -803,6 +807,7 @@ public class CRCLSocket implements AutoCloseable {
                 if (elementCanonicalPath.startsWith(schemaParentPath)) {
                     elementCanonicalPath = elementCanonicalPath.substring(schemaParentPath.length() + 1);
                 }
+                System.out.println("saveSchemaListFile: elementCanonicalPath = " + elementCanonicalPath);
                 ps.println(elementCanonicalPath);
             }
         } catch (Exception ex) {
@@ -847,9 +852,12 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
+        Thread.dumpStack();
+        System.out.println("Thread.currentThread() = " + Thread.currentThread());
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
+            System.out.println("reorderAndFilterCommandSchemaFiles: fl.get(i) = " + fileI);
             if (fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
                 newList.add(fileI);
             }
@@ -863,13 +871,17 @@ public class CRCLSocket implements AutoCloseable {
         });
         int cmdInstanceIndex = -1;
         for (int i = 0; i < newList.size(); i++) {
-            if (newList.get(i).getName().contains("CommandInstance")) {
+            final File fileI = newList.get(i);
+            System.out.println("reorderAndFilterCommandSchemaFiles: newList.get(i) = " + fileI);
+            if (fileI.getName().contains("CommandInstance")) {
                 cmdInstanceIndex = i;
+                System.out.println("cmdInstanceIndex = " + cmdInstanceIndex);
                 break;
             }
         }
         if (cmdInstanceIndex > 0 && cmdInstanceIndex < newList.size()) {
             File f = newList.remove(cmdInstanceIndex);
+            System.out.println("reorderAndFilterCommandSchemaFiles: newList.remove(cmdInstanceIndex) = " + f);
             CRCLSocket.commandXsdFile = f;
             fl.add(0, f);
         }
@@ -909,6 +921,10 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static File[] readCmdSchemaFiles(File schemaListFile) {
+        System.out.println("readCmdSchemaFiles: schemaListFile = " + schemaListFile);
+        if (null != schemaListFile) {
+            System.out.println("schemaListFile.exists() = " + schemaListFile.exists());
+        }
         if (schemaListFile.exists()
                 && SCHEMA_CHANGE_TIME > 0
                 && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
@@ -977,6 +993,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static void saveCmdSchemaFiles(File schemasListFile, File fa[]) {
+        System.out.println("saveCmdSchemaFiles: fa = " + Arrays.toString(fa));
         if (null == fa) {
             return;
         }
@@ -1130,14 +1147,13 @@ public class CRCLSocket implements AutoCloseable {
     private volatile StackTraceElement cmdSchemSetTrace @Nullable []  = null;
     private volatile File @Nullable [] cmdSchemaFiles = null;
 
-    public File  @Nullable[] getCmdSchemaFiles() {
+    public File @Nullable [] getCmdSchemaFiles() {
         return cmdSchemaFiles;
     }
 
     public void setCmdSchemaFiles(File[] cmdSchemaFiles) {
         this.cmdSchemaFiles = cmdSchemaFiles;
     }
-    
 
     public static @Nullable
     File getCmdSchemasFile() {

@@ -769,6 +769,9 @@ public class CRCLSocketTest {
         CRCLSocket instance = new CRCLSocket();
         try {
             String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
+            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
+            System.err.println("cmdSchema = " + instance.getCmdSchema());
+            System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
             System.out.println("mttString = " + mttString);
 
             CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
