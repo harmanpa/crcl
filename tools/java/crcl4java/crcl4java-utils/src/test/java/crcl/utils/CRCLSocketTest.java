@@ -767,9 +767,6 @@ public class CRCLSocketTest {
     @Test
     public void testReadCommandFromStream() throws Exception {
         System.out.println("readCommandFromStream");
-//        byte ba[] = new byte[MOVETHROUGHTO_XML.length()*2];
-//        System.arraycopy(MOVETHROUGHTO_XML.getBytes(), 0, ba, 0, MOVETHROUGHTO_XML.length());
-        //System.arraycopy(MOVETHROUGHTO_XML.getBytes(), 0, ba, MOVETHROUGHTO_XML.length(), MOVETHROUGHTO_XML.length());
         InputStream is = new ByteArrayInputStream(MOVETHROUGHTO_XML.getBytes());
         boolean validate = true;
         CRCLSocket instance = new CRCLSocket();
