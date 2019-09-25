@@ -76,6 +76,7 @@ import crcl.utils.CRCLSocket;
 import crcl.utils.Utils;
 import crcl.utils.XFuture;
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.BindException;
@@ -1387,6 +1388,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private volatile @MonotonicNonNull
     Schema cmdSchema = null;
+    
+    private volatile File @Nullable [] cmdSchemaFiles
+            = null;
 
     private volatile @MonotonicNonNull
     Schema statSchema = null;
@@ -1400,6 +1404,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.cmdSchema = cmdSchema;
     }
 
+    public File @Nullable [] getCmdSchemaFiles() {
+        return cmdSchemaFiles;
+    }
+
+    public void setCmdSchemaFiles(File[] cmdSchemaFiles) {
+        this.cmdSchemaFiles = cmdSchemaFiles;
+    }
+
+    
+    
     public @Nullable
     Schema getStatSchema() {
         return statSchema;
@@ -1509,6 +1523,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         }
                         if (null != cmdSchema) {
                             crclSocket.setCmdSchema(cmdSchema);
+                             crclSocket.setCmdSchema(cmdSchema);
                         }
 
                         SelectionKey newKey

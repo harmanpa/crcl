@@ -925,12 +925,15 @@ public class CrclSwingClientInner {
             this.cmdSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setCmdSchema(cmdSchema);
+                this.crclSocket.setCmdSchemaFiles(fa);
             }
             if (null != this.crclEmergencyStopSocket) {
                 this.crclEmergencyStopSocket.setCmdSchema(cmdSchema);
+                this.crclEmergencyStopSocket.setCmdSchemaFiles(fa);
             }
             if (null != this.crclStatusPollingSocket) {
                 this.crclStatusPollingSocket.setCmdSchema(cmdSchema);
+                this.crclStatusPollingSocket.setCmdSchemaFiles(fa);
             }
         } catch (CRCLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -2453,6 +2456,9 @@ public class CrclSwingClientInner {
                 newCrclSocket.setCmdSchema(cmdSchema);
                 newPollingSocket.setCmdSchema(cmdSchema);
                 newEmergencyStopSocket.setCmdSchema(cmdSchema);
+                newCrclSocket.setCmdSchemaFiles(cmdSchemaFiles);
+                newPollingSocket.setCmdSchemaFiles(cmdSchemaFiles);
+                newEmergencyStopSocket.setCmdSchemaFiles(cmdSchemaFiles);
             }
             LOGGER.log(Level.FINE, "PendantClientInner.connect : crclSocket = " + crclSocket);
             outer.finishConnect();
@@ -5281,7 +5287,7 @@ public class CrclSwingClientInner {
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
                 throw new RuntimeException("prepRunCurrentProgram.disconnecting");
             }
-            if (readStatusResult== null) {
+            if (readStatusResult == null) {
                 throw new RuntimeException("readStatus(crclReadSocket) returned null");
             }
             return readStatusResult;

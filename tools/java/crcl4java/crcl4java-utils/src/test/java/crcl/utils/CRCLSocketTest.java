@@ -765,19 +765,23 @@ public class CRCLSocketTest {
         mttInstanceType.setCRCLCommand(mttt);
         CRCLSocket.cmdToString(mttt);
         boolean validate = true;
-        CRCLSocket instance = new CRCLSocket();
-        String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
-        System.out.println("mttString = " + mttString);
-
-        CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
-        System.out.println("mtt2Instance = " + mtt2Instance);
         CRCLCommandInstanceType result = null;
+        CRCLSocket instance = new CRCLSocket();
         try {
+            String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
+            System.out.println("mttString = " + mttString);
+
+            CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
+            System.out.println("mtt2Instance = " + mtt2Instance);
+
             result = instance.stringToCommand(str, validate);
-        } catch (CRCLException cRCLException) {
+        } catch (Exception ex) {
             System.out.println("str = " + str);
-            cRCLException.printStackTrace();
-            throw new RuntimeException(cRCLException);
+            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
+            System.err.println("cmdSchema = " + instance.getCmdSchema());
+            System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
         final CRCLCommandType c = result.getCRCLCommand();
         assertTrue(c != null && c instanceof MoveThroughToType);

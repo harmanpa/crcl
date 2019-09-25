@@ -1128,6 +1128,25 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private volatile StackTraceElement cmdSchemSetTrace @Nullable []  = null;
+    private volatile File @Nullable [] cmdSchemaFiles = null;
+
+    public File  @Nullable[] getCmdSchemaFiles() {
+        return cmdSchemaFiles;
+    }
+
+    public void setCmdSchemaFiles(File[] cmdSchemaFiles) {
+        this.cmdSchemaFiles = cmdSchemaFiles;
+    }
+    
+
+    public static @Nullable
+    File getCmdSchemasFile() {
+        return cmdSchemasFile;
+    }
+
+    public StackTraceElement[] getCmdSchemSetTrace() {
+        return cmdSchemSetTrace;
+    }
 
     public CRCLSocket(@Nullable Socket socket, @Nullable Schema cmdSchema, @Nullable Schema statSchema, @Nullable Schema programSchema) {
         this.socket = socket;
@@ -1935,6 +1954,7 @@ public class CRCLSocket implements AutoCloseable {
                         Schema cmdSchemaFromFiles = CRCLSocket.filesToCmdSchema(fa);
                         if (null != cmdSchemaFromFiles) {
                             setCmdSchema(cmdSchemaFromFiles);
+                            setCmdSchemaFiles(fa);
                         }
                     }
                 } else {
