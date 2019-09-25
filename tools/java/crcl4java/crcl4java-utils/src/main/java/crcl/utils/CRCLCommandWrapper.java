@@ -83,6 +83,8 @@ public class CRCLCommandWrapper extends MessageType {
         this.name = wrappedCommand.getName();
         if (wrappedCommand instanceof MessageType) {
             this.message = ((MessageType) wrappedCommand).getMessage();
+        } else {
+            this.message = "name="+this.name+", wrappedCommand="+wrappedCommand;
         }
     }
 

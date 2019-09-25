@@ -1937,6 +1937,9 @@ public class CRCLSocket implements AutoCloseable {
                     }
                 } else {
                     setCmdSchema(defaultCmdSchema);
+                    if(null == cmdSchemaFiles)  {
+                        cmdSchemaFiles = defaultCmdSchemaFiles;
+                    }
                 }
             }
         }
@@ -2102,8 +2105,11 @@ public class CRCLSocket implements AutoCloseable {
                 }
             }
         } catch (Exception exception) {
+            System.out.println("");
+            System.out.flush();
             System.err.println("cmdSchemSetTrace = " + Utils.traceToString(this.cmdSchemSetTrace));
-            LOGGER.log(Level.SEVERE, "sw=" + sw.toString() + ", cmd=" + cmd + ",, validate=" + validate, exception);
+            System.err.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
+            LOGGER.log(Level.SEVERE, "sw=\n" + sw.toString() + "\n, cmd=" + cmd + ",, validate=" + validate, exception);
             if (exception instanceof RuntimeException) {
                 throw (RuntimeException) exception;
             } else {
