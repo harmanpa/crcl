@@ -375,7 +375,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
                     public void actionPerformed(ActionEvent e) {
                         try {
                             pendantClientJPanel1.openXmlInstanceFile(xmlFile);
-                        } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
+                        } catch (Exception ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                             showMessage(ex);
                         }

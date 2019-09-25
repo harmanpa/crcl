@@ -2914,7 +2914,7 @@ public class CrclSwingClientJPanel
         internal.clearCrclClientErrorMessage();
     }
 
-    private void saveRecentCommandInstance(CRCLCommandInstanceType cmdInstance) throws JAXBException, IOException {
+    private void saveRecentCommandInstance(CRCLCommandInstanceType cmdInstance) throws Exception {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmdInstance, true);
         File fDir = new File(Utils.getCrclUserHomeDir(), recent_files_dir);
@@ -2965,7 +2965,7 @@ public class CrclSwingClientJPanel
         }
     }
 
-    public void saveRecentCommand(CRCLCommandType cmd) throws JAXBException, IOException {
+    public void saveRecentCommand(CRCLCommandType cmd) throws Exception {
         CRCLCommandInstanceType instanceForSave = new CRCLCommandInstanceType();
         instanceForSave.setCRCLCommand(cmd);
         this.saveRecentCommandInstance(instanceForSave);
@@ -2996,7 +2996,7 @@ public class CrclSwingClientJPanel
             try {
                 File f = chooser.getSelectedFile();
                 openXmlInstanceFile(f);
-            } catch (SAXException | JAXBException | CRCLException | IOException | XPathExpressionException | ParserConfigurationException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex);
             }
@@ -3219,7 +3219,7 @@ public class CrclSwingClientJPanel
     }
 
     @SuppressWarnings("nullness")
-    public void openXmlInstanceFile(File f) throws CRCLException, SAXException, JAXBException, IOException, ParserConfigurationException, XPathExpressionException {
+    public void openXmlInstanceFile(File f) throws Exception {
         String s = internal.getXpu().queryXml(f, "/");
         CRCLCommandInstanceType cmdInstance
                 = internal.getTempCRCLSocket().stringToCommand(s, internal.isValidateXmlSchema());

@@ -41,7 +41,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
@@ -58,9 +57,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -203,7 +200,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
                     public void actionPerformed(ActionEvent e) {
                         try {
                             pendantClientJPanel1.openXmlInstanceFile(xmlFile);
-                        } catch (ParserConfigurationException | CRCLException | JAXBException | XPathExpressionException | IOException | SAXException ex) {
+                        } catch (Exception ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                             showMessage(ex);
                         }
