@@ -678,37 +678,6 @@ public class CRCLSocket implements AutoCloseable {
         return EMPTY_FILE_ARRAY;
     }
 
-//    public static void main(String[] args) {
-//        try {
-//            try {
-//                System.out.println(CommandStateEnumType.class.getField("CRCL_WORKING").get(null));
-//            } catch (NoSuchFieldException ex) {
-//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//            } catch (SecurityException ex) {
-//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//            } catch (IllegalArgumentException ex) {
-//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//            } catch (IllegalAccessException ex) {
-//                Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//            String intname = int.class.getName();
-//            System.out.println("intname = " + intname);
-//            InputStream is
-//                    = resourceAsStream("CRCLStatus.xsd");
-//            System.out.println("is = " + is);
-//            Document doc
-//                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
-//            System.out.println("doc = " + doc);
-//            Element el = doc.getDocumentElement();
-//            System.out.println("el = " + el);
-//            String version = el.getAttribute("version");
-//            NamedNodeMap map = doc.getAttributes();
-//            System.out.println("map = " + map);
-//            System.out.println("version = " + version);
-//        } catch (SAXException | ParserConfigurationException | IOException ex) {
-//            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
     public static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
@@ -754,15 +723,11 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private static List<File> readSchemaListFile(File schemaListFile) throws IOException {
-        Thread.dumpStack();
-        System.out.println("Thread.currentThread() = " + Thread.currentThread());
-        System.out.println("readSchemaListFile: schemaListFile = " + schemaListFile);
         List<File> fl = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
             String line = null;
 
             while (null != (line = br.readLine())) {
-                System.out.println("readSchemaListFile: line = " + line);
                 File file = new File(line.trim());
                 if (file.isAbsolute()) {
                     fl.add(file);
@@ -812,7 +777,6 @@ public class CRCLSocket implements AutoCloseable {
                 if (elementCanonicalPath.startsWith(schemaParentPath)) {
                     elementCanonicalPath = elementCanonicalPath.substring(schemaParentPath.length() + 1);
                 }
-                System.out.println("saveSchemaListFile: elementCanonicalPath = " + elementCanonicalPath);
                 ps.println(elementCanonicalPath);
             }
         } catch (Exception ex) {
@@ -829,7 +793,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings({"nullness","unchecked"})
+    @SuppressWarnings({"nullness", "unchecked"})
     private static <T> T[] toNonNullArray(List<T> list, Class<T> clzz) {
         final T[] zeroArray = (T[]) Array.newInstance(clzz, 0);
         if (null == list) {
@@ -837,7 +801,7 @@ public class CRCLSocket implements AutoCloseable {
         }
         List<T> listCopy = new ArrayList<>(list);
         for (int i = 0; i < list.size(); i++) {
-            if(listCopy.get(i) == null) {
+            if (listCopy.get(i) == null) {
                 listCopy.remove(i);
                 i--;
             }
@@ -858,23 +822,19 @@ public class CRCLSocket implements AutoCloseable {
         fl.addAll(Arrays.asList(fa));
         List<File> newList = reorderAndFilterCommandSchemaFiles(fl);
         if (newList != null) {
-            return toNonNullArray(newList,File.class);
+            return toNonNullArray(newList, File.class);
         }
         return EMPTY_FILE_ARRAY;
     }
 
     public static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
-        Thread.dumpStack();
-        System.out.println("Thread.currentThread() = " + Thread.currentThread());
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
-            System.out.println("reorderAndFilterCommandSchemaFiles: fl.get(i) = " + fileI);
             if (fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
                 newList.add(fileI);
             }
         }
-        System.out.println("reorderAndFilterCommandSchemaFiles: newList = " + newList);
         Collections.sort(newList, new Comparator<File>() {
 
             @Override
@@ -882,24 +842,19 @@ public class CRCLSocket implements AutoCloseable {
                 return o1.getName().compareTo(o2.getName());
             }
         });
-        System.out.println("reorderAndFilterCommandSchemaFiles: newList = " + newList);
         int cmdInstanceIndex = -1;
         for (int i = 0; i < newList.size(); i++) {
             final File fileI = newList.get(i);
-            System.out.println("reorderAndFilterCommandSchemaFiles: newList.get(i) = " + fileI);
             if (fileI.getName().contains("CommandInstance")) {
                 cmdInstanceIndex = i;
-                System.out.println("cmdInstanceIndex = " + cmdInstanceIndex);
                 break;
             }
         }
         if (cmdInstanceIndex > 0 && cmdInstanceIndex < newList.size()) {
             File f = newList.remove(cmdInstanceIndex);
-            System.out.println("reorderAndFilterCommandSchemaFiles: newList.remove(cmdInstanceIndex) = " + f);
             CRCLSocket.commandXsdFile = f;
             newList.add(0, f);
         }
-        System.out.println("reorderAndFilterCommandSchemaFiles: returning newList = " + newList);
         return newList;
     }
 
@@ -936,10 +891,6 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static File[] readCmdSchemaFiles(File schemaListFile) {
-        System.out.println("readCmdSchemaFiles: schemaListFile = " + schemaListFile);
-        if (null != schemaListFile) {
-            System.out.println("schemaListFile.exists() = " + schemaListFile.exists());
-        }
         if (schemaListFile.exists()
                 && SCHEMA_CHANGE_TIME > 0
                 && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
@@ -952,7 +903,6 @@ public class CRCLSocket implements AutoCloseable {
             saveCmdSchemaFiles(schemaListFile, findSchemaFiles());
         }
         if (!schemaListFile.exists()) {
-//            showMessage("Could not find CRCL Schema xsd files.");
             throw new IllegalStateException(schemaListFile + " does not exist.");
         }
         try {
@@ -1008,7 +958,6 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public static void saveCmdSchemaFiles(File schemasListFile, File fa[]) {
-        System.out.println("saveCmdSchemaFiles: fa = " + Arrays.toString(fa));
         if (null == fa) {
             return;
         }
@@ -1117,7 +1066,6 @@ public class CRCLSocket implements AutoCloseable {
                     System.out.println("jaxbProDeom = " + jaxbProDeom);
                 }
                 protectionDomainChecked = true;
-//                System.setProperty("com.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize","true");
                 if (javaClassVersion.compareTo("52.0") > 0) {
                     String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
                     boolean useEclipseJaxb = false;
@@ -1128,7 +1076,9 @@ public class CRCLSocket implements AutoCloseable {
                         Class<?> eclipselinkClass;
                         try {
                             eclipselinkClass = Class.forName("org.eclipse.persistence.jaxb.JAXBContextFactory");
-                            System.out.println("eclipselinkClass = " + eclipselinkClass);
+                            if (DEBUG_JAXB_SELECTION) {
+                                System.out.println("eclipselinkClass = " + eclipselinkClass);
+                            }
                             ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
                             LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
                             System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
@@ -1194,7 +1144,6 @@ public class CRCLSocket implements AutoCloseable {
     public CRCLSocket(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
         this.socket = socketChannel.socket();
-//        creatorInfo = addCrclSocketCreator(socket.getPort(),socket.getLocalPort(),true);
     }
 
     public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
@@ -1205,7 +1154,6 @@ public class CRCLSocket implements AutoCloseable {
             LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
             throw iOException;
         }
-//        creatorInfo = addCrclSocketCreator(port,socket.getLocalPort(),false);
     }
 
     public CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
@@ -1220,7 +1168,6 @@ public class CRCLSocket implements AutoCloseable {
             LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
             throw iOException;
         }
-//         creatorInfo = addCrclSocketCreator(port,socket.getLocalPort(),false);
     }
 
     public boolean isConnected() {

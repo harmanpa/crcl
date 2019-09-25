@@ -714,40 +714,6 @@ public class CRCLSocketTest {
     }
 
     /**
-     * Test of readStatusFromStream method, of class CRCLSocket.
-     */
-//    @Test
-//    public void testReadUntilEndTagOld() throws Exception {
-//        System.out.println("readUntilEndTag");
-//        CRCLSocket s = new CRCLSocket();
-//        ByteArrayInputStream bais = new ByteArrayInputStream(programAllXml.getBytes());
-//        String out = s.readUntilEndTagOld("CRCLProgram", bais);
-//        
-//        assertEquals(out, programAllXmlTrimmed);
-//        bais = new ByteArrayInputStream(STATUS_XML.getBytes());
-//        boolean validate = false;
-//        CRCLSocket instance = new CRCLSocket();
-//        String str = instance.readUntilEndTagOld("CRCLStatus", bais);
-//        CRCLStatusType result = instance.stringToStatus(str, validate);
-//        assertEquals(1, result.getCommandStatus().getCommandID());
-//        assertEquals(1, result.getCommandStatus().getStatusID());
-//        bais = new ByteArrayInputStream((STATUS_XML + STATUS_XML).getBytes());
-//        str = instance.readUntilEndTagOld("CRCLStatus", bais);
-//        result = instance.stringToStatus(str, validate);
-//        assertEquals(1, result.getCommandStatus().getCommandID());
-//        assertEquals(1, result.getCommandStatus().getStatusID());
-//        str = instance.readUntilEndTagOld("CRCLStatus", bais);
-//        result = instance.stringToStatus(str, validate);
-//        assertEquals(1, result.getCommandStatus().getCommandID());
-//        assertEquals(1, result.getCommandStatus().getStatusID());
-//        str = instance.readUntilEndTagOld("CRCLStatus",
-//                new ByteArrayInputStream("  <CRCLStatus name=\"foo\" /> ".getBytes()));
-//        assertEquals(str, "<CRCLStatus name=\"foo\" />");
-//        str = instance.readUntilEndTagOld("CRCLStatus",
-//                new ByteArrayInputStream("  <CRCLStatus name=\"foo\" >  </CRCLStatus garbage-here  >  ".getBytes()));
-//        assertEquals(str, "<CRCLStatus name=\"foo\" >  </CRCLStatus garbage-here  >");
-//    }
-    /**
      * Test of stringToCommand method, of class CRCLSocket.
      *
      * @throws java.lang.Exception
@@ -769,13 +735,13 @@ public class CRCLSocketTest {
         CRCLSocket instance = new CRCLSocket();
         try {
             String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
-            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
-            System.err.println("cmdSchema = " + instance.getCmdSchema());
-            System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
-            System.out.println("mttString = " + mttString);
+//            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
+//            System.err.println("cmdSchema = " + instance.getCmdSchema());
+//            System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
+//            System.out.println("mttString = " + mttString);
 
             CRCLCommandInstanceType mtt2Instance = instance.stringToCommand(mttString, validate);
-            System.out.println("mtt2Instance = " + mtt2Instance);
+//            System.out.println("mtt2Instance = " + mtt2Instance);
 
             result = instance.stringToCommand(str, validate);
         } catch (Exception ex) {
