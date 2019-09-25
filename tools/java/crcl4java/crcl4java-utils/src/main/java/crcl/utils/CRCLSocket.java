@@ -837,8 +837,8 @@ public class CRCLSocket implements AutoCloseable {
         }
         List<T> listCopy = new ArrayList<>(list);
         for (int i = 0; i < list.size(); i++) {
-            if(list.get(i) == null) {
-                list.remove(i);
+            if(listCopy.get(i) == null) {
+                listCopy.remove(i);
                 i--;
             }
         }
