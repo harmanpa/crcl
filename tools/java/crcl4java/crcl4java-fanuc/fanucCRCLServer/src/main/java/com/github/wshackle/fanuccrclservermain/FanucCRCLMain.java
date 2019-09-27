@@ -102,6 +102,7 @@ import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
+import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -851,13 +852,13 @@ public class FanucCRCLMain {
         if (null != crclServerSocket && null != serverSocketStatus) {
             synchronized (status) {
                 synchronized (crclServerSocket) {
-                    serverSocketStatus.setJointStatuses(CRCLPosemath.copy(status.getJointStatuses()));
+                    serverSocketStatus.setJointStatuses(copy(status.getJointStatuses()));
                     if (null == status.getPoseStatus()) {
-                        serverSocketStatus.setPoseStatus(CRCLPosemath.copy(poseStatus));
+                        serverSocketStatus.setPoseStatus(copy(poseStatus));
                     } else {
-                        serverSocketStatus.setPoseStatus(CRCLPosemath.copy(status.getPoseStatus()));
+                        serverSocketStatus.setPoseStatus(copy(status.getPoseStatus()));
                     }
-                    serverSocketStatus.setGripperStatus(CRCLPosemath.copy(status.getGripperStatus()));
+                    serverSocketStatus.setGripperStatus(copy(status.getGripperStatus()));
                 }
             }
         }
@@ -867,12 +868,12 @@ public class FanucCRCLMain {
 //        if (null != crclServerSocket && null != serverSocketStatus) {
 //            synchronized (status) {
 //                synchronized (crclServerSocket) {
-////                    status.setCommandStatus(CRCLPosemath.copy(serverSocketStatus.getCommandStatus()));
-//                    status.setSensorStatuses(CRCLPosemath.copy(serverSocketStatus.getSensorStatuses()));
-//                    status.setSettingsStatus(CRCLPosemath.copy(serverSocketStatus.getSettingsStatus()));
-//                    status.setJointStatuses(CRCLPosemath.copy(serverSocketStatus.getJointStatuses()));
-////                    status.setPoseStatus(CRCLPosemath.copy(serverSocketStatus.getPoseStatus()));
-//                    status.setGripperStatus(CRCLPosemath.copy(serverSocketStatus.getGripperStatus()));
+////                    status.setCommandStatus(copy(serverSocketStatus.getCommandStatus()));
+//                    status.setSensorStatuses(copy(serverSocketStatus.getSensorStatuses()));
+//                    status.setSettingsStatus(copy(serverSocketStatus.getSettingsStatus()));
+//                    status.setJointStatuses(copy(serverSocketStatus.getJointStatuses()));
+////                    status.setPoseStatus(copy(serverSocketStatus.getPoseStatus()));
+//                    status.setGripperStatus(copy(serverSocketStatus.getGripperStatus()));
 //                }
 //            }
 //        }
@@ -979,7 +980,7 @@ public class FanucCRCLMain {
                                 moveDoneTime = System.currentTimeMillis();
                             } else if ((System.currentTimeMillis() - moveDoneTime) > 20) {
                                 try {
-                                    lastDoneMovePose = CRCLPosemath.copy(mtPrev.getEndPosition());
+                                    lastDoneMovePose = copy(mtPrev.getEndPosition());
                                     lastDoneMoveCommandID = mtPrev.getCommandID();
 //                                            logDebug("mtPrev.getCommandID() = " + mtPrev.getCommandID());
 //                                            logDebug("mtPrev.getEndPosition().getPoint().getZ() = " + mtPrev.getEndPosition().getPoint().getZ());
@@ -1800,7 +1801,7 @@ public class FanucCRCLMain {
         moveReasons = new ArrayList<>();
         distances = new ArrayList<>();
         moveChecksDone = 0;
-        moveToStartPosition = CRCLPosemath.copy(status.getPoseStatus().getPose());
+        moveToStartPosition = copy(status.getPoseStatus().getPose());
         posReg97Updated = false;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         PointType moveCmdEndPt = moveCmd.getEndPosition().getPoint();
