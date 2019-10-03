@@ -9,7 +9,7 @@
  * Code this software is not subject to copyright protection and is in the
  * public domain.
  * 
- * This software is experimental. NIST assumes no responsibility whatsoever 
+ * This software is experimental. NIFST assumes no responsibility whatsoever 
  * for its use by other parties, and makes no guarantees, expressed or 
  * implied, about its quality, reliability, or any other characteristic. 
  * We would appreciate acknowledgement if the software is used. 
@@ -1544,6 +1544,7 @@ public class CrclSwingClientInner {
      */
     public void stopMotion(StopConditionEnumType stopType) {
 
+        int ccc = connectChangeCount.incrementAndGet();
         try {
             StopMotionType stop = new StopMotionType();
             stop.setStopCondition(stopType);
@@ -1561,6 +1562,8 @@ public class CrclSwingClientInner {
             } else {
                 throw new RuntimeException(exception);
             }
+        } finally {
+            connectChangeCount.incrementAndGet();
         }
     }
 
@@ -1569,7 +1572,7 @@ public class CrclSwingClientInner {
             InitCanonType init = new InitCanonType();
             init.setCommandID(Math.max(1, commandId.get() - 3));
             this.sendCommand(init);
-            waitForDone(init.getCommandID(), 2000, this.pause_count.get());
+            waitForDone(init.getCommandID(), 2000, this.pause_count.get(), connectChangeCount.get());
             return init.getCommandID();
         } catch (Exception exception) {
             LOGGER.log(Level.SEVERE, "", exception);
@@ -1642,7 +1645,11 @@ public class CrclSwingClientInner {
      * @throws javax.xml.bind.JAXBException when there is a failure creating the
      * XML
      */
-    public WaitForDoneResult waitForDone(final long minCmdId, final long timeoutMilliSeconds, final int pause_count_start)
+    public WaitForDoneResult waitForDone(
+            final long minCmdId,
+            final long timeoutMilliSeconds,
+            final int pause_count_start,
+            final int connect_change_count_start)
             throws InterruptedException, JAXBException {
 
         try {
@@ -1703,6 +1710,10 @@ public class CrclSwingClientInner {
                 this.setStatus(newStatus);
                 if (this.pause_count.get() != pause_count_start || this.paused) {
                     return WaitForDoneResult.WFD_PAUSED;
+                }
+                final int ccc_now = this.connectChangeCount.get();
+                if (ccc_now != connect_change_count_start) {
+                    throw new RuntimeException("this.connectChangeCount.get() != connect_change_count_start " + ccc_now + " != " + connect_change_count_start);
                 }
                 timeDiff = System.currentTimeMillis() - start;
                 lastWaitForDoneTimeDiff = timeDiff;
@@ -2409,6 +2420,7 @@ public class CrclSwingClientInner {
     private volatile int socketRemotePort = -1;
 
     public synchronized void connect(String host, int port) {
+        int ccc = connectChangeCount.incrementAndGet();
         try {
             if (isConnected()) {
                 final String errmsg = "Already connected :  " + this.crclSocket + ", timeSinceConnect=" + (System.currentTimeMillis() - connnectTime) + ", connectThread=" + connectThread;
@@ -2465,6 +2477,8 @@ public class CrclSwingClientInner {
         } catch (CRCLException | IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage("Can't connect to " + host + ":" + port + " -- " + ex.getMessage());
+        } finally {
+            connectChangeCount.incrementAndGet();
         }
     }
 
@@ -2495,78 +2509,85 @@ public class CrclSwingClientInner {
         this.preClosing = preClosing;
     }
 
+    private final AtomicInteger connectChangeCount = new AtomicInteger();
+
     public synchronized void disconnect() {
 
-        if (!preClosing && isRunningProgram()) {
-            showErrorMessage("diconnect while isRunningProgram");
-            throw new IllegalStateException("diconnect while isRunningProgram");
-        }
-        if (!preClosing && debugConnectDisconnect) {
-            System.err.println("crclSocket = " + crclSocket);
-            Thread.dumpStack();
-        }
-        disconnectThread = Thread.currentThread();
-        disconnectTrace = disconnectThread.getStackTrace();
-        disconnnectTime = System.currentTimeMillis();
+        int ccc = connectChangeCount.incrementAndGet();
+        try {
+            if (!preClosing && isRunningProgram()) {
+                showErrorMessage("diconnect while isRunningProgram");
+                throw new IllegalStateException("diconnect while isRunningProgram");
+            }
+            if (!preClosing && debugConnectDisconnect) {
+                System.err.println("crclSocket = " + crclSocket);
+                Thread.dumpStack();
+            }
+            disconnectThread = Thread.currentThread();
+            disconnectTrace = disconnectThread.getStackTrace();
+            disconnnectTime = System.currentTimeMillis();
 
-        disconnectCount.incrementAndGet();
-        if (debugConnectDisconnect) {
-            System.out.println("disconnectCount = " + disconnectCount.get());
-        }
-        disconnecting = true;
-        initSent = false;
-        stopStatusReaderThread();
-        closeTestProgramThread();
-        outer.stopPollTimer();
-        if (null != crclSocket) {
-            LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclSocket = " + crclSocket);
+            disconnectCount.incrementAndGet();
+            if (debugConnectDisconnect) {
+                System.out.println("disconnectCount = " + disconnectCount.get());
+            }
+            disconnecting = true;
+            initSent = false;
+            stopStatusReaderThread();
+            closeTestProgramThread();
+            outer.stopPollTimer();
+            if (null != crclSocket) {
+                LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclSocket = " + crclSocket);
 //            System.err.println("crclSocket = " + crclSocket);
 //            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
-            try {
-                crclSocket.close();
+                try {
+                    crclSocket.close();
 
-                Thread.sleep(100);
-            } catch (Exception ex) {
-                if (!preClosing) {
-                    LOGGER.log(Level.SEVERE, "crclSocket=" + crclSocket, ex);
-                    throw new RuntimeException(ex);
+                    Thread.sleep(100);
+                } catch (Exception ex) {
+                    if (!preClosing) {
+                        LOGGER.log(Level.SEVERE, "crclSocket=" + crclSocket, ex);
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
-        }
-        if (null != crclEmergencyStopSocket) {
-            LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclEmergencyStopSocket = " + crclEmergencyStopSocket);
+            if (null != crclEmergencyStopSocket) {
+                LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclEmergencyStopSocket = " + crclEmergencyStopSocket);
 //            System.err.println("crclSocket = " + crclSocket);
 //            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
-            try {
-                crclEmergencyStopSocket.close();
-                Thread.sleep(100);
-            } catch (Exception ex) {
-                if (!preClosing) {
-                    LOGGER.log(Level.SEVERE, "crclEmergencyStopSocket=" + crclEmergencyStopSocket, ex);
-                    throw new RuntimeException(ex);
+                try {
+                    crclEmergencyStopSocket.close();
+                    Thread.sleep(100);
+                } catch (Exception ex) {
+                    if (!preClosing) {
+                        LOGGER.log(Level.SEVERE, "crclEmergencyStopSocket=" + crclEmergencyStopSocket, ex);
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
-        }
-        if (null != crclStatusPollingSocket) {
-            LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclStatusPollingSocket = " + crclStatusPollingSocket);
+            if (null != crclStatusPollingSocket) {
+                LOGGER.log(Level.FINE, "PendantClientInner.disconnect : crclStatusPollingSocket = " + crclStatusPollingSocket);
 //            System.err.println("crclSocket = " + crclSocket);
 //            System.err.println("crclSocket.getLocalPort() = " + crclSocket.getLocalPort());
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
-            try {
-                crclStatusPollingSocket.close();
-                Thread.sleep(100);
-            } catch (Exception ex) {
-                if (!preClosing) {
-                    LOGGER.log(Level.SEVERE, "crclStatusPollingSocket=" + crclStatusPollingSocket, ex);
-                    throw new RuntimeException(ex);
+                try {
+                    crclStatusPollingSocket.close();
+                    Thread.sleep(100);
+                } catch (Exception ex) {
+                    if (!preClosing) {
+                        LOGGER.log(Level.SEVERE, "crclStatusPollingSocket=" + crclStatusPollingSocket, ex);
+                        throw new RuntimeException(ex);
+                    }
                 }
             }
+            stopStatusReaderThread();
+            closeTestProgramThread();
+            outer.finishDisconnect();
+        } finally {
+            connectChangeCount.incrementAndGet();
         }
-        stopStatusReaderThread();
-        closeTestProgramThread();
-        outer.finishDisconnect();
     }
 
     public void stopStatusReaderThread() {
@@ -3642,6 +3663,11 @@ public class CrclSwingClientInner {
             return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
 
         } catch (Exception ex) {
+            try {
+                stopMotion(StopConditionEnumType.FAST);
+            } catch (Exception exception) {
+                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, exception);
+            }
             Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", ex);
             System.err.println("startLine = " + startLine);
             System.err.println("index = " + index);
@@ -3670,14 +3696,6 @@ public class CrclSwingClientInner {
             }
             throw new RuntimeException(newExMsg, ex);
         } finally {
-            try {
-                if (null != crclSocket) {
-                    stopMotion(StopConditionEnumType.FAST);
-                }
-            } catch (Exception exception) {
-                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, exception);
-            }
-
             setOutgoingProgramIndex(-1);
             this.runEndMillis = System.currentTimeMillis();
             outer.checkPollSelected();
@@ -4667,6 +4685,7 @@ public class CrclSwingClientInner {
         final int startingConnectCount = connectCount.get();
         final int startingDisconnectCount = disconnectCount.get();
         int pause_count_start = this.pause_count.get();
+        int ccc_start = this.connectChangeCount.incrementAndGet();
         final int orig_pause_count_start = pause_count_start;
         do {
             int pause_check = this.pause_count.get();
@@ -4691,7 +4710,7 @@ public class CrclSwingClientInner {
                         }
                     }
                     boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
-                    wfdResult = waitForDone(id, timeout, pause_count_start);
+                    wfdResult = waitForDone(id, timeout, pause_count_start, ccc_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
                         break;
                     }
@@ -4764,7 +4783,7 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("Id of command to send already matches status id : messageString=" + messageString);
             }
             sendCommandTime = System.currentTimeMillis();
-            wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start);
+            wfdResult = waitForDone(cmd.getCommandID(), timeout, pause_count_start, ccc_start);
             if (cmd instanceof CRCLCommandWrapper) {
                 CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
                 if (wfdResult == WaitForDoneResult.WFD_DONE) {

@@ -1411,28 +1411,6 @@ public class CRCLSocket implements AutoCloseable {
             }
         }
 
-        if (null == socket || socket.isClosed()) {
-            cmdSchema = null;
-            statSchema = null;
-            programSchema = null;
-            if (null != exception) {
-                throw exception;
-            }
-            return;
-        }
-
-        try {
-            socket.shutdownInput();
-        } catch (IOException iOException) {
-            exception = iOException;
-        }
-
-        try {
-            socket.shutdownOutput();
-        } catch (IOException iOException) {
-            exception = iOException;
-        }
-
         try {
             socket.close();
         } catch (IOException iOException) {
@@ -1937,7 +1915,7 @@ public class CRCLSocket implements AutoCloseable {
                     }
                 } else {
                     setCmdSchema(defaultCmdSchema);
-                    if(null == cmdSchemaFiles)  {
+                    if (null == cmdSchemaFiles) {
                         cmdSchemaFiles = defaultCmdSchemaFiles;
                     }
                 }

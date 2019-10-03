@@ -580,14 +580,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private BlockingQueue<CRCLServerSocketEvent<STATE_TYPE>> queue = new LinkedBlockingQueue<>();
 
     public void comleteGuardTrigger() {
-        if(null != serverSideStatus) {
+        if (null != serverSideStatus) {
             long now = System.currentTimeMillis();
             long timeDiff = now - this.guardTriggerStartTime;
-            long timeDiffMicros = 1000*timeDiff;
+            long timeDiffMicros = 1000 * timeDiff;
             serverSideStatus.getGuardsStatuses().setTriggerStopTimeMicros(timeDiffMicros);
         }
     }
-    
+
     private void handleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws Exception {
         if (closing) {
             return;
@@ -1388,7 +1388,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private volatile @MonotonicNonNull
     Schema cmdSchema = null;
-    
+
     private volatile File @Nullable [] cmdSchemaFiles
             = null;
 
@@ -1412,8 +1412,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.cmdSchemaFiles = cmdSchemaFiles;
     }
 
-    
-    
     public @Nullable
     Schema getStatSchema() {
         return statSchema;
@@ -1523,7 +1521,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         }
                         if (null != cmdSchema) {
                             crclSocket.setCmdSchema(cmdSchema);
-                             crclSocket.setCmdSchema(cmdSchema);
+                            crclSocket.setCmdSchema(cmdSchema);
                         }
 
                         SelectionKey newKey
@@ -1554,6 +1552,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                 for (CRCLCommandInstanceType instance : cmdInstances) {
                                     handleEvent(CRCLServerSocketEvent.commandRecieved(state, instance));
                                 }
+                            } else {
+                                try {
+                                    s.close();
+                                    key.cancel();
+                                    for (int j = 0; j < clients.size(); j++) {
+                                        CRCLServerClientInfo c = clients.get(j);
+                                        if (Objects.equals(c.getSocket(), crclSocket)) {
+                                            clients.remove(c);
+                                        }
+                                    }
+                                } catch (Exception exception) {
+                                    handleEvent(CRCLServerSocketEvent.exceptionOccured(state, exception));
+                                }
                             }
                         } catch (Exception ex) {
                             if (!closing && (!(ex instanceof ClosedChannelException) && !(ex.getCause() instanceof ClosedChannelException))) {
@@ -1562,15 +1573,25 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                         .getLogger(CRCLServerSocket.class
                                                 .getName()).log(Level.SEVERE, "", ex);
                             }
-                            try {
-                                s.close();
-                                selectorForRun.selectedKeys().remove(key);
-                            } catch (Exception exception) {
-                            }
                             handleEvent(CRCLServerSocketEvent.exceptionOccured(state, ex));
                             try {
-                                crclSocket.close();
+                                s.close();
+                                key.cancel();
+
                             } catch (Exception exception) {
+                                handleEvent(CRCLServerSocketEvent.exceptionOccured(state, exception));
+                            }
+
+                            try {
+                                crclSocket.close();
+                                for (int j = 0; j < clients.size(); j++) {
+                                    CRCLServerClientInfo c = clients.get(j);
+                                    if (Objects.equals(c.getSocket(), crclSocket)) {
+                                        clients.remove(c);
+                                    }
+                                }
+                            } catch (Exception exception) {
+                                handleEvent(CRCLServerSocketEvent.exceptionOccured(state, exception));
                             }
                         }
                     } catch (Exception ex2) {
@@ -1941,7 +1962,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private volatile long guardTriggerStartTime = -1;
-    
+
     private void triggerGuard(double value, STATE_TYPE guard_client_state, CRCLCommandInstanceType commandInstance, GuardType guard) throws Exception {
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
@@ -1949,7 +1970,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus.getGuardsStatuses()) {
             serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
         }
-        if(guard.getLastCheckTime() != null) {
+        if (guard.getLastCheckTime() != null) {
             guardTriggerStartTime = guard.getLastCheckTime();
         } else {
             guardTriggerStartTime = System.currentTimeMillis();
@@ -1979,10 +2000,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
         }
         guard.setLastCheckTime(stat.getLastReadTime());
-        if(null == guard.getCheckCount()) {
+        if (null == guard.getCheckCount()) {
             guard.setCheckCount(1L);
         } else {
-            guard.setCheckCount(guard.getCheckCount()+1);
+            guard.setCheckCount(guard.getCheckCount() + 1);
         }
         if (stat instanceof ForceTorqueSensorStatusType) {
             ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;
@@ -2068,7 +2089,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final STATE_TYPE guard_client_state,
             final long cmdID,
             final CRCLCommandInstanceType commandInstance) {
-        if(null == serverSideStatus) {
+        if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
         long delayMillis = MAX_GUARDS_CHECK_DELAY_MILLIS;
