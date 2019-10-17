@@ -4,101 +4,64 @@
 // start_segment_index = 70
 // start_segment_index = 80
 // segment_index = 7
-// classesSegList=[class crcl.base.SetTorqueUnitsType, class crcl.base.SetEndEffectorParametersType, class crcl.base.SetTransSpeedType, class crcl.base.ScalarSensorStatusType, class crcl.base.MoveThroughToType, class crcl.base.ParallelGripperStatusType, class crcl.base.JointSpeedAccelType, class crcl.base.GuardedMoveToType, class crcl.base.PoseStatusType, class crcl.base.ConfigureJointReportType]
+// classesSegList=[class crcl.base.CommandStatusType, class crcl.base.SetRotAccelType, class crcl.base.ParallelGripperStatusType, class crcl.base.JointSpeedAccelType, class crcl.base.JointForceTorqueType, class crcl.base.ConfigureJointReportType, class crcl.base.EnableRobotParameterStatusType, class crcl.base.VectorType, class crcl.base.JointStatusesType, class crcl.base.CommandStateEnumType]
 
 namespace crclj {
 
 
-// class_index = 0 clss=class crcl.base.SetTorqueUnitsType
+// class_index = 0 clss=class crcl.base.CommandStatusType
 
     namespace crcl{
         namespace base{
             
-            class SetTorqueUnitsType : public MiddleCommandType {
+            class CommandStatusType : public DataThingType {
             public:
-                SetTorqueUnitsType(jobject _jthis, bool copy);
-                SetTorqueUnitsType(const SetTorqueUnitsType &);
-                static SetTorqueUnitsType cast(const ::crclj::java::lang::Object &);
+                CommandStatusType(jobject _jthis, bool copy);
+                CommandStatusType(const CommandStatusType &);
+                static CommandStatusType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                SetTorqueUnitsType();
-                ~SetTorqueUnitsType();
-                TorqueUnitEnumType getUnitName();
-                void setUnitName(const TorqueUnitEnumType & torqueUnitEnumType_0);
-            }; // end class SetTorqueUnitsType
+                CommandStatusType();
+                ~CommandStatusType();
+                jlong getCommandID();
+                void setCommandID(jlong long_0);
+                jstring getProgramFile();
+                void setProgramFile(jstring string_0);
+                void setProgramFile(const char * easyArg_0);
+                ::crclj::java::lang::Integer getProgramIndex();
+                void setProgramIndex(const ::crclj::java::lang::Integer & integer_0);
+                ::crclj::java::lang::Integer getProgramLength();
+                void setProgramLength(const ::crclj::java::lang::Integer & integer_0);
+                jlong getStatusID();
+                void setStatusID(jlong long_0);
+                CommandStateEnumType getCommandState();
+                void setCommandState(const CommandStateEnumType & commandStateEnumType_0);
+                jstring getStateDescription();
+                void setStateDescription(jstring string_0);
+                void setStateDescription(const char * easyArg_0);
+                ::crclj::java::lang::Integer getOverridePercent();
+                void setOverridePercent(const ::crclj::java::lang::Integer & integer_0);
+            }; // end class CommandStatusType
 
 
-    // class_index = 1 clss=class crcl.base.SetEndEffectorParametersType
+    // class_index = 1 clss=class crcl.base.SetRotAccelType
 
             
-            class SetEndEffectorParametersType : public MiddleCommandType {
+            class SetRotAccelType : public MiddleCommandType {
             public:
-                SetEndEffectorParametersType(jobject _jthis, bool copy);
-                SetEndEffectorParametersType(const SetEndEffectorParametersType &);
-                static SetEndEffectorParametersType cast(const ::crclj::java::lang::Object &);
+                SetRotAccelType(jobject _jthis, bool copy);
+                SetRotAccelType(const SetRotAccelType &);
+                static SetRotAccelType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                SetEndEffectorParametersType();
-                ~SetEndEffectorParametersType();
-                ::crclj::java::util::List getParameterSetting();
-            }; // end class SetEndEffectorParametersType
+                SetRotAccelType();
+                ~SetRotAccelType();
+                RotAccelType getRotAccel();
+                void setRotAccel(const RotAccelType & rotAccelType_0);
+            }; // end class SetRotAccelType
 
 
-    // class_index = 2 clss=class crcl.base.SetTransSpeedType
-
-            
-            class SetTransSpeedType : public MiddleCommandType {
-            public:
-                SetTransSpeedType(jobject _jthis, bool copy);
-                SetTransSpeedType(const SetTransSpeedType &);
-                static SetTransSpeedType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                SetTransSpeedType();
-                ~SetTransSpeedType();
-                TransSpeedType getTransSpeed();
-                void setTransSpeed(const TransSpeedType & transSpeedType_0);
-            }; // end class SetTransSpeedType
-
-
-    // class_index = 3 clss=class crcl.base.ScalarSensorStatusType
-
-            
-            class ScalarSensorStatusType : public SensorStatusType {
-            public:
-                ScalarSensorStatusType(jobject _jthis, bool copy);
-                ScalarSensorStatusType(const ScalarSensorStatusType &);
-                static ScalarSensorStatusType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                ScalarSensorStatusType();
-                ~ScalarSensorStatusType();
-                jdouble getScalarValue();
-                void setScalarValue(jdouble double_0);
-            }; // end class ScalarSensorStatusType
-
-
-    // class_index = 4 clss=class crcl.base.MoveThroughToType
-
-            
-            class MoveThroughToType : public MiddleCommandType {
-            public:
-                MoveThroughToType(jobject _jthis, bool copy);
-                MoveThroughToType(const MoveThroughToType &);
-                static MoveThroughToType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                MoveThroughToType();
-                ~MoveThroughToType();
-                jboolean isMoveStraight();
-                void setMoveStraight(jboolean boolean_0);
-                ::crclj::java::util::List getWaypoint();
-                jint getNumPositions();
-                void setNumPositions(jint int_0);
-            }; // end class MoveThroughToType
-
-
-    // class_index = 5 clss=class crcl.base.ParallelGripperStatusType
+    // class_index = 2 clss=class crcl.base.ParallelGripperStatusType
 
             
             class ParallelGripperStatusType : public GripperStatusType {
@@ -115,7 +78,7 @@ namespace crclj {
             }; // end class ParallelGripperStatusType
 
 
-    // class_index = 6 clss=class crcl.base.JointSpeedAccelType
+    // class_index = 3 clss=class crcl.base.JointSpeedAccelType
 
             
             class JointSpeedAccelType : public JointDetailsType {
@@ -134,50 +97,26 @@ namespace crclj {
             }; // end class JointSpeedAccelType
 
 
-    // class_index = 7 clss=class crcl.base.GuardedMoveToType
+    // class_index = 4 clss=class crcl.base.JointForceTorqueType
 
             
-            class GuardedMoveToType : public MiddleCommandType {
+            class JointForceTorqueType : public JointDetailsType {
             public:
-                GuardedMoveToType(jobject _jthis, bool copy);
-                GuardedMoveToType(const GuardedMoveToType &);
-                static GuardedMoveToType cast(const ::crclj::java::lang::Object &);
+                JointForceTorqueType(jobject _jthis, bool copy);
+                JointForceTorqueType(const JointForceTorqueType &);
+                static JointForceTorqueType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                GuardedMoveToType();
-                ~GuardedMoveToType();
-                PoseType getEndPosition();
-                void setEndPosition(const PoseType & poseType_0);
-                jboolean isMoveStraight();
-                void setMoveStraight(jboolean boolean_0);
-            }; // end class GuardedMoveToType
+                JointForceTorqueType();
+                ~JointForceTorqueType();
+                ::crclj::java::lang::Double getSetting();
+                void setSetting(const ::crclj::java::lang::Double & double_0);
+                ::crclj::java::lang::Double getChangeRate();
+                void setChangeRate(const ::crclj::java::lang::Double & double_0);
+            }; // end class JointForceTorqueType
 
 
-    // class_index = 8 clss=class crcl.base.PoseStatusType
-
-            
-            class PoseStatusType : public DataThingType {
-            public:
-                PoseStatusType(jobject _jthis, bool copy);
-                PoseStatusType(const PoseStatusType &);
-                static PoseStatusType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                PoseStatusType();
-                ~PoseStatusType();
-                PoseType getPose();
-                void setPose(const PoseType & poseType_0);
-                TwistType getTwist();
-                void setTwist(const TwistType & twistType_0);
-                WrenchType getWrench();
-                void setWrench(const WrenchType & wrenchType_0);
-                jstring getConfiguration();
-                void setConfiguration(jstring string_0);
-                void setConfiguration(const char * easyArg_0);
-            }; // end class PoseStatusType
-
-
-    // class_index = 9 clss=class crcl.base.ConfigureJointReportType
+    // class_index = 5 clss=class crcl.base.ConfigureJointReportType
 
             
             class ConfigureJointReportType : public DataThingType {
@@ -198,6 +137,86 @@ namespace crclj {
                 jboolean isReportVelocity();
                 void setReportVelocity(jboolean boolean_0);
             }; // end class ConfigureJointReportType
+
+
+    // class_index = 6 clss=class crcl.base.EnableRobotParameterStatusType
+
+            
+            class EnableRobotParameterStatusType : public MiddleCommandType {
+            public:
+                EnableRobotParameterStatusType(jobject _jthis, bool copy);
+                EnableRobotParameterStatusType(const EnableRobotParameterStatusType &);
+                static EnableRobotParameterStatusType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                EnableRobotParameterStatusType();
+                ~EnableRobotParameterStatusType();
+                jstring getRobotParameterName();
+                void setRobotParameterName(jstring string_0);
+                void setRobotParameterName(const char * easyArg_0);
+            }; // end class EnableRobotParameterStatusType
+
+
+    // class_index = 7 clss=class crcl.base.VectorType
+
+            
+            class VectorType : public DataThingType {
+            public:
+                VectorType(jobject _jthis, bool copy);
+                VectorType(const VectorType &);
+                static VectorType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                VectorType();
+                ~VectorType();
+                void setI(jdouble double_0);
+                jdouble getJ();
+                jdouble getI();
+                void setJ(jdouble double_0);
+                jdouble getK();
+                void setK(jdouble double_0);
+            }; // end class VectorType
+
+
+    // class_index = 8 clss=class crcl.base.JointStatusesType
+
+            
+            class JointStatusesType : public DataThingType {
+            public:
+                JointStatusesType(jobject _jthis, bool copy);
+                JointStatusesType(const JointStatusesType &);
+                static JointStatusesType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                JointStatusesType();
+                ~JointStatusesType();
+                ::crclj::java::util::List getJointStatus();
+            }; // end class JointStatusesType
+
+
+    // class_index = 9 clss=class crcl.base.CommandStateEnumType
+
+            
+            class CommandStateEnumType : public ::crclj::java::lang::Enum {
+            public:
+                CommandStateEnumType(jobject _jthis, bool copy);
+                CommandStateEnumType(const CommandStateEnumType &);
+                static CommandStateEnumType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                protected:
+                CommandStateEnumType();
+                public:
+                ~CommandStateEnumType();
+                static CommandStateEnumType getCRCL_DONE();
+                static CommandStateEnumType getCRCL_ERROR();
+                static CommandStateEnumType getCRCL_WORKING();
+                static CommandStateEnumType getCRCL_READY();
+                jstring value();
+                static jobjectArray values();
+                static CommandStateEnumType valueOf(jstring string_0);
+                static CommandStateEnumType fromValue(jstring string_0);
+            }; // end class CommandStateEnumType
         } // end namespace base
     } // end namespace crcl
 

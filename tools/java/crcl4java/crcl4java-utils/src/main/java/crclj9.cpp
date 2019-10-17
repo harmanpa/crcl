@@ -11,74 +11,74 @@ namespace crclj {
 
 
 // start_segment_index = 90
-// start_segment_index = 99
+// start_segment_index = 98
 // segment_index = 9
-// classesSegList=[class crcl.base.MoveToType, class crcl.base.EnableGripperType, class crcl.base.WrenchType, interface java.util.List, class java.lang.Number, class java.lang.Double, class java.lang.Boolean, class java.lang.Integer, class java.lang.Long]
+// classesSegList=[class crcl.base.SetTorqueUnitsType, class crcl.base.SetEndEffectorParametersType, class java.lang.Number, class java.lang.Double, class java.lang.Long, interface java.util.List, class java.lang.Boolean, class java.lang.Integer]
 
 
-// class_index = 0 clss=class crcl.base.MoveToType
+// class_index = 0 clss=class crcl.base.SetTorqueUnitsType
 
     namespace crcl{
         namespace base{
         
-        // get JNI handle for class crcl.base.MoveToType
-        static inline jclass getMoveToTypeClass();
+        // get JNI handle for class crcl.base.SetTorqueUnitsType
+        static inline jclass getSetTorqueUnitsTypeClass();
         
-        MoveToType::MoveToType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+        SetTorqueUnitsType::SetTorqueUnitsType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
                 
         }
         
-        MoveToType::MoveToType(const MoveToType &objref): MiddleCommandType((jobject)NULL,false) {
+        SetTorqueUnitsType::SetTorqueUnitsType(const SetTorqueUnitsType &objref): MiddleCommandType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class MoveToType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetTorqueUnitsType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class MoveToType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetTorqueUnitsType jthis=",jthis);
             }
         }
         
-        MoveToType MoveToType::cast(const ::crclj::java::lang::Object &objref) {
+        SetTorqueUnitsType SetTorqueUnitsType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getMoveToTypeClass(); 
+            static jclass cls = getSetTorqueUnitsTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            MoveToType retVal(objref.jthis,true);
+            SetTorqueUnitsType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool MoveToType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool SetTorqueUnitsType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getMoveToTypeClass(); 
+            static jclass cls = getSetTorqueUnitsTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        MoveToType::MoveToType() : MiddleCommandType((jobject)NULL,false) {
+        SetTorqueUnitsType::SetTorqueUnitsType() : MiddleCommandType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getMoveToTypeClass();
+            static jclass cls = getSetTorqueUnitsTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class MoveToType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class SetTorqueUnitsType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," MoveToType::setLastCheckValue jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::setMoment jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new MoveToType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new SetTorqueUnitsType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new MoveToType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetTorqueUnitsType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -88,33 +88,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.MoveToType
-        MoveToType::~MoveToType() {
+        // Destructor for crcl.base.SetTorqueUnitsType
+        SetTorqueUnitsType::~SetTorqueUnitsType() {
         	// Place-holder for later extensibility.
         }
 
 
-        PoseType MoveToType::getEndPosition() {
+        TorqueUnitEnumType SetTorqueUnitsType::getUnitName() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getEndPosition of crcl.base.MoveToType with jthis == NULL." << std::endl;
-                static PoseType nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getUnitName of crcl.base.SetTorqueUnitsType with jthis == NULL." << std::endl;
+                static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MoveToType::getEndPosition jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::getUnitName jthis=",jthis);
             jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getEndPosition", "()Lcrcl/base/PoseType;");
+                static jmethodID mid = env->GetMethodID(cls, "getUnitName", "()Lcrcl/base/TorqueUnitEnumType;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," MoveToType::getEndPosition jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MoveToType has no method named getEndPosition with signature ()Lcrcl/base/PoseType;." << std::endl;
-                    static PoseType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::getUnitName jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetTorqueUnitsType has no method named getUnitName with signature ()Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                    static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
                 } else {
                     retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," MoveToType::getEndPosition jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::getUnitName jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -125,31 +125,31 @@ namespace crclj {
             releaseEnv(env);
                         
             jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            PoseType retObject(retVal,false);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TorqueUnitEnumType retObject(retVal,false);
             return retObject;
         }
 
-        void MoveToType::setEndPosition(const PoseType & poseType_0) {
+        void SetTorqueUnitsType::setUnitName(const TorqueUnitEnumType & torqueUnitEnumType_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setEndPosition of crcl.base.MoveToType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setUnitName of crcl.base.SetTorqueUnitsType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MoveToType::setEndPosition jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::setUnitName jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setEndPosition", "(Lcrcl/base/PoseType;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setUnitName", "(Lcrcl/base/TorqueUnitEnumType;)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," MoveToType::setEndPosition jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MoveToType has no method named setEndPosition with signature (Lcrcl/base/PoseType;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::setUnitName jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetTorqueUnitsType has no method named setUnitName with signature (Lcrcl/base/TorqueUnitEnumType;)V." << std::endl;
                     return;
                 } else {
-                     env->CallVoidMethod(jthis, mid ,poseType_0.jthis );
+                     env->CallVoidMethod(jthis, mid ,torqueUnitEnumType_0.jthis );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," MoveToType::setEndPosition jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SetTorqueUnitsType::setUnitName jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -160,148 +160,84 @@ namespace crclj {
             releaseEnv(env);
             
         }
-
-        jboolean MoveToType::isMoveStraight() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method isMoveStraight of crcl.base.MoveToType with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MoveToType::isMoveStraight jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "isMoveStraight", "()Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," MoveToType::isMoveStraight jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MoveToType has no method named isMoveStraight with signature ()Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," MoveToType::isMoveStraight jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void MoveToType::setMoveStraight(jboolean boolean_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setMoveStraight of crcl.base.MoveToType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MoveToType::setMoveStraight jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setMoveStraight", "(Z)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," MoveToType::setMoveStraight jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MoveToType has no method named setMoveStraight with signature (Z)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,boolean_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," MoveToType::setMoveStraight jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-        static jclass getNewMoveToTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/MoveToType");
+        static jclass getNewSetTorqueUnitsTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/SetTorqueUnitsType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/MoveToType" << std::endl;
+                std::cerr << " Can't find class crcl/base/SetTorqueUnitsType" << std::endl;
             }
             return clss;
         }
         
-        static jclass MoveToTypeClass = NULL;
-        static inline jclass getMoveToTypeClass() {
-            if (MoveToTypeClass != NULL) {
-                return MoveToTypeClass;
+        static jclass SetTorqueUnitsTypeClass = NULL;
+        static inline jclass getSetTorqueUnitsTypeClass() {
+            if (SetTorqueUnitsTypeClass != NULL) {
+                return SetTorqueUnitsTypeClass;
             }
-            MoveToTypeClass = getNewMoveToTypeClass();
-            return MoveToTypeClass;
+            SetTorqueUnitsTypeClass = getNewSetTorqueUnitsTypeClass();
+            return SetTorqueUnitsTypeClass;
         }
 
-    // class_index = 1 clss=class crcl.base.EnableGripperType
+    // class_index = 1 clss=class crcl.base.SetEndEffectorParametersType
 
         
-        // get JNI handle for class crcl.base.EnableGripperType
-        static inline jclass getEnableGripperTypeClass();
+        // get JNI handle for class crcl.base.SetEndEffectorParametersType
+        static inline jclass getSetEndEffectorParametersTypeClass();
         
-        EnableGripperType::EnableGripperType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+        SetEndEffectorParametersType::SetEndEffectorParametersType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
                 
         }
         
-        EnableGripperType::EnableGripperType(const EnableGripperType &objref): MiddleCommandType((jobject)NULL,false) {
+        SetEndEffectorParametersType::SetEndEffectorParametersType(const SetEndEffectorParametersType &objref): MiddleCommandType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableGripperType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetEndEffectorParametersType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableGripperType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetEndEffectorParametersType jthis=",jthis);
             }
         }
         
-        EnableGripperType EnableGripperType::cast(const ::crclj::java::lang::Object &objref) {
+        SetEndEffectorParametersType SetEndEffectorParametersType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableGripperTypeClass(); 
+            static jclass cls = getSetEndEffectorParametersTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            EnableGripperType retVal(objref.jthis,true);
+            SetEndEffectorParametersType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool EnableGripperType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool SetEndEffectorParametersType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableGripperTypeClass(); 
+            static jclass cls = getSetEndEffectorParametersTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        EnableGripperType::EnableGripperType() : MiddleCommandType((jobject)NULL,false) {
+        SetEndEffectorParametersType::SetEndEffectorParametersType() : MiddleCommandType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableGripperTypeClass();
+            static jclass cls = getSetEndEffectorParametersTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class EnableGripperType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class SetEndEffectorParametersType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::setMoveStraight jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SetEndEffectorParametersType::setUnitName jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new EnableGripperType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new SetEndEffectorParametersType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new EnableGripperType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetEndEffectorParametersType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -311,120 +247,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.EnableGripperType
-        EnableGripperType::~EnableGripperType() {
+        // Destructor for crcl.base.SetEndEffectorParametersType
+        SetEndEffectorParametersType::~SetEndEffectorParametersType() {
         	// Place-holder for later extensibility.
         }
 
 
-        jstring EnableGripperType::getGripperName() {
+        ::crclj::java::util::List SetEndEffectorParametersType::getParameterSetting() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getGripperName of crcl.base.EnableGripperType with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperName jthis=",jthis);
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getGripperName", "()Ljava/lang/String;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableGripperType has no method named getGripperName with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperName jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void EnableGripperType::setGripperName(jstring string_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setGripperName of crcl.base.EnableGripperType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::setGripperName jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setGripperName", "(Ljava/lang/String;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::setGripperName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableGripperType has no method named setGripperName with signature (Ljava/lang/String;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::setGripperName jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        // Easy call alternative for setGripperName
-        void EnableGripperType::setGripperName(const char * easyArg_0) {
-            // convenience method, converts to/from JNI types to common C++ types.
-            if(jthis == NULL) {
-                std::cerr << "Call of method setGripperName of crcl.base.EnableGripperType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::setGripperName jthis=",jthis);
-            
-                    
-            jstring string_0 = env->NewStringUTF(easyArg_0);
-            setGripperName(string_0);
-            jobjectRefType ref_0 = env->GetObjectRefType(string_0);
-            if(ref_0 == JNIGlobalRefType) {
-                env->DeleteGlobalRef(string_0);
-            }
-            
-            releaseEnv(env);
-        }
-
-
-        ::crclj::java::util::List EnableGripperType::getGripperOption() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getGripperOption of crcl.base.EnableGripperType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getParameterSetting of crcl.base.SetEndEffectorParametersType with jthis == NULL." << std::endl;
                 static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperOption jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetEndEffectorParametersType::getParameterSetting jthis=",jthis);
             jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getGripperOption", "()Ljava/util/List;");
+                static jmethodID mid = env->GetMethodID(cls, "getParameterSetting", "()Ljava/util/List;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperOption jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableGripperType has no method named getGripperOption with signature ()Ljava/util/List;." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," SetEndEffectorParametersType::getParameterSetting jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetEndEffectorParametersType has no method named getParameterSetting with signature ()Ljava/util/List;." << std::endl;
                     static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
                 } else {
                     retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableGripperType::getGripperOption jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SetEndEffectorParametersType::getParameterSetting jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -438,1198 +287,29 @@ namespace crclj {
             if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
             return retObject;
         }
-        static jclass getNewEnableGripperTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/EnableGripperType");
+        static jclass getNewSetEndEffectorParametersTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/SetEndEffectorParametersType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/EnableGripperType" << std::endl;
+                std::cerr << " Can't find class crcl/base/SetEndEffectorParametersType" << std::endl;
             }
             return clss;
         }
         
-        static jclass EnableGripperTypeClass = NULL;
-        static inline jclass getEnableGripperTypeClass() {
-            if (EnableGripperTypeClass != NULL) {
-                return EnableGripperTypeClass;
+        static jclass SetEndEffectorParametersTypeClass = NULL;
+        static inline jclass getSetEndEffectorParametersTypeClass() {
+            if (SetEndEffectorParametersTypeClass != NULL) {
+                return SetEndEffectorParametersTypeClass;
             }
-            EnableGripperTypeClass = getNewEnableGripperTypeClass();
-            return EnableGripperTypeClass;
-        }
-
-    // class_index = 2 clss=class crcl.base.WrenchType
-
-        
-        // get JNI handle for class crcl.base.WrenchType
-        static inline jclass getWrenchTypeClass();
-        
-        WrenchType::WrenchType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
-                
-        }
-        
-        WrenchType::WrenchType(const WrenchType &objref): DataThingType((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class WrenchType _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class WrenchType jthis=",jthis);
-            }
-        }
-        
-        WrenchType WrenchType::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getWrenchTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            WrenchType retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool WrenchType::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getWrenchTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        WrenchType::WrenchType() : DataThingType((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getWrenchTypeClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-                if (NULL == mid) {
-                    std::cerr << "Class WrenchType has no method constructor signature ()V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," WrenchType::getGripperOption jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new WrenchType with signature ()V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new WrenchType jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.WrenchType
-        WrenchType::~WrenchType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        VectorType WrenchType::getForce() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getForce of crcl.base.WrenchType with jthis == NULL." << std::endl;
-                static VectorType nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," WrenchType::getForce jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getForce", "()Lcrcl/base/VectorType;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," WrenchType::getForce jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.WrenchType has no method named getForce with signature ()Lcrcl/base/VectorType;." << std::endl;
-                    static VectorType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," WrenchType::getForce jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            VectorType retObject(retVal,false);
-            return retObject;
-        }
-
-        void WrenchType::setForce(const VectorType & vectorType_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setForce of crcl.base.WrenchType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," WrenchType::setForce jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setForce", "(Lcrcl/base/VectorType;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," WrenchType::setForce jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.WrenchType has no method named setForce with signature (Lcrcl/base/VectorType;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,vectorType_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," WrenchType::setForce jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        VectorType WrenchType::getMoment() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getMoment of crcl.base.WrenchType with jthis == NULL." << std::endl;
-                static VectorType nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," WrenchType::getMoment jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getMoment", "()Lcrcl/base/VectorType;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," WrenchType::getMoment jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.WrenchType has no method named getMoment with signature ()Lcrcl/base/VectorType;." << std::endl;
-                    static VectorType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," WrenchType::getMoment jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            VectorType retObject(retVal,false);
-            return retObject;
-        }
-
-        void WrenchType::setMoment(const VectorType & vectorType_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setMoment of crcl.base.WrenchType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," WrenchType::setMoment jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setMoment", "(Lcrcl/base/VectorType;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," WrenchType::setMoment jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.WrenchType has no method named setMoment with signature (Lcrcl/base/VectorType;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,vectorType_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," WrenchType::setMoment jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-        static jclass getNewWrenchTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/WrenchType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/WrenchType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass WrenchTypeClass = NULL;
-        static inline jclass getWrenchTypeClass() {
-            if (WrenchTypeClass != NULL) {
-                return WrenchTypeClass;
-            }
-            WrenchTypeClass = getNewWrenchTypeClass();
-            return WrenchTypeClass;
+            SetEndEffectorParametersTypeClass = getNewSetEndEffectorParametersTypeClass();
+            return SetEndEffectorParametersTypeClass;
         }
         } // end namespace base
     } // end namespace crcl
 
 
-    // class_index = 3 clss=interface java.util.List
+    // class_index = 2 clss=class java.lang.Number
 
     namespace java{
-        namespace util{
-        
-        // get JNI handle for class java.util.List
-        static inline jclass getListClass();
-        
-        List::List(jobject _jthis, bool copy): ::crclj::java::lang::Object(_jthis,copy) {
-                
-        }
-        
-        List::List(const List &objref): ::crclj::java::lang::Object((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class List _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class List jthis=",jthis);
-            }
-        }
-        
-        List List::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            List retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool List::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-
-        // Destructor for java.util.List
-        List::~List() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        void List::add(jint int_0,const ::crclj::java::lang::Object & object_1) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method add of java.util.List with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "add", "(ILjava/lang/Object;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named add with signature (ILjava/lang/Object;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,int_0,object_1.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::add jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jboolean List::add(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method add of java.util.List with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "add", "(Ljava/lang/Object;)Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named add with signature (Ljava/lang/Object;)Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::add jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jboolean List::remove(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method remove of java.util.List with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "remove", "(Ljava/lang/Object;)Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named remove with signature (Ljava/lang/Object;)Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::remove jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        ::crclj::java::lang::Object List::remove(jint int_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method remove of java.util.List with jthis == NULL." << std::endl;
-                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "remove", "(I)Ljava/lang/Object;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named remove with signature (I)Ljava/lang/Object;." << std::endl;
-                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::remove jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
-            return retObject;
-        }
-
-        ::crclj::java::lang::Object List::get(jint int_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method get of java.util.List with jthis == NULL." << std::endl;
-                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::get jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "get", "(I)Ljava/lang/Object;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::get jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named get with signature (I)Ljava/lang/Object;." << std::endl;
-                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::get jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
-            return retObject;
-        }
-
-        jboolean List::equals(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.util.List with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::equals jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::equals jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::equals jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint List::hashCode() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.util.List with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named hashCode with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint List::indexOf(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method indexOf of java.util.List with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "indexOf", "(Ljava/lang/Object;)I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named indexOf with signature (Ljava/lang/Object;)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void List::clear() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method clear of java.util.List with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::clear jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "clear", "()V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::clear jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named clear with signature ()V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::clear jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jboolean List::isEmpty() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method isEmpty of java.util.List with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "isEmpty", "()Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named isEmpty with signature ()Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint List::lastIndexOf(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method lastIndexOf of java.util.List with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "lastIndexOf", "(Ljava/lang/Object;)I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named lastIndexOf with signature (Ljava/lang/Object;)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jboolean List::contains(const ::crclj::java::lang::Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method contains of java.util.List with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::contains jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "contains", "(Ljava/lang/Object;)Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::contains jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named contains with signature (Ljava/lang/Object;)Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::contains jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint List::size() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method size of java.util.List with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::size jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "size", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::size jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named size with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::size jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        List List::subList(jint int_0,jint int_1) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method subList of java.util.List with jthis == NULL." << std::endl;
-                static List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::subList jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "subList", "(II)Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::subList jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named subList with signature (II)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::subList jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        jobjectArray List::toArray() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toArray of java.util.List with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
-            jobjectArray retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "toArray", "()[Ljava/lang/Object;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named toArray with signature ()[Ljava/lang/Object;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jobjectArray)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::toArray jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jobjectArray List::toArray(jobjectArray objectArray_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toArray of java.util.List with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
-            jobjectArray retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "toArray", "([Ljava/lang/Object;)[Ljava/lang/Object;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named toArray with signature ([Ljava/lang/Object;)[Ljava/lang/Object;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jobjectArray)  env->CallObjectMethod(jthis, mid ,objectArray_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::toArray jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of() {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature ()Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8,const ::crclj::java::lang::Object & object_9) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis,object_8.jthis,object_9.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(jobjectArray objectArray_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "([Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature ([Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,objectArray_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis,object_8.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getListClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
-                    static List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
-            return retObject;
-        }
-
-        ::crclj::java::lang::Object List::set(jint int_0,const ::crclj::java::lang::Object & object_1) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method set of java.util.List with jthis == NULL." << std::endl;
-                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::set jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," List::set jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named set with signature (ILjava/lang/Object;)Ljava/lang/Object;." << std::endl;
-                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0,object_1.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," List::set jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewListClass() {
-            jclass clss = getEnv()->FindClass("java/util/List");
-            if (NULL == clss) {
-                std::cerr << " Can't find class java/util/List" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass ListClass = NULL;
-        static inline jclass getListClass() {
-            if (ListClass != NULL) {
-                return ListClass;
-            }
-            ListClass = getNewListClass();
-            return ListClass;
-        }
-        } // end namespace util
-
-
-    // class_index = 4 clss=class java.lang.Number
-
         namespace lang{
         
         // get JNI handle for class java.lang.Number
@@ -1678,7 +358,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Number::set jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," Number::getParameterSetting jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -1913,7 +593,7 @@ namespace crclj {
             return NumberClass;
         }
 
-    // class_index = 5 clss=class java.lang.Double
+    // class_index = 3 clss=class java.lang.Double
 
         
         // get JNI handle for class java.lang.Double
@@ -3062,8 +1742,2426 @@ namespace crclj {
             return DoubleClass;
         }
 
+    // class_index = 4 clss=class java.lang.Long
+
+        
+        // get JNI handle for class java.lang.Long
+        static inline jclass getLongClass();
+        
+        Long::Long(jobject _jthis, bool copy): Number(_jthis,copy) {
+                
+        }
+        
+        Long::Long(const Long &objref): Number((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Long _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Long jthis=",jthis);
+            }
+        }
+        
+        Long Long::cast(const Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            Long retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool Long::instanceof(const Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+        Long::Long() : Number((jobject)NULL,false) {
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        if (cls != NULL) {
+            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+            if (NULL == mid) {
+                std::cerr << "Class Long has no method constructor signature ()V" << std::endl;
+            } else {
+                jthis = env->NewObject(cls, mid );
+                jthrowable t = env->ExceptionOccurred();
+                if(t != NULL) {
+                    if(GetDebugJ4Cpp()) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseDouble jthis=",t);
+                        env->ExceptionDescribe();
+                    }
+                    throw t;
+                }
+                if(jthis == NULL) {
+                    std::cerr << "Call to create new Long with signature ()V returned null." << std::endl;
+                    releaseEnv(env);
+                    return;
+                }
+                jobjectRefType ref = env->GetObjectRefType(jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
+                if(ref != JNIGlobalRefType) {
+                    jthis = env->NewGlobalRef(jthis);
+                }
+            }
+        }
+        releaseEnv(env);
+        }
+
+        Long::Long(jstring string_0) : Number((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
+                if (NULL == mid) {
+                    std::cerr << "Class Long has no method constructor signature (Ljava/lang/String;)V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid ,string_0);
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::parseDouble jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
+                    }
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new Long with signature (Ljava/lang/String;)V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
+                }
+            }
+            releaseEnv(env);
+        }
+
+        Long::Long(const char * easyArg_0) : Number((jobject)NULL,false) {
+        // Convenience Constructor converts common C++ types to JNI types
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        jstring string_0 = env->NewStringUTF(easyArg_0);
+        
+        if (cls != NULL) {
+            static jmethodID mid = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
+            if (NULL == mid) {
+                std::cerr << "Class Long has no method constructor signature (Ljava/lang/String;)V" << std::endl;
+            } else {
+                jthis = env->NewObject(cls, mid ,string_0);
+                jthrowable t = env->ExceptionOccurred();
+                if(t != NULL) {
+                    if(GetDebugJ4Cpp()) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseDouble jthis=",t);
+                        env->ExceptionDescribe();
+                    }
+                    throw t;
+                }
+                if(jthis == NULL) {
+                    std::cerr << "Call to create new Long with signature (Ljava/lang/String;)V returned null." << std::endl;
+                    releaseEnv(env);
+                    return;
+                }
+                jobjectRefType ref = env->GetObjectRefType(jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
+                if(ref != JNIGlobalRefType) {
+                    jthis = env->NewGlobalRef(jthis);
+                }
+            }
+        }
+        jobjectRefType ref_0 = env->GetObjectRefType(string_0);
+        if(ref_0 == JNIGlobalRefType) {
+            env->DeleteGlobalRef(string_0);
+        }
+        
+        releaseEnv(env);
+        }
+        Long::Long(jlong long_0) : Number((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
+                if (NULL == mid) {
+                    std::cerr << "Class Long has no method constructor signature (J)V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid ,long_0);
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::parseDouble jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
+                    }
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new Long with signature (J)V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
+                }
+            }
+            releaseEnv(env);
+        }
+
+
+        // Destructor for java.lang.Long
+        Long::~Long() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        // Field getter for MIN_VALUE
+        jlong Long::getMIN_VALUE() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        jlong retVal= (jlong) -1;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "MIN_VALUE", "J");
+            if (NULL == fid) {
+                std::cerr << "Class java.lang.Long has no field named MIN_VALUE with signature J." << std::endl;
+                return (jlong) -1;
+            } else {
+                retVal= (jlong)  env->GetStaticLongField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+        return retVal;
+        }
+
+        // Field getter for MAX_VALUE
+        jlong Long::getMAX_VALUE() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        jlong retVal= (jlong) -1;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "MAX_VALUE", "J");
+            if (NULL == fid) {
+                std::cerr << "Class java.lang.Long has no field named MAX_VALUE with signature J." << std::endl;
+                return (jlong) -1;
+            } else {
+                retVal= (jlong)  env->GetStaticLongField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+        return retVal;
+        }
+
+        // Field getter for SIZE
+        jint Long::getSIZE() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        jint retVal= (jint) -1;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "SIZE", "I");
+            if (NULL == fid) {
+                std::cerr << "Class java.lang.Long has no field named SIZE with signature I." << std::endl;
+                return (jint) -1;
+            } else {
+                retVal= (jint)  env->GetStaticIntField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+        return retVal;
+        }
+
+        // Field getter for BYTES
+        jint Long::getBYTES() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getLongClass();
+        jint retVal= (jint) -1;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "BYTES", "I");
+            if (NULL == fid) {
+                std::cerr << "Class java.lang.Long has no field named BYTES with signature I." << std::endl;
+                return (jint) -1;
+            } else {
+                retVal= (jint)  env->GetStaticIntField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+        return retVal;
+        }
+
+        jint Long::numberOfLeadingZeros(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "numberOfLeadingZeros", "(J)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named numberOfLeadingZeros with signature (J)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::numberOfLeadingZeros jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::numberOfTrailingZeros(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "numberOfTrailingZeros", "(J)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named numberOfTrailingZeros with signature (J)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::numberOfTrailingZeros jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::bitCount(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "bitCount", "(J)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named bitCount with signature (J)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::bitCount jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jboolean Long::equals(const Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.lang.Long with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::equals jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::equals jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::equals jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toString(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toString", "(J)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toString with signature (J)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toString(jlong long_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toString", "(JI)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toString with signature (JI)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toString() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toString of java.lang.Long with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",jthis);
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "toString", "()Ljava/lang/String;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named toString with signature ()Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::toString jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::hashCode(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "hashCode", "(J)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named hashCode with signature (J)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::hashCode() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.lang.Long with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named hashCode with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::min(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "min", "(JJ)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named min with signature (JJ)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::min jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::max(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "max", "(JJ)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named max with signature (JJ)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::max jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::reverseBytes(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "reverseBytes", "(J)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named reverseBytes with signature (J)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::reverseBytes jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::compareTo(const Long & long_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method compareTo of java.lang.Long with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "compareTo", "(Ljava/lang/Long;)I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named compareTo with signature (Ljava/lang/Long;)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid ,long_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        Long Long::getLong(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        Long Long::getLong(jstring string_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;J)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;J)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        Long Long::getLong(jstring string_0,const Long & long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,long_1.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        jbyte Long::byteValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method byteValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jbyte) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthis=",jthis);
+            jbyte retVal= (jbyte) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "byteValue", "()B");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named byteValue with signature ()B." << std::endl;
+                    return (jbyte) -1;
+                } else {
+                    retVal= (jbyte)  env->CallByteMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jshort Long::shortValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method shortValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jshort) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthis=",jthis);
+            jshort retVal=(jshort) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "shortValue", "()S");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named shortValue with signature ()S." << std::endl;
+                    return (jshort) -1;
+                } else {
+                    retVal= (jshort)  env->CallShortMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::intValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method intValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "intValue", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named intValue with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::longValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method longValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jlong) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthis=",jthis);
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "longValue", "()J");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named longValue with signature ()J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallLongMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jfloat Long::floatValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method floatValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jfloat) -1.0;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthis=",jthis);
+            jfloat retVal= (jfloat) -1.0;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "floatValue", "()F");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named floatValue with signature ()F." << std::endl;
+                    return (jfloat) -1.0;
+                } else {
+                    retVal= (jfloat)  env->CallFloatMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jdouble Long::doubleValue() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method doubleValue of java.lang.Long with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "doubleValue", "()D");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named doubleValue with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
+                } else {
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        Long Long::valueOf(jstring string_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;I)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (Ljava/lang/String;I)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        Long Long::valueOf(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        Long Long::valueOf(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(J)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (J)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        jstring Long::toHexString(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toHexString", "(J)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toHexString with signature (J)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toHexString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        Long Long::decode(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "decode", "(Ljava/lang/String;)Ljava/lang/Long;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named decode with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
+                    static Long nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::decode jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
+            return retObject;
+        }
+
+        jint Long::compare(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "compare", "(JJ)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named compare with signature (JJ)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::compare jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::reverse(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "reverse", "(J)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named reverse with signature (J)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::reverse jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::sum(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "sum", "(JJ)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named sum with signature (JJ)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::sum jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::compareUnsigned(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "compareUnsigned", "(JJ)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named compareUnsigned with signature (JJ)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::compareUnsigned jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toUnsignedString(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toUnsignedString", "(J)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toUnsignedString with signature (J)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toUnsignedString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toUnsignedString(jlong long_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toUnsignedString", "(JI)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toUnsignedString with signature (JI)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toUnsignedString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toOctalString(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toOctalString", "(J)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toOctalString with signature (J)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toOctalString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Long::toBinaryString(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "toBinaryString", "(J)Ljava/lang/String;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named toBinaryString with signature (J)Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::toBinaryString jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::divideUnsigned(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "divideUnsigned", "(JJ)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named divideUnsigned with signature (JJ)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::divideUnsigned jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::remainderUnsigned(jlong long_0,jlong long_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "remainderUnsigned", "(JJ)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named remainderUnsigned with signature (JJ)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::remainderUnsigned jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::highestOneBit(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "highestOneBit", "(J)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named highestOneBit with signature (J)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::highestOneBit jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::lowestOneBit(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "lowestOneBit", "(J)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named lowestOneBit with signature (J)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::lowestOneBit jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::rotateLeft(jlong long_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "rotateLeft", "(JI)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named rotateLeft with signature (JI)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::rotateLeft jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::rotateRight(jlong long_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "rotateRight", "(JI)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named rotateRight with signature (JI)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::rotateRight jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Long::signum(jlong long_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "signum", "(J)I");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named signum with signature (J)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::parseLong(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "parseLong", "(Ljava/lang/String;)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named parseLong with signature (Ljava/lang/String;)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::parseLong(jstring string_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "parseLong", "(Ljava/lang/String;I)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named parseLong with signature (Ljava/lang/String;I)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::parseUnsignedLong(jstring string_0,jint int_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "parseUnsignedLong", "(Ljava/lang/String;I)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named parseUnsignedLong with signature (Ljava/lang/String;I)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseUnsignedLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jlong Long::parseUnsignedLong(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getLongClass();
+            jlong retVal= (jlong) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "parseUnsignedLong", "(Ljava/lang/String;)J");
+                if (NULL == mid) {
+                    std::cerr << "Class java.lang.Long has no method named parseUnsignedLong with signature (Ljava/lang/String;)J." << std::endl;
+                    return (jlong) -1;
+                } else {
+                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," Long::parseUnsignedLong jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+        static jclass getNewLongClass() {
+            jclass clss = getEnv()->FindClass("java/lang/Long");
+            if (NULL == clss) {
+                std::cerr << " Can't find class java/lang/Long" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass LongClass = NULL;
+        static inline jclass getLongClass() {
+            if (LongClass != NULL) {
+                return LongClass;
+            }
+            LongClass = getNewLongClass();
+            return LongClass;
+        }
+        } // end namespace lang
+
+
+    // class_index = 5 clss=interface java.util.List
+
+        namespace util{
+        
+        // get JNI handle for class java.util.List
+        static inline jclass getListClass();
+        
+        List::List(jobject _jthis, bool copy): ::crclj::java::lang::Object(_jthis,copy) {
+                
+        }
+        
+        List::List(const List &objref): ::crclj::java::lang::Object((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class List _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class List jthis=",jthis);
+            }
+        }
+        
+        List List::cast(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            List retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool List::instanceof(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+
+        // Destructor for java.util.List
+        List::~List() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        void List::add(jint int_0,const ::crclj::java::lang::Object & object_1) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method add of java.util.List with jthis == NULL." << std::endl;
+                return;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
+            
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "add", "(ILjava/lang/Object;)V");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named add with signature (ILjava/lang/Object;)V." << std::endl;
+                    return;
+                } else {
+                     env->CallVoidMethod(jthis, mid ,int_0,object_1.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::add jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            
+        }
+
+        jboolean List::add(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method add of java.util.List with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "add", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::add jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named add with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::add jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jboolean List::remove(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method remove of java.util.List with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "remove", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named remove with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::remove jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        ::crclj::java::lang::Object List::remove(jint int_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method remove of java.util.List with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "remove", "(I)Ljava/lang/Object;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::remove jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named remove with signature (I)Ljava/lang/Object;." << std::endl;
+                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::remove jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
+            return retObject;
+        }
+
+        ::crclj::java::lang::Object List::get(jint int_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method get of java.util.List with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::get jthis=",jthis);
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "get", "(I)Ljava/lang/Object;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::get jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named get with signature (I)Ljava/lang/Object;." << std::endl;
+                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::get jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
+            return retObject;
+        }
+
+        jboolean List::equals(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.util.List with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::equals jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::equals jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::equals jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint List::hashCode() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.util.List with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named hashCode with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::hashCode jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint List::indexOf(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method indexOf of java.util.List with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "indexOf", "(Ljava/lang/Object;)I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named indexOf with signature (Ljava/lang/Object;)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::indexOf jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        void List::clear() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method clear of java.util.List with jthis == NULL." << std::endl;
+                return;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::clear jthis=",jthis);
+            
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "clear", "()V");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::clear jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named clear with signature ()V." << std::endl;
+                    return;
+                } else {
+                     env->CallVoidMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::clear jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            
+        }
+
+        jboolean List::isEmpty() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method isEmpty of java.util.List with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "isEmpty", "()Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named isEmpty with signature ()Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::isEmpty jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint List::lastIndexOf(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method lastIndexOf of java.util.List with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "lastIndexOf", "(Ljava/lang/Object;)I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named lastIndexOf with signature (Ljava/lang/Object;)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::lastIndexOf jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jboolean List::contains(const ::crclj::java::lang::Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method contains of java.util.List with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::contains jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "contains", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::contains jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named contains with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::contains jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint List::size() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method size of java.util.List with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::size jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "size", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::size jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named size with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::size jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        List List::subList(jint int_0,jint int_1) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method subList of java.util.List with jthis == NULL." << std::endl;
+                static List nullObject((jobject)NULL,false); return nullObject;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::subList jthis=",jthis);
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "subList", "(II)Ljava/util/List;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::subList jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named subList with signature (II)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0,int_1 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::subList jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        jobjectArray List::toArray() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toArray of java.util.List with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
+            jobjectArray retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "toArray", "()[Ljava/lang/Object;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named toArray with signature ()[Ljava/lang/Object;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jobjectArray)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::toArray jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jobjectArray List::toArray(jobjectArray objectArray_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toArray of java.util.List with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
+            jobjectArray retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "toArray", "([Ljava/lang/Object;)[Ljava/lang/Object;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::toArray jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named toArray with signature ([Ljava/lang/Object;)[Ljava/lang/Object;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jobjectArray)  env->CallObjectMethod(jthis, mid ,objectArray_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::toArray jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of() {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "()Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature ()Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8,const ::crclj::java::lang::Object & object_9) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis,object_8.jthis,object_9.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(jobjectArray objectArray_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "([Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature ([Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,objectArray_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis,object_8.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        List List::of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getListClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "of", "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;");
+                if (NULL == mid) {
+                    std::cerr << "Class java.util.List has no method named of with signature (Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;." << std::endl;
+                    static List nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,object_0.jthis,object_1.jthis,object_2.jthis,object_3.jthis,object_4.jthis,object_5.jthis,object_6.jthis,object_7.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," List::of jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            List retObject(retVal,false);
+            return retObject;
+        }
+
+        ::crclj::java::lang::Object List::set(jint int_0,const ::crclj::java::lang::Object & object_1) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method set of java.util.List with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," List::set jthis=",jthis);
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," List::set jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.util.List has no method named set with signature (ILjava/lang/Object;)Ljava/lang/Object;." << std::endl;
+                    static ::crclj::java::lang::Object nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid ,int_0,object_1.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," List::set jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Object retObject(retVal,false);
+            return retObject;
+        }
+        static jclass getNewListClass() {
+            jclass clss = getEnv()->FindClass("java/util/List");
+            if (NULL == clss) {
+                std::cerr << " Can't find class java/util/List" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass ListClass = NULL;
+        static inline jclass getListClass() {
+            if (ListClass != NULL) {
+                return ListClass;
+            }
+            ListClass = getNewListClass();
+            return ListClass;
+        }
+        } // end namespace util
+
+
     // class_index = 6 clss=class java.lang.Boolean
 
+        namespace lang{
         
         // get JNI handle for class java.lang.Boolean
         static inline jclass getBooleanClass();
@@ -3111,7 +4209,7 @@ namespace crclj {
                 jthrowable t = env->ExceptionOccurred();
                 if(t != NULL) {
                     if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," Boolean::parseDouble jthis=",t);
+                        DebugPrintJObject(__FILE__,__LINE__," Boolean::set jthis=",t);
                         env->ExceptionDescribe();
                     }
                     throw t;
@@ -3143,7 +4241,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Boolean::parseDouble jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," Boolean::set jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -3175,7 +4273,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Boolean::parseDouble jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," Boolean::set jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -3210,7 +4308,7 @@ namespace crclj {
                 jthrowable t = env->ExceptionOccurred();
                 if(t != NULL) {
                     if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," Boolean::parseDouble jthis=",t);
+                        DebugPrintJObject(__FILE__,__LINE__," Boolean::set jthis=",t);
                         env->ExceptionDescribe();
                     }
                     throw t;
@@ -5199,1478 +6297,6 @@ namespace crclj {
             }
             IntegerClass = getNewIntegerClass();
             return IntegerClass;
-        }
-
-    // class_index = 8 clss=class java.lang.Long
-
-        
-        // get JNI handle for class java.lang.Long
-        static inline jclass getLongClass();
-        
-        Long::Long(jobject _jthis, bool copy): Number(_jthis,copy) {
-                
-        }
-        
-        Long::Long(const Long &objref): Number((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Long _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Long jthis=",jthis);
-            }
-        }
-        
-        Long Long::cast(const Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            Long retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool Long::instanceof(const Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        Long::Long() : Number((jobject)NULL,false) {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        if (cls != NULL) {
-            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-            if (NULL == mid) {
-                std::cerr << "Class Long has no method constructor signature ()V" << std::endl;
-            } else {
-                jthis = env->NewObject(cls, mid );
-                jthrowable t = env->ExceptionOccurred();
-                if(t != NULL) {
-                    if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
-                        env->ExceptionDescribe();
-                    }
-                    throw t;
-                }
-                if(jthis == NULL) {
-                    std::cerr << "Call to create new Long with signature ()V returned null." << std::endl;
-                    releaseEnv(env);
-                    return;
-                }
-                jobjectRefType ref = env->GetObjectRefType(jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
-                if(ref != JNIGlobalRefType) {
-                    jthis = env->NewGlobalRef(jthis);
-                }
-            }
-        }
-        releaseEnv(env);
-        }
-
-        Long::Long(jstring string_0) : Number((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
-                if (NULL == mid) {
-                    std::cerr << "Class Long has no method constructor signature (Ljava/lang/String;)V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid ,string_0);
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new Long with signature (Ljava/lang/String;)V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-        Long::Long(const char * easyArg_0) : Number((jobject)NULL,false) {
-        // Convenience Constructor converts common C++ types to JNI types
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        jstring string_0 = env->NewStringUTF(easyArg_0);
-        
-        if (cls != NULL) {
-            static jmethodID mid = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
-            if (NULL == mid) {
-                std::cerr << "Class Long has no method constructor signature (Ljava/lang/String;)V" << std::endl;
-            } else {
-                jthis = env->NewObject(cls, mid ,string_0);
-                jthrowable t = env->ExceptionOccurred();
-                if(t != NULL) {
-                    if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
-                        env->ExceptionDescribe();
-                    }
-                    throw t;
-                }
-                if(jthis == NULL) {
-                    std::cerr << "Call to create new Long with signature (Ljava/lang/String;)V returned null." << std::endl;
-                    releaseEnv(env);
-                    return;
-                }
-                jobjectRefType ref = env->GetObjectRefType(jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
-                if(ref != JNIGlobalRefType) {
-                    jthis = env->NewGlobalRef(jthis);
-                }
-            }
-        }
-        jobjectRefType ref_0 = env->GetObjectRefType(string_0);
-        if(ref_0 == JNIGlobalRefType) {
-            env->DeleteGlobalRef(string_0);
-        }
-        
-        releaseEnv(env);
-        }
-        Long::Long(jlong long_0) : Number((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
-                if (NULL == mid) {
-                    std::cerr << "Class Long has no method constructor signature (J)V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid ,long_0);
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new Long with signature (J)V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new Long jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for java.lang.Long
-        Long::~Long() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        // Field getter for MIN_VALUE
-        jlong Long::getMIN_VALUE() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        jlong retVal= (jlong) -1;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "MIN_VALUE", "J");
-            if (NULL == fid) {
-                std::cerr << "Class java.lang.Long has no field named MIN_VALUE with signature J." << std::endl;
-                return (jlong) -1;
-            } else {
-                retVal= (jlong)  env->GetStaticLongField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-        return retVal;
-        }
-
-        // Field getter for MAX_VALUE
-        jlong Long::getMAX_VALUE() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        jlong retVal= (jlong) -1;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "MAX_VALUE", "J");
-            if (NULL == fid) {
-                std::cerr << "Class java.lang.Long has no field named MAX_VALUE with signature J." << std::endl;
-                return (jlong) -1;
-            } else {
-                retVal= (jlong)  env->GetStaticLongField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-        return retVal;
-        }
-
-        // Field getter for SIZE
-        jint Long::getSIZE() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        jint retVal= (jint) -1;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "SIZE", "I");
-            if (NULL == fid) {
-                std::cerr << "Class java.lang.Long has no field named SIZE with signature I." << std::endl;
-                return (jint) -1;
-            } else {
-                retVal= (jint)  env->GetStaticIntField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-        return retVal;
-        }
-
-        // Field getter for BYTES
-        jint Long::getBYTES() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLongClass();
-        jint retVal= (jint) -1;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "BYTES", "I");
-            if (NULL == fid) {
-                std::cerr << "Class java.lang.Long has no field named BYTES with signature I." << std::endl;
-                return (jint) -1;
-            } else {
-                retVal= (jint)  env->GetStaticIntField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-        return retVal;
-        }
-
-        jint Long::numberOfLeadingZeros(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "numberOfLeadingZeros", "(J)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named numberOfLeadingZeros with signature (J)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::numberOfLeadingZeros jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::numberOfTrailingZeros(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "numberOfTrailingZeros", "(J)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named numberOfTrailingZeros with signature (J)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::numberOfTrailingZeros jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::bitCount(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "bitCount", "(J)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named bitCount with signature (J)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::bitCount jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jboolean Long::equals(const Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.lang.Long with jthis == NULL." << std::endl;
-                return false;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::equals jthis=",jthis);
-            jboolean retVal=false;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::equals jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
-                    return false;
-                } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::equals jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toString(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toString", "(J)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toString with signature (J)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toString(jlong long_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toString", "(JI)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toString with signature (JI)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toString() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toString of java.lang.Long with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",jthis);
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "toString", "()Ljava/lang/String;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::toString jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named toString with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::toString jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::hashCode(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "hashCode", "(J)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named hashCode with signature (J)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::hashCode() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.lang.Long with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named hashCode with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::hashCode jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::min(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "min", "(JJ)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named min with signature (JJ)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::min jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::max(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "max", "(JJ)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named max with signature (JJ)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::max jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::reverseBytes(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "reverseBytes", "(J)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named reverseBytes with signature (J)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::reverseBytes jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::compareTo(const Long & long_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method compareTo of java.lang.Long with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "compareTo", "(Ljava/lang/Long;)I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named compareTo with signature (Ljava/lang/Long;)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid ,long_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::compareTo jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        Long Long::getLong(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        Long Long::getLong(jstring string_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;J)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;J)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        Long Long::getLong(jstring string_0,const Long & long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "getLong", "(Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named getLong with signature (Ljava/lang/String;Ljava/lang/Long;)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,long_1.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::getLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        jbyte Long::byteValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method byteValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jbyte) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthis=",jthis);
-            jbyte retVal= (jbyte) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "byteValue", "()B");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named byteValue with signature ()B." << std::endl;
-                    return (jbyte) -1;
-                } else {
-                    retVal= (jbyte)  env->CallByteMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::byteValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jshort Long::shortValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method shortValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jshort) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthis=",jthis);
-            jshort retVal=(jshort) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "shortValue", "()S");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named shortValue with signature ()S." << std::endl;
-                    return (jshort) -1;
-                } else {
-                    retVal= (jshort)  env->CallShortMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::shortValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::intValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method intValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "intValue", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named intValue with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::intValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::longValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method longValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jlong) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthis=",jthis);
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "longValue", "()J");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named longValue with signature ()J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallLongMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::longValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jfloat Long::floatValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method floatValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jfloat) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthis=",jthis);
-            jfloat retVal= (jfloat) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "floatValue", "()F");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named floatValue with signature ()F." << std::endl;
-                    return (jfloat) -1.0;
-                } else {
-                    retVal= (jfloat)  env->CallFloatMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::floatValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jdouble Long::doubleValue() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method doubleValue of java.lang.Long with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "doubleValue", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Long has no method named doubleValue with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Long::doubleValue jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        Long Long::valueOf(jstring string_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;I)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (Ljava/lang/String;I)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        Long Long::valueOf(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        Long Long::valueOf(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(J)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named valueOf with signature (J)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        jstring Long::toHexString(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toHexString", "(J)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toHexString with signature (J)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toHexString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        Long Long::decode(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "decode", "(Ljava/lang/String;)Ljava/lang/Long;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named decode with signature (Ljava/lang/String;)Ljava/lang/Long;." << std::endl;
-                    static Long nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::decode jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            Long retObject(retVal,false);
-            return retObject;
-        }
-
-        jint Long::compare(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "compare", "(JJ)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named compare with signature (JJ)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::compare jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::reverse(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "reverse", "(J)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named reverse with signature (J)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::reverse jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::sum(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "sum", "(JJ)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named sum with signature (JJ)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::sum jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::compareUnsigned(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "compareUnsigned", "(JJ)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named compareUnsigned with signature (JJ)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::compareUnsigned jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toUnsignedString(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toUnsignedString", "(J)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toUnsignedString with signature (J)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toUnsignedString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toUnsignedString(jlong long_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toUnsignedString", "(JI)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toUnsignedString with signature (JI)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toUnsignedString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toOctalString(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toOctalString", "(J)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toOctalString with signature (J)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toOctalString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jstring Long::toBinaryString(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "toBinaryString", "(J)Ljava/lang/String;");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named toBinaryString with signature (J)Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallStaticObjectMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::toBinaryString jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::divideUnsigned(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "divideUnsigned", "(JJ)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named divideUnsigned with signature (JJ)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::divideUnsigned jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::remainderUnsigned(jlong long_0,jlong long_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "remainderUnsigned", "(JJ)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named remainderUnsigned with signature (JJ)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,long_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::remainderUnsigned jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::highestOneBit(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "highestOneBit", "(J)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named highestOneBit with signature (J)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::highestOneBit jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::lowestOneBit(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "lowestOneBit", "(J)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named lowestOneBit with signature (J)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::lowestOneBit jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::rotateLeft(jlong long_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "rotateLeft", "(JI)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named rotateLeft with signature (JI)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::rotateLeft jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::rotateRight(jlong long_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "rotateRight", "(JI)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named rotateRight with signature (JI)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,long_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::rotateRight jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Long::signum(jlong long_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "signum", "(J)I");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named signum with signature (J)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallStaticIntMethod( cls, mid ,long_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::signum jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::parseLong(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "parseLong", "(Ljava/lang/String;)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named parseLong with signature (Ljava/lang/String;)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::parseLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::parseLong(jstring string_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "parseLong", "(Ljava/lang/String;I)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named parseLong with signature (Ljava/lang/String;I)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::parseLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::parseUnsignedLong(jstring string_0,jint int_1) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "parseUnsignedLong", "(Ljava/lang/String;I)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named parseUnsignedLong with signature (Ljava/lang/String;I)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0,int_1 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::parseUnsignedLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jlong Long::parseUnsignedLong(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLongClass();
-            jlong retVal= (jlong) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "parseUnsignedLong", "(Ljava/lang/String;)J");
-                if (NULL == mid) {
-                    std::cerr << "Class java.lang.Long has no method named parseUnsignedLong with signature (Ljava/lang/String;)J." << std::endl;
-                    return (jlong) -1;
-                } else {
-                    retVal= (jlong)  env->CallStaticLongMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," Long::parseUnsignedLong jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-        static jclass getNewLongClass() {
-            jclass clss = getEnv()->FindClass("java/lang/Long");
-            if (NULL == clss) {
-                std::cerr << " Can't find class java/lang/Long" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass LongClass = NULL;
-        static inline jclass getLongClass() {
-            if (LongClass != NULL) {
-                return LongClass;
-            }
-            LongClass = getNewLongClass();
-            return LongClass;
         }
         } // end namespace lang
     } // end namespace java

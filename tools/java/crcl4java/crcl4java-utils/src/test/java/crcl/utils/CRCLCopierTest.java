@@ -54,8 +54,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.logging.Level;
@@ -75,6 +78,7 @@ import rcs.posemath.PmRotationMatrix;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings({"nullness"})
 public class CRCLCopierTest {
 
     public CRCLCopierTest() {
@@ -375,10 +379,13 @@ public class CRCLCopierTest {
     static private List<Class<?>> classes = null;
     private final List<String> customExcludedPathStrings = new ArrayList<>();
 
-    public static List<Class<?>> getAssignableClasses(Class<?> baseClss, List<Class<?>> classes) {
+    public static List<Class<?>> getAssignableClasses(Class<?> baseClss, List<Class<?>> classes, Set<String> excludedClassNames) {
         List<Class<?>> assignableClasses = new ArrayList<>();
         for (Class<?> clss : classes) {
             if (clss.isInterface() || Modifier.isAbstract(clss.getModifiers())) {
+                continue;
+            }
+            if (excludedClassNames.contains(clss.getSimpleName()) || excludedClassNames.contains(clss.getName())) {
                 continue;
             }
             Constructor constructors[] = clss.getConstructors();
@@ -403,7 +410,7 @@ public class CRCLCopierTest {
     int stringcount = 0;
 
     @SuppressWarnings({"unchecked"})
-    private <T> T reflectiveRandomGenerate(Class<T> clzz, Random random) {
+    private <T> T reflectiveRandomGenerate(Class<T> clzz, Random random, Set<String> excludedClasses) {
         if (clzz == int.class || clzz == Integer.class || Integer.class.isAssignableFrom(clzz)) {
             return (T) Integer.valueOf(random.nextInt());
         } else if (clzz == long.class || clzz == Long.class || Long.class.isAssignableFrom(clzz)) {
@@ -426,7 +433,7 @@ public class CRCLCopierTest {
             final int arrayLength = random.nextInt(3);
             Object a[] = (Object[]) Array.newInstance(clzz.getComponentType(), arrayLength);
             for (int i = 0; i < a.length; i++) {
-                final Object arrayVal = reflectiveRandomGenerate(clzz.getComponentType(), random);
+                final Object arrayVal = reflectiveRandomGenerate(clzz.getComponentType(), random, excludedClasses);
                 if (null == arrayVal) {
                     throw new RuntimeException("arrayVal=null clzz.getComponentType()=" + clzz.getComponentType());
                 }
@@ -442,10 +449,10 @@ public class CRCLCopierTest {
                 if (null == classes) {
                     classes = getClasses(customExcludedPathStrings);
                 }
-                List<Class<?>> availClasses = getAssignableClasses(clzz, classes);
+                List<Class<?>> availClasses = getAssignableClasses(clzz, classes, excludedClasses);
                 final int availClassesSize = availClasses.size();
                 if (availClassesSize < 1) {
-                    throw new RuntimeException("no available classes for " + clzz);
+                    throw new RuntimeException("no available classes for " + clzz + ", excludedClasses=" + excludedClasses);
                 }
                 Class<?> randClzz = availClasses.get(random.nextInt(availClassesSize));
 
@@ -463,25 +470,33 @@ public class CRCLCopierTest {
                 return null;
             }
             Class newObjClass = newObj.getClass();
-            randomFillObjectFields(clzz.getFields(), newObj, random);
-            randomFillObjectFields(clzz.getDeclaredFields(), newObj, random);
-            randomFillObjectFields(newObjClass.getFields(), newObj, random);
-            randomFillObjectFields(newObjClass.getDeclaredFields(), newObj, random);
+            Set<String> newExcludedClasses = new TreeSet<>(excludedClasses);
+            newExcludedClasses.add(newObjClass.getName());
+            newExcludedClasses.add(newObjClass.getSimpleName());
+            randomFillObjectFields(clzz.getFields(), newObj, random, newExcludedClasses);
+            randomFillObjectFields(clzz.getDeclaredFields(), newObj, random, newExcludedClasses);
+            randomFillObjectFields(newObjClass.getFields(), newObj, random, newExcludedClasses);
+            randomFillObjectFields(newObjClass.getDeclaredFields(), newObj, random, newExcludedClasses);
             Method method[] = newObjClass.getMethods();
-            if (clzz.getName().contains("DisableGripperType")) {
-                System.out.println("clzz = " + clzz);
-            }
+//            if (clzz.getName().contains("DisableGripperType")) {
+//                System.out.println("clzz = " + clzz);
+//            }
+
             for (int i = 0; i < method.length; i++) {
                 Method method1 = method[i];
                 try {
                     if (method1.getReturnType() == Void.class || method1.getReturnType() == void.class) {
                         if (method1.getParameterCount() == 1) {
                             if (method1.getName().startsWith("set")) {
-                                final Object setValue = reflectiveRandomGenerate(method1.getParameterTypes()[0], random);
-                                if (null == setValue) {
-                                    throw new RuntimeException("setValue=null clzz.getComponentType()=" + clzz.getComponentType());
+                                final Class<?> parameter0Type = method1.getParameterTypes()[0];
+                                if (!newExcludedClasses.contains(parameter0Type.getName())
+                                        && !newExcludedClasses.contains(parameter0Type.getSimpleName())) {
+                                    final Object setValue = reflectiveRandomGenerate(parameter0Type, random, newExcludedClasses);
+                                    if (null == setValue) {
+                                        throw new RuntimeException("setValue=null,  method1=" + method1 + ",parameter0Type=" + parameter0Type + ", clzz=" + clzz + ",newExcludedClasses=" + newExcludedClasses);
+                                    }
+                                    method1.invoke(newObj, setValue);
                                 }
-                                method1.invoke(newObj, setValue);
                             }
                         }
                     } else if (Collection.class.isAssignableFrom(method1.getReturnType())) {
@@ -497,17 +512,23 @@ public class CRCLCopierTest {
                                     Collection collection = (Collection) method1.invoke(newObj);
                                     int collsize = collection.size();
                                     int addsize = random.nextInt(3) - collsize;
-                                    for (int j = 0; j < addsize; j++) {
-                                        final Object addValue = reflectiveRandomGenerate(containedClzz, random);
-                                        if (null == addValue) {
-                                            throw new RuntimeException("addValue=null clzz.getComponentType()=" + clzz.getComponentType());
+                                    List<Class<?>> availClasses = getAssignableClasses(containedClzz, classes, newExcludedClasses);
+
+                                    if (!availClasses.isEmpty()
+                                            && !containedClzz.isInterface()
+                                            && !newExcludedClasses.contains(containedClzz.getName())
+                                            && !newExcludedClasses.contains(containedClzz.getSimpleName())) {
+                                        for (int j = 0; j < addsize; j++) {
+                                            final Object addValue = reflectiveRandomGenerate(containedClzz, random, newExcludedClasses);
+                                            if (null == addValue) {
+                                                throw new RuntimeException("addValue=null containedClzz=" + containedClzz + ",metho1=" + method1 + ",clzz=" + clzz + ",newExcludedClasses=" + newExcludedClasses);
+                                            }
+                                            collection.add(addValue);
                                         }
-                                        collection.add(addValue);
                                     }
-                                    List<Class<?>> availClasses = getAssignableClasses(containedClzz, classes);
                                     for (int j = 0; j < availClasses.size(); j++) {
                                         final Class<?> availClassJ = availClasses.get(j);
-                                        final Object addValue = reflectiveRandomGenerate(availClassJ, random);
+                                        final Object addValue = reflectiveRandomGenerate(availClassJ, random, newExcludedClasses);
                                         if (null == addValue) {
                                             throw new RuntimeException("addValue=null clzz.getComponentType()=" + clzz.getComponentType());
                                         }
@@ -521,22 +542,17 @@ public class CRCLCopierTest {
                     System.out.println("clzz = " + clzz);
                     System.out.println("method1 = " + method1);
                     ex.printStackTrace();
-                    throw new RuntimeException("clzz=" + clzz + ", method1=" + method1, ex);
+                    throw new RuntimeException("clzz=" + clzz + ", method1=" + method1+",ex="+ex, ex);
                 }
             }
-//            if (newObj instanceof crcl.base.RunProgramType) {
-//                System.out.println("here");
-//            } else if (newObj instanceof crcl.base.EnableGripperType) {
-//                System.out.println("here");
-//            }
-            
+
             if (null == newObj) {
                 throw new NullPointerException("newObj = " + newObj);
             }
-            checkForNullObjectFields(clzz.getFields(), newObj);
-            checkForNullObjectFields(clzz.getDeclaredFields(), newObj);
-            checkForNullObjectFields(newObjClass.getFields(), newObj);
-            checkForNullObjectFields(newObjClass.getDeclaredFields(), newObj);
+            checkForNullObjectFields(clzz.getFields(), newObj,newExcludedClasses);
+            checkForNullObjectFields(clzz.getDeclaredFields(), newObj,newExcludedClasses);
+            checkForNullObjectFields(newObjClass.getFields(), newObj,newExcludedClasses);
+            checkForNullObjectFields(newObjClass.getDeclaredFields(), newObj,newExcludedClasses);
             return newObj;
         }
     }
@@ -619,7 +635,7 @@ public class CRCLCopierTest {
         }
     }
 
-    private <T> void randomFillObjectFields(Field[] fields, T newObj, Random random) {
+    private <T> void randomFillObjectFields(Field[] fields, T newObj, Random random, Set<String> excludedClasses) {
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             try {
@@ -630,7 +646,10 @@ public class CRCLCopierTest {
                     continue;
                 }
                 field.setAccessible(true);
-                field.set(newObj, reflectiveRandomGenerate(field.getType(), random));
+                final Class<?> fieldType = field.getType();
+                if (!excludedClasses.contains(fieldType.getName()) && !excludedClasses.contains(fieldType.getSimpleName())) {
+                    field.set(newObj, reflectiveRandomGenerate(fieldType, random, excludedClasses));
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new RuntimeException(ex);
@@ -638,14 +657,24 @@ public class CRCLCopierTest {
         }
     }
 
-    private <T> void checkForNullObjectFields(Field[] fields, T newObj) {
+    private <T> void checkForNullObjectFields(Field[] fields, T newObj, Set<String> excludedClasses) {
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             try {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
-                if (Collection.class.isAssignableFrom(field.getType())) {
+                final Class<?> fieldType = field.getType();
+                if(fieldType.isInterface()) {
+                    continue;
+                }
+                if(excludedClasses.contains(fieldType.getName())) {
+                    continue;
+                }
+                if(excludedClasses.contains(fieldType.getSimpleName())) {
+                    continue;
+                }
+                if (Collection.class.isAssignableFrom(fieldType)) {
                     continue;
                 }
                 field.setAccessible(true);
@@ -665,7 +694,7 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_CRCLProgramType() {
-        System.out.println("copy");
+        System.out.println("copy(CRCLProgramType)");
 
         // Create a program with one MoveTo command.
         CRCLProgramType programIn = new CRCLProgramType();
@@ -682,7 +711,7 @@ public class CRCLCopierTest {
 
         try {
             final File randomProgramFile = File.createTempFile("randomProgram", ".xml");
-            CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10));
+            CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10), new TreeSet<>(Arrays.asList("CRCLCommandWrapper")));
             try {
 
                 String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
@@ -780,7 +809,7 @@ public class CRCLCopierTest {
         try {
             final File randomStatusFile = File.createTempFile("randomStatus", ".xml");
             try {
-                CRCLStatusType randStatus = reflectiveRandomGenerate(CRCLStatusType.class, new Random(30));
+                CRCLStatusType randStatus = reflectiveRandomGenerate(CRCLStatusType.class, new Random(30), new TreeSet<>());
                 String randStatusString = CRCLSocket.getUtilSocket().statusToPrettyString(randStatus, true);
 
 //            System.out.println("randomStatusFile = " + randomStatusFile);

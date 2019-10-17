@@ -105,13 +105,779 @@ namespace crclj {
 // start_segment_index = 0
 // start_segment_index = 10
 // segment_index = 0
-// classesSegList=[class crcl.base.DataThingType, class crcl.base.CRCLCommandType, class crcl.base.MiddleCommandType, class crcl.base.EnableSensorType, class crcl.base.SensorStatusType, class crcl.base.ForceTorqueSensorStatusType, class crcl.base.SetAngleUnitsType, class crcl.base.SensorStatusesType, class java.lang.Enum, class crcl.base.LengthUnitEnumType]
+// classesSegList=[class java.lang.Enum, class crcl.base.ForceUnitEnumType, class crcl.base.TorqueUnitEnumType, class crcl.base.DataThingType, class crcl.base.CRCLCommandType, class crcl.base.MiddleCommandType, class crcl.base.MessageType, class crcl.base.SensorStatusType, class crcl.base.OnOffSensorStatusType, class crcl.base.RotAccelType]
 
 
-// class_index = 0 clss=class crcl.base.DataThingType
+// class_index = 0 clss=class java.lang.Enum
+
+    namespace java{
+        namespace lang{
+        
+        // get JNI handle for class java.lang.Enum
+        static inline jclass getEnumClass();
+        
+        Enum::Enum(jobject _jthis, bool copy): Object(_jthis,copy) {
+                
+        }
+        
+        Enum::Enum(const Enum &objref): Object((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Enum _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Enum jthis=",jthis);
+            }
+        }
+        
+        Enum Enum::cast(const Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getEnumClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            Enum retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool Enum::instanceof(const Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getEnumClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+
+        // Destructor for java.lang.Enum
+        Enum::~Enum() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        jstring Enum::name() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method name of java.lang.Enum with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::name jthis=",jthis);
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "name", "()Ljava/lang/String;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::name jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named name with signature ()Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::name jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jboolean Enum::equals(const Object & object_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.lang.Enum with jthis == NULL." << std::endl;
+                return false;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthis=",jthis);
+            jboolean retVal=false;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
+                    return false;
+                } else {
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jstring Enum::toString() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toString of java.lang.Enum with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthis=",jthis);
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "toString", "()Ljava/lang/String;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named toString with signature ()Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Enum::hashCode() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.lang.Enum with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named hashCode with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Enum::compareTo(const Enum & enum_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method compareTo of java.lang.Enum with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "compareTo", "(Ljava/lang/Enum;)I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named compareTo with signature (Ljava/lang/Enum;)I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid ,enum_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jint Enum::ordinal() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method ordinal of java.lang.Enum with jthis == NULL." << std::endl;
+                return (jint) -1;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthis=",jthis);
+            jint retVal= (jint) -1;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "ordinal", "()I");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named ordinal with signature ()I." << std::endl;
+                    return (jint) -1;
+                } else {
+                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+        static jclass getNewEnumClass() {
+            jclass clss = getEnv()->FindClass("java/lang/Enum");
+            if (NULL == clss) {
+                std::cerr << " Can't find class java/lang/Enum" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass EnumClass = NULL;
+        static inline jclass getEnumClass() {
+            if (EnumClass != NULL) {
+                return EnumClass;
+            }
+            EnumClass = getNewEnumClass();
+            return EnumClass;
+        }
+        } // end namespace lang
+    } // end namespace java
+
+
+    // class_index = 1 clss=class crcl.base.ForceUnitEnumType
 
     namespace crcl{
         namespace base{
+        
+        // get JNI handle for class crcl.base.ForceUnitEnumType
+        static inline jclass getForceUnitEnumTypeClass();
+        
+        ForceUnitEnumType::ForceUnitEnumType(jobject _jthis, bool copy): ::crclj::java::lang::Enum(_jthis,copy) {
+                
+        }
+        
+        ForceUnitEnumType::ForceUnitEnumType(const ForceUnitEnumType &objref): ::crclj::java::lang::Enum((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ForceUnitEnumType _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ForceUnitEnumType jthis=",jthis);
+            }
+        }
+        
+        ForceUnitEnumType ForceUnitEnumType::cast(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getForceUnitEnumTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            ForceUnitEnumType retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool ForceUnitEnumType::instanceof(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getForceUnitEnumTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+        ForceUnitEnumType::ForceUnitEnumType() : ::crclj::java::lang::Enum((jobject)NULL,false) {
+        JNIEnv *env =getEnv();
+        static jclass cls = getForceUnitEnumTypeClass();
+        if (cls != NULL) {
+            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+            if (NULL == mid) {
+                std::cerr << "Class ForceUnitEnumType has no method constructor signature ()V" << std::endl;
+            } else {
+                jthis = env->NewObject(cls, mid );
+                jthrowable t = env->ExceptionOccurred();
+                if(t != NULL) {
+                    if(GetDebugJ4Cpp()) {
+                        DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::ordinal jthis=",t);
+                        env->ExceptionDescribe();
+                    }
+                    throw t;
+                }
+                if(jthis == NULL) {
+                    std::cerr << "Call to create new ForceUnitEnumType with signature ()V returned null." << std::endl;
+                    releaseEnv(env);
+                    return;
+                }
+                jobjectRefType ref = env->GetObjectRefType(jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new ForceUnitEnumType jthis=",jthis);
+                if(ref != JNIGlobalRefType) {
+                    jthis = env->NewGlobalRef(jthis);
+                }
+            }
+        }
+        releaseEnv(env);
+        }
+
+
+        // Destructor for crcl.base.ForceUnitEnumType
+        ForceUnitEnumType::~ForceUnitEnumType() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        // Field getter for NEWTON
+        ForceUnitEnumType ForceUnitEnumType::getNEWTON() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getForceUnitEnumTypeClass();
+        jobject retVal=NULL;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "NEWTON", "Lcrcl/base/ForceUnitEnumType;");
+            if (NULL == fid) {
+                std::cerr << "Class crcl.base.ForceUnitEnumType has no field named NEWTON with signature Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                static ForceUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+            } else {
+                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+                    
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ForceUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        // Field getter for POUND
+        ForceUnitEnumType ForceUnitEnumType::getPOUND() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getForceUnitEnumTypeClass();
+        jobject retVal=NULL;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "POUND", "Lcrcl/base/ForceUnitEnumType;");
+            if (NULL == fid) {
+                std::cerr << "Class crcl.base.ForceUnitEnumType has no field named POUND with signature Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                static ForceUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+            } else {
+                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+                    
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ForceUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        // Field getter for OUNCE
+        ForceUnitEnumType ForceUnitEnumType::getOUNCE() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getForceUnitEnumTypeClass();
+        jobject retVal=NULL;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "OUNCE", "Lcrcl/base/ForceUnitEnumType;");
+            if (NULL == fid) {
+                std::cerr << "Class crcl.base.ForceUnitEnumType has no field named OUNCE with signature Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                static ForceUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+            } else {
+                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+                    
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ForceUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        jstring ForceUnitEnumType::value() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method value of crcl.base.ForceUnitEnumType with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::value jthis=",jthis);
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "value", "()Ljava/lang/String;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::value jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceUnitEnumType has no method named value with signature ()Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::value jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jobjectArray ForceUnitEnumType::values() {
+            JNIEnv *env =getEnv();
+            static jclass cls = getForceUnitEnumTypeClass();
+            jobjectArray retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "values", "()[Lcrcl/base/ForceUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.ForceUnitEnumType has no method named values with signature ()[Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jobjectArray)  env->CallStaticObjectMethod( cls, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::values jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        ForceUnitEnumType ForceUnitEnumType::valueOf(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getForceUnitEnumTypeClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Lcrcl/base/ForceUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.ForceUnitEnumType has no method named valueOf with signature (Ljava/lang/String;)Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                    static ForceUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::valueOf jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ForceUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        ForceUnitEnumType ForceUnitEnumType::fromValue(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getForceUnitEnumTypeClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "fromValue", "(Ljava/lang/String;)Lcrcl/base/ForceUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.ForceUnitEnumType has no method named fromValue with signature (Ljava/lang/String;)Lcrcl/base/ForceUnitEnumType;." << std::endl;
+                    static ForceUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," ForceUnitEnumType::fromValue jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ForceUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+        static jclass getNewForceUnitEnumTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/ForceUnitEnumType");
+            if (NULL == clss) {
+                std::cerr << " Can't find class crcl/base/ForceUnitEnumType" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass ForceUnitEnumTypeClass = NULL;
+        static inline jclass getForceUnitEnumTypeClass() {
+            if (ForceUnitEnumTypeClass != NULL) {
+                return ForceUnitEnumTypeClass;
+            }
+            ForceUnitEnumTypeClass = getNewForceUnitEnumTypeClass();
+            return ForceUnitEnumTypeClass;
+        }
+
+    // class_index = 2 clss=class crcl.base.TorqueUnitEnumType
+
+        
+        // get JNI handle for class crcl.base.TorqueUnitEnumType
+        static inline jclass getTorqueUnitEnumTypeClass();
+        
+        TorqueUnitEnumType::TorqueUnitEnumType(jobject _jthis, bool copy): ::crclj::java::lang::Enum(_jthis,copy) {
+                
+        }
+        
+        TorqueUnitEnumType::TorqueUnitEnumType(const TorqueUnitEnumType &objref): ::crclj::java::lang::Enum((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class TorqueUnitEnumType _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class TorqueUnitEnumType jthis=",jthis);
+            }
+        }
+        
+        TorqueUnitEnumType TorqueUnitEnumType::cast(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getTorqueUnitEnumTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            TorqueUnitEnumType retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool TorqueUnitEnumType::instanceof(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getTorqueUnitEnumTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+        TorqueUnitEnumType::TorqueUnitEnumType() : ::crclj::java::lang::Enum((jobject)NULL,false) {
+        JNIEnv *env =getEnv();
+        static jclass cls = getTorqueUnitEnumTypeClass();
+        if (cls != NULL) {
+            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+            if (NULL == mid) {
+                std::cerr << "Class TorqueUnitEnumType has no method constructor signature ()V" << std::endl;
+            } else {
+                jthis = env->NewObject(cls, mid );
+                jthrowable t = env->ExceptionOccurred();
+                if(t != NULL) {
+                    if(GetDebugJ4Cpp()) {
+                        DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::fromValue jthis=",t);
+                        env->ExceptionDescribe();
+                    }
+                    throw t;
+                }
+                if(jthis == NULL) {
+                    std::cerr << "Call to create new TorqueUnitEnumType with signature ()V returned null." << std::endl;
+                    releaseEnv(env);
+                    return;
+                }
+                jobjectRefType ref = env->GetObjectRefType(jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new TorqueUnitEnumType jthis=",jthis);
+                if(ref != JNIGlobalRefType) {
+                    jthis = env->NewGlobalRef(jthis);
+                }
+            }
+        }
+        releaseEnv(env);
+        }
+
+
+        // Destructor for crcl.base.TorqueUnitEnumType
+        TorqueUnitEnumType::~TorqueUnitEnumType() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        // Field getter for NEWTON_METER
+        TorqueUnitEnumType TorqueUnitEnumType::getNEWTON_METER() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getTorqueUnitEnumTypeClass();
+        jobject retVal=NULL;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "NEWTON_METER", "Lcrcl/base/TorqueUnitEnumType;");
+            if (NULL == fid) {
+                std::cerr << "Class crcl.base.TorqueUnitEnumType has no field named NEWTON_METER with signature Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+            } else {
+                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+                    
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TorqueUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        // Field getter for FOOT_POUND
+        TorqueUnitEnumType TorqueUnitEnumType::getFOOT_POUND() {
+        JNIEnv *env =getEnv();
+        static jclass cls = getTorqueUnitEnumTypeClass();
+        jobject retVal=NULL;
+        if (cls != NULL) {
+            static jfieldID fid = env->GetStaticFieldID(cls, "FOOT_POUND", "Lcrcl/base/TorqueUnitEnumType;");
+            if (NULL == fid) {
+                std::cerr << "Class crcl.base.TorqueUnitEnumType has no field named FOOT_POUND with signature Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+            } else {
+                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
+            }
+        }
+        releaseEnv(env);
+                    
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TorqueUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        jstring TorqueUnitEnumType::value() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method value of crcl.base.TorqueUnitEnumType with jthis == NULL." << std::endl;
+                return NULL;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::value jthis=",jthis);
+            jstring retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "value", "()Ljava/lang/String;");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::value jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.TorqueUnitEnumType has no method named value with signature ()Ljava/lang/String;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::value jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        jobjectArray TorqueUnitEnumType::values() {
+            JNIEnv *env =getEnv();
+            static jclass cls = getTorqueUnitEnumTypeClass();
+            jobjectArray retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "values", "()[Lcrcl/base/TorqueUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.TorqueUnitEnumType has no method named values with signature ()[Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                    return NULL;
+                } else {
+                    retVal= (jobjectArray)  env->CallStaticObjectMethod( cls, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::values jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        TorqueUnitEnumType TorqueUnitEnumType::valueOf(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getTorqueUnitEnumTypeClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Lcrcl/base/TorqueUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.TorqueUnitEnumType has no method named valueOf with signature (Ljava/lang/String;)Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                    static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::valueOf jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TorqueUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+
+        TorqueUnitEnumType TorqueUnitEnumType::fromValue(jstring string_0) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getTorqueUnitEnumTypeClass();
+            jobject retVal=NULL;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetStaticMethodID(cls, "fromValue", "(Ljava/lang/String;)Lcrcl/base/TorqueUnitEnumType;");
+                if (NULL == mid) {
+                    std::cerr << "Class crcl.base.TorqueUnitEnumType has no method named fromValue with signature (Ljava/lang/String;)Lcrcl/base/TorqueUnitEnumType;." << std::endl;
+                    static TorqueUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                } else {
+                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        DebugPrintJObject(__FILE__,__LINE__," TorqueUnitEnumType::fromValue jthis=",t);
+                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TorqueUnitEnumType retObject(retVal,false);
+            return retObject;
+        }
+        static jclass getNewTorqueUnitEnumTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/TorqueUnitEnumType");
+            if (NULL == clss) {
+                std::cerr << " Can't find class crcl/base/TorqueUnitEnumType" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass TorqueUnitEnumTypeClass = NULL;
+        static inline jclass getTorqueUnitEnumTypeClass() {
+            if (TorqueUnitEnumTypeClass != NULL) {
+                return TorqueUnitEnumTypeClass;
+            }
+            TorqueUnitEnumTypeClass = getNewTorqueUnitEnumTypeClass();
+            return TorqueUnitEnumTypeClass;
+        }
+
+    // class_index = 3 clss=class crcl.base.DataThingType
+
         
         // get JNI handle for class crcl.base.DataThingType
         static inline jclass getDataThingTypeClass();
@@ -159,7 +925,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," DataThingType::%METHOD_NAME% jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," DataThingType::fromValue jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -289,7 +1055,7 @@ namespace crclj {
             return DataThingTypeClass;
         }
 
-    // class_index = 1 clss=class crcl.base.CRCLCommandType
+    // class_index = 4 clss=class crcl.base.CRCLCommandType
 
         
         // get JNI handle for class crcl.base.CRCLCommandType
@@ -480,7 +1246,7 @@ namespace crclj {
             return CRCLCommandTypeClass;
         }
 
-    // class_index = 2 clss=class crcl.base.MiddleCommandType
+    // class_index = 5 clss=class crcl.base.MiddleCommandType
 
         
         // get JNI handle for class crcl.base.MiddleCommandType
@@ -572,67 +1338,67 @@ namespace crclj {
             return MiddleCommandTypeClass;
         }
 
-    // class_index = 3 clss=class crcl.base.EnableSensorType
+    // class_index = 6 clss=class crcl.base.MessageType
 
         
-        // get JNI handle for class crcl.base.EnableSensorType
-        static inline jclass getEnableSensorTypeClass();
+        // get JNI handle for class crcl.base.MessageType
+        static inline jclass getMessageTypeClass();
         
-        EnableSensorType::EnableSensorType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+        MessageType::MessageType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
                 
         }
         
-        EnableSensorType::EnableSensorType(const EnableSensorType &objref): MiddleCommandType((jobject)NULL,false) {
+        MessageType::MessageType(const MessageType &objref): MiddleCommandType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableSensorType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class MessageType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableSensorType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class MessageType jthis=",jthis);
             }
         }
         
-        EnableSensorType EnableSensorType::cast(const ::crclj::java::lang::Object &objref) {
+        MessageType MessageType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass(); 
+            static jclass cls = getMessageTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            EnableSensorType retVal(objref.jthis,true);
+            MessageType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool EnableSensorType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool MessageType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass(); 
+            static jclass cls = getMessageTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        EnableSensorType::EnableSensorType() : MiddleCommandType((jobject)NULL,false) {
+        MessageType::MessageType() : MiddleCommandType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass();
+            static jclass cls = getMessageTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class EnableSensorType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class MessageType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getGuard jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," MessageType::getGuard jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new EnableSensorType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new MessageType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new EnableSensorType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new MessageType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -642,33 +1408,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.EnableSensorType
-        EnableSensorType::~EnableSensorType() {
+        // Destructor for crcl.base.MessageType
+        MessageType::~MessageType() {
         	// Place-holder for later extensibility.
         }
 
 
-        jstring EnableSensorType::getSensorID() {
+        jstring MessageType::getMessage() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getMessage of crcl.base.MessageType with jthis == NULL." << std::endl;
                 return NULL;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MessageType::getMessage jthis=",jthis);
             jstring retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getSensorID", "()Ljava/lang/String;");
+                static jmethodID mid = env->GetMethodID(cls, "getMessage", "()Ljava/lang/String;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named getSensorID with signature ()Ljava/lang/String;." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," MessageType::getMessage jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MessageType has no method named getMessage with signature ()Ljava/lang/String;." << std::endl;
                     return NULL;
                 } else {
                     retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," MessageType::getMessage jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -680,27 +1446,27 @@ namespace crclj {
             return retVal;
         }
 
-        void EnableSensorType::setSensorID(jstring string_0) {
+        void MessageType::setMessage(jstring string_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setMessage of crcl.base.MessageType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MessageType::setMessage jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setSensorID", "(Ljava/lang/String;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setMessage", "(Ljava/lang/String;)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named setSensorID with signature (Ljava/lang/String;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," MessageType::setMessage jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.MessageType has no method named setMessage with signature (Ljava/lang/String;)V." << std::endl;
                     return;
                 } else {
                      env->CallVoidMethod(jthis, mid ,string_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," MessageType::setMessage jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -712,20 +1478,20 @@ namespace crclj {
             
         }
 
-        // Easy call alternative for setSensorID
-        void EnableSensorType::setSensorID(const char * easyArg_0) {
+        // Easy call alternative for setMessage
+        void MessageType::setMessage(const char * easyArg_0) {
             // convenience method, converts to/from JNI types to common C++ types.
             if(jthis == NULL) {
-                std::cerr << "Call of method setSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
+                std::cerr << "Call of method setMessage of crcl.base.MessageType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," MessageType::setMessage jthis=",jthis);
             
                     
             jstring string_0 = env->NewStringUTF(easyArg_0);
-            setSensorID(string_0);
+            setMessage(string_0);
             jobjectRefType ref_0 = env->GetObjectRefType(string_0);
             if(ref_0 == JNIGlobalRefType) {
                 env->DeleteGlobalRef(string_0);
@@ -734,59 +1500,24 @@ namespace crclj {
             releaseEnv(env);
         }
 
-
-        ::crclj::java::util::List EnableSensorType::getSensorOption() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSensorOption of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getSensorOption", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named getSensorOption with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewEnableSensorTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/EnableSensorType");
+        static jclass getNewMessageTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/MessageType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/EnableSensorType" << std::endl;
+                std::cerr << " Can't find class crcl/base/MessageType" << std::endl;
             }
             return clss;
         }
         
-        static jclass EnableSensorTypeClass = NULL;
-        static inline jclass getEnableSensorTypeClass() {
-            if (EnableSensorTypeClass != NULL) {
-                return EnableSensorTypeClass;
+        static jclass MessageTypeClass = NULL;
+        static inline jclass getMessageTypeClass() {
+            if (MessageTypeClass != NULL) {
+                return MessageTypeClass;
             }
-            EnableSensorTypeClass = getNewEnableSensorTypeClass();
-            return EnableSensorTypeClass;
+            MessageTypeClass = getNewMessageTypeClass();
+            return MessageTypeClass;
         }
 
-    // class_index = 4 clss=class crcl.base.SensorStatusType
+    // class_index = 7 clss=class crcl.base.SensorStatusType
 
         
         // get JNI handle for class crcl.base.SensorStatusType
@@ -835,7 +1566,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusType::getSensorOption jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusType::setMessage jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -1128,67 +1859,67 @@ namespace crclj {
             return SensorStatusTypeClass;
         }
 
-    // class_index = 5 clss=class crcl.base.ForceTorqueSensorStatusType
+    // class_index = 8 clss=class crcl.base.OnOffSensorStatusType
 
         
-        // get JNI handle for class crcl.base.ForceTorqueSensorStatusType
-        static inline jclass getForceTorqueSensorStatusTypeClass();
+        // get JNI handle for class crcl.base.OnOffSensorStatusType
+        static inline jclass getOnOffSensorStatusTypeClass();
         
-        ForceTorqueSensorStatusType::ForceTorqueSensorStatusType(jobject _jthis, bool copy): SensorStatusType(_jthis,copy) {
+        OnOffSensorStatusType::OnOffSensorStatusType(jobject _jthis, bool copy): SensorStatusType(_jthis,copy) {
                 
         }
         
-        ForceTorqueSensorStatusType::ForceTorqueSensorStatusType(const ForceTorqueSensorStatusType &objref): SensorStatusType((jobject)NULL,false) {
+        OnOffSensorStatusType::OnOffSensorStatusType(const OnOffSensorStatusType &objref): SensorStatusType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ForceTorqueSensorStatusType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class OnOffSensorStatusType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ForceTorqueSensorStatusType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class OnOffSensorStatusType jthis=",jthis);
             }
         }
         
-        ForceTorqueSensorStatusType ForceTorqueSensorStatusType::cast(const ::crclj::java::lang::Object &objref) {
+        OnOffSensorStatusType OnOffSensorStatusType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getForceTorqueSensorStatusTypeClass(); 
+            static jclass cls = getOnOffSensorStatusTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            ForceTorqueSensorStatusType retVal(objref.jthis,true);
+            OnOffSensorStatusType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool ForceTorqueSensorStatusType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool OnOffSensorStatusType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getForceTorqueSensorStatusTypeClass(); 
+            static jclass cls = getOnOffSensorStatusTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        ForceTorqueSensorStatusType::ForceTorqueSensorStatusType() : SensorStatusType((jobject)NULL,false) {
+        OnOffSensorStatusType::OnOffSensorStatusType() : SensorStatusType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getForceTorqueSensorStatusTypeClass();
+            static jclass cls = getOnOffSensorStatusTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class ForceTorqueSensorStatusType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class OnOffSensorStatusType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getSensorParameterSetting jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::getSensorParameterSetting jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new ForceTorqueSensorStatusType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new OnOffSensorStatusType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new ForceTorqueSensorStatusType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new OnOffSensorStatusType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -1198,905 +1929,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.ForceTorqueSensorStatusType
-        ForceTorqueSensorStatusType::~ForceTorqueSensorStatusType() {
+        // Destructor for crcl.base.OnOffSensorStatusType
+        OnOffSensorStatusType::~OnOffSensorStatusType() {
         	// Place-holder for later extensibility.
         }
 
 
-        jdouble ForceTorqueSensorStatusType::getFx() {
+        jboolean OnOffSensorStatusType::isOn() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getFx of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFx jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getFx", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFx jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getFx with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFx jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setFx(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setFx of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFx jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setFx", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFx jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setFx with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFx jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jdouble ForceTorqueSensorStatusType::getFy() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getFy of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFy jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getFy", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFy jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getFy with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFy jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setFy(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setFy of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFy jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setFy", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFy jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setFy with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFy jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jdouble ForceTorqueSensorStatusType::getFz() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getFz of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFz jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getFz", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFz jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getFz with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getFz jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setFz(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setFz of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFz jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setFz", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFz jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setFz with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setFz jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jdouble ForceTorqueSensorStatusType::getTx() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getTx of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTx jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getTx", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTx jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getTx with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTx jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setTx(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setTx of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTx jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setTx", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTx jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setTx with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTx jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jdouble ForceTorqueSensorStatusType::getTy() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getTy of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTy jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getTy", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTy jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getTy with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTy jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setTy(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setTy of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTy jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setTy", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTy jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setTy with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTy jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        jdouble ForceTorqueSensorStatusType::getTz() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getTz of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return (jdouble) -1.0;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTz jthis=",jthis);
-            jdouble retVal= (jdouble) -1.0;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getTz", "()D");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTz jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named getTz with signature ()D." << std::endl;
-                    return (jdouble) -1.0;
-                } else {
-                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::getTz jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void ForceTorqueSensorStatusType::setTz(jdouble double_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setTz of crcl.base.ForceTorqueSensorStatusType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTz jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setTz", "(D)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTz jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ForceTorqueSensorStatusType has no method named setTz with signature (D)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,double_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," ForceTorqueSensorStatusType::setTz jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-        static jclass getNewForceTorqueSensorStatusTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/ForceTorqueSensorStatusType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/ForceTorqueSensorStatusType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass ForceTorqueSensorStatusTypeClass = NULL;
-        static inline jclass getForceTorqueSensorStatusTypeClass() {
-            if (ForceTorqueSensorStatusTypeClass != NULL) {
-                return ForceTorqueSensorStatusTypeClass;
-            }
-            ForceTorqueSensorStatusTypeClass = getNewForceTorqueSensorStatusTypeClass();
-            return ForceTorqueSensorStatusTypeClass;
-        }
-
-    // class_index = 6 clss=class crcl.base.SetAngleUnitsType
-
-        
-        // get JNI handle for class crcl.base.SetAngleUnitsType
-        static inline jclass getSetAngleUnitsTypeClass();
-        
-        SetAngleUnitsType::SetAngleUnitsType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
-                
-        }
-        
-        SetAngleUnitsType::SetAngleUnitsType(const SetAngleUnitsType &objref): MiddleCommandType((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetAngleUnitsType _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetAngleUnitsType jthis=",jthis);
-            }
-        }
-        
-        SetAngleUnitsType SetAngleUnitsType::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetAngleUnitsTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            SetAngleUnitsType retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool SetAngleUnitsType::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetAngleUnitsTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        SetAngleUnitsType::SetAngleUnitsType() : MiddleCommandType((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetAngleUnitsTypeClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-                if (NULL == mid) {
-                    std::cerr << "Class SetAngleUnitsType has no method constructor signature ()V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::setTz jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new SetAngleUnitsType with signature ()V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetAngleUnitsType jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.SetAngleUnitsType
-        SetAngleUnitsType::~SetAngleUnitsType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        AngleUnitEnumType SetAngleUnitsType::getUnitName() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getUnitName of crcl.base.SetAngleUnitsType with jthis == NULL." << std::endl;
-                static AngleUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::getUnitName jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getUnitName", "()Lcrcl/base/AngleUnitEnumType;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::getUnitName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetAngleUnitsType has no method named getUnitName with signature ()Lcrcl/base/AngleUnitEnumType;." << std::endl;
-                    static AngleUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::getUnitName jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            AngleUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        void SetAngleUnitsType::setUnitName(const AngleUnitEnumType & angleUnitEnumType_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setUnitName of crcl.base.SetAngleUnitsType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::setUnitName jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setUnitName", "(Lcrcl/base/AngleUnitEnumType;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::setUnitName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetAngleUnitsType has no method named setUnitName with signature (Lcrcl/base/AngleUnitEnumType;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,angleUnitEnumType_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetAngleUnitsType::setUnitName jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-        static jclass getNewSetAngleUnitsTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SetAngleUnitsType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SetAngleUnitsType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass SetAngleUnitsTypeClass = NULL;
-        static inline jclass getSetAngleUnitsTypeClass() {
-            if (SetAngleUnitsTypeClass != NULL) {
-                return SetAngleUnitsTypeClass;
-            }
-            SetAngleUnitsTypeClass = getNewSetAngleUnitsTypeClass();
-            return SetAngleUnitsTypeClass;
-        }
-
-    // class_index = 7 clss=class crcl.base.SensorStatusesType
-
-        
-        // get JNI handle for class crcl.base.SensorStatusesType
-        static inline jclass getSensorStatusesTypeClass();
-        
-        SensorStatusesType::SensorStatusesType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
-                
-        }
-        
-        SensorStatusesType::SensorStatusesType(const SensorStatusesType &objref): DataThingType((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SensorStatusesType _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SensorStatusesType jthis=",jthis);
-            }
-        }
-        
-        SensorStatusesType SensorStatusesType::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            SensorStatusesType retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool SensorStatusesType::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        SensorStatusesType::SensorStatusesType() : DataThingType((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-                if (NULL == mid) {
-                    std::cerr << "Class SensorStatusesType has no method constructor signature ()V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::setUnitName jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new SensorStatusesType with signature ()V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SensorStatusesType jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.SensorStatusesType
-        SensorStatusesType::~SensorStatusesType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        ::crclj::java::util::List SensorStatusesType::getOnOffSensorStatus() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getOnOffSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getOnOffSensorStatus", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getOnOffSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-
-        ::crclj::java::util::List SensorStatusesType::getScalarSensorStatus() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getScalarSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getScalarSensorStatus", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getScalarSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-
-        ::crclj::java::util::List SensorStatusesType::getCountSensorStatus() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getCountSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getCountSensorStatus", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getCountSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-
-        ::crclj::java::util::List SensorStatusesType::getForceTorqueSensorStatus() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getForceTorqueSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getForceTorqueSensorStatus", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getForceTorqueSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewSensorStatusesTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SensorStatusesType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SensorStatusesType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass SensorStatusesTypeClass = NULL;
-        static inline jclass getSensorStatusesTypeClass() {
-            if (SensorStatusesTypeClass != NULL) {
-                return SensorStatusesTypeClass;
-            }
-            SensorStatusesTypeClass = getNewSensorStatusesTypeClass();
-            return SensorStatusesTypeClass;
-        }
-        } // end namespace base
-    } // end namespace crcl
-
-
-    // class_index = 8 clss=class java.lang.Enum
-
-    namespace java{
-        namespace lang{
-        
-        // get JNI handle for class java.lang.Enum
-        static inline jclass getEnumClass();
-        
-        Enum::Enum(jobject _jthis, bool copy): Object(_jthis,copy) {
-                
-        }
-        
-        Enum::Enum(const Enum &objref): Object((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Enum _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class Enum jthis=",jthis);
-            }
-        }
-        
-        Enum Enum::cast(const Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getEnumClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            Enum retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool Enum::instanceof(const Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getEnumClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-
-        // Destructor for java.lang.Enum
-        Enum::~Enum() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        jstring Enum::name() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method name of java.lang.Enum with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::name jthis=",jthis);
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "name", "()Ljava/lang/String;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::name jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named name with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::name jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jboolean Enum::equals(const Object & object_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method equals of java.lang.Enum with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method isOn of crcl.base.OnOffSensorStatusType with jthis == NULL." << std::endl;
                 return false;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::isOn jthis=",jthis);
             jboolean retVal=false;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "equals", "(Ljava/lang/Object;)Z");
+                static jmethodID mid = env->GetMethodID(cls, "isOn", "()Z");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named equals with signature (Ljava/lang/Object;)Z." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::isOn jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.OnOffSensorStatusType has no method named isOn with signature ()Z." << std::endl;
                     return false;
                 } else {
-                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid ,object_0.jthis );
+                    retVal= (jboolean)  env->CallBooleanMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::equals jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::isOn jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2108,27 +1967,27 @@ namespace crclj {
             return retVal;
         }
 
-        jstring Enum::toString() {
+        void OnOffSensorStatusType::setOn(jboolean boolean_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method toString of java.lang.Enum with jthis == NULL." << std::endl;
-                return NULL;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setOn of crcl.base.OnOffSensorStatusType with jthis == NULL." << std::endl;
+                return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthis=",jthis);
-            jstring retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::setOn jthis=",jthis);
+            
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "toString", "()Ljava/lang/String;");
+                static jmethodID mid = env->GetMethodID(cls, "setOn", "(Z)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named toString with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
+                    DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::setOn jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.OnOffSensorStatusType has no method named setOn with signature (Z)V." << std::endl;
+                    return;
                 } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                     env->CallVoidMethod(jthis, mid ,boolean_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::toString jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," OnOffSensorStatusType::setOn jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2137,389 +1996,115 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-            return retVal;
+            
         }
-
-        jint Enum::hashCode() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method hashCode of java.lang.Enum with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named hashCode with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::hashCode jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Enum::compareTo(const Enum & enum_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method compareTo of java.lang.Enum with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "compareTo", "(Ljava/lang/Enum;)I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named compareTo with signature (Ljava/lang/Enum;)I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid ,enum_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::compareTo jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        jint Enum::ordinal() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method ordinal of java.lang.Enum with jthis == NULL." << std::endl;
-                return (jint) -1;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthis=",jthis);
-            jint retVal= (jint) -1;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "ordinal", "()I");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class java.lang.Enum has no method named ordinal with signature ()I." << std::endl;
-                    return (jint) -1;
-                } else {
-                    retVal= (jint)  env->CallIntMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," Enum::ordinal jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-        static jclass getNewEnumClass() {
-            jclass clss = getEnv()->FindClass("java/lang/Enum");
+        static jclass getNewOnOffSensorStatusTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/OnOffSensorStatusType");
             if (NULL == clss) {
-                std::cerr << " Can't find class java/lang/Enum" << std::endl;
+                std::cerr << " Can't find class crcl/base/OnOffSensorStatusType" << std::endl;
             }
             return clss;
         }
         
-        static jclass EnumClass = NULL;
-        static inline jclass getEnumClass() {
-            if (EnumClass != NULL) {
-                return EnumClass;
+        static jclass OnOffSensorStatusTypeClass = NULL;
+        static inline jclass getOnOffSensorStatusTypeClass() {
+            if (OnOffSensorStatusTypeClass != NULL) {
+                return OnOffSensorStatusTypeClass;
             }
-            EnumClass = getNewEnumClass();
-            return EnumClass;
+            OnOffSensorStatusTypeClass = getNewOnOffSensorStatusTypeClass();
+            return OnOffSensorStatusTypeClass;
         }
-        } // end namespace lang
-    } // end namespace java
 
+    // class_index = 9 clss=class crcl.base.RotAccelType
 
-    // class_index = 9 clss=class crcl.base.LengthUnitEnumType
-
-    namespace crcl{
-        namespace base{
         
-        // get JNI handle for class crcl.base.LengthUnitEnumType
-        static inline jclass getLengthUnitEnumTypeClass();
+        // get JNI handle for class crcl.base.RotAccelType
+        static inline jclass getRotAccelTypeClass();
         
-        LengthUnitEnumType::LengthUnitEnumType(jobject _jthis, bool copy): ::crclj::java::lang::Enum(_jthis,copy) {
+        RotAccelType::RotAccelType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
                 
         }
         
-        LengthUnitEnumType::LengthUnitEnumType(const LengthUnitEnumType &objref): ::crclj::java::lang::Enum((jobject)NULL,false) {
+        RotAccelType::RotAccelType(const RotAccelType &objref): DataThingType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class LengthUnitEnumType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class LengthUnitEnumType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelType jthis=",jthis);
             }
         }
         
-        LengthUnitEnumType LengthUnitEnumType::cast(const ::crclj::java::lang::Object &objref) {
+        RotAccelType RotAccelType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass(); 
+            static jclass cls = getRotAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            LengthUnitEnumType retVal(objref.jthis,true);
+            RotAccelType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool LengthUnitEnumType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool RotAccelType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass(); 
+            static jclass cls = getRotAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        LengthUnitEnumType::LengthUnitEnumType() : ::crclj::java::lang::Enum((jobject)NULL,false) {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        if (cls != NULL) {
-            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-            if (NULL == mid) {
-                std::cerr << "Class LengthUnitEnumType has no method constructor signature ()V" << std::endl;
-            } else {
-                jthis = env->NewObject(cls, mid );
-                jthrowable t = env->ExceptionOccurred();
-                if(t != NULL) {
-                    if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::ordinal jthis=",t);
-                        env->ExceptionDescribe();
-                    }
-                    throw t;
-                }
-                if(jthis == NULL) {
-                    std::cerr << "Call to create new LengthUnitEnumType with signature ()V returned null." << std::endl;
-                    releaseEnv(env);
-                    return;
-                }
-                jobjectRefType ref = env->GetObjectRefType(jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new LengthUnitEnumType jthis=",jthis);
-                if(ref != JNIGlobalRefType) {
-                    jthis = env->NewGlobalRef(jthis);
-                }
-            }
-        }
-        releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.LengthUnitEnumType
-        LengthUnitEnumType::~LengthUnitEnumType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        // Field getter for METER
-        LengthUnitEnumType LengthUnitEnumType::getMETER() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "METER", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named METER with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for MILLIMETER
-        LengthUnitEnumType LengthUnitEnumType::getMILLIMETER() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "MILLIMETER", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named MILLIMETER with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for INCH
-        LengthUnitEnumType LengthUnitEnumType::getINCH() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "INCH", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named INCH with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        jstring LengthUnitEnumType::value() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method value of crcl.base.LengthUnitEnumType with jthis == NULL." << std::endl;
-                return NULL;
-            }
+        RotAccelType::RotAccelType() : DataThingType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthis=",jthis);
-            jstring retVal=NULL;
+            static jclass cls = getRotAccelTypeClass();
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "value", "()Ljava/lang/String;");
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.LengthUnitEnumType has no method named value with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
+                    std::cerr << "Class RotAccelType has no method constructor signature ()V" << std::endl;
                 } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," RotAccelType::setOn jthis=",t);
                             env->ExceptionDescribe();
                         }
-            //            env->ExceptionClear();
                         throw t;
+                    }
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new RotAccelType with signature ()V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new RotAccelType jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
                     }
                 }
             }
             releaseEnv(env);
-            return retVal;
         }
 
-        jobjectArray LengthUnitEnumType::values() {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
-            jobjectArray retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "values", "()[Lcrcl/base/LengthUnitEnumType;");
-                if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named values with signature ()[Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jobjectArray)  env->CallStaticObjectMethod( cls, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::values jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
+
+        // Destructor for crcl.base.RotAccelType
+        RotAccelType::~RotAccelType() {
+        	// Place-holder for later extensibility.
         }
 
-        LengthUnitEnumType LengthUnitEnumType::valueOf(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;");
-                if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named valueOf with signature (Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        LengthUnitEnumType LengthUnitEnumType::fromValue(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "fromValue", "(Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;");
-                if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named fromValue with signature (Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::fromValue jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewLengthUnitEnumTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/LengthUnitEnumType");
+        static jclass getNewRotAccelTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/RotAccelType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/LengthUnitEnumType" << std::endl;
+                std::cerr << " Can't find class crcl/base/RotAccelType" << std::endl;
             }
             return clss;
         }
         
-        static jclass LengthUnitEnumTypeClass = NULL;
-        static inline jclass getLengthUnitEnumTypeClass() {
-            if (LengthUnitEnumTypeClass != NULL) {
-                return LengthUnitEnumTypeClass;
+        static jclass RotAccelTypeClass = NULL;
+        static inline jclass getRotAccelTypeClass() {
+            if (RotAccelTypeClass != NULL) {
+                return RotAccelTypeClass;
             }
-            LengthUnitEnumTypeClass = getNewLengthUnitEnumTypeClass();
-            return LengthUnitEnumTypeClass;
+            RotAccelTypeClass = getNewRotAccelTypeClass();
+            return RotAccelTypeClass;
         }
         } // end namespace base
     } // end namespace crcl

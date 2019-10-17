@@ -47,18 +47,23 @@ import org.checkerframework.checker.nullness.qual.*;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings({"nullness"})
 public class CRCLCommandWrapper extends MessageType {
 
-    public static interface CRCLCommandWrapperConsumer {
-
-        public void accept(CRCLCommandWrapper wrapper);
-    }
+//    public static interface CRCLCommandWrapperConsumer {
+//
+//        public void accept(CRCLCommandWrapper wrapper);
+//    }
     private MiddleCommandType wrappedCommand;
 
     private @Nullable
     CRCLProgramType curProgram = null;
 
     private int curProgramIndex = -1;
+
+    public CRCLCommandWrapper() {
+        wrappedCommand = new MessageType();
+    }
 
     public int getCurProgramIndex() {
         return curProgramIndex;
@@ -84,7 +89,7 @@ public class CRCLCommandWrapper extends MessageType {
         if (wrappedCommand instanceof MessageType) {
             this.message = ((MessageType) wrappedCommand).getMessage();
         } else {
-            this.message = "name="+this.name+", wrappedCommand="+wrappedCommand;
+            this.message = "name=" + this.name + ", wrappedCommand=" + wrappedCommand;
         }
     }
 
@@ -214,6 +219,19 @@ public class CRCLCommandWrapper extends MessageType {
         }
     }
 
+    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnStartListeners() {
+        return onStartListeners;
+    }
+
+    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnDoneListeners() {
+        return onDoneListeners;
+    }
+
+    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnErrorListeners() {
+        return onErrorListeners;
+    }
+
+    
     @Override
     public String toString() {
         return "CrclCommandWrapper{" + "wrappedCommand=" + CRCLSocket.cmdToString(wrappedCommand) + ", curProgram=" + curProgram + ", curProgramIndex=" + curProgramIndex + ", onStartListeners=" + onStartListeners + ", onDoneListeners=" + onDoneListeners + ", onErrorListeners=" + onErrorListeners + '}';

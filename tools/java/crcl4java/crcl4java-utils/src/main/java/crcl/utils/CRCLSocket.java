@@ -1125,7 +1125,7 @@ public class CRCLSocket implements AutoCloseable {
         return cmdSchemasFile;
     }
 
-    public StackTraceElement[] getCmdSchemSetTrace() {
+    public StackTraceElement @Nullable [] getCmdSchemSetTrace() {
         return cmdSchemSetTrace;
     }
 
@@ -1412,7 +1412,9 @@ public class CRCLSocket implements AutoCloseable {
         }
 
         try {
-            socket.close();
+            if (null != socket) {
+                socket.close();
+            }
         } catch (IOException iOException) {
             exception = iOException;
         }

@@ -1977,8 +1977,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount() + 1);
         serverSideStatus.getGuardsStatuses().setTriggerValue(value);
-        if (null != serverSideStatus.getPoseStatus() && null != serverSideStatus.getPoseStatus().getPose()) {
-            serverSideStatus.getGuardsStatuses().setTriggerPose(copy(serverSideStatus.getPoseStatus().getPose()));
+        if (null != serverSideStatus.getPoseStatus()) {
+            final PoseType serverSidePose = serverSideStatus.getPoseStatus().getPose();
+            if (null != serverSidePose) {
+                final PoseType serverSidePoseCopy = copy(serverSidePose);
+                assert(null !=serverSidePoseCopy);
+                serverSideStatus.getGuardsStatuses().setTriggerPose(serverSidePoseCopy);
+            }
         }
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
     }

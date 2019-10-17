@@ -3451,8 +3451,6 @@ public class CrclSwingClientInner {
             if (prog != program) {
                 setProgram(prog);
             }
-            CRCLProgramType origProg = copy(prog);
-            final int start_close_test_count = this.close_test_count.get();
             lastRunProgramStartLine = startLine;
             holdingErrorOccured = false;
             crclClientErrorMessage = null;

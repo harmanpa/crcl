@@ -972,7 +972,9 @@ public class CRCLPosemath {
                 MoveToType moveToCmdOut = new MoveToType();
                 setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
-                    moveToCmdOut.setEndPosition(copy(moveToCmdIn.getEndPosition()));
+                    final PoseType endPositionCopy = copy(moveToCmdIn.getEndPosition());
+                    assert(null!=endPositionCopy);
+                    moveToCmdOut.setEndPosition(endPositionCopy);
                 } else {
                     moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
                 }
@@ -1025,42 +1027,6 @@ public class CRCLPosemath {
         return programOut;
     }
 
-//    public static CRCLProgramType copy(CRCLProgramType programIn) {
-//        CRCLProgramType programOut = new CRCLProgramType();
-//        InitCanonType initCmdOut = new InitCanonType();
-//        InitCanonType initCmdIn = programIn.getInitCanon();
-//        long id = 1;
-//        if (null != initCmdIn) {
-//            initCmdOut.setCommandID(initCmdIn.getCommandID());
-//            id = initCmdIn.getCommandID();
-//            programOut.setInitCanon(initCmdOut);
-//        }
-//        final List<MiddleCommandType> programInMiddleCommands = programIn.getMiddleCommand();
-//        for (MiddleCommandType cmd : programInMiddleCommands) {
-//            if (cmd instanceof MoveToType) {
-//                MoveToType moveToCmdIn = (MoveToType) cmd;
-//                MoveToType moveToCmdOut = new MoveToType();
-//                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-//                moveToCmdOut.setEndPosition(CRCLPosemath.copy(moveToCmdIn.getEndPosition()));
-//                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-//                for (GuardType g : moveToCmdIn.getGuard()) {
-//                    moveToCmdOut.getGuard().add(g);
-//                }
-//                moveToCmdOut.setName(moveToCmdIn.getName());
-//                programOut.getMiddleCommand().add(moveToCmdOut);
-//            } else {
-//                programOut.getMiddleCommand().add(cmd);
-//            }
-//            id = Math.max(id, cmd.getCommandID()) + 1;
-//        }
-//        EndCanonType endCmdOut = new EndCanonType();
-//        EndCanonType endCmdIn = programIn.getEndCanon();
-//        if (null != endCmdIn) {
-//            endCmdOut.setCommandID(endCmdIn.getCommandID());
-//        }
-//        programOut.setEndCanon(endCmdOut);
-//        return programOut;
-//    }
 
     /**
      * Compute a transform such that two points on a rigid body taken in one

@@ -10,75 +10,75 @@ namespace crclj {
 
 
 
-// start_segment_index = 60
-// start_segment_index = 70
-// segment_index = 6
-// classesSegList=[class crcl.base.SetLengthUnitsType, class crcl.base.SensorStatusesType, class crcl.base.LengthUnitEnumType, class crcl.base.SettingsStatusType, class crcl.base.CRCLProgramType, class crcl.base.SetRotSpeedType, class crcl.base.StopConditionEnumType, class crcl.base.TwistType, class crcl.base.SetTransSpeedType, class crcl.base.EnableSensorType]
+// start_segment_index = 40
+// start_segment_index = 50
+// segment_index = 4
+// classesSegList=[class crcl.base.ParallelGripperStatusType, class crcl.base.JointSpeedAccelType, class crcl.base.JointForceTorqueType, class crcl.base.SettingsStatusType, class crcl.base.PointType, class crcl.base.DwellType, class crcl.base.RotAccelType, class crcl.base.RotAccelRelativeType, class crcl.base.DisableSensorType, class crcl.base.TwistType]
 
 
-// class_index = 0 clss=class crcl.base.SetLengthUnitsType
+// class_index = 0 clss=class crcl.base.ParallelGripperStatusType
 
     namespace crcl{
         namespace base{
         
-        // get JNI handle for class crcl.base.SetLengthUnitsType
-        static inline jclass getSetLengthUnitsTypeClass();
+        // get JNI handle for class crcl.base.ParallelGripperStatusType
+        static inline jclass getParallelGripperStatusTypeClass();
         
-        SetLengthUnitsType::SetLengthUnitsType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+        ParallelGripperStatusType::ParallelGripperStatusType(jobject _jthis, bool copy): GripperStatusType(_jthis,copy) {
                 
         }
         
-        SetLengthUnitsType::SetLengthUnitsType(const SetLengthUnitsType &objref): MiddleCommandType((jobject)NULL,false) {
+        ParallelGripperStatusType::ParallelGripperStatusType(const ParallelGripperStatusType &objref): GripperStatusType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetLengthUnitsType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ParallelGripperStatusType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetLengthUnitsType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class ParallelGripperStatusType jthis=",jthis);
             }
         }
         
-        SetLengthUnitsType SetLengthUnitsType::cast(const ::crclj::java::lang::Object &objref) {
+        ParallelGripperStatusType ParallelGripperStatusType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetLengthUnitsTypeClass(); 
+            static jclass cls = getParallelGripperStatusTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            SetLengthUnitsType retVal(objref.jthis,true);
+            ParallelGripperStatusType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool SetLengthUnitsType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool ParallelGripperStatusType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetLengthUnitsTypeClass(); 
+            static jclass cls = getParallelGripperStatusTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        SetLengthUnitsType::SetLengthUnitsType() : MiddleCommandType((jobject)NULL,false) {
+        ParallelGripperStatusType::ParallelGripperStatusType() : GripperStatusType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetLengthUnitsTypeClass();
+            static jclass cls = getParallelGripperStatusTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class SetLengthUnitsType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class ParallelGripperStatusType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::setTolerance jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::setHoldingObject jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new SetLengthUnitsType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new ParallelGripperStatusType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetLengthUnitsType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new ParallelGripperStatusType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -88,33 +88,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.SetLengthUnitsType
-        SetLengthUnitsType::~SetLengthUnitsType() {
+        // Destructor for crcl.base.ParallelGripperStatusType
+        ParallelGripperStatusType::~ParallelGripperStatusType() {
         	// Place-holder for later extensibility.
         }
 
 
-        LengthUnitEnumType SetLengthUnitsType::getUnitName() {
+        jdouble ParallelGripperStatusType::getSeparation() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getUnitName of crcl.base.SetLengthUnitsType with jthis == NULL." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSeparation of crcl.base.ParallelGripperStatusType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::getUnitName jthis=",jthis);
-            jobject retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::getSeparation jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getUnitName", "()Lcrcl/base/LengthUnitEnumType;");
+                static jmethodID mid = env->GetMethodID(cls, "getSeparation", "()D");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::getUnitName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetLengthUnitsType has no method named getUnitName with signature ()Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::getSeparation jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ParallelGripperStatusType has no method named getSeparation with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
                 } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::getUnitName jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::getSeparation jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -123,33 +123,30 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
+            return retVal;
         }
 
-        void SetLengthUnitsType::setUnitName(const LengthUnitEnumType & lengthUnitEnumType_0) {
+        void ParallelGripperStatusType::setSeparation(jdouble double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setUnitName of crcl.base.SetLengthUnitsType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setSeparation of crcl.base.ParallelGripperStatusType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::setUnitName jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::setSeparation jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setUnitName", "(Lcrcl/base/LengthUnitEnumType;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setSeparation", "(D)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::setUnitName jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetLengthUnitsType has no method named setUnitName with signature (Lcrcl/base/LengthUnitEnumType;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::setSeparation jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.ParallelGripperStatusType has no method named setSeparation with signature (D)V." << std::endl;
                     return;
                 } else {
-                     env->CallVoidMethod(jthis, mid ,lengthUnitEnumType_0.jthis );
+                     env->CallVoidMethod(jthis, mid ,double_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetLengthUnitsType::setUnitName jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," ParallelGripperStatusType::setSeparation jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -160,84 +157,84 @@ namespace crclj {
             releaseEnv(env);
             
         }
-        static jclass getNewSetLengthUnitsTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SetLengthUnitsType");
+        static jclass getNewParallelGripperStatusTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/ParallelGripperStatusType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SetLengthUnitsType" << std::endl;
+                std::cerr << " Can't find class crcl/base/ParallelGripperStatusType" << std::endl;
             }
             return clss;
         }
         
-        static jclass SetLengthUnitsTypeClass = NULL;
-        static inline jclass getSetLengthUnitsTypeClass() {
-            if (SetLengthUnitsTypeClass != NULL) {
-                return SetLengthUnitsTypeClass;
+        static jclass ParallelGripperStatusTypeClass = NULL;
+        static inline jclass getParallelGripperStatusTypeClass() {
+            if (ParallelGripperStatusTypeClass != NULL) {
+                return ParallelGripperStatusTypeClass;
             }
-            SetLengthUnitsTypeClass = getNewSetLengthUnitsTypeClass();
-            return SetLengthUnitsTypeClass;
+            ParallelGripperStatusTypeClass = getNewParallelGripperStatusTypeClass();
+            return ParallelGripperStatusTypeClass;
         }
 
-    // class_index = 1 clss=class crcl.base.SensorStatusesType
+    // class_index = 1 clss=class crcl.base.JointSpeedAccelType
 
         
-        // get JNI handle for class crcl.base.SensorStatusesType
-        static inline jclass getSensorStatusesTypeClass();
+        // get JNI handle for class crcl.base.JointSpeedAccelType
+        static inline jclass getJointSpeedAccelTypeClass();
         
-        SensorStatusesType::SensorStatusesType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
+        JointSpeedAccelType::JointSpeedAccelType(jobject _jthis, bool copy): JointDetailsType(_jthis,copy) {
                 
         }
         
-        SensorStatusesType::SensorStatusesType(const SensorStatusesType &objref): DataThingType((jobject)NULL,false) {
+        JointSpeedAccelType::JointSpeedAccelType(const JointSpeedAccelType &objref): JointDetailsType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SensorStatusesType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class JointSpeedAccelType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SensorStatusesType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class JointSpeedAccelType jthis=",jthis);
             }
         }
         
-        SensorStatusesType SensorStatusesType::cast(const ::crclj::java::lang::Object &objref) {
+        JointSpeedAccelType JointSpeedAccelType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass(); 
+            static jclass cls = getJointSpeedAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            SensorStatusesType retVal(objref.jthis,true);
+            JointSpeedAccelType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool SensorStatusesType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool JointSpeedAccelType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass(); 
+            static jclass cls = getJointSpeedAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        SensorStatusesType::SensorStatusesType() : DataThingType((jobject)NULL,false) {
+        JointSpeedAccelType::JointSpeedAccelType() : JointDetailsType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSensorStatusesTypeClass();
+            static jclass cls = getJointSpeedAccelTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class SensorStatusesType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class JointSpeedAccelType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::setUnitName jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setSeparation jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new SensorStatusesType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new JointSpeedAccelType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SensorStatusesType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new JointSpeedAccelType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -247,33 +244,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.SensorStatusesType
-        SensorStatusesType::~SensorStatusesType() {
+        // Destructor for crcl.base.JointSpeedAccelType
+        JointSpeedAccelType::~JointSpeedAccelType() {
         	// Place-holder for later extensibility.
         }
 
 
-        ::crclj::java::util::List SensorStatusesType::getOnOffSensorStatus() {
+        ::crclj::java::lang::Double JointSpeedAccelType::getJointSpeed() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getOnOffSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getJointSpeed of crcl.base.JointSpeedAccelType with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointSpeed jthis=",jthis);
             jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getOnOffSensorStatus", "()Ljava/util/List;");
+                static jmethodID mid = env->GetMethodID(cls, "getJointSpeed", "()Ljava/lang/Double;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getOnOffSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointSpeed jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointSpeedAccelType has no method named getJointSpeed with signature ()Ljava/lang/Double;." << std::endl;
+                    static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
                 } else {
                     retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getOnOffSensorStatus jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointSpeed jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -284,31 +281,63 @@ namespace crclj {
             releaseEnv(env);
                         
             jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Double retObject(retVal,false);
             return retObject;
         }
 
-        ::crclj::java::util::List SensorStatusesType::getScalarSensorStatus() {
+        void JointSpeedAccelType::setJointSpeed(const ::crclj::java::lang::Double & double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getScalarSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setJointSpeed of crcl.base.JointSpeedAccelType with jthis == NULL." << std::endl;
+                return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointSpeed jthis=",jthis);
+            
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "setJointSpeed", "(Ljava/lang/Double;)V");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointSpeed jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointSpeedAccelType has no method named setJointSpeed with signature (Ljava/lang/Double;)V." << std::endl;
+                    return;
+                } else {
+                     env->CallVoidMethod(jthis, mid ,double_0.jthis );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointSpeed jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            
+        }
+
+        ::crclj::java::lang::Double JointSpeedAccelType::getJointAccel() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getJointAccel of crcl.base.JointSpeedAccelType with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointAccel jthis=",jthis);
             jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getScalarSensorStatus", "()Ljava/util/List;");
+                static jmethodID mid = env->GetMethodID(cls, "getJointAccel", "()Ljava/lang/Double;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getScalarSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointAccel jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointSpeedAccelType has no method named getJointAccel with signature ()Ljava/lang/Double;." << std::endl;
+                    static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
                 } else {
                     retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getScalarSensorStatus jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::getJointAccel jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -319,31 +348,31 @@ namespace crclj {
             releaseEnv(env);
                         
             jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Double retObject(retVal,false);
             return retObject;
         }
 
-        ::crclj::java::util::List SensorStatusesType::getCountSensorStatus() {
+        void JointSpeedAccelType::setJointAccel(const ::crclj::java::lang::Double & double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getCountSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setJointAccel of crcl.base.JointSpeedAccelType with jthis == NULL." << std::endl;
+                return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointAccel jthis=",jthis);
+            
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getCountSensorStatus", "()Ljava/util/List;");
+                static jmethodID mid = env->GetMethodID(cls, "setJointAccel", "(Ljava/lang/Double;)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getCountSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointAccel jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointSpeedAccelType has no method named setJointAccel with signature (Ljava/lang/Double;)V." << std::endl;
+                    return;
                 } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
+                     env->CallVoidMethod(jthis, mid ,double_0.jthis );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getCountSensorStatus jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," JointSpeedAccelType::setJointAccel jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -352,223 +381,122 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
+            
         }
-
-        ::crclj::java::util::List SensorStatusesType::getForceTorqueSensorStatus() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getForceTorqueSensorStatus of crcl.base.SensorStatusesType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getForceTorqueSensorStatus", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SensorStatusesType has no method named getForceTorqueSensorStatus with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SensorStatusesType::getForceTorqueSensorStatus jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewSensorStatusesTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SensorStatusesType");
+        static jclass getNewJointSpeedAccelTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/JointSpeedAccelType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SensorStatusesType" << std::endl;
+                std::cerr << " Can't find class crcl/base/JointSpeedAccelType" << std::endl;
             }
             return clss;
         }
         
-        static jclass SensorStatusesTypeClass = NULL;
-        static inline jclass getSensorStatusesTypeClass() {
-            if (SensorStatusesTypeClass != NULL) {
-                return SensorStatusesTypeClass;
+        static jclass JointSpeedAccelTypeClass = NULL;
+        static inline jclass getJointSpeedAccelTypeClass() {
+            if (JointSpeedAccelTypeClass != NULL) {
+                return JointSpeedAccelTypeClass;
             }
-            SensorStatusesTypeClass = getNewSensorStatusesTypeClass();
-            return SensorStatusesTypeClass;
+            JointSpeedAccelTypeClass = getNewJointSpeedAccelTypeClass();
+            return JointSpeedAccelTypeClass;
         }
 
-    // class_index = 2 clss=class crcl.base.LengthUnitEnumType
+    // class_index = 2 clss=class crcl.base.JointForceTorqueType
 
         
-        // get JNI handle for class crcl.base.LengthUnitEnumType
-        static inline jclass getLengthUnitEnumTypeClass();
+        // get JNI handle for class crcl.base.JointForceTorqueType
+        static inline jclass getJointForceTorqueTypeClass();
         
-        LengthUnitEnumType::LengthUnitEnumType(jobject _jthis, bool copy): ::crclj::java::lang::Enum(_jthis,copy) {
+        JointForceTorqueType::JointForceTorqueType(jobject _jthis, bool copy): JointDetailsType(_jthis,copy) {
                 
         }
         
-        LengthUnitEnumType::LengthUnitEnumType(const LengthUnitEnumType &objref): ::crclj::java::lang::Enum((jobject)NULL,false) {
+        JointForceTorqueType::JointForceTorqueType(const JointForceTorqueType &objref): JointDetailsType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class LengthUnitEnumType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class JointForceTorqueType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class LengthUnitEnumType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class JointForceTorqueType jthis=",jthis);
             }
         }
         
-        LengthUnitEnumType LengthUnitEnumType::cast(const ::crclj::java::lang::Object &objref) {
+        JointForceTorqueType JointForceTorqueType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass(); 
+            static jclass cls = getJointForceTorqueTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            LengthUnitEnumType retVal(objref.jthis,true);
+            JointForceTorqueType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool LengthUnitEnumType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool JointForceTorqueType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass(); 
+            static jclass cls = getJointForceTorqueTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        LengthUnitEnumType::LengthUnitEnumType() : ::crclj::java::lang::Enum((jobject)NULL,false) {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        if (cls != NULL) {
-            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-            if (NULL == mid) {
-                std::cerr << "Class LengthUnitEnumType has no method constructor signature ()V" << std::endl;
-            } else {
-                jthis = env->NewObject(cls, mid );
-                jthrowable t = env->ExceptionOccurred();
-                if(t != NULL) {
-                    if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::getForceTorqueSensorStatus jthis=",t);
-                        env->ExceptionDescribe();
+        JointForceTorqueType::JointForceTorqueType() : JointDetailsType((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getJointForceTorqueTypeClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+                if (NULL == mid) {
+                    std::cerr << "Class JointForceTorqueType has no method constructor signature ()V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setJointAccel jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
                     }
-                    throw t;
-                }
-                if(jthis == NULL) {
-                    std::cerr << "Call to create new LengthUnitEnumType with signature ()V returned null." << std::endl;
-                    releaseEnv(env);
-                    return;
-                }
-                jobjectRefType ref = env->GetObjectRefType(jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new LengthUnitEnumType jthis=",jthis);
-                if(ref != JNIGlobalRefType) {
-                    jthis = env->NewGlobalRef(jthis);
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new JointForceTorqueType with signature ()V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new JointForceTorqueType jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
                 }
             }
-        }
-        releaseEnv(env);
+            releaseEnv(env);
         }
 
 
-        // Destructor for crcl.base.LengthUnitEnumType
-        LengthUnitEnumType::~LengthUnitEnumType() {
+        // Destructor for crcl.base.JointForceTorqueType
+        JointForceTorqueType::~JointForceTorqueType() {
         	// Place-holder for later extensibility.
         }
 
 
-        // Field getter for METER
-        LengthUnitEnumType LengthUnitEnumType::getMETER() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "METER", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named METER with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for MILLIMETER
-        LengthUnitEnumType LengthUnitEnumType::getMILLIMETER() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "MILLIMETER", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named MILLIMETER with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for INCH
-        LengthUnitEnumType LengthUnitEnumType::getINCH() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getLengthUnitEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "INCH", "Lcrcl/base/LengthUnitEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.LengthUnitEnumType has no field named INCH with signature Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        jstring LengthUnitEnumType::value() {
+        ::crclj::java::lang::Double JointForceTorqueType::getSetting() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method value of crcl.base.LengthUnitEnumType with jthis == NULL." << std::endl;
-                return NULL;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSetting of crcl.base.JointForceTorqueType with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthis=",jthis);
-            jstring retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getSetting jthis=",jthis);
+            jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "value", "()Ljava/lang/String;");
+                static jmethodID mid = env->GetMethodID(cls, "getSetting", "()Ljava/lang/Double;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.LengthUnitEnumType has no method named value with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
+                    DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getSetting jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointForceTorqueType has no method named getSetting with signature ()Ljava/lang/Double;." << std::endl;
+                    static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
                 } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::value jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getSetting jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -577,48 +505,67 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-            return retVal;
+                        
+            jobjectRefType ref = env->GetObjectRefType(retVal);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Double retObject(retVal,false);
+            return retObject;
         }
 
-        jobjectArray LengthUnitEnumType::values() {
+        void JointForceTorqueType::setSetting(const ::crclj::java::lang::Double & double_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setSetting of crcl.base.JointForceTorqueType with jthis == NULL." << std::endl;
+                return;
+            }
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
-            jobjectArray retVal=NULL;
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setSetting jthis=",jthis);
+            
             if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "values", "()[Lcrcl/base/LengthUnitEnumType;");
+                static jmethodID mid = env->GetMethodID(cls, "setSetting", "(Ljava/lang/Double;)V");
                 if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named values with signature ()[Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    return NULL;
+                    DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setSetting jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointForceTorqueType has no method named setSetting with signature (Ljava/lang/Double;)V." << std::endl;
+                    return;
                 } else {
-                    retVal= (jobjectArray)  env->CallStaticObjectMethod( cls, mid  );
+                     env->CallVoidMethod(jthis, mid ,double_0.jthis );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::values jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setSetting jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
             //            env->ExceptionClear();
                         throw t;
                     }
                 }
             }
             releaseEnv(env);
-            return retVal;
+            
         }
 
-        LengthUnitEnumType LengthUnitEnumType::valueOf(jstring string_0) {
+        ::crclj::java::lang::Double JointForceTorqueType::getChangeRate() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getChangeRate of crcl.base.JointForceTorqueType with jthis == NULL." << std::endl;
+                static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
+            }
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getChangeRate jthis=",jthis);
             jobject retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;");
+                static jmethodID mid = env->GetMethodID(cls, "getChangeRate", "()Ljava/lang/Double;");
                 if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named valueOf with signature (Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getChangeRate jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointForceTorqueType has no method named getChangeRate with signature ()Ljava/lang/Double;." << std::endl;
+                    static ::crclj::java::lang::Double nullObject((jobject)NULL,false); return nullObject;
                 } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::getChangeRate jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
             //            env->ExceptionClear();
                         throw t;
                     }
@@ -627,51 +574,56 @@ namespace crclj {
             releaseEnv(env);
                         
             jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::lang::Double retObject(retVal,false);
             return retObject;
         }
 
-        LengthUnitEnumType LengthUnitEnumType::fromValue(jstring string_0) {
+        void JointForceTorqueType::setChangeRate(const ::crclj::java::lang::Double & double_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setChangeRate of crcl.base.JointForceTorqueType with jthis == NULL." << std::endl;
+                return;
+            }
             JNIEnv *env =getEnv();
-            static jclass cls = getLengthUnitEnumTypeClass();
-            jobject retVal=NULL;
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setChangeRate jthis=",jthis);
+            
             if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "fromValue", "(Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;");
+                static jmethodID mid = env->GetMethodID(cls, "setChangeRate", "(Ljava/lang/Double;)V");
                 if (NULL == mid) {
-                    std::cerr << "Class crcl.base.LengthUnitEnumType has no method named fromValue with signature (Ljava/lang/String;)Lcrcl/base/LengthUnitEnumType;." << std::endl;
-                    static LengthUnitEnumType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setChangeRate jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.JointForceTorqueType has no method named setChangeRate with signature (Ljava/lang/Double;)V." << std::endl;
+                    return;
                 } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
+                     env->CallVoidMethod(jthis, mid ,double_0.jthis );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," LengthUnitEnumType::fromValue jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," JointForceTorqueType::setChangeRate jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
             //            env->ExceptionClear();
                         throw t;
                     }
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            LengthUnitEnumType retObject(retVal,false);
-            return retObject;
+            
         }
-        static jclass getNewLengthUnitEnumTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/LengthUnitEnumType");
+        static jclass getNewJointForceTorqueTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/JointForceTorqueType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/LengthUnitEnumType" << std::endl;
+                std::cerr << " Can't find class crcl/base/JointForceTorqueType" << std::endl;
             }
             return clss;
         }
         
-        static jclass LengthUnitEnumTypeClass = NULL;
-        static inline jclass getLengthUnitEnumTypeClass() {
-            if (LengthUnitEnumTypeClass != NULL) {
-                return LengthUnitEnumTypeClass;
+        static jclass JointForceTorqueTypeClass = NULL;
+        static inline jclass getJointForceTorqueTypeClass() {
+            if (JointForceTorqueTypeClass != NULL) {
+                return JointForceTorqueTypeClass;
             }
-            LengthUnitEnumTypeClass = getNewLengthUnitEnumTypeClass();
-            return LengthUnitEnumTypeClass;
+            JointForceTorqueTypeClass = getNewJointForceTorqueTypeClass();
+            return JointForceTorqueTypeClass;
         }
 
     // class_index = 3 clss=class crcl.base.SettingsStatusType
@@ -723,7 +675,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SettingsStatusType::fromValue jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," SettingsStatusType::setChangeRate jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -2077,67 +2029,67 @@ namespace crclj {
             return SettingsStatusTypeClass;
         }
 
-    // class_index = 4 clss=class crcl.base.CRCLProgramType
+    // class_index = 4 clss=class crcl.base.PointType
 
         
-        // get JNI handle for class crcl.base.CRCLProgramType
-        static inline jclass getCRCLProgramTypeClass();
+        // get JNI handle for class crcl.base.PointType
+        static inline jclass getPointTypeClass();
         
-        CRCLProgramType::CRCLProgramType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
+        PointType::PointType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
                 
         }
         
-        CRCLProgramType::CRCLProgramType(const CRCLProgramType &objref): DataThingType((jobject)NULL,false) {
+        PointType::PointType(const PointType &objref): DataThingType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class CRCLProgramType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class PointType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class CRCLProgramType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class PointType jthis=",jthis);
             }
         }
         
-        CRCLProgramType CRCLProgramType::cast(const ::crclj::java::lang::Object &objref) {
+        PointType PointType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getCRCLProgramTypeClass(); 
+            static jclass cls = getPointTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            CRCLProgramType retVal(objref.jthis,true);
+            PointType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool CRCLProgramType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool PointType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getCRCLProgramTypeClass(); 
+            static jclass cls = getPointTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        CRCLProgramType::CRCLProgramType() : DataThingType((jobject)NULL,false) {
+        PointType::PointType() : DataThingType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getCRCLProgramTypeClass();
+            static jclass cls = getPointTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class CRCLProgramType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class PointType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setTransSpeedRelative jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::setTransSpeedRelative jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new CRCLProgramType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new PointType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new CRCLProgramType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new PointType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -2147,33 +2099,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.CRCLProgramType
-        CRCLProgramType::~CRCLProgramType() {
+        // Destructor for crcl.base.PointType
+        PointType::~PointType() {
         	// Place-holder for later extensibility.
         }
 
 
-        InitCanonType CRCLProgramType::getInitCanon() {
+        jdouble PointType::getX() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getInitCanon of crcl.base.CRCLProgramType with jthis == NULL." << std::endl;
-                static InitCanonType nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getX of crcl.base.PointType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getInitCanon jthis=",jthis);
-            jobject retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::getX jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getInitCanon", "()Lcrcl/base/InitCanonType;");
+                static jmethodID mid = env->GetMethodID(cls, "getX", "()D");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getInitCanon jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.CRCLProgramType has no method named getInitCanon with signature ()Lcrcl/base/InitCanonType;." << std::endl;
-                    static InitCanonType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::getX jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named getX with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
                 } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getInitCanon jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::getX jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2182,33 +2134,30 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            InitCanonType retObject(retVal,false);
-            return retObject;
+            return retVal;
         }
 
-        void CRCLProgramType::setInitCanon(const InitCanonType & initCanonType_0) {
+        void PointType::setX(jdouble double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setInitCanon of crcl.base.CRCLProgramType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setX of crcl.base.PointType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setInitCanon jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::setX jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setInitCanon", "(Lcrcl/base/InitCanonType;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setX", "(D)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setInitCanon jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.CRCLProgramType has no method named setInitCanon with signature (Lcrcl/base/InitCanonType;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::setX jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named setX with signature (D)V." << std::endl;
                     return;
                 } else {
-                     env->CallVoidMethod(jthis, mid ,initCanonType_0.jthis );
+                     env->CallVoidMethod(jthis, mid ,double_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setInitCanon jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::setX jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2220,27 +2169,27 @@ namespace crclj {
             
         }
 
-        ::crclj::java::util::List CRCLProgramType::getMiddleCommand() {
+        jdouble PointType::getY() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getMiddleCommand of crcl.base.CRCLProgramType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getY of crcl.base.PointType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getMiddleCommand jthis=",jthis);
-            jobject retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::getY jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getMiddleCommand", "()Ljava/util/List;");
+                static jmethodID mid = env->GetMethodID(cls, "getY", "()D");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getMiddleCommand jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.CRCLProgramType has no method named getMiddleCommand with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::getY jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named getY with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
                 } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getMiddleCommand jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::getY jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2249,68 +2198,30 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
+            return retVal;
         }
 
-        EndCanonType CRCLProgramType::getEndCanon() {
+        void PointType::setY(jdouble double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getEndCanon of crcl.base.CRCLProgramType with jthis == NULL." << std::endl;
-                static EndCanonType nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getEndCanon jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getEndCanon", "()Lcrcl/base/EndCanonType;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getEndCanon jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.CRCLProgramType has no method named getEndCanon with signature ()Lcrcl/base/EndCanonType;." << std::endl;
-                    static EndCanonType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::getEndCanon jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            EndCanonType retObject(retVal,false);
-            return retObject;
-        }
-
-        void CRCLProgramType::setEndCanon(const EndCanonType & endCanonType_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setEndCanon of crcl.base.CRCLProgramType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setY of crcl.base.PointType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setEndCanon jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::setY jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setEndCanon", "(Lcrcl/base/EndCanonType;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setY", "(D)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setEndCanon jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.CRCLProgramType has no method named setEndCanon with signature (Lcrcl/base/EndCanonType;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::setY jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named setY with signature (D)V." << std::endl;
                     return;
                 } else {
-                     env->CallVoidMethod(jthis, mid ,endCanonType_0.jthis );
+                     env->CallVoidMethod(jthis, mid ,double_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," CRCLProgramType::setEndCanon jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::setY jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2321,84 +2232,148 @@ namespace crclj {
             releaseEnv(env);
             
         }
-        static jclass getNewCRCLProgramTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/CRCLProgramType");
+
+        jdouble PointType::getZ() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getZ of crcl.base.PointType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::getZ jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "getZ", "()D");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::getZ jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named getZ with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
+                } else {
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::getZ jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        void PointType::setZ(jdouble double_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setZ of crcl.base.PointType with jthis == NULL." << std::endl;
+                return;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," PointType::setZ jthis=",jthis);
+            
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "setZ", "(D)V");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," PointType::setZ jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.PointType has no method named setZ with signature (D)V." << std::endl;
+                    return;
+                } else {
+                     env->CallVoidMethod(jthis, mid ,double_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," PointType::setZ jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            
+        }
+        static jclass getNewPointTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/PointType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/CRCLProgramType" << std::endl;
+                std::cerr << " Can't find class crcl/base/PointType" << std::endl;
             }
             return clss;
         }
         
-        static jclass CRCLProgramTypeClass = NULL;
-        static inline jclass getCRCLProgramTypeClass() {
-            if (CRCLProgramTypeClass != NULL) {
-                return CRCLProgramTypeClass;
+        static jclass PointTypeClass = NULL;
+        static inline jclass getPointTypeClass() {
+            if (PointTypeClass != NULL) {
+                return PointTypeClass;
             }
-            CRCLProgramTypeClass = getNewCRCLProgramTypeClass();
-            return CRCLProgramTypeClass;
+            PointTypeClass = getNewPointTypeClass();
+            return PointTypeClass;
         }
 
-    // class_index = 5 clss=class crcl.base.SetRotSpeedType
+    // class_index = 5 clss=class crcl.base.DwellType
 
         
-        // get JNI handle for class crcl.base.SetRotSpeedType
-        static inline jclass getSetRotSpeedTypeClass();
+        // get JNI handle for class crcl.base.DwellType
+        static inline jclass getDwellTypeClass();
         
-        SetRotSpeedType::SetRotSpeedType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+        DwellType::DwellType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
                 
         }
         
-        SetRotSpeedType::SetRotSpeedType(const SetRotSpeedType &objref): MiddleCommandType((jobject)NULL,false) {
+        DwellType::DwellType(const DwellType &objref): MiddleCommandType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetRotSpeedType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class DwellType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetRotSpeedType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class DwellType jthis=",jthis);
             }
         }
         
-        SetRotSpeedType SetRotSpeedType::cast(const ::crclj::java::lang::Object &objref) {
+        DwellType DwellType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetRotSpeedTypeClass(); 
+            static jclass cls = getDwellTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            SetRotSpeedType retVal(objref.jthis,true);
+            DwellType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool SetRotSpeedType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool DwellType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetRotSpeedTypeClass(); 
+            static jclass cls = getDwellTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        SetRotSpeedType::SetRotSpeedType() : MiddleCommandType((jobject)NULL,false) {
+        DwellType::DwellType() : MiddleCommandType((jobject)NULL,false) {
             JNIEnv *env =getEnv();
-            static jclass cls = getSetRotSpeedTypeClass();
+            static jclass cls = getDwellTypeClass();
             if (cls != NULL) {
                 static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
                 if (NULL == mid) {
-                    std::cerr << "Class SetRotSpeedType has no method constructor signature ()V" << std::endl;
+                    std::cerr << "Class DwellType has no method constructor signature ()V" << std::endl;
                 } else {
                     jthis = env->NewObject(cls, mid );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::setEndCanon jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," DwellType::setZ jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
                     }
                     if(jthis == NULL) {
-                        std::cerr << "Call to create new SetRotSpeedType with signature ()V returned null." << std::endl;
+                        std::cerr << "Call to create new DwellType with signature ()V returned null." << std::endl;
                         releaseEnv(env);
                         return;
                     }
                     jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetRotSpeedType jthis=",jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new DwellType jthis=",jthis);
                     if(ref != JNIGlobalRefType) {
                         jthis = env->NewGlobalRef(jthis);
                     }
@@ -2408,33 +2383,33 @@ namespace crclj {
         }
 
 
-        // Destructor for crcl.base.SetRotSpeedType
-        SetRotSpeedType::~SetRotSpeedType() {
+        // Destructor for crcl.base.DwellType
+        DwellType::~DwellType() {
         	// Place-holder for later extensibility.
         }
 
 
-        RotSpeedType SetRotSpeedType::getRotSpeed() {
+        jdouble DwellType::getDwellTime() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getRotSpeed of crcl.base.SetRotSpeedType with jthis == NULL." << std::endl;
-                static RotSpeedType nullObject((jobject)NULL,false); return nullObject;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getDwellTime of crcl.base.DwellType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::getRotSpeed jthis=",jthis);
-            jobject retVal=NULL;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," DwellType::getDwellTime jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getRotSpeed", "()Lcrcl/base/RotSpeedType;");
+                static jmethodID mid = env->GetMethodID(cls, "getDwellTime", "()D");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::getRotSpeed jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetRotSpeedType has no method named getRotSpeed with signature ()Lcrcl/base/RotSpeedType;." << std::endl;
-                    static RotSpeedType nullObject((jobject)NULL,false); return nullObject;
+                    DebugPrintJObject(__FILE__,__LINE__," DwellType::getDwellTime jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.DwellType has no method named getDwellTime with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
                 } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::getRotSpeed jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," DwellType::getDwellTime jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2443,33 +2418,30 @@ namespace crclj {
                 }
             }
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            RotSpeedType retObject(retVal,false);
-            return retObject;
+            return retVal;
         }
 
-        void SetRotSpeedType::setRotSpeed(const RotSpeedType & rotSpeedType_0) {
+        void DwellType::setDwellTime(jdouble double_0) {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setRotSpeed of crcl.base.SetRotSpeedType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setDwellTime of crcl.base.DwellType with jthis == NULL." << std::endl;
                 return;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::setRotSpeed jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," DwellType::setDwellTime jthis=",jthis);
             
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setRotSpeed", "(Lcrcl/base/RotSpeedType;)V");
+                static jmethodID mid = env->GetMethodID(cls, "setDwellTime", "(D)V");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::setRotSpeed jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetRotSpeedType has no method named setRotSpeed with signature (Lcrcl/base/RotSpeedType;)V." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," DwellType::setDwellTime jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.DwellType has no method named setDwellTime with signature (D)V." << std::endl;
                     return;
                 } else {
-                     env->CallVoidMethod(jthis, mid ,rotSpeedType_0.jthis );
+                     env->CallVoidMethod(jthis, mid ,double_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetRotSpeedType::setRotSpeed jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," DwellType::setDwellTime jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2480,183 +2452,368 @@ namespace crclj {
             releaseEnv(env);
             
         }
-        static jclass getNewSetRotSpeedTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SetRotSpeedType");
+        static jclass getNewDwellTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/DwellType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SetRotSpeedType" << std::endl;
+                std::cerr << " Can't find class crcl/base/DwellType" << std::endl;
             }
             return clss;
         }
         
-        static jclass SetRotSpeedTypeClass = NULL;
-        static inline jclass getSetRotSpeedTypeClass() {
-            if (SetRotSpeedTypeClass != NULL) {
-                return SetRotSpeedTypeClass;
+        static jclass DwellTypeClass = NULL;
+        static inline jclass getDwellTypeClass() {
+            if (DwellTypeClass != NULL) {
+                return DwellTypeClass;
             }
-            SetRotSpeedTypeClass = getNewSetRotSpeedTypeClass();
-            return SetRotSpeedTypeClass;
+            DwellTypeClass = getNewDwellTypeClass();
+            return DwellTypeClass;
         }
 
-    // class_index = 6 clss=class crcl.base.StopConditionEnumType
+    // class_index = 6 clss=class crcl.base.RotAccelType
 
         
-        // get JNI handle for class crcl.base.StopConditionEnumType
-        static inline jclass getStopConditionEnumTypeClass();
+        // get JNI handle for class crcl.base.RotAccelType
+        static inline jclass getRotAccelTypeClass();
         
-        StopConditionEnumType::StopConditionEnumType(jobject _jthis, bool copy): ::crclj::java::lang::Enum(_jthis,copy) {
+        RotAccelType::RotAccelType(jobject _jthis, bool copy): DataThingType(_jthis,copy) {
                 
         }
         
-        StopConditionEnumType::StopConditionEnumType(const StopConditionEnumType &objref): ::crclj::java::lang::Enum((jobject)NULL,false) {
+        RotAccelType::RotAccelType(const RotAccelType &objref): DataThingType((jobject)NULL,false) {
             
             jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class StopConditionEnumType _jthis=",_jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelType _jthis=",_jthis);
             if (_jthis != NULL) {
                 jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class StopConditionEnumType jthis=",jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelType jthis=",jthis);
             }
         }
         
-        StopConditionEnumType StopConditionEnumType::cast(const ::crclj::java::lang::Object &objref) {
+        RotAccelType RotAccelType::cast(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getStopConditionEnumTypeClass(); 
+            static jclass cls = getRotAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             if(!env->IsAssignableFrom(objcls,cls)) {
                 throw objcls;
             }
-            StopConditionEnumType retVal(objref.jthis,true);
+            RotAccelType retVal(objref.jthis,true);
             return retVal;
         }
         
-        bool StopConditionEnumType::instanceof(const ::crclj::java::lang::Object &objref) {
+        bool RotAccelType::instanceof(const ::crclj::java::lang::Object &objref) {
             JNIEnv *env =getEnv();
-            static jclass cls = getStopConditionEnumTypeClass(); 
+            static jclass cls = getRotAccelTypeClass(); 
             jclass objcls = env->GetObjectClass(objref.jthis);
             return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
         }
-        StopConditionEnumType::StopConditionEnumType() : ::crclj::java::lang::Enum((jobject)NULL,false) {
-        JNIEnv *env =getEnv();
-        static jclass cls = getStopConditionEnumTypeClass();
-        if (cls != NULL) {
-            static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-            if (NULL == mid) {
-                std::cerr << "Class StopConditionEnumType has no method constructor signature ()V" << std::endl;
-            } else {
-                jthis = env->NewObject(cls, mid );
-                jthrowable t = env->ExceptionOccurred();
-                if(t != NULL) {
-                    if(GetDebugJ4Cpp()) {
-                        DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::setRotSpeed jthis=",t);
-                        env->ExceptionDescribe();
+        RotAccelType::RotAccelType() : DataThingType((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getRotAccelTypeClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+                if (NULL == mid) {
+                    std::cerr << "Class RotAccelType has no method constructor signature ()V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," RotAccelType::setDwellTime jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
                     }
-                    throw t;
-                }
-                if(jthis == NULL) {
-                    std::cerr << "Call to create new StopConditionEnumType with signature ()V returned null." << std::endl;
-                    releaseEnv(env);
-                    return;
-                }
-                jobjectRefType ref = env->GetObjectRefType(jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new StopConditionEnumType jthis=",jthis);
-                if(ref != JNIGlobalRefType) {
-                    jthis = env->NewGlobalRef(jthis);
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new RotAccelType with signature ()V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new RotAccelType jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
                 }
             }
-        }
-        releaseEnv(env);
+            releaseEnv(env);
         }
 
 
-        // Destructor for crcl.base.StopConditionEnumType
-        StopConditionEnumType::~StopConditionEnumType() {
+        // Destructor for crcl.base.RotAccelType
+        RotAccelType::~RotAccelType() {
+        	// Place-holder for later extensibility.
+        }
+
+        static jclass getNewRotAccelTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/RotAccelType");
+            if (NULL == clss) {
+                std::cerr << " Can't find class crcl/base/RotAccelType" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass RotAccelTypeClass = NULL;
+        static inline jclass getRotAccelTypeClass() {
+            if (RotAccelTypeClass != NULL) {
+                return RotAccelTypeClass;
+            }
+            RotAccelTypeClass = getNewRotAccelTypeClass();
+            return RotAccelTypeClass;
+        }
+
+    // class_index = 7 clss=class crcl.base.RotAccelRelativeType
+
+        
+        // get JNI handle for class crcl.base.RotAccelRelativeType
+        static inline jclass getRotAccelRelativeTypeClass();
+        
+        RotAccelRelativeType::RotAccelRelativeType(jobject _jthis, bool copy): RotAccelType(_jthis,copy) {
+                
+        }
+        
+        RotAccelRelativeType::RotAccelRelativeType(const RotAccelRelativeType &objref): RotAccelType((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelRelativeType _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class RotAccelRelativeType jthis=",jthis);
+            }
+        }
+        
+        RotAccelRelativeType RotAccelRelativeType::cast(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getRotAccelRelativeTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            RotAccelRelativeType retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool RotAccelRelativeType::instanceof(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getRotAccelRelativeTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+        RotAccelRelativeType::RotAccelRelativeType() : RotAccelType((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getRotAccelRelativeTypeClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+                if (NULL == mid) {
+                    std::cerr << "Class RotAccelRelativeType has no method constructor signature ()V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::setDwellTime jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
+                    }
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new RotAccelRelativeType with signature ()V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new RotAccelRelativeType jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
+                }
+            }
+            releaseEnv(env);
+        }
+
+
+        // Destructor for crcl.base.RotAccelRelativeType
+        RotAccelRelativeType::~RotAccelRelativeType() {
         	// Place-holder for later extensibility.
         }
 
 
-        // Field getter for IMMEDIATE
-        StopConditionEnumType StopConditionEnumType::getIMMEDIATE() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getStopConditionEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "IMMEDIATE", "Lcrcl/base/StopConditionEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.StopConditionEnumType has no field named IMMEDIATE with signature Lcrcl/base/StopConditionEnumType;." << std::endl;
-                static StopConditionEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            StopConditionEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for FAST
-        StopConditionEnumType StopConditionEnumType::getFAST() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getStopConditionEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "FAST", "Lcrcl/base/StopConditionEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.StopConditionEnumType has no field named FAST with signature Lcrcl/base/StopConditionEnumType;." << std::endl;
-                static StopConditionEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            StopConditionEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        // Field getter for NORMAL
-        StopConditionEnumType StopConditionEnumType::getNORMAL() {
-        JNIEnv *env =getEnv();
-        static jclass cls = getStopConditionEnumTypeClass();
-        jobject retVal=NULL;
-        if (cls != NULL) {
-            static jfieldID fid = env->GetStaticFieldID(cls, "NORMAL", "Lcrcl/base/StopConditionEnumType;");
-            if (NULL == fid) {
-                std::cerr << "Class crcl.base.StopConditionEnumType has no field named NORMAL with signature Lcrcl/base/StopConditionEnumType;." << std::endl;
-                static StopConditionEnumType nullObject((jobject)NULL,false); return nullObject;
-            } else {
-                retVal= (jobject)  env->GetStaticObjectField( cls, fid );
-            }
-        }
-        releaseEnv(env);
-                    
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            StopConditionEnumType retObject(retVal,false);
-            return retObject;
-        }
-
-        jstring StopConditionEnumType::value() {
+        jdouble RotAccelRelativeType::getFraction() {
             if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method value of crcl.base.StopConditionEnumType with jthis == NULL." << std::endl;
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getFraction of crcl.base.RotAccelRelativeType with jthis == NULL." << std::endl;
+                return (jdouble) -1.0;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::getFraction jthis=",jthis);
+            jdouble retVal= (jdouble) -1.0;
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "getFraction", "()D");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::getFraction jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.RotAccelRelativeType has no method named getFraction with signature ()D." << std::endl;
+                    return (jdouble) -1.0;
+                } else {
+                    retVal= (jdouble)  env->CallDoubleMethod(jthis, mid  );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::getFraction jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            return retVal;
+        }
+
+        void RotAccelRelativeType::setFraction(jdouble double_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setFraction of crcl.base.RotAccelRelativeType with jthis == NULL." << std::endl;
+                return;
+            }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::setFraction jthis=",jthis);
+            
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "setFraction", "(D)V");
+                if (NULL == mid) {
+                    DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::setFraction jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.RotAccelRelativeType has no method named setFraction with signature (D)V." << std::endl;
+                    return;
+                } else {
+                     env->CallVoidMethod(jthis, mid ,double_0 );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," RotAccelRelativeType::setFraction jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
+            //            env->ExceptionClear();
+                        throw t;
+                    }
+                }
+            }
+            releaseEnv(env);
+            
+        }
+        static jclass getNewRotAccelRelativeTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/RotAccelRelativeType");
+            if (NULL == clss) {
+                std::cerr << " Can't find class crcl/base/RotAccelRelativeType" << std::endl;
+            }
+            return clss;
+        }
+        
+        static jclass RotAccelRelativeTypeClass = NULL;
+        static inline jclass getRotAccelRelativeTypeClass() {
+            if (RotAccelRelativeTypeClass != NULL) {
+                return RotAccelRelativeTypeClass;
+            }
+            RotAccelRelativeTypeClass = getNewRotAccelRelativeTypeClass();
+            return RotAccelRelativeTypeClass;
+        }
+
+    // class_index = 8 clss=class crcl.base.DisableSensorType
+
+        
+        // get JNI handle for class crcl.base.DisableSensorType
+        static inline jclass getDisableSensorTypeClass();
+        
+        DisableSensorType::DisableSensorType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
+                
+        }
+        
+        DisableSensorType::DisableSensorType(const DisableSensorType &objref): MiddleCommandType((jobject)NULL,false) {
+            
+            jobject _jthis = objref.jthis;
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class DisableSensorType _jthis=",_jthis);
+            if (_jthis != NULL) {
+                jthis = getEnv()->NewGlobalRef(_jthis);
+                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class DisableSensorType jthis=",jthis);
+            }
+        }
+        
+        DisableSensorType DisableSensorType::cast(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getDisableSensorTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            if(!env->IsAssignableFrom(objcls,cls)) {
+                throw objcls;
+            }
+            DisableSensorType retVal(objref.jthis,true);
+            return retVal;
+        }
+        
+        bool DisableSensorType::instanceof(const ::crclj::java::lang::Object &objref) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getDisableSensorTypeClass(); 
+            jclass objcls = env->GetObjectClass(objref.jthis);
+            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
+        }
+        DisableSensorType::DisableSensorType() : MiddleCommandType((jobject)NULL,false) {
+            JNIEnv *env =getEnv();
+            static jclass cls = getDisableSensorTypeClass();
+            if (cls != NULL) {
+                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
+                if (NULL == mid) {
+                    std::cerr << "Class DisableSensorType has no method constructor signature ()V" << std::endl;
+                } else {
+                    jthis = env->NewObject(cls, mid );
+                    jthrowable t = env->ExceptionOccurred();
+                    if(t != NULL) {
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::setFraction jthis=",t);
+                            env->ExceptionDescribe();
+                        }
+                        throw t;
+                    }
+                    if(jthis == NULL) {
+                        std::cerr << "Call to create new DisableSensorType with signature ()V returned null." << std::endl;
+                        releaseEnv(env);
+                        return;
+                    }
+                    jobjectRefType ref = env->GetObjectRefType(jthis);
+                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new DisableSensorType jthis=",jthis);
+                    if(ref != JNIGlobalRefType) {
+                        jthis = env->NewGlobalRef(jthis);
+                    }
+                }
+            }
+            releaseEnv(env);
+        }
+
+
+        // Destructor for crcl.base.DisableSensorType
+        DisableSensorType::~DisableSensorType() {
+        	// Place-holder for later extensibility.
+        }
+
+
+        jstring DisableSensorType::getSensorID() {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSensorID of crcl.base.DisableSensorType with jthis == NULL." << std::endl;
                 return NULL;
             }
             JNIEnv *env =getEnv();
             jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::value jthis=",jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::getSensorID jthis=",jthis);
             jstring retVal=NULL;
             if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "value", "()Ljava/lang/String;");
+                static jmethodID mid = env->GetMethodID(cls, "getSensorID", "()Ljava/lang/String;");
                 if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::value jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.StopConditionEnumType has no method named value with signature ()Ljava/lang/String;." << std::endl;
+                    DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::getSensorID jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.DisableSensorType has no method named getSensorID with signature ()Ljava/lang/String;." << std::endl;
                     return NULL;
                 } else {
                     retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::value jthrowable t=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::getSensorID jthrowable t=",t);
                             env->ExceptionDescribe();
                         }
             //            env->ExceptionClear();
@@ -2668,101 +2825,78 @@ namespace crclj {
             return retVal;
         }
 
-        jobjectArray StopConditionEnumType::values() {
+        void DisableSensorType::setSensorID(jstring string_0) {
+            if(jthis == NULL) {
+                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setSensorID of crcl.base.DisableSensorType with jthis == NULL." << std::endl;
+                return;
+            }
             JNIEnv *env =getEnv();
-            static jclass cls = getStopConditionEnumTypeClass();
-            jobjectArray retVal=NULL;
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::setSensorID jthis=",jthis);
+            
             if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "values", "()[Lcrcl/base/StopConditionEnumType;");
+                static jmethodID mid = env->GetMethodID(cls, "setSensorID", "(Ljava/lang/String;)V");
                 if (NULL == mid) {
-                    std::cerr << "Class crcl.base.StopConditionEnumType has no method named values with signature ()[Lcrcl/base/StopConditionEnumType;." << std::endl;
-                    return NULL;
+                    DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::setSensorID jthis=",jthis);
+                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.DisableSensorType has no method named setSensorID with signature (Ljava/lang/String;)V." << std::endl;
+                    return;
                 } else {
-                    retVal= (jobjectArray)  env->CallStaticObjectMethod( cls, mid  );
+                     env->CallVoidMethod(jthis, mid ,string_0 );
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::values jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
+                        if(GetDebugJ4Cpp()) {
+                            DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::setSensorID jthrowable t=",t);
+                            env->ExceptionDescribe();
+                        }
             //            env->ExceptionClear();
                         throw t;
                     }
                 }
             }
             releaseEnv(env);
-            return retVal;
+            
         }
 
-        StopConditionEnumType StopConditionEnumType::valueOf(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getStopConditionEnumTypeClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "valueOf", "(Ljava/lang/String;)Lcrcl/base/StopConditionEnumType;");
-                if (NULL == mid) {
-                    std::cerr << "Class crcl.base.StopConditionEnumType has no method named valueOf with signature (Ljava/lang/String;)Lcrcl/base/StopConditionEnumType;." << std::endl;
-                    static StopConditionEnumType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::valueOf jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
+        // Easy call alternative for setSensorID
+        void DisableSensorType::setSensorID(const char * easyArg_0) {
+            // convenience method, converts to/from JNI types to common C++ types.
+            if(jthis == NULL) {
+                std::cerr << "Call of method setSensorID of crcl.base.DisableSensorType with jthis == NULL." << std::endl;
+                return;
             }
+            JNIEnv *env =getEnv();
+            jclass cls = env->GetObjectClass(jthis);
+            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," DisableSensorType::setSensorID jthis=",jthis);
+            
+                    
+            jstring string_0 = env->NewStringUTF(easyArg_0);
+            setSensorID(string_0);
+            jobjectRefType ref_0 = env->GetObjectRefType(string_0);
+            if(ref_0 == JNIGlobalRefType) {
+                env->DeleteGlobalRef(string_0);
+            }
+            
             releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            StopConditionEnumType retObject(retVal,false);
-            return retObject;
         }
 
-        StopConditionEnumType StopConditionEnumType::fromValue(jstring string_0) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getStopConditionEnumTypeClass();
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetStaticMethodID(cls, "fromValue", "(Ljava/lang/String;)Lcrcl/base/StopConditionEnumType;");
-                if (NULL == mid) {
-                    std::cerr << "Class crcl.base.StopConditionEnumType has no method named fromValue with signature (Ljava/lang/String;)Lcrcl/base/StopConditionEnumType;." << std::endl;
-                    static StopConditionEnumType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallStaticObjectMethod( cls, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        DebugPrintJObject(__FILE__,__LINE__," StopConditionEnumType::fromValue jthis=",t);
-                        if(GetDebugJ4Cpp()) env->ExceptionDescribe();
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            StopConditionEnumType retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewStopConditionEnumTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/StopConditionEnumType");
+        static jclass getNewDisableSensorTypeClass() {
+            jclass clss = getEnv()->FindClass("crcl/base/DisableSensorType");
             if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/StopConditionEnumType" << std::endl;
+                std::cerr << " Can't find class crcl/base/DisableSensorType" << std::endl;
             }
             return clss;
         }
         
-        static jclass StopConditionEnumTypeClass = NULL;
-        static inline jclass getStopConditionEnumTypeClass() {
-            if (StopConditionEnumTypeClass != NULL) {
-                return StopConditionEnumTypeClass;
+        static jclass DisableSensorTypeClass = NULL;
+        static inline jclass getDisableSensorTypeClass() {
+            if (DisableSensorTypeClass != NULL) {
+                return DisableSensorTypeClass;
             }
-            StopConditionEnumTypeClass = getNewStopConditionEnumTypeClass();
-            return StopConditionEnumTypeClass;
+            DisableSensorTypeClass = getNewDisableSensorTypeClass();
+            return DisableSensorTypeClass;
         }
 
-    // class_index = 7 clss=class crcl.base.TwistType
+    // class_index = 9 clss=class crcl.base.TwistType
 
         
         // get JNI handle for class crcl.base.TwistType
@@ -2811,7 +2945,7 @@ namespace crclj {
                     jthrowable t = env->ExceptionOccurred();
                     if(t != NULL) {
                         if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," TwistType::fromValue jthis=",t);
+                            DebugPrintJObject(__FILE__,__LINE__," TwistType::setSensorID jthis=",t);
                             env->ExceptionDescribe();
                         }
                         throw t;
@@ -2986,379 +3120,6 @@ namespace crclj {
             }
             TwistTypeClass = getNewTwistTypeClass();
             return TwistTypeClass;
-        }
-
-    // class_index = 8 clss=class crcl.base.SetTransSpeedType
-
-        
-        // get JNI handle for class crcl.base.SetTransSpeedType
-        static inline jclass getSetTransSpeedTypeClass();
-        
-        SetTransSpeedType::SetTransSpeedType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
-                
-        }
-        
-        SetTransSpeedType::SetTransSpeedType(const SetTransSpeedType &objref): MiddleCommandType((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetTransSpeedType _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class SetTransSpeedType jthis=",jthis);
-            }
-        }
-        
-        SetTransSpeedType SetTransSpeedType::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetTransSpeedTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            SetTransSpeedType retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool SetTransSpeedType::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetTransSpeedTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        SetTransSpeedType::SetTransSpeedType() : MiddleCommandType((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getSetTransSpeedTypeClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-                if (NULL == mid) {
-                    std::cerr << "Class SetTransSpeedType has no method constructor signature ()V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::setAngularVelocity jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new SetTransSpeedType with signature ()V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new SetTransSpeedType jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.SetTransSpeedType
-        SetTransSpeedType::~SetTransSpeedType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        TransSpeedType SetTransSpeedType::getTransSpeed() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getTransSpeed of crcl.base.SetTransSpeedType with jthis == NULL." << std::endl;
-                static TransSpeedType nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::getTransSpeed jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getTransSpeed", "()Lcrcl/base/TransSpeedType;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::getTransSpeed jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetTransSpeedType has no method named getTransSpeed with signature ()Lcrcl/base/TransSpeedType;." << std::endl;
-                    static TransSpeedType nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::getTransSpeed jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            TransSpeedType retObject(retVal,false);
-            return retObject;
-        }
-
-        void SetTransSpeedType::setTransSpeed(const TransSpeedType & transSpeedType_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setTransSpeed of crcl.base.SetTransSpeedType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::setTransSpeed jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setTransSpeed", "(Lcrcl/base/TransSpeedType;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::setTransSpeed jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.SetTransSpeedType has no method named setTransSpeed with signature (Lcrcl/base/TransSpeedType;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,transSpeedType_0.jthis );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," SetTransSpeedType::setTransSpeed jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-        static jclass getNewSetTransSpeedTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/SetTransSpeedType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/SetTransSpeedType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass SetTransSpeedTypeClass = NULL;
-        static inline jclass getSetTransSpeedTypeClass() {
-            if (SetTransSpeedTypeClass != NULL) {
-                return SetTransSpeedTypeClass;
-            }
-            SetTransSpeedTypeClass = getNewSetTransSpeedTypeClass();
-            return SetTransSpeedTypeClass;
-        }
-
-    // class_index = 9 clss=class crcl.base.EnableSensorType
-
-        
-        // get JNI handle for class crcl.base.EnableSensorType
-        static inline jclass getEnableSensorTypeClass();
-        
-        EnableSensorType::EnableSensorType(jobject _jthis, bool copy): MiddleCommandType(_jthis,copy) {
-                
-        }
-        
-        EnableSensorType::EnableSensorType(const EnableSensorType &objref): MiddleCommandType((jobject)NULL,false) {
-            
-            jobject _jthis = objref.jthis;
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableSensorType _jthis=",_jthis);
-            if (_jthis != NULL) {
-                jthis = getEnv()->NewGlobalRef(_jthis);
-                if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"Copy Constructor for class EnableSensorType jthis=",jthis);
-            }
-        }
-        
-        EnableSensorType EnableSensorType::cast(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            if(!env->IsAssignableFrom(objcls,cls)) {
-                throw objcls;
-            }
-            EnableSensorType retVal(objref.jthis,true);
-            return retVal;
-        }
-        
-        bool EnableSensorType::instanceof(const ::crclj::java::lang::Object &objref) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass(); 
-            jclass objcls = env->GetObjectClass(objref.jthis);
-            return (JNI_TRUE == env->IsAssignableFrom(objcls,cls));
-        }
-        EnableSensorType::EnableSensorType() : MiddleCommandType((jobject)NULL,false) {
-            JNIEnv *env =getEnv();
-            static jclass cls = getEnableSensorTypeClass();
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "<init>", "()V");
-                if (NULL == mid) {
-                    std::cerr << "Class EnableSensorType has no method constructor signature ()V" << std::endl;
-                } else {
-                    jthis = env->NewObject(cls, mid );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setTransSpeed jthis=",t);
-                            env->ExceptionDescribe();
-                        }
-                        throw t;
-                    }
-                    if(jthis == NULL) {
-                        std::cerr << "Call to create new EnableSensorType with signature ()V returned null." << std::endl;
-                        releaseEnv(env);
-                        return;
-                    }
-                    jobjectRefType ref = env->GetObjectRefType(jthis);
-                    if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," new EnableSensorType jthis=",jthis);
-                    if(ref != JNIGlobalRefType) {
-                        jthis = env->NewGlobalRef(jthis);
-                    }
-                }
-            }
-            releaseEnv(env);
-        }
-
-
-        // Destructor for crcl.base.EnableSensorType
-        EnableSensorType::~EnableSensorType() {
-        	// Place-holder for later extensibility.
-        }
-
-
-        jstring EnableSensorType::getSensorID() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
-                return NULL;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthis=",jthis);
-            jstring retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getSensorID", "()Ljava/lang/String;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named getSensorID with signature ()Ljava/lang/String;." << std::endl;
-                    return NULL;
-                } else {
-                    retVal= (jstring)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorID jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            return retVal;
-        }
-
-        void EnableSensorType::setSensorID(jstring string_0) {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method setSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
-            
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "setSensorID", "(Ljava/lang/String;)V");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named setSensorID with signature (Ljava/lang/String;)V." << std::endl;
-                    return;
-                } else {
-                     env->CallVoidMethod(jthis, mid ,string_0 );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-            
-        }
-
-        // Easy call alternative for setSensorID
-        void EnableSensorType::setSensorID(const char * easyArg_0) {
-            // convenience method, converts to/from JNI types to common C++ types.
-            if(jthis == NULL) {
-                std::cerr << "Call of method setSensorID of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
-                return;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::setSensorID jthis=",jthis);
-            
-                    
-            jstring string_0 = env->NewStringUTF(easyArg_0);
-            setSensorID(string_0);
-            jobjectRefType ref_0 = env->GetObjectRefType(string_0);
-            if(ref_0 == JNIGlobalRefType) {
-                env->DeleteGlobalRef(string_0);
-            }
-            
-            releaseEnv(env);
-        }
-
-
-        ::crclj::java::util::List EnableSensorType::getSensorOption() {
-            if(jthis == NULL) {
-                std::cerr << __FILE__ << ":" << __LINE__ <<" Call of method getSensorOption of crcl.base.EnableSensorType with jthis == NULL." << std::endl;
-                static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-            }
-            JNIEnv *env =getEnv();
-            jclass cls = env->GetObjectClass(jthis);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthis=",jthis);
-            jobject retVal=NULL;
-            if (cls != NULL) {
-                static jmethodID mid = env->GetMethodID(cls, "getSensorOption", "()Ljava/util/List;");
-                if (NULL == mid) {
-                    DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthis=",jthis);
-                    std::cerr << __FILE__ << ":" << __LINE__ <<  " Class crcl.base.EnableSensorType has no method named getSensorOption with signature ()Ljava/util/List;." << std::endl;
-                    static ::crclj::java::util::List nullObject((jobject)NULL,false); return nullObject;
-                } else {
-                    retVal= (jobject)  env->CallObjectMethod(jthis, mid  );
-                    jthrowable t = env->ExceptionOccurred();
-                    if(t != NULL) {
-                        if(GetDebugJ4Cpp()) {
-                            DebugPrintJObject(__FILE__,__LINE__," EnableSensorType::getSensorOption jthrowable t=",t);
-                            env->ExceptionDescribe();
-                        }
-            //            env->ExceptionClear();
-                        throw t;
-                    }
-                }
-            }
-            releaseEnv(env);
-                        
-            jobjectRefType ref = env->GetObjectRefType(retVal);
-            if(GetDebugJ4Cpp()) DebugPrintJObject(__FILE__,__LINE__,"retVal=",retVal);            ::crclj::java::util::List retObject(retVal,false);
-            return retObject;
-        }
-        static jclass getNewEnableSensorTypeClass() {
-            jclass clss = getEnv()->FindClass("crcl/base/EnableSensorType");
-            if (NULL == clss) {
-                std::cerr << " Can't find class crcl/base/EnableSensorType" << std::endl;
-            }
-            return clss;
-        }
-        
-        static jclass EnableSensorTypeClass = NULL;
-        static inline jclass getEnableSensorTypeClass() {
-            if (EnableSensorTypeClass != NULL) {
-                return EnableSensorTypeClass;
-            }
-            EnableSensorTypeClass = getNewEnableSensorTypeClass();
-            return EnableSensorTypeClass;
         }
         } // end namespace base
     } // end namespace crcl

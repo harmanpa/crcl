@@ -2,127 +2,54 @@
 
 
 // start_segment_index = 90
-// start_segment_index = 99
+// start_segment_index = 98
 // segment_index = 9
-// classesSegList=[class crcl.base.MoveToType, class crcl.base.EnableGripperType, class crcl.base.WrenchType, interface java.util.List, class java.lang.Number, class java.lang.Double, class java.lang.Boolean, class java.lang.Integer, class java.lang.Long]
+// classesSegList=[class crcl.base.SetTorqueUnitsType, class crcl.base.SetEndEffectorParametersType, class java.lang.Number, class java.lang.Double, class java.lang.Long, interface java.util.List, class java.lang.Boolean, class java.lang.Integer]
 
 namespace crclj {
 
 
-// class_index = 0 clss=class crcl.base.MoveToType
+// class_index = 0 clss=class crcl.base.SetTorqueUnitsType
 
     namespace crcl{
         namespace base{
             
-            class MoveToType : public MiddleCommandType {
+            class SetTorqueUnitsType : public MiddleCommandType {
             public:
-                MoveToType(jobject _jthis, bool copy);
-                MoveToType(const MoveToType &);
-                static MoveToType cast(const ::crclj::java::lang::Object &);
+                SetTorqueUnitsType(jobject _jthis, bool copy);
+                SetTorqueUnitsType(const SetTorqueUnitsType &);
+                static SetTorqueUnitsType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                MoveToType();
-                ~MoveToType();
-                PoseType getEndPosition();
-                void setEndPosition(const PoseType & poseType_0);
-                jboolean isMoveStraight();
-                void setMoveStraight(jboolean boolean_0);
-            }; // end class MoveToType
+                SetTorqueUnitsType();
+                ~SetTorqueUnitsType();
+                TorqueUnitEnumType getUnitName();
+                void setUnitName(const TorqueUnitEnumType & torqueUnitEnumType_0);
+            }; // end class SetTorqueUnitsType
 
 
-    // class_index = 1 clss=class crcl.base.EnableGripperType
+    // class_index = 1 clss=class crcl.base.SetEndEffectorParametersType
 
             
-            class EnableGripperType : public MiddleCommandType {
+            class SetEndEffectorParametersType : public MiddleCommandType {
             public:
-                EnableGripperType(jobject _jthis, bool copy);
-                EnableGripperType(const EnableGripperType &);
-                static EnableGripperType cast(const ::crclj::java::lang::Object &);
+                SetEndEffectorParametersType(jobject _jthis, bool copy);
+                SetEndEffectorParametersType(const SetEndEffectorParametersType &);
+                static SetEndEffectorParametersType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                EnableGripperType();
-                ~EnableGripperType();
-                jstring getGripperName();
-                void setGripperName(jstring string_0);
-                void setGripperName(const char * easyArg_0);
-                ::crclj::java::util::List getGripperOption();
-            }; // end class EnableGripperType
-
-
-    // class_index = 2 clss=class crcl.base.WrenchType
-
-            
-            class WrenchType : public DataThingType {
-            public:
-                WrenchType(jobject _jthis, bool copy);
-                WrenchType(const WrenchType &);
-                static WrenchType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                WrenchType();
-                ~WrenchType();
-                VectorType getForce();
-                void setForce(const VectorType & vectorType_0);
-                VectorType getMoment();
-                void setMoment(const VectorType & vectorType_0);
-            }; // end class WrenchType
+                SetEndEffectorParametersType();
+                ~SetEndEffectorParametersType();
+                ::crclj::java::util::List getParameterSetting();
+            }; // end class SetEndEffectorParametersType
         } // end namespace base
     } // end namespace crcl
 
 
 
-    // class_index = 3 clss=interface java.util.List
+    // class_index = 2 clss=class java.lang.Number
 
     namespace java{
-        namespace util{
-            
-            class List : public ::crclj::java::lang::Object {
-            public:
-                List(jobject _jthis, bool copy);
-                List(const List &);
-                static List cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                protected:
-                List() {};
-                public:
-                ~List();
-                void add(jint int_0,const ::crclj::java::lang::Object & object_1);
-                jboolean add(const ::crclj::java::lang::Object & object_0);
-                jboolean remove(const ::crclj::java::lang::Object & object_0);
-                ::crclj::java::lang::Object remove(jint int_0);
-                ::crclj::java::lang::Object get(jint int_0);
-                jboolean equals(const ::crclj::java::lang::Object & object_0);
-                jint hashCode();
-                jint indexOf(const ::crclj::java::lang::Object & object_0);
-                void clear();
-                jboolean isEmpty();
-                jint lastIndexOf(const ::crclj::java::lang::Object & object_0);
-                jboolean contains(const ::crclj::java::lang::Object & object_0);
-                jint size();
-                List subList(jint int_0,jint int_1);
-                jobjectArray toArray();
-                jobjectArray toArray(jobjectArray objectArray_0);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1);
-                static List of(const ::crclj::java::lang::Object & object_0);
-                static List of();
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8,const ::crclj::java::lang::Object & object_9);
-                static List of(jobjectArray objectArray_0);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6);
-                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7);
-                ::crclj::java::lang::Object set(jint int_0,const ::crclj::java::lang::Object & object_1);
-            }; // end class List
-        } // end namespace util
-
-
-
-    // class_index = 4 clss=class java.lang.Number
-
         namespace lang{
             
             class Number : public Object {
@@ -143,7 +70,7 @@ namespace crclj {
             }; // end class Number
 
 
-    // class_index = 5 clss=class java.lang.Double
+    // class_index = 3 clss=class java.lang.Double
 
             
             class Double : public Number {
@@ -201,8 +128,130 @@ namespace crclj {
             }; // end class Double
 
 
+    // class_index = 4 clss=class java.lang.Long
+
+            
+            class Long : public Number {
+            public:
+                Long(jobject _jthis, bool copy);
+                Long(const Long &);
+                static Long cast(const Object &);
+                static bool instanceof(const Object &);
+                    
+                protected:
+                Long();
+                public:
+                Long(jstring string_0);
+                Long(const char * easyArg_0);
+                Long(jlong long_0);
+                ~Long();
+                static jlong getMIN_VALUE();
+                static jlong getMAX_VALUE();
+                static jint getSIZE();
+                static jint getBYTES();
+                static jint numberOfLeadingZeros(jlong long_0);
+                static jint numberOfTrailingZeros(jlong long_0);
+                static jint bitCount(jlong long_0);
+                jboolean equals(const Object & object_0);
+                static jstring toString(jlong long_0);
+                static jstring toString(jlong long_0,jint int_1);
+                jstring toString();
+                static jint hashCode(jlong long_0);
+                jint hashCode();
+                static jlong min(jlong long_0,jlong long_1);
+                static jlong max(jlong long_0,jlong long_1);
+                static jlong reverseBytes(jlong long_0);
+                jint compareTo(const Long & long_0);
+                static Long getLong(jstring string_0);
+                static Long getLong(jstring string_0,jlong long_1);
+                static Long getLong(jstring string_0,const Long & long_1);
+                jbyte byteValue();
+                jshort shortValue();
+                jint intValue();
+                jlong longValue();
+                jfloat floatValue();
+                jdouble doubleValue();
+                static Long valueOf(jstring string_0,jint int_1);
+                static Long valueOf(jstring string_0);
+                static Long valueOf(jlong long_0);
+                static jstring toHexString(jlong long_0);
+                static Long decode(jstring string_0);
+                static jint compare(jlong long_0,jlong long_1);
+                static jlong reverse(jlong long_0);
+                static jlong sum(jlong long_0,jlong long_1);
+                static jint compareUnsigned(jlong long_0,jlong long_1);
+                static jstring toUnsignedString(jlong long_0);
+                static jstring toUnsignedString(jlong long_0,jint int_1);
+                static jstring toOctalString(jlong long_0);
+                static jstring toBinaryString(jlong long_0);
+                static jlong divideUnsigned(jlong long_0,jlong long_1);
+                static jlong remainderUnsigned(jlong long_0,jlong long_1);
+                static jlong highestOneBit(jlong long_0);
+                static jlong lowestOneBit(jlong long_0);
+                static jlong rotateLeft(jlong long_0,jint int_1);
+                static jlong rotateRight(jlong long_0,jint int_1);
+                static jint signum(jlong long_0);
+                static jlong parseLong(jstring string_0);
+                static jlong parseLong(jstring string_0,jint int_1);
+                static jlong parseUnsignedLong(jstring string_0,jint int_1);
+                static jlong parseUnsignedLong(jstring string_0);
+            }; // end class Long
+        } // end namespace lang
+
+
+
+    // class_index = 5 clss=interface java.util.List
+
+        namespace util{
+            
+            class List : public ::crclj::java::lang::Object {
+            public:
+                List(jobject _jthis, bool copy);
+                List(const List &);
+                static List cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                protected:
+                List() {};
+                public:
+                ~List();
+                void add(jint int_0,const ::crclj::java::lang::Object & object_1);
+                jboolean add(const ::crclj::java::lang::Object & object_0);
+                jboolean remove(const ::crclj::java::lang::Object & object_0);
+                ::crclj::java::lang::Object remove(jint int_0);
+                ::crclj::java::lang::Object get(jint int_0);
+                jboolean equals(const ::crclj::java::lang::Object & object_0);
+                jint hashCode();
+                jint indexOf(const ::crclj::java::lang::Object & object_0);
+                void clear();
+                jboolean isEmpty();
+                jint lastIndexOf(const ::crclj::java::lang::Object & object_0);
+                jboolean contains(const ::crclj::java::lang::Object & object_0);
+                jint size();
+                List subList(jint int_0,jint int_1);
+                jobjectArray toArray();
+                jobjectArray toArray(jobjectArray objectArray_0);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1);
+                static List of(const ::crclj::java::lang::Object & object_0);
+                static List of();
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8,const ::crclj::java::lang::Object & object_9);
+                static List of(jobjectArray objectArray_0);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7,const ::crclj::java::lang::Object & object_8);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6);
+                static List of(const ::crclj::java::lang::Object & object_0,const ::crclj::java::lang::Object & object_1,const ::crclj::java::lang::Object & object_2,const ::crclj::java::lang::Object & object_3,const ::crclj::java::lang::Object & object_4,const ::crclj::java::lang::Object & object_5,const ::crclj::java::lang::Object & object_6,const ::crclj::java::lang::Object & object_7);
+                ::crclj::java::lang::Object set(jint int_0,const ::crclj::java::lang::Object & object_1);
+            }; // end class List
+        } // end namespace util
+
+
+
     // class_index = 6 clss=class java.lang.Boolean
 
+        namespace lang{
             
             class Boolean : public Object {
             public:
@@ -307,76 +356,6 @@ namespace crclj {
                 static jint rotateRight(jint int_0,jint int_1);
                 static jint signum(jint int_0);
             }; // end class Integer
-
-
-    // class_index = 8 clss=class java.lang.Long
-
-            
-            class Long : public Number {
-            public:
-                Long(jobject _jthis, bool copy);
-                Long(const Long &);
-                static Long cast(const Object &);
-                static bool instanceof(const Object &);
-                    
-                protected:
-                Long();
-                public:
-                Long(jstring string_0);
-                Long(const char * easyArg_0);
-                Long(jlong long_0);
-                ~Long();
-                static jlong getMIN_VALUE();
-                static jlong getMAX_VALUE();
-                static jint getSIZE();
-                static jint getBYTES();
-                static jint numberOfLeadingZeros(jlong long_0);
-                static jint numberOfTrailingZeros(jlong long_0);
-                static jint bitCount(jlong long_0);
-                jboolean equals(const Object & object_0);
-                static jstring toString(jlong long_0);
-                static jstring toString(jlong long_0,jint int_1);
-                jstring toString();
-                static jint hashCode(jlong long_0);
-                jint hashCode();
-                static jlong min(jlong long_0,jlong long_1);
-                static jlong max(jlong long_0,jlong long_1);
-                static jlong reverseBytes(jlong long_0);
-                jint compareTo(const Long & long_0);
-                static Long getLong(jstring string_0);
-                static Long getLong(jstring string_0,jlong long_1);
-                static Long getLong(jstring string_0,const Long & long_1);
-                jbyte byteValue();
-                jshort shortValue();
-                jint intValue();
-                jlong longValue();
-                jfloat floatValue();
-                jdouble doubleValue();
-                static Long valueOf(jstring string_0,jint int_1);
-                static Long valueOf(jstring string_0);
-                static Long valueOf(jlong long_0);
-                static jstring toHexString(jlong long_0);
-                static Long decode(jstring string_0);
-                static jint compare(jlong long_0,jlong long_1);
-                static jlong reverse(jlong long_0);
-                static jlong sum(jlong long_0,jlong long_1);
-                static jint compareUnsigned(jlong long_0,jlong long_1);
-                static jstring toUnsignedString(jlong long_0);
-                static jstring toUnsignedString(jlong long_0,jint int_1);
-                static jstring toOctalString(jlong long_0);
-                static jstring toBinaryString(jlong long_0);
-                static jlong divideUnsigned(jlong long_0,jlong long_1);
-                static jlong remainderUnsigned(jlong long_0,jlong long_1);
-                static jlong highestOneBit(jlong long_0);
-                static jlong lowestOneBit(jlong long_0);
-                static jlong rotateLeft(jlong long_0,jint int_1);
-                static jlong rotateRight(jlong long_0,jint int_1);
-                static jint signum(jlong long_0);
-                static jlong parseLong(jstring string_0);
-                static jlong parseLong(jstring string_0,jint int_1);
-                static jlong parseUnsignedLong(jstring string_0,jint int_1);
-                static jlong parseUnsignedLong(jstring string_0);
-            }; // end class Long
         } // end namespace lang
     } // end namespace java
 

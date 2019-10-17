@@ -4,67 +4,15 @@
 // start_segment_index = 80
 // start_segment_index = 90
 // segment_index = 8
-// classesSegList=[class crcl.base.SetEndPoseToleranceType, class crcl.base.RotAccelRelativeType, class crcl.base.DisableSensorType, class crcl.base.ConfigureJointReportsType, class crcl.base.CommandStatusType, class crcl.base.MessageType, class crcl.base.TransAccelRelativeType, class crcl.base.SetEndEffectorType, class crcl.base.RotAccelAbsoluteType, class crcl.base.GuardType]
+// classesSegList=[class crcl.base.ConfigureJointReportsType, class crcl.base.SetTransAccelType, class crcl.base.CRCLStatusType, class crcl.base.ParameterSettingType, class crcl.base.TransSpeedRelativeType, class crcl.base.SetIntermediatePoseToleranceType, class crcl.base.TransSpeedAbsoluteType, class crcl.base.DisableGripperType, class crcl.base.EnableGripperType, class crcl.base.WrenchType]
 
 namespace crclj {
 
 
-// class_index = 0 clss=class crcl.base.SetEndPoseToleranceType
+// class_index = 0 clss=class crcl.base.ConfigureJointReportsType
 
     namespace crcl{
         namespace base{
-            
-            class SetEndPoseToleranceType : public MiddleCommandType {
-            public:
-                SetEndPoseToleranceType(jobject _jthis, bool copy);
-                SetEndPoseToleranceType(const SetEndPoseToleranceType &);
-                static SetEndPoseToleranceType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                SetEndPoseToleranceType();
-                ~SetEndPoseToleranceType();
-                PoseToleranceType getTolerance();
-                void setTolerance(const PoseToleranceType & poseToleranceType_0);
-            }; // end class SetEndPoseToleranceType
-
-
-    // class_index = 1 clss=class crcl.base.RotAccelRelativeType
-
-            
-            class RotAccelRelativeType : public RotAccelType {
-            public:
-                RotAccelRelativeType(jobject _jthis, bool copy);
-                RotAccelRelativeType(const RotAccelRelativeType &);
-                static RotAccelRelativeType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                RotAccelRelativeType();
-                ~RotAccelRelativeType();
-                jdouble getFraction();
-                void setFraction(jdouble double_0);
-            }; // end class RotAccelRelativeType
-
-
-    // class_index = 2 clss=class crcl.base.DisableSensorType
-
-            
-            class DisableSensorType : public MiddleCommandType {
-            public:
-                DisableSensorType(jobject _jthis, bool copy);
-                DisableSensorType(const DisableSensorType &);
-                static DisableSensorType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                DisableSensorType();
-                ~DisableSensorType();
-                jstring getSensorID();
-                void setSensorID(jstring string_0);
-                void setSensorID(const char * easyArg_0);
-            }; // end class DisableSensorType
-
-
-    // class_index = 3 clss=class crcl.base.ConfigureJointReportsType
-
             
             class ConfigureJointReportsType : public MiddleCommandType {
             public:
@@ -81,139 +29,178 @@ namespace crclj {
             }; // end class ConfigureJointReportsType
 
 
-    // class_index = 4 clss=class crcl.base.CommandStatusType
+    // class_index = 1 clss=class crcl.base.SetTransAccelType
 
             
-            class CommandStatusType : public DataThingType {
+            class SetTransAccelType : public MiddleCommandType {
             public:
-                CommandStatusType(jobject _jthis, bool copy);
-                CommandStatusType(const CommandStatusType &);
-                static CommandStatusType cast(const ::crclj::java::lang::Object &);
+                SetTransAccelType(jobject _jthis, bool copy);
+                SetTransAccelType(const SetTransAccelType &);
+                static SetTransAccelType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                CommandStatusType();
-                ~CommandStatusType();
-                jlong getCommandID();
-                void setCommandID(jlong long_0);
-                jstring getProgramFile();
-                void setProgramFile(jstring string_0);
-                void setProgramFile(const char * easyArg_0);
-                ::crclj::java::lang::Integer getProgramIndex();
-                void setProgramIndex(const ::crclj::java::lang::Integer & integer_0);
-                ::crclj::java::lang::Integer getProgramLength();
-                void setProgramLength(const ::crclj::java::lang::Integer & integer_0);
-                jlong getStatusID();
-                void setStatusID(jlong long_0);
-                CommandStateEnumType getCommandState();
-                void setCommandState(const CommandStateEnumType & commandStateEnumType_0);
-                jstring getStateDescription();
-                void setStateDescription(jstring string_0);
-                void setStateDescription(const char * easyArg_0);
-                ::crclj::java::lang::Integer getOverridePercent();
-                void setOverridePercent(const ::crclj::java::lang::Integer & integer_0);
-            }; // end class CommandStatusType
+                SetTransAccelType();
+                ~SetTransAccelType();
+                TransAccelType getTransAccel();
+                void setTransAccel(const TransAccelType & transAccelType_0);
+            }; // end class SetTransAccelType
 
 
-    // class_index = 5 clss=class crcl.base.MessageType
+    // class_index = 2 clss=class crcl.base.CRCLStatusType
 
             
-            class MessageType : public MiddleCommandType {
+            class CRCLStatusType : public DataThingType {
             public:
-                MessageType(jobject _jthis, bool copy);
-                MessageType(const MessageType &);
-                static MessageType cast(const ::crclj::java::lang::Object &);
+                CRCLStatusType(jobject _jthis, bool copy);
+                CRCLStatusType(const CRCLStatusType &);
+                static CRCLStatusType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                MessageType();
-                ~MessageType();
-                jstring getMessage();
-                void setMessage(jstring string_0);
-                void setMessage(const char * easyArg_0);
-            }; // end class MessageType
+                CRCLStatusType();
+                ~CRCLStatusType();
+                CommandStatusType getCommandStatus();
+                void setCommandStatus(const CommandStatusType & commandStatusType_0);
+                JointStatusesType getJointStatuses();
+                void setJointStatuses(const JointStatusesType & jointStatusesType_0);
+                PoseStatusType getPoseStatus();
+                void setPoseStatus(const PoseStatusType & poseStatusType_0);
+                GripperStatusType getGripperStatus();
+                void setGripperStatus(const GripperStatusType & gripperStatusType_0);
+                SettingsStatusType getSettingsStatus();
+                void setSettingsStatus(const SettingsStatusType & settingsStatusType_0);
+                SensorStatusesType getSensorStatuses();
+                void setSensorStatuses(const SensorStatusesType & sensorStatusesType_0);
+                GuardsStatusesType getGuardsStatuses();
+                void setGuardsStatuses(const GuardsStatusesType & guardsStatusesType_0);
+            }; // end class CRCLStatusType
 
 
-    // class_index = 6 clss=class crcl.base.TransAccelRelativeType
+    // class_index = 3 clss=class crcl.base.ParameterSettingType
 
             
-            class TransAccelRelativeType : public TransAccelType {
+            class ParameterSettingType : public DataThingType {
             public:
-                TransAccelRelativeType(jobject _jthis, bool copy);
-                TransAccelRelativeType(const TransAccelRelativeType &);
-                static TransAccelRelativeType cast(const ::crclj::java::lang::Object &);
+                ParameterSettingType(jobject _jthis, bool copy);
+                ParameterSettingType(const ParameterSettingType &);
+                static ParameterSettingType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                TransAccelRelativeType();
-                ~TransAccelRelativeType();
+                ParameterSettingType();
+                ~ParameterSettingType();
+                jstring getParameterName();
+                void setParameterName(jstring string_0);
+                void setParameterName(const char * easyArg_0);
+                jstring getParameterValue();
+                void setParameterValue(jstring string_0);
+                void setParameterValue(const char * easyArg_0);
+            }; // end class ParameterSettingType
+
+
+    // class_index = 4 clss=class crcl.base.TransSpeedRelativeType
+
+            
+            class TransSpeedRelativeType : public TransSpeedType {
+            public:
+                TransSpeedRelativeType(jobject _jthis, bool copy);
+                TransSpeedRelativeType(const TransSpeedRelativeType &);
+                static TransSpeedRelativeType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                TransSpeedRelativeType();
+                ~TransSpeedRelativeType();
                 jdouble getFraction();
                 void setFraction(jdouble double_0);
-            }; // end class TransAccelRelativeType
+            }; // end class TransSpeedRelativeType
 
 
-    // class_index = 7 clss=class crcl.base.SetEndEffectorType
+    // class_index = 5 clss=class crcl.base.SetIntermediatePoseToleranceType
 
             
-            class SetEndEffectorType : public MiddleCommandType {
+            class SetIntermediatePoseToleranceType : public MiddleCommandType {
             public:
-                SetEndEffectorType(jobject _jthis, bool copy);
-                SetEndEffectorType(const SetEndEffectorType &);
-                static SetEndEffectorType cast(const ::crclj::java::lang::Object &);
+                SetIntermediatePoseToleranceType(jobject _jthis, bool copy);
+                SetIntermediatePoseToleranceType(const SetIntermediatePoseToleranceType &);
+                static SetIntermediatePoseToleranceType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                SetEndEffectorType();
-                ~SetEndEffectorType();
+                SetIntermediatePoseToleranceType();
+                ~SetIntermediatePoseToleranceType();
+                PoseToleranceType getTolerance();
+                void setTolerance(const PoseToleranceType & poseToleranceType_0);
+            }; // end class SetIntermediatePoseToleranceType
+
+
+    // class_index = 6 clss=class crcl.base.TransSpeedAbsoluteType
+
+            
+            class TransSpeedAbsoluteType : public TransSpeedType {
+            public:
+                TransSpeedAbsoluteType(jobject _jthis, bool copy);
+                TransSpeedAbsoluteType(const TransSpeedAbsoluteType &);
+                static TransSpeedAbsoluteType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                TransSpeedAbsoluteType();
+                ~TransSpeedAbsoluteType();
                 jdouble getSetting();
                 void setSetting(jdouble double_0);
-            }; // end class SetEndEffectorType
+            }; // end class TransSpeedAbsoluteType
 
 
-    // class_index = 8 clss=class crcl.base.RotAccelAbsoluteType
-
-            
-            class RotAccelAbsoluteType : public RotAccelType {
-            public:
-                RotAccelAbsoluteType(jobject _jthis, bool copy);
-                RotAccelAbsoluteType(const RotAccelAbsoluteType &);
-                static RotAccelAbsoluteType cast(const ::crclj::java::lang::Object &);
-                static bool instanceof(const ::crclj::java::lang::Object &);
-                    
-                RotAccelAbsoluteType();
-                ~RotAccelAbsoluteType();
-                jdouble getSetting();
-                void setSetting(jdouble double_0);
-            }; // end class RotAccelAbsoluteType
-
-
-    // class_index = 9 clss=class crcl.base.GuardType
+    // class_index = 7 clss=class crcl.base.DisableGripperType
 
             
-            class GuardType : public DataThingType {
+            class DisableGripperType : public MiddleCommandType {
             public:
-                GuardType(jobject _jthis, bool copy);
-                GuardType(const GuardType &);
-                static GuardType cast(const ::crclj::java::lang::Object &);
+                DisableGripperType(jobject _jthis, bool copy);
+                DisableGripperType(const DisableGripperType &);
+                static DisableGripperType cast(const ::crclj::java::lang::Object &);
                 static bool instanceof(const ::crclj::java::lang::Object &);
                     
-                GuardType();
-                ~GuardType();
-                jstring getSensorID();
-                void setSensorID(jstring string_0);
-                void setSensorID(const char * easyArg_0);
-                jstring getSubField();
-                void setSubField(jstring string_0);
-                void setSubField(const char * easyArg_0);
-                GuardLimitEnumType getLimitType();
-                void setLimitType(const GuardLimitEnumType & guardLimitEnumType_0);
-                ::crclj::java::lang::Double getLimitValue();
-                void setLimitValue(const ::crclj::java::lang::Double & double_0);
-                ::crclj::java::lang::Long getRecheckTimeMicroSeconds();
-                void setRecheckTimeMicroSeconds(const ::crclj::java::lang::Long & long_0);
-                ::crclj::java::lang::Long getCheckCount();
-                void setCheckCount(const ::crclj::java::lang::Long & long_0);
-                ::crclj::java::lang::Long getLastCheckTime();
-                void setLastCheckTime(const ::crclj::java::lang::Long & long_0);
-                ::crclj::java::lang::Double getLastCheckValue();
-                void setLastCheckValue(const ::crclj::java::lang::Double & double_0);
-            }; // end class GuardType
+                DisableGripperType();
+                ~DisableGripperType();
+                jstring getGripperName();
+                void setGripperName(jstring string_0);
+                void setGripperName(const char * easyArg_0);
+            }; // end class DisableGripperType
+
+
+    // class_index = 8 clss=class crcl.base.EnableGripperType
+
+            
+            class EnableGripperType : public MiddleCommandType {
+            public:
+                EnableGripperType(jobject _jthis, bool copy);
+                EnableGripperType(const EnableGripperType &);
+                static EnableGripperType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                EnableGripperType();
+                ~EnableGripperType();
+                jstring getGripperName();
+                void setGripperName(jstring string_0);
+                void setGripperName(const char * easyArg_0);
+                ::crclj::java::util::List getGripperOption();
+            }; // end class EnableGripperType
+
+
+    // class_index = 9 clss=class crcl.base.WrenchType
+
+            
+            class WrenchType : public DataThingType {
+            public:
+                WrenchType(jobject _jthis, bool copy);
+                WrenchType(const WrenchType &);
+                static WrenchType cast(const ::crclj::java::lang::Object &);
+                static bool instanceof(const ::crclj::java::lang::Object &);
+                    
+                WrenchType();
+                ~WrenchType();
+                VectorType getForce();
+                void setForce(const VectorType & vectorType_0);
+                VectorType getMoment();
+                void setMoment(const VectorType & vectorType_0);
+            }; // end class WrenchType
         } // end namespace base
     } // end namespace crcl
 
