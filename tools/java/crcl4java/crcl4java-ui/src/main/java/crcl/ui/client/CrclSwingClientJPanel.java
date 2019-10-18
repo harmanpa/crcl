@@ -1467,6 +1467,7 @@ public class CrclSwingClientJPanel
 
     private Future<?> startPollTimer() {
         this.stopPollTimer();
+
         int startPollStopCount = pollStopCount.incrementAndGet();
         ExecutorService service = this.pollStatusService;
         if (null == service) {
@@ -1504,6 +1505,25 @@ public class CrclSwingClientJPanel
             System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
         }
         lastStartPollTimerFuture = ret;
+        if (internal.isConnected()) {
+            this.jComboBoxJointAxis.setToolTipText(null);
+            this.jComboBoxXYZRPY.setToolTipText(null);
+            jLabelJogMinus.setToolTipText(null);
+            jLabelJogMinus1.setToolTipText(null);
+            jLabelJogPlus.setToolTipText(null);
+            jLabelJogPlus1.setToolTipText(null);
+            
+            this.jComboBoxJointAxis.setEnabled(true);
+            this.jComboBoxXYZRPY.setEnabled(true);
+            jLabelJogMinus.setEnabled(true);
+            jLabelJogMinus.setBackground(Color.white);
+            jLabelJogMinus1.setEnabled(true);
+            jLabelJogMinus1.setBackground(Color.white);
+            jLabelJogPlus.setEnabled(true);
+            jLabelJogPlus.setBackground(Color.white);
+            jLabelJogPlus1.setEnabled(true);
+            jLabelJogPlus1.setBackground(Color.white);
+        }
         return ret;
     }
 
@@ -1518,6 +1538,16 @@ public class CrclSwingClientJPanel
     @Override
     public void stopPollTimer() {
         pollStopCount.incrementAndGet();
+        this.jComboBoxJointAxis.setEnabled(false);
+        this.jComboBoxXYZRPY.setEnabled(false);
+        jLabelJogMinus.setEnabled(false);
+        jLabelJogMinus.setBackground(Color.gray);
+        jLabelJogMinus1.setEnabled(false);
+        jLabelJogMinus1.setBackground(Color.gray);
+        jLabelJogPlus.setEnabled(false);
+        jLabelJogPlus.setBackground(Color.gray);
+        jLabelJogPlus1.setEnabled(false);
+        jLabelJogPlus1.setBackground(Color.gray);
     }
 
     CrclSwingClientInner getInternal() {
@@ -1933,8 +1963,26 @@ public class CrclSwingClientJPanel
         this.jButtonMoveTo.setEnabled(true);
         this.jButtonCloseGripper.setEnabled(true);
         this.jButtonOpenGripper.setEnabled(true);
+        this.jButtonOpenToolChanger.setEnabled(true);
+        this.jButtonCloseToolChanger.setEnabled(true);
+        
+        this.jButtonEnd.setToolTipText(null);
+        this.jButtonInit.setToolTipText(null);
+        this.jButtonMoveTo.setToolTipText(null);
+        this.jButtonCloseGripper.setToolTipText(null);
+        this.jButtonOpenGripper.setToolTipText(null);
+        this.jButtonOpenToolChanger.setToolTipText(null);
+        this.jButtonCloseToolChanger.setToolTipText(null);
+        
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
+        } else {
+            this.jComboBoxJointAxis.setToolTipText("Not Polling?");
+            this.jComboBoxXYZRPY.setToolTipText("Not Polling?");
+            jLabelJogMinus.setToolTipText("Not Polling?");
+            jLabelJogMinus1.setToolTipText("Not Polling?");
+            jLabelJogPlus.setToolTipText("Not Polling?");
+            jLabelJogPlus1.setToolTipText("Not Polling?");
         }
     }
 
@@ -2505,11 +2553,22 @@ public class CrclSwingClientJPanel
     public void finishDisconnect() {
         this.jButtonConnect.setEnabled(true);
         this.jButtonDisconnect.setEnabled(false);
+        
         this.jButtonEnd.setEnabled(false);
         this.jButtonInit.setEnabled(false);
         this.jButtonMoveTo.setEnabled(false);
         this.jButtonCloseGripper.setEnabled(false);
         this.jButtonOpenGripper.setEnabled(false);
+        this.jButtonOpenToolChanger.setEnabled(false);
+        this.jButtonCloseToolChanger.setEnabled(false);
+        
+        this.jButtonEnd.setToolTipText("Disconnected?");
+        this.jButtonInit.setToolTipText("Disconnected?");
+        this.jButtonMoveTo.setToolTipText("Disconnected?");
+        this.jButtonCloseGripper.setToolTipText("Disconnected?");
+        this.jButtonOpenGripper.setToolTipText("Disconnected?");
+        this.jButtonOpenToolChanger.setToolTipText("Disconnected?");
+        this.jButtonCloseToolChanger.setToolTipText("Disconnected?");
         this.stopPollTimer();
     }
 
@@ -3499,8 +3558,8 @@ public class CrclSwingClientJPanel
         jButtonOpenGripper = new javax.swing.JButton();
         jButtonCloseGripper = new javax.swing.JButton();
         jLabelHoldingObject = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jButtonOpenToolChanger = new javax.swing.JButton();
+        jButtonCloseToolChanger = new javax.swing.JButton();
         jPanelMoveTo = new javax.swing.JPanel();
         jButtonMoveTo = new javax.swing.JButton();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -3792,6 +3851,7 @@ public class CrclSwingClientJPanel
         jPanelJogging.setName("Jogging"); // NOI18N
 
         jComboBoxJointAxis.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Joint 1 (S)", "Joint 2 (L)", "Joint 3 (U)", "Joint 4 (R)", "Joint 5 (B)", "Joint 6 (T)", "Joint 7 (E)", "Joint 8 " }));
+        jComboBoxJointAxis.setEnabled(false);
 
         jPanelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
         jPanelJogMinus.setBorder(new javax.swing.border.MatteBorder(null));
@@ -3869,6 +3929,7 @@ public class CrclSwingClientJPanel
         );
 
         jComboBoxXYZRPY.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "X", "Y", "Z", "Roll", "Pitch", "Yaw", " " }));
+        jComboBoxXYZRPY.setEnabled(false);
 
         jPanelJogPlus1.setBackground(new java.awt.Color(255, 255, 255));
         jPanelJogPlus1.setBorder(new javax.swing.border.MatteBorder(null));
@@ -4043,17 +4104,19 @@ public class CrclSwingClientJPanel
 
         jLabelHoldingObject.setText("HoldingObject: Unknown");
 
-        jButton1.setText("Open Tool Changer");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButtonOpenToolChanger.setText("Open Tool Changer");
+        jButtonOpenToolChanger.setEnabled(false);
+        jButtonOpenToolChanger.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonOpenToolChangerActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Close Tool Changer");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jButtonCloseToolChanger.setText("Close Tool Changer");
+        jButtonCloseToolChanger.setEnabled(false);
+        jButtonCloseToolChanger.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jButtonCloseToolChangerActionPerformed(evt);
             }
         });
 
@@ -4112,9 +4175,9 @@ public class CrclSwingClientJPanel
                             .addGroup(jPanelJoggingLayout.createSequentialGroup()
                                 .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1)
+                                .addComponent(jButtonOpenToolChanger)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton2))
+                                .addComponent(jButtonCloseToolChanger))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
                 .addContainerGap(167, Short.MAX_VALUE))
@@ -4145,8 +4208,8 @@ public class CrclSwingClientJPanel
                     .addComponent(jLabel7)
                     .addComponent(jTextFieldXYZJogIncrement, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lengthUnitComboBoxLengthUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(jButtonOpenToolChanger)
+                    .addComponent(jButtonCloseToolChanger))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldTransSpeed, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -5743,7 +5806,7 @@ public class CrclSwingClientJPanel
         pauseCommandStatusLog = true;
     }//GEN-LAST:event_jCheckBoxLogCommandStatusToFileActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButtonOpenToolChangerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenToolChangerActionPerformed
         try {
             OpenToolChangerType otcCmd = new OpenToolChangerType();
             incAndSendCommandFromAwt(otcCmd);
@@ -5757,9 +5820,9 @@ public class CrclSwingClientJPanel
         } catch (JAXBException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jButtonOpenToolChangerActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void jButtonCloseToolChangerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCloseToolChangerActionPerformed
         try {
             CloseToolChangerType ctcCmd = new CloseToolChangerType();
             incAndSendCommandFromAwt(ctcCmd);
@@ -5773,7 +5836,7 @@ public class CrclSwingClientJPanel
         } catch (JAXBException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButtonCloseToolChangerActionPerformed
 
     private void jCheckBoxSteppingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxSteppingActionPerformed
         internal.setStepMode(jCheckBoxStepping.isSelected());
@@ -5971,11 +6034,10 @@ public class CrclSwingClientJPanel
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButtonAddGuard;
     private javax.swing.JButton jButtonAddProgramItem;
     private javax.swing.JButton jButtonCloseGripper;
+    private javax.swing.JButton jButtonCloseToolChanger;
     private javax.swing.JButton jButtonConnect;
     private javax.swing.JButton jButtonDeletProgramItem;
     private javax.swing.JButton jButtonDisconnect;
@@ -5987,6 +6049,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JButton jButtonMoveToCurrentPose;
     private javax.swing.JButton jButtonMoveToDownPosition;
     private javax.swing.JButton jButtonOpenGripper;
+    private javax.swing.JButton jButtonOpenToolChanger;
     private javax.swing.JButton jButtonPlotProgramItem;
     private javax.swing.JButton jButtonProgramAbort;
     private javax.swing.JButton jButtonProgramPause;

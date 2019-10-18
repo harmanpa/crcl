@@ -190,6 +190,24 @@ public class MotoPlusConnection implements AutoCloseable {
             socket = null;
         }
     }
+    
+    public String getHost() {
+        if(null == socket) {
+            throw new RuntimeException("socket==null");
+        }
+        final InetAddress inetAddress = socket.getInetAddress();
+        if(null == inetAddress) {
+            throw new RuntimeException("socket.getInetAddress()==null");
+        }
+        return inetAddress.getCanonicalHostName();
+    }
+    
+    public int getPort() {
+        if(null == socket) {
+            throw new RuntimeException("socket==null");
+        }
+        return socket.getPort();
+    }
 
     private final ConcurrentLinkedDeque<Consumer<String>> logListeners = new ConcurrentLinkedDeque<>();
 
@@ -1179,6 +1197,9 @@ public class MotoPlusConnection implements AutoCloseable {
             readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
+            if(sz<4 || sz > 8192) {
+                throw new RuntimeException("sz="+sz);
+            }
             inbuf = new byte[sz];
             readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
