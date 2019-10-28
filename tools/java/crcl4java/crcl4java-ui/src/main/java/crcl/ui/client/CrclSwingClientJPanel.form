@@ -1182,6 +1182,8 @@
                               <Component id="jCheckBoxLogCommandStatusToFile" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="jButtonShowCommandStatusLogFile" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="jButtonPlotStatus" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -1199,6 +1201,7 @@
                           <Component id="jTextFieldLogMaxLength" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jCheckBoxLogCommandStatusToFile" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonShowCommandStatusLogFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jButtonPlotStatus" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jScrollPane7" min="-2" pref="547" max="-2" attributes="0"/>
@@ -1264,6 +1267,14 @@
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonShowCommandStatusLogFileActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="jButtonPlotStatus">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Plot Status"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonPlotStatusActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>

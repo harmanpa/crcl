@@ -117,8 +117,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.text.DateFormat;
@@ -148,7 +146,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -168,7 +165,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -492,10 +488,8 @@ public class CrclSwingClientJPanel
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
                 showSelectedProgramLine(line, program, status);
-
             } else {
                 showSelectedProgramCommand(null, status);
-
             }
         } else {
             updateDistToSelected(status);
@@ -1718,7 +1712,8 @@ public class CrclSwingClientJPanel
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
         XpathQueryJFrame xqJFrameLocal = this.xqJFrame;
-        if (null != xqJFrameLocal && xqJFrameLocal.isUpdateAutomaticallySelected()) {
+        if (null != xqJFrameLocal && (justShowedXpathQueryDialog || xqJFrameLocal.isUpdateAutomaticallySelected())) {
+            justShowedXpathQueryDialog = false;
             String q = xqJFrameLocal.getQuery();
             if (q != null && q.length() > 0) {
                 String lastStatusString = crclSocket.getLastStatusString();
@@ -2816,7 +2811,16 @@ public class CrclSwingClientJPanel
         this.saveRecentCommandInstance(instanceForSave);
     }
 
+    private boolean justShowedXpathQueryDialog = false;
+
     public void showXpathQueryDialog() {
+        if (internal.isConnected()) {
+            if (!this.jCheckBoxPoll.isSelected()) {
+                this.jCheckBoxPoll.setSelected(true);
+                startPollTimer();
+            }
+        }
+        justShowedXpathQueryDialog = true;
         XpathQueryJFrame frame = this.xqJFrame;
         if (null == frame) {
             try {
@@ -3370,6 +3374,7 @@ public class CrclSwingClientJPanel
         jTextFieldLogMaxLength = new javax.swing.JTextField();
         jCheckBoxLogCommandStatusToFile = new javax.swing.JCheckBox();
         jButtonShowCommandStatusLogFile = new javax.swing.JButton();
+        jButtonPlotStatus = new javax.swing.JButton();
         jPanelConnectionTab = new javax.swing.JPanel();
         jTextFieldPort = new javax.swing.JTextField();
         jButtonConnect = new javax.swing.JButton();
@@ -4244,6 +4249,13 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jButtonPlotStatus.setText("Plot Status");
+        jButtonPlotStatus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPlotStatusActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelCommandStatusLogOuterLayout = new javax.swing.GroupLayout(jPanelCommandStatusLogOuter);
         jPanelCommandStatusLogOuter.setLayout(jPanelCommandStatusLogOuterLayout);
         jPanelCommandStatusLogOuterLayout.setHorizontalGroup(
@@ -4262,6 +4274,8 @@ public class CrclSwingClientJPanel
                         .addComponent(jCheckBoxLogCommandStatusToFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonShowCommandStatusLogFile)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonPlotStatus)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -4274,7 +4288,8 @@ public class CrclSwingClientJPanel
                     .addComponent(jLabel19)
                     .addComponent(jTextFieldLogMaxLength, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jCheckBoxLogCommandStatusToFile)
-                    .addComponent(jButtonShowCommandStatusLogFile))
+                    .addComponent(jButtonShowCommandStatusLogFile)
+                    .addComponent(jButtonPlotStatus))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 547, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -5674,6 +5689,17 @@ public class CrclSwingClientJPanel
         }
     }//GEN-LAST:event_jButtonRemoveGuardActionPerformed
 
+    private void jButtonPlotStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotStatusActionPerformed
+        try {
+            plotterJFrame plotterFrame = new plotterJFrame();
+            plotterFrame.LoadObjectsList("status", internal.getTimeStampedStatusList());
+            plotterFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            plotterFrame.setVisible(true);
+        } catch (NoSuchFieldException ex) {
+            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonPlotStatusActionPerformed
+
     public @Nullable
     Thread getRunProgramThread() {
         return internal.getCrclSocketActionThread();
@@ -5849,6 +5875,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JButton jButtonOpenGripper;
     private javax.swing.JButton jButtonOpenToolChanger;
     private javax.swing.JButton jButtonPlotProgramItem;
+    private javax.swing.JButton jButtonPlotStatus;
     private javax.swing.JButton jButtonProgramAbort;
     private javax.swing.JButton jButtonProgramPause;
     private javax.swing.JButton jButtonProgramRun;

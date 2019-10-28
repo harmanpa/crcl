@@ -108,6 +108,7 @@ import crcl.utils.XpathUtils;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.ProgramRunData;
 import static crcl.utils.outer.interfaces.ProgramRunData.PROGRAM_RUN_DATA_PLACEHOLDER;
+import crcl.utils.outer.interfaces.TimeStampedStatus;
 import java.awt.Desktop;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -127,6 +128,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -390,7 +392,7 @@ public class CrclSwingClientInner {
     private final DefaultSchemaFiles defaultsInstance;
 
     @SuppressWarnings("initialization")
-    CrclSwingClientInner(PendantClientOuter outer, 
+    CrclSwingClientInner(PendantClientOuter outer,
             DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
@@ -2136,6 +2138,18 @@ public class CrclSwingClientInner {
 
     }
 
+    public List<TimeStampedStatus> getTimeStampedStatusList() {
+        List<TimeStampedStatus> list = new ArrayList<>();
+        Iterator<TimeStampedStatus> it = timeStampedStatusLog.iterator();
+        while (it.hasNext()) {
+            TimeStampedStatus el = it.next();
+            if (null != el) {
+                list.add(el);
+            }
+        }
+        return list;
+    }
+
     public void printCommandStatusLogNoHeader(File f, boolean append, boolean clearLog) throws IOException {
         try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             if (clearLog) {
@@ -2171,6 +2185,9 @@ public class CrclSwingClientInner {
     }
 
     private final ConcurrentLinkedDeque<CommandStatusLogElement> commandStatusLog
+            = new ConcurrentLinkedDeque<>();
+
+    private final ConcurrentLinkedDeque<TimeStampedStatus> timeStampedStatusLog
             = new ConcurrentLinkedDeque<>();
 
     private volatile int maxLogSize = 500;
@@ -2352,7 +2369,17 @@ public class CrclSwingClientInner {
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
         CommandStatusType curCmdStatus = curStatus.getCommandStatus();
         CommandStateEnumType curState = curCmdStatus.getCommandState();
-        double requiredTimeDiff = (curState == CRCL_WORKING) ? 500 : 20000;
+        double requiredTimeDiff = (curState == CRCL_WORKING) ? 50 : 20000;
+        if (lastEl == null && curStatus.getCommandStatus().getCommandID() < 1) {
+            StatusLogElement statEl = new StatusLogElement(
+                    curStatus,
+                    curTime,
+                    programName,
+                    programIndex,
+                    (null != crclSocket) ? getCrclSocketString() : "");
+            lastCommandStatusLogElement = statEl;
+            return;
+        }
         if (lastEl != null
                 && lastEl.getId() == curStatus.getCommandStatus().getCommandID()
                 && (lastEl instanceof StatusLogElement)
@@ -2379,14 +2406,19 @@ public class CrclSwingClientInner {
         }
         StatusLogElement statEl = new StatusLogElement(
                 curStatus,
-                System.currentTimeMillis(),
+                curTime,
                 programName,
                 programIndex,
                 (null != crclSocket) ? getCrclSocketString() : "");
         lastCommandStatusLogElement = statEl;
         commandStatusLog.add(statEl);
+        timeStampedStatusLog.add(new TimeStampedStatus(curStatus, curTime));
+
         while (commandStatusLog.size() > maxLogSize) {
             commandStatusLog.pollFirst();
+        }
+        while (timeStampedStatusLog.size() > maxLogSize) {
+            timeStampedStatusLog.pollFirst();
         }
     }
 
@@ -3594,6 +3626,9 @@ public class CrclSwingClientInner {
                     throw new IllegalStateException("Block Programs");
                 }
                 lineCmd = cmd;
+                if (i <= middleCommands.size()) {
+                    showCurrentProgramLine(i, prog, getStatus());
+                }
                 testCommand(cmd, startRunProgramAbortCount);
 
                 curStatus
@@ -4935,7 +4970,7 @@ public class CrclSwingClientInner {
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + startStatusString
                     + curStatusString
-                    + ((null != intString) ? "intString=<INTERRUPT_STRING>/n" + intString +"\n<\\INTERRUPT_STRING>\n"+ NEW_LINE : "")
+                    + ((null != intString) ? "intString=<INTERRUPT_STRING>/n" + intString + "\n<\\INTERRUPT_STRING>\n" + NEW_LINE : "")
                     + suffix;
             return messageString;
         } catch (Exception exception) {
