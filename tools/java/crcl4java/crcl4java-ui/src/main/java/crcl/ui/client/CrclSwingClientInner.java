@@ -390,7 +390,8 @@ public class CrclSwingClientInner {
     private final DefaultSchemaFiles defaultsInstance;
 
     @SuppressWarnings("initialization")
-    CrclSwingClientInner(PendantClientOuter outer, DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
+    CrclSwingClientInner(PendantClientOuter outer, 
+            DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
         this.xpu = new XpathUtils();
         this.defaultsInstance = defaultsInstance;
@@ -1683,10 +1684,15 @@ public class CrclSwingClientInner {
                     return WaitForDoneResult.WFD_HOLDING_ERROR;
                 }
                 if (Thread.currentThread().isInterrupted()) {
-                    if (debugInterrupts) {
-                        System.out.println("Current Thread is interrupted : " + Thread.currentThread());
+                    if (true) {
+                        System.out.println("");
+                        System.out.flush();
+                        System.err.println("Current Thread is interrupted : " + Thread.currentThread());
                         Thread.dumpStack();
-                        System.out.println("interruptStacks = " + interruptStacks);
+                        System.err.println("interruptStacks = " + interruptStacks);
+                        System.err.println("");
+                        System.out.println("");
+                        System.out.flush();
                     }
                     return WaitForDoneResult.WFD_INTERRUPTED;
                 }
@@ -4774,8 +4780,8 @@ public class CrclSwingClientInner {
                 String commandLogString = commandStatusLogToString();
                 System.err.println("commandLogString = " + commandLogString);
                 String lastCmdString = commandToSimpleString(lastCommandSent);
-                String intString = this.createInterrupStackString();
-                String messageString = createTestCommandFailMessage("Id of command to send already matches status id.", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, intString, "");
+                String interruptString = this.createInterrupStackString();
+                String messageString = createTestCommandFailMessage("Id of command to send already matches status id.", cmd, startStatus, wfdResult, sendCommandTime, curTime, timeout, poseListSaveFileName, interruptString, "");
                 System.out.println(messageString);
                 showErrorMessage(messageString);
                 throw new RuntimeException("Id of command to send already matches status id : messageString=" + messageString);
@@ -4929,7 +4935,7 @@ public class CrclSwingClientInner {
                     + "cmd.getCommandID() = " + cmd.getCommandID() + NEW_LINE
                     + startStatusString
                     + curStatusString
-                    + ((null != intString) ? "intString=" + intString + NEW_LINE : "")
+                    + ((null != intString) ? "intString=<INTERRUPT_STRING>/n" + intString +"\n<\\INTERRUPT_STRING>\n"+ NEW_LINE : "")
                     + suffix;
             return messageString;
         } catch (Exception exception) {

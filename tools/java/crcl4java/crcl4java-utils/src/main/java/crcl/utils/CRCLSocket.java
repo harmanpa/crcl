@@ -2088,7 +2088,17 @@ public class CRCLSocket implements AutoCloseable {
             System.out.println("");
             System.out.flush();
             System.err.println("cmdSchemSetTrace = " + Utils.traceToString(this.cmdSchemSetTrace));
-            System.err.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFiles));
+            final File[] cmdSchemaFilesLocal = cmdSchemaFiles;
+            System.err.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFilesLocal));
+            if (null != cmdSchemaFilesLocal) {
+                for (int i = 0; i < cmdSchemaFilesLocal.length; i++) {
+                    try {
+                        System.err.println("cmdSchemaFiles["+i+"]="+cmdSchemaFilesLocal[i].getCanonicalPath());
+                    } catch (Exception ex) {
+                        Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, "i="+i+", cmdSchemaFiles[i]="+cmdSchemaFilesLocal[i], ex);
+                    }
+                }
+            }
             LOGGER.log(Level.SEVERE, "sw=\n" + sw.toString() + "\n, cmd=" + cmd + ",, validate=" + validate, exception);
             if (exception instanceof RuntimeException) {
                 throw (RuntimeException) exception;
@@ -2243,10 +2253,32 @@ public class CRCLSocket implements AutoCloseable {
 
     private void writePackets(SocketChannel channel, byte ba[]) throws IOException, InterruptedException {
         if (!this.randomPacketing) {
-            int byteswritten = channel.write(ByteBuffer.wrap(ba));
-            while (byteswritten < ba.length) {
-                byteswritten += channel.write(ByteBuffer.wrap(ba, byteswritten, ba.length));
-                Thread.sleep(20);
+            int writesTried = 0;
+            final ByteBuffer baWrapBB = ByteBuffer.wrap(ba);
+            int byteswritten = channel.write(baWrapBB);
+            try {
+                while (byteswritten < ba.length) {
+                    writesTried++;
+                    final ByteBuffer remainingBB = ByteBuffer.wrap(ba, byteswritten, ba.length-byteswritten);
+                    byteswritten += channel.write(remainingBB);
+                    Thread.sleep(20);
+                }
+            } catch (Exception ex1) {
+                System.err.println("writesTried = " + writesTried);
+                System.err.println("byteswritten = " + byteswritten);
+                System.err.println("ba.length = " + ba.length);
+                System.err.println("ba = " + Arrays.toString(ba));
+                System.err.println("channel = " + channel);
+                System.out.println("channel.getLocalAddress() = " + channel.getLocalAddress());
+                System.out.println("channel.getRemoteAddress() = " + channel.getRemoteAddress());
+                LOGGER.log(Level.SEVERE,
+                        "",
+                        ex1);
+                if(ex1 instanceof RuntimeException) {
+                    throw (RuntimeException) ex1;
+                } else {
+                    throw new RuntimeException(ex1);
+                }
             }
         } else {
             if (null == random) {
@@ -2301,34 +2333,41 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public void writeWithFill(String str) throws IOException, InterruptedException {
-        if (null != socketChannel) {
-            if (!appendTrailingZero) {
-                this.writePackets(socketChannel, str.getBytes());
-            } else {
-                int len = str.length();
-                byte bytesPlusOne[] = new byte[len + 1];
-                System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
-                this.writePackets(socketChannel, bytesPlusOne);
+        try {
+            if (null != socketChannel) {
+                if (!appendTrailingZero) {
+                    this.writePackets(socketChannel, str.getBytes());
+                } else {
+                    int len = str.length();
+                    byte bytesPlusOne[] = new byte[len + 1];
+                    System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
+                    this.writePackets(socketChannel, bytesPlusOne);
+                }
+                return;
             }
-            return;
-        }
-
-        final Socket socket = getSocket();
-        if (null == socket) {
-            throw new IllegalStateException("Internal socket is null.");
-        }
-        assert null != socket : "@AssumeAssertion(nullable)";
-        OutputStream os = socket.getOutputStream();
-        synchronized (os) {
-            if (!appendTrailingZero) {
-                this.writePackets(os, str.getBytes());
-            } else {
-                int len = str.length();
-                byte bytesPlusOne[] = new byte[len + 1];
-                System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
-                this.writePackets(os, bytesPlusOne);
+            
+            final Socket socket = getSocket();
+            if (null == socket) {
+                throw new IllegalStateException("Internal socket is null.");
             }
-            os.flush();
+            assert null != socket : "@AssumeAssertion(nullable)";
+            OutputStream os = socket.getOutputStream();
+            synchronized (os) {
+                if (!appendTrailingZero) {
+                    this.writePackets(os, str.getBytes());
+                } else {
+                    int len = str.length();
+                    byte bytesPlusOne[] = new byte[len + 1];
+                    System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
+                    this.writePackets(os, bytesPlusOne);
+                }
+                os.flush();
+            }
+        } catch (IOException | InterruptedException | IllegalStateException iOException) {
+            LOGGER.log(Level.SEVERE,
+                        "str="+str,
+                        iOException);
+            throw iOException;
         }
     }
 
@@ -2651,6 +2690,17 @@ public class CRCLSocket implements AutoCloseable {
             this.lastStatusString = statusToString(status, validate);
             this.writeWithFill(this.lastStatusString);
         } catch (IOException | InterruptedException ex) {
+            System.err.println("lastStatusString="+lastStatusString);
+            System.err.println("socketChannel="+socketChannel);
+            if(null != socketChannel) {
+                try {
+                    System.err.println("socketChannel.getLocalAddress()=" + socketChannel.getLocalAddress());
+                    System.err.println("socketChannel.getRemodeAddress()=" + socketChannel.getRemoteAddress());
+                } catch (IOException iOException) {
+                    LOGGER.log(Level.SEVERE, "", iOException);
+                }
+            }
+            System.err.println("socket="+socket);
             throw new CRCLException(ex);
         }
     }

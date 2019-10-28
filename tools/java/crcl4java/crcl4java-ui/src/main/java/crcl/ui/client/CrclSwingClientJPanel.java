@@ -56,6 +56,7 @@ import crcl.base.StopConditionEnumType;
 import crcl.base.StopMotionType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.VectorType;
+import crcl.ui.AutomaticPropertyFileUtils;
 import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.DefaultSchemaFiles;
 import static crcl.ui.IconImages.BASE_IMAGE;
@@ -134,6 +135,7 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
@@ -489,11 +491,14 @@ public class CrclSwingClientJPanel
                         ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
-                showSelectedProgramLine(line, program);
+                showSelectedProgramLine(line, program, status);
 
             } else {
-                showSelectedProgramCommand("No Program loaded.");
+                showSelectedProgramCommand(null, status);
+
             }
+        } else {
+            updateDistToSelected(status);
         }
         if (null != status) {
             for (int i = 0; i < programLineListeners.size(); i++) {
@@ -504,11 +509,25 @@ public class CrclSwingClientJPanel
         programLineShowing = line;
     }
 
+    private void updateDistToSelected(CRCLStatusType status) {
+        if (null != status && currentCommand instanceof MoveToType) {
+            MoveToType currentMoveCmd = (MoveToType) currentCommand;
+            double dist = CRCLPosemath.diffPosesTran(currentMoveCmd.getEndPosition(), status.getPoseStatus().getPose());
+            jTextFieldDistToSelected.setText(String.format("%.3f", dist));
+            jTextFieldDistToSelected.setEditable(true);
+            jTextFieldDistToSelected.setEnabled(true);
+        } else {
+            jTextFieldDistToSelected.setText("NA");
+            jTextFieldDistToSelected.setEnabled(false);
+            jTextFieldDistToSelected.setEditable(false);
+        }
+    }
+
     private volatile int lastShowSelectedProgramLineLine = -99;
     private volatile @Nullable
     CRCLProgramType lastshowSelectedProgramLineProgram = null;
 
-    private void showSelectedProgramLine(final int line, final CRCLProgramType program) {
+    private void showSelectedProgramLine(final int line, final CRCLProgramType program, @Nullable CRCLStatusType status) {
         if (null != lastshowSelectedProgramLineProgram
                 && lastShowSelectedProgramLineLine == line
                 && lastshowSelectedProgramLineProgram == program) {
@@ -519,33 +538,30 @@ public class CrclSwingClientJPanel
         if (line == 0) {
             try {
                 InitCanonType cmd = program.getInitCanon();
-                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                showSelectedProgramCommand(cmdString);
-            } catch (JAXBException | CRCLException ex) {
+
+                showSelectedProgramCommand(cmd, status);
+            } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (line > 0 && (null == program.getMiddleCommand())) {
             try {
                 EndCanonType cmd = program.getEndCanon();
-                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                showSelectedProgramCommand(cmdString);
-            } catch (JAXBException | CRCLException ex) {
+                showSelectedProgramCommand(cmd, status);
+            } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (line > 0 && line <= program.getMiddleCommand().size()) {
             try {
                 MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
-                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                showSelectedProgramCommand(cmdString);
-            } catch (JAXBException | CRCLException ex) {
+                showSelectedProgramCommand(cmd, status);
+            } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (line == program.getMiddleCommand().size() + 1) {
             try {
                 EndCanonType cmd = program.getEndCanon();
-                String cmdString = this.internal.getTempCRCLSocket().commandToPrettyString(cmd);
-                showSelectedProgramCommand(cmdString);
-            } catch (JAXBException | CRCLException ex) {
+                showSelectedProgramCommand(cmd, status);
+            } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -557,26 +573,39 @@ public class CrclSwingClientJPanel
         programPlotterJPanelSide.repaint();
     }
 
-    private void showSelectedProgramCommand(String cmdString) {
-        int endlineindex = cmdString.indexOf('\n');
-        if (endlineindex > 0 && endlineindex < cmdString.length()) {
-            cmdString = cmdString.substring(endlineindex + 1);
-        }
-        int instancestartindex = cmdString.indexOf("<CRCLCommandInstance>");
-        if (instancestartindex >= 0) {
-            cmdString = cmdString.substring(instancestartindex + "<CRCLCommandInstance>".length());
-            endlineindex = cmdString.indexOf('\n');
+    private volatile CRCLCommandType currentCommand = null;
+
+    private void showSelectedProgramCommand(CRCLCommandType cmd, @Nullable CRCLStatusType status) {
+        try {
+            currentCommand = cmd;
+            updateDistToSelected(status);
+            String cmdString
+                    = (cmd != null)
+                            ? this.internal.getTempCRCLSocket().commandToPrettyString(cmd)
+                            : "No Program loaded.";
+            int endlineindex = cmdString.indexOf('\n');
             if (endlineindex > 0 && endlineindex < cmdString.length()) {
                 cmdString = cmdString.substring(endlineindex + 1);
             }
+            int instancestartindex = cmdString.indexOf("<CRCLCommandInstance>");
+            if (instancestartindex >= 0) {
+                cmdString = cmdString.substring(instancestartindex + "<CRCLCommandInstance>".length());
+                endlineindex = cmdString.indexOf('\n');
+                if (endlineindex > 0 && endlineindex < cmdString.length()) {
+                    cmdString = cmdString.substring(endlineindex + 1);
+                }
+            }
+            int instanceendindex = cmdString.indexOf("</CRCLCommandInstance>");
+            if (instanceendindex > 0) {
+                cmdString = cmdString.substring(0, instanceendindex);
+            }
+            cmdString = cmdString.trim();
+            this.jTextAreaSelectedProgramCommand.setText(cmdString);
+            this.jTextAreaSelectedProgramCommand.setCaretPosition(0);
+        } catch (Exception ex) {
+            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
         }
-        int instanceendindex = cmdString.indexOf("</CRCLCommandInstance>");
-        if (instanceendindex > 0) {
-            cmdString = cmdString.substring(0, instanceendindex);
-        }
-        cmdString = cmdString.trim();
-        this.jTextAreaSelectedProgramCommand.setText(cmdString);
-        this.jTextAreaSelectedProgramCommand.setCaretPosition(0);
     }
 
     private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, @Nullable CRCLStatusType status, @Nullable List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
@@ -708,7 +737,7 @@ public class CrclSwingClientJPanel
             boolean adjusting = e.getValueIsAdjusting();
             int row = jTableProgram.getSelectedRow();
             if (!adjusting && null != programShowing && row >= 0) {
-                showSelectedProgramLine(row, programShowing);
+                showSelectedProgramLine(row, programShowing, internal.getStatus());
             }
             //finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), internal.getProgRunDataList(),Thread.currentThread().getStackTrace());
         }
@@ -743,22 +772,6 @@ public class CrclSwingClientJPanel
         jTextFieldPort.setText(Integer.toString(port));
     }
 
-    private Optional<Object> safeInvokeMethod(Method m, Object o) {
-        try {
-            return Optional.ofNullable(m.invoke(o));
-
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Throwable cause = ex.getCause();
-            if (null != cause) {
-                Logger.getLogger(CrclSwingClientJPanel.class
-                        .getName()).log(Level.SEVERE, "m=" + m + ",o=" + o, cause);
-            }
-            Logger.getLogger(CrclSwingClientJPanel.class
-                    .getName()).log(Level.SEVERE, "m=" + m + ",o=" + o, ex);
-        }
-        return Optional.empty();
-    }
-
     public void resetPrefs() {
         File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
         if (crcljavaDir.exists()) {
@@ -775,231 +788,19 @@ public class CrclSwingClientJPanel
         return internal.getCrclSocketActionExecutorService();
     }
 
-    private void savePrefsFile(File f) {
+    public static void saveObjectProperties(File f, Object o) {
         try {
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
-//            Logger.getLogger(CrclSwingClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
-            try (PrintStream ps = new PrintStream(new FileOutputStream(f))) {
-                Method ma[] = this.getClass().getMethods();
-                Stream
-                        .of(ma)
-                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-                        .filter(m -> m.getName().startsWith("is"))
-                        .filter(m -> m.getParameterTypes().length == 0)
-                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
-                        .map(m -> safeInvokeMethod(m, CrclSwingClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
-                        .forEachOrdered(ps::println);
-                boolean visibleAndValid = isVisible() && isValid();
-                Stream.of(ma)
-                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-                        .filter(m -> m.getName().startsWith("get"))
-                        .filter(m -> !m.getName().startsWith("getTempLogDir"))
-                        .filter(m -> !m.getName().contains("Mouse"))
-                        .filter(m -> !m.getName().startsWith("getPropertiesFile"))
-                        .filter(m -> !m.getName().startsWith("getLocationOnScreen") || visibleAndValid)
-                        .filter(m -> m.getParameterTypes().length == 0)
-                        .map(m -> safeInvokeMethod(m, CrclSwingClientJPanel.this)
-                        .map(result -> m.getReturnType().getCanonicalName() + " " + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
-                        .forEachOrdered(ps::println);
-                ma = this.internal.getClass().getMethods();
-                Stream
-                        .of(ma)
-                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-                        .filter(m -> m.getName().startsWith("is"))
-                        .filter(m -> m.getParameterTypes().length == 0)
-                        .filter(m -> m.getReturnType().isAssignableFrom(boolean.class
-                ))
-                        .map(m -> safeInvokeMethod(m, CrclSwingClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
-                        .forEachOrdered(ps::println);
-                Stream.of(ma)
-                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-                        .filter(m -> m.getName().startsWith("get"))
-                        .filter(m -> !m.getName().startsWith("getTempLogDir"))
-                        .filter(m -> !m.getName().startsWith("getPort"))
-                        .filter(m -> !m.getName().startsWith("getLocalPort"))
-                        .filter(m -> !m.getName().startsWith("getPropertiesFile"))
-                        .filter(m -> m.getParameterTypes().length == 0)
-                        .map(m -> safeInvokeMethod(m, CrclSwingClientJPanel.this.internal)
-                        .map(result -> m.getReturnType().getCanonicalName() + " internal." + m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4) + "=" + result.toString())
-                        .orElse("# could not invoke" + m.getName()))
-                        .forEachOrdered(ps::println);
-            }
-        } catch (IOException iOException) {
-            showMessage(iOException);
+            AutomaticPropertyFileUtils.saveObjectProperties(f, o);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
-    }
-
-    @SuppressWarnings({"unchecked", "nullness"})
-
-    static private <T> @Nullable
-         T valueOf(Class<T> clss, String s) {
-        try {
-            Method vmethod = Stream.of(clss.getMethods())
-                    .filter(m -> m.getName().equals("valueOf"))
-                    .filter(m -> m.getParameterTypes().length == 1)
-                    .filter(m -> Modifier.isStatic(m.getModifiers()))
-                    .filter(m -> m.getParameterTypes()[0].isAssignableFrom(String.class
-            ))
-                    .findAny()
-                    .orElse(null);
-            if (null != vmethod) {
-                return (T) vmethod.invoke(null, s);
-
-            }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(CrclSwingClientJPanel.class
-                    .getName()).log(Level.SEVERE, null, ex);
-
-        }
-        if (clss.isAssignableFrom(String.class
-        )) {
-            return (T) s;
-
-        } else if (clss.isAssignableFrom(double.class
-        )) {
-            return (T) Double.valueOf(s);
-
-        } else if (clss.isAssignableFrom(float.class
-        )) {
-            return (T) Float.valueOf(s);
-
-        } else if (clss.isAssignableFrom(long.class
-        )) {
-            return (T) Long.valueOf(s);
-
-        } else if (clss.isAssignableFrom(int.class
-        )) {
-            return (T) Integer.valueOf(s);
-
-        } else if (clss.isAssignableFrom(short.class
-        )) {
-            return (T) Short.valueOf(s);
-
-        } else if (clss.isAssignableFrom(byte.class
-        )) {
-            return (T) Byte.valueOf(s);
-
-        } else if (clss.isAssignableFrom(boolean.class
-        )) {
-            return (T) Boolean.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Double.class
-        )) {
-            return (T) Double.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Float.class
-        )) {
-            return (T) Float.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Long.class
-        )) {
-            return (T) Long.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Integer.class
-        )) {
-            return (T) Integer.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Short.class
-        )) {
-            return (T) Short.valueOf(s);
-
-        } else if (clss.isAssignableFrom(Byte.class
-        )) {
-            return (T) Byte.valueOf(s);
-        } else if (clss.isAssignableFrom(Boolean.class
-        )) {
-            return (T) Boolean.valueOf(s);
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void setParam(String... args) {
-        try {
-            if (args.length < 3) {
-                return;
-            }
-
-            Class<?> clss = null;
-
-            switch (args[0]) {
-                case "boolean":
-                    clss = boolean.class;
-                    break;
-
-                case "int":
-                    clss = int.class;
-                    break;
-
-                case "long":
-                    clss = long.class;
-                    break;
-
-                case "float":
-                    clss = float.class;
-                    break;
-
-                case "double":
-                    clss = double.class;
-                    break;
-
-                default:
-                    return;
-            }
-
-            if (null == clss) {
-//                clss = Class.forName(args[0]);
-                return;
-            }
-            Object o = valueOf(clss, args[2]);
-            if (null == o) {
-                return;
-            }
-            Method m = null;
-            if (args[1].startsWith("internal.")) {
-                String name = args[1].substring("internal.".length());
-                String methodName = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
-                try {
-                    m = this.internal.getClass()
-                            .getMethod(methodName,
-                                    clss);
-                } catch (NoSuchMethodException ex) {
-                    // ignore and just return
-                }
-                if (null == m) {
-                    return;
-                }
-                m.invoke(this.internal, o);
-            } else {
-                String methodName = "set" + args[1].substring(0, 1).toUpperCase() + args[1].substring(1);
-                try {
-                    m = this.getClass().getMethod(methodName,
-                            clss);
-                } catch (NoSuchMethodException ex) {
-                    // ignore and just return
-                }
-                if (null == m) {
-                    return;
-                }
-                m.invoke(this, o);
-
-            }
-        } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(CrclSwingClientJPanel.class
-                    .getName()).log(Level.SEVERE, "Can not setParam with args = " + Arrays.toString(args), ex);
-        }
-
     }
 
     private void checkSettingsRef() {
@@ -1016,7 +817,6 @@ public class CrclSwingClientJPanel
             File prefsFile = new File(prefsFileName);
             if (prefsFile.exists() && prefsFile.canRead()) {
                 loadPrefsFile(prefsFile);
-
             }
         } catch (IOException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class
@@ -1051,61 +851,35 @@ public class CrclSwingClientJPanel
     }
 
     public void saveProperties() {
-        savePrefsFile(propertiesFile);
+        saveObjectProperties(propertiesFile, this);
+        AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "internal.", internal);
     }
 
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
-//            Logger.getLogger(CrclSwingClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
-            try (BufferedReader br = Files.newBufferedReader(f.toPath())) {
-//                Method ma[] = this.getClass().getMethods();
-//                Map<String,Method> map = 
-//                Stream.of(ma)
-//                        .filter(m -> Modifier.isPublic(m.getModifiers()))
-//                        .filter(m -> m.getName().startsWith("set"))
-//                        .filter(m -> m.getParameterTypes().length == 1)
-//                        .distinct()
-//                        .collect(Collectors.toMap(m -> m.getName().substring(3,4).toLowerCase()+m.getName().substring(4),
-//                                m -> m));
-                br.lines()
-                        .filter(l -> !l.startsWith("#"))
-                        .map(l -> l.split("[ \r\n\t=]+"))
-                        .forEachOrdered(this::setParam);
-
-//                        .map((String []sa) -> new Object[] { map.get(sa[0]), valueOf(map.get(sa[0]).getParameterTypes()[0],sa[1])})
-//                        .forEachOrdered((Object[] oa) -> safeInvokeMethod2(((Method)oa[0]), oa[1]));
-            }
+            Map<String, Object> targetMap = new TreeMap<>();
+            targetMap.put("internal.", internal);
+            Object defaultTarget = this;
+            AutomaticPropertyFileUtils.loadPropertyFile(f, targetMap, defaultTarget);
             updateUIFromInternal();
         } catch (IOException iOException) {
             showMessage(iOException);
         }
     }
 
-//    
-//    private void jMenuItemSavePrefsActionPerformed(java.awt.event.ActionEvent evt) {                                                   
-//        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
-//        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
-//            File f = chooser.getSelectedFile();
-//            savePrefsFile(f);
-//        }
-//    }                                                  
-//    private void jMenuItemLoadPrefsActionPerformed(java.awt.event.ActionEvent evt) {                                                   
-//        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
-//        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
-//            File f = chooser.getSelectedFile();
-//            loadPrefsFile(f);
-//        }
-//    }          
     public static PoseType tableToPose(JTable table, PoseDisplayMode displayMode) throws PmException {
 
         TableModel tm = table.getModel();
-        PmCartesian tran = new PmCartesian((Double) tm.getValueAt(0, 1), (Double) tm.getValueAt(1, 1), (Double) tm.getValueAt(2, 1));
+        PmCartesian tran = new PmCartesian(
+                (Double) tm.getValueAt(0, 1),
+                (Double) tm.getValueAt(1, 1),
+                (Double) tm.getValueAt(2, 1));
 
         switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
@@ -1506,25 +1280,30 @@ public class CrclSwingClientJPanel
         }
         lastStartPollTimerFuture = ret;
         if (internal.isConnected()) {
-            this.jComboBoxJointAxis.setToolTipText(null);
-            this.jComboBoxXYZRPY.setToolTipText(null);
-            jLabelJogMinus.setToolTipText(null);
-            jLabelJogMinus1.setToolTipText(null);
-            jLabelJogPlus.setToolTipText(null);
-            jLabelJogPlus1.setToolTipText(null);
-            
-            this.jComboBoxJointAxis.setEnabled(true);
-            this.jComboBoxXYZRPY.setEnabled(true);
-            jLabelJogMinus.setEnabled(true);
-            jLabelJogMinus.setBackground(Color.white);
-            jLabelJogMinus1.setEnabled(true);
-            jLabelJogMinus1.setBackground(Color.white);
-            jLabelJogPlus.setEnabled(true);
-            jLabelJogPlus.setBackground(Color.white);
-            jLabelJogPlus1.setEnabled(true);
-            jLabelJogPlus1.setBackground(Color.white);
+            enableJoggingControls();
         }
         return ret;
+    }
+
+    @SuppressWarnings({"nullness"})
+    private void enableJoggingControls() {
+        this.jComboBoxJointAxis.setToolTipText(null);
+        this.jComboBoxXYZRPY.setToolTipText(null);
+        jLabelJogMinus.setToolTipText(null);
+        jLabelJogMinus1.setToolTipText(null);
+        jLabelJogPlus.setToolTipText(null);
+        jLabelJogPlus1.setToolTipText(null);
+
+        this.jComboBoxJointAxis.setEnabled(true);
+        this.jComboBoxXYZRPY.setEnabled(true);
+        jLabelJogMinus.setEnabled(true);
+        jLabelJogMinus.setBackground(Color.white);
+        jLabelJogMinus1.setEnabled(true);
+        jLabelJogMinus1.setBackground(Color.white);
+        jLabelJogPlus.setEnabled(true);
+        jLabelJogPlus.setBackground(Color.white);
+        jLabelJogPlus1.setEnabled(true);
+        jLabelJogPlus1.setBackground(Color.white);
     }
 
     public void setDebugInterrupts(boolean debugInterrupts) {
@@ -1958,22 +1737,8 @@ public class CrclSwingClientJPanel
     public void finishConnect() {
         this.jButtonConnect.setEnabled(false);
         this.jButtonDisconnect.setEnabled(true);
-        this.jButtonEnd.setEnabled(true);
-        this.jButtonInit.setEnabled(true);
-        this.jButtonMoveTo.setEnabled(true);
-        this.jButtonCloseGripper.setEnabled(true);
-        this.jButtonOpenGripper.setEnabled(true);
-        this.jButtonOpenToolChanger.setEnabled(true);
-        this.jButtonCloseToolChanger.setEnabled(true);
-        
-        this.jButtonEnd.setToolTipText(null);
-        this.jButtonInit.setToolTipText(null);
-        this.jButtonMoveTo.setToolTipText(null);
-        this.jButtonCloseGripper.setToolTipText(null);
-        this.jButtonOpenGripper.setToolTipText(null);
-        this.jButtonOpenToolChanger.setToolTipText(null);
-        this.jButtonCloseToolChanger.setToolTipText(null);
-        
+        enableConnectDependControls();
+
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
         } else {
@@ -1984,6 +1749,25 @@ public class CrclSwingClientJPanel
             jLabelJogPlus.setToolTipText("Not Polling?");
             jLabelJogPlus1.setToolTipText("Not Polling?");
         }
+    }
+
+    @SuppressWarnings({"nullness"})
+    private void enableConnectDependControls() {
+        this.jButtonEnd.setEnabled(true);
+        this.jButtonInit.setEnabled(true);
+        this.jButtonMoveTo.setEnabled(true);
+        this.jButtonCloseGripper.setEnabled(true);
+        this.jButtonOpenGripper.setEnabled(true);
+        this.jButtonOpenToolChanger.setEnabled(true);
+        this.jButtonCloseToolChanger.setEnabled(true);
+
+        this.jButtonEnd.setToolTipText(null);
+        this.jButtonInit.setToolTipText(null);
+        this.jButtonMoveTo.setToolTipText(null);
+        this.jButtonCloseGripper.setToolTipText(null);
+        this.jButtonOpenGripper.setToolTipText(null);
+        this.jButtonOpenToolChanger.setToolTipText(null);
+        this.jButtonCloseToolChanger.setToolTipText(null);
     }
 
     private volatile @Nullable
@@ -2218,6 +2002,8 @@ public class CrclSwingClientJPanel
                                 internal.setLastProgramIndex(index);
                             }
                         }
+                    } else {
+                        updateDistToSelected(curInternalStatus);
                     }
                 }
                 this.jTextFieldStatusID.setText("" + ccst.getStatusID());
@@ -2553,7 +2339,7 @@ public class CrclSwingClientJPanel
     public void finishDisconnect() {
         this.jButtonConnect.setEnabled(true);
         this.jButtonDisconnect.setEnabled(false);
-        
+
         this.jButtonEnd.setEnabled(false);
         this.jButtonInit.setEnabled(false);
         this.jButtonMoveTo.setEnabled(false);
@@ -2561,7 +2347,7 @@ public class CrclSwingClientJPanel
         this.jButtonOpenGripper.setEnabled(false);
         this.jButtonOpenToolChanger.setEnabled(false);
         this.jButtonCloseToolChanger.setEnabled(false);
-        
+
         this.jButtonEnd.setToolTipText("Disconnected?");
         this.jButtonInit.setToolTipText("Disconnected?");
         this.jButtonMoveTo.setToolTipText("Disconnected?");
@@ -3131,7 +2917,7 @@ public class CrclSwingClientJPanel
         JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             File f = chooser.getSelectedFile();
-            savePrefsFile(f);
+            saveObjectProperties(f, this);
         }
     }
 
@@ -3526,6 +3312,8 @@ public class CrclSwingClientJPanel
         jCheckBoxMonitorHoldingOutput = new javax.swing.JCheckBox();
         jLabelExpectHoldingObject = new javax.swing.JLabel();
         jCheckBoxStepping = new javax.swing.JCheckBox();
+        jLabel20 = new javax.swing.JLabel();
+        jTextFieldDistToSelected = new javax.swing.JTextField();
         jPanelJogging = new javax.swing.JPanel();
         jComboBoxJointAxis = new javax.swing.JComboBox<>();
         jPanelJogMinus = new javax.swing.JPanel();
@@ -3759,6 +3547,10 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jLabel20.setText("Dist To Selected:");
+
+        jTextFieldDistToSelected.setText("0.0");
+
         javax.swing.GroupLayout jPanelProgramLayout = new javax.swing.GroupLayout(jPanelProgram);
         jPanelProgram.setLayout(jPanelProgramLayout);
         jPanelProgramLayout.setHorizontalGroup(
@@ -3807,18 +3599,22 @@ public class CrclSwingClientJPanel
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonRunProgFromCurrentLine)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jCheckBoxStepping)))
-                        .addContainerGap(245, Short.MAX_VALUE))))
+                                .addComponent(jCheckBoxStepping)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel20)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldDistToSelected, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(133, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
@@ -3832,7 +3628,9 @@ public class CrclSwingClientJPanel
                     .addComponent(jButtonProgramRun)
                     .addComponent(jButtonResume)
                     .addComponent(jButtonRunProgFromCurrentLine)
-                    .addComponent(jCheckBoxStepping))
+                    .addComponent(jCheckBoxStepping)
+                    .addComponent(jLabel20)
+                    .addComponent(jTextFieldDistToSelected, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonEditProgramItem)
@@ -4180,7 +3978,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonCloseToolChanger))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(167, Short.MAX_VALUE))
+                .addContainerGap(169, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4380,7 +4178,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonMoveToCurrentPoint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToDownPosition)))
-                .addContainerGap(369, Short.MAX_VALUE))
+                .addContainerGap(371, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4453,7 +4251,7 @@ public class CrclSwingClientJPanel
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 799, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 801, Short.MAX_VALUE)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4721,7 +4519,7 @@ public class CrclSwingClientJPanel
                         .addContainerGap()
                         .addGroup(jPanelStatusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
+                            .addComponent(jScrollPane6)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
                         .addGap(12, 12, 12)
@@ -4737,7 +4535,7 @@ public class CrclSwingClientJPanel
                             .addGroup(jPanelStatusLayout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldStatCmdID, javax.swing.GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE))
+                                .addComponent(jTextFieldStatCmdID))
                             .addComponent(jLabel18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(10, 10, 10))
                     .addGroup(jPanelStatusLayout.createSequentialGroup()
@@ -4783,7 +4581,7 @@ public class CrclSwingClientJPanel
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 145, Short.MAX_VALUE)
+            .addGap(0, 143, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -6083,6 +5881,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -6130,6 +5929,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JTextArea jTextAreaErrors;
     private javax.swing.JTextArea jTextAreaSelectedProgramCommand;
     private javax.swing.JTextArea jTextAreaStateDescription;
+    private javax.swing.JTextField jTextFieldDistToSelected;
     private javax.swing.JTextField jTextFieldHost;
     private javax.swing.JTextField jTextFieldJogInterval;
     private javax.swing.JTextField jTextFieldJointJogIncrement;

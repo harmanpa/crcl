@@ -75,6 +75,7 @@ import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.Utils;
 import crcl.utils.XFuture;
+import crcl.utils.XFutureVoid;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -114,6 +115,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -624,32 +626,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     if (null != updateStatusSupplier) {
                         XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
                         supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
-                            try {
-                                CRCLStatusType statusToSend;
-                                synchronized (this) {
-
-                                    checkSensorServers();
-                                    statusToSend = state.filterSettings.filterStatus(suppliedStatus);
-                                    state.cmdId = statusToSend.getCommandStatus().getCommandID();
-                                }
-                                source.writeStatus(statusToSend);
-                            } catch (Exception ex) {
-                                Logger.getLogger(CRCLServerSocket.class
-                                        .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
-                                commandStatus.setStateDescription(ex.getMessage());
-                                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                            }
+                            finishWriteStatus(state, suppliedStatus, source, event, commandStatus);
                         });
                         return true;
                     }
-                    CRCLStatusType statusToSend;
-                    synchronized (this) {
-                        checkSensorServers();
-                        statusToSend = state.filterSettings.filterStatus(serverSideStatus);
-                        state.cmdId = statusToSend.getCommandStatus().getCommandID();
-                    }
-//                statusToSend.getCommandStatus().setCommandID(state.cmdId);
-                    source.writeStatus(statusToSend);
+                    finishWriteStatus(state, serverSideStatus, source, event, commandStatus);
+//                    CRCLStatusType statusToSend;
+//                    synchronized (this) {
+//                        asyncCheckSensorServers();
+//                        statusToSend = state.filterSettings.filterStatus(serverSideStatus);
+//                        state.cmdId = statusToSend.getCommandStatus().getCommandID();
+//                    }
+////                statusToSend.getCommandStatus().setCommandID(state.cmdId);
+//                    source.writeStatus(statusToSend);
                     return true;
                 } else {
                     state.cmdId = cmd.getCommandID();
@@ -792,7 +781,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             } else {
                                 return false;
                             }
-
                         } else if (cmd instanceof SetRotSpeedType) {
                             SetRotSpeedType setRotSpeedCmdIn = (SetRotSpeedType) cmd;
                             SetRotSpeedType setRotSpeedCmdOut = new SetRotSpeedType();
@@ -880,7 +868,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             } else {
                                 return false;
                             }
-
                         }
                     }
                     if (automaticallyHandleSensorServers) {
@@ -963,6 +950,46 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return false;
     }
 
+    @SuppressWarnings({"nullness"})
+    private void finishWriteStatus(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
+        try {
+            final ConfigureStatusReportType configureStatusReport = state.filterSettings.getConfigureStatusReport();
+            if (configureStatusReport == null
+                    || !configureStatusReport.isReportSensorsStatus()
+                    || sensorServers.isEmpty()) {
+                finishWriteStatus2(state, suppliedStatus, source, event, commandStatus);
+                return;
+            }
+            asyncCheckSensorServers()
+                    .thenRun(() -> {
+                        finishWriteStatus2(state, suppliedStatus, source, event, commandStatus);
+                    });
+        } catch (Exception ex) {
+            Logger.getLogger(CRCLServerSocket.class
+                    .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
+            commandStatus.setStateDescription(ex.getMessage());
+            commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @SuppressWarnings({"nullness"})
+    private void finishWriteStatus2(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
+        try {
+            CRCLStatusType statusToSend = state.filterSettings.filterStatus(suppliedStatus);
+            state.cmdId = statusToSend.getCommandStatus().getCommandID();
+            synchronized (source) {
+                source.writeStatus(statusToSend);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(CRCLServerSocket.class
+                    .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
+            commandStatus.setStateDescription(ex.getMessage());
+            commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+            throw new RuntimeException(ex);
+        }
+    }
+
     private void clearStateDescription(final CommandStatusType commandStatus) {
         if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
             commandStatus.setStateDescription("");
@@ -991,10 +1018,48 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private void checkSensorServers() {
-        if (sensorServers.isEmpty()) {
-            return;
+    private volatile @Nullable
+    Thread checkSensorsServiceThread = null;
+
+    private static final AtomicInteger tcount = new AtomicInteger();
+
+    private final ThreadFactory checkSensorsServiceThreadFactory
+            = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r, tcount.incrementAndGet() + "CRCLServerSocketCheckSensors" + getPort());
+            thread.setDaemon(true);
+            checkSensorsServiceThread = thread;
+            return thread;
         }
+    };
+
+    private final ExecutorService checkSensorsService = Executors.newSingleThreadExecutor(checkSensorsServiceThreadFactory);
+
+    private volatile @Nullable
+    XFutureVoid lastAsyncCheckSensorServersFuture = null;
+
+    private XFutureVoid asyncCheckSensorServers() {
+        if (sensorServers.isEmpty()) {
+            return XFutureVoid.completedFuture();
+        }
+        if (null == serverSideStatus) {
+            return XFutureVoid.completedFuture();
+        }
+        if (null != lastAsyncCheckSensorServersFuture && !lastAsyncCheckSensorServersFuture.isDone()) {
+            return lastAsyncCheckSensorServersFuture;
+        }
+        if (System.currentTimeMillis() - lastCheckSensorServersInternalTime < 10) {
+            return XFutureVoid.completedFuture();
+        }
+        XFutureVoid ret = XFutureVoid.runAsync("CheckSensors", this::checkSensorServersInternal, checkSensorsService);
+        lastAsyncCheckSensorServersFuture = ret;
+        return ret;
+    }
+
+    private volatile long lastCheckSensorServersInternalTime = -1;
+
+    private void checkSensorServersInternal() {
         if (null == serverSideStatus) {
             return;
         }
@@ -1104,6 +1169,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
             }
         }
+        lastCheckSensorServersInternalTime = System.currentTimeMillis();
     }
 
     private CRCLCommandInstanceType createNewCommandInstance(CRCLCommandType newCRCLCommand, final CRCLCommandInstanceType instanceIn) {
@@ -1981,7 +2047,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final PoseType serverSidePose = serverSideStatus.getPoseStatus().getPose();
             if (null != serverSidePose) {
                 final PoseType serverSidePoseCopy = copy(serverSidePose);
-                assert(null !=serverSidePoseCopy);
+                assert (null != serverSidePoseCopy);
                 serverSideStatus.getGuardsStatuses().setTriggerPose(serverSidePoseCopy);
             }
         }
@@ -2098,8 +2164,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             throw new RuntimeException("null == serverSideStatus)");
         }
         long delayMillis = MAX_GUARDS_CHECK_DELAY_MILLIS;
-        final Map<String, Double> newInitalialValuesMap = new HashMap<>();
-        Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
         for (int i = 0; i < guards.size(); i++) {
             final GuardType guardI = guards.get(i);
             Long microsLong = guardI.getRecheckTimeMicroSeconds();
@@ -2127,7 +2191,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     r.run();
                     return r;
                 }
-                newInitalialValuesMap.put(guardMapId(guardI), getGuardValue(guardI, sensorStatMap));
             }
         }
         final long finalDelayMillis = delayMillis;
@@ -2136,6 +2199,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             @Override
             public void run() {
                 try {
+                    Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
+                    final Map<String, Double> newInitalialValuesMap = new HashMap<>();
+                    for (int i = 0; i < guards.size(); i++) {
+                        final GuardType guardI = guards.get(i);
+                        newInitalialValuesMap.put(guardMapId(guardI), getGuardValue(guardI, sensorStatMap));
+                    }
                     checkGuardsUntilDone(guards, guard_client_state, cmdID, commandInstance, finalDelayMillis, newInitalialValuesMap);
                 } catch (Exception ex) {
                     Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "commandInstance=" + CRCLSocket.commandToSimpleString(commandInstance.getCRCLCommand()), ex);
@@ -2186,6 +2255,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             });
             handleGuardsExecutor = executor;
         }
+
         final Runnable guardRunnable = createGuardsCheckerRunnable(guards, guard_client_state, cmdID, commandInstance);
         executor.execute(guardRunnable);
     }

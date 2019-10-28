@@ -28,6 +28,7 @@ import crcl.utils.Utils;
 import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
@@ -538,6 +539,17 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         return getField(clss.getSuperclass(), name);
     }
 
+    private static boolean isMethodSetter(Method method) {
+        int submModifieres = method.getModifiers();
+        return method.getName().startsWith("set")
+                && method.getParameterCount() == 1
+                && Modifier.isPublic(submModifieres)
+                && (!Modifier.isStatic(submModifieres))
+                && (!Modifier.isNative(submModifieres))
+                && (method.getReturnType() == void.class || method.getReturnType() == Void.class)
+                && (method.getExceptionTypes() == null || method.getExceptionTypes().length == 0);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void addObjectToTable(String name_prefix,
             DefaultTableModel tm, Object o, Class<?> clss) {
@@ -588,6 +600,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         for (int i = 0; i < fa.length; i++) {
             try {
                 Field field = fa[i];
+                if (name_prefix.contains(field.getName())) {
+                    continue;
+                }
                 boolean fieldIsPublic = Modifier.isPublic(field.getModifiers());
                 boolean fieldIsStatic = Modifier.isStatic(field.getModifiers());
                 if (fieldIsPublic && !fieldIsStatic) {
@@ -619,8 +634,32 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         }
         Method ma[] = oclss.getMethods();
 
-        Map<String, Method> map = new HashMap<>();
+        Map<String, Method> getterMap = new HashMap<>();
         for (Method m : ma) {
+            Class decClass = m.getDeclaringClass();
+            if (decClass == Object.class
+                    || decClass == java.awt.Component.class
+                    || decClass == java.awt.Container.class
+                    || decClass == java.awt.Window.class
+                    || decClass == javax.swing.JComponent.class
+                    || decClass == javax.swing.JInternalFrame.class
+                    || decClass == javax.swing.JMenuBar.class) {
+                continue;
+            }
+            final int modifiers = m.getModifiers();
+            if (!Modifier.isPublic(modifiers)) {
+                continue;
+            }
+            if (Modifier.isStatic(modifiers)) {
+                continue;
+            }
+            if (Modifier.isNative(modifiers)) {
+                continue;
+            }
+            Class exTypes[] = m.getExceptionTypes();
+            if (exTypes != null && exTypes.length > 0) {
+                continue;
+            }
             try {
                 if (m.getName().startsWith("get") && m.getParameterCount() == 0) {
                     String mname = m.getName().substring(3);
@@ -628,7 +667,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         continue;
                     }
                     names.add(mname);
-                    map.put(mname, m);
+                    getterMap.put(mname, m);
                 }
             } catch (Exception e) {
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", e);
@@ -640,36 +679,39 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         continue;
                     }
                     names.add(mname);
-                    map.put(mname, m);
+                    getterMap.put(mname, m);
                 }
             } catch (Exception e) {
                 Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.FINEST, "exception normally ignored", e);
             }
         }
+
         for (String name : names) {
             try {
-                Method getMethod = map.get(name);
+                Method getMethod = getterMap.get(name);
+                if (null == getMethod) {
+                    continue;
+                }
                 Class mclss = getMethod.getReturnType();
-                Object mo = null;
-                if (null != o && null != getMethod) {
-                    try {
-                        mo = getMethod.invoke(o);
-                    } catch (Exception ex) {
-                        Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE, null, ex);
+
+                boolean hasSetter = false;
+                for (Method method : ma) {
+                    int submModifieres = method.getModifiers();
+                    if (method.getName().equals("set" + name)
+                            && isMethodSetter(method)
+                            && method.getParameterTypes()[0] == mclss) {
+                        hasSetter = true;
+                        break;
                     }
                 }
-                Method subma[] = mclss.getMethods();
-                int numsetters = 0;
-                for (Method subm : subma) {
-                    if (subm.getName().startsWith("set") && subm.getParameterCount() == 1) {
-                        numsetters++;
-                    }
-                }
-                Field subfa[] = mclss.getFields();
-                for (int i = 0; i < subfa.length; i++) {
-                    Field field = subfa[i];
-                    if (Modifier.isPublic(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
-                        numsetters++;
+                boolean subHasSetter = false;
+                if (!mclss.isPrimitive()) {
+                    Method subMa[] = mclss.getMethods();
+                    for (Method subMethod : subMa) {
+                        if (isMethodSetter(subMethod)) {
+                            subHasSetter = true;
+                            break;
+                        }
                     }
                 }
                 String type = mclss.getCanonicalName();
@@ -681,6 +723,8 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         type += "<" + list_item_type + ">";
                     } catch (Exception e) {
                     }
+                } else if (!hasSetter) {
+                    continue;
                 }
                 this.colorMap.put(tm.getRowCount(), Color.LIGHT_GRAY);
                 if (mclss.isEnum()) {
@@ -690,6 +734,21 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     }
                     this.editorMap.put(tm.getRowCount(), new DefaultCellEditor(comboBox));
                 }
+                Object mo = null;
+                if (null != o && null != getMethod) {
+                    try {
+                        mo = getMethod.invoke(o);
+                    } catch (Exception ex) {
+                        Logger.getLogger(ObjTableJPanel.class.getName()).log(Level.SEVERE,
+                                "name_prefix=" + name_prefix
+                                + ",name=" + name
+                                + ",getMethod=" + getMethod
+                                + ",o=" + o
+                                + ",mo=" + mo,
+                                ex);
+                        throw new RuntimeException(ex);
+                    }
+                }
                 if (mclss.equals(boolean.class)) {
                     if (mo == null) {
                         mo = Boolean.FALSE;
@@ -697,17 +756,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     boolean mo_boolean = (boolean) mo;
                     final JCheckBox jc = new JCheckBox("", mo_boolean);
                     jc.setBackground(Color.LIGHT_GRAY);
-//                    jc.addActionListener(new ActionListener() {
-//
-//                        @Override
-//                        public void actionPerformed(ActionEvent e) {
-//                            if (jc.isSelected()) {
-//                                jc.setText("true");
-//                            } else {
-//                                jc.setText("false");
-//                            }
-//                        }
-//                    });
                     this.rendererMap.put(tm.getRowCount(), new DefaultTableCellRenderer() {
 
                         @Override
@@ -751,6 +799,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                         }
                     }
                 }
+                if (name_prefix.contains(name)) {
+                    continue;
+                }
                 Object rowArray[] = new Object[]{type, name_prefix + name, mo};
                 addRow(tm, rowArray);
                 if (isCompound(mclss, customExcludedPathStrings)) {
@@ -769,6 +820,9 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                             return jta;
                         }
                     });
+                }
+                if (name_prefix.contains(name)) {
+                    continue;
                 }
                 if (List.class.isAssignableFrom(mclss) && null != getMethod && null != mo) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
@@ -790,7 +844,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                             addObjectToTable(item_name + ".", tm, lo, lclss);
                         }
                     }
-                } else if (numsetters > 0 && mo != null
+                } else if (subHasSetter && mo != null
                         && !mclss.equals(java.math.BigDecimal.class)
                         && !mclss.equals(java.math.BigInteger.class)) {
                     this.noneditableSet.add(tm.getRowCount() - 1);
@@ -908,6 +962,14 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     + Utils.traceToString(ex.getStackTrace());
             jTextAreaOutput.setText(outText);
         }
+    }
+
+    public static <T> T editObject(T _obj,
+            @Nullable Frame _owner,
+            String _title,
+            boolean _modal) {
+        JDialog dialog = new JDialog(_owner, _obj.getClass().getCanonicalName() + ":" + _title, _modal);
+        return editObjectPriv(dialog, _obj, null, null, null, null);
     }
 
     public static <T> T editObject(T _obj,
@@ -1253,6 +1315,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         "rcslib",
         "crcl",
         "aprs",});
+
     private static final List<String> staticExcludedPathStrings
             = Arrays.asList(new String[]{
         "vaadin",
@@ -1590,38 +1653,6 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
                     setObj((T) tobj);
                     return;
                 }
-//                    @SuppressWarnings("unchecked")
-//                    Class<T> objClass = (Class<T>) obj.getClass();
-//                    @SuppressWarnings("unchecked")
-//                    Constructor<T> constructors[] = (Constructor<T>[]) objClass.getConstructors();
-//                    for (int i = 0; i < constructors.length; i++) {
-//                        Constructor<T> constructor = (Constructor<T>) constructors[i];
-//                        if (constructor.getParameterCount() == 1) {
-//                            Class<?> parmClass = constructor.getParameterTypes()[0];
-//                            if (parmClass.isInstance(tobj)) {
-//                                T newObject = constructor.newInstance(tobj);
-//                                setObj((T) newObject);
-//                                break;
-//                            } else if(parmClass == int.class && tobj instanceof Integer) {
-//                                T newObject = constructor.newInstance((int)tobj);
-//                                setObj((T) newObject);
-//                                break;
-//                            }  else if(parmClass == double.class && tobj instanceof Double) {
-//                                T newObject = constructor.newInstance((double)tobj);
-//                                setObj((T) newObject);
-//                                break;
-//                            }  else if(parmClass == float.class && tobj instanceof Float) {
-//                                T newObject = constructor.newInstance((float)tobj);
-//                                setObj((T) newObject);
-//                                break;
-//                            } else if(parmClass == boolean.class && tobj instanceof Boolean) {
-//                                T newObject = constructor.newInstance((boolean)tobj);
-//                                setObj((T) newObject);
-//                                break;
-//                            }
-//                            
-//                        }
-//                    }
                 try {
                     //                }
                     Field field = pobjClass.getField(endname);
@@ -1743,17 +1774,35 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
             List<Class<?>> availClasses = getAssignableClasses(clss, classes);
 
             Class ca[] = availClasses.toArray(new Class[availClasses.size()]);
-            int selected = JOptionPane.showOptionDialog(this.dialog,
-                    "Select class of new " + clss.getCanonicalName(),
-                    name + " = new " + clss.getCanonicalName(),
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    ca,
-                    null);
+            Class selectedClass;
+            if (ca.length < 2) {
+               selectedClass=ca[0];
+            } else if (ca.length < 4) {
+                int selected = JOptionPane.showOptionDialog(this.dialog,
+                        "Select class of new " + clss.getCanonicalName(),
+                        name + " = new " + clss.getCanonicalName(),
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        ca,
+                        null);
+                selectedClass = ca[selected];
+            } else {
+                selectedClass = ListChooserJPanel.choose(dialog, "Select class of new " + clss.getCanonicalName(), ca, null);
+//                JDialog classSelectDialog = new JDialog(dialog, true);
+//                classSelectDialog.setLayout(new FlowLayout());
+//                JComboBox<Class> comboBox = new JComboBox<>(ca);
+//                classSelectDialog.add(comboBox);
+//                JButton okButton = new JButton("Ok");
+//                okButton.addActionListener(e -> classSelectDialog.setVisible(false));
+//                classSelectDialog.add(okButton);
+//                classSelectDialog.pack();
+//                classSelectDialog.setVisible(true);
+//                selected = comboBox.getSelectedIndex();
+            }
             this.updateObjFromTable();
             Object newo = null;
-            newo = ca[selected].getDeclaredConstructor().newInstance();
+            newo = selectedClass.getDeclaredConstructor().newInstance();
             this.setObjectForName(type, name, newo);
             this.updateTableFromObject();
 

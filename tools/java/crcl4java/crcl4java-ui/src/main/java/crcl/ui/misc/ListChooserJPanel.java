@@ -122,6 +122,7 @@ public class ListChooserJPanel<TT> extends javax.swing.JPanel {
 
     private void jButtonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelActionPerformed
         this.selectedChoice = this.defaultChoice;
+        this.dialog.setVisible(false);
     }//GEN-LAST:event_jButtonCancelActionPerformed
 
     private final JDialog dialog;

@@ -6,7 +6,6 @@
 package crcl.ui.forcetorquesensorsimulator;
 
 import com.sun.istack.logging.Logger;
-import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
@@ -17,6 +16,7 @@ import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
 import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
+import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
@@ -26,9 +26,31 @@ import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
 import crcl.utils.server.CRCLServerSocketEventListener;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import javax.swing.JFileChooser;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 import org.checkerframework.checker.guieffect.qual.UIEffect;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -88,6 +110,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         valueJPanelTx = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         valueJPanelTy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         valueJPanelTz = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTableObjects = new javax.swing.JTable();
+        jTextFieldObjectsFile = new javax.swing.JTextField();
+        jButtonSaveObjectsFile = new javax.swing.JButton();
+        jButtonOpenObjectsFile = new javax.swing.JButton();
+        jButtonAddObject = new javax.swing.JButton();
+        jButtonDeleteObject = new javax.swing.JButton();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -383,6 +413,92 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Offset: ", jPanelOffsets);
 
+        jTableObjects.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Name", "X_Min", "Y_Min", "Z_Min", "X_Maxl", "Y_Max", "Z_Max", "X_Scale", "Y_Scale", "Z_Scale"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(jTableObjects);
+
+        jButtonSaveObjectsFile.setText("Save");
+        jButtonSaveObjectsFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSaveObjectsFileActionPerformed(evt);
+            }
+        });
+
+        jButtonOpenObjectsFile.setText("Open");
+        jButtonOpenObjectsFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonOpenObjectsFileActionPerformed(evt);
+            }
+        });
+
+        jButtonAddObject.setText("Add");
+        jButtonAddObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddObjectActionPerformed(evt);
+            }
+        });
+
+        jButtonDeleteObject.setText("Delete");
+        jButtonDeleteObject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonDeleteObjectActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 676, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                        .addComponent(jTextFieldObjectsFile)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonOpenObjectsFile)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonSaveObjectsFile))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                        .addComponent(jButtonAddObject)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonDeleteObject)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextFieldObjectsFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonSaveObjectsFile)
+                    .addComponent(jButtonOpenObjectsFile))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonAddObject)
+                    .addComponent(jButtonDeleteObject))
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Objects", jPanel2);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -423,47 +539,342 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     @UIEffect
     private void jCheckBoxEnablePoseInConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnablePoseInConnectionActionPerformed
         if (jCheckBoxEnablePoseInConnection.isSelected()) {
-            try {
-                CRCLSocket newConnection = new CRCLSocket(jTextFieldPoseCRCLHost.getText(), Integer.parseInt(jTextFieldPoseCRCLPort.getText().trim()));
-                ConfigureStatusReportType confStatus = new ConfigureStatusReportType();
-                confStatus.setReportPoseStatus(true);
-                newConnection.writeCommand(confStatus);
-                poseInConnection = newConnection;
-                timer = new javax.swing.Timer(50, e -> updatePose());
-                timer.start();
-            } catch (CRCLException | IOException ex) {
-                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            startPoseInConnection();
         } else {
-            try {
-                if (null != poseInConnection) {
-                    poseInConnection.close();
-                    poseInConnection = null;
-                }
-                if (null != timer) {
-                    timer.stop();
-                    timer = null;
-                }
-            } catch (IOException ex) {
-                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            stopPoseInConnection();
         }
     }//GEN-LAST:event_jCheckBoxEnablePoseInConnectionActionPerformed
 
+    private void stopPoseInConnection() {
+        try {
+            if (null != poseInConnection) {
+                poseInConnection.close();
+                poseInConnection = null;
+            }
+            if (null != timer) {
+                timer.stop();
+                timer = null;
+            }
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void startPoseInConnection() throws NumberFormatException {
+        try {
+            CRCLSocket newConnection = new CRCLSocket(jTextFieldPoseCRCLHost.getText(), Integer.parseInt(jTextFieldPoseCRCLPort.getText().trim()));
+            ConfigureStatusReportType confStatus = new ConfigureStatusReportType();
+            confStatus.setReportPoseStatus(true);
+            newConnection.writeCommand(confStatus);
+            poseInConnection = newConnection;
+            timer = new javax.swing.Timer(50, e -> {
+                getAndUpdatePose();
+            });
+            timer.start();
+        } catch (CRCLException | IOException ex) {
+            java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void getAndUpdatePose() {
+        getPoseFuture()
+                .thenAccept((PoseType pose) -> {
+                    updateDisplayAndStatusWithPose(pose);
+                });
+    }
+
+    private void updateDisplayAndStatusWithPose(PoseType pose) {
+        javax.swing.SwingUtilities.invokeLater(() -> PoseDisplay.updatePoseTable(pose, jTablePose, PoseDisplayMode.XYZ_RPY));
+        updateSensorStatusWithPose(pose);
+    }
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        updatePose();
+        getPose();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    public synchronized @Nullable
-    PoseType updatePose() {
+    private void jButtonAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddObjectActionPerformed
+        DefaultTableModel dtm = (DefaultTableModel) jTableObjects.getModel();
+        dtm.addRow(new Object[]{"object" + dtm.getRowCount(), -100.0, -100.0, -100.0, 100.0, 100.0, 100.0, 0.0, 0.0, 1000.0});
+    }//GEN-LAST:event_jButtonAddObjectActionPerformed
+
+    private void jButtonDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeleteObjectActionPerformed
+        final int selectedRow = jTableObjects.getSelectedRow();
+        if (selectedRow < 0 || selectedRow > jTableObjects.getRowCount()) {
+            return;
+        }
+        DefaultTableModel dtm = (DefaultTableModel) jTableObjects.getModel();
+        dtm.removeRow(selectedRow);
+    }//GEN-LAST:event_jButtonDeleteObjectActionPerformed
+
+    private void jButtonOpenObjectsFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenObjectsFileActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        String text = jTextFieldObjectsFile.getText();
+        if (text != null && text.length() > 0) {
+            File f = new File(text);
+            File parent = f.getParentFile();
+            if (null != parent) {
+                chooser.setCurrentDirectory(parent);
+            }
+        }
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            final File selectedFile = chooser.getSelectedFile();
+            loadObjectsFile(selectedFile);
+        }
+    }//GEN-LAST:event_jButtonOpenObjectsFileActionPerformed
+
+    private void jButtonSaveObjectsFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveObjectsFileActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        String text = jTextFieldObjectsFile.getText();
+        if (text != null && text.length() > 0) {
+            File f = new File(text);
+            File parent = f.getParentFile();
+            if (null != parent) {
+                chooser.setCurrentDirectory(parent);
+            }
+        }
+        if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            final File selectedFile = chooser.getSelectedFile();
+            saveObjectsFile(selectedFile);
+        }
+    }//GEN-LAST:event_jButtonSaveObjectsFileActionPerformed
+
+    private void loadObjectsFile(final File selectedFile) {
+        try {
+            jTextFieldObjectsFile.setText(selectedFile.getCanonicalPath());
+            readCsvFileToTableAndMap(false, (DefaultTableModel) jTableObjects.getModel(), selectedFile, null, null, null);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "selectedFile=" + selectedFile, ex);
+        }
+    }
+
+    private void saveObjectsFile(final File selectedFile) {
+        try {
+            jTextFieldObjectsFile.setText(selectedFile.getCanonicalPath());
+            saveTableModel(selectedFile, (DefaultTableModel) jTableObjects.getModel());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "selectedFile=" + selectedFile, ex);
+        }
+    }
+
+    private static String[] tableHeaders(TableModel tm) {
+        String headers[] = new String[tm.getColumnCount()];
+        for (int i = 0; i < tm.getColumnCount() && i < headers.length; i++) {
+            headers[i] = tm.getColumnName(i);
+        }
+        return headers;
+    }
+
+    private static void saveTableModel(File f, TableModel tm) throws IOException {
+        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f)), CSVFormat.DEFAULT.withHeader(tableHeaders(tm)))) {
+
+            List<String> colNameList = new ArrayList<>();
+            for (int i = 0; i < tm.getColumnCount(); i++) {
+                colNameList.add(tm.getColumnName(i));
+            }
+            for (int i = 0; i < tm.getRowCount(); i++) {
+                List<Object> l = new ArrayList<>();
+                for (int j = 0; j < tm.getColumnCount(); j++) {
+                    Object o = tm.getValueAt(i, j);
+                    if (o == null) {
+                        l.add("");
+                    }
+                    if (o instanceof File) {
+                        File parentFile = f.getParentFile();
+                        if (null != parentFile) {
+                            Path rel = parentFile.toPath().toRealPath().relativize(Paths.get(((File) o).getCanonicalPath())).normalize();
+                            if (rel.toString().length() < ((File) o).getCanonicalPath().length()) {
+                                l.add(rel);
+                            } else {
+                                l.add(o);
+                            }
+                        } else {
+                            l.add(o);
+                        }
+                    } else {
+                        l.add(o);
+                    }
+                }
+                printer.printRecord(l);
+            }
+        }
+    }
+
+    public String getObjectsFileName() {
+        return jTextFieldObjectsFile.getText();
+    }
+
+    public void setObjectsFileName(String name) {
+        if (name == null || name.trim().length() < 1) {
+            jTextFieldObjectsFile.setText("");
+            return;
+        }
+        loadObjectsFile(new File(name));
+    }
+
+    @UIEffect
+    public static <T> void readCsvFileToTableAndMap(
+            boolean forceColumns,
+            @Nullable DefaultTableModel dtm,
+            File f,
+            @Nullable String nameRecord,
+            @Nullable Map<String, T> map,
+            @Nullable Function<CSVRecord, T> recordToValue) {
+
+        if (null != dtm) {
+            dtm.setRowCount(0);
+        }
+        try (CSVParser parser = new CSVParser(new FileReader(f), CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+            Map<String, Integer> headerMap = parser.getHeaderMap();
+            if (forceColumns && null != dtm) {
+                dtm.setRowCount(0);
+                dtm.setColumnCount(0);
+                for (String key : headerMap.keySet()) {
+                    dtm.addColumn(key);
+                }
+            }
+            List<CSVRecord> records = parser.getRecords();
+            int skipRows = 0;
+            if (null != dtm) {
+                for (CSVRecord rec : records) {
+                    String colName = dtm.getColumnName(0);
+                    Integer colIndex = headerMap.get(colName);
+                    if (colIndex == null) {
+                        throw new IllegalArgumentException(f + " does not have field " + colName);
+                    }
+                    String val0 = rec.get(colIndex);
+                    if (!val0.equals(colName) && val0.length() > 0) {
+                        break;
+                    }
+                    if (val0.length() < 1) {
+                        LOGGER.log(Level.WARNING, "skipping record with empty name field : rec=" + rec + " in file=" + f.getCanonicalPath() + ", colName=" + colName + ", val0=" + val0 + ",skipRows=" + skipRows);
+                    }
+                    skipRows++;
+                }
+                dtm.setRowCount(records.size() - skipRows);
+            }
+            ROW_LOOP:
+            for (int i = skipRows; i < records.size(); i++) {
+                CSVRecord rec = records.get(i);
+                if (null != dtm) {
+                    for (int j = 0; j < dtm.getColumnCount(); j++) {
+                        String colName = dtm.getColumnName(j);
+                        Integer colIndex = headerMap.get(colName);
+                        if (colIndex == null) {
+                            continue ROW_LOOP;
+                        }
+                        String val = rec.get(colIndex);
+                        try {
+                            if (null != val) {
+                                if (val.equals(colName) || (j == 0 && val.length() < 1)) {
+                                    continue ROW_LOOP;
+                                }
+                                Class<?> colClass = dtm.getColumnClass(j);
+                                if (colClass == Double.class) {
+                                    dtm.setValueAt(Double.valueOf(val), i - skipRows, j);
+                                } else if (colClass == Boolean.class) {
+                                    dtm.setValueAt(Boolean.valueOf(val), i - skipRows, j);
+                                } else {
+                                    dtm.setValueAt(val, i - skipRows, j);
+                                }
+                            }
+                        } catch (Exception exception) {
+                            String msg = "colName=" + colName + ", colIndex=" + colIndex + ", val=" + val + ", rec=" + rec;
+                            LOGGER.log(Level.SEVERE, msg, exception);
+                            throw new RuntimeException(msg, exception);
+                        }
+                    }
+                }
+                try {
+                    if (null != nameRecord && null != map && null != recordToValue) {
+                        String name = rec.get(nameRecord);
+                        T value = recordToValue.apply(rec);
+                        map.put(name, value);
+                    }
+                } catch (Exception exception) {
+                    LOGGER.log(Level.SEVERE, "rec=" + rec, exception);
+                    throw new RuntimeException(exception);
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE,
+                    "forceColumns=" + forceColumns
+                    + ", dtm=" + dtm
+                    + ", f=" + f
+                    + ", nameRecord=" + nameRecord
+                    + ", map=" + map
+                    + ", recordToValue=" + recordToValue,
+                    ex
+            );
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static final Logger LOGGER = Logger.getLogger(ForceTorqueSimJPanel.class);
+
+    public int getCRCLSensorOutPort() {
+        if (crclServerSocket != null) {
+            return crclServerSocket.getPort();
+        } else {
+            return Integer.parseInt(jTextFieldCRCLSensorOutPort.getText());
+        }
+    }
+
+    public void setCRCLSensorOutPort(int port) {
+        if (crclServerSocket != null && crclServerSocket.getPort() != port) {
+            crclServerSocket.close();
+            crclServerSocket = null;
+            jTextFieldCRCLSensorOutPort.setText(Integer.toString(port));
+            try {
+                startServer(port);
+            } catch (IOException ex) {
+                java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            jTextFieldCRCLSensorOutPort.setText(Integer.toString(port));
+        }
+    }
+
+    public int getPoseCRCLPort() {
+        if (poseInConnection != null) {
+            return poseInConnection.getPort();
+        }
+        return Integer.parseInt(jTextFieldPoseCRCLPort.getText());
+    }
+
+    public void setPoseCRCLPort(int port) {
+        if (poseInConnection != null && port != poseInConnection.getPort()) {
+            stopPoseInConnection();
+            jTextFieldPoseCRCLPort.setText(Integer.toString(port));
+            if (null != getPoseServiceThread) {
+                getPoseServiceThread.setName(tcount.incrementAndGet() + "ForceTorqueSimGetPose" + port);
+            }
+            startPoseInConnection();
+        } else {
+            jTextFieldPoseCRCLPort.setText(Integer.toString(port));
+        }
+    }
+
+    public String getPoseCRCLHost() {
+        return jTextFieldPoseCRCLHost.getText();
+    }
+
+    public void setPoseCRCLHost(String host) {
+        jTextFieldPoseCRCLHost.setText(host);
+    }
+
+    private final AtomicInteger getPoseCount = new AtomicInteger();
+    
+    private @Nullable
+    PoseType getPose() {
         if (null != poseInConnection) {
             try {
-                poseInConnection.writeCommand(new GetStatusType());
+                final GetStatusType getStatusCmd = new GetStatusType();
+                getStatusCmd.setName("ForceTorqueSimGetPose"+getPoseCount.incrementAndGet());
+                poseInConnection.writeCommand(getStatusCmd);
                 CRCLStatusType newStatus = Objects.requireNonNull(poseInConnection.readStatus(), "poseInConnection.readStatus()");
                 this.poseStatus = newStatus;
                 final PoseStatusType newPoseStatus = Objects.requireNonNull(newStatus.getPoseStatus(), "newStatus.getPoseStatus()");
                 final PoseType pose = Objects.requireNonNull(newPoseStatus.getPose(), "newPoseStatus.getPose()");
-                PoseDisplay.updatePoseTable(pose, jTablePose, PoseDisplayMode.XYZ_RPY);
                 return pose;
             } catch (CRCLException ex) {
                 java.util.logging.Logger.getLogger(ForceTorqueSimJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -472,6 +883,31 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         } else {
             return null;
         }
+    }
+
+    private volatile @Nullable
+    Thread getPoseServiceThread = null;
+
+    private static final AtomicInteger tcount = new AtomicInteger();
+
+    private final ThreadFactory getPoseServiceThreadFactory
+            = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r, tcount.incrementAndGet() + "ForceTorqueSimGetPose" + getPoseCRCLPort());
+            thread.setDaemon(true);
+            getPoseServiceThread = thread;
+            return thread;
+        }
+    };
+
+    private final ExecutorService getPoseService = Executors.newSingleThreadExecutor(getPoseServiceThreadFactory);
+
+    private XFuture<@Nullable PoseType> getPoseFuture() {
+        if (null == poseInConnection) {
+            return XFuture.completedFuture(null);
+        }
+        return XFuture.supplyAsync("getPoseFuture", this::getPose, getPoseService);
     }
 
     public void startServer() {
@@ -528,35 +964,84 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     private XFuture<CRCLStatusType> updateSensorStatus() {
+        XFuture<PoseType> f = getPoseFuture();
+        return f.thenCompose((PoseType pose) -> {
+            return updateSensorStatusWithPose(pose);
+        });
+    }
+
+    private XFuture<CRCLStatusType> updateSensorStatusWithPose(PoseType pose) {
+        double xposeEffect = 0.0;
+        double yposeEffect = 0.0;
         double zposeEffect = 0.0;
-        if (null != poseStatus) {
-            final PointType point = CRCLPosemath.getPoint(poseStatus);
+        if (null != pose) {
+            final PointType point = pose.getPoint();
             if (null != point) {
-                zposeEffect = point.getZ();
+                double x = point.getX();
+                double y = point.getY();
+                double z = point.getZ();
+                for (int i = 0; i < jTableObjects.getRowCount(); i++) {
+                    double xmin = (Double) jTableObjects.getModel().getValueAt(i, 1);
+                    double ymin = (Double) jTableObjects.getModel().getValueAt(i, 2);
+                    double zmin = (Double) jTableObjects.getModel().getValueAt(i, 3);
+                    double xmax = (Double) jTableObjects.getModel().getValueAt(i, 4);
+                    double ymax = (Double) jTableObjects.getModel().getValueAt(i, 5);
+                    double zmax = (Double) jTableObjects.getModel().getValueAt(i, 6);
+                    double xscale = (Double) jTableObjects.getModel().getValueAt(i, 7);
+                    double yscale = (Double) jTableObjects.getModel().getValueAt(i, 8);
+                    double zscale = (Double) jTableObjects.getModel().getValueAt(i, 9);
+                    if (x > xmin && x < xmax
+                            && y > ymin && y < ymax
+                            && z > zmin && z < zmax) {
+                        double xdiff = Math.min(x - xmin, xmax - x);
+                        double ydiff = Math.min(y - ymin, ymax - y);
+                        double zdiff = Math.min(z - zmin, zmax - z);
+                        xposeEffect += xscale * xdiff;
+                        yposeEffect += yscale * ydiff;
+                        zposeEffect += zscale * zdiff;
+                    }
+                }
             }
         }
-        sensorStatus.setFx(valueJPanelFx.getValue());
-        sensorStatus.setFy(valueJPanelFy.getValue());
-        sensorStatus.setFz(valueJPanelFz.getValue() + zposeEffect);
-        sensorStatus.setTx(valueJPanelTx.getValue());
-        sensorStatus.setTy(valueJPanelTy.getValue());
-        sensorStatus.setTz(valueJPanelTz.getValue());
-        sensorStatus.setSensorID("ForceTorqueSim");
-        updateForceTorqueDisplay();
+        return completeUpdateStatus(xposeEffect, yposeEffect, zposeEffect);
+    }
+
+    private XFuture<CRCLStatusType> completeUpdateStatus(double xposeEffect, double yposeEffect, double zposeEffect) {
+        final double fxValue = valueJPanelFx.getValue();
+        final double fyValue = valueJPanelFy.getValue();
+        final double fzValue = valueJPanelFz.getValue();
+        final double txValue = valueJPanelTx.getValue();
+        final double tyValue = valueJPanelTy.getValue();
+        final double tzValue = valueJPanelTz.getValue();
+        synchronized (sensorStatus) {
+            sensorStatus.setFx(fxValue + xposeEffect);
+            sensorStatus.setFy(fyValue + yposeEffect);
+            sensorStatus.setFz(fzValue + zposeEffect);
+            sensorStatus.setTx(txValue);
+            sensorStatus.setTy(tyValue);
+            sensorStatus.setTz(tzValue);
+            sensorStatus.setSensorID("ForceTorqueSim");
+        }
+        final ForceTorqueSensorStatusType sensorStatusCopy = CRCLCopier.copy(sensorStatus);
+        javax.swing.SwingUtilities.invokeLater(() -> updateForceTorqueDisplay(sensorStatusCopy));
         return XFuture.completedFuture(statusOut);
     }
 
-    private void updateForceTorqueDisplay() {
-        jTablePoseForceOut.setValueAt(sensorStatus.getFx(), 0, 1);
-        jTablePoseForceOut.setValueAt(sensorStatus.getFy(), 1, 1);
-        jTablePoseForceOut.setValueAt(sensorStatus.getFz(), 2, 1);
-        jTablePoseForceOut.setValueAt(sensorStatus.getTx(), 3, 1);
-        jTablePoseForceOut.setValueAt(sensorStatus.getTy(), 4, 1);
-        jTablePoseForceOut.setValueAt(sensorStatus.getTz(), 5, 1);
+    private void updateForceTorqueDisplay(ForceTorqueSensorStatusType sensorStatusCopy) {
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getFx(), 0, 1);
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getFy(), 1, 1);
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getFz(), 2, 1);
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getTx(), 3, 1);
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getTy(), 4, 1);
+        jTablePoseForceOut.setValueAt(sensorStatusCopy.getTz(), 5, 1);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButtonAddObject;
+    private javax.swing.JButton jButtonDeleteObject;
+    private javax.swing.JButton jButtonOpenObjectsFile;
+    private javax.swing.JButton jButtonSaveObjectsFile;
     private javax.swing.JCheckBox jCheckBoxEnablePoseInConnection;
     private javax.swing.JCheckBox jCheckBoxStartSensorOutServer;
     private javax.swing.JLabel jLabel1;
@@ -566,15 +1051,19 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     private javax.swing.JMenu jMenu2;
     final javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanelCRCLPositionIn;
     private javax.swing.JPanel jPanelCommunications;
     private javax.swing.JPanel jPanelCrclSensorServerOut;
     private javax.swing.JPanel jPanelForceOut;
     private javax.swing.JPanel jPanelOffsets;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTable jTableObjects;
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTablePoseForceOut;
     private javax.swing.JTextField jTextFieldCRCLSensorOutPort;
+    private javax.swing.JTextField jTextFieldObjectsFile;
     private javax.swing.JTextField jTextFieldPoseCRCLHost;
     private javax.swing.JTextField jTextFieldPoseCRCLPort;
     private crcl.ui.forcetorquesensorsimulator.ValueJPanel valueJPanelFx;
