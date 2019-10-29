@@ -2412,7 +2412,10 @@ public class CrclSwingClientInner {
                 (null != crclSocket) ? getCrclSocketString() : "");
         lastCommandStatusLogElement = statEl;
         commandStatusLog.add(statEl);
-        timeStampedStatusLog.add(new TimeStampedStatus(curStatus, curTime));
+        if(absStatLogStartTime < 1) {
+            absStatLogStartTime = curTime;
+        }
+        timeStampedStatusLog.add(new TimeStampedStatus(curStatus, curTime,curTime-absStatLogStartTime));
 
         while (commandStatusLog.size() > maxLogSize) {
             commandStatusLog.pollFirst();
@@ -2421,6 +2424,7 @@ public class CrclSwingClientInner {
             timeStampedStatusLog.pollFirst();
         }
     }
+    private volatile long absStatLogStartTime = -1; 
 
     public boolean isConnected() {
         return null != this.crclSocket && this.crclSocket.isConnected() && !this.crclSocket.isClosed();

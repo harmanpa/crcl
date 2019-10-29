@@ -5604,7 +5604,7 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jCheckBoxPauseCommandStatusLogActionPerformed
 
     private void jTextFieldLogMaxLengthActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldLogMaxLengthActionPerformed
-        internal.setMaxLogSize(Integer.parseInt(jTextFieldLogMaxLength.getText()));
+        internal.setMaxLogSize(Integer.parseInt(jTextFieldLogMaxLength.getText().trim()));
     }//GEN-LAST:event_jTextFieldLogMaxLengthActionPerformed
 
     private void jButtonShowCommandStatusLogFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonShowCommandStatusLogFileActionPerformed

@@ -41,28 +41,30 @@ public class TimeStampedStatus {
     public final double y;
     public final double z;
     public final double cmdId;
-    public final double time;
+    public final double absTime;
+    public final double relTime;
     public final double fx;
     public final double fy;
     public final double fz;
 
-    public TimeStampedStatus(CRCLStatusType status, long time) {
+    public TimeStampedStatus(CRCLStatusType status, long absTime, long relTime) {
         final PoseStatusType poseStatus = status.getPoseStatus();
         final PoseType pose = (poseStatus != null) ? poseStatus.getPose() : null;
         final PointType point = (pose != null) ? pose.getPoint() : null;
         final CommandStatusType commandStatus = status.getCommandStatus();
         final SensorStatusesType sensorStatuses = status.getSensorStatuses();
-        final ForceTorqueSensorStatusType forceTorqueStatus = 
-                (null != sensorStatuses && sensorStatuses.getForceTorqueSensorStatus().size() > 0)?
-                sensorStatuses.getForceTorqueSensorStatus().get(0):null;
+        final ForceTorqueSensorStatusType forceTorqueStatus
+                = (null != sensorStatuses && sensorStatuses.getForceTorqueSensorStatus().size() > 0)
+                ? sensorStatuses.getForceTorqueSensorStatus().get(0) : null;
         x = (point != null) ? point.getX() : 0.0;
         y = (point != null) ? point.getY() : 0.0;
         z = (point != null) ? point.getZ() : 0.0;
-        fx = (forceTorqueStatus!=null)?forceTorqueStatus.getFx():0.0;
-        fy = (forceTorqueStatus!=null)?forceTorqueStatus.getFy():0.0;
-        fz = (forceTorqueStatus!=null)?forceTorqueStatus.getFz():0.0;
+        fx = (forceTorqueStatus != null) ? forceTorqueStatus.getFx() : 0.0;
+        fy = (forceTorqueStatus != null) ? forceTorqueStatus.getFy() : 0.0;
+        fz = (forceTorqueStatus != null) ? forceTorqueStatus.getFz() : 0.0;
         cmdId = (double) ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
-        this.time = time * 1e-3;
+        this.absTime = absTime * 1e-3;
+        this.relTime = relTime * 1e-3;
     }
 
 }
