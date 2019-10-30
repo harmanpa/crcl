@@ -421,7 +421,15 @@ public class CrclSwingClientJPanel
     }
 
     public void removeCurrentPoseListener(CurrentPoseListener l) {
-        currentPoseListeners.remove(l);
+        synchronized (currentPoseListeners) {
+            if (!currentPoseListeners.contains(l)) {
+                throw new IllegalStateException("Attempt to remove listener not currently registered. l=" + l + ",  currentPoseListeners=" + currentPoseListeners);
+            }
+            int sz0 = currentPoseListeners.size();
+            currentPoseListeners.remove(l);
+            int sz1 = currentPoseListeners.size();
+            assert (sz0 == (sz1 + 1));
+        }
     }
 
     private final List<ProgramLineListener> programLineListeners = new ArrayList<>();
