@@ -291,11 +291,11 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     public static XFuture<Boolean> showException(Throwable throwable) {
-        return showText(throwable.toString(), null, "Exception", false, true);
+        return showText(throwable.getMessage()+"\n\n" + throwable.toString(), null, "Exception: "+throwable.getMessage(), false, true);
     }
 
     public static XFuture<Boolean> showException(Throwable throwable, StackTraceElement trace[]) {
-        return showText(throwable.toString() + "\n\n Thrown from:\r\n" + XFuture.traceToString(throwable.getStackTrace()) + "\n\n Logged from:\r\n" + XFuture.traceToString(trace), null, "Exception", false, true);
+        return showText(throwable.getMessage()+"\n\n" + throwable.toString() + "\n\n Thrown from:\r\n" + XFuture.traceToString(throwable.getStackTrace()) + "\n\n Logged from:\r\n" + XFuture.traceToString(trace), null, "Exception : "+throwable.getMessage(), false, true);
     }
 
     public static XFuture<Boolean> showText(String init) {

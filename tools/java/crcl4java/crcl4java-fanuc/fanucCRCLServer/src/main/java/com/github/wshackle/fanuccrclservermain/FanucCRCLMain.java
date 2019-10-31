@@ -548,7 +548,7 @@ public class FanucCRCLMain {
                     .thenApply((CRCLStatusType status1) -> {
                         checkJointStatuses(status1);
                         firstUpdate = false;
-                        lastUpdateStatusTime =  System.currentTimeMillis();
+                        lastUpdateStatusTime = System.currentTimeMillis();
                         return status1;
                     });
         } else {
@@ -560,11 +560,22 @@ public class FanucCRCLMain {
 
     private void checkJointStatuses(CRCLStatusType status1) {
         if (null == jointStatuses) {
-            throw new RuntimeException("null == jointStatuses");
+            setStatusErrorDescription("null == jointStatuses");
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError("null == jointStatuses");
+            Thread.dumpStack();
         }
         if (null == jointStatuses || jointStatuses.getJointStatus().size() < 1 || !reportJointStatus) {
             status1.setJointStatuses(null);
-            throw new RuntimeException("jointStatuses.().size()=" + jointStatuses.getJointStatus().size() + ", reportJointStatus=" + reportJointStatus);
+            final String errMsg = "jointStatuses.().size()="
+                    + jointStatuses.getJointStatus().size()
+                    + ", reportJointStatus=" + reportJointStatus
+                    +", last_joint_pos_count="+last_joint_pos_count
+                    +", last_joint_pos="+last_joint_pos;
+            setStatusErrorDescription(errMsg);
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError(errMsg);
+            Thread.dumpStack();
         } else {
             status1.setJointStatuses(jointStatuses);
         }
@@ -701,6 +712,10 @@ public class FanucCRCLMain {
     private final AtomicInteger readStatusFromRobotInternalStartCount = new AtomicInteger();
     private final AtomicInteger readStatusFromRobotInternalEndCount = new AtomicInteger();
 
+    private volatile IJoint last_joint_pos=null;
+    private volatile int last_joint_pos_count = -1;
+    
+    
     private CRCLStatusType readStatusFromRobotInternal() {
         try {
             copyFromServerSocketStatus();
@@ -783,9 +798,12 @@ public class FanucCRCLMain {
                     setPose(CRCLPosemath.toPoseType(cart, rcs.posemath.Posemath.toRot(rpy), getPose()));
                     Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
                     IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
+                    last_joint_pos = joint_pos;
                     assert (jointStatuses != null);
                     jointStatuses.getJointStatus().clear();
-                    for (short i = 1; i <= joint_pos.count(); i++) {
+                    int joint_pos_count = joint_pos.count();
+                    last_joint_pos_count = joint_pos_count;
+                    for (short i = 1; i <= joint_pos_count; i++) {
                         JointStatusType js = new JointStatusType();
                         js.setJointNumber(i);
                         double cur_joint_pos = joint_pos.item(i);
@@ -1334,13 +1352,13 @@ public class FanucCRCLMain {
                     internalStopMotion();
                     isMovingLastCheckTime = -1;
                     int movingChecks = 0;
-                    while(isMoving()) {
+                    while (isMoving()) {
                         Thread.sleep(10);
                         isMovingLastCheckTime = -1;
                         movingChecks++;
                     }
                     crclServerSocket.comleteGuardTrigger();
-                    long timeDiff = System.currentTimeMillis()-stopTimeStart;
+                    long timeDiff = System.currentTimeMillis() - stopTimeStart;
                     System.out.println("timeDiff = " + timeDiff);
                     System.out.println("movingChecks = " + movingChecks);
                     break;
