@@ -3810,7 +3810,7 @@ public class CrclSwingClientInner {
         return lastRunningProgramTrueInfo;
     }
 
-    public synchronized boolean isRunningProgram() {
+    public boolean isRunningProgram() {
         boolean runProgramFutureNotCompleted = isRunProgramFutureNotCompleted();
         lastRunProgramFutureNotCompleted = runProgramFutureNotCompleted;
         final XFuture<Boolean> runProgramFutureFinal = runProgramFuture;
