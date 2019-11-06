@@ -65,6 +65,11 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.ModeEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
 import com.github.wshackle.crcl4java.motoman.sys1.UnitType;
+import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
+import static crcl.base.CommandStateEnumType.CRCL_ERROR;
+import static crcl.base.CommandStateEnumType.CRCL_WORKING;
+import crcl.base.CommandStatusType;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -76,6 +81,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -190,20 +196,20 @@ public class MotoPlusConnection implements AutoCloseable {
             socket = null;
         }
     }
-    
+
     public String getHost() {
-        if(null == socket) {
+        if (null == socket) {
             throw new RuntimeException("socket==null");
         }
         final InetAddress inetAddress = socket.getInetAddress();
-        if(null == inetAddress) {
+        if (null == inetAddress) {
             throw new RuntimeException("socket.getInetAddress()==null");
         }
         return inetAddress.getCanonicalHostName();
     }
-    
+
     public int getPort() {
-        if(null == socket) {
+        if (null == socket) {
             throw new RuntimeException("socket==null");
         }
         return socket.getPort();
@@ -524,7 +530,7 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-        public void startMpMotTargetReceive(int grpNo, int id, int[] recvId, int timeout, int options) throws IOException {
+        public void startMpMotTargetReceive(int grpNo, int id, int timeout, int options) throws IOException {
             checkTimeout(timeout);
             final int inputSize = 28;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -955,7 +961,7 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             writeDataOutputStream(bb);
         }
-        
+
         public void startMpConvAngleToPulse(int grp_no, int angle[]) throws IOException, MotoPlusConnectionException {
             if (angle.length != MP_GRP_AXES_NUM) {
                 throw new RuntimeException("angle.length=" + angle.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
@@ -974,7 +980,7 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             writeDataOutputStream(bb);
         }
-        
+
         public void startMpConvFBPulseToPulse(int grp_no, int fbpulse[]) throws IOException, MotoPlusConnectionException {
             if (fbpulse.length != MP_GRP_AXES_NUM) {
                 throw new RuntimeException("fbpulse.length=" + fbpulse.length + ", MP_GRP_AXES_NUM=" + MP_GRP_AXES_NUM);
@@ -1197,8 +1203,8 @@ public class MotoPlusConnection implements AutoCloseable {
             readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
-            if(sz<4 || sz > 8192) {
-                throw new RuntimeException("sz="+sz);
+            if (sz < 4 || sz > 8192) {
+                throw new RuntimeException("sz=" + sz);
             }
             inbuf = new byte[sz];
             readDataInputStream(inbuf);
@@ -1568,7 +1574,7 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             return returnVal;
         }
-        
+
         public MpKinPulseReturn getMpPulseReturn() throws IOException, MotoPlusConnectionException {
             byte inbuf[] = new byte[4];
             readDataInputStream(inbuf);
@@ -1591,6 +1597,14 @@ public class MotoPlusConnection implements AutoCloseable {
 
     private final Starter starter = new Starter();
     private final Returner returner = new Returner();
+
+    public Starter getStarter() {
+        return starter;
+    }
+
+    public Returner getReturner() {
+        return returner;
+    }
 
     public MotCtrlReturnEnum mpMotStart(int options) throws IOException {
         starter.startMpMotStart(options);
@@ -1629,7 +1643,7 @@ public class MotoPlusConnection implements AutoCloseable {
 
     public MotCtrlReturnEnum mpMotTargetReceive(int grpNo, int id, int[] recvId, int timeout, int options) throws IOException {
         checkTimeout(timeout);
-        starter.startMpMotTargetReceive(grpNo, id, recvId, timeout, options);
+        starter.startMpMotTargetReceive(grpNo, id, timeout, options);
         return returner.getMpMotTargetReceiveReturn(recvId);
     }
 
@@ -1702,6 +1716,104 @@ public class MotoPlusConnection implements AutoCloseable {
     private boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
         starter.startMpGetCartPos(ctrlGroup, data);
         return returner.getCartPosReturn(data);
+    }
+
+    private final AtomicInteger lastSentTargetId = new AtomicInteger(1);
+    private volatile int lastRecvdTargetId = 1;
+    private boolean lastErrorWasWrongMode = false;
+
+    public boolean isLastErrorWasWrongMode() {
+        return lastErrorWasWrongMode;
+    }
+
+    public AtomicInteger getLastSentTargetId() {
+        return lastSentTargetId;
+    }
+
+    public int getLastRecvdTargetId() {
+        return lastRecvdTargetId;
+    }
+
+    private AtomicInteger statusCount = new AtomicInteger();
+    
+    public MpcStatus readMpcStatusOnly(CommandStateEnumType localOrigCommandState) throws MotoPlusConnectionException, IOException {
+        if (!this.isConnected()) {
+            throw new MotoPlusConnectionException("Not connected");
+        }
+        int lastSentId = lastSentTargetId.get();
+
+        MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId,statusCount.incrementAndGet());
+        return mpcStatus;
+    }
+
+    public MpcStatus readMpcStatus(
+            CommandStateEnumType localOrigCommandState,
+            int lastSentId,
+            int statusCount) throws MotoPlusConnectionException, IOException {
+        Starter mpcStarter = this.getStarter();
+        int ctrlGroup = 0;
+        MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
+        cartData[0] = new MP_CART_POS_RSP_DATA();
+        MP_CART_POS_RSP_DATA pos = cartData[0];
+        mpcStarter.startMpGetCartPos(ctrlGroup, cartData);
+        MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
+        pulseData[0] = new MP_PULSE_POS_RSP_DATA();
+        mpcStarter.startMpGetPulsePos(ctrlGroup, pulseData);
+        final boolean doMpGetMode = localOrigCommandState != CRCL_ERROR || lastErrorWasWrongMode;
+        if (doMpGetMode) {
+            starter.startMpGetMode();
+        }
+        final boolean doMpMotTargetRecieve = localOrigCommandState == CRCL_WORKING && lastSentId != lastRecvdTargetId;
+        int recvId[] = new int[1];
+        recvId[0] = lastRecvdTargetId;
+        if (doMpMotTargetRecieve) {
+            starter.startMpMotTargetReceive(0, lastSentId, 0, MotoPlusConnection.NO_WAIT);;
+        }
+         if (localOrigCommandState != CRCL_ERROR) {
+             starter.startMpGetAlarmStatus();
+         }
+        Returner mpcReturner = this.getReturner();
+        boolean getCartPosRet = mpcReturner.getCartPosReturn(cartData);
+        boolean getPulsePosRet = mpcReturner.getPulsePosReturn(pulseData);
+
+        if (!getCartPosRet) {
+            throw new MotoPlusConnectionException("mpGetCartPos returned false");
+        }
+        if (!getPulsePosRet) {
+            throw new MotoPlusConnectionException("mpGetPulsePos returned false");
+        }
+        MP_MODE_DATA modeData = null;
+        if (doMpGetMode) {
+            modeData = mpcReturner.getModeReturn();
+        }
+
+        MotCtrlReturnEnum motTargetReceiveRet = null;
+
+        if (doMpMotTargetRecieve) {
+//                        System.out.println("lastSentTargetId = " + lastSentTargetId);
+//                        System.out.println("lastRecvdTargetId = " + lastRecvdTargetId);
+            motTargetReceiveRet = returner.getMpMotTargetReceiveReturn(recvId);
+        }
+        if (localOrigCommandState != CRCL_ERROR) {
+            lastErrorWasWrongMode = false;
+        }
+        if (null != modeData) {
+            boolean wrongMode = (modeData.sRemote == 0);
+            if (wrongMode) {
+                lastErrorWasWrongMode = true;
+            }
+        }
+        MP_ALARM_STATUS_DATA alarmStatusData = null;
+        MP_ALARM_CODE_DATA alarmCodeData = null;
+        if (localOrigCommandState != CRCL_ERROR) {
+            alarmStatusData = returner.getAlarmStatusReturn();
+            if (alarmStatusData.sIsAlarm != 0) {
+                alarmCodeData = this.mpGetAlarmCode();
+            }
+        }
+
+        MpcStatus mpcStatus = new MpcStatus(pos, pulseData[0], motTargetReceiveRet, modeData, alarmCodeData, alarmStatusData, recvId[0],statusCount);
+        return mpcStatus;
     }
 
     public MP_PULSE_POS_RSP_DATA getPulsePos(int grp) throws MotoPlusConnectionException, IOException {
@@ -1805,11 +1917,13 @@ public class MotoPlusConnection implements AutoCloseable {
     public static final int MP_GRP_AXES_NUM = 8;
 
     /**
-     * Converts a cartesian coordinate position (robot coordinate systems) of 
+     * Converts a cartesian coordinate position (robot coordinate systems) of
      * the specified control group to an angle position.
-     * 
-     * @param grp_no  Control group number. Acquire the control group number by mpCtrlGrpId2GrpNo()
-     * @param angle joint angles in 0.0001 degrees units. length should be 8. Ordered with joints S,L,U,R,B,T,E,W
+     *
+     * @param grp_no Control group number. Acquire the control group number by
+     * mpCtrlGrpId2GrpNo()
+     * @param angle joint angles in 0.0001 degrees units. length should be 8.
+     * Ordered with joints S,L,U,R,B,T,E,W
      * @param tool_no
      * @return
      * @throws IOException
@@ -1829,12 +1943,12 @@ public class MotoPlusConnection implements AutoCloseable {
         starter.startMpConvPulseToAngle(grp_no, pulse);
         return returner.getMpAngleReturn();
     }
-    
+
     public MpKinPulseReturn mpConvAngleToPulse(int grp_no, int pulse[]) throws IOException, MotoPlusConnectionException {
         starter.startMpConvAngleToPulse(grp_no, pulse);
         return returner.getMpPulseReturn();
     }
-    
+
     public MpKinPulseReturn mpConvFBPulseToPulse(int grp_no, int fbpulse[]) throws IOException, MotoPlusConnectionException {
         starter.startMpConvFBPulseToPulse(grp_no, fbpulse);
         return returner.getMpPulseReturn();
@@ -1960,45 +2074,10 @@ public class MotoPlusConnection implements AutoCloseable {
     public boolean closeGripper() throws Exception {
         boolean a = clearToolChangerGripperIOAndWait();
         boolean b = writeConsecutiveI0(10010, 0, 1, 1);
-//        MP_IO_DATA ioData[] = new MP_IO_DATA[3];
-//        ioData[0] = new MP_IO_DATA();
-//        ioData[0].ulAddr = 10010;
-//        ioData[0].ulValue = 0;
-//        ioData[1] = new MP_IO_DATA();
-//        ioData[1].ulAddr = 10011;
-//        ioData[1].ulValue = 1;
-//        ioData[2] = new MP_IO_DATA();
-//        ioData[2].ulAddr = 10012;
-//        ioData[2].ulValue = 1;
-//        boolean b = mpWriteIO(ioData, 3);
-//        try {
-//            Thread.sleep(200);
-//        } catch (InterruptedException ex) {
-//            Logger.getLogger(MotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        boolean c = clearToolChangerGripperIO();
         return a && b;
     }
 
     private boolean clearToolChangerGripperIO() throws IOException {
-//        MP_IO_DATA[] ioData = new MP_IO_DATA[5];
-//        ioData[0] = new MP_IO_DATA();
-//        ioData[0].ulAddr = 10010;
-//        ioData[0].ulValue = 0;
-//        ioData[1] = new MP_IO_DATA();
-//        ioData[1].ulAddr = 10011;
-//        ioData[1].ulValue = 0;
-//        ioData[2] = new MP_IO_DATA();
-//        ioData[2].ulAddr = 10012;
-//        ioData[2].ulValue = 0;
-//        ioData[3] = new MP_IO_DATA();
-//        ioData[3].ulAddr = 10013;
-//        ioData[3].ulValue = 0;
-//        ioData[4] = new MP_IO_DATA();
-//        ioData[4].ulAddr = 10014;
-//        ioData[4].ulValue = 0;
-//        boolean b = mpWriteIO(ioData, 5);
-//        return b;
         ioClear = writeConsecutiveI0(10010, 0, 0, 0, 0, 0);
         return ioClear;
     }

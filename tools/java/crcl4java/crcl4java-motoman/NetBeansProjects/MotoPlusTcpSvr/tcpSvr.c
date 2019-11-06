@@ -22,7 +22,7 @@ void tcpSvr(void) {
 }
 
 
-#define MAX_CLIENT_HANDLES (1000)
+#define MAX_CLIENT_HANDLES (256)
 static int clientHandles[MAX_CLIENT_HANDLES];
 static int maxClientHandleIndex = 0;
 
@@ -66,6 +66,9 @@ void runAcceptTcpClientsTask(ULONG portNo) {
     fd_set exceptFdSet;
     int emptyIndexFound = 0;
     int i = 0;
+    int requestsHandled = 0;
+    int exceptCount = 0;
+    int failCount = 0;
     printf("sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
     memset(clientHandles, 0, sizeof (clientHandles));
 
@@ -139,9 +142,13 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                 printf("clientHandles[i=%d]=%d\n",
                         i, clientHandles[i]);
                 if (clientHandles[i] > 0) {
+                    printf("closing clientHandles[i=%d]=%d\n",
+                            i, clientHandles[i]);
                     mpClose(clientHandles[i]);
                 }
                 clientHandles[i] = 0;
+                printf("setting clientHandles[i=%d]=%d\n",
+                        i, clientHandles[i]);
             }
             printf("maxFd=%d\n", maxFd);
             printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
@@ -165,12 +172,26 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                 if (clientHandles[i] < 2) {
                     emptyIndexFound = 1;
                     clientHandles[i] = acceptHandle;
+                    printf("Setting clientHandles[i=%d]=%d\n",
+                            i, clientHandles[i]);
+                    break;
                 }
             }
             if (emptyIndexFound == 0) {
                 if (maxClientHandleIndex >= MAX_CLIENT_HANDLES) {
                     printf("Too many open socket handle\n");
                     mpClose(acceptHandle);
+                    for (i = 0; i < maxClientHandleIndex; i++) {
+                        printf("clientHandles[i=%d]=%d\n",
+                                i, clientHandles[i]);
+                        if (clientHandles[i] > 0) {
+                            mpClose(clientHandles[i]);
+                        }
+                        clientHandles[i] = 0;
+                    }
+                    maxClientHandleIndex = 0;
+                    printf("sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
+                    memset(clientHandles, 0, sizeof (clientHandles));
                     continue;
                 }
                 clientHandles[maxClientHandleIndex] = acceptHandle;
@@ -182,7 +203,6 @@ void runAcceptTcpClientsTask(ULONG portNo) {
         }
         for (i = 0; i < maxClientHandleIndex; i++) {
             if (clientHandles[i] > 0) {
-
                 if (FD_ISSET(clientHandles[i], &exceptFdSet)) {
                     printf("exceptFdSet set for clientHandle\n");
                     printf("Closing clientHandles[i=%d]=%d\n",
@@ -191,12 +211,24 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                     clientHandles[i] = 0;
                 }
                 if (FD_ISSET(clientHandles[i], &readFdSet)) {
+                    requestsHandled++;
+                    if (requestsHandled % 25 == 0) {
+                        printf("requestsHandled=%d\n",
+                                requestsHandled);
+                    }
                     if (handleSingleConnection(clientHandles[i]) != 0) {
+                        failCount++;
                         printf("handleSingleConnection() returned non-zero\n");
                         printf("Closing clientHandles[i=%d]=%d\n",
                                 i, clientHandles[i]);
+                        printf("failCount=%d\n",
+                                failCount);
+                        printf("requestsHandled=%d\n",
+                                requestsHandled);
                         mpClose(clientHandles[i]);
                         clientHandles[i] = 0;
+                        printf("setting clientHandles[i=%d]=%d\n",
+                                i, clientHandles[i]);
                     }
                 }
             }
@@ -214,6 +246,10 @@ void runAcceptTcpClientsTask(ULONG portNo) {
 closeSockHandle:
     mpClose(sockHandle);
 
+    printf("maxClientHandleIndex=%d\n",
+            maxClientHandleIndex);
+    printf("requestsHandled=%d\n",
+            requestsHandled);
     return;
 }
 
