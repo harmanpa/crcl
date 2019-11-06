@@ -26,6 +26,7 @@ import com.github.wshackle.crcl4java.motoman.MotoPlusConnection;
 import com.github.wshackle.crcl4java.motoman.MotomanCRCLServer;
 import com.github.wshackle.crcl4java.motoman.MpcStatus;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStateEnumType;
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
 import crcl.utils.CRCLSocket;
@@ -501,7 +502,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonSendRequestActionPerformed
 
     private void jButtonStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStatusActionPerformed
-        motomanCrclServer.getCrclStatusFuture().thenAccept((CRCLStatusType status) -> {
+        motomanCrclServer.getCrclStatusFuture(testWithJoints, testWithAlarms).thenAccept((CRCLStatusType status) -> {
             try {
                 String text = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
                 MultiLineStringJPanel.showText(text, null, "Motoman Status", false);
@@ -511,12 +512,36 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         });
     }//GEN-LAST:event_jButtonStatusActionPerformed
 
+    private int testConnections = 25;
+    private int testMaxCount = 1000;
+    private boolean testWithJoints;
+    private boolean testWithAlarms;
+
     private void jButtonMpcStatusOnlyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMpcStatusOnlyActionPerformed
         List<XFuture<Long>> testFutures = new ArrayList<>();
+
+        Object conObject = JOptionPane.showInputDialog("Number of threads & connections", "" + testConnections);
+        if (conObject instanceof String) {
+            testConnections = Integer.parseInt((String) conObject);
+        }
+
+        Object maxCountObject = JOptionPane.showInputDialog("Number of requests", "" + testMaxCount);
+        if (maxCountObject instanceof String) {
+            testMaxCount = Integer.parseInt((String) maxCountObject);
+        }
+        Object testWithJointsObject = JOptionPane.showInputDialog("With joints", "" + testWithJoints);
+        if (testWithJointsObject instanceof String) {
+            testWithJoints = Boolean.parseBoolean((String) testWithJointsObject);
+        }
+        Object testWithAlarmsObject = JOptionPane.showInputDialog("With alarms", "" + testWithAlarms);
+        if (testWithAlarmsObject instanceof String) {
+            testWithAlarms = Boolean.parseBoolean((String) testWithAlarmsObject);
+        }
         long t0 = System.currentTimeMillis();
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < testConnections; i++) {
             final int finalI = i;
-            testFutures.add(XFuture.supplyAsync("test" + finalI, () -> testMethod(finalI)));
+            final int finalMaxCount = testMaxCount;
+            testFutures.add(XFuture.supplyAsync("test" + finalI, () -> testMethod(finalI, finalMaxCount, testWithJoints,testWithAlarms)));
         }
         XFuture.allOfWithName("allTests", testFutures).thenRun(() -> {
             long t1 = System.currentTimeMillis();
@@ -526,14 +551,15 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
 
     private final ExecutorService testService = Executors.newFixedThreadPool(25);
 
-    private long testMethod(int finalI) {
+    private long testMethod(int finalI, int maxcount, boolean withJoints, boolean withAlarms) {
 
         long t0 = System.currentTimeMillis();
         int count = 0;
         try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(motomanHost, motomanPort))) {
-            int startcount = mpc.readMpcStatusOnly(motomanCrclServer.getCommandState()).getStatusCount();
-            for (int i = 0; i < 1000; i++) {
-                MpcStatus mpcStatus = mpc.readMpcStatusOnly(motomanCrclServer.getCommandState());
+            final CommandStateEnumType commandState = CommandStateEnumType.CRCL_DONE;
+            int startcount = mpc.readMpcStatusOnly(commandState, withJoints,withAlarms).getStatusCount();
+            for (int i = 0; i < maxcount; i++) {
+                MpcStatus mpcStatus = mpc.readMpcStatusOnly(commandState, withJoints,withAlarms);
                 if (null != mpcStatus && mpcStatus.getStatusCount() > 0) {
                     count = mpcStatus.getStatusCount();
                 }

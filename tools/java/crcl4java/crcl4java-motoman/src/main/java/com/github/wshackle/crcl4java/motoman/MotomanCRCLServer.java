@@ -144,22 +144,12 @@ public class MotomanCRCLServer implements AutoCloseable {
         return mpc.isConnected();
     }
 
-    private void runUpdateStatus() {
-        try {
-            getCrclStatusFuture();
-        } catch (Exception ex) {
-            logException(ex);
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
     public Future<?> start() {
         crclServerSocket.setServerSideStatus(crclStatus);
-        crclServerSocket.setUpdateStatusSupplier(this::getCrclStatusFuture);
+        crclServerSocket.setUpdateStatusSupplier(() -> {
+            boolean withAlarm = checkAlarms();
+            return getCrclStatusFuture(true, withAlarm);
+        });
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());
@@ -272,7 +262,7 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private volatile MpcStatus lastMpcStatus = null;
 
-    public XFuture<CRCLStatusType> getCrclStatusFuture() {
+    public XFuture<CRCLStatusType> getCrclStatusFuture(boolean withJoints, boolean withAlarmStatus) {
         long time = System.currentTimeMillis();
         long status_time_diff = time - last_status_update_time;
         long cmd_time_diff = time - last_command_time;
@@ -290,17 +280,23 @@ public class MotomanCRCLServer implements AutoCloseable {
                 MotoPlusConnection mpcLocal = this.mpc;
                 final boolean lastErrorWasWrongMode = mpcLocal.isLastErrorWasWrongMode();
                 int lastSentId = mpcLocal.getLastSentTargetId().get();
-
-                MpcStatus mpcStatus = mpcLocal.readMpcStatus(localOrigCommandState, lastSentId,(int) crclLocalStatus.getCommandStatus().getStatusID());
+                MpcStatus mpcStatus = mpcLocal.readMpcStatus(
+                        localOrigCommandState,
+                        lastSentId,
+                        (int) crclLocalStatus.getCommandStatus().getStatusID(),
+                        withJoints,
+                        withAlarmStatus);
 
                 this.lastMpcStatus = mpcStatus;
-                if (localOrigCommandState != CRCL_ERROR) {
-                    MP_ALARM_STATUS_DATA alarmStatusData1 = mpcStatus.getAlarmStatusData();
-                    if (alarmStatusData1.sIsAlarm != 0) {
-                        MP_ALARM_CODE_DATA alarmCodeData1 = mpcStatus.getAlarmCodeData();
-                        setStateDescription(commandStatusLocal, CRCL_ERROR, "alarmCodeData = " + alarmCodeData1);
+                MP_ALARM_STATUS_DATA alarmStatusData = mpcStatus.getAlarmStatusData();
+                if (null != alarmStatusData) {
+                    if (localOrigCommandState != CRCL_ERROR) {
+                        if (alarmStatusData.sIsAlarm != 0) {
+                            MP_ALARM_CODE_DATA alarmCodeData1 = mpcStatus.getAlarmCodeData();
+                            setStateDescription(commandStatusLocal, CRCL_ERROR, "alarmCodeData = " + alarmCodeData1);
+                        }
                     }
-
+                    alarmCheckTime = System.currentTimeMillis();
                 }
                 final MP_PULSE_POS_RSP_DATA pulseData = mpcStatus.getPulseData();
                 final MP_CART_POS_RSP_DATA pos = mpcStatus.getPos();
@@ -368,11 +364,11 @@ public class MotomanCRCLServer implements AutoCloseable {
                         lastJointPos[i] = pulseData.lPos[i];
                     }
                 }
-
-                if (null != mpcStatus.getModeData()) {
-                    boolean wrongMode = (mpcStatus.getModeData().sRemote == 0);
+                final MP_MODE_DATA modeData = mpcStatus.getModeData();
+                if (null != modeData) {
+                    boolean wrongMode = (modeData.sRemote == 0);
                     if (wrongMode) {
-                        setStateDescription(commandStatusLocal, CRCL_ERROR, "Pendant switch must be set to REMOTE. : current mode = " + mpcStatus.getModeData().toString());
+                        setStateDescription(commandStatusLocal, CRCL_ERROR, "Pendant switch must be set to REMOTE. : current mode = " + modeData.toString());
                     } else if (lastErrorWasWrongMode) {
                         commandStatusLocal.setStateDescription("");
                     }
@@ -811,9 +807,14 @@ public class MotomanCRCLServer implements AutoCloseable {
         }
     }
 
+    private volatile long alarmCheckTime = -1;
+    private volatile long alarmDiffMax = 200;
+
     private void handleNewCommandFromServerSocket(CRCLCommandType cmd, CRCLServerSocketEvent<MotomanClientState> event) throws Exception {
         if (cmd instanceof GetStatusType) {
-            getCrclStatusFuture().thenAccept((CRCLStatusType suppliedStatus) -> {
+            final boolean withJoints = event.getState().filterSettings.getConfigureStatusReport().isReportJointStatuses();
+            boolean withAlarm = checkAlarms();
+            getCrclStatusFuture(withJoints, withAlarm).thenAccept((CRCLStatusType suppliedStatus) -> {
                 try {
                     event.getSource().writeStatus(suppliedStatus);
                 } catch (Exception ex) {
@@ -836,7 +837,6 @@ public class MotomanCRCLServer implements AutoCloseable {
             }
             if (cmd instanceof InitCanonType) {
                 initCanon();
-
             } else if (!initialized) {
                 if (getCommandState() != CRCL_ERROR
                         || getCommandStatus().getStateDescription().length() < 1) {
@@ -895,6 +895,15 @@ public class MotomanCRCLServer implements AutoCloseable {
             }
             last_command_time = System.currentTimeMillis();
         }
+    }
+
+    private boolean checkAlarms() {
+        final long now = System.currentTimeMillis();
+        final boolean withAlarm
+                = (lastCommand instanceof InitCanonType && (now - last_command_time) < (5 * alarmDiffMax))
+                || (lastCommand instanceof EndCanonType && (now - last_command_time) < (5 * alarmDiffMax))
+                || (now - alarmCheckTime) > alarmDiffMax;
+        return withAlarm;
     }
 
     public CommandStateEnumType getCommandState() {

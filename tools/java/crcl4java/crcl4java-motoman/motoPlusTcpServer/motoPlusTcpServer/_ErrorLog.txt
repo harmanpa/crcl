@@ -1,10 +1,14 @@
-In file included from C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:8:
+In file included from C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:45:
 
-C:\Users\shackle\AppData\Local\mpAscii 0\/remoteFunctions.h:144: warning: type qualifiers ignored on function return type
+C:\Users\shackle\AppData\Local\mpAscii 0\/remoteFunctions.h:184: warning: type qualifiers ignored on function return type
 
-C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:1062: warning: type qualifiers ignored on function return type
+C:\Users\shackle\AppData\Local\mpAscii 0\remoteFunctions.c:1099: warning: type qualifiers ignored on function return type
 
-In file included from C:\Users\shackle\AppData\Local\mpAscii 0\tcpSvr.c:8:
+In file included from C:\Users\shackle\AppData\Local\mpAscii 0\tcpSvr.c:43:
 
-C:\Users\shackle\AppData\Local\mpAscii 0\/remoteFunctions.h:144: warning: type qualifiers ignored on function return type
+C:\Users\shackle\AppData\Local\mpAscii 0\/remoteFunctions.h:184: warning: type qualifiers ignored on function return type
+
+C:\Users\shackle\AppData\Local\mpAscii 0\tcpSvr.c: In function 'runAcceptTcpClientsTask':
+
+C:\Users\shackle\AppData\Local\mpAscii 0\tcpSvr.c:105: warning: unused variable 'exceptCount'
 

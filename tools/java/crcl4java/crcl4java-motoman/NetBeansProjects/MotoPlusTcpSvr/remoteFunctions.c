@@ -1,8 +1,67 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* This software is public domain software, however it is preferred
+* that the following disclaimers be attached.
+* Software Copyright/Warranty Disclaimer
+*
+* This software was developed at the National Institute of Standards and
+* Technology by employees of the Federal Government in the course of their
+* official duties. Pursuant to title 17 Section 105 of the United States
+* Code this software is not subject to copyright protection and is in the
+* public domain.
+*
+* This software is experimental. NIST assumes no responsibility whatsoever
+* for its use by other parties, and makes no guarantees, expressed or
+* implied, about its quality, reliability, or any other characteristic.
+* We would appreciate acknowledgement if the software is used.
+* This software can be redistributed and/or modified freely provided
+* that any derivative works bear some notice that they are derived from it,
+* and any modified versions bear some notice that they have been modified.
+*
+*  See http://www.copyright.gov/title17/92chap1.html#105
+*
+*/
+
+/*********************************
+This software provides the server side to be paired with
+the client side library in Java named crcl4java-motoman.
+
+
+NOTE: To run on motoman requires:
+MotoPlus SDK for Visual Studion(FS100) 169272.3 v1.1.0
+
+This requires a USB dongle.
+
+On Windows 7 compiling requires one to  first set
+EnableLUA to 0
+in
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+with regedit.exe
+
+To INSTALL after compiling:
+
+Copy   motoPlusTcpServer.out from motoPlusTcpServer\FS100\motoPlusTcpServer subdirectory
+to a USB stick.
+
+From C:\Users\Public\Documents\YaskawaMotomanDocumentation\MotoPlus_SDK_For_Visual_Studio
+read 169286-1CD.pdf
+(aka "MOTOPLUS SDK FOR VISUAL STUDIO USER’S MANUAL")
+
+Insert the USB stick in the back of Motoman pendant.
+Reboot into maintenance mode by holding main menu during bootup and choosing special mode when offered.
+Use System -> Security -> Mode -> Management Mode
+Default password is 99999999
+
+MotoPlus APL. -> Load (User Application) -> select motoPlusTcpServer.out
+press Enter -> YES -> (Overwrite file?) YES
+
+Reboot.
+
+
+Running in simulation on a any regular PC
+can be done without Motoman software with mpFakeLib.
+
+
+**********************************/
 
 #include "motoPlus.h"
 #include "remoteFunctions.h"
@@ -18,11 +77,11 @@ static int recvN(int handle, char *buf, int n, int flags) {
     do {
         lastRecv = mpRecv(handle, (buf + totalRecv), n - totalRecv, flags);
         if (lastRecv == 0) {
-            fprintf(stderr, "tcpSvr: recv returned 0\n");
+            fprintf(stderr, "NIST motoPlustTcpSvr: recv returned 0\n");
             return lastRecv;
         }
         if (lastRecv < 1) {
-            fprintf(stderr, "tcpSvr: recv error : %s\n", strerror(errno));
+            fprintf(stderr, "NIST motoPlustTcpSvr: recv error : %s\n", strerror(errno));
             return lastRecv;
         }
         totalRecv += lastRecv;
@@ -36,7 +95,7 @@ static int sendN(int handle, char *buf, int n, int flags) {
     do {
         lastSend = mpSend(handle, (buf + totalSend), n - totalSend, flags);
         if (lastSend < 1) {
-            fprintf(stderr, "tcpSvr: send error : %s\n", strerror(errno));
+            fprintf(stderr, "NIST motoPlustTcpSvr: send error : %s\n", strerror(errno));
             return lastSend;
         }
         totalSend += lastSend;
@@ -47,7 +106,7 @@ static int sendN(int handle, char *buf, int n, int flags) {
 static int checkedSendN(int handle, char *buf, int n, int flags) {
     int sendRet = sendN(handle, buf, n, flags);
     if (sendRet != n) {
-        fprintf(stderr, "tcpSvr: sendRet = %d != %d\n", sendRet, n);
+        fprintf(stderr, "NIST motoPlustTcpSvr: sendRet = %d != %d\n", sendRet, n);
         return -1;
     }
     return 0;
@@ -114,7 +173,7 @@ int returnSingleIntRet(int acceptHandle, char *outBuffer, int ret) {
     setInt32(outBuffer, 4, ret);
     int sendRet = sendN(acceptHandle, outBuffer, 8, 0);
     if (sendRet != 8) {
-        fprintf(stderr, "tcpSvr: sendRet = %d != 8\n", sendRet);
+        fprintf(stderr, "NIST motoPlustTcpSvr: sendRet = %d != 8\n", sendRet);
         return -1;
     }
     return 0;
@@ -154,11 +213,11 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case SYS1_GET_VAR_DATA:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "tcpSvr: invalid num for mpGetVarData num = %ld\n", num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpGetVarData num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (4 * num)) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -178,11 +237,11 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case SYS1_PUT_VAR_DATA:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "tcpSvr: invalid num for mpPutVarData num = %ld\n", num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpPutVarData num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (num * 8)) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -196,7 +255,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_CURRENT_CART_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -216,7 +275,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_CURRENT_PULSE_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -235,7 +294,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_CURRENT_FEEDBACK_PULSE_POS:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -254,7 +313,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_DEG_POS_EX:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetClear = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&ctrlGrpSendData, 0, sizeof (ctrlGrpSendData));
@@ -277,7 +336,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_SERVO_POWER:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetServoPower = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetServoPower = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&servoPowerRspData, 0, sizeof (servoPowerRspData));
@@ -291,7 +350,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_SET_SERVO_POWER:
             if (msgSize != 10) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpSetServoPower = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpSetServoPower = %d != 12\n", msgSize);
                 return -1;
             }
             memset(&servoPowerSendData, 0, sizeof (servoPowerSendData));
@@ -309,11 +368,11 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case SYS1_READIO:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "tcpSvr: invalid num for mpReadIO num = %ld\n", num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpReadIO num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (4 * num)) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpReadIO = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpReadIO = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -333,11 +392,11 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case SYS1_WRITEIO:
             num = getInt32(inBuffer, 12);
             if (num < 1 || num > 24) {
-                fprintf(stderr, "tcpSvr: invalid num for mpPutVarData num = %ld\n", num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpPutVarData num = %ld\n", num);
                 return -1;
             }
             if (msgSize != 12 + (num * 8)) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpPutVarData = %d != %ld for num = %ld\n", msgSize, 12 + (num * 8), num);
                 return -1;
             }
             for (i = 0; i < num; i++) {
@@ -350,7 +409,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_MODE:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetMode = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetMode = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&modeData, 0, sizeof (modeData));
@@ -365,7 +424,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_CYCLE:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetCycle = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetCycle = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&cycleData, 0, sizeof (cycleData));
@@ -379,7 +438,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_ALARM_STATUS:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmStatus = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetAlarmStatus = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&alarmStatusData, 0, sizeof (alarmStatusData));
@@ -393,7 +452,7 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_ALARM_CODE:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
                 return -1;
             }
             memset(&alarmCodeData, 0, sizeof (alarmCodeData));
@@ -413,14 +472,14 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case SYS1_GET_RTC:
             if (msgSize != 8) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetAlarmCode = %d != 8\n", msgSize);
                 return -1;
             }
             ret = mpGetRtc();
             return returnSingleIntRet(acceptHandle, outBuffer, ret);
             break;
         default:
-            fprintf(stderr, "tcpSvr: invalid sys1 function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid sys1 function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -449,7 +508,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
     switch (type) {
         case MOT_START:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotStart = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotStart = %d != 12\n", msgSize);
                 return -1;
             }
             options = getInt32(inBuffer, 12);
@@ -459,7 +518,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_STOP:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotStop = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotStop = %d != 12\n", msgSize);
                 return -1;
             }
             options = getInt32(inBuffer, 12);
@@ -469,7 +528,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_TARGET_CLEAR:
             if (msgSize != 16) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetClear = %d != 16\n", msgSize);
                 return -1;
             }
             controlGroup = getInt32(inBuffer, 12);
@@ -480,7 +539,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_JOINT_TARGET_SEND:
             if (msgSize != 88) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
@@ -495,14 +554,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             }
             timeout = getInt32(inBuffer, 88);
             if (timeout == WAIT_FOREVER) {
-                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
                 return -1;
             }
             if (timeout != NO_WAIT) {
                 millisPerTick = mpGetRtc();
                 maxTimeout = 5000 / millisPerTick;
                 if (timeout < 0 || timeout > maxTimeout) {
-                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                    fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
                             timeout, millisPerTick, maxTimeout);
                     return -1;
                 }
@@ -513,7 +572,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_COORD_TARGET_SEND:
             if (msgSize != 88) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetSend = %d != 88\n", msgSize);
                 return -1;
             }
             memset(&target, 0, sizeof (target));
@@ -538,14 +597,14 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             target.aux.coord.ex2 = getInt32(inBuffer, 84);
             timeout = getInt32(inBuffer, 88);
             if (timeout == WAIT_FOREVER) {
-                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetSend = %d, WAIT_FOREVER not allowed.\n", timeout);
                 return -1;
             }
             if (timeout != NO_WAIT) {
                 millisPerTick = mpGetRtc();
                 maxTimeout = 5000 / millisPerTick;
                 if (timeout < 0 || timeout > maxTimeout) {
-                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                    fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetSend = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
                             timeout, millisPerTick, maxTimeout);
                     return -1;
                 }
@@ -556,21 +615,21 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_TARGET_RECEIVE:
             if (msgSize != 24) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotTargetReceive = %d != 24\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotTargetReceive = %d != 24\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
             target.id = getInt32(inBuffer, 16);
             timeout = getInt32(inBuffer, 20);
             if (timeout == WAIT_FOREVER) {
-                fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetReceive = %d, WAIT_FOREVER not allowed.\n", timeout);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetReceive = %d, WAIT_FOREVER not allowed.\n", timeout);
                 return -1;
             }
             if (timeout != NO_WAIT) {
                 millisPerTick = mpGetRtc();
                 maxTimeout = 5000 / millisPerTick;
                 if (timeout < 0 || timeout > maxTimeout) {
-                    fprintf(stderr, "tcpSvr: invalid timeout for mpMotTargetReceive = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
+                    fprintf(stderr, "NIST motoPlustTcpSvr: invalid timeout for mpMotTargetReceive = %d, millisPerTick = mpGetRtc() =%d, maxTimeout=5000/millisPerTick=%d\n",
                             timeout, millisPerTick, maxTimeout);
                     return -1;
                 }
@@ -586,7 +645,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_COORD:
             if (msgSize != 20) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetCoord = %d != 20\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetCoord = %d != 20\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -598,7 +657,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_TOOL:
             if (msgSize != 16) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetTool = %d != 16\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetTool = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -609,7 +668,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_SPEED:
             if (msgSize != 32) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetSpeed = %d != 32\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetSpeed = %d != 32\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -622,7 +681,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_ORIGIN:
             if (msgSize != 16) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetOrigin = %d != 16\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetOrigin = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -633,7 +692,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_TASK:
             if (msgSize != 16) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetTask = %d != 16\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetTask = %d != 16\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -644,7 +703,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_SET_SYNC:
             if (msgSize != 20) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotSetSync = %d != 20\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotSetSync = %d != 20\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -656,7 +715,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 
         case MOT_RESET_SYNC:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpMotResetSync = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpMotResetSync = %d != 12\n", msgSize);
                 return -1;
             }
             grpNo = getInt32(inBuffer, 12);
@@ -665,7 +724,7 @@ int handleMotFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             break;
 
         default:
-            fprintf(stderr, "tcpSvr: invalid mot function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid mot function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -690,12 +749,12 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
 
         case EX_FILE_CTRL_GET_FILE_COUNT:
             if (msgSize != 10) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpGetFileCount = %d != 10\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetFileCount = %d != 10\n", msgSize);
                 return -1;
             }
             extensionId = getInt16(inBuffer, 12);
             if (extensionId < 1 || extensionId > 2) {
-                fprintf(stderr, "tcpSvr: invalid extensionId for mpGetFileCount = %d  (must be 1 or 2)\n", extensionId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid extensionId for mpGetFileCount = %d  (must be 1 or 2)\n", extensionId);
                 return -1;
             }
             lastExtensionId = -1;
@@ -716,7 +775,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
         case EX_FILE_CTRL_GET_FILE_NAME:
             extensionId = getInt16(inBuffer, 12);
             if (extensionId < 1 || extensionId > 2) {
-                fprintf(stderr, "tcpSvr: invalid extensionId for mpGetFileName = %d  (must be 1 or 2)\n", extensionId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid extensionId for mpGetFileName = %d  (must be 1 or 2)\n", extensionId);
                 return -1;
             }
             if (extensionId != lastExtensionId) {
@@ -743,12 +802,12 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
         case EX_FILE_CTRL_LOAD_FILE:
             ramDriveId = getInt32(inBuffer, 12);
             if (ramDriveId < 1 || ramDriveId > 2) {
-                fprintf(stderr, "tcpSvr: invalid ramDriveId for mpLoadFile = %d  (must be 1 or 2)\n", ramDriveId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid ramDriveId for mpLoadFile = %d  (must be 1 or 2)\n", ramDriveId);
                 return -1;
             }
             fileNameOffset = getInt32(inBuffer, 16);
             if (fileNameOffset < 20 || fileNameOffset > (BUFF_MAX - 21)) {
-                fprintf(stderr, "tcpSvr: invalid fileNameOffset for mpLoadFile = %d  \n", fileNameOffset);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fileNameOffset for mpLoadFile = %d  \n", fileNameOffset);
                 return -1;
             }
             ret = mpLoadFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
@@ -758,12 +817,12 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
         case EX_FILE_CTRL_SAVE_FILE:
             ramDriveId = getInt32(inBuffer, 12);
             if (ramDriveId < 1 || ramDriveId > 2) {
-                fprintf(stderr, "tcpSvr: invalid ramDriveId for mpSaveFile = %d  (must be 1 or 2)\n", ramDriveId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid ramDriveId for mpSaveFile = %d  (must be 1 or 2)\n", ramDriveId);
                 return -1;
             }
             fileNameOffset = getInt32(inBuffer, 16);
             if (fileNameOffset < 20 || fileNameOffset > (BUFF_MAX - 21)) {
-                fprintf(stderr, "tcpSvr: invalid fileNameOffset for mpSaveFile = %d  \n", fileNameOffset);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fileNameOffset for mpSaveFile = %d  \n", fileNameOffset);
                 return -1;
             }
             ret = mpSaveFile(ramDriveId, inBuffer + 20, inBuffer + fileNameOffset);
@@ -776,7 +835,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 fd = acceptHandle;
             }
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpFdReadFile = %d\n", ramDriveId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpFdReadFile = %d\n", ramDriveId);
                 return -1;
             }
             memset(&fileNameSendData, 0, sizeof (fileNameSendData));
@@ -791,7 +850,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 fd = acceptHandle;
             }
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpFdWriteFile = %d\n", ramDriveId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpFdWriteFile = %d\n", ramDriveId);
                 return -1;
             }
             memset(&fileNameSendData, 0, sizeof (fileNameSendData));
@@ -806,7 +865,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
                 fd = acceptHandle;
             }
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpFdGetJobList = %d  (must be 1 or 2)\n", ramDriveId);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpFdGetJobList = %d  (must be 1 or 2)\n", ramDriveId);
                 return -1;
             }
             memset(&jobListData, 0, sizeof (jobListData));
@@ -821,7 +880,7 @@ int handleExFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffe
             break;
 
         default:
-            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid file function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -853,12 +912,12 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
 
         case FILE_CTRL_CLOSE:
             if (msgSize != 12) {
-                fprintf(stderr, "tcpSvr: invalid msgSize for mpClose = %d != 12\n", msgSize);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpClose = %d != 12\n", msgSize);
                 return -1;
             }
             fd = getInt32(inBuffer, 12);
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpRead = %d\n", fd);
                 return -1;
             }
             ret = mpClose(fd);
@@ -868,12 +927,12 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case FILE_CTRL_READ:
             fd = getInt32(inBuffer, 12);
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpRead = %d\n", fd);
                 return -1;
             }
             maxBytes = getInt32(inBuffer, 16);
             if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
-                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
                 return -1;
             }
             ret = mpRead(fd, outBuffer + 8, maxBytes);
@@ -887,12 +946,12 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
         case FILE_CTRL_WRITE:
             fd = getInt32(inBuffer, 12);
             if (fd < 1) {
-                fprintf(stderr, "tcpSvr: invalid fd for mpRead = %d\n", fd);
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid fd for mpRead = %d\n", fd);
                 return -1;
             }
             maxBytes = getInt32(inBuffer, 16);
             if (maxBytes < 1 || maxBytes >= (BUFF_MAX - 8)) {
-                fprintf(stderr, "tcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid maxBytes for mpRead = %d max = %d\n", maxBytes, (BUFF_MAX - 8));
                 return -1;
             }
             ret = mpWrite(fd, inBuffer + 20, maxBytes);
@@ -903,7 +962,7 @@ int handleFileFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             break;
 
         default:
-            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid file function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -1052,7 +1111,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
             break;
 
         default:
-            fprintf(stderr, "tcpSvr: invalid file function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid file function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -1251,7 +1310,7 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
              */
 
         default:
-            fprintf(stderr, "tcpSvr: invalid handleKinematicConvFunctionRequest function type = %d\n", type);
+            fprintf(stderr, "NIST motoPlustTcpSvr: invalid handleKinematicConvFunctionRequest function type = %d\n", type);
             return -1;
     }
     return 0;
@@ -1321,7 +1380,7 @@ int handleSingleConnection(int acceptHandle) {
             break;
 
         default:
-            fprintf(stderr, "tcpSvr: unrecognized group =%d\n", group);
+            fprintf(stderr, "NIST motoPlustTcpSvr: unrecognized group =%d\n", group);
             failed = 1;
             break;
     }

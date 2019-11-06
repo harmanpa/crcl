@@ -1,8 +1,70 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* This software is public domain software, however it is preferred
+* that the following disclaimers be attached.
+* Software Copyright/Warranty Disclaimer
+*
+* This software was developed at the National Institute of Standards and
+* Technology by employees of the Federal Government in the course of their
+* official duties. Pursuant to title 17 Section 105 of the United States
+* Code this software is not subject to copyright protection and is in the
+* public domain.
+*
+* This software is experimental. NIST assumes no responsibility whatsoever
+* for its use by other parties, and makes no guarantees, expressed or
+* implied, about its quality, reliability, or any other characteristic.
+* We would appreciate acknowledgement if the software is used.
+* This software can be redistributed and/or modified freely provided
+* that any derivative works bear some notice that they are derived from it,
+* and any modified versions bear some notice that they have been modified.
+*
+*  See http://www.copyright.gov/title17/92chap1.html#105
+*
+*/
+
+
+/*********************************
+
+This software provides the server side to be paired with
+the client side library in Java named crcl4java-motoman.
+
+
+NOTE: To run on motoman requires:
+MotoPlus SDK for Visual Studion(FS100) 169272.3 v1.1.0
+
+This requires a USB dongle.
+
+On Windows 7 compiling requires one to  first set
+EnableLUA to 0
+in
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+with regedit.exe
+
+To INSTALL after compiling:
+
+Copy   motoPlusTcpServer.out from motoPlusTcpServer\FS100\motoPlusTcpServer subdirectory
+to a USB stick.
+
+From C:\Users\Public\Documents\YaskawaMotomanDocumentation\MotoPlus_SDK_For_Visual_Studio
+read 169286-1CD.pdf
+(aka "MOTOPLUS SDK FOR VISUAL STUDIO USER’S MANUAL")
+
+Insert the USB stick in the back of Motoman pendant.
+Reboot into maintenance mode by holding main menu during bootup and choosing special mode when offered.
+Use System -> Security -> Mode -> Management Mode
+Default password is 99999999
+
+MotoPlus APL. -> Load (User Application) -> select motoPlusTcpServer.out
+press Enter -> YES -> (Overwrite file?) YES
+
+Reboot.
+
+
+
+Running in simulation on a any regular PC
+can be done without Motoman software with mpFakeLib.
+
+
+**********************************/
 
 #include "motoPlus.h"
 #include "remoteFunctions.h"
@@ -27,29 +89,29 @@ static int clientHandles[MAX_CLIENT_HANDLES];
 static int maxClientHandleIndex = 0;
 
 void printTcpSvrInfo() {
-    printf("tcpSvr: sizeof(short)=%ld\n", sizeof (short));
-    printf("tcpSvr: sizeof(int)=%ld\n", sizeof (int));
-    printf("tcpSvr: sizeof(long)=%ld\n", sizeof (long));
-    printf("tcpSvr: sizeof(LONG)=%ld\n", sizeof (LONG));
-    printf("tcpSvr: sizeof(ULONG)=%ld\n", sizeof (ULONG));
-    printf("tcpSvr: angleLen=%d\n", getAngleLen());
-    printf("tcpSvr: MP_GRP_AXES_NUM=%d\n", MP_GRP_AXES_NUM);
-    printf("tcpSvr: MP_FCS_AXES_NUM=%d\n", MP_FCS_AXES_NUM);
-    printf("tcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%ld\n", sizeof (MP_CART_POS_RSP_DATA));
-    printf("tcpSvr: sizeof(MP_TARGET)=%ld\n", sizeof (MP_TARGET));
-    printf("tcpSvr: sizeof(MP_COORD)=%ld\n", sizeof (MP_COORD));
-    printf("tcpSvr: MP_R1_GID = %d\n", MP_R1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R1_GID));
-    printf("tcpSvr: MP_R2_GID = %d\n", MP_R2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_R2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R2_GID));
-    printf("tcpSvr: MP_B1_GID = %d\n", MP_B1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B1_GID));
-    printf("tcpSvr: MP_B2_GID = %d\n", MP_B2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_B2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B2_GID));
-    printf("tcpSvr: MP_S1_GID = %d\n", MP_S1_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S1_GID));
-    printf("tcpSvr: MP_S2_GID = %d\n", MP_S2_GID);
-    printf("tcpSvr: mpCtrlGrpId2GrpNo(MP_S2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S2_GID));
+    printf("NIST motoPlustTcpSvr: sizeof(short)=%ld\n", sizeof (short));
+    printf("NIST motoPlustTcpSvr: sizeof(int)=%ld\n", sizeof (int));
+    printf("NIST motoPlustTcpSvr: sizeof(long)=%ld\n", sizeof (long));
+    printf("NIST motoPlustTcpSvr: sizeof(LONG)=%ld\n", sizeof (LONG));
+    printf("NIST motoPlustTcpSvr: sizeof(ULONG)=%ld\n", sizeof (ULONG));
+    printf("NIST motoPlustTcpSvr: angleLen=%d\n", getAngleLen());
+    printf("NIST motoPlustTcpSvr: MP_GRP_AXES_NUM=%d\n", MP_GRP_AXES_NUM);
+    printf("NIST motoPlustTcpSvr: MP_FCS_AXES_NUM=%d\n", MP_FCS_AXES_NUM);
+    printf("NIST motoPlustTcpSvr: sizeof(MP_CART_POS_RSP_DATA)=%ld\n", sizeof (MP_CART_POS_RSP_DATA));
+    printf("NIST motoPlustTcpSvr: sizeof(MP_TARGET)=%ld\n", sizeof (MP_TARGET));
+    printf("NIST motoPlustTcpSvr: sizeof(MP_COORD)=%ld\n", sizeof (MP_COORD));
+    printf("NIST motoPlustTcpSvr: MP_R1_GID = %d\n", MP_R1_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_R1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R1_GID));
+    printf("NIST motoPlustTcpSvr: MP_R2_GID = %d\n", MP_R2_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_R2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_R2_GID));
+    printf("NIST motoPlustTcpSvr: MP_B1_GID = %d\n", MP_B1_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_B1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B1_GID));
+    printf("NIST motoPlustTcpSvr: MP_B2_GID = %d\n", MP_B2_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_B2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_B2_GID));
+    printf("NIST motoPlustTcpSvr: MP_S1_GID = %d\n", MP_S1_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_S1_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S1_GID));
+    printf("NIST motoPlustTcpSvr: MP_S2_GID = %d\n", MP_S2_GID);
+    printf("NIST motoPlustTcpSvr: mpCtrlGrpId2GrpNo(MP_S2_GID) = %d\n", mpCtrlGrpId2GrpNo(MP_S2_GID));
 }
 
 void runAcceptTcpClientsTask(ULONG portNo) {
@@ -69,20 +131,20 @@ void runAcceptTcpClientsTask(ULONG portNo) {
     int requestsHandled = 0;
     int exceptCount = 0;
     int failCount = 0;
-    printf("sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
+    printf("NIST motoPlustTcpSvr: sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
     memset(clientHandles, 0, sizeof (clientHandles));
 
     /*
-        printf("sizeof(taskIdArray)=  %ld\n", sizeof (taskIdArray));
+        printf("NIST motoPlustTcpSvr: sizeof(taskIdArray)=  %ld\n", sizeof (taskIdArray));
         memset(taskIdArray, 0, sizeof (taskIdArray));
      */
 
-    printf("TCP server starting for port %ld\n", portNo);
+    printf("NIST motoPlustTcpSvr: TCP server starting for port %ld\n", portNo);
 
     sockHandle = mpSocket(AF_INET, SOCK_STREAM, 0);
     if (sockHandle < 0) {
-        printf("socket returned %d\n", sockHandle);
-        printf("Error = %s\n", strerror(errno));
+        printf("NIST motoPlustTcpSvr: socket returned %d\n", sockHandle);
+        printf("NIST motoPlustTcpSvr: Error = %s\n", strerror(errno));
         return;
     }
 
@@ -91,22 +153,22 @@ void runAcceptTcpClientsTask(ULONG portNo) {
     serverSockAddr.sin_addr.s_addr = INADDR_ANY;
     serverSockAddr.sin_port = mpHtons(portNo);
     /*
-        printf("portNo=%us\n", serverSockAddr.sin_port);
+        printf("NIST motoPlustTcpSvr: portNo=%us\n", serverSockAddr.sin_port);
      */
-    printf("Binding socket.\n");
+    printf("NIST motoPlustTcpSvr: Binding socket.\n");
     rc = mpBind(sockHandle, (struct sockaddr *) &serverSockAddr, sizeof (serverSockAddr));
 
     if (rc < 0) {
-        printf("Bind returned %d\n", rc);
-        printf("Error = %s\n", strerror(errno));
+        printf("NIST motoPlustTcpSvr: Bind returned %d\n", rc);
+        printf("NIST motoPlustTcpSvr: Error = %s\n", strerror(errno));
         goto closeSockHandle;
     }
 
-    printf("Listen socket.\n");
+    printf("NIST motoPlustTcpSvr: Listen socket.\n");
     rc = mpListen(sockHandle, SOMAXCONN);
     if (rc < 0) {
-        printf("Listen returned %d\n", rc);
-        printf("Error = %s\n", strerror(errno));
+        printf("NIST motoPlustTcpSvr: Listen returned %d\n", rc);
+        printf("NIST motoPlustTcpSvr: Error = %s\n", strerror(errno));
         goto closeSockHandle;
     }
 
@@ -128,61 +190,61 @@ void runAcceptTcpClientsTask(ULONG portNo) {
             }
         }
         /*
-                printf("Calling select(%d,%p,NULL,%p,NULL) ...\n", (maxFd + 1), &readFdSet, &exceptFdSet);
+                printf("NIST motoPlustTcpSvr: Calling select(%d,%p,NULL,%p,NULL) ...\n", (maxFd + 1), &readFdSet, &exceptFdSet);
          */
         selectRet = mpSelect(maxFd + 1, &readFdSet, NULL, &exceptFdSet, NULL);
 
         /*
-                printf("select returned %d\n", selectRet);
+                printf("NIST motoPlustTcpSvr: select returned %d\n", selectRet);
          */
         if (selectRet <= 0) {
-            printf("mpSelect returned %d\n", selectRet);
-            printf("Error = %s\n", strerror(errno));
+            printf("NIST motoPlustTcpSvr: mpSelect returned %d\n", selectRet);
+            printf("NIST motoPlustTcpSvr: Error = %s\n", strerror(errno));
             for (i = 0; i < maxClientHandleIndex; i++) {
-                printf("clientHandles[i=%d]=%d\n",
+                printf("NIST motoPlustTcpSvr: clientHandles[i=%d]=%d\n",
                         i, clientHandles[i]);
                 if (clientHandles[i] > 0) {
-                    printf("closing clientHandles[i=%d]=%d\n",
+                    printf("NIST motoPlustTcpSvr: closing clientHandles[i=%d]=%d\n",
                             i, clientHandles[i]);
                     mpClose(clientHandles[i]);
                 }
                 clientHandles[i] = 0;
-                printf("setting clientHandles[i=%d]=%d\n",
+                printf("NIST motoPlustTcpSvr: setting clientHandles[i=%d]=%d\n",
                         i, clientHandles[i]);
             }
-            printf("maxFd=%d\n", maxFd);
-            printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
+            printf("NIST motoPlustTcpSvr: maxFd=%d\n", maxFd);
+            printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n", maxClientHandleIndex);
             maxClientHandleIndex = 0;
-            printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
+            printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n", maxClientHandleIndex);
             continue;
         }
         if (FD_ISSET(sockHandle, &readFdSet)) {
             memset(&clientSockAddr, 0, sizeof (clientSockAddr));
             sizeofSockAddr = sizeof (clientSockAddr);
             acceptHandle = mpAccept(sockHandle, (struct sockaddr *) &clientSockAddr, &sizeofSockAddr);
-            printf("tcpSvr: acceptHandle=%d\n", acceptHandle);
+            printf("NIST motoPlustTcpSvr: acceptHandle=%d\n", acceptHandle);
             printTcpSvrInfo();
             if (acceptHandle <= 0) {
                 continue;
             }
             emptyIndexFound = 0;
             for (i = 0; i < maxClientHandleIndex; i++) {
-                printf("clientHandles[i=%d]=%d\n",
+                printf("NIST motoPlustTcpSvr: clientHandles[i=%d]=%d\n",
                         i, clientHandles[i]);
                 if (clientHandles[i] < 2) {
                     emptyIndexFound = 1;
                     clientHandles[i] = acceptHandle;
-                    printf("Setting clientHandles[i=%d]=%d\n",
+                    printf("NIST motoPlustTcpSvr: Setting clientHandles[i=%d]=%d\n",
                             i, clientHandles[i]);
                     break;
                 }
             }
             if (emptyIndexFound == 0) {
                 if (maxClientHandleIndex >= MAX_CLIENT_HANDLES) {
-                    printf("Too many open socket handle\n");
+                    printf("NIST motoPlustTcpSvr: Too many open socket handle\n");
                     mpClose(acceptHandle);
                     for (i = 0; i < maxClientHandleIndex; i++) {
-                        printf("clientHandles[i=%d]=%d\n",
+                        printf("NIST motoPlustTcpSvr: clientHandles[i=%d]=%d\n",
                                 i, clientHandles[i]);
                         if (clientHandles[i] > 0) {
                             mpClose(clientHandles[i]);
@@ -190,44 +252,46 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                         clientHandles[i] = 0;
                     }
                     maxClientHandleIndex = 0;
-                    printf("sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
+                    printf("NIST motoPlustTcpSvr: sizeof(clientHandles)=  %ld\n", sizeof (clientHandles));
                     memset(clientHandles, 0, sizeof (clientHandles));
                     continue;
                 }
                 clientHandles[maxClientHandleIndex] = acceptHandle;
-                printf("clientHandles[maxClientHandleIndex=%d]=%d\n",
+                printf("NIST motoPlustTcpSvr: clientHandles[maxClientHandleIndex=%d]=%d\n",
                         maxClientHandleIndex, clientHandles[maxClientHandleIndex]);
                 maxClientHandleIndex++;
-                printf("maxClientHandleIndex=%d\n", maxClientHandleIndex);
+                printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n", maxClientHandleIndex);
             }
         }
         for (i = 0; i < maxClientHandleIndex; i++) {
             if (clientHandles[i] > 0) {
                 if (FD_ISSET(clientHandles[i], &exceptFdSet)) {
-                    printf("exceptFdSet set for clientHandle\n");
-                    printf("Closing clientHandles[i=%d]=%d\n",
+                    printf("NIST motoPlustTcpSvr: exceptFdSet set for clientHandle\n");
+                    printf("NIST motoPlustTcpSvr: Closing clientHandles[i=%d]=%d\n",
                             i, clientHandles[i]);
                     mpClose(clientHandles[i]);
                     clientHandles[i] = 0;
                 }
                 if (FD_ISSET(clientHandles[i], &readFdSet)) {
                     requestsHandled++;
-                    if (requestsHandled % 25 == 0) {
-                        printf("requestsHandled=%d\n",
+                    if (requestsHandled % 200 == 0) {
+                        printf("NIST motoPlustTcpSvr: requestsHandled=%d\n",
                                 requestsHandled);
+						printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n",
+							maxClientHandleIndex);
                     }
                     if (handleSingleConnection(clientHandles[i]) != 0) {
                         failCount++;
-                        printf("handleSingleConnection() returned non-zero\n");
-                        printf("Closing clientHandles[i=%d]=%d\n",
+                        printf("NIST motoPlustTcpSvr: handleSingleConnection() returned non-zero\n");
+                        printf("NIST motoPlustTcpSvr: Closing clientHandles[i=%d]=%d\n",
                                 i, clientHandles[i]);
-                        printf("failCount=%d\n",
+                        printf("NIST motoPlustTcpSvr: failCount=%d\n",
                                 failCount);
-                        printf("requestsHandled=%d\n",
+                        printf("NIST motoPlustTcpSvr: requestsHandled=%d\n",
                                 requestsHandled);
                         mpClose(clientHandles[i]);
                         clientHandles[i] = 0;
-                        printf("setting clientHandles[i=%d]=%d\n",
+                        printf("NIST motoPlustTcpSvr: setting clientHandles[i=%d]=%d\n",
                                 i, clientHandles[i]);
                     }
                 }
@@ -237,18 +301,18 @@ void runAcceptTcpClientsTask(ULONG portNo) {
         /*
                 taskIdArray[taskSpawnCounter % 100] = mpCreateTask(MP_PRI_TIME_NORMAL, MP_STACK_SIZE, (FUNCPTR) handleSingleConnection,
                         acceptHandle, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-                printf("tcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter);
-                printf("tcpSvr: taskIdArray[taskSpawnCounter%%100] = %d\n", taskIdArray[taskSpawnCounter % 100]);
+                printf("NIST motoPlustTcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter);
+                printf("NIST motoPlustTcpSvr: taskIdArray[taskSpawnCounter%%100] = %d\n", taskIdArray[taskSpawnCounter % 100]);
                 taskSpawnCounter++;
-                printf("tcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter);
+                printf("NIST motoPlustTcpSvr: taskSpawnCounter = %d\n", taskSpawnCounter);
          */
     }
 closeSockHandle:
     mpClose(sockHandle);
 
-    printf("maxClientHandleIndex=%d\n",
+    printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n",
             maxClientHandleIndex);
-    printf("requestsHandled=%d\n",
+    printf("NIST motoPlustTcpSvr: requestsHandled=%d\n",
             requestsHandled);
     return;
 }

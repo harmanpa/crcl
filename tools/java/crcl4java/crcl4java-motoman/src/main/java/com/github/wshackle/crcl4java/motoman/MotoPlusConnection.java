@@ -80,6 +80,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -1735,57 +1736,75 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     private AtomicInteger statusCount = new AtomicInteger();
-    
-    public MpcStatus readMpcStatusOnly(CommandStateEnumType localOrigCommandState) throws MotoPlusConnectionException, IOException {
+
+    public MpcStatus readMpcStatusOnly(CommandStateEnumType localOrigCommandState, boolean withJoints, boolean getAlarmStatus) throws MotoPlusConnectionException, IOException {
         if (!this.isConnected()) {
             throw new MotoPlusConnectionException("Not connected");
         }
         int lastSentId = lastSentTargetId.get();
 
-        MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId,statusCount.incrementAndGet());
+        MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId, statusCount.incrementAndGet(), withJoints, getAlarmStatus);
         return mpcStatus;
     }
 
     public MpcStatus readMpcStatus(
             CommandStateEnumType localOrigCommandState,
             int lastSentId,
-            int statusCount) throws MotoPlusConnectionException, IOException {
+            int statusCount,
+            boolean withJoints,
+            boolean getAlarmStatus) throws MotoPlusConnectionException, IOException {
         Starter mpcStarter = this.getStarter();
         int ctrlGroup = 0;
         MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
         cartData[0] = new MP_CART_POS_RSP_DATA();
         MP_CART_POS_RSP_DATA pos = cartData[0];
+        long t[] = new long[10];
+        long t0 = System.currentTimeMillis();
         mpcStarter.startMpGetCartPos(ctrlGroup, cartData);
+        t[0] = System.currentTimeMillis() - t0;
         MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
         pulseData[0] = new MP_PULSE_POS_RSP_DATA();
-        mpcStarter.startMpGetPulsePos(ctrlGroup, pulseData);
+        if (withJoints) {
+            mpcStarter.startMpGetPulsePos(ctrlGroup, pulseData);
+        }
+        t[1] = System.currentTimeMillis() - t0;
         final boolean doMpGetMode = localOrigCommandState != CRCL_ERROR || lastErrorWasWrongMode;
+        System.out.println("doMpGetMode = " + doMpGetMode);
         if (doMpGetMode) {
             starter.startMpGetMode();
         }
         final boolean doMpMotTargetRecieve = localOrigCommandState == CRCL_WORKING && lastSentId != lastRecvdTargetId;
         int recvId[] = new int[1];
         recvId[0] = lastRecvdTargetId;
+        t[2] = System.currentTimeMillis() - t0;
         if (doMpMotTargetRecieve) {
             starter.startMpMotTargetReceive(0, lastSentId, 0, MotoPlusConnection.NO_WAIT);;
         }
-         if (localOrigCommandState != CRCL_ERROR) {
-             starter.startMpGetAlarmStatus();
-         }
+        if (getAlarmStatus) {
+            starter.startMpGetAlarmStatus();
+        }
+        t[3] = System.currentTimeMillis() - t0;
+
         Returner mpcReturner = this.getReturner();
         boolean getCartPosRet = mpcReturner.getCartPosReturn(cartData);
-        boolean getPulsePosRet = mpcReturner.getPulsePosReturn(pulseData);
+        t[4] = System.currentTimeMillis() - t0;
 
         if (!getCartPosRet) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
-        if (!getPulsePosRet) {
-            throw new MotoPlusConnectionException("mpGetPulsePos returned false");
+        if (withJoints) {
+            boolean getPulsePosRet = mpcReturner.getPulsePosReturn(pulseData);
+            if (!getPulsePosRet) {
+                throw new MotoPlusConnectionException("mpGetPulsePos returned false");
+            }
         }
+        t[5] = System.currentTimeMillis() - t0;
+
         MP_MODE_DATA modeData = null;
         if (doMpGetMode) {
             modeData = mpcReturner.getModeReturn();
         }
+        t[6] = System.currentTimeMillis() - t0;
 
         MotCtrlReturnEnum motTargetReceiveRet = null;
 
@@ -1794,6 +1813,8 @@ public class MotoPlusConnection implements AutoCloseable {
 //                        System.out.println("lastRecvdTargetId = " + lastRecvdTargetId);
             motTargetReceiveRet = returner.getMpMotTargetReceiveReturn(recvId);
         }
+        t[7] = System.currentTimeMillis() - t0;
+
         if (localOrigCommandState != CRCL_ERROR) {
             lastErrorWasWrongMode = false;
         }
@@ -1805,14 +1826,17 @@ public class MotoPlusConnection implements AutoCloseable {
         }
         MP_ALARM_STATUS_DATA alarmStatusData = null;
         MP_ALARM_CODE_DATA alarmCodeData = null;
-        if (localOrigCommandState != CRCL_ERROR) {
+        if (getAlarmStatus) {
             alarmStatusData = returner.getAlarmStatusReturn();
+            t[8] = System.currentTimeMillis() - t0;
+            System.out.println("alarmStatusData.sIsAlarm = " + alarmStatusData.sIsAlarm);
             if (alarmStatusData.sIsAlarm != 0) {
                 alarmCodeData = this.mpGetAlarmCode();
             }
         }
-
-        MpcStatus mpcStatus = new MpcStatus(pos, pulseData[0], motTargetReceiveRet, modeData, alarmCodeData, alarmStatusData, recvId[0],statusCount);
+        t[9] = System.currentTimeMillis() - t0;
+        System.out.println("t = " + Arrays.toString(t));
+        MpcStatus mpcStatus = new MpcStatus(pos, withJoints?pulseData[0]:null, motTargetReceiveRet, modeData, getAlarmStatus?alarmCodeData:null, getAlarmStatus?alarmStatusData:null, recvId[0], statusCount);
         return mpcStatus;
     }
 
