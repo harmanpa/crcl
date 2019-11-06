@@ -1193,6 +1193,7 @@ public class CrclSwingClientJPanel
             int callCount = pollStatusCallCount.incrementAndGet();
             polling = true;
             lastPollStatusStartPollStopCount = startPollStopCount;
+            final int poll_ms = internal.getPoll_ms();
             while (continuePolling(startPollStopCount)) {
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
@@ -1202,7 +1203,11 @@ public class CrclSwingClientJPanel
                 if (!(continuePolling(startPollStopCount))) {
                     return;
                 }
-                Thread.sleep(internal.getPoll_ms());
+                if (poll_ms >= 10) {
+                    Thread.sleep(poll_ms);
+                } else {
+                    Thread.sleep(10);
+                }
                 long endCycleTime = System.currentTimeMillis();
                 long pollStatusCycleTime = endCycleTime - requestStatusStartTime;
                 if (pollStatusCycleTime > maxPollStatusCycleTime) {
@@ -1244,6 +1249,8 @@ public class CrclSwingClientJPanel
     private Future<?> startPollTimer() {
         this.stopPollTimer();
 
+        jTextFieldPollTime.setEditable(false);
+        jTextFieldPollTime.setEnabled(false);
         int startPollStopCount = pollStopCount.incrementAndGet();
         ExecutorService service = this.pollStatusService;
         if (null == service) {
@@ -5496,16 +5503,24 @@ public class CrclSwingClientJPanel
     private void jCheckBoxPollActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxPollActionPerformed
         this.stopPollTimer();
         if (this.jCheckBoxPoll.isSelected() && internal.isConnected()) {
+            jTextFieldPollTime.setEditable(false);
+            jTextFieldPollTime.setEnabled(false);
             this.startPollTimer();
+        } else {
+            jTextFieldPollTime.setEditable(true);
+            jTextFieldPollTime.setEnabled(true);
         }
     }//GEN-LAST:event_jCheckBoxPollActionPerformed
 
     private void jTextFieldPollTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPollTimeActionPerformed
-        int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
-        internal.setPoll_ms(new_poll_ms);
-        this.stopPollTimer();
-        if (this.jCheckBoxPoll.isSelected()) {
-            this.startPollTimer();
+
+        if (!this.jCheckBoxPoll.isSelected()) {
+            int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
+            if (new_poll_ms < 10) {
+                new_poll_ms = 10;
+                this.jTextFieldPollTime.setText("10");
+            }
+            internal.setPoll_ms(new_poll_ms);
         }
     }//GEN-LAST:event_jTextFieldPollTimeActionPerformed
 
@@ -5700,7 +5715,7 @@ public class CrclSwingClientJPanel
     private void jButtonPlotStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotStatusActionPerformed
         try {
             plotterJFrame plotterFrame = new plotterJFrame();
-            plotterFrame.LoadObjectsList("status", internal.getTimeStampedStatusList());
+            plotterFrame.LoadObjectsList("", internal.getTimeStampedStatusList());
             plotterFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             plotterFrame.setVisible(true);
         } catch (NoSuchFieldException ex) {

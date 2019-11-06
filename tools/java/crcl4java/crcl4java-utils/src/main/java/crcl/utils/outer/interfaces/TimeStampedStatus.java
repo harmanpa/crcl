@@ -28,7 +28,6 @@ import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
-import crcl.base.SensorStatusType;
 import crcl.base.SensorStatusesType;
 
 /**
@@ -43,11 +42,12 @@ public class TimeStampedStatus {
     public final double cmdId;
     public final double absTime;
     public final double relTime;
+    public final double timeDiff;
     public final double fx;
     public final double fy;
     public final double fz;
 
-    public TimeStampedStatus(CRCLStatusType status, long absTime, long relTime) {
+    public TimeStampedStatus(CRCLStatusType status, long absTime, long relTime, long timediff) {
         final PoseStatusType poseStatus = status.getPoseStatus();
         final PoseType pose = (poseStatus != null) ? poseStatus.getPose() : null;
         final PointType point = (pose != null) ? pose.getPoint() : null;
@@ -65,6 +65,7 @@ public class TimeStampedStatus {
         cmdId = (double) ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
         this.absTime = absTime * 1e-3;
         this.relTime = relTime * 1e-3;
+        this.timeDiff = timediff *1e-3;
     }
 
 }
