@@ -4361,7 +4361,9 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jTextFieldPollTime.setEditable(false);
         jTextFieldPollTime.setText("50");
+        jTextFieldPollTime.setEnabled(false);
         jTextFieldPollTime.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldPollTimeActionPerformed(evt);
@@ -5502,10 +5504,12 @@ public class CrclSwingClientJPanel
 
     private void jCheckBoxPollActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxPollActionPerformed
         this.stopPollTimer();
-        if (this.jCheckBoxPoll.isSelected() && internal.isConnected()) {
+        if (this.jCheckBoxPoll.isSelected()) {
             jTextFieldPollTime.setEditable(false);
             jTextFieldPollTime.setEnabled(false);
-            this.startPollTimer();
+            if(internal.isConnected()) {
+                this.startPollTimer();
+            }
         } else {
             jTextFieldPollTime.setEditable(true);
             jTextFieldPollTime.setEnabled(true);
