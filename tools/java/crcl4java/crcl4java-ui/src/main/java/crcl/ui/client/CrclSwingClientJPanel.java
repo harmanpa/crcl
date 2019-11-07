@@ -4271,7 +4271,7 @@ public class CrclSwingClientJPanel
             .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 801, Short.MAX_VALUE)
+                    .addComponent(jScrollPane7)
                     .addGroup(jPanelCommandStatusLogOuterLayout.createSequentialGroup()
                         .addComponent(jCheckBoxPauseCommandStatusLog)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4284,13 +4284,13 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonShowCommandStatusLogFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonPlotStatus)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(0, 451, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelCommandStatusLogOuterLayout.setVerticalGroup(
             jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelCommandStatusLogOuterLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addGroup(jPanelCommandStatusLogOuterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxPauseCommandStatusLog)
                     .addComponent(jLabel19)
@@ -4299,7 +4299,7 @@ public class CrclSwingClientJPanel
                     .addComponent(jButtonShowCommandStatusLogFile)
                     .addComponent(jButtonPlotStatus))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 547, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 563, Short.MAX_VALUE)
                 .addContainerGap())
         );
 

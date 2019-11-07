@@ -262,13 +262,15 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private volatile MpcStatus lastMpcStatus = null;
 
-    public XFuture<CRCLStatusType> getCrclStatusFuture(boolean withJoints, boolean withAlarmStatus) {
+    public XFuture<CRCLStatusType> getCrclStatusFuture(boolean withJoints, boolean withAlarmModeStatus) {
         long time = System.currentTimeMillis();
         long status_time_diff = time - last_status_update_time;
         long cmd_time_diff = time - last_command_time;
         if (status_time_diff > 50) {
             updatesSinceCommand.incrementAndGet();
+
             try {
+
                 final CommandStatusType commandStatusLocal = getCommandStatus();
                 if (null == mpc || !mpc.isConnected()) {
                     setStateDescription(commandStatusLocal, CRCL_ERROR, "Not connected to Robot.");
@@ -278,6 +280,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 CRCLStatusType crclLocalStatus = this.crclStatus;
                 final CommandStateEnumType localOrigCommandState = getCommandState();
                 MotoPlusConnection mpcLocal = this.mpc;
+                final int prevLastRecvdTargetId = mpcLocal.getLastRecvdTargetId();
                 final boolean lastErrorWasWrongMode = mpcLocal.isLastErrorWasWrongMode();
                 int lastSentId = mpcLocal.getLastSentTargetId().get();
                 MpcStatus mpcStatus = mpcLocal.readMpcStatus(
@@ -285,7 +288,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                         lastSentId,
                         (int) crclLocalStatus.getCommandStatus().getStatusID(),
                         withJoints,
-                        withAlarmStatus);
+                        withAlarmModeStatus);
 
                 this.lastMpcStatus = mpcStatus;
                 MP_ALARM_STATUS_DATA alarmStatusData = mpcStatus.getAlarmStatusData();
@@ -303,7 +306,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 if (null != pulseData) {
                     System.arraycopy(pulseData.lPos, 0, lastJointPos, 0, lastJointPos.length);
                     if (localOrigCommandState == CRCL_WORKING) {
-                        if (lastSentId != mpcLocal.getLastRecvdTargetId()) {
+                        if (lastSentId != prevLastRecvdTargetId) {
 //                        System.out.println("lastSentTargetId = " + lastSentTargetId);
 //                        System.out.println("mpcLocal.getLastRecvdTargetId () = " + mpcLocal.getLastRecvdTargetId ());
                             MotCtrlReturnEnum motTargetReceiveRet = mpcStatus.getMotTargetReceiveRet();
@@ -314,18 +317,21 @@ public class MotomanCRCLServer implements AutoCloseable {
                                         System.out.println("recvId = " + recvId);
                                     }
                                 }
-                                if (lastSentId == mpcLocal.getLastRecvdTargetId()) {
+                                if (lastSentId == recvId) {
                                     if (lastCommand instanceof ActuateJointsType) {
                                         recheckJoints(pulseData, recvId);
                                     } else {
                                         recheckCoordTarget(pos);
                                     }
                                 }
-                            } else {
+                            } else if (motTargetReceiveRet != MotCtrlReturnEnum.E_MP_MOT_FAILURE) {
+                                // MotCtrlReturnEnum.E_MP_MOT_FAILURE occurs to frequently for unknown reasons so it is ignored.
                                 System.out.println("recvId = " + recvId);
+                                System.err.println("motTargetReceiveRet = " + motTargetReceiveRet);
                                 System.err.println("cmd_time_diff=" + cmd_time_diff);
                                 System.err.println("updatesSinceCommand = " + updatesSinceCommand.get());
                                 System.err.println("lastCommand=" + lastCommand);
+                                setStateDescription(commandStatusLocal, CRCL_ERROR, "motTargetReceiveRet=" + motTargetReceiveRet);
                             }
                         }
                         if (dwelling && System.currentTimeMillis() > dwellEnd) {
@@ -721,12 +727,20 @@ public class MotomanCRCLServer implements AutoCloseable {
         }
         MotCtrlReturnEnum targetJointSendRet
                 = mpc.mpMotTargetJointSend(1, tgt, MotoPlusConnection.NO_WAIT);
+        if (targetJointSendRet != MotCtrlReturnEnum.SUCCESS) {
+            setStateDescription(CommandStateEnumType.CRCL_ERROR, "targetJointSendRet=" + targetJointSendRet);
+            return;
+        }
         if (debug) {
             System.out.println("targetJointSendRet = " + targetJointSendRet);
         }
 
         MotCtrlReturnEnum motStartRet
                 = mpc.mpMotStart(0);
+        if (motStartRet != MotCtrlReturnEnum.SUCCESS) {
+            setStateDescription(CommandStateEnumType.CRCL_ERROR, "motStartRet=" + motStartRet);
+            return;
+        }
         if (debug) {
             System.out.println("motStartRet = " + motStartRet);
             System.out.println("lastSentTargetId = " + mpc.getLastSentTargetId().get());
@@ -750,7 +764,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             final long currentTimeMillis = System.currentTimeMillis();
             final long timeDiff = currentTimeMillis - initCanonTime;
 
-            if (timeDiff < 10000) {
+            if (timeDiff > 10000) {
                 stopMotion();
                 if (!mpc.mpGetServoPower()) {
                     mpc.mpSetServoPower(true);
@@ -808,7 +822,7 @@ public class MotomanCRCLServer implements AutoCloseable {
     }
 
     private volatile long alarmCheckTime = -1;
-    private volatile long alarmDiffMax = 200;
+    private volatile long alarmDiffMax = 500;
 
     private void handleNewCommandFromServerSocket(CRCLCommandType cmd, CRCLServerSocketEvent<MotomanClientState> event) throws Exception {
         if (cmd instanceof GetStatusType) {
@@ -899,10 +913,17 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private boolean checkAlarms() {
         final long now = System.currentTimeMillis();
+        final long alarmTimeDiff = now - alarmCheckTime;
+        final long commandTimeDiff = now - last_command_time;
         final boolean withAlarm
-                = (lastCommand instanceof InitCanonType && (now - last_command_time) < (5 * alarmDiffMax))
-                || (lastCommand instanceof EndCanonType && (now - last_command_time) < (5 * alarmDiffMax))
-                || (now - alarmCheckTime) > alarmDiffMax;
+                = (lastCommand instanceof InitCanonType && (commandTimeDiff) < (5 * alarmDiffMax))
+                || (lastCommand instanceof EndCanonType && (commandTimeDiff) < (5 * alarmDiffMax))
+                || alarmTimeDiff > alarmDiffMax;
+//        if (withAlarm) {
+//            System.out.println("alarmTimeDiff = " + alarmTimeDiff);
+//            System.out.println("commandTimeDiff = " + commandTimeDiff);
+//            System.out.println("lastCommand = " + lastCommand);
+//        }
         return withAlarm;
     }
 

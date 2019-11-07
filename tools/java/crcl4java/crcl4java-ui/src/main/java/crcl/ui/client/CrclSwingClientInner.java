@@ -1499,7 +1499,7 @@ public class CrclSwingClientInner {
                 System.err.println("Unpausing to complete abort.");
                 unpause();
                 runProgramAbortCount.incrementAndGet();
-                Thread.sleep(50);
+                Thread.sleep(waitForDoneDelay);
                 runProgramAbortCount.incrementAndGet();
                 pause();
                 runProgramAbortCount.incrementAndGet();
@@ -2586,7 +2586,7 @@ public class CrclSwingClientInner {
                 try {
                     crclSocket.close();
 
-                    Thread.sleep(100);
+                    Thread.sleep(waitForDoneDelay);
                 } catch (Exception ex) {
                     if (!preClosing) {
                         LOGGER.log(Level.SEVERE, "crclSocket=" + crclSocket, ex);
@@ -2601,7 +2601,7 @@ public class CrclSwingClientInner {
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
                 try {
                     crclEmergencyStopSocket.close();
-                    Thread.sleep(100);
+                    Thread.sleep(waitForDoneDelay);
                 } catch (Exception ex) {
                     if (!preClosing) {
                         LOGGER.log(Level.SEVERE, "crclEmergencyStopSocket=" + crclEmergencyStopSocket, ex);
@@ -2616,7 +2616,7 @@ public class CrclSwingClientInner {
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
                 try {
                     crclStatusPollingSocket.close();
-                    Thread.sleep(100);
+                    Thread.sleep(waitForDoneDelay);
                 } catch (Exception ex) {
                     if (!preClosing) {
                         LOGGER.log(Level.SEVERE, "crclStatusPollingSocket=" + crclStatusPollingSocket, ex);
@@ -4752,12 +4752,12 @@ public class CrclSwingClientInner {
                             readStatus(crclSocket1);
                         }
                     }
-                    boolean waitForStatusResult = waitForStatus(100, 50, pause_count_start, startingRunProgramAbortCount);
+                    boolean waitForStatusResult = waitForStatus(100+2*waitForDoneDelay, waitForDoneDelay, pause_count_start, startingRunProgramAbortCount);
                     wfdResult = waitForDone(id, timeout, pause_count_start, ccc_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
                         break;
                     }
-                    Thread.sleep(100);
+                    Thread.sleep(waitForDoneDelay);
                     this.waitForPause(startingRunProgramAbortCount);
                     rpac = runProgramAbortCount.get();
                     if (rpac != startingRunProgramAbortCount) {
