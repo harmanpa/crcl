@@ -2227,8 +2227,11 @@ public class CrclSwingClientInner {
             } else {
                 readSocket.setStatusStringInputFilter(x -> x);
             }
+            long readStatusStartTime = System.currentTimeMillis();
             final CRCLStatusType curStatus
                     = readSocket.readStatus(validateXmlSchema);
+            long readStatusEndTime = System.currentTimeMillis();
+            long readStatusTimeDiff = readStatusEndTime - readStatusStartTime;
             if (curStatus == null) {
                 throw new NullPointerException("readSocket.readStatus(validateXmlSchema)");
             }
@@ -2236,6 +2239,7 @@ public class CrclSwingClientInner {
             addStatusToCommandStatusLog(curStatus);
             outer.updateCommandStatusLog(commandStatusLog);
             if (menuOuterLocal.isDebugReadStatusSelected()) {
+                outer.showDebugMessage("readStatusTimeDiff = " + readStatusTimeDiff);
                 //outer.showDebugMessage("curStatus = "+curStatus);
                 String statString = readSocket.getLastStatusString();
                 outer.showDebugMessage("crclSocket.getLastStatusString() = " + statString);
@@ -2364,6 +2368,8 @@ public class CrclSwingClientInner {
         return crclSocket.getInetAddress();
     }
 
+    private volatile long lastAddStatusTime = 0;
+
     public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
         long curTime = System.currentTimeMillis();
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
@@ -2412,11 +2418,12 @@ public class CrclSwingClientInner {
                 (null != crclSocket) ? getCrclSocketString() : "");
         lastCommandStatusLogElement = statEl;
         commandStatusLog.add(statEl);
-        if(absStatLogStartTime < 1) {
+        if (absStatLogStartTime < 1) {
             absStatLogStartTime = curTime;
+            lastAddStatusTime = curTime;
         }
-        timeStampedStatusLog.add(new TimeStampedStatus(curStatus, curTime,curTime-absStatLogStartTime));
-
+        timeStampedStatusLog.add(new TimeStampedStatus(curStatus, curTime, curTime - absStatLogStartTime, curTime - lastAddStatusTime));
+        lastAddStatusTime = curTime;
         while (commandStatusLog.size() > maxLogSize) {
             commandStatusLog.pollFirst();
         }
@@ -2424,7 +2431,7 @@ public class CrclSwingClientInner {
             timeStampedStatusLog.pollFirst();
         }
     }
-    private volatile long absStatLogStartTime = -1; 
+    private volatile long absStatLogStartTime = -1;
 
     public boolean isConnected() {
         return null != this.crclSocket && this.crclSocket.isConnected() && !this.crclSocket.isClosed();
@@ -5147,6 +5154,9 @@ public class CrclSwingClientInner {
     }
 
     public void setPoll_ms(int poll_ms) {
+        if(poll_ms < 10) {
+            throw new IllegalArgumentException("poll_ms="+poll_ms);
+        }
         this.poll_ms = poll_ms;
     }
 
@@ -5320,9 +5330,15 @@ public class CrclSwingClientInner {
             throw new RuntimeException("requestAndReadExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
         }
     }
-
+    
+    private volatile long lastInternalRequestAndReadStatusTimeDiff = -1;
+    private volatile long lastInternalRequestAndReadStatusBetweenTime = -1;
+    private volatile long lastInternalRequestAndReadStatusEndTime = -1;
+    private final AtomicInteger internalRequestAndReadStatusCount = new AtomicInteger();
+    
     private synchronized CRCLStatusType internalRequestAndReadStatus(CRCLSocket crclReadSocket) {
         try {
+            int count = internalRequestAndReadStatusCount.incrementAndGet();
             if (crclReadSocket == this.crclSocket) {
                 checkCrclActionThread();
                 if (isUnpausing()) {
@@ -5334,7 +5350,12 @@ public class CrclSwingClientInner {
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
                 throw new RuntimeException("prepRunCurrentProgram.disconnecting");
             }
+            long requestStatusStartTime = System.currentTimeMillis();
+            lastInternalRequestAndReadStatusBetweenTime = requestStatusStartTime -lastInternalRequestAndReadStatusEndTime;
+//            System.out.println("lastInternalRequestAndReadStatusBetweenTime = " + lastInternalRequestAndReadStatusBetweenTime);
             boolean requestStatusResult = requestStatus(crclReadSocket);
+            long requestStatusEndTime = System.currentTimeMillis();
+            long requestStatusDiffTime = requestStatusEndTime - requestStatusStartTime;
             if (disconnecting) {
                 System.err.println("disconnectThread = " + disconnectThread);
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
@@ -5344,6 +5365,10 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("requestStatus() returned false");
             }
             CRCLStatusType readStatusResult = readStatus(crclReadSocket);
+            long endTime =  System.currentTimeMillis();
+            lastInternalRequestAndReadStatusEndTime = endTime;
+            lastInternalRequestAndReadStatusTimeDiff = endTime - requestStatusStartTime;
+//            System.out.println("lastInternalRequestAndReadStatusTimeDiff = " + lastInternalRequestAndReadStatusTimeDiff);
             if (disconnecting) {
                 System.err.println("disconnectThread = " + disconnectThread);
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
