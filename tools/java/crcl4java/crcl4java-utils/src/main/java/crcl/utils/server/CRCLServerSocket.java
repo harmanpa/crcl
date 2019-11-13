@@ -1620,6 +1620,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                 }
                             } else {
                                 try {
+                                    socketToStateMap.remove(crclSocket);
                                     s.close();
                                     key.cancel();
                                     for (int j = 0; j < clients.size(); j++) {
@@ -1650,6 +1651,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
                             try {
                                 crclSocket.close();
+                                socketToStateMap.remove(crclSocket);
                                 for (int j = 0; j < clients.size(); j++) {
                                     CRCLServerClientInfo c = clients.get(j);
                                     if (Objects.equals(c.getSocket(), crclSocket)) {
