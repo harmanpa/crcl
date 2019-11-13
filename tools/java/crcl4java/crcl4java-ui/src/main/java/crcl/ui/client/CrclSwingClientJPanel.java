@@ -2326,6 +2326,15 @@ public class CrclSwingClientJPanel
         }
 
         stopPollTimer();
+        final XFutureVoid lastStartPollTimerFutureLocalCopy = this.lastStartPollTimerFuture;
+        if(null == lastStartPollTimerFutureLocalCopy || lastStartPollTimerFutureLocalCopy.isDone()) {
+            completeDisconnect();
+        } else {
+            lastStartPollTimerFutureLocalCopy.thenRun(this::completeDisconnect);
+        }
+    }
+
+    private void completeDisconnect() throws RuntimeException {
         internal.disconnect();
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;

@@ -1323,7 +1323,12 @@ public class CrclSwingClientInner {
             boolean ret = incAndSendCommand(cmd);
             return XFuture.completedFuture(ret);
         } else if (null != crclSocketActionExecutorService) {
-            return XFuture.supplyAsync("scheduleIncAndSendCommand", () -> incAndSendCommand(cmd), crclSocketActionExecutorService);
+            StackTraceElement callerTrace[] = Thread.currentThread().getStackTrace();
+            return XFuture.supplyAsync("scheduleIncAndSendCommand", () -> incAndSendCommand(cmd), crclSocketActionExecutorService)
+                    .peekNoCancelException((Throwable t) -> {
+                        System.out.println("callerTrace = " + Utils.traceToString(callerTrace));
+                        LOGGER.log(Level.SEVERE, "peekNoCancelException", t);
+                    });
         } else {
             throw new RuntimeException("crclSocketActionExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
         }
@@ -4759,7 +4764,7 @@ public class CrclSwingClientInner {
                             readStatus(crclSocket1);
                         }
                     }
-                    boolean waitForStatusResult = waitForStatus(100+2*waitForDoneDelay, waitForDoneDelay, pause_count_start, startingRunProgramAbortCount);
+                    boolean waitForStatusResult = waitForStatus(100 + 2 * waitForDoneDelay, waitForDoneDelay, pause_count_start, startingRunProgramAbortCount);
                     wfdResult = waitForDone(id, timeout, pause_count_start, ccc_start);
                     if (wfdResult != WaitForDoneResult.WFD_ERROR) {
                         break;
@@ -5154,8 +5159,8 @@ public class CrclSwingClientInner {
     }
 
     public void setPoll_ms(int poll_ms) {
-        if(poll_ms < 10) {
-            throw new IllegalArgumentException("poll_ms="+poll_ms);
+        if (poll_ms < 10) {
+            throw new IllegalArgumentException("poll_ms=" + poll_ms);
         }
         this.poll_ms = poll_ms;
     }
@@ -5330,12 +5335,12 @@ public class CrclSwingClientInner {
             throw new RuntimeException("requestAndReadExecutorService=" + crclSocketActionExecutorService + ", crclSocketActionThread=" + crclSocketActionThread + ", Thread.currentThread()=" + Thread.currentThread());
         }
     }
-    
+
     private volatile long lastInternalRequestAndReadStatusTimeDiff = -1;
     private volatile long lastInternalRequestAndReadStatusBetweenTime = -1;
     private volatile long lastInternalRequestAndReadStatusEndTime = -1;
     private final AtomicInteger internalRequestAndReadStatusCount = new AtomicInteger();
-    
+
     private synchronized CRCLStatusType internalRequestAndReadStatus(CRCLSocket crclReadSocket) {
         try {
             int count = internalRequestAndReadStatusCount.incrementAndGet();
@@ -5351,7 +5356,7 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("prepRunCurrentProgram.disconnecting");
             }
             long requestStatusStartTime = System.currentTimeMillis();
-            lastInternalRequestAndReadStatusBetweenTime = requestStatusStartTime -lastInternalRequestAndReadStatusEndTime;
+            lastInternalRequestAndReadStatusBetweenTime = requestStatusStartTime - lastInternalRequestAndReadStatusEndTime;
 //            System.out.println("lastInternalRequestAndReadStatusBetweenTime = " + lastInternalRequestAndReadStatusBetweenTime);
             boolean requestStatusResult = requestStatus(crclReadSocket);
             long requestStatusEndTime = System.currentTimeMillis();
@@ -5365,7 +5370,7 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("requestStatus() returned false");
             }
             CRCLStatusType readStatusResult = readStatus(crclReadSocket);
-            long endTime =  System.currentTimeMillis();
+            long endTime = System.currentTimeMillis();
             lastInternalRequestAndReadStatusEndTime = endTime;
             lastInternalRequestAndReadStatusTimeDiff = endTime - requestStatusStartTime;
 //            System.out.println("lastInternalRequestAndReadStatusTimeDiff = " + lastInternalRequestAndReadStatusTimeDiff);
