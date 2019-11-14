@@ -2035,12 +2035,12 @@ public class CrclSwingClientInner {
                 return null;
             }
             lastLogCmdTime = cel.getTime();
+            lastLogMoveToCmdPoint =null;
             if (cmd instanceof MoveToType) {
                 MoveToType moveTo = (MoveToType) cmd;
                 final PoseType endPosition = requireNonNull(moveTo.getEndPosition(), "moveTo.getEndPosition()");
                 PointType point = requireNonNull(endPosition.getPoint(), "endPosition.getPoint()");
                 lastLogMoveToCmdPoint = point;
-
                 return new Object[]{
                     getTimeString(cel.getTime()),
                     true,
