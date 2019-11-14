@@ -2040,6 +2040,7 @@ public class CrclSwingClientInner {
                 final PoseType endPosition = requireNonNull(moveTo.getEndPosition(), "moveTo.getEndPosition()");
                 PointType point = requireNonNull(endPosition.getPoint(), "endPosition.getPoint()");
                 lastLogMoveToCmdPoint = point;
+
                 return new Object[]{
                     getTimeString(cel.getTime()),
                     true,
@@ -2048,13 +2049,12 @@ public class CrclSwingClientInner {
                     fmtDouble(distFromLastLogMoveToCmdPoint()),
                     null,
                     cel.getTime(),
-                    cel.getProgName(),
                     cel.getProgIndex(),
-                    cel.getSvrSocket(),
-                    cmd.getName(),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
+                    cel.getProgName(),
+                    cel.getSvrSocket(),
                     CRCLSocket.cmdToString(cmd)
                 };
             } else {
@@ -2066,13 +2066,12 @@ public class CrclSwingClientInner {
                     fmtDouble(distFromLastLogMoveToCmdPoint()),
                     null,
                     cel.getTime(),
-                    cel.getProgName(),
                     cel.getProgIndex(),
-                    cel.getSvrSocket(),
-                    cmd.getName(),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
                     fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
+                    cel.getProgName(),
+                    cel.getSvrSocket(),
                     CRCLSocket.cmdToString(cmd)
                 };
             }
@@ -2089,13 +2088,12 @@ public class CrclSwingClientInner {
                 distFromLastLogMoveToCmdPoint(),
                 status.getCommandStatus().getCommandState(),
                 sel.getTime(),
-                sel.getProgName(),
                 sel.getProgIndex(),
-                sel.getSvrSocket(),
-                status.getName(),
                 (null != point) ? point.getX() : null,
                 (null != point) ? point.getY() : null,
                 (null != point) ? point.getZ() : null,
+                 sel.getProgName(),
+                sel.getSvrSocket(),
                 status.getCommandStatus().getStateDescription()
             };
         } else {
@@ -2120,7 +2118,7 @@ public class CrclSwingClientInner {
     }
 
     static final String[] COMMAND_STATUS_LOG_HEADINGS = new String[]{
-        "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Name", "Text"
+        "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Text"
     };
 
     @SuppressWarnings("rawtypes")
