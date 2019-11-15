@@ -98,6 +98,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmRotationMatrix;
@@ -134,6 +135,67 @@ public class MotomanCRCLServer implements AutoCloseable {
         triggerStopMpc = new MotoPlusConnection(new Socket(mpc.getHost(), mpc.getPort()));
         this.crclServerSocket.addListener(crclSocketEventListener);
         this.crclServerSocket.setThreadNamePrefix("MotomanCrclServer");
+        this.startTime = System.currentTimeMillis();
+        statusCount.set(0);
+        statSkipCount.set(0);
+        totalCommandTime.set(0);
+        totalStatTime.set(0);
+        cmdCount.set(0);
+        lastCommandTime = -1;
+        lastStatTime = -1;
+        maxCommandTime = -1;
+        maxStatTime = -1;
+    }
+
+//    private final AtomicInteger  connectionsCount = new AtomicInteger();
+    private final AtomicInteger statusCount = new AtomicInteger();
+    private final AtomicInteger statSkipCount = new AtomicInteger();
+    private final AtomicInteger cmdCount = new AtomicInteger();
+    private final AtomicLong totalCommandTime = new AtomicLong();
+    private final AtomicLong totalStatTime = new AtomicLong();
+
+    private volatile long lastCommandTime = -1;
+    private volatile long lastStatTime = -1;
+    private volatile long maxCommandTime = -1;
+    private volatile long maxStatTime = -1;
+    private volatile long startTime = -1;
+
+    public String getPerformanceInfo() {
+        long timeSinceStart = (startTime > 0)
+                ? (System.currentTimeMillis() - startTime)
+                : -1;
+        String perfString
+                = "timeSinceStart = " + timeSinceStart
+                + "\n totalCommandTime=" + totalCommandTime.get()
+                + "\n totalStatTime=" + totalStatTime.get()
+                + "\n statusCount=" + statusCount.get()
+                + "\n statSkipCount=" + statSkipCount.get()
+                + "\n cmdCount=" + cmdCount.get()
+                + "\n lastCommandTime=" + lastCommandTime
+                + "\n lastStatTime=" + lastStatTime
+                + "\n maxCommandTime=" + maxCommandTime
+                + "\n maxStatTime=" + maxStatTime
+                + "\n lastCommand=" + CRCLSocket.commandToSimpleString(lastCommand)
+                + "\n maxCommand=" + CRCLSocket.commandToSimpleString(maxCommand);
+        return perfString;
+    }
+
+    public String getShortPerformanceInfo() {
+        long timeSinceStart = (startTime > 0)
+                ? (System.currentTimeMillis() - startTime)
+                : -1;
+        String perfString
+                = "" + timeSinceStart
+                + " " + totalCommandTime.get()
+                + " " + totalStatTime.get()
+                + " " + statusCount.get()
+                + " " + statSkipCount.get()
+                + " " + cmdCount.get()
+                + " " + lastCommandTime
+                + " " + lastStatTime
+                + " " + maxCommandTime
+                + " " + maxStatTime;
+        return perfString;
     }
 
     public MotoPlusConnection getMpc() {
@@ -153,6 +215,16 @@ public class MotomanCRCLServer implements AutoCloseable {
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());
+        this.startTime = System.currentTimeMillis();
+        statusCount.set(0);
+        statSkipCount.set(0);
+        cmdCount.set(0);
+        totalCommandTime.set(0);
+        totalStatTime.set(0);
+        lastCommandTime = -1;
+        lastStatTime = -1;
+        maxCommandTime = -1;
+        maxStatTime = -1;
         return crclServerSocket.start();
     }
 
@@ -267,6 +339,9 @@ public class MotomanCRCLServer implements AutoCloseable {
         long status_time_diff = time - last_status_update_time;
         long cmd_time_diff = time - last_command_time;
         if (status_time_diff > 50) {
+            statusCount.incrementAndGet();
+            long t0 = System.currentTimeMillis();
+
             updatesSinceCommand.incrementAndGet();
 
             try {
@@ -386,6 +461,13 @@ public class MotomanCRCLServer implements AutoCloseable {
                     crclLocalStatus.getPoseStatus().setPose(CRCLPosemath.toPoseType(cart, mat, crclLocalStatus.getPoseStatus().getPose()));
                 }
                 last_status_update_time = System.currentTimeMillis();
+                long t1 = System.currentTimeMillis();
+                long statDiffTime = t1 - t0;
+                this.lastStatTime = statDiffTime;
+                this.totalStatTime.addAndGet(statDiffTime);
+                if (this.maxStatTime < statDiffTime) {
+                    this.maxStatTime = statDiffTime;
+                }
             } catch (IOException | PmException | MotoPlusConnection.MotoPlusConnectionException ex) {
                 logException(ex);
                 try {
@@ -395,6 +477,8 @@ public class MotomanCRCLServer implements AutoCloseable {
                 }
                 setStateDescription(getCommandStatus(), CRCL_ERROR, ex.getMessage());
             }
+        } else {
+            statSkipCount.incrementAndGet();
         }
         incCommandStatusId();
         return XFuture.completedFuture(crclStatus);
@@ -793,6 +877,7 @@ public class MotomanCRCLServer implements AutoCloseable {
     }
 
     private volatile CRCLCommandType lastCommand = null;
+    private volatile CRCLCommandType maxCommand = null;
     private volatile long last_command_time = -1;
 
     public void handleCrclServerSocketEvent(CRCLServerSocketEvent<MotomanClientState> event) {
@@ -840,8 +925,11 @@ public class MotomanCRCLServer implements AutoCloseable {
                     }
                 }
             });
+
 //            event.getSource().writeStatus(getCrclStatusFuture());
         } else {
+            cmdCount.incrementAndGet();
+            long t0 = System.currentTimeMillis();
             lastCommand = cmd;
             updatesSinceCommand.set(0);
             last_command_time = System.currentTimeMillis();
@@ -906,6 +994,14 @@ public class MotomanCRCLServer implements AutoCloseable {
                 } catch (Exception ex) {
                     logException(ex);
                 }
+            }
+            long t1 = System.currentTimeMillis();
+            long commandTime = t1 - t0;
+            this.lastCommandTime = commandTime;
+            this.totalCommandTime.addAndGet(commandTime);
+            if (this.maxCommandTime < commandTime) {
+                this.maxCommandTime = commandTime;
+                this.maxCommand = cmd;
             }
             last_command_time = System.currentTimeMillis();
         }
