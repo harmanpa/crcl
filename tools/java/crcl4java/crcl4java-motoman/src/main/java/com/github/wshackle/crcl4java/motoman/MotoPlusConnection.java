@@ -1433,6 +1433,9 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             MP_ALARM_STATUS_DATA data = new MP_ALARM_STATUS_DATA();
             data.sIsAlarm = bb.getShort(4);
+            if (data.sIsAlarm != 0) {
+                alarmCount.incrementAndGet();
+            }
             return data;
         }
 
@@ -1648,8 +1651,29 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getMpMotTargetReceiveReturn(recvId);
     }
 
+    private volatile int lastMpMotSetCoordGrpNo = -99;
+    private volatile int lastMpMotSetCoordAux = -99;
+    private volatile MP_COORD_TYPE lastMpMotSetCoordType;
+    private volatile long lastMpMotSetCoordTime;
+    private volatile int lastMpMotSetCoordAlarmCount=-1;
+    
+
+    public boolean checkNeedMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux, long maxTimeDiff) {
+        long timeDiff = System.currentTimeMillis() - lastMpMotSetCoordTime;
+        return grpNo == lastMpMotSetCoordGrpNo
+                && type == lastMpMotSetCoordType
+                && aux == lastMpMotSetCoordAux
+                && lastMpMotSetCoordAlarmCount == alarmCount.get()
+                && timeDiff < maxTimeDiff;
+    }
+
     public MotCtrlReturnEnum mpMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux) throws IOException {
         starter.startMpMotSetCoord(grpNo, type, aux);
+        lastMpMotSetCoordGrpNo = grpNo;
+        lastMpMotSetCoordAux = aux;
+        lastMpMotSetCoordType = type;
+        lastMpMotSetCoordTime = System.currentTimeMillis();
+        lastMpMotSetCoordAlarmCount = alarmCount.get();
         return returner.getMpMotStandardReturn();
     }
 
@@ -1746,6 +1770,8 @@ public class MotoPlusConnection implements AutoCloseable {
         MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId, statusCount.incrementAndGet(), withJoints, getAlarmStatus);
         return mpcStatus;
     }
+
+    private final AtomicInteger alarmCount = new AtomicInteger();
 
     public MpcStatus readMpcStatus(
             CommandStateEnumType localOrigCommandState,
@@ -1892,13 +1918,40 @@ public class MotoPlusConnection implements AutoCloseable {
 
     }
 
+    private volatile boolean lastGetPowerValue = false;
+    private volatile long lastGetPowerValueTime = -1;
+    private volatile int lastGetPowerValueAlarmCount = -1;
+
     public boolean mpGetServoPower() throws IOException, MotoPlusConnectionException {
         starter.startMpGetServoPower();
-        return returner.getServoPowerReturn();
+        boolean ret = returner.getServoPowerReturn();
+        lastGetPowerValue = ret;
+        lastGetPowerValueTime = System.currentTimeMillis();
+        lastGetPowerValueAlarmCount = alarmCount.get();
+        return ret;
+    }
+
+    private volatile boolean lastSetPowerValue = false;
+    private volatile long lastSetPowerValueTime = -1;
+    private volatile long lastSetPowerValueAlarmCount = -1;
+
+    public boolean checkNeedSetPower(boolean on, long timeDiffMax) {
+        long now = System.currentTimeMillis();
+        long timeSetDiff = now - lastSetPowerValueTime;
+        long timeGetDiff = now - lastGetPowerValueTime;
+        int localAlarmCount = alarmCount.get();
+        return on == lastSetPowerValue
+                && on == lastGetPowerValue
+                && localAlarmCount == lastSetPowerValueAlarmCount
+                && localAlarmCount == lastGetPowerValueAlarmCount
+                && ((timeSetDiff < timeSetDiff) || (timeGetDiff < timeDiffMax));
     }
 
     public boolean mpSetServoPower(boolean on) throws IOException, MotoPlusConnectionException {
         starter.startMpSetServoPower(on);
+        lastSetPowerValue = on;
+        lastSetPowerValueAlarmCount = alarmCount.get();
+        lastSetPowerValueTime = System.currentTimeMillis();
         return returner.getSetServoPowerReturn();
     }
 
