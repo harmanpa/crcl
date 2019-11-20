@@ -1711,9 +1711,23 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    private int defaultSoTimeout = 0;
+
+    public int getDefaultSoTimeout() {
+        return defaultSoTimeout;
+    }
+
+    public void setDefaultSoTimeout(int defaultSoTimeout) {
+        this.defaultSoTimeout = defaultSoTimeout;
+    }
+    
     public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
+        return readCommand(validate,defaultSoTimeout);
+    }
+    
+    public CRCLCommandInstanceType readCommand(boolean validate, int soTimeout) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
-        final String str = this.readUntilEndTag("CRCLCommandInstance", getBufferedInputStream());
+        final String str = this.readUntilEndTag("CRCLCommandInstance", getBufferedInputStream(soTimeout));
         if (null == str) {
             throw new EOFException("readUntilEndTag returned null");
         }
@@ -1831,7 +1845,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    protected InputStream getBufferedInputStream() throws IOException {
+    protected InputStream getBufferedInputStream(int timeout) throws IOException {
 
         if (null != socketChannel) {
             if (!socketChannel.isBlocking() && socketChannel.isRegistered()) {
@@ -1843,6 +1857,7 @@ public class CRCLSocket implements AutoCloseable {
             return bufferedInputStream;
         }
         Socket socket = getSocket();
+        socket.setSoTimeout(timeout);
         if (null == socket) {
             throw new IllegalStateException("socket is null");
         }
@@ -1859,15 +1874,29 @@ public class CRCLSocket implements AutoCloseable {
         return readStatus(false);
     }
 
-    public CRCLStatusType readStatus(boolean validate)
+    public CRCLStatusType readStatus(boolean validate) throws CRCLException {
+        return readStatus(validate, defaultSoTimeout);
+    }
+            
+    public CRCLStatusType readStatus(boolean validate, int soTimeout)
             throws CRCLException {
+        long t0 = System.currentTimeMillis();
         try {
-            this.lastStatusString = this.readUntilEndTag("CRCLStatus", getBufferedInputStream());
+            this.lastStatusString = this.readUntilEndTag("CRCLStatus", getBufferedInputStream(soTimeout));
             if (null == this.lastStatusString) {
                 throw new EOFException("readUntilEndTag returned null");
             }
             return stringToStatus(this.lastStatusString, validate);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
+            long timeDiff = System.currentTimeMillis()-t0;
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, 
+                    "timeDiff="+timeDiff+",port="+getPort()+", validate="+validate+", soTimeout="+soTimeout, ex);
+            final Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces();
+            for(Map.Entry<Thread,StackTraceElement[]> entry: allStackTraces.entrySet()) {
+                System.out.println("Thread = " + entry.getKey());
+                System.out.println("Trace = " + Utils.traceToString(entry.getValue()));
+                System.out.println("");
+            }
             throw new CRCLException(ex);
         }
     }

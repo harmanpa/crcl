@@ -28,6 +28,7 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.ConcurrentBlockProgramsException;
+import static crcl.ui.client.CrclSwingClientJPanel.saveJTable;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.ui.misc.PropertiesJPanel;
@@ -44,6 +45,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
@@ -315,7 +317,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public void setEnableSaveProgram(boolean enable) {
         jMenuItemSaveProgramAs.setEnabled(enable);
     }
-    
+
     @Override
     public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
@@ -1155,9 +1157,9 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     }
 
     public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, @Nullable Thread crclSocketActionThread) {
-        pendantClientJPanel1.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService,crclSocketActionThread);
+        pendantClientJPanel1.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService, crclSocketActionThread);
     }
-    
+
     public Optional<CommandStateEnumType> getCurrentState() {
         return pendantClientJPanel1.currentState();
     }
@@ -1244,7 +1246,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
 //    public boolean isUseReadStatusThreadSelected() {
 //        return jCheckBoxMenuItemUseReadStatusThread.isSelected();
 //    }
-
     @Override
     public PendantClientMenuOuter getMenuOuter() {
         return this;
@@ -1267,7 +1268,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public ExecutorService getCrclSocketActionExecutorService() {
         return pendantClientJPanel1.getCrclSocketActionExecutorService();
     }
-
 
     @Override
     public void loadProperties() {
@@ -1321,5 +1321,17 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
      */
     public void setPreClosing(boolean preClosing) {
         pendantClientJPanel1.setPreClosing(preClosing);
+    }
+
+    public File writeCommandProfileMap() throws IOException {
+        return pendantClientJPanel1.writeCommandProfileMap();
+    }
+
+    public File writeCommandStatusLogFile() throws IOException {
+        return pendantClientJPanel1.writeCommandStatusLogFile();
+    }
+    
+    public void printPerfInfo(PrintStream ps, String prefix) {
+        pendantClientJPanel1.printPerfInfo(ps, prefix);
     }
 }

@@ -185,13 +185,13 @@ import rcs.posemath.Posemath;
 public class CrclSwingClientJPanel
         extends javax.swing.JPanel
         implements PendantClientOuter {
-
+    
     private final CrclSwingClientInner internal;
     private static final double RPY_JOG_INCREMENT_DEFAULT = 3.0;
     private double rpyJogIncrement = RPY_JOG_INCREMENT_DEFAULT;
     private long pauseTime = -1;
     private long unpauseTime = -1;
-
+    
     private boolean jogWorldTransSpeedsSet = false;
     private boolean jogWorldRotSpeedsSet = false;
     private static final Logger LOGGER = Logger.getLogger(CrclSwingClientJPanel.class.getName());
@@ -213,9 +213,9 @@ public class CrclSwingClientJPanel
     private static final String SETTINGSREF = "clientsettingsref";
     private static final String CRCLJAVA_USER_DIR = ".crcljava";
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
-
+    
     private PendantClientMenuOuter menuOuter;
-
+    
     private boolean debugShowProgram = false;
 
     /**
@@ -235,12 +235,12 @@ public class CrclSwingClientJPanel
     public void setDebugShowProgram(boolean debugShowProgram) {
         this.debugShowProgram = debugShowProgram;
     }
-
+    
     @Override
     public boolean checkUserText(String text) throws InterruptedException, ExecutionException {
         return MultiLineStringJPanel.showText(text).get();
     }
-
+    
     public void pauseCrclProgram() {
         pauseTime = System.currentTimeMillis();
         internal.pause();
@@ -249,11 +249,11 @@ public class CrclSwingClientJPanel
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
     }
-
+    
     public String pauseInfoString() {
         return internal.pauseInfoString();
     }
-
+    
     public void unpauseCrclProgram() {
         String startPauseInfo = pauseInfoString();
         pauseTime = System.currentTimeMillis();
@@ -269,7 +269,7 @@ public class CrclSwingClientJPanel
             throw new IllegalStateException("still paused after unpauseCrclProgram()");
         }
     }
-
+    
     public void showJointsPlot() {
         jointsPlotter = new plotterJFrame();
         jointsPlotter.setTitle("JOINTS");
@@ -312,7 +312,7 @@ public class CrclSwingClientJPanel
     public void setMaxLimit(@Nullable PmCartesian maxLimit) {
         internal.setMaxLimit(maxLimit);
     }
-
+    
     public void showSetSchemaFilesDialog() {
         JFileChooser jFileChooser = new JFileChooser();
         javax.swing.filechooser.FileFilter[] ffa = jFileChooser.getChoosableFileFilters();
@@ -333,7 +333,7 @@ public class CrclSwingClientJPanel
             CRCLSocket.saveProgramSchemaFiles(defaultSchemaFiles.getProgramSchemasFile(), fa);
         }
     }
-
+    
     @Override
     public void showLastProgramLineExecTimeMillisDists(int row, ProgramRunData prd) {
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
@@ -344,7 +344,7 @@ public class CrclSwingClientJPanel
             });
         }
     }
-
+    
     private void showLastProgramLineExecTimeMillisDistsPrivate(int row, ProgramRunData prd) {
         long millis = prd.getTime();
         double dist = prd.getDist();
@@ -373,9 +373,9 @@ public class CrclSwingClientJPanel
     public void setMenuOuter(PendantClientMenuOuter menuOuter) {
         this.menuOuter = menuOuter;
     }
-
+    
     private volatile int errorsLength = 0;
-
+    
     private void showErrorsPopup(MouseEvent evt) {
         JPopupMenu errorsPop = new JPopupMenu();
         JMenuItem clearMi = new JMenuItem("Clear");
@@ -387,7 +387,7 @@ public class CrclSwingClientJPanel
         errorsPop.add(clearMi);
         errorsPop.show(evt.getComponent(), evt.getX(), evt.getY());
     }
-
+    
     private static void scrollToVisible(JTable table, int rowIndex, int vColIndex) {
         Container container = table.getParent();
         if (container instanceof JViewport) {
@@ -400,18 +400,18 @@ public class CrclSwingClientJPanel
             throw new IllegalStateException("Tables parent " + container + " needs to be a JViewPort");
         }
     }
-
+    
     public int getCurrentProgramLine() {
         if (internal.isRunningProgram()) {
             return internal.getCurrentProgramLine();
         }
         return jTableProgram.getSelectionModel().getMinSelectionIndex();
     }
-
+    
     int programLineShowing = -1;
-
+    
     private final ConcurrentLinkedDeque<CurrentPoseListener> currentPoseListeners = new ConcurrentLinkedDeque<>();
-
+    
     public void addCurrentPoseListener(CurrentPoseListener l) {
         synchronized (currentPoseListeners) {
             if (!currentPoseListeners.contains(l)) {
@@ -419,7 +419,7 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void removeCurrentPoseListener(CurrentPoseListener l) {
         synchronized (currentPoseListeners) {
             if (!currentPoseListeners.contains(l)) {
@@ -431,9 +431,9 @@ public class CrclSwingClientJPanel
             assert (sz0 == (sz1 + 1));
         }
     }
-
+    
     private final List<ProgramLineListener> programLineListeners = new ArrayList<>();
-
+    
     public void addProgramLineListener(ProgramLineListener l) {
         synchronized (programLineListeners) {
             if (!programLineListeners.contains(l)) {
@@ -441,18 +441,18 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void removeProgramLineListener(ProgramLineListener l) {
         programLineListeners.remove(l);
     }
-
+    
     public @Nullable
     CRCLStatusType getStatus() {
         return internal.getStatus();
     }
-
+    
     private void finishShowCurrentProgramLine(final int line, final CRCLProgramType program, @Nullable CRCLStatusType status, List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
-
+        
         if (programShowing == null) {
             showProgram(program, progRunDataList, line);
         } else if (program != programShowing) {
@@ -510,7 +510,7 @@ public class CrclSwingClientJPanel
         }
         programLineShowing = line;
     }
-
+    
     private void updateDistToSelected(CRCLStatusType status) {
         if (null != status && currentCommand instanceof MoveToType) {
             MoveToType currentMoveCmd = (MoveToType) currentCommand;
@@ -524,11 +524,11 @@ public class CrclSwingClientJPanel
             jTextFieldDistToSelected.setEditable(false);
         }
     }
-
+    
     private volatile int lastShowSelectedProgramLineLine = -99;
     private volatile @Nullable
     CRCLProgramType lastshowSelectedProgramLineProgram = null;
-
+    
     private void showSelectedProgramLine(final int line, final CRCLProgramType program, @Nullable CRCLStatusType status) {
         if (null != lastshowSelectedProgramLineProgram
                 && lastShowSelectedProgramLineLine == line
@@ -540,7 +540,7 @@ public class CrclSwingClientJPanel
         if (line == 0) {
             try {
                 InitCanonType cmd = program.getInitCanon();
-
+                
                 showSelectedProgramCommand(cmd, status);
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -574,9 +574,9 @@ public class CrclSwingClientJPanel
         programPlotterJPanelOverhead.repaint();
         programPlotterJPanelSide.repaint();
     }
-
+    
     private volatile CRCLCommandType currentCommand = null;
-
+    
     private void showSelectedProgramCommand(CRCLCommandType cmd, @Nullable CRCLStatusType status) {
         try {
             currentCommand = cmd;
@@ -609,7 +609,7 @@ public class CrclSwingClientJPanel
             throw new RuntimeException(ex);
         }
     }
-
+    
     private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, @Nullable CRCLStatusType status, @Nullable List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
         if (!debugShowProgram) {
             return;
@@ -617,13 +617,13 @@ public class CrclSwingClientJPanel
         PrintStream ps = getShowProgramLogPrintStream();
         ps.println(" \ttrace=" + Arrays.toString(trace));
         int count = logShowProgramCount.incrementAndGet();
-
+        
         String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
         File programFile = File.createTempFile("logShowCurrentProgramLineInfo_program_" + getPort() + "_" + count, ".xml");
-        try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+        try ( PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
             psProgramFile.println(programString);
         }
-
+        
         File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
         if (null != progRunDataList) {
             saveProgramRunDataListToCsv(progRunDataListFile, progRunDataList);
@@ -637,7 +637,7 @@ public class CrclSwingClientJPanel
         if (null != status) {
             String statusString = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
             File statusFile = File.createTempFile("logShowCurrentProgramLineInfo_status_" + getPort() + "_" + count, ".xml");
-            try (PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
+            try ( PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
                 psStatusFile.println(statusString);
             }
             ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + ",status=\"" + statusFile + runDataListInfoString);
@@ -646,7 +646,7 @@ public class CrclSwingClientJPanel
         }
         ps.flush();
     }
-
+    
     @Override
     @SuppressWarnings("nullness")
     public void showCurrentProgramLine(final int line,
@@ -695,7 +695,7 @@ public class CrclSwingClientJPanel
     public CrclSwingClientJPanel() {
         this(null, null);
     }
-
+    
     private void init() {
         String portPropertyString = System.getProperty("crcl4java.port");
         if (null != portPropertyString && portPropertyString.length() > 0) {
@@ -731,7 +731,7 @@ public class CrclSwingClientJPanel
         this.programPlotterJPanelOverhead.setPlotter(new ProgramPlotter(ProgramPlotter.View.OVERHEAD));
         this.programPlotterJPanelSide.setPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
     }
-
+    
     private ListSelectionListener programTableListSelectionListener = new ListSelectionListener() {
         @Override
         public void valueChanged(ListSelectionEvent e) {
@@ -744,18 +744,18 @@ public class CrclSwingClientJPanel
             //finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), internal.getProgRunDataList(),Thread.currentThread().getStackTrace());
         }
     };
-
+    
     private void checkMenuOuter() throws IllegalStateException {
         if (null == menuOuter) {
             throw new IllegalStateException("Outer Menu Functions supplier not set.");
         }
     }
-
+    
     @Override
     public String getHost() {
         return this.jTextFieldHost.getText();
     }
-
+    
     @Override
     public int getPort() {
         int chckPort = Integer.parseInt(this.jTextFieldPort.getText());
@@ -769,11 +769,11 @@ public class CrclSwingClientJPanel
         }
         return chckPort;
     }
-
+    
     public void setPort(int port) {
         jTextFieldPort.setText(Integer.toString(port));
     }
-
+    
     public void resetPrefs() {
         File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
         if (crcljavaDir.exists()) {
@@ -785,17 +785,17 @@ public class CrclSwingClientJPanel
         internal.resetPrefs();
         updateUIFromInternal();
     }
-
+    
     public ExecutorService getCrclSocketActionExecutorService() {
         return internal.getCrclSocketActionExecutorService();
     }
-
+    
     public static void saveObjectProperties(File f, Object o) {
         try {
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
-            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+            try ( PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
             AutomaticPropertyFileUtils.saveObjectProperties(f, o);
@@ -804,9 +804,9 @@ public class CrclSwingClientJPanel
             throw new RuntimeException(ex);
         }
     }
-
+    
     private void checkSettingsRef() {
-
+        
         try {
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
@@ -825,7 +825,7 @@ public class CrclSwingClientJPanel
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private File propertiesFile;
 
     /**
@@ -845,24 +845,24 @@ public class CrclSwingClientJPanel
     public void setPropertiesFile(File propertiesFile) {
         this.propertiesFile = propertiesFile;
     }
-
+    
     public void loadProperties() {
         if (null != propertiesFile && propertiesFile.exists()) {
             loadPrefsFile(propertiesFile);
         }
     }
-
+    
     public void saveProperties() {
         saveObjectProperties(propertiesFile, this);
         AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "internal.", internal);
     }
-
+    
     private void loadPrefsFile(File f) {
         try {
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
-            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+            try ( PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
             Map<String, Object> targetMap = new TreeMap<>();
@@ -874,15 +874,15 @@ public class CrclSwingClientJPanel
             showMessage(iOException);
         }
     }
-
+    
     public static PoseType tableToPose(JTable table, PoseDisplayMode displayMode) throws PmException {
-
+        
         TableModel tm = table.getModel();
         PmCartesian tran = new PmCartesian(
                 (Double) tm.getValueAt(0, 1),
                 (Double) tm.getValueAt(1, 1),
                 (Double) tm.getValueAt(2, 1));
-
+        
         switch (displayMode) {
             case XYZ_XAXIS_ZAXIS:
                 PoseType p = new PoseType();
@@ -899,37 +899,36 @@ public class CrclSwingClientJPanel
                 p.setXAxis(xv);
                 p.setZAxis(zv);
                 return p;
-
+            
             case XYZ_RPY:
                 PmRpy rpy = new PmRpy(
                         Math.toRadians((Double) tm.getValueAt(3, 1)),
                         Math.toRadians((Double) tm.getValueAt(4, 1)),
                         Math.toRadians((Double) tm.getValueAt(5, 1)));
                 return CRCLPosemath.toPoseType(tran, rpy);
-
+            
             case XYZ_RX_RY_RZ:
                 PmEulerZyx zyx = new PmEulerZyx(
                         Math.toRadians((Double) tm.getValueAt(3, 1)),
                         Math.toRadians((Double) tm.getValueAt(4, 1)),
                         Math.toRadians((Double) tm.getValueAt(5, 1)));
                 return CRCLPosemath.toPoseType(tran, Posemath.toMat(zyx));
-
+            
             default:
                 throw new IllegalArgumentException("displayMode =" + displayMode);
         }
     }
-
+    
     public int getProgramRow() {
         final int selectedRows[] = this.jTableProgram.getSelectedRows();
         return (null == selectedRows || selectedRows.length < 1) ? 0 : selectedRows[0];
     }
-
+    
     public String getVersion() {
         try (
-                InputStream versionIs
+                 InputStream versionIs
                 = requireNonNull(ClassLoader.getSystemResourceAsStream("version"),
-                        "ClassLoader.getSystemResourceAsStream(\"version\")");
-                BufferedReader br = new BufferedReader(new InputStreamReader(versionIs))) {
+                        "ClassLoader.getSystemResourceAsStream(\"version\")");  BufferedReader br = new BufferedReader(new InputStreamReader(versionIs))) {
             StringBuilder sb = new StringBuilder();
             String line = null;
             while (null != (line = br.readLine())) {
@@ -946,17 +945,17 @@ public class CrclSwingClientJPanel
             return exString;
         }
     }
-
+    
     private static String createAssertErrorString(CRCLCommandType cmd, long id) {
         return "command id being reduced id=" + id + ", cmd=" + CRCLSocket.cmdToString(cmd);
     }
-
+    
     private void setCommandId(CRCLCommandType cmd, long id) {
         assert cmd.getCommandID() <= id :
                 createAssertErrorString(cmd, id);
         cmd.setCommandID(id);
     }
-
+    
     public void recordPoint(PoseType pose) {
         try {
             CRCLProgramType program = this.recordPointsProgram;
@@ -1000,14 +999,14 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void recordCurrentPoint() {
         Optional.ofNullable(internal)
                 .map(CrclSwingClientInner::getStatus)
                 .map(CRCLPosemath::getPose)
                 .ifPresent(this::recordPoint);
     }
-
+    
     public void clearRecordedPoints() {
         CRCLProgramType program = this.recordPointsProgram;
         if (null != program) {
@@ -1021,7 +1020,7 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     private void updateLengthUnit(LengthUnitEnumType newUnit) {
         LengthUnitEnumType oldUnit
                 = lengthUnit;
@@ -1032,11 +1031,11 @@ public class CrclSwingClientJPanel
                 case METER:
                     oldScale = 1.0;
                     break;
-
+                
                 case MILLIMETER:
                     oldScale = 0.001;
                     break;
-
+                
                 case INCH:
                     oldScale = 0.0254;
                     break;
@@ -1045,11 +1044,11 @@ public class CrclSwingClientJPanel
                 case METER:
                     newScale = 1.0;
                     break;
-
+                
                 case MILLIMETER:
                     newScale = 0.001;
                     break;
-
+                
                 case INCH:
                     newScale = 0.0254;
                     break;
@@ -1062,12 +1061,12 @@ public class CrclSwingClientJPanel
             lengthUnit = newUnit;
         }
     }
-
+    
     @Override
     public boolean isMonitoringHoldingObject() {
         return this.jCheckBoxMonitorHoldingOutput.isSelected();
     }
-
+    
     @Override
     public void setExpectedHoldingObject(boolean x) {
         this.jLabelExpectHoldingObject.setText("Expect Holding Object:" + x);
@@ -1079,27 +1078,27 @@ public class CrclSwingClientJPanel
             jLabelExpectHoldingObject.setBackground(Color.BLACK);
         }
     }
-
+    
     public boolean isHoldingObjectExpected() {
         return internal.isHoldingObjectExpected();
     }
-
+    
     private class MyPropertyChangeListener implements PropertyChangeListener {
-
+        
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             switch (evt.getPropertyName()) {
                 case CrclSwingClientInner.PROP_LENGTHUNIT:
                     updateLengthUnit(internal.getLengthUnit());
                     break;
-
+                
                 default:
                     // Ignore unrecognized properties.
                     break;
             }
         }
     }
-
+    
     @Override
     public void clearProgramTimesDistances() {
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
@@ -1113,7 +1112,7 @@ public class CrclSwingClientJPanel
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
     }
-
+    
     private void logClearProgramTimesDistancesInternalInfo(StackTraceElement trace[]) throws IOException, JAXBException {
         if (!debugShowProgram) {
             return;
@@ -1126,7 +1125,7 @@ public class CrclSwingClientJPanel
         ps.println("clearProgramTimesDistancesInternal()");
         ps.flush();
     }
-
+    
     private void clearProgramTimesDistancesInternal(StackTraceElement ste[]) {
         try {
             logClearProgramTimesDistancesInternalInfo(ste);
@@ -1139,24 +1138,24 @@ public class CrclSwingClientJPanel
             jTableProgram.setValueAt(false, i, 5);
         }
     }
-
+    
     @Override
     public PoseType currentStatusPose() {
         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
         return requireNonNull(CRCLPosemath.getPose(status), "CRCLPosemath.getPose(status)");
     }
-
+    
     public Optional<CRCLStatusType> currentStatus() {
         return Optional.ofNullable(internal)
                 .map(x -> x.getStatus());
     }
-
+    
     public Optional<CommandStateEnumType> currentState() {
         return currentStatus()
                 .map(x -> x.getCommandStatus())
                 .map(x -> x.getCommandState());
     }
-
+    
     @SuppressWarnings("nullness")
     @Override
     public MiddleCommandType currentProgramCommand() {
@@ -1170,13 +1169,13 @@ public class CrclSwingClientJPanel
         }
         return program.getMiddleCommand().get(curRow - 1);
     }
-
+    
     private final AtomicInteger pollStopCount = new AtomicInteger();
-
+    
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
         return internal.checkPose(goalPose, ignoreCartTran);
     }
-
+    
     private volatile boolean polling = false;
 //    private volatile Thread pollingThread = null;
 
@@ -1186,7 +1185,7 @@ public class CrclSwingClientJPanel
     Exception lastPollStatusException = null;
     private volatile int lastPollStatusStartPollStopCount = -1;
     private final AtomicInteger pollStatusCallCount = new AtomicInteger();
-
+    
     private void pollStatus(int startPollStopCount) {
         XFutureVoid lastPollSocketRequestFuture = null;
         try {
@@ -1198,15 +1197,10 @@ public class CrclSwingClientJPanel
                 cycles++;
                 long requestStatusStartTime = System.currentTimeMillis();
                 if (null == lastPollSocketRequestFuture || lastPollSocketRequestFuture.isDone()) {
-                    lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount));
+                    lastPollSocketRequestFuture = internal.pollSocketRequestAndReadStatus(() -> continuePolling(startPollStopCount),poll_ms);
                 }
                 if (!(continuePolling(startPollStopCount))) {
                     return;
-                }
-                if (poll_ms >= 10) {
-                    Thread.sleep(poll_ms);
-                } else {
-                    Thread.sleep(10);
                 }
                 long endCycleTime = System.currentTimeMillis();
                 long pollStatusCycleTime = endCycleTime - requestStatusStartTime;
@@ -1216,6 +1210,7 @@ public class CrclSwingClientJPanel
             }
         } catch (InterruptedException interruptedException) {
             lastPollStatusInterruptedException = interruptedException;
+            this.jCheckBoxPoll.setSelected(false);
         } catch (Exception ex) {
             lastPollStatusException = ex;
             if (!Thread.currentThread().isInterrupted()
@@ -1223,32 +1218,34 @@ public class CrclSwingClientJPanel
                     && startPollStopCount == pollStopCount.get()) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
+            this.jCheckBoxPoll.setSelected(false);
+            stopPollTimer();
         } finally {
             polling = false;
         }
     }
-
+    
     public void setCrclSocketActionExecutorServiceAndThread(ExecutorService crclSocketActionExecutorService, @Nullable Thread crclSocketActionThread) {
         internal.setCrclSocketActionExecutorServiceAndThread(crclSocketActionExecutorService, crclSocketActionThread);
     }
-
+    
     private boolean continuePolling(int startPollStopCount) {
         return !Thread.currentThread().isInterrupted()
                 && this.jCheckBoxPoll.isSelected()
                 && internal.isConnected()
                 && startPollStopCount == pollStopCount.get();
     }
-
+    
     private volatile @Nullable
     ExecutorService pollStatusService = null;
     private volatile @Nullable
     XFutureVoid lastStartPollTimerFuture = null;
     private volatile @Nullable
     Thread pollStatusServiceThread = null;
-
+    
     private Future<?> startPollTimer() {
         this.stopPollTimer();
-
+        
         jTextFieldPollTime.setEditable(false);
         jTextFieldPollTime.setEnabled(false);
         int startPollStopCount = pollStopCount.incrementAndGet();
@@ -1293,7 +1290,7 @@ public class CrclSwingClientJPanel
         }
         return ret;
     }
-
+    
     @SuppressWarnings({"nullness"})
     private void enableJoggingControls() {
         this.jComboBoxJointAxis.setToolTipText(null);
@@ -1302,7 +1299,7 @@ public class CrclSwingClientJPanel
         jLabelJogMinus1.setToolTipText(null);
         jLabelJogPlus.setToolTipText(null);
         jLabelJogPlus1.setToolTipText(null);
-
+        
         this.jComboBoxJointAxis.setEnabled(true);
         this.jComboBoxXYZRPY.setEnabled(true);
         jLabelJogMinus.setEnabled(true);
@@ -1314,15 +1311,15 @@ public class CrclSwingClientJPanel
         jLabelJogPlus1.setEnabled(true);
         jLabelJogPlus1.setBackground(Color.white);
     }
-
+    
     public void setDebugInterrupts(boolean debugInterrupts) {
         internal.setDebugInterrupts(debugInterrupts);
     }
-
+    
     public boolean isDebugInterrupts() {
         return internal.isDebugInterrupts();
     }
-
+    
     @Override
     public void stopPollTimer() {
         pollStopCount.incrementAndGet();
@@ -1337,11 +1334,11 @@ public class CrclSwingClientJPanel
         jLabelJogPlus1.setEnabled(false);
         jLabelJogPlus1.setBackground(Color.gray);
     }
-
+    
     CrclSwingClientInner getInternal() {
         return internal;
     }
-
+    
     public void updateUIFromInternal() {
         this.jTextFieldJointJogIncrement.setText(Double.toString(internal.getJogIncrement()));
         this.jTextFieldXYZJogIncrement.setText(Double.toString(internal.getXyzJogIncrement()));
@@ -1358,7 +1355,7 @@ public class CrclSwingClientJPanel
             crcl.ui.misc.MultiLineStringJPanel.disableShowText = true;
         }
     }
-
+    
     public void openXmlProgramFile(File f) {
         try {
             this.clearProgramTimesDistances();
@@ -1369,11 +1366,11 @@ public class CrclSwingClientJPanel
             showMessage(ex);
         }
     }
-
+    
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException {
         internal.saveXmlProgramFile(f);
     }
-
+    
     private File lastOpenedProgramFile;
 
     /**
@@ -1414,18 +1411,18 @@ public class CrclSwingClientJPanel
     ProgramPlotter getOverheadProgramPlotter() {
         return programPlotterJPanelOverhead.getPlotter();
     }
-
+    
     public @Nullable
     CRCLProgramType getProgram() {
         return internal.getProgram();
     }
-
+    
     private volatile @Nullable
     CRCLProgramType prevSetProgramProgram = null;
     private volatile int prevSetProgramLength = -1;
     private volatile @Nullable
     CRCLProgramType showProgramCopy = null;
-
+    
     @Override
     public void setProgram(@Nullable CRCLProgramType program) {
         this.internal.setProgram(program);
@@ -1437,7 +1434,7 @@ public class CrclSwingClientJPanel
             }
             return;
         }
-
+        
         if (null == program) {
             prevSetProgramProgram = null;
             showProgramCopy = null;
@@ -1455,7 +1452,7 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     @Override
     public void finishOpenXmlProgramFile(File f,
             CRCLProgramType program, boolean saveRecent) {
@@ -1477,13 +1474,13 @@ public class CrclSwingClientJPanel
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private String getFirstLine(File f) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+        try ( BufferedReader br = new BufferedReader(new FileReader(f))) {
             return requireNonNull(br.readLine(), "br.readLine() : f=" + f);
         }
     }
-
+    
     public Set<String> getRecentPrograms() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(), recent_programs_dir);
         Set<String> pathSet = new TreeSet<>();
@@ -1491,7 +1488,7 @@ public class CrclSwingClientJPanel
             return pathSet;
         }
         File fa[] = fMainDir.listFiles(new java.io.FileFilter() {
-
+            
             @Override
             public boolean accept(File pathname) {
                 return !pathname.isDirectory() && pathname.canRead();
@@ -1501,7 +1498,7 @@ public class CrclSwingClientJPanel
             return pathSet;
         }
         Arrays.sort(fa, new Comparator<File>() {
-
+            
             @Override
             public int compare(File o1, File o2) {
                 return o1.getName().compareTo(o2.getName());
@@ -1529,20 +1526,20 @@ public class CrclSwingClientJPanel
         }
         return pathSet;
     }
-
+    
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
-
+    
     private final @MonotonicNonNull
     Container outerContainer;
-
+    
     private final @MonotonicNonNull
     JFrame outerJFrame;
-
+    
     private boolean searchedForOuterFrame = false;
-
+    
     private static final boolean LOG_IMAGES_DEFAULT = Boolean.getBoolean("crcl4java.simserver.logimages");
-
+    
     private boolean toolChangerOpen;
 
     /**
@@ -1562,7 +1559,7 @@ public class CrclSwingClientJPanel
     public void setToolChangerOpen(boolean toolChangerOpen) {
         this.toolChangerOpen = toolChangerOpen;
     }
-
+    
     private @Nullable
     Container searchForOuterContainer() {
         if (searchedForOuterFrame) {
@@ -1580,7 +1577,7 @@ public class CrclSwingClientJPanel
         }
         return null;
     }
-
+    
     private @Nullable
     Window searchForOuterWindow() {
         if (outerContainer instanceof Window) {
@@ -1624,20 +1621,20 @@ public class CrclSwingClientJPanel
         }
         return searchForOuterWindow();
     }
-
+    
     @Override
     public void showMessage(final String s) {
         System.out.println(s);
         if (showDebugMessage(s)) {
             return;
         }
-
+        
         if (showing_message) {
             return;
         }
         showing_message = true;
         java.awt.EventQueue.invokeLater(new Runnable() {
-
+            
             @Override
             public void run() {
                 long t = System.currentTimeMillis();
@@ -1656,7 +1653,7 @@ public class CrclSwingClientJPanel
             }
         });
     }
-
+    
     @Override
     public boolean showDebugMessage(final String s) {
         final String sWithThread = "Thread:" + Thread.currentThread().getName() + " " + s;
@@ -1687,16 +1684,16 @@ public class CrclSwingClientJPanel
         });
         return false;
     }
-
+    
     @Override
     public void showMessage(Throwable t) {
         this.showMessage(t.toString());
     }
-
+    
     double last_t_pos_logged = 0;
-
+    
     final Map<Integer, Double> last_joints = new HashMap<>();
-
+    
     private boolean jointsChanged(List<JointStatusType> jsl) {
         if (jsl.size() != last_joints.values().size()) {
             return true;
@@ -1712,18 +1709,18 @@ public class CrclSwingClientJPanel
         }
         return false;
     }
-
+    
     private void copyJointPositions(List<JointStatusType> jsl) {
         this.last_joints.clear();
         for (JointStatusType jst : jsl) {
             this.last_joints.put(jst.getJointNumber(), jst.getJointPosition());
         }
     }
-
+    
     public void setStatus(CRCLStatusType _status) {
         internal.setStatus(_status);
     }
-
+    
     @Override
     public void checkXmlQuery(CRCLSocket crclSocket) {
         XpathQueryJFrame xqJFrameLocal = this.xqJFrame;
@@ -1738,17 +1735,17 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void saveStatusAs(File f) {
         internal.saveStatusAs(f);
     }
-
+    
     @Override
     public void finishConnect() {
         this.jButtonConnect.setEnabled(false);
         this.jButtonDisconnect.setEnabled(true);
         enableConnectDependControls();
-
+        
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
         } else {
@@ -1760,7 +1757,7 @@ public class CrclSwingClientJPanel
             jLabelJogPlus1.setToolTipText("Not Polling?");
         }
     }
-
+    
     @SuppressWarnings({"nullness"})
     private void enableConnectDependControls() {
         this.jButtonEnd.setEnabled(true);
@@ -1770,7 +1767,7 @@ public class CrclSwingClientJPanel
         this.jButtonOpenGripper.setEnabled(true);
         this.jButtonOpenToolChanger.setEnabled(true);
         this.jButtonCloseToolChanger.setEnabled(true);
-
+        
         this.jButtonEnd.setToolTipText(null);
         this.jButtonInit.setToolTipText(null);
         this.jButtonMoveTo.setToolTipText(null);
@@ -1779,13 +1776,13 @@ public class CrclSwingClientJPanel
         this.jButtonOpenToolChanger.setToolTipText(null);
         this.jButtonCloseToolChanger.setToolTipText(null);
     }
-
+    
     private volatile @Nullable
     CRCLProgramType lastFinishSetStatusProgramCopy = null;
     private volatile @Nullable
     CRCLProgramType lastFinishSetStatusInternalProgram = null;
     private volatile int lastFinishSetStatusInternalProgramLength = -1;
-
+    
     private @Nullable
     CRCLProgramType getFinishSetStatusProgramCopy(CRCLProgramType internalProgram) {
         if (null == internalProgram) {
@@ -1803,7 +1800,7 @@ public class CrclSwingClientJPanel
             return lastFinishSetStatusProgramCopy;
         }
     }
-
+    
     @Override
     public void finishSetStatus() {
         long statRecieveTime = System.currentTimeMillis();
@@ -1848,11 +1845,11 @@ public class CrclSwingClientJPanel
             });
         }
     }
-
+    
     private String lastStateDescription = "";
     private @Nullable
     String lastProgramFile = null;
-
+    
     private @Nullable
     File findProgram(String filename) {
         File f0 = new File(filename);
@@ -1877,20 +1874,20 @@ public class CrclSwingClientJPanel
         }
         return null;
     }
-
+    
     public @Nullable
     List<ProgramRunData> getLastProgRunDataList() {
         return internal.getLastProgRunDataList();
     }
-
+    
     public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
         internal.saveProgramRunDataListToCsv(f, list);
     }
-
+    
     public void saveLastProgramRunDataListToCsv(File f) throws IOException {
         internal.saveLastProgramRunDataListToCsv(f);
     }
-
+    
     private boolean isProgramCopyNeeded(final CRCLStatusType curInternalStatus) {
         try {
             if (null == internal.getProgram()) {
@@ -1915,10 +1912,10 @@ public class CrclSwingClientJPanel
         }
         return false;
     }
-
+    
     private volatile @Nullable
     CommandStateEnumType lastIconState = null;
-
+    
     private void finishSetStatusPriv(
             @Nullable CRCLProgramType program,
             @Nullable CRCLStatusType curInternalStatus,
@@ -1942,7 +1939,7 @@ public class CrclSwingClientJPanel
             if (null != ccst) {
                 this.jTextFieldStatCmdID.setText("" + ccst.getCommandID());
                 String ccstStateDescription = ccst.getStateDescription();
-
+                
                 if (null != ccstStateDescription) {
                     stateDescription = ccstStateDescription;
                 }
@@ -1955,23 +1952,23 @@ public class CrclSwingClientJPanel
                     }
                     if (!stateString.equals(jTextFieldStatus.getText())) {
                         this.jTextFieldStatus.setText(stateString);
-
+                        
                         switch (state) {
-
+                            
                             case CRCL_ERROR:
                                 this.jTextFieldStatus.setBackground(Color.RED);
                                 if (null != outerJFrame) {
                                     outerJFrame.setIconImage(ERROR_IMAGE);
                                 }
                                 break;
-
+                            
                             case CRCL_WORKING:
                                 this.jTextFieldStatus.setBackground(Color.GREEN);
                                 if (null != outerJFrame) {
                                     outerJFrame.setIconImage(WORKING_IMAGE);
                                 }
                                 break;
-
+                            
                             case CRCL_READY:
                             case CRCL_DONE:
                             default:
@@ -1988,11 +1985,11 @@ public class CrclSwingClientJPanel
                                     }
                                 }
                                 break;
-
+                            
                         }
                         lastIconState = state;
                     }
-
+                    
                     if (!isRunning) {
                         String ccstProgramFile = ccst.getProgramFile();
                         if (null != ccstProgramFile
@@ -2023,7 +2020,7 @@ public class CrclSwingClientJPanel
                 }
                 GripperStatusType gripperStatus = curInternalStatus.getGripperStatus();
                 if (null == gripperStatus || null == gripperStatus.isHoldingObject()) {
-
+                    
                     jLabelHoldingObject.setText("HoldingObject: UNKNOWN");
                     jLabelHoldingObject.setOpaque(false);
                     jLabelHoldingObject.setForeground(Color.BLACK);
@@ -2081,7 +2078,7 @@ public class CrclSwingClientJPanel
 //                            tm.setValueAt(Double.NaN, jn-1,1);
                             continue;
                         }
-
+                        
                         double pos = js.getJointPosition();
                         tm.setValueAt(jn, jn - 1, 0);
                         tm.setValueAt(pos, jn - 1, 1);
@@ -2164,7 +2161,7 @@ public class CrclSwingClientJPanel
 //                        t = (double) xgc.toGregorianCalendar().getTime().getTime();
 //                    }
                     if (t > this.last_t_pos_logged) {
-
+                        
                         PlotData xpd = plotter.getPlotByName("x");
                         if (null == xpd) {
                             xpd = new PlotData();
@@ -2200,13 +2197,13 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     private void updateCurrentPoseListeners(CRCLStatusType curInternalStatus, @Nullable CRCLCommandType lastCommandSent, boolean isHoldingObject, long statReceiveTime) {
         for (CurrentPoseListener l : currentPoseListeners) {
             l.handlePoseUpdate(this, curInternalStatus, lastCommandSent, isHoldingObject, statReceiveTime);
         }
     }
-
+    
     private void setPlottersInitPoint(@Nullable PointType pt) {
         ProgramPlotter overheadPlotter = programPlotterJPanelOverhead.getPlotter();
         if (null != overheadPlotter) {
@@ -2217,29 +2214,29 @@ public class CrclSwingClientJPanel
             sidePlotter.setInitPoint(pt);
         }
     }
-
+    
     final List<UpdateTitleListener> updateTitleListeners = new ArrayList<>();
-
+    
     public void addUpdateTitleListener(UpdateTitleListener utl) {
         updateTitleListeners.add(utl);
     }
-
+    
     public void removeUpdateTitleListener(UpdateTitleListener utl) {
         updateTitleListeners.remove(utl);
     }
-
+    
     public String getLastMessage() {
         return internal.getLastMessage();
     }
-
+    
     public void updateTitle(CommandStatusType ccst, String stateString, String stateDescription) {
-
+        
         String ccstProgramFile = ccst.getProgramFile();
         Integer ccstProgramIndex = ccst.getProgramIndex();
         String program = (null != ccstProgramFile && null != ccstProgramIndex)
                 ? " " + ccstProgramFile + ":" + ccstProgramIndex.toString() : "";
         final Integer ccstProgramLength = ccst.getProgramLength();
-
+        
         if (!program.isEmpty() && null != ccstProgramLength) {
             program += "/" + ccstProgramLength.toString();
         }
@@ -2259,7 +2256,7 @@ public class CrclSwingClientJPanel
         if (stateDescriptionString.length() > 1) {
             stateDescriptionString = " " + stateDescriptionString.trim() + " ";
         }
-
+        
         String hostPort = "";
         InetAddress addr = internal.getInetAddress();
         if (null != addr) {
@@ -2295,13 +2292,13 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     private volatile boolean disconnecting = false;
-
+    
     private volatile StackTraceElement @Nullable [] disconnectTrace = null;
     private volatile @Nullable
     Thread disconnectThread = null;
-
+    
     public void disconnect() {
         closeShowProgramLogPrintStream();
         disconnecting = true;
@@ -2324,16 +2321,16 @@ public class CrclSwingClientJPanel
             JInternalFrame jInternalFrame = (JInternalFrame) outerContainer;
             jInternalFrame.setTitle("CRCL Client: Disconnected");
         }
-
+        
         stopPollTimer();
         final XFutureVoid lastStartPollTimerFutureLocalCopy = this.lastStartPollTimerFuture;
-        if(null == lastStartPollTimerFutureLocalCopy || lastStartPollTimerFutureLocalCopy.isDone()) {
+        if (null == lastStartPollTimerFutureLocalCopy || lastStartPollTimerFutureLocalCopy.isDone()) {
             completeDisconnect();
         } else {
             lastStartPollTimerFutureLocalCopy.thenRun(this::completeDisconnect);
         }
     }
-
+    
     private void completeDisconnect() throws RuntimeException {
         internal.disconnect();
         jogWorldTransSpeedsSet = false;
@@ -2345,7 +2342,7 @@ public class CrclSwingClientJPanel
             throw new RuntimeException("still connected after disconnect crclSocket=" + internal.getCrclSocketString());
         }
     }
-
+    
     private void closeShowProgramLogPrintStream() {
         if (null != showProgramLogPrintStream) {
             PrintStream ps = showProgramLogPrintStream;
@@ -2353,12 +2350,12 @@ public class CrclSwingClientJPanel
             ps.close();
         }
     }
-
+    
     @Override
     public void finishDisconnect() {
         this.jButtonConnect.setEnabled(true);
         this.jButtonDisconnect.setEnabled(false);
-
+        
         this.jButtonEnd.setEnabled(false);
         this.jButtonInit.setEnabled(false);
         this.jButtonMoveTo.setEnabled(false);
@@ -2366,7 +2363,7 @@ public class CrclSwingClientJPanel
         this.jButtonOpenGripper.setEnabled(false);
         this.jButtonOpenToolChanger.setEnabled(false);
         this.jButtonCloseToolChanger.setEnabled(false);
-
+        
         this.jButtonEnd.setToolTipText("Disconnected?");
         this.jButtonInit.setToolTipText("Disconnected?");
         this.jButtonMoveTo.setToolTipText("Disconnected?");
@@ -2376,11 +2373,11 @@ public class CrclSwingClientJPanel
         this.jButtonCloseToolChanger.setToolTipText("Disconnected?");
         this.stopPollTimer();
     }
-
+    
     public boolean isConnected() {
         return internal.isConnected();
     }
-
+    
     public void connect(String _host, int _port) {
         stopPollTimer();
         this.jTextFieldHost.setText(_host);
@@ -2388,7 +2385,7 @@ public class CrclSwingClientJPanel
         internal.connect(_host, _port);
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
-
+        
         Window window = this.getOuterWindow();
         if (window instanceof CrclSwingClientJFrame) {
             CrclSwingClientJFrame frm = (CrclSwingClientJFrame) window;
@@ -2406,11 +2403,11 @@ public class CrclSwingClientJPanel
             startPollTimer();
         }
     }
-
+    
     private javax.swing.@Nullable Timer jog_timer = null;
-
+    
     private double lastJogJointPos = Double.NEGATIVE_INFINITY;
-
+    
     private void jogJointStart(final double increment) {
         if (!internal.isConnected()
                 || null == internal.getStatus()) {
@@ -2427,9 +2424,9 @@ public class CrclSwingClientJPanel
         lastJogJointPos = Double.NEGATIVE_INFINITY;
         jogStopFlag = false;
         ActionListener jogActionListener = new ActionListener() {
-
+            
             private int apCount = 0;
-
+            
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -2496,7 +2493,7 @@ public class CrclSwingClientJPanel
     }
     private static final int JOG_JOINT_START_ACTION_ID = ACTION_FIRST + 1;
     private static final int JOG_WORLD_START_ACTION_ID = ACTION_FIRST + 2;
-
+    
     private boolean jogStopFlag = true;
 
     /**
@@ -2516,7 +2513,7 @@ public class CrclSwingClientJPanel
     public void setRpyJogIncrement(double rpyJogIncrement) {
         this.rpyJogIncrement = rpyJogIncrement;
     }
-
+    
     private void jogWorldStart(double sign) {
         try {
             if (null == internal.getStatus()
@@ -2535,13 +2532,13 @@ public class CrclSwingClientJPanel
                 case "Z":
                     tmpinc = internal.getXyzJogIncrement() * sign;
                     break;
-
+                
                 case "Roll":
                 case "Pitch":
                 case "Yaw":
                     tmpinc = Math.toRadians(this.rpyJogIncrement) * sign;
                     break;
-
+                
                 default:
                     throw new IllegalStateException("Invalid axis selected: " + axis);
             }
@@ -2553,9 +2550,9 @@ public class CrclSwingClientJPanel
             }
             jogStopFlag = false;
             ActionListener jogActionListener = new ActionListener() {
-
+                
                 private int actionCount = 0;
-
+                
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
@@ -2646,27 +2643,27 @@ public class CrclSwingClientJPanel
                                 case "X":
                                     endPosPoint.setX(posePoint.getX() + axisIncrement);
                                     break;
-
+                                
                                 case "Y":
                                     endPosPoint.setY(posePoint.getY() + axisIncrement);
                                     break;
-
+                                
                                 case "Z":
                                     endPosPoint.setZ(posePoint.getZ() + axisIncrement);
                                     break;
-
+                                
                                 case "Roll":
                                     incrementRoll(moveToCmd, inc);
                                     break;
-
+                                
                                 case "Pitch":
                                     incrementPitch(moveToCmd, inc);
                                     break;
-
+                                
                                 case "Yaw":
                                     incrementYaw(moveToCmd, inc);
                                     break;
-
+                                
                                 default:
                                     throw new IllegalStateException("Invalid axis selected: " + axis);
                             }
@@ -2680,7 +2677,7 @@ public class CrclSwingClientJPanel
                         jogStop();
                     }
                 }
-
+                
                 private void incrementYaw(MoveToType moveToType, final double inc) throws PmException {
                     final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
@@ -2692,7 +2689,7 @@ public class CrclSwingClientJPanel
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
-
+                
                 private void incrementPitch(MoveToType moveToType, final double inc) throws PmException {
                     final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
@@ -2704,7 +2701,7 @@ public class CrclSwingClientJPanel
                             pm2);
                     moveToType.setEndPosition(nextPose);
                 }
-
+                
                 private void incrementRoll(MoveToType moveToType, final double inc) throws PmException {
                     final PoseType pose = requireNonNull(internal.currentStatusPose(), "internal.getPose()");
                     PmRotationMatrix pm = CRCLPosemath.toPmRotationMatrix(pose);
@@ -2724,7 +2721,7 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, "Can not start world jog.", ex);
         }
     }
-
+    
     private void jogStop() {
         jogStopFlag = true;
         if (null != jog_timer) {
@@ -2737,14 +2734,14 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     @Override
     public void checkPollSelected() {
         if (this.jCheckBoxPoll.isSelected()) {
             this.startPollTimer();
         }
     }
-
+    
     private void commonJogStop() {
         this.jogStop();
         this.jLabelJogMinus.setBackground(Color.WHITE);
@@ -2768,16 +2765,16 @@ public class CrclSwingClientJPanel
         this.jLabelJogPlus1.repaint();
         this.jPanelJogPlus1.repaint();
     }
-
+    
     public @Nullable
     String getCrclClientErrorMessage() {
         return internal.getCrclClientErrorMessage();
     }
-
+    
     public void clearCrclClientErrorMessage() {
         internal.clearCrclClientErrorMessage();
     }
-
+    
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmdInstance) throws Exception {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmdInstance, true);
@@ -2801,14 +2798,14 @@ public class CrclSwingClientJPanel
                 = new SimpleDateFormat("yyyy-MM-dd_hh_mm_ss_a_zzz_");
         String date_string = ft.format(dNow);
         File f = File.createTempFile(date_string, ".xml", fDir2);
-        try (FileWriter fw = new FileWriter(f)) {
+        try ( FileWriter fw = new FileWriter(f)) {
             fw.write(s);
         }
         menuOuter.readRecentCommandFiles();
     }
-
+    
     private static final String recent_programs_dir = ".crcl_pendant_client_recent_programs";
-
+    
     private void saveRecentProgram(File fprog) throws JAXBException, IOException {
         Set<String> pathSet = this.getRecentPrograms();
         if (pathSet.contains(fprog.getCanonicalPath())) {
@@ -2824,19 +2821,19 @@ public class CrclSwingClientJPanel
                 = new SimpleDateFormat("yyyy-MM-dd_hh_mm_ss_a_zzz_");
         String date_string = ft.format(dNow);
         File flink = File.createTempFile(name + "_" + date_string, ".txt", fDir);
-        try (FileWriter fw = new FileWriter(flink)) {
+        try ( FileWriter fw = new FileWriter(flink)) {
             fw.write(fprog.getCanonicalPath());
         }
     }
-
+    
     public void saveRecentCommand(CRCLCommandType cmd) throws Exception {
         CRCLCommandInstanceType instanceForSave = new CRCLCommandInstanceType();
         instanceForSave.setCRCLCommand(cmd);
         this.saveRecentCommandInstance(instanceForSave);
     }
-
+    
     private boolean justShowedXpathQueryDialog = false;
-
+    
     public void showXpathQueryDialog() {
         if (internal.isConnected()) {
             if (!this.jCheckBoxPoll.isSelected()) {
@@ -2858,7 +2855,7 @@ public class CrclSwingClientJPanel
             frame.setVisible(true);
         }
     }
-
+    
     public void browseOpenCommandXml() {
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -2875,11 +2872,11 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void startRunTest(Map<String, String> testPropsMap) {
         internal.startRunTestThread(testPropsMap);
     }
-
+    
     public void savePoseList() {
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -2896,27 +2893,27 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void stopStatusReaderThread() {
         internal.stopStatusReaderThread();
     }
-
+    
     public int getMaxRecordCommandsCount() {
         return internal.getMaxRecordCommandsCount();
     }
-
+    
     public void setMaxRecordCommandsCount(int maxRecordCommandsCount) {
         internal.setMaxRecordCommandsCount(maxRecordCommandsCount);
     }
-
+    
     public void setRecordCommands(boolean recordCommands) {
         internal.setRecordCommands(recordCommands);
     }
-
+    
     public void showCommandLog() {
         MultiLineStringJPanel.showText(internal.getRecordedCommandsList().stream().map(cmd -> internal.getTempCRCLSocket().commandToPrettyString(cmd, "")).collect(Collectors.joining("\n\n")));
     }
-
+    
     public void loadPrefsAction() {
         JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
@@ -2924,15 +2921,15 @@ public class CrclSwingClientJPanel
             loadPrefsFile(f);
         }
     }
-
+    
     public void setQuitOnTestCommandFailure(boolean q) {
         internal.setQuitOnTestCommandFailure(q);
     }
-
+    
     public void openLogFile() {
         internal.openLogFile();
     }
-
+    
     public void aboutAction() {
         try {
             JOptionPane.showMessageDialog(this, getVersion());
@@ -2940,7 +2937,7 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void savePrefsAction() {
         JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
@@ -2964,16 +2961,16 @@ public class CrclSwingClientJPanel
             connectCurrent();
         }
     }
-
+    
     public @Nullable
     File getTempLogDir() {
         return internal.getTempLogDir();
     }
-
+    
     public void setTempLogDir(File tempLogDir) {
         this.internal.setTempLogDir(tempLogDir);
     }
-
+    
     public void showStatusLog() {
         try {
             File tmpFile
@@ -2988,10 +2985,10 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public static void saveJTable(File f, boolean append, JTable jtable) throws IOException {
         boolean fNotEmpty = f.exists() && f.length() > 0;
-        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             TableModel tm = jtable.getModel();
             if (!fNotEmpty || !append) {
                 List<String> colNameList = new ArrayList<>();
@@ -3019,10 +3016,10 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     private volatile @Nullable
     File commandStatusLogFile = null;
-
+    
     private File getCommandStatusLogFile() throws IOException {
         if (null == commandStatusLogFile) {
             commandStatusLogFile
@@ -3032,7 +3029,20 @@ public class CrclSwingClientJPanel
         }
         return commandStatusLogFile;
     }
-
+    
+    private volatile @Nullable
+    File commandProfileMapLogFile = null;
+    
+    private File getCommandProfileMapFile() throws IOException {
+        if (null == commandProfileMapLogFile) {
+            commandProfileMapLogFile
+                    = (internal.getTempLogDir() != null)
+                    ? File.createTempFile("commandProfileMap_", ".csv", internal.getTempLogDir())
+                    : File.createTempFile("commandProfileMap_", ".csv");
+        }
+        return commandProfileMapLogFile;
+    }
+    
     public void showCommandStatusLog() {
         try {
             File f = writeCommandStatusLogFile();
@@ -3041,14 +3051,37 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    private File writeCommandStatusLogFile() throws IOException {
+    
+    public void showCommandProfileMap() {
+        try {
+            File f = writeCommandProfileMap();
+            Desktop.getDesktop().open(f);
+        } catch (IOException ex) {
+            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public File writeCommandProfileMap() throws IOException {
+        File f = getCommandProfileMapFile();
+        Map<String, Long> profileMap = internal.getCmdPerfMap();
+        List<Map.Entry<String, Long>> entriesList = new ArrayList<>(profileMap.entrySet());
+        Collections.sort(entriesList, Comparator.comparing((Map.Entry<String, Long> e) -> e.getValue()));
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+            pw.println("name,time");
+            for (Map.Entry<String, Long> entry : entriesList) {
+                pw.println(entry.getKey() + "," + entry.getValue());
+            }
+        }
+        return f;
+    }
+    
+    public File writeCommandStatusLogFile() throws IOException {
         File f = getCommandStatusLogFile();
         saveJTable(f, true, jTableCommandStatusLog);
         this.internal.printCommandStatusLogNoHeader(f, true, true);
         return f;
     }
-
+    
     public void browseOpenProgramXml() {
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -3070,15 +3103,15 @@ public class CrclSwingClientJPanel
             openXmlProgramFile(f);
         }
     }
-
+    
     public boolean isValidateXmlSchema() {
         return internal.isValidateXmlSchema();
     }
-
+    
     public void setValidateXmlSchema(boolean validateXmlSchema) {
         internal.setValidateXmlSchema(validateXmlSchema);
     }
-
+    
     @Override
     public CRCLProgramType editProgram(CRCLProgramType program) {
         CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();
@@ -3090,7 +3123,7 @@ public class CrclSwingClientJPanel
                         editCrclSocket);
         return program;
     }
-
+    
     @SuppressWarnings("nullness")
     public void openXmlInstanceFile(File f) throws Exception {
         String s = internal.getXpu().queryXml(f, "/");
@@ -3104,7 +3137,7 @@ public class CrclSwingClientJPanel
         long origCommandId = cmd.getCommandID();
         cmd.setCommandID(internal.getCmdId());
         CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();;
-
+        
         cmd = ObjTableJPanel.editObject(
                 cmd,
                 internal.getXpu(),
@@ -3133,16 +3166,16 @@ public class CrclSwingClientJPanel
         }
         incAndSendCommandFromAwt(cmd);
     }
-
+    
     private String tableCommandString(CRCLCommandType cmd) throws ParserConfigurationException, SAXException, IOException, JAXBException {
         return CRCLSocket.commandToSimpleString(cmd);
     }
-
+    
     private volatile @Nullable
     PrintStream showProgramLogPrintStream = null;
     private AtomicInteger logShowProgramCount = new AtomicInteger();
     private long showProgramLogStartTime = -1;
-
+    
     private PrintStream getShowProgramLogPrintStream() throws IOException {
         if (null != showProgramLogPrintStream) {
             return showProgramLogPrintStream;
@@ -3153,7 +3186,7 @@ public class CrclSwingClientJPanel
         showProgramLogPrintStream = new PrintStream(new FileOutputStream(programLog));
         return showProgramLogPrintStream;
     }
-
+    
     private void logShowProgramInfo(CRCLProgramType program,
             @Nullable List<ProgramRunData> progRunDataList,
             int line) {
@@ -3163,10 +3196,10 @@ public class CrclSwingClientJPanel
             }
             PrintStream ps = getShowProgramLogPrintStream();
             int count = logShowProgramCount.incrementAndGet();
-
+            
             String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
             File programFile = File.createTempFile("showProgramLog_" + getPort() + "_" + count, ".xml");
-            try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+            try ( PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
                 psProgramFile.println(programString);
             }
             File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
@@ -3191,10 +3224,10 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     private volatile @MonotonicNonNull
     CRCLProgramType programShowing = null;
-
+    
     public void showProgram(
             CRCLProgramType program,
             @Nullable List<ProgramRunData> progRunDataList,
@@ -3297,7 +3330,7 @@ public class CrclSwingClientJPanel
                     }
                 }
             }
-
+            
             if (line >= 0 && line < dtm.getRowCount()) {
                 jTableProgram.getSelectionModel().setSelectionInterval(line, line);
             }
@@ -3399,6 +3432,7 @@ public class CrclSwingClientJPanel
         jCheckBoxLogCommandStatusToFile = new javax.swing.JCheckBox();
         jButtonShowCommandStatusLogFile = new javax.swing.JButton();
         jButtonPlotStatus = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jPanelConnectionTab = new javax.swing.JPanel();
         jTextFieldPort = new javax.swing.JTextField();
         jButtonConnect = new javax.swing.JButton();
@@ -3411,6 +3445,11 @@ public class CrclSwingClientJPanel
         jCheckBoxPoll = new javax.swing.JCheckBox();
         jTextFieldPollTime = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
+        jCheckBoxReadTimeout = new javax.swing.JCheckBox();
+        jTextFieldReadTimeout = new javax.swing.JTextField();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextAreaPerfInfo = new javax.swing.JTextArea();
+        jButtonShowPerfInfo = new javax.swing.JButton();
         jScrollPaneErrors = new javax.swing.JScrollPane();
         jTextAreaErrors = new javax.swing.JTextArea();
         jTabbedPaneRightUpper = new javax.swing.JTabbedPane();
@@ -4280,6 +4319,13 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jButton1.setText("Profile Map");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelCommandStatusLogOuterLayout = new javax.swing.GroupLayout(jPanelCommandStatusLogOuter);
         jPanelCommandStatusLogOuter.setLayout(jPanelCommandStatusLogOuterLayout);
         jPanelCommandStatusLogOuterLayout.setHorizontalGroup(
@@ -4300,7 +4346,9 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonShowCommandStatusLogFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonPlotStatus)
-                        .addGap(0, 451, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)
+                        .addGap(0, 367, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelCommandStatusLogOuterLayout.setVerticalGroup(
@@ -4313,7 +4361,8 @@ public class CrclSwingClientJPanel
                     .addComponent(jTextFieldLogMaxLength, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jCheckBoxLogCommandStatusToFile)
                     .addComponent(jButtonShowCommandStatusLogFile)
-                    .addComponent(jButtonPlotStatus))
+                    .addComponent(jButtonPlotStatus)
+                    .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 563, Short.MAX_VALUE)
                 .addContainerGap())
@@ -4381,6 +4430,32 @@ public class CrclSwingClientJPanel
 
         jLabel4.setText("Poll interval(ms):");
 
+        jCheckBoxReadTimeout.setText("Read Timout(ms)");
+        jCheckBoxReadTimeout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxReadTimeoutActionPerformed(evt);
+            }
+        });
+
+        jTextFieldReadTimeout.setEditable(false);
+        jTextFieldReadTimeout.setEnabled(false);
+        jTextFieldReadTimeout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldReadTimeoutActionPerformed(evt);
+            }
+        });
+
+        jTextAreaPerfInfo.setColumns(20);
+        jTextAreaPerfInfo.setRows(5);
+        jScrollPane1.setViewportView(jTextAreaPerfInfo);
+
+        jButtonShowPerfInfo.setText("Show Perf Info");
+        jButtonShowPerfInfo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonShowPerfInfoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelConnectionTabLayout = new javax.swing.GroupLayout(jPanelConnectionTab);
         jPanelConnectionTab.setLayout(jPanelConnectionTabLayout);
         jPanelConnectionTabLayout.setHorizontalGroup(
@@ -4389,28 +4464,41 @@ public class CrclSwingClientJPanel
                 .addContainerGap()
                 .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jButtonShowPerfInfo)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                        .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonInit)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonEnd))
+                        .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldHost, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                                .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonInit)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonEnd))
+                            .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
+                                    .addComponent(jCheckBoxReadTimeout)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jTextFieldReadTimeout))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
+                                    .addComponent(jCheckBoxPoll)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jLabel4)
+                                    .addGap(1, 1, 1)
+                                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addContainerGap(284, Short.MAX_VALUE))
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                        .addComponent(jCheckBoxPoll)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4)
-                        .addGap(1, 1, 1)
-                        .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         jPanelConnectionTabLayout.setVerticalGroup(
             jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4431,7 +4519,15 @@ public class CrclSwingClientJPanel
                     .addComponent(jCheckBoxPoll)
                     .addComponent(jLabel4)
                     .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxReadTimeout)
+                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonShowPerfInfo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(273, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("Connection", jPanelConnectionTab);
@@ -4716,7 +4812,7 @@ public class CrclSwingClientJPanel
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTabbedPaneRightUpper)
-                    .addComponent(jTabbedPaneLeftUpper))
+                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -4724,7 +4820,7 @@ public class CrclSwingClientJPanel
     private void jButtonProgramPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramPauseActionPerformed
         pauseCrclProgram();
     }//GEN-LAST:event_jButtonProgramPauseActionPerformed
-
+    
     public XFutureVoid abortProgram() {
         pauseTime = System.currentTimeMillis();
         stopPollTimer();
@@ -4763,7 +4859,7 @@ public class CrclSwingClientJPanel
             }
         }
     }//GEN-LAST:event_jButtonEditProgramItemActionPerformed
-
+    
     @SuppressWarnings("rawtypes")
     private static DefaultTableModel getCommandStatusLogModel() {
         return new javax.swing.table.DefaultTableModel(
@@ -4776,11 +4872,11 @@ public class CrclSwingClientJPanel
             boolean[] canEdit = new boolean[]{
                 false, false, false, false, false, false, false, false, false, false, false
             };
-
+            
             public Class getColumnClass(int columnIndex) {
                 return types[columnIndex];
             }
-
+            
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
             }
@@ -4813,9 +4909,9 @@ public class CrclSwingClientJPanel
             showMessage(ex);
         }
     }//GEN-LAST:event_jButtonAddProgramItemActionPerformed
-
+    
     private final List<String> customExcludedPathStrings = new ArrayList<>();
-
+    
     @SuppressWarnings("rawtypes")
     private void addProgramItem() throws SecurityException, InvocationTargetException, IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         int index = getProgramRow();
@@ -4837,7 +4933,7 @@ public class CrclSwingClientJPanel
                 return;
             }
             MiddleCommandType cmdOrig = (MiddleCommandType) selectedClss.getDeclaredConstructor().newInstance();
-
+            
             CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();;
             MiddleCommandType cmdEdited
                     = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
@@ -4870,14 +4966,14 @@ public class CrclSwingClientJPanel
         internal.setLastProgramIndex(-1);
         runCurrentProgramAsync(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
-
+    
     public StackTraceElement @Nullable [] getRunProgramReturnFalseTrace() {
         return internal.getRunProgramReturnFalseTrace();
     }
-
+    
     private @Nullable
     XFuture<Boolean> lastProgramFuture = null;
-
+    
     public boolean runCurrentProgram(boolean stepMode) {
         if (!internal.isConnected()) {
             printDisconnectInfo();
@@ -4898,7 +4994,7 @@ public class CrclSwingClientJPanel
         }
         return internal.runProgram(program, 0);
     }
-
+    
     private void printDisconnectInfo() {
         System.out.println();
         System.out.flush();
@@ -4908,7 +5004,7 @@ public class CrclSwingClientJPanel
         System.err.println();
         System.err.flush();
     }
-
+    
     public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode) {
         try {
             if (disconnecting) {
@@ -4934,14 +5030,14 @@ public class CrclSwingClientJPanel
             return future;
         }
     }
-
+    
     private volatile boolean needInitPoint = false;
-
+    
     private void prepRunCurrentProgram(boolean stepMode) {
         try {
             boolean startAsConnected = isConnected();
             int startPollStopCount = pollStopCount.get();
-
+            
             int startlocalPort = internal.getLocalPort();
             int startRemotePort = internal.getPort();
             if (!startAsConnected) {
@@ -4949,10 +5045,10 @@ public class CrclSwingClientJPanel
             }
             int step2localPort = internal.getLocalPort();
             int step2RemotePort = internal.getPort();
-
+            
             stopPollTimer();
             this.jCheckBoxPoll.setSelected(false);
-
+            
             this.clearProgramTimesDistances();
             int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
             internal.setQuitOnTestCommandFailure(true);
@@ -4972,7 +5068,7 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void requestAndReadStatus() {
         boolean wasPolling = polling;
         try {
@@ -4993,12 +5089,12 @@ public class CrclSwingClientJPanel
             }
         }
     }
-
+    
     public void setStepMode(boolean newStepMode) {
         internal.setStepMode(newStepMode);
         jCheckBoxStepping.setSelected(newStepMode);
     }
-
+    
     public boolean isStepMode() {
         boolean stepMode = internal.isStepMode();
         if (jCheckBoxStepping.isSelected() != stepMode) {
@@ -5010,7 +5106,7 @@ public class CrclSwingClientJPanel
     private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
         resumeButtonAction();
     }//GEN-LAST:event_jButtonResumeActionPerformed
-
+    
     private void resumeButtonAction() {
         if (pauseTime > this.internal.getRunStartMillis()) {
             this.internal.runStartMillis += (System.currentTimeMillis() - pauseTime);
@@ -5045,24 +5141,24 @@ public class CrclSwingClientJPanel
         }
         continueCurrentProgram(jCheckBoxStepping.isSelected());
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
-
+    
     public boolean isPaused() {
         return internal.isPaused();
     }
-
+    
     public @Nullable
     String getLastRunningProgramTrueInfo() {
         return internal.getLastRunningProgramTrueInfo();
     }
-
+    
     public boolean isRunningProgram() {
         return internal.isRunningProgram();
     }
-
+    
     public boolean isBlockPrograms() {
         return internal.isBlockPrograms();
     }
-
+    
     public int startBlockingPrograms() {
         try {
             setProgram(null);
@@ -5071,7 +5167,7 @@ public class CrclSwingClientJPanel
         }
         return internal.startBlockingPrograms();
     }
-
+    
     public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         internal.stopBlockingPrograms(count);
     }
@@ -5093,7 +5189,7 @@ public class CrclSwingClientJPanel
     public void setPreClosing(boolean preClosing) {
         internal.setPreClosing(preClosing);
     }
-
+    
     public boolean isIgnoreTimeouts() {
         return internal.isIgnoreTimeouts();
     }
@@ -5106,12 +5202,12 @@ public class CrclSwingClientJPanel
     public void setIgnoreTimeouts(boolean ignoreTimeouts) {
         internal.setIgnoreTimeouts(ignoreTimeouts);
     }
-
+    
     private volatile @MonotonicNonNull
     XFuture<Boolean> programFutureInternal = null;
     private volatile @MonotonicNonNull
     XFuture<Boolean> lastContinueCurrentProgramRet = null;
-
+    
     public XFuture<Boolean> continueCurrentProgram(boolean stepMode) {
         if (internal.isBlockPrograms()) {
             internal.printStartBlockingProgramInfo();
@@ -5194,7 +5290,7 @@ public class CrclSwingClientJPanel
             return ret;
         }
     }
-
+    
     private XFuture<Boolean> checkFutureChange(XFuture<Boolean> newProgramFutureInternal) {
         XFuture<Boolean> ret;
         ret = newProgramFutureInternal
@@ -5397,7 +5493,7 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonCloseGripperActionPerformed
-
+    
     private PoseDisplayMode lastMoveToPoseDisplayMode = PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 
     private void jButtonMoveToActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonMoveToActionPerformed
@@ -5446,12 +5542,12 @@ public class CrclSwingClientJPanel
                 moveto.getGuard().add(guard);
             }
             incAndSendCommandFromAwt(moveto);
-
+            
         } catch (Exception ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
-
+    
     public PoseDisplayMode getCurrentPoseDisplayMode() {
         return (PoseDisplayMode) jComboBoxPoseDisplayMode.getSelectedItem();
     }
@@ -5467,7 +5563,7 @@ public class CrclSwingClientJPanel
     private void jButtonConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonConnectActionPerformed
         connectCurrent();
     }//GEN-LAST:event_jButtonConnectActionPerformed
-
+    
     public void connectCurrent() throws NumberFormatException {
         if (!isConnected()) {
             int port = Integer.parseInt(this.jTextFieldPort.getText());
@@ -5493,14 +5589,14 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonEndActionPerformed
-
+    
     public XFuture<Boolean> incAndSendCommandFromAwt(CRCLCommandType cmd) throws JAXBException {
 //        internal.clearLastIncCommandThread();
         return internal.scheduleIncAndSendCommand(cmd);
 //        internal.clearLastIncCommandThread();
 //        return ret;
     }
-
+    
 
     private void jButtonInitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonInitActionPerformed
         try {
@@ -5516,7 +5612,7 @@ public class CrclSwingClientJPanel
         if (this.jCheckBoxPoll.isSelected()) {
             jTextFieldPollTime.setEditable(false);
             jTextFieldPollTime.setEnabled(false);
-            if(internal.isConnected()) {
+            if (internal.isConnected()) {
                 this.startPollTimer();
             }
         } else {
@@ -5526,7 +5622,7 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jCheckBoxPollActionPerformed
 
     private void jTextFieldPollTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldPollTimeActionPerformed
-
+        
         if (!this.jCheckBoxPoll.isSelected()) {
             int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
             if (new_poll_ms < 10) {
@@ -5559,7 +5655,7 @@ public class CrclSwingClientJPanel
             showErrorsPopup(evt);
         }
     }//GEN-LAST:event_jTextAreaErrorsMouseClicked
-
+    
     private boolean disableTextPopups = true;
 
     /**
@@ -5588,7 +5684,7 @@ public class CrclSwingClientJPanel
     public void setEnableDebugConnect(boolean enableDebugConnect) {
         internal.setDebugConnectDisconnect(enableDebugConnect);
     }
-
+    
 
     private void jComboBoxPoseDisplayModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxPoseDisplayModeActionPerformed
         updateDisplayMode(jTablePose, getCurrentPoseDisplayMode(), false);
@@ -5633,7 +5729,7 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jComboBoxMoveToPoseDisplayModeActionPerformed
-
+    
     private boolean pauseCommandStatusLog = true;
     private void jCheckBoxPauseCommandStatusLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxPauseCommandStatusLogActionPerformed
         pauseCommandStatusLog = jCheckBoxPauseCommandStatusLog.isSelected();
@@ -5736,29 +5832,62 @@ public class CrclSwingClientJPanel
         }
     }//GEN-LAST:event_jButtonPlotStatusActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        showCommandProfileMap();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jCheckBoxReadTimeoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxReadTimeoutActionPerformed
+        final boolean selected = jCheckBoxReadTimeout.isSelected();
+        if (selected) {
+            jTextFieldReadTimeout.setEnabled(true);
+            jTextFieldReadTimeout.setEditable(true);
+            jTextFieldReadTimeout.setText(Integer.toString(internal.getReadStatusSoTimeout()));
+        } else {
+            jTextFieldReadTimeout.setText("");
+            jTextFieldReadTimeout.setEnabled(false);
+            jTextFieldReadTimeout.setEditable(false);
+        }
+        internal.setUseReadSoTimeout(selected);
+    }//GEN-LAST:event_jCheckBoxReadTimeoutActionPerformed
+
+    private void jTextFieldReadTimeoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldReadTimeoutActionPerformed
+        internal.setReadStatusSoTimeout(Integer.parseInt(jTextFieldReadTimeout.getText().trim()));
+    }//GEN-LAST:event_jTextFieldReadTimeoutActionPerformed
+
+    private void jButtonShowPerfInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonShowPerfInfoActionPerformed
+        String perfInfo = internal.getPerfInfoString("");
+        System.out.println("perfInfo = " + perfInfo);
+        jTextAreaPerfInfo.setText(perfInfo);
+    }//GEN-LAST:event_jButtonShowPerfInfoActionPerformed
+    
+    
+    public void printPerfInfo(PrintStream ps, String prefix) {
+        ps.print(internal.getPerfInfoString(prefix));
+    }
+    
     public @Nullable
     Thread getRunProgramThread() {
         return internal.getCrclSocketActionThread();
     }
-
+    
     public @Nullable
     XFuture<Boolean> getRunProgramFuture() {
         return internal.getRunProgramFuture();
     }
-
+    
     private volatile boolean logCommandStatusToFile = false;
-
+    
     private static final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-
+    
     public static String getTimeString(long ms) {
         Date date = new Date(ms);
         return timeFormat.format(date);
     }
-
+    
     public static void autoResizeTableColWidths(JTable table) {
-
+        
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
+        
         int fullsize = 0;
         Container parent = table.getParent();
         if (null != parent) {
@@ -5769,7 +5898,7 @@ public class CrclSwingClientJPanel
             DefaultTableColumnModel colModel = (DefaultTableColumnModel) table.getColumnModel();
             TableColumn col = colModel.getColumn(i);
             int width = 0;
-
+            
             TableCellRenderer renderer = col.getHeaderRenderer();
             if (renderer == null) {
                 renderer = table.getTableHeader().getDefaultRenderer();
@@ -5792,15 +5921,15 @@ public class CrclSwingClientJPanel
             sumWidths += width + 2;
         }
     }
-
+    
     public void printCommandStatusLog() throws IOException {
         internal.printCommandStatusLog(System.out, false);
     }
-
+    
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
         internal.printCommandStatusLog(appendable, clearLog);
     }
-
+    
     public String commandStatusLogToString() {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -5811,11 +5940,11 @@ public class CrclSwingClientJPanel
         }
         return sw.toString();
     }
-
+    
     public Object @Nullable [] logElementToArray(CommandStatusLogElement el) {
         return internal.logElementToArray(el);
     }
-
+    
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         if (logCommandStatusToFile) {
@@ -5847,7 +5976,7 @@ public class CrclSwingClientJPanel
             });
         }
     }
-
+    
     private static String comparableClassName(Class<?> clss) {
         String canonicalName = clss.getCanonicalName();
         if (null != canonicalName) {
@@ -5855,7 +5984,7 @@ public class CrclSwingClientJPanel
         }
         return clss.getName();
     }
-
+    
     public void addToCommandsMenu(JMenu commandsMenuParent) {
         CrclSwingClientJPanel pendantClientJPanel1 = this;
         List<Class<?>> allClasses = ObjTableJPanel.getClasses(customExcludedPathStrings);
@@ -5865,7 +5994,7 @@ public class CrclSwingClientJPanel
         for (final Class<?> c : cmdClasses) {
             JMenuItem jmi = new JMenuItem(comparableClassName(c));
             jmi.addActionListener(new ActionListener() {
-
+                
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
@@ -5894,6 +6023,7 @@ public class CrclSwingClientJPanel
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButtonAddGuard;
     private javax.swing.JButton jButtonAddProgramItem;
     private javax.swing.JButton jButtonCloseGripper;
@@ -5920,12 +6050,14 @@ public class CrclSwingClientJPanel
     private javax.swing.JButton jButtonResume;
     private javax.swing.JButton jButtonRunProgFromCurrentLine;
     private javax.swing.JButton jButtonShowCommandStatusLogFile;
+    private javax.swing.JButton jButtonShowPerfInfo;
     private javax.swing.JButton jButtonStepBack;
     private javax.swing.JButton jButtonStepFwd;
     private javax.swing.JCheckBox jCheckBoxLogCommandStatusToFile;
     private javax.swing.JCheckBox jCheckBoxMonitorHoldingOutput;
     private javax.swing.JCheckBox jCheckBoxPauseCommandStatusLog;
     private javax.swing.JCheckBox jCheckBoxPoll;
+    private javax.swing.JCheckBox jCheckBoxReadTimeout;
     private javax.swing.JCheckBox jCheckBoxStepping;
     private javax.swing.JCheckBox jCheckBoxStraight;
     private javax.swing.JComboBox<String> jComboBoxJointAxis;
@@ -5972,6 +6104,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JPanel jPanelProgram;
     private javax.swing.JPanel jPanelProgramPlot;
     private javax.swing.JPanel jPanelStatus;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -5990,6 +6123,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTableProgram;
     private javax.swing.JTextArea jTextAreaErrors;
+    private javax.swing.JTextArea jTextAreaPerfInfo;
     private javax.swing.JTextArea jTextAreaSelectedProgramCommand;
     private javax.swing.JTextArea jTextAreaStateDescription;
     private javax.swing.JTextField jTextFieldDistToSelected;
@@ -6001,6 +6135,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JTextField jTextFieldPollTime;
     private javax.swing.JTextField jTextFieldPort;
     private javax.swing.JTextField jTextFieldRPYJogIncrement;
+    private javax.swing.JTextField jTextFieldReadTimeout;
     private javax.swing.JTextField jTextFieldRotationSpeed;
     private javax.swing.JTextField jTextFieldRunTime;
     private javax.swing.JTextField jTextFieldStatCmdID;
