@@ -189,13 +189,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 + "\n idDiffCount=" + idDiffCount.get()
                 + "\n workingStatCount=" + workingStatCount.get()
                 + "\n targetRecieveSuccessCount=" + targetRecieveSuccessCount.get()
-                
                 ;
-        
-//         private final AtomicInteger idDiffCount = new AtomicInteger();
-//    private final AtomicInteger workingStatCount = new AtomicInteger();
-//    private final AtomicInteger targetRecieveSuccessCount = new AtomicInteger();
-    
         return perfString;
     }
 
