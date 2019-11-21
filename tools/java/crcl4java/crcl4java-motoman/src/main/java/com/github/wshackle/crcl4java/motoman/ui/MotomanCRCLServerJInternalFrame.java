@@ -23,7 +23,9 @@
 package com.github.wshackle.crcl4java.motoman.ui;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  *
@@ -121,6 +123,30 @@ public class MotomanCRCLServerJInternalFrame extends javax.swing.JInternalFrame 
     public int getCrclPort() {
         return motomanCrclServerJPanel1.getCrclPort();
     }
+
+    public String getPerformanceInfo() {
+        return motomanCrclServerJPanel1.getPerformanceInfo();
+    }
+
+    @Override
+    public void setVisible(boolean aFlag) {
+        try {
+            if (!aFlag) {
+                String motomanPerfInfo = getPerformanceInfo();
+                System.out.println("motomanPerfInfo = " + motomanPerfInfo);
+                File f = File.createTempFile("motomanPerf", ".txt");
+                System.out.println("f = " + f);
+                try (PrintStream ps = new PrintStream(new FileOutputStream(f))) {
+                    ps.println("motomanPerfInfo = " + motomanPerfInfo);
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("MotomanCRCLServerJInternalFrame.setVisible exceprion=" + ex);
+        } finally {
+            super.setVisible(aFlag);
+        }
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.github.wshackle.crcl4java.motoman.ui.MotomanCRCLServerJPanel motomanCrclServerJPanel1;

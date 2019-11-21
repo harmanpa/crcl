@@ -577,6 +577,13 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonUpdatePerfInfoActionPerformed
 
+    public String getPerformanceInfo() {
+        if (null != motomanCrclServer) {
+            return  motomanCrclServer.getPerformanceInfo();
+        } else {
+            return "motomanCrclServer=null";
+        }
+    }
     private final ExecutorService testService = Executors.newFixedThreadPool(25);
 
     private long testMethod(int finalI, int maxcount, boolean withJoints, boolean withAlarms) {
