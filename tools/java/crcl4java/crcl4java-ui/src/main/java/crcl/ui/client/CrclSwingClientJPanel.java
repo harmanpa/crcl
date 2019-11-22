@@ -3078,7 +3078,7 @@ public class CrclSwingClientJPanel
     public File writeCommandStatusLogFile() throws IOException {
         File f = getCommandStatusLogFile();
         saveJTable(f, true, jTableCommandStatusLog);
-        this.internal.printCommandStatusLogNoHeader(f, true, true);
+        this.internal.printCommandStatusLog(f, true, true,false,internal.getCommandStatusLogHeadings(),20);
         return f;
     }
     
@@ -5923,18 +5923,18 @@ public class CrclSwingClientJPanel
     }
     
     public void printCommandStatusLog() throws IOException {
-        internal.printCommandStatusLog(System.out, false);
+        internal.printCommandStatusLog(System.out, false,true,internal.getCommandStatusLogHeadings(),20);
     }
     
     public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
-        internal.printCommandStatusLog(appendable, clearLog);
+        internal.printCommandStatusLog(appendable, clearLog,true,internal.getCommandStatusLogHeadings(),20);
     }
     
     public String commandStatusLogToString() {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         try {
-            internal.printCommandStatusLog(pw, false);
+            internal.printCommandStatusLog(pw, false,true,internal.getCommandStatusLogHeadings(),20);
         } catch (IOException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }

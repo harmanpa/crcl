@@ -2000,10 +2000,16 @@ public class CrclSwingClientInner {
     private int holdingErrorRepCount = 0;
 
     private volatile long lastLogCmdTime = System.currentTimeMillis();
+    private volatile long lastLogStatTime = System.currentTimeMillis();
     private volatile @MonotonicNonNull
     PointType lastLogMoveToCmdPoint = null;
     private volatile @MonotonicNonNull
     PointType lastLogStatusPoint = null;
+
+    private volatile @MonotonicNonNull
+    String logExpectedSpeedString = null;
+    private volatile @MonotonicNonNull
+    PointType lastCommandStartStatusPoint = null;
 
     private double distFromLastLogMoveToCmdPoint() {
         if (null == lastLogMoveToCmdPoint) {
@@ -2013,6 +2019,16 @@ public class CrclSwingClientInner {
             return Double.NaN;
         }
         return CRCLPosemath.diffPoints(lastLogMoveToCmdPoint, lastLogStatusPoint);
+    }
+
+    private double distFromLastCommandStartStatusPoint() {
+        if (null == lastCommandStartStatusPoint) {
+            return Double.NaN;
+        }
+        if (null == lastLogStatusPoint) {
+            return Double.NaN;
+        }
+        return CRCLPosemath.diffPoints(lastCommandStartStatusPoint, lastLogStatusPoint);
     }
 
     private volatile @Nullable
@@ -2049,64 +2065,86 @@ public class CrclSwingClientInner {
             if (cmd instanceof GetStatusType) {
                 return null;
             }
+            final long timeSinceLastCmd = cel.getTime() - lastLogCmdTime;
+            final long timeSinceLastStat = cel.getTime() - lastLogStatTime;
             lastLogCmdTime = cel.getTime();
             lastLogMoveToCmdPoint = null;
+            lastCommandStartStatusPoint = lastLogStatusPoint;
             if (cmd instanceof MoveToType) {
                 MoveToType moveTo = (MoveToType) cmd;
                 final PoseType endPosition = requireNonNull(moveTo.getEndPosition(), "moveTo.getEndPosition()");
                 PointType point = requireNonNull(endPosition.getPoint(), "endPosition.getPoint()");
                 lastLogMoveToCmdPoint = point;
-                return new Object[]{
-                    getTimeString(cel.getTime()),
-                    true,
-                    fmtDouble(cel.getTime() - lastLogCmdTime),
-                    cel.getId(),
-                    fmtDouble(distFromLastLogMoveToCmdPoint()),
-                    null,
-                    cel.getTime(),
-                    cel.getProgIndex(),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
-                    cel.getProgName(),
-                    cel.getSvrSocket(),
-                    CRCLSocket.cmdToString(cmd)
-                };
-            } else {
-                return new Object[]{
-                    getTimeString(cel.getTime()),
-                    true,
-                    fmtDouble(cel.getTime() - lastLogCmdTime),
-                    cel.getId(),
-                    fmtDouble(distFromLastLogMoveToCmdPoint()),
-                    null,
-                    cel.getTime(),
-                    cel.getProgIndex(),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getX() : Double.NaN),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getY() : Double.NaN),
-                    fmtDouble(lastLogStatusPoint != null ? lastLogStatusPoint.getZ() : Double.NaN),
-                    cel.getProgName(),
-                    cel.getSvrSocket(),
-                    CRCLSocket.cmdToString(cmd)
-                };
+            } else if (cmd instanceof SetTransSpeedType) {
+                SetTransSpeedType setTransSpeed = (SetTransSpeedType) cmd;
+                final TransSpeedType transSpeed = setTransSpeed.getTransSpeed();
+                if (transSpeed instanceof TransSpeedAbsoluteType) {
+                    TransSpeedAbsoluteType transSpeedAbsolute = (TransSpeedAbsoluteType) transSpeed;
+                    logExpectedSpeedString = fmtDouble(transSpeedAbsolute.getSetting());
+                }
             }
+            boolean isMove = null != lastLogMoveToCmdPoint;
+            return new Object[]{
+                getTimeString(cel.getTime()),
+                true,
+                timeSinceLastCmd,
+                timeSinceLastStat,
+                cel.getId(),
+                isMove ? fmtDouble(distFromLastLogMoveToCmdPoint()) : "",
+                "",
+                "",
+                "",
+                "",
+                isMove ? logExpectedSpeedString : "",
+                null,
+                cel.getTime(),
+                cel.getProgIndex(),
+                lastLogStatusPoint != null ? fmtDouble(lastLogStatusPoint.getX()) : "",
+                lastLogStatusPoint != null ? fmtDouble(lastLogStatusPoint.getY()) : "",
+                lastLogStatusPoint != null ? fmtDouble(lastLogStatusPoint.getZ()) : "",
+                cel.getProgName(),
+                cel.getSvrSocket(),
+                CRCLSocket.cmdToString(cmd)
+            };
         } else if (el instanceof StatusLogElement) {
             StatusLogElement sel = (StatusLogElement) el;
             CRCLStatusType status = sel.getStatus();
             PointType point = CRCLPosemath.getPoint(status);
+            final long timeSinceCmdStart = sel.getTime() - lastLogCmdTime;
+            final long timeSinceLastStat = sel.getTime() - lastLogStatTime;
+            double distanceFromlastStat = lastLogStatusPoint != null && point != null
+                    ? CRCLPosemath.diffPoints(point, lastLogStatusPoint)
+                    : Double.NaN;
             lastLogStatusPoint = point;
+            lastLogStatTime = sel.getTime();
+            final double distFromLastCommandStart = distFromLastCommandStartStatusPoint();
+            final double averageSpeed
+                    = timeSinceCmdStart > 0
+                            ? distFromLastCommandStart / (1e-3 * timeSinceCmdStart)
+                            : Double.NaN;
+            final double currentSpeed
+                    = timeSinceLastStat > 0
+                            ? distanceFromlastStat / (1e-3 * timeSinceLastStat)
+                            : Double.NaN;
+            boolean isMove = null != lastLogMoveToCmdPoint;
             return new Object[]{
                 getTimeString(sel.getTime()),
                 false,
-                fmtDouble(sel.getTime() - lastLogCmdTime),
+                timeSinceCmdStart,
+                timeSinceLastStat,
                 sel.getId(),
-                distFromLastLogMoveToCmdPoint(),
+                isMove ? fmtDouble(distFromLastLogMoveToCmdPoint()) : "",
+                fmtDouble(distFromLastCommandStart),
+                fmtDouble(distanceFromlastStat),
+                fmtDouble(averageSpeed),
+                fmtDouble(currentSpeed),
+                isMove ? logExpectedSpeedString : "",
                 status.getCommandStatus().getCommandState(),
                 sel.getTime(),
                 sel.getProgIndex(),
-                (null != point) ? point.getX() : null,
-                (null != point) ? point.getY() : null,
-                (null != point) ? point.getZ() : null,
+                (null != point) ? fmtDouble(point.getX()) : null,
+                (null != point) ? fmtDouble(point.getY()) : null,
+                (null != point) ? fmtDouble(point.getZ()) : null,
                 sel.getProgName(),
                 sel.getSvrSocket(),
                 status.getCommandStatus().getStateDescription()
@@ -2117,40 +2155,52 @@ public class CrclSwingClientInner {
     }
 
     public void printCommandStatusLog() throws IOException {
-        printCommandStatusLog(System.out, false);
+        CrclSwingClientInner.this.printCommandStatusLog(System.out, false,true,COMMAND_STATUS_LOG_HEADINGS,-1);
     }
 
     private volatile @Nullable
     Appendable lastPrintCommandStatusAppendable = null;
 
-    public void printCommandStatusLog(Appendable appendable, boolean clearLog) throws IOException {
+    public void printCommandStatusLog(Appendable appendable, boolean clearLog, String headers[]) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
         if (!Objects.equals(lastPrintCommandStatusAppendable, appendable)) {
-            printer.printRecord((Object[]) COMMAND_STATUS_LOG_HEADINGS);
+            printer.printRecord((Object[]) headers);
             lastPrintCommandStatusAppendable = appendable;
         }
-        printCommandStatusLogNoHeader(appendable, clearLog);
+        printCommandStatusLog(appendable, clearLog,false,headers,-1);
     }
 
     static final String[] COMMAND_STATUS_LOG_HEADINGS = new String[]{
-        "Time", "Cmd?", "TimeDiff", "Command ID", "Distance", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Text"
+        "Time", "Cmd?", "TimeSinceCommand", "TimeSinceStatus", "Command ID", "DistanceToGo", "DistanceFromStart", "DistanceFromLast", "AvgSpeed", "Speed", "ExpectedSpeed", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Text"
     };
 
+    public String[] getCommandStatusLogHeadings() {
+        return COMMAND_STATUS_LOG_HEADINGS;
+    }
     @SuppressWarnings("rawtypes")
     static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
         String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
 
-    public void printCommandStatusLogNoHeader(Appendable appendable, boolean clearLog) throws IOException {
+    public void printCommandStatusLog(Appendable appendable, boolean clearLog, boolean headerOnStart, String[] headers, int headerRepeat) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
+        int i = 0;
         if (clearLog) {
             CommandStatusLogElement el = commandStatusLog.pollFirst();
             while (el != null) {
                 printLogElement(el, printer);
                 el = commandStatusLog.pollFirst();
+                i++;
+                if (headerRepeat > 0 && i % headerRepeat == 0) {
+                    printer.printRecord(headers);
+                }
             }
         } else {
             for (CommandStatusLogElement el : commandStatusLog) {
                 printLogElement(el, printer);
+                i++;
+                if (headerRepeat > 0 && i % headerRepeat == 0) {
+                    printer.printRecord(headers);
+                }
             }
         }
 
@@ -2168,17 +2218,34 @@ public class CrclSwingClientInner {
         return list;
     }
 
-    public void printCommandStatusLogNoHeader(File f, boolean append, boolean clearLog) throws IOException {
+    public void printCommandStatusLog(File f,
+            boolean append,
+            boolean clearLog,
+            boolean headerAtStart,
+            String headers[],
+            int headerRepeat) throws IOException {
         try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+            int i = 0;
+            if (headerAtStart && null != headers && headers.length > 0) {
+                printer.printRecord((Object [])headers);
+            }
             if (clearLog) {
                 CommandStatusLogElement el = commandStatusLog.pollFirst();
                 while (el != null) {
                     printLogElement(el, printer);
                     el = commandStatusLog.pollFirst();
+                    i++;
+                    if (headerRepeat > 0 && i % 20 == 0 && null != headers && headers.length > 0) {
+                        printer.printRecord((Object [])headers);
+                    }
                 }
             } else {
                 for (CommandStatusLogElement el : commandStatusLog) {
                     printLogElement(el, printer);
+                    i++;
+                    if (headerRepeat > 0 && i % 20 == 0 && null != headers && headers.length > 0) {
+                        printer.printRecord((Object [])headers);
+                    }
                 }
             }
         }
@@ -2195,7 +2262,7 @@ public class CrclSwingClientInner {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         try {
-            printCommandStatusLog(pw, false);
+            CrclSwingClientInner.this.printCommandStatusLog(pw, false,false,null,-1);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
