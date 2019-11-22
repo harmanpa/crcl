@@ -5487,8 +5487,8 @@ public class CrclSwingClientInner {
             delay = 10;
         }
         Thread.sleep(delay / 2);
-        int pollReadTimeout = getPoll_ms() * 2 + 10;
-        int timeout = useReadSoTimeout ? readStatusSoTimeout : pollReadTimeout;
+//        int pollReadTimeout = getPoll_ms() * 2 + 10;
+        int timeout = useReadSoTimeout ? readStatusSoTimeout : 0;
         CRCLStatusType newStatus = internalRequestAndReadStatus(crclStatusPollingSocket, timeout, delay / 2);
         if (newStatus == null) {
             return XFutureVoid.completedFutureWithName("newStatus==null");

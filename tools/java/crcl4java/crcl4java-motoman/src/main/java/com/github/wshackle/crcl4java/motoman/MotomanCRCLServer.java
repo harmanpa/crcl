@@ -187,8 +187,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 + "\n moveToSetGetPosCount=" + moveToSetGetPosCount.get()
                 + "\n idDiffCount=" + idDiffCount.get()
                 + "\n workingStatCount=" + workingStatCount.get()
-                + "\n targetRecieveSuccessCount=" + targetRecieveSuccessCount.get()
-                ;
+                + "\n targetRecieveSuccessCount=" + targetRecieveSuccessCount.get();
         return perfString;
     }
 
@@ -222,7 +221,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         crclServerSocket.setServerSideStatus(crclStatus);
         crclServerSocket.setUpdateStatusSupplier(() -> {
             boolean withAlarm = checkAlarms();
-            return getCrclStatusFuture(true, withAlarm);
+            return getCrclStatusFuture(true, withAlarm, statCacheTime);
         });
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
@@ -351,15 +350,15 @@ public class MotomanCRCLServer implements AutoCloseable {
         }
     }
 
-    private final  AtomicInteger updatesSinceCommand = new AtomicInteger();
+    private final AtomicInteger updatesSinceCommand = new AtomicInteger();
 
     private volatile MpcStatus lastMpcStatus = null;
 
     private final AtomicInteger idDiffCount = new AtomicInteger();
     private final AtomicInteger workingStatCount = new AtomicInteger();
     private final AtomicInteger targetRecieveSuccessCount = new AtomicInteger();
-    
-    public XFuture<CRCLStatusType> getCrclStatusFuture(boolean withJoints, boolean withAlarmModeStatus) {
+
+    public XFuture<CRCLStatusType> getCrclStatusFuture(boolean withJoints, boolean withAlarmModeStatus, int minStatusDiffTime) {
         long time = System.currentTimeMillis();
         long status_time_diff = time - last_status_update_time;
         long cmd_time_diff = time - last_command_time;
@@ -663,7 +662,7 @@ public class MotomanCRCLServer implements AutoCloseable {
     private final AtomicInteger moveToSetPowerCount = new AtomicInteger();
     private final AtomicInteger moveToSetCoordCount = new AtomicInteger();
     private final AtomicInteger moveToSetGetPosCount = new AtomicInteger();
-    
+
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
         boolean isStraight = cmd.isMoveStraight();
         final int newTargetId = mpc.getLastSentTargetId().incrementAndGet();
@@ -965,22 +964,56 @@ public class MotomanCRCLServer implements AutoCloseable {
     private volatile long alarmCheckTime = -1;
     private volatile long alarmDiffMax = 500;
 
+    private CRCLStatusType errorOnlyStatus(long cmdid, String errorDescription) {
+        CommandStatusType commandStatus = new CommandStatusType();
+        commandStatus.setCommandID(cmdid);
+        commandStatus.setStateDescription(errorDescription);
+        commandStatus.setCommandState(CRCL_ERROR);
+        CRCLStatusType crclStatus = new CRCLStatusType();
+        crclStatus.setCommandStatus(commandStatus);
+        return crclStatus;
+    }
+    private int statCacheTime = 50;
+
+    public int getStatCacheTime() {
+        return statCacheTime;
+    }
+
+    public void setStatCacheTime(int statCacheTime) {
+        this.statCacheTime = statCacheTime;
+    }
+    
+
     private void handleNewCommandFromServerSocket(CRCLCommandType cmd, CRCLServerSocketEvent<MotomanClientState> event) throws Exception {
         if (cmd instanceof GetStatusType) {
             final boolean withJoints = event.getState().filterSettings.getConfigureStatusReport().isReportJointStatuses();
             boolean withAlarm = checkAlarms();
-            getCrclStatusFuture(withJoints, withAlarm).thenAccept((CRCLStatusType suppliedStatus) -> {
-                try {
-                    event.getSource().writeStatus(suppliedStatus);
-                } catch (Exception ex) {
-                    logException(ex);
-                    if (ex instanceof RuntimeException) {
-                        throw (RuntimeException) ex;
-                    } else {
-                        throw new RuntimeException(ex);
-                    }
-                }
-            });
+            getCrclStatusFuture(withJoints, withAlarm, statCacheTime)
+                    .thenAccept((CRCLStatusType suppliedStatus) -> {
+                        try {
+                            event.getSource().writeStatus(suppliedStatus);
+                        } catch (Exception ex) {
+                            logException(ex);
+                            if (ex instanceof RuntimeException) {
+                                throw (RuntimeException) ex;
+                            } else {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                    })
+                    .exceptionally((Throwable throawable) -> {
+                        try {
+                            event.getSource().writeStatus(errorOnlyStatus(cmd.getCommandID(),throawable.getMessage()));
+                        } catch (Exception ex) {
+                            logException(ex);
+                            if (ex instanceof RuntimeException) {
+                                throw (RuntimeException) ex;
+                            } else {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        return null;
+                    });
 
 //            event.getSource().writeStatus(getCrclStatusFuture());
         } else {

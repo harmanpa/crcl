@@ -100,6 +100,12 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         jButtonMpcStatusOnly = new javax.swing.JButton();
         jLabelPerfInfo = new javax.swing.JLabel();
         jButtonUpdatePerfInfo = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
+        jTextFieldStatCacheTime = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jTextFieldConnectTimeout = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        jTextFieldReadTimeout = new javax.swing.JTextField();
 
         jPanelTelnet.setBorder(javax.swing.BorderFactory.createTitledBorder("Telnet"));
 
@@ -116,7 +122,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             jPanelTelnetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelTelnetLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE))
+                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 435, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Telnet FS100 Debugging", jPanelTelnet);
@@ -184,40 +190,81 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             }
         });
 
+        jLabel4.setText("Stat Cache Time");
+
+        jTextFieldStatCacheTime.setText("50");
+        jTextFieldStatCacheTime.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldStatCacheTimeActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setText("Connect Timeout(ms):");
+
+        jTextFieldConnectTimeout.setText("2000 ");
+        jTextFieldConnectTimeout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldConnectTimeoutActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("Read Timeout(ms): ");
+
+        jTextFieldReadTimeout.setText("2000 ");
+        jTextFieldReadTimeout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldReadTimeoutActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelMotoPlusCrclCommunicationsLayout = new javax.swing.GroupLayout(jPanelMotoPlusCrclCommunications);
         jPanelMotoPlusCrclCommunications.setLayout(jPanelMotoPlusCrclCommunicationsLayout);
         jPanelMotoPlusCrclCommunicationsLayout.setHorizontalGroup(
             jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jCheckBox1)
                     .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
-                        .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
+                        .addContainerGap()
                         .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
-                                .addGap(20, 20, 20)
-                                .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jCheckBox1)
+                                .addGap(39, 39, 39)
+                                .addComponent(jLabel5)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jCheckBoxConnect)
+                                .addComponent(jTextFieldConnectTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonStatus)
+                                .addComponent(jLabel6)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonMpcStatusOnly))
+                                .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonSendRequest)))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
-                .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel2))
+                                .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
+                                        .addGap(20, 20, 20)
+                                        .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jCheckBoxConnect)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jButtonStatus)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jButtonMpcStatusOnly)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel3)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jButtonSendRequest)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel4)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jTextFieldStatCacheTime))))))
                     .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
                         .addComponent(jCheckBoxDebug)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -243,11 +290,18 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                         .addComponent(jLabel2)
                         .addComponent(jTextFieldMotoplusHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jButtonSendRequest)
-                        .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jTextFieldMotoplusPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4)
+                        .addComponent(jTextFieldStatCacheTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jCheckBox1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBox1)
+                    .addComponent(jLabel5)
+                    .addComponent(jTextFieldConnectTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6)
+                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxDebug)
@@ -283,6 +337,15 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     private Thread crclThread = null;
 
     private int connectTimeoutMillis = 2000;
+    private int readTimeoutMillis = 2000;
+
+    public int getReadTimeoutMillis() {
+        return readTimeoutMillis;
+    }
+
+    public void setReadTimeoutMillis(int readTimeoutMillis) {
+        this.readTimeoutMillis = readTimeoutMillis;
+    }
 
     public String getMotomanHost() {
         return motomanHost;
@@ -310,11 +373,14 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         this.connectTimeoutMillis = connectTimeoutMillis;
     }
 
-    private Socket createSocketWithTimeout(String host, int port, int timeoutMillis) throws IOException {
+    private Socket createSocketWithTimeout(String host, int port, int connectTimeout, int readTimeout) throws IOException {
         Socket socket = new Socket();
+        if (readTimeout > 0) {
+            socket.setSoTimeout(readTimeout);
+        }
         InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
-        logPrintln("inetSocketAddress = " + inetSocketAddress + ", timoutMillis=" + timeoutMillis);
-        socket.connect(inetSocketAddress, timeoutMillis);
+        logPrintln("inetSocketAddress = " + inetSocketAddress + ", timoutMillis=" + connectTimeout);
+        socket.connect(inetSocketAddress, connectTimeout);
         logPrintln("socket.connect() done.");
         return socket;
     }
@@ -354,7 +420,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         internalDisconnect();
         motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort, MotomanCRCLServer.MOTOMAN_STATE_GENERATOR),
-                new MotoPlusConnection(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis)));
+                new MotoPlusConnection(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis, readTimeoutMillis)));
         motomanCrclServer.setDebug(jCheckBoxDebug.isSelected());
         motomanCrclServer.addLogListener(logConsumer);
         motomanCrclServer.start();
@@ -521,14 +587,26 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButtonSendRequestActionPerformed
 
     private void jButtonStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStatusActionPerformed
-        motomanCrclServer.getCrclStatusFuture(testWithJoints, testWithAlarms).thenAccept((CRCLStatusType status) -> {
-            try {
-                String text = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
-                MultiLineStringJPanel.showText(text, null, "Motoman Status", false);
-            } catch (JAXBException ex) {
-                Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        });
+        long t0 = System.currentTimeMillis();
+        motomanCrclServer
+                .getCrclStatusFuture(testWithJoints, testWithAlarms, 0)
+                .thenAccept((CRCLStatusType status) -> {
+                    try {
+                        String text = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
+                        long timeDiff = System.currentTimeMillis() - t0;
+                        appendLog("\njButtonStatusActionPerformed: \n" + text + "\ntimeDiff=" + timeDiff + "\n");
+                        MultiLineStringJPanel.showText(text, null, "Motoman Status", false);
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                })
+                .exceptionally((Throwable throwable) -> {
+                    appendLog(throwable.toString());
+                    Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE,
+                            "jButtonStatusActionPerformed(" + evt + ")",
+                            throwable);
+                    return null;
+                });
     }//GEN-LAST:event_jButtonStatusActionPerformed
 
     private int testConnections = 25;
@@ -577,9 +655,21 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonUpdatePerfInfoActionPerformed
 
+    private void jTextFieldStatCacheTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldStatCacheTimeActionPerformed
+        motomanCrclServer.setStatCacheTime(Integer.parseInt(jTextFieldStatCacheTime.getText().trim()));
+    }//GEN-LAST:event_jTextFieldStatCacheTimeActionPerformed
+
+    private void jTextFieldConnectTimeoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldConnectTimeoutActionPerformed
+        setConnectTimeoutMillis(Integer.parseInt(jTextFieldConnectTimeout.getText().trim()));
+    }//GEN-LAST:event_jTextFieldConnectTimeoutActionPerformed
+
+    private void jTextFieldReadTimeoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldReadTimeoutActionPerformed
+        setReadTimeoutMillis(Integer.parseInt(jTextFieldReadTimeout.getText().trim()));
+    }//GEN-LAST:event_jTextFieldReadTimeoutActionPerformed
+
     public String getPerformanceInfo() {
         if (null != motomanCrclServer) {
-            return  motomanCrclServer.getPerformanceInfo();
+            return motomanCrclServer.getPerformanceInfo();
         } else {
             return "motomanCrclServer=null";
         }
@@ -659,8 +749,27 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         props.put(CRCL_PORT_PROPERTY_NAME, jTextFieldCrclPort.getText());
         props.put(MOTOPLUS_PORT_PROPERTY_NAME, jTextFieldMotoplusPort.getText());
         props.put(MOTOPLUS_HOST_PROPERTY_NAME, jTextFieldMotoplusHost.getText());
-        props.put("debug", Boolean.toString(jCheckBoxDebug.isSelected()));
+        try {
+            setReadTimeoutMillis(Integer.parseInt(jTextFieldReadTimeout.getText().trim()));
+        } catch (Throwable t) {
 
+        }
+        try {
+            setConnectTimeoutMillis(Integer.parseInt(jTextFieldConnectTimeout.getText().trim()));
+        } catch (Throwable t) {
+
+        }
+
+        props.put("debug", Boolean.toString(jCheckBoxDebug.isSelected()));
+        props.put("connectTimeoutMillis", Integer.toString(connectTimeoutMillis));
+        props.put("readTimeoutMillis", Integer.toString(readTimeoutMillis));
+        if (null != motomanCrclServer) {
+            try {
+                motomanCrclServer.setStatCacheTime(Integer.parseInt(jTextFieldStatCacheTime.getText().trim()));
+            } catch (Throwable t) {
+            }
+            props.put("statCacheTime", Integer.toString(motomanCrclServer.getStatCacheTime()));
+        }
         logPrintln("MotomanCrclServerJPanel saving properties to " + propertiesFile.getCanonicalPath());
         PropertiesUtils.saveProperties(propertiesFile, props);
     }
@@ -697,6 +806,18 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         if (null != motomanHostString) {
             jTextFieldMotoplusHost.setText(motomanHostString);
         }
+        String readTimeoutString = props.getProperty("readTimeoutMillis");
+        if (null != readTimeoutString) {
+            jTextFieldReadTimeout.setText(readTimeoutString.trim());
+        }
+        String connectTimeoutString = props.getProperty("connectTimeoutMillis");
+        if (null != connectTimeoutString) {
+            jTextFieldConnectTimeout.setText(connectTimeoutString.trim());
+        }
+        String statCacheTimeString = props.getProperty("statCacheTime");
+        if (null != statCacheTimeString) {
+            jTextFieldStatCacheTime.setText(statCacheTimeString.trim());
+        }
         crclPort = Integer.parseInt(jTextFieldCrclPort.getText());
         motomanPort = Integer.parseInt(jTextFieldMotoplusPort.getText());
         motomanHost = jTextFieldMotoplusHost.getText();
@@ -717,15 +838,21 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabelPerfInfo;
     private javax.swing.JPanel jPanelMotoPlusCrclCommunications;
     private javax.swing.JPanel jPanelTelnet;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextArea jTextAreaErrLog;
+    private javax.swing.JTextField jTextFieldConnectTimeout;
     private javax.swing.JTextField jTextFieldCrclPort;
     private javax.swing.JTextField jTextFieldMotoplusHost;
     private javax.swing.JTextField jTextFieldMotoplusPort;
+    private javax.swing.JTextField jTextFieldReadTimeout;
+    private javax.swing.JTextField jTextFieldStatCacheTime;
     private com.github.wshackle.crcl4java.motoman.ui.TelnetJPanel telnetJPanel1;
     // End of variables declaration//GEN-END:variables
 }
