@@ -43,6 +43,7 @@ import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinCartPosReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinPulseReturn;
 import com.github.wshackle.crcl4java.motoman.kinematics.RemoteKinematicsConversionFunctionType;
+import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
 import com.github.wshackle.crcl4java.motoman.motctrl.RemoteMotFunctionType;
 import com.github.wshackle.crcl4java.motoman.motctrl.CoordTarget;
 import com.github.wshackle.crcl4java.motoman.motctrl.JointTarget;
@@ -65,11 +66,9 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.ModeEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.RemoteSys1FunctionType;
 import com.github.wshackle.crcl4java.motoman.sys1.UnitType;
-import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import static crcl.base.CommandStateEnumType.CRCL_ERROR;
 import static crcl.base.CommandStateEnumType.CRCL_WORKING;
-import crcl.base.CommandStatusType;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -80,7 +79,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -450,6 +448,7 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
+
         public void startMpMotStart(int options) throws IOException {
             final int inputSize = 16;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -458,6 +457,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_START.getId()); // type of function remote server will call
             bb.putInt(12, options);
             writeDataOutputStream(bb);
+            afterMove = true;
         }
 
         public void startMpMotStop(int options) throws IOException {
@@ -468,6 +468,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_STOP.getId()); // type of function remote server will call
             bb.putInt(12, options);
             writeDataOutputStream(bb);
+            lastCoordTargetDest = null;
         }
 
         public void startMpMotTargetClear(int grp, int options) throws IOException {
@@ -479,6 +480,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(12, grp);
             bb.putInt(16, options);
             writeDataOutputStream(bb);
+            lastCoordTargetDest = null;
         }
 
         public void startMpMotTargetJointSend(int grp, JointTarget target, int timeout) throws IOException {
@@ -499,6 +501,7 @@ public class MotoPlusConnection implements AutoCloseable {
             }
             bb.putInt(88, timeout);
             writeDataOutputStream(bb);
+            lastCoordTargetDest = null;
         }
 
         public void startMpMotTargetCoordSend(int grp, CoordTarget target, int timeout) throws IOException {
@@ -529,6 +532,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(84, target.getAux().ex2);
             bb.putInt(88, timeout);
             writeDataOutputStream(bb);
+            lastCoordTargetDest = target.getDst();
         }
 
         public void startMpMotTargetReceive(int grpNo, int id, int timeout, int options) throws IOException {
@@ -1655,8 +1659,7 @@ public class MotoPlusConnection implements AutoCloseable {
     private volatile int lastMpMotSetCoordAux = -99;
     private volatile MP_COORD_TYPE lastMpMotSetCoordType;
     private volatile long lastMpMotSetCoordTime;
-    private volatile int lastMpMotSetCoordAlarmCount=-1;
-    
+    private volatile int lastMpMotSetCoordAlarmCount = -1;
 
     public boolean checkNeedMotSetCoord(int grpNo, MP_COORD_TYPE type, int aux, long maxTimeDiff) {
         long timeDiff = System.currentTimeMillis() - lastMpMotSetCoordTime;
@@ -1728,13 +1731,31 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getSysReadIOReturn(iorData);
     }
 
+    private volatile MP_CART_POS_RSP_DATA cachedGetPosData = null;
+    private volatile int lastGetCartPosGrp = -1;
+    private volatile long lastGetCartPosTime = -1;
+
+    public MP_CART_POS_RSP_DATA cachedGetCartPos(int grp, int time) throws MotoPlusConnectionException, IOException {
+        if (grp != lastGetCartPosGrp || null == cachedGetPosData) {
+            return getCartPos(grp);
+        }
+        long now = System.currentTimeMillis();
+        if (now - lastGetCartPosTime > time) {
+            return getCartPos(grp);
+        }
+        return cachedGetPosData;
+    }
+
     public MP_CART_POS_RSP_DATA getCartPos(int grp) throws MotoPlusConnectionException, IOException {
         MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
         cartData[0] = new MP_CART_POS_RSP_DATA();
         MP_CART_POS_RSP_DATA pos = cartData[0];
-        if (!mpGetCartPos(0, cartData)) {
+        if (!mpGetCartPos(grp, cartData)) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
+        lastGetCartPosGrp = grp;
+        cachedGetPosData = cartData[0];
+        lastGetCartPosTime = System.currentTimeMillis();
         return cartData[0];
     }
 
@@ -1773,6 +1794,23 @@ public class MotoPlusConnection implements AutoCloseable {
 
     private final AtomicInteger alarmCount = new AtomicInteger();
 
+    private volatile long maxReadMpcStatusTime = -1;
+    private volatile long maxReadMpcStatusTimeDiffArray[] = null;
+    private volatile long maxReadMpcStatusTimeAfterMove = -1;
+    private volatile long maxReadMpcStatusTimeDiffArrayAfterMove[] = null;
+    private volatile boolean afterMove = false;
+    private volatile COORD_POS lastCoordTargetDest;
+
+    public long[] getMaxReadMpcStatusTimeDiffArray() {
+        return maxReadMpcStatusTimeDiffArray;
+    }
+
+    public long[] getMaxReadMpcStatusTimeDiffArrayAfterMove() {
+        return maxReadMpcStatusTimeDiffArrayAfterMove;
+    }
+    
+    
+    
     public MpcStatus readMpcStatus(
             CommandStateEnumType localOrigCommandState,
             int lastSentId,
@@ -1803,7 +1841,20 @@ public class MotoPlusConnection implements AutoCloseable {
         } else {
             t[2] = -2;
         }
-        final boolean doMpMotTargetRecieve = localOrigCommandState == CRCL_WORKING && lastSentId != lastRecvdTargetId;
+        boolean lastPosCloseToTarget = true;
+        if(null != lastCoordTargetDest && null != cachedGetPosData) {
+            int distx = lastCoordTargetDest.x - cachedGetPosData.lx();
+            int disty = lastCoordTargetDest.y - cachedGetPosData.ly();
+            int distz = lastCoordTargetDest.z - cachedGetPosData.lz();
+            double diff = Math.sqrt(distx*distx+disty*disty+distz*distz);
+            if(diff > 250) {
+                lastPosCloseToTarget = false;
+            }
+        }
+        final boolean doMpMotTargetRecieve = 
+                localOrigCommandState == CRCL_WORKING 
+                && lastSentId != lastRecvdTargetId
+                && lastPosCloseToTarget;
         int recvId[] = new int[1];
         recvId[0] = lastRecvdTargetId;
         if (doMpMotTargetRecieve) {
@@ -1880,6 +1931,17 @@ public class MotoPlusConnection implements AutoCloseable {
         }
         t[10] = System.currentTimeMillis() - t0;
         int a[] = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        if (afterMove) {
+            if (t[10] > maxReadMpcStatusTimeAfterMove) {
+                maxReadMpcStatusTimeDiffArrayAfterMove = t;
+            }
+            afterMove=false;
+        } else {
+            if (t[10] > maxReadMpcStatusTime) {
+                maxReadMpcStatusTimeDiffArray = t;
+            }
+        }
+
 //        System.out.println("a = " + Arrays.toString(a));
 //        System.out.println("t = " + Arrays.toString(t));
         MpcStatus mpcStatus = new MpcStatus(pos, withJoints ? pulseData[0] : null, motTargetReceiveRet, modeData, withAlarmModeStatus ? alarmCodeData : null, withAlarmModeStatus ? alarmStatusData : null, recvId[0], statusCount);
