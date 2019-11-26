@@ -1348,7 +1348,9 @@ public class CrclSwingClientJPanel
         this.jTextFieldJogInterval.setText(Double.toString(internal.getJogInterval()));
         this.jTextFieldPollTime.setText(Integer.toString(internal.getPoll_ms()));
         this.jTextFieldReadTimeout.setText(Integer.toString(internal.getReadStatusSoTimeout()));
+        jTextFieldWaitForDoneDelay.setText(Long.toString(internal.getWaitForDoneDelay()));
         this.jCheckBoxReadTimeout.setSelected(internal.isUseReadSoTimeout());
+        jCheckBoxIgnoreWaitForDoneTimeouts.setSelected(internal.isIgnoreTimeouts());
         final boolean selected = jCheckBoxReadTimeout.isSelected();
         updateTimeoutEnable(selected);
         this.stopPollTimer();
@@ -3454,6 +3456,9 @@ public class CrclSwingClientJPanel
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextAreaPerfInfo = new javax.swing.JTextArea();
         jButtonShowPerfInfo = new javax.swing.JButton();
+        jLabel21 = new javax.swing.JLabel();
+        jTextFieldWaitForDoneDelay = new javax.swing.JTextField();
+        jCheckBoxIgnoreWaitForDoneTimeouts = new javax.swing.JCheckBox();
         jScrollPaneErrors = new javax.swing.JScrollPane();
         jTextAreaErrors = new javax.swing.JTextArea();
         jTabbedPaneRightUpper = new javax.swing.JTabbedPane();
@@ -3676,7 +3681,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jLabel20)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldDistToSelected, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(133, Short.MAX_VALUE))))
+                        .addContainerGap(241, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4050,7 +4055,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonCloseToolChanger))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(169, Short.MAX_VALUE))
+                .addContainerGap(332, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4250,7 +4255,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonMoveToCurrentPoint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToDownPosition)))
-                .addContainerGap(371, Short.MAX_VALUE))
+                .addContainerGap(473, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4352,7 +4357,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonPlotStatus)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1)
-                        .addGap(0, 367, Short.MAX_VALUE)))
+                        .addGap(0, 460, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelCommandStatusLogOuterLayout.setVerticalGroup(
@@ -4460,6 +4465,22 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jLabel21.setText("Wait For Done Delay(ms):");
+
+        jTextFieldWaitForDoneDelay.setText("100");
+        jTextFieldWaitForDoneDelay.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFieldWaitForDoneDelayActionPerformed(evt);
+            }
+        });
+
+        jCheckBoxIgnoreWaitForDoneTimeouts.setText("Ingnore Wait for Done Timeouts");
+        jCheckBoxIgnoreWaitForDoneTimeouts.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelConnectionTabLayout = new javax.swing.GroupLayout(jPanelConnectionTab);
         jPanelConnectionTab.setLayout(jPanelConnectionTabLayout);
         jPanelConnectionTabLayout.setHorizontalGroup(
@@ -4479,27 +4500,40 @@ public class CrclSwingClientJPanel
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                                .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                                .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelConnectionTabLayout.createSequentialGroup()
+                                .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                                        .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
+                                                .addComponent(jCheckBoxReadTimeout)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jTextFieldReadTimeout))
+                                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
+                                                .addComponent(jCheckBoxPoll)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jLabel4)
+                                                .addGap(1, 1, 1)
+                                                .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                                                .addComponent(jLabel21)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jTextFieldWaitForDoneDelay))
+                                            .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
+                                                .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts)
+                                                .addGap(0, 102, Short.MAX_VALUE))))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
+                                        .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jButtonDisconnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonInit)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonEnd))
-                            .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
-                                    .addComponent(jCheckBoxReadTimeout)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(jTextFieldReadTimeout))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
-                                    .addComponent(jCheckBoxPoll)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(jLabel4)
-                                    .addGap(1, 1, 1)
-                                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addContainerGap(284, Short.MAX_VALUE))
+                                .addComponent(jButtonEnd)))
+                        .addGap(284, 284, 284))
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))))
@@ -4522,16 +4556,19 @@ public class CrclSwingClientJPanel
                 .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxPoll)
                     .addComponent(jLabel4)
-                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel21)
+                    .addComponent(jTextFieldWaitForDoneDelay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxReadTimeout)
-                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonShowPerfInfo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(273, Short.MAX_VALUE))
+                .addContainerGap(282, Short.MAX_VALUE))
         );
 
         jTabbedPaneLeftUpper.addTab("Connection", jPanelConnectionTab);
@@ -4722,7 +4759,7 @@ public class CrclSwingClientJPanel
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 143, Short.MAX_VALUE)
+            .addGap(0, 136, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -5057,7 +5094,7 @@ public class CrclSwingClientJPanel
             int new_poll_ms = Integer.parseInt(this.jTextFieldPollTime.getText());
             internal.setQuitOnTestCommandFailure(true);
             internal.setPoll_ms(new_poll_ms);
-            internal.setWaitForDoneDelay(new_poll_ms);
+            internal.setWaitForDoneDelay(Long.parseLong(jTextFieldWaitForDoneDelay.getText().trim()));
             setStepMode(stepMode);
             this.jButtonResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
@@ -5195,7 +5232,9 @@ public class CrclSwingClientJPanel
     }
 
     public boolean isIgnoreTimeouts() {
-        return internal.isIgnoreTimeouts();
+        boolean ret = internal.isIgnoreTimeouts();
+        jCheckBoxIgnoreWaitForDoneTimeouts.setSelected(ret);
+        return ret;
     }
 
     /**
@@ -5204,6 +5243,7 @@ public class CrclSwingClientJPanel
      * @param ignoreTimeouts new value of ignoreTimeouts
      */
     public void setIgnoreTimeouts(boolean ignoreTimeouts) {
+        jCheckBoxIgnoreWaitForDoneTimeouts.setSelected(ignoreTimeouts);
         internal.setIgnoreTimeouts(ignoreTimeouts);
     }
 
@@ -5868,6 +5908,14 @@ public class CrclSwingClientJPanel
         jTextAreaPerfInfo.setText(perfInfo);
     }//GEN-LAST:event_jButtonShowPerfInfoActionPerformed
 
+    private void jTextFieldWaitForDoneDelayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldWaitForDoneDelayActionPerformed
+        internal.setWaitForDoneDelay(Long.parseLong(jTextFieldWaitForDoneDelay.getText().trim()));
+    }//GEN-LAST:event_jTextFieldWaitForDoneDelayActionPerformed
+
+    private void jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed
+        internal.setIgnoreTimeouts(jCheckBoxIgnoreWaitForDoneTimeouts.isSelected());
+    }//GEN-LAST:event_jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed
+
     public void printPerfInfo(PrintStream ps, String prefix) {
         ps.print(internal.getPerfInfoString(prefix));
     }
@@ -6060,6 +6108,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JButton jButtonShowPerfInfo;
     private javax.swing.JButton jButtonStepBack;
     private javax.swing.JButton jButtonStepFwd;
+    private javax.swing.JCheckBox jCheckBoxIgnoreWaitForDoneTimeouts;
     private javax.swing.JCheckBox jCheckBoxLogCommandStatusToFile;
     private javax.swing.JCheckBox jCheckBoxMonitorHoldingOutput;
     private javax.swing.JCheckBox jCheckBoxPauseCommandStatusLog;
@@ -6084,6 +6133,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
+    private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -6149,6 +6199,7 @@ public class CrclSwingClientJPanel
     private javax.swing.JTextField jTextFieldStatus;
     private javax.swing.JTextField jTextFieldStatusID;
     private javax.swing.JTextField jTextFieldTransSpeed;
+    private javax.swing.JTextField jTextFieldWaitForDoneDelay;
     private javax.swing.JTextField jTextFieldXYZJogIncrement;
     private crcl.ui.misc.LengthUnitComboBox lengthUnitComboBoxLengthUnit;
     private crcl.ui.misc.ProgramPlotterJPanel programPlotterJPanelOverhead;

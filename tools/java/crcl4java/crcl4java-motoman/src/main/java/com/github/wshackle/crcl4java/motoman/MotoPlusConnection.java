@@ -1877,6 +1877,7 @@ public class MotoPlusConnection implements AutoCloseable {
         if (!getCartPosRet) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
+        cachedGetPosData =  cartData[0];
         if (withJoints) {
             boolean getPulsePosRet = mpcReturner.getPulsePosReturn(pulseData);
             if (!getPulsePosRet) {

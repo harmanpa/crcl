@@ -276,7 +276,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         readRecentPrograms();
 //        this.setIconImage(DISCONNECTED_IMAGE);
         super.setTitle("CRCL Client: Disconnected");
-        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
+//        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
         jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
 
 //        try {
@@ -506,7 +506,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         jCheckBoxMenuItemRecordCommands = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemQuitProgramOnTestCommandFail = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDisableTextPopups = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItemIgnoreTimeouts = new javax.swing.JCheckBoxMenuItem();
         jMenuItemAbout = new javax.swing.JMenuItem();
 
         setIconifiable(true);
@@ -799,14 +798,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         });
         jMenuOptions.add(jCheckBoxMenuItemDisableTextPopups);
 
-        jCheckBoxMenuItemIgnoreTimeouts.setText("Ignore Timeouts");
-        jCheckBoxMenuItemIgnoreTimeouts.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItemIgnoreTimeoutsActionPerformed(evt);
-            }
-        });
-        jMenuOptions.add(jCheckBoxMenuItemIgnoreTimeouts);
-
         jMenuItemAbout.setText("About");
         jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -979,10 +970,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         this.pendantClientJPanel1.setEnableDebugConnect(jCheckBoxMenuItemEnableDebugConnect.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemEnableDebugConnectActionPerformed
 
-    private void jCheckBoxMenuItemIgnoreTimeoutsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemIgnoreTimeoutsActionPerformed
-        setIgnoreTimeouts(jCheckBoxMenuItemIgnoreTimeouts.isSelected());
-    }//GEN-LAST:event_jCheckBoxMenuItemIgnoreTimeoutsActionPerformed
-
     private void jCheckBoxMenuItemValidateXmlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemValidateXmlActionPerformed
         pendantClientJPanel1.setValidateXmlSchema(jCheckBoxMenuItemValidateXml.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemValidateXmlActionPerformed
@@ -1007,7 +994,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEnableDebugConnect;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIgnoreTimeouts;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
@@ -1274,7 +1260,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         pendantClientJPanel1.loadProperties();
         jCheckBoxMenuItemDebugInterrupts.setSelected(pendantClientJPanel1.isDebugInterrupts());
         jCheckBoxMenuItemDisableTextPopups.setSelected(pendantClientJPanel1.isDisableTextPopups());
-        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
+//        jCheckBoxMenuItemIgnoreTimeouts.setSelected(isIgnoreTimeouts());
         jCheckBoxMenuItemValidateXml.setSelected(pendantClientJPanel1.isValidateXmlSchema());
     }
 

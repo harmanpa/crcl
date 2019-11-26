@@ -1652,6 +1652,8 @@ public class CrclSwingClientInner {
     private @Nullable
     Exception lastWaitForDoneException = null;
 
+    private long waitForDoneMinTimeout = 100;
+    
     private static final long WAIT_FOR_DONE_TIMEOUT_EXTENSION
             = Long.parseLong(System.getProperty("crcl.client.wait_for_done_timeout_extension", "5000"));
 
