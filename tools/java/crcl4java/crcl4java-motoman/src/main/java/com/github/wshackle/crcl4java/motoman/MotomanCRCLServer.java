@@ -560,6 +560,9 @@ public class MotomanCRCLServer implements AutoCloseable {
                 throw new RuntimeException("lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand + ", pulseData=" + pulseData);
             }
         } else {
+            if(null == lastMoveToCoordTarget) {
+                throw new NullPointerException("lastMoveToCoordTarget: "+"lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand);
+            }
             final COORD_POS dst = lastMoveToCoordTarget.getDst();
             double diff = transDiffCartData(pos, dst);
             if (diff < 100) {
