@@ -43,8 +43,10 @@ public class MpcStatus {
     private final MP_ALARM_STATUS_DATA alarmStatusData;
     private final int recvId;
     private final int statusCount;
+    private final double targetPosDiff;
+    private final double targetRotDiffMax;
 
-    public MpcStatus(MP_CART_POS_RSP_DATA pos, MP_PULSE_POS_RSP_DATA pulseData, MotCtrlReturnEnum motTargetReceiveRet, MP_MODE_DATA modeData, MP_ALARM_CODE_DATA alarmCodeData, MP_ALARM_STATUS_DATA alarmStatusData, int recvId, int statusCount) {
+    public MpcStatus(MP_CART_POS_RSP_DATA pos, MP_PULSE_POS_RSP_DATA pulseData, MotCtrlReturnEnum motTargetReceiveRet, MP_MODE_DATA modeData, MP_ALARM_CODE_DATA alarmCodeData, MP_ALARM_STATUS_DATA alarmStatusData, int recvId, int statusCount, double targetPosDiff, double targetRotDiffMax) {
         this.pos = pos;
         this.pulseData = pulseData;
         this.motTargetReceiveRet = motTargetReceiveRet;
@@ -53,6 +55,12 @@ public class MpcStatus {
         this.alarmStatusData = alarmStatusData;
         this.recvId = recvId;
         this.statusCount = statusCount;
+        this.targetPosDiff = targetPosDiff;
+        this.targetRotDiffMax = targetRotDiffMax;
+    }
+
+    public double getTargetPosDiff() {
+        return targetPosDiff;
     }
 
     public MP_CART_POS_RSP_DATA getPos() {
@@ -87,5 +95,4 @@ public class MpcStatus {
         return statusCount;
     }
 
-   
 }

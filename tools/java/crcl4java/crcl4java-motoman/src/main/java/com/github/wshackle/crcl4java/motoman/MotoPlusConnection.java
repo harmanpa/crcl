@@ -457,7 +457,6 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteMotFunctionType.MOT_START.getId()); // type of function remote server will call
             bb.putInt(12, options);
             writeDataOutputStream(bb);
-            afterMove = true;
         }
 
         public void startMpMotStop(int options) throws IOException {
@@ -533,6 +532,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(88, timeout);
             writeDataOutputStream(bb);
             lastCoordTargetDest = target.getDst();
+            afterMove=true;
         }
 
         public void startMpMotTargetReceive(int grpNo, int id, int timeout, int options) throws IOException {
@@ -1749,14 +1749,14 @@ public class MotoPlusConnection implements AutoCloseable {
     public MP_CART_POS_RSP_DATA getCartPos(int grp) throws MotoPlusConnectionException, IOException {
         MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
         cartData[0] = new MP_CART_POS_RSP_DATA();
-        MP_CART_POS_RSP_DATA pos = cartData[0];
         if (!mpGetCartPos(grp, cartData)) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
+        MP_CART_POS_RSP_DATA pos = cartData[0];
         lastGetCartPosGrp = grp;
-        cachedGetPosData = cartData[0];
+        cachedGetPosData = pos;
         lastGetCartPosTime = System.currentTimeMillis();
-        return cartData[0];
+        return pos;
     }
 
     private boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
@@ -1842,15 +1842,19 @@ public class MotoPlusConnection implements AutoCloseable {
             t[2] = -2;
         }
         boolean lastPosCloseToTarget = true;
-        if(null != lastCoordTargetDest && null != cachedGetPosData) {
-            int distx = lastCoordTargetDest.x - cachedGetPosData.lx();
-            int disty = lastCoordTargetDest.y - cachedGetPosData.ly();
-            int distz = lastCoordTargetDest.z - cachedGetPosData.lz();
-            double diff = Math.sqrt(distx*distx+disty*disty+distz*distz);
-            if(diff > 250) {
+        final MP_CART_POS_RSP_DATA localCachedGetPosData = cachedGetPosData;
+        final COORD_POS localLastCoordTargetDest = this.lastCoordTargetDest;
+        double targetPosDiff  = 0;
+        double targetRotMaxDiff = 0;
+        if(null != localLastCoordTargetDest && null != localCachedGetPosData) {
+            targetPosDiff = computeTargetPosDiff(localLastCoordTargetDest, localCachedGetPosData);
+            targetRotMaxDiff = computeTargetRotMaxDiff(localLastCoordTargetDest, localCachedGetPosData);
+            if(targetPosDiff > 250 || targetRotMaxDiff > 1000) {
                 lastPosCloseToTarget = false;
             }
         }
+        final double initTargetPosDiff = targetPosDiff;
+        final double initTargetRotMaxDiff = targetRotMaxDiff;
         final boolean doMpMotTargetRecieve = 
                 localOrigCommandState == CRCL_WORKING 
                 && lastSentId != lastRecvdTargetId
@@ -1877,7 +1881,13 @@ public class MotoPlusConnection implements AutoCloseable {
         if (!getCartPosRet) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
-        cachedGetPosData =  cartData[0];
+        
+        final MP_CART_POS_RSP_DATA localNewCachedGetPosData =  cartData[0]; 
+        cachedGetPosData = localNewCachedGetPosData;
+        if(null != localLastCoordTargetDest && null != localNewCachedGetPosData) {
+            targetPosDiff = computeTargetPosDiff(localLastCoordTargetDest, localNewCachedGetPosData);
+            targetRotMaxDiff = computeTargetRotMaxDiff(localLastCoordTargetDest, localNewCachedGetPosData);
+        }
         if (withJoints) {
             boolean getPulsePosRet = mpcReturner.getPulsePosReturn(pulseData);
             if (!getPulsePosRet) {
@@ -1945,10 +1955,28 @@ public class MotoPlusConnection implements AutoCloseable {
 
 //        System.out.println("a = " + Arrays.toString(a));
 //        System.out.println("t = " + Arrays.toString(t));
-        MpcStatus mpcStatus = new MpcStatus(pos, withJoints ? pulseData[0] : null, motTargetReceiveRet, modeData, withAlarmModeStatus ? alarmCodeData : null, withAlarmModeStatus ? alarmStatusData : null, recvId[0], statusCount);
+        MpcStatus mpcStatus = new MpcStatus(pos, withJoints ? pulseData[0] : null, motTargetReceiveRet, modeData, withAlarmModeStatus ? alarmCodeData : null, withAlarmModeStatus ? alarmStatusData : null, recvId[0], statusCount,targetPosDiff,targetRotMaxDiff);
         return mpcStatus;
     }
 
+    private double computeTargetPosDiff(final COORD_POS localLastCoordTargetDest, final MP_CART_POS_RSP_DATA localCachedGetPosData) {
+        double targetPosDiff;
+        double distx = (double)(localLastCoordTargetDest.x - localCachedGetPosData.lx());
+        double disty = (double) (localLastCoordTargetDest.y - localCachedGetPosData.ly());
+        double distz =  (double) (localLastCoordTargetDest.z - localCachedGetPosData.lz());
+        targetPosDiff = Math.sqrt(distx*distx+disty*disty+distz*distz);
+        return targetPosDiff;
+    }
+
+    private double computeTargetRotMaxDiff(final COORD_POS localLastCoordTargetDest, final MP_CART_POS_RSP_DATA localCachedGetPosData) {
+        double targetRotMaxDiff;
+        double distrx = (double)(localLastCoordTargetDest.rx - localCachedGetPosData.lrx());
+        double distry = (double)(localLastCoordTargetDest.ry - localCachedGetPosData.lry());
+        double distrz = (double)(localLastCoordTargetDest.rz - localCachedGetPosData.lrz());
+        targetRotMaxDiff = Math.max(Math.abs(distrz),Math.max(Math.abs(distry), Math.abs(distrz)));
+        return targetRotMaxDiff;
+    }
+    
     public MP_PULSE_POS_RSP_DATA getPulsePos(int grp) throws MotoPlusConnectionException, IOException {
         MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
         pulseData[0] = new MP_PULSE_POS_RSP_DATA();
