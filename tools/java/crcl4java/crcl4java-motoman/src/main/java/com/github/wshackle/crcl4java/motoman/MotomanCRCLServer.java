@@ -559,7 +559,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             } else {
                 throw new RuntimeException("lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand + ", pulseData=" + pulseData);
             }
-        } else {
+        } else  if (lastCommand instanceof MoveToType) {
             if(null == lastMoveToCoordTarget) {
                 throw new NullPointerException("lastMoveToCoordTarget: "+"lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand);
             }
