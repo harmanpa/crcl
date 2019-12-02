@@ -60,6 +60,7 @@ import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MessageType;
+import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
 import crcl.base.PoseStatusType;
@@ -177,6 +178,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 + "\n maxCommandTime=" + maxCommandTime
                 + "\n maxStatTime=" + maxStatTime
                 + "\n lastCommand=" + CRCLSocket.commandToSimpleString(lastCommand)
+                + "\n lastIncrementTargetCommand=" + CRCLSocket.commandToSimpleString(lastIncrementTargetCommand)
                 + "\n maxCommand=" + CRCLSocket.commandToSimpleString(maxCommand)
                 + "\n withAlarmsCountInitCmd=" + withAlarmsCountInitCmd.get()
                 + "\n withAlarmsCountNotWorking=" + withAlarmsCountNotWorking.get()
@@ -412,7 +414,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 MotoPlusConnection mpcLocal = this.mpc;
                 final int prevLastRecvdTargetId = mpcLocal.getLastRecvdTargetId();
                 final boolean lastErrorWasWrongMode = mpcLocal.isLastErrorWasWrongMode();
-                int lastSentId = mpcLocal.getLastSentTargetId().get();
+                int lastSentId = mpcLocal.getLastSentTargetId();
                 MpcStatus mpcStatus = mpcLocal.readMpcStatus(
                         localOrigCommandState,
                         lastSentId,
@@ -433,9 +435,9 @@ public class MotomanCRCLServer implements AutoCloseable {
                 }
                 final MP_PULSE_POS_RSP_DATA pulseData = mpcStatus.getPulseData();
                 final MP_CART_POS_RSP_DATA pos = mpcStatus.getPos();
-                if (localOrigCommandState == CRCL_WORKING) {
+                if (localOrigCommandState == CRCL_WORKING ) {
                     workingStatCount.incrementAndGet();
-                    if (lastSentId != prevLastRecvdTargetId) {
+                    if (lastSentId != prevLastRecvdTargetId && lastCommand == lastIncrementTargetCommand) {
                         idDiffCount.incrementAndGet();
 //                        System.out.println("lastSentTargetId = " + lastSentTargetId);
 //                        System.out.println("mpcLocal.getLastRecvdTargetId () = " + mpcLocal.getLastRecvdTargetId ());
@@ -466,6 +468,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                                     System.err.println("cmd_time_diff=" + cmd_time_diff);
                                     System.err.println("updatesSinceCommand = " + updatesSinceCommand.get());
                                     System.err.println("lastCommand=" + lastCommand);
+                                    System.err.println("lastIncrementTargetCommand=" + lastIncrementTargetCommand);
                                     setStateDescription(commandStatusLocal, CRCL_ERROR, "motTargetReceiveRet=" + motTargetReceiveRet);
                                     break;
                             }
@@ -568,6 +571,8 @@ public class MotomanCRCLServer implements AutoCloseable {
             if (diff < 100) {
                 getCommandStatus().setCommandState(CRCL_DONE);
             }
+        } else {
+            throw new RuntimeException("lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand);
         }
     }
 
@@ -718,9 +723,12 @@ public class MotomanCRCLServer implements AutoCloseable {
     private final AtomicInteger moveToSetCoordCount = new AtomicInteger();
     private final AtomicInteger moveToSetGetPosCount = new AtomicInteger();
 
+    private volatile  MiddleCommandType lastIncrementTargetCommand = null;
+    
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
         boolean isStraight = cmd.isMoveStraight();
-        final int newTargetId = mpc.getLastSentTargetId().incrementAndGet();
+        final int newTargetId = mpc.incrementAndGetLastSentTargetId();
+        lastIncrementTargetCommand = cmd;
         CoordTarget tgt = new CoordTarget(isStraight, newTargetId);
         moveToCount.incrementAndGet();
         if (!mpc.checkNeedSetPower(true, 5000)) {
@@ -862,7 +870,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 = returner.getMpMotStandardReturn();
         if (debug) {
             System.out.println("motStartRet = " + motStartRet);
-            System.out.println("lastSentTargetId = " + mpc.getLastSentTargetId().get());
+            System.out.println("lastSentTargetId = " + mpc.getLastSentTargetId());
         }
         lastMoveToCoordTarget = tgt;
     }
@@ -873,7 +881,8 @@ public class MotomanCRCLServer implements AutoCloseable {
     private void actuateJoints(ActuateJointsType ajs) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
         boolean debug = true;
 
-        final int newTargetId = mpc.getLastSentTargetId().incrementAndGet();
+        final int newTargetId = mpc.incrementAndGetLastSentTargetId();
+        lastIncrementTargetCommand = ajs;
         JointTarget tgt = new JointTarget(newTargetId);
         mpc.mpSetServoPower(true);
         boolean power = mpc.mpGetServoPower();
@@ -937,7 +946,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         }
         if (debug) {
             System.out.println("motStartRet = " + motStartRet);
-            System.out.println("lastSentTargetId = " + mpc.getLastSentTargetId().get());
+            System.out.println("lastSentTargetId = " + mpc.getLastSentTargetId());
         }
     }
 

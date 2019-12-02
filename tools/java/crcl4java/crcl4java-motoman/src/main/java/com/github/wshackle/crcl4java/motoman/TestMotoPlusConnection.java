@@ -153,12 +153,12 @@ public class TestMotoPlusConnection {
             int prev_angle[] = new int[8];
             MP_COORD coord = currentCartPos.toMpCoord();
             System.out.println("coord = " + coord);
-            MpKinAngleReturn convCartPosToAxesRet;
-            //= mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT);
-//            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
-//            
-//             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
-//            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
+            MpKinAngleReturn convCartPosToAxesRet= 
+                    mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT);
+            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
+            
+             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
+            System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
             convCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, prev_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG);
             System.out.println("convAxisToAngleRet = " + convCartPosToAxesRet);
             for (int i = 0; i < currentAngle.angle.length; i++) {

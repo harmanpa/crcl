@@ -33,6 +33,7 @@ import crcl.utils.CRCLSocket;
 import crcl.utils.PropertiesUtils;
 import crcl.utils.XFuture;
 import crcl.utils.server.CRCLServerSocket;
+import java.awt.Container;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -504,7 +505,15 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                 Method selectedMethod = methodMap.get(selectedMethodName);
                 logPrintln("selectedMethod = " + selectedMethod);
                 Object objectParams[] = new Object[selectedMethod.getParameterCount()];
-                JFrame parentJFrame = (JFrame) getParent().getParent().getParent().getParent();
+                Container container = getParent();
+                JFrame parentJFrame = null;
+                while (null != container) {
+                    if(container instanceof  JFrame) {
+                        parentJFrame = (JFrame) container;
+                        break;
+                    }
+                    container = container.getParent();
+                }
                 Map<String, Object> argsMap = new TreeMap<>();
                 for (int i = 0; i < objectParams.length; i++) {
                     Class<?> parameterType = selectedMethod.getParameterTypes()[i];

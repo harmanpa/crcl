@@ -1772,8 +1772,12 @@ public class MotoPlusConnection implements AutoCloseable {
         return lastErrorWasWrongMode;
     }
 
-    public AtomicInteger getLastSentTargetId() {
-        return lastSentTargetId;
+    public int getLastSentTargetId() {
+        return lastSentTargetId.get();
+    }
+    
+    public int incrementAndGetLastSentTargetId() {
+        return lastSentTargetId.incrementAndGet();
     }
 
     public int getLastRecvdTargetId() {
@@ -1955,7 +1959,18 @@ public class MotoPlusConnection implements AutoCloseable {
 
 //        System.out.println("a = " + Arrays.toString(a));
 //        System.out.println("t = " + Arrays.toString(t));
-        MpcStatus mpcStatus = new MpcStatus(pos, withJoints ? pulseData[0] : null, motTargetReceiveRet, modeData, withAlarmModeStatus ? alarmCodeData : null, withAlarmModeStatus ? alarmStatusData : null, recvId[0], statusCount,targetPosDiff,targetRotMaxDiff);
+        MpcStatus mpcStatus 
+                = new MpcStatus(
+                pos,
+                withJoints ? pulseData[0] : null,
+                motTargetReceiveRet, 
+                modeData, 
+                withAlarmModeStatus ? alarmCodeData : null,
+                withAlarmModeStatus ? alarmStatusData : null, 
+                recvId[0], 
+                statusCount,
+                targetPosDiff,
+                targetRotMaxDiff);
         return mpcStatus;
     }
 
