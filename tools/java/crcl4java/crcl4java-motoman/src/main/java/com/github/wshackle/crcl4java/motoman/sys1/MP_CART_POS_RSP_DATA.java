@@ -36,6 +36,15 @@ public class MP_CART_POS_RSP_DATA {
     public short sConfig;
 
     
+    public MP_CART_POS_RSP_DATA diff(MP_CART_POS_RSP_DATA other) {
+        MP_CART_POS_RSP_DATA ret =new MP_CART_POS_RSP_DATA();
+        for (int i = 0; i < lPos.length; i++) {
+            ret.lPos[i] = this.lPos[i]-other.lPos[i];
+        }
+        ret.sConfig = (short) (this.sConfig ^ other.sConfig);
+        return ret;
+    }
+    
     public MP_COORD toMpCoord() {
         MP_COORD coord = new MP_COORD();
         coord.x = lPos[0];

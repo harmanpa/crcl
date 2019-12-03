@@ -33,7 +33,7 @@ public class MpKinCartPosReturn extends MpKinBaseReturn {
 
     @Override
     public String toString() {
-        return "MpCartPosReturn{" + "returnInt=" + returnInt + ", returnCode=" + returnCode + ", fig_ctrl=" + fig_ctrl + ", coord=" + coord + '}';
+        return "MpCartPosReturn{" + "returnInt=" + returnInt + ", returnCode=" + returnCode + ", fig_ctrl=" + fig_ctrl + " (0x"+String.format("%X",(fig_ctrl&0x3F))+"), coord=" + coord + '}';
     }
 
 }

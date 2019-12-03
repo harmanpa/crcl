@@ -35,7 +35,15 @@ public class MpKinAngleReturn extends MpKinBaseReturn {
 
     @Override
     public String toString() {
-        return "MpAngleReturn{" + "returnInt=" + returnInt + ", returnCode=" + returnCode + ", angle=" + Arrays.toString(angle) + '}';
+        double dangle[] = new double[angle.length];
+        for (int i = 0; i < dangle.length; i++) {
+            dangle[i] = 0.0001*angle[i];
+        }
+        System.out.println("dangle = " + Arrays.toString(dangle));
+        return "MpAngleReturn{" + "returnInt=" + returnInt + ", returnCode=" + returnCode 
+                + ", angle=" + Arrays.toString(angle) 
+                + ", dangle = " + Arrays.toString(dangle)
+                + '}';
     }
     
     
