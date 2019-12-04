@@ -156,10 +156,10 @@ public class TestMotoPlusConnection {
             testConvCartPosToAxesAndBack(currentCartPos, mpc, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT, currentAngle);
             testConvCartPosToAxesAndBack(currentCartPos, mpc, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA, currentAngle);
             testConvCartPosToAxesAndBack(currentCartPos, mpc, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_FIG, currentAngle);
-            int zero_angle[] = new int[currentAngle.angle.length];
-            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT, currentAngle);
-            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA, currentAngle);
-            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG, currentAngle);
+//            int zero_angle[] = new int[currentAngle.angle.length];
+//            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_DEFAULT, currentAngle);
+//            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA, currentAngle);
+//            testConvCartPosToAxesAndBack(currentCartPos, mpc, zero_angle, MP_KINEMA_TYPE.MP_KINEMA_FIG, currentAngle);
         }
     }
 
@@ -188,7 +188,11 @@ public class TestMotoPlusConnection {
             System.out.println("mpConvAxesToCartPosRet = " + mpConvAxesToCartPosRet);
             MP_COORD coorddiff = coord.diff(mpConvAxesToCartPosRet.coord);
             System.out.println("coorddiff = " + coorddiff);
-
+            MpKinPulseReturn mpConvAngleToPulseRet1 = mpc.mpConvAngleToPulse(0, mpConvCartPosToAxesRet.angle);
+            System.out.println("mpConvAngleToPulseRet1 (0,mpConvCartPosToAxesRet.angle) = " + mpConvAngleToPulseRet1);
+            MpKinPulseReturn mpConvAngleToPulseRet2 = mpc.mpConvAngleToPulse(0, prev_angle);
+            System.out.println("mpConvAngleToPulseRet2 (0,prev_angle) = " + mpConvAngleToPulseRet2);
+            
 //        }
 
 //            mpConvCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
