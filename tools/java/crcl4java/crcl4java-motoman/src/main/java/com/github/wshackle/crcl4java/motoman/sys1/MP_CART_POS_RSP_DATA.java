@@ -48,8 +48,8 @@ public class MP_CART_POS_RSP_DATA {
     public MP_COORD toMpCoord() {
         MP_COORD coord = new MP_COORD();
         coord.x = lPos[0];
-        coord.y = lPos[0];
-        coord.z = lPos[0];
+        coord.y = lPos[1];
+        coord.z = lPos[2];
         coord.rx = lPos[3];
         coord.ry = lPos[4];
         coord.rz = lPos[5];
