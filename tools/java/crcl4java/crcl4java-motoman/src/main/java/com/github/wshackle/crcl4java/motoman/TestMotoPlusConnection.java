@@ -167,6 +167,7 @@ public class TestMotoPlusConnection {
 
         System.out.println("kinType = " + kinType);
         System.out.println("prev_angle = " + Arrays.toString(prev_angle));
+        System.out.println("currentCartPos = " + currentCartPos);
         MP_COORD coord = currentCartPos.toMpCoord();
         System.out.println("coord = " + coord);
 //        for (int j = 0; j < 64; j++) {

@@ -44,7 +44,17 @@ void *pthread_start(void *arg) {
     return NULL;
 }
 
-#define MP_FAKELIB_DEBUG 0
+#ifndef MP_FAKELIB_DEBUG 
+#error MP_FAKELIB_DEBUG not defined
+#endif
+
+#if MP_FAKELIB_DEBUG 
+#warning MP_FAKELIB_DEBUG set
+#else
+#error MP_FAKELIB_DEBUG not set
+#endif
+
+//#define MP_FAKELIB_DEBUG 0
 
 int mpCreateTask(int mpPriSpec, int stackSize, FUNCPTR entryPt,
         int arg1, int arg2, int arg3, int arg4, int arg5,
@@ -721,6 +731,10 @@ int mpConvAxesToCartPos(unsigned int grp_no,
 #endif
     return 0;
 }
+
+
+
+
 
 int mpConvCartPosToAxes(unsigned int grp_no, MP_COORD *coord, unsigned int tool_no, BITSTRING fig_ctrl, long prev_angle[MP_GRP_AXES_NUM], MP_KINEMA_TYPE kinema_type, long angle[MP_GRP_AXES_NUM]) {
 #if MP_FAKELIB_DEBUG 

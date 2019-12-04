@@ -49,8 +49,10 @@
         <cTool>
           <preprocessorList>
             <Elem>DO_SWAP=1</Elem>
+            <Elem>MP_FAKELIB_DEBUG=1</Elem>
             <Elem>USE_FAKE_MOTOPLUS=1</Elem>
           </preprocessorList>
+          <useLinkerLibraries>false</useLinkerLibraries>
         </cTool>
         <linkerTool>
           <linkerLibItems>
