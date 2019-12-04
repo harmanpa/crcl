@@ -69,27 +69,27 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/motoplustcpsvr: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -DMP_FAKELIB_DEBUG=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
+	$(COMPILE.c) -g -DDO_SWAP=1 -DMP_FAKELIB_DEBUG=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.c
 
 ${OBJECTDIR}/mpFakeLib.o: mpFakeLib.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -DMP_FAKELIB_DEBUG=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpFakeLib.o mpFakeLib.c
+	$(COMPILE.c) -g -DDO_SWAP=1 -DMP_FAKELIB_DEBUG=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpFakeLib.o mpFakeLib.c
 
 ${OBJECTDIR}/mpMain.o: mpMain.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -DMP_FAKELIB_DEBUG=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpMain.o mpMain.c
+	$(COMPILE.c) -g -DDO_SWAP=1 -DMP_FAKELIB_DEBUG=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mpMain.o mpMain.c
 
 ${OBJECTDIR}/remoteFunctions.o: remoteFunctions.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -DMP_FAKELIB_DEBUG=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/remoteFunctions.o remoteFunctions.c
+	$(COMPILE.c) -g -DDO_SWAP=1 -DMP_FAKELIB_DEBUG=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/remoteFunctions.o remoteFunctions.c
 
 ${OBJECTDIR}/tcpSvr.o: tcpSvr.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DDO_SWAP=1 -DUSE_FAKE_MOTOPLUS=1 -DMP_FAKELIB_DEBUG=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tcpSvr.o tcpSvr.c
+	$(COMPILE.c) -g -DDO_SWAP=1 -DMP_FAKELIB_DEBUG=1 -DUSE_FAKE_MOTOPLUS=1 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tcpSvr.o tcpSvr.c
 
 # Subprojects
 .build-subprojects:
