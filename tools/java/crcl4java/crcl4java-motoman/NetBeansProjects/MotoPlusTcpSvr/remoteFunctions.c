@@ -1189,10 +1189,10 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
             break;
 
         case KINEMATICS_CONVERSION_CONVERT_CART_POS_TO_AXES:
-            if (msgSize != 52 + MP_GRP_AXES_NUM * 4) {
+            if (msgSize != 56 + MP_GRP_AXES_NUM * 4) {
                 fprintf(stderr,
                         "tcpSvr: invalid msgSize for mpConvAxesToCartPos = %d != %d",
-                        msgSize, 52 + MP_GRP_AXES_NUM * 4);
+                        msgSize, 56 + MP_GRP_AXES_NUM * 4);
                 return -1;
             }
             grp_no = getInt32(inBuffer, 12);
@@ -1207,9 +1207,9 @@ int handleKinematicConvFunctionRequest(int acceptHandle, char *inBuffer, char *o
             tool_no = getInt32(inBuffer, 48);
             fig_ctrl = getInt32(inBuffer, 52);
             for (i = 0; i < MP_GRP_AXES_NUM; i++) {
-                prev_angle[i] = getInt32(inBuffer, 52 + i * 4);
+                prev_angle[i] = getInt32(inBuffer, 56 + i * 4);
             }
-            kinema_type = getInt32(inBuffer, 52 + MP_GRP_AXES_NUM * 4);
+            kinema_type = getInt32(inBuffer, 56 + MP_GRP_AXES_NUM * 4);
             ret = mpConvCartPosToAxes(grp_no, &coord, tool_no, fig_ctrl, prev_angle, kinema_type, angle);
             setInt32(outBuffer, 0, 4 + MP_GRP_AXES_NUM * 4);
             setInt32(outBuffer, 4, ret);

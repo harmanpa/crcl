@@ -925,7 +925,7 @@ public class MotoPlusConnection implements AutoCloseable {
             if (tool_no < 0) {
                 throw new IllegalArgumentException("tool_no=" + tool_no);
             }
-            final int inputSize = 56 + 4 * MP_GRP_AXES_NUM;
+            final int inputSize = 60 + 4 * MP_GRP_AXES_NUM;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.KINEMATICS_CONVERSION_FUNCTION_GROUP.getId()); // type of function remote server will call
@@ -942,9 +942,9 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(48, tool_no);
             bb.putInt(52, fig_ctrl);
             for (int i = 0; i < MP_GRP_AXES_NUM; i++) {
-                bb.putInt(52 + 4 * i, prev_angle[i]);
+                bb.putInt(56 + 4 * i, prev_angle[i]);
             }
-            bb.putInt(52 + 4 * MP_GRP_AXES_NUM, kinema_type.ordinal());
+            bb.putInt(56 + 4 * MP_GRP_AXES_NUM, kinema_type.ordinal());
             writeDataOutputStream(bb);
         }
 

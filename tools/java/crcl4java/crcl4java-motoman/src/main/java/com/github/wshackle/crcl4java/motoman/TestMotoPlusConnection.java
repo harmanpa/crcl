@@ -169,15 +169,15 @@ public class TestMotoPlusConnection {
         System.out.println("prev_angle = " + Arrays.toString(prev_angle));
         MP_COORD coord = currentCartPos.toMpCoord();
         System.out.println("coord = " + coord);
-        for (int j = 0; j < 64; j++) {
+//        for (int j = 0; j < 64; j++) {
             MpKinAngleReturn mpConvCartPosToAxesRet
-                    = mpc.mpConvCartPosToAxes(0, coord, 0, j, prev_angle, kinType);
+                    = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, prev_angle, kinType);
 
             MpKinCartPosReturn mpConvAxesToCartPosRet = mpc.mpConvAxesToCartPos(0, mpConvCartPosToAxesRet.angle, 0);
-            System.out.println("j = " + j+", (mpConvAxesToCartPosRet.fig_ctrl="+mpConvAxesToCartPosRet.fig_ctrl);
-            if(mpConvAxesToCartPosRet.fig_ctrl != j) {
-                continue;
-            }
+            System.out.println("mpConvAxesToCartPosRet.fig_ctrl="+mpConvAxesToCartPosRet.fig_ctrl);
+//            if(mpConvAxesToCartPosRet.fig_ctrl != j) {
+//                continue;
+//            }
             System.out.println("mpConvCartPosToAxesRet = " + mpConvCartPosToAxesRet);
             for (int i = 0; i < currentAngle.angle.length; i++) {
                 long diff = currentAngle.angle[i] - mpConvCartPosToAxesRet.angle[i];
@@ -188,7 +188,7 @@ public class TestMotoPlusConnection {
             MP_COORD coorddiff = coord.diff(mpConvAxesToCartPosRet.coord);
             System.out.println("coorddiff = " + coorddiff);
 
-        }
+//        }
 
 //            mpConvCartPosToAxesRet = mpc.mpConvCartPosToAxes(0, coord, 0, currentCartPos.sConfig, currentAngle.angle, MP_KINEMA_TYPE.MP_KINEMA_DELTA);
 //            System.out.println("mpConvCartPosToAxesRet = " + mpConvCartPosToAxesRet);
