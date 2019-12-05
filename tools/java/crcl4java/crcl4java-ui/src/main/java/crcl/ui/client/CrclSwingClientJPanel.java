@@ -5313,7 +5313,7 @@ public class CrclSwingClientJPanel
 //                Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //            }
             XFuture<Boolean> newProgramFutureInternal
-                    = internal.startRunProgramThread(-2);//this.getCurrentProgramLine());
+                    = internal.startRunProgramThread(this.getCurrentProgramLine());
             XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
             programFutureInternal = newProgramFutureInternal;
 //            latch.countDown();

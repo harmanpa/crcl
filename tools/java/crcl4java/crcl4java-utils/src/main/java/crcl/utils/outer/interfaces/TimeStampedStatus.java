@@ -46,6 +46,7 @@ public class TimeStampedStatus {
     public final double fx;
     public final double fy;
     public final double fz;
+    public final double state;
 
     public TimeStampedStatus(CRCLStatusType status, long absTime, long relTime, long timediff) {
         final PoseStatusType poseStatus = status.getPoseStatus();
@@ -63,6 +64,7 @@ public class TimeStampedStatus {
         fy = (forceTorqueStatus != null) ? forceTorqueStatus.getFy() : 0.0;
         fz = (forceTorqueStatus != null) ? forceTorqueStatus.getFz() : 0.0;
         cmdId = (double) ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
+        state = (double) ((commandStatus != null) ? commandStatus.getCommandState().ordinal() : -1.0);
         this.absTime = absTime * 1e-3;
         this.relTime = relTime * 1e-3;
         this.timeDiff = timediff *1e-3;
