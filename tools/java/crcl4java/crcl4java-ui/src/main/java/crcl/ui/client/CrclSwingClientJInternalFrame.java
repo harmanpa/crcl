@@ -1320,4 +1320,14 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public void printPerfInfo(PrintStream ps, String prefix) {
         pendantClientJPanel1.printPerfInfo(ps, prefix);
     }
+
+    @Override
+    public void showPaused(boolean paused) {
+        String oldTitle= getTitle();
+        if(paused && !oldTitle.startsWith("paused ")) {
+            setTitle("paused "+oldTitle);
+        } else if(!paused && oldTitle.startsWith("paused ")) {
+            setTitle(oldTitle.substring("paused ".length()));
+        }
+    }
 }

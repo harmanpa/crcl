@@ -99,5 +99,7 @@ public interface PendantClientOuter {
     public void saveProperties();
 
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log);
+    
+    public void showPaused(boolean paused);
 
 }

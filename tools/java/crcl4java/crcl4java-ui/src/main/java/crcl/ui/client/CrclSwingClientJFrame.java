@@ -140,7 +140,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     public void setEnableSaveProgram(boolean enable) {
         this.jMenuItemSaveProgramAs.setEnabled(enable);
     }
-    
+
     @Override
     public void readRecentCommandFiles() {
         File fMainDir = new File(Utils.getCrclUserHomeDir(),
@@ -705,8 +705,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         return this.jCheckBoxMenuItemUseEXI.isSelected();
     }
 
-    
-
     public void addProgramLineListener(ProgramLineListener l) {
         pendantClientJPanel1.addProgramLineListener(l);
     }
@@ -993,5 +991,15 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
         this.pendantClientJPanel1.updateCommandStatusLog(log);
+    }
+
+    @Override
+    public void showPaused(boolean paused) {
+        String oldTitle = getTitle();
+        if (paused && !oldTitle.startsWith("paused ")) {
+            setTitle("paused " + oldTitle);
+        } else if (!paused && oldTitle.startsWith("paused ")) {
+            setTitle(oldTitle.substring("paused ".length()));
+        }
     }
 }

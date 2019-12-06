@@ -244,7 +244,7 @@ public class CrclSwingClientJPanel
     public void pauseCrclProgram() {
         pauseTime = System.currentTimeMillis();
         internal.pause();
-        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
@@ -258,7 +258,7 @@ public class CrclSwingClientJPanel
         String startPauseInfo = pauseInfoString();
         pauseTime = System.currentTimeMillis();
         internal.unpause();
-        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
@@ -1083,6 +1083,47 @@ public class CrclSwingClientJPanel
         return internal.isHoldingObjectExpected();
     }
 
+    private void internalShowPaused(boolean paused) {
+        jButtonProgramPause.setEnabled(!paused);
+        jButtonProgramResume.setEnabled(paused);
+        JInternalFrame internalFrame = null;
+        if (outerContainer instanceof JInternalFrame) {
+            internalFrame = (JInternalFrame) outerContainer;
+        }
+        if (null != internalFrame) {
+            final String oldTitle = internalFrame.getTitle();
+            if (paused) {
+                if (!oldTitle.startsWith("paused ")) {
+                    internalFrame.setTitle("paused " + oldTitle);
+                }
+            } else {
+                if (oldTitle.startsWith("paused ")) {
+                    internalFrame.setTitle(oldTitle.substring("paused ".length()));
+                }
+            }
+        } else if (null != outerJFrame) {
+            final String oldTitle = outerJFrame.getTitle();
+            if (paused) {
+                if (!oldTitle.startsWith("paused ")) {
+                    outerJFrame.setTitle("paused " + oldTitle);
+                }
+            } else {
+                if (oldTitle.startsWith("paused ")) {
+                    outerJFrame.setTitle(oldTitle.substring("paused ".length()));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void showPaused(boolean paused) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            internalShowPaused(paused);
+        } else {
+            javax.swing.SwingUtilities.invokeLater(() -> this.internalShowPaused(paused));
+        }
+    }
+
     private class MyPropertyChangeListener implements PropertyChangeListener {
 
         @Override
@@ -1472,7 +1513,7 @@ public class CrclSwingClientJPanel
             programPlotterJPanelSide.setProgram(program);
             programPlotterJPanelOverhead.repaint();
             programPlotterJPanelSide.repaint();
-            jTabbedPaneRightUpper.setSelectedComponent(jPanelProgramPlot);
+//            jTabbedPaneRightUpper.setSelectedComponent(jPanelProgramPlot);
         } catch (JAXBException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
@@ -2268,7 +2309,9 @@ public class CrclSwingClientJPanel
         if (null != addr) {
             hostPort = " " + addr.getHostAddress() + ":" + internal.getPort() + " ";
         }
-        String newTitle = "CRCL Client: "
+        String newTitle
+                = (internal.isPaused() ? "paused " : "")
+                + "CRCL Client: "
                 + hostPort
                 + stateString
                 + stateDescriptionString
@@ -3365,7 +3408,7 @@ public class CrclSwingClientJPanel
         jButtonDeletProgramItem = new javax.swing.JButton();
         jButtonAddProgramItem = new javax.swing.JButton();
         jButtonProgramRun = new javax.swing.JButton();
-        jButtonResume = new javax.swing.JButton();
+        jButtonProgramResume = new javax.swing.JButton();
         jButtonPlotProgramItem = new javax.swing.JButton();
         jButtonRunProgFromCurrentLine = new javax.swing.JButton();
         jButtonStepBack = new javax.swing.JButton();
@@ -3450,7 +3493,6 @@ public class CrclSwingClientJPanel
         jLabel2 = new javax.swing.JLabel();
         jCheckBoxPoll = new javax.swing.JCheckBox();
         jTextFieldPollTime = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
         jCheckBoxReadTimeout = new javax.swing.JCheckBox();
         jTextFieldReadTimeout = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -3560,11 +3602,11 @@ public class CrclSwingClientJPanel
             }
         });
 
-        jButtonResume.setText("Resume");
-        jButtonResume.setEnabled(false);
-        jButtonResume.addActionListener(new java.awt.event.ActionListener() {
+        jButtonProgramResume.setText("Resume");
+        jButtonProgramResume.setEnabled(false);
+        jButtonProgramResume.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonResumeActionPerformed(evt);
+                jButtonProgramResumeActionPerformed(evt);
             }
         });
 
@@ -3668,7 +3710,7 @@ public class CrclSwingClientJPanel
                             .addGroup(jPanelProgramLayout.createSequentialGroup()
                                 .addComponent(jButtonProgramPause)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonResume)
+                                .addComponent(jButtonProgramResume)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonProgramAbort)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -3703,7 +3745,7 @@ public class CrclSwingClientJPanel
                     .addComponent(jButtonProgramPause)
                     .addComponent(jButtonProgramAbort)
                     .addComponent(jButtonProgramRun)
-                    .addComponent(jButtonResume)
+                    .addComponent(jButtonProgramResume)
                     .addComponent(jButtonRunProgFromCurrentLine)
                     .addComponent(jCheckBoxStepping)
                     .addComponent(jLabel20)
@@ -4421,7 +4463,7 @@ public class CrclSwingClientJPanel
         jLabel2.setText("Port:");
 
         jCheckBoxPoll.setSelected(true);
-        jCheckBoxPoll.setText("Poll");
+        jCheckBoxPoll.setText("Poll    Interval(ms):");
         jCheckBoxPoll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBoxPollActionPerformed(evt);
@@ -4436,8 +4478,6 @@ public class CrclSwingClientJPanel
                 jTextFieldPollTimeActionPerformed(evt);
             }
         });
-
-        jLabel4.setText("Poll interval(ms):");
 
         jCheckBoxReadTimeout.setText("Read Timout(ms)");
         jCheckBoxReadTimeout.addActionListener(new java.awt.event.ActionListener() {
@@ -4513,18 +4553,17 @@ public class CrclSwingClientJPanel
                                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jCheckBoxPoll)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jLabel4)
-                                                .addGap(1, 1, 1)
                                                 .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                         .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jLabel21)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jTextFieldWaitForDoneDelay))
+                                                .addComponent(jTextFieldWaitForDoneDelay, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
+                                                .addGap(0, 0, Short.MAX_VALUE))
                                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts)
-                                                .addGap(0, 102, Short.MAX_VALUE))))
+                                                .addGap(0, 103, Short.MAX_VALUE))))
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
                                         .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4555,7 +4594,6 @@ public class CrclSwingClientJPanel
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxPoll)
-                    .addComponent(jLabel4)
                     .addComponent(jTextFieldPollTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel21)
                     .addComponent(jTextFieldWaitForDoneDelay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -5005,7 +5043,7 @@ public class CrclSwingClientJPanel
             resumeButtonAction();
         }
         internal.setLastProgramIndex(-1);
-        runCurrentProgramAsync(jCheckBoxStepping.isSelected());
+        runCurrentProgramAsync(jCheckBoxStepping.isSelected(), true);
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
     public StackTraceElement @Nullable [] getRunProgramReturnFalseTrace() {
@@ -5047,6 +5085,10 @@ public class CrclSwingClientJPanel
     }
 
     public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode) {
+        return runCurrentProgramAsync(stepMode, false);
+    }
+
+    public XFuture<Boolean> runCurrentProgramAsync(boolean stepMode, boolean interactive) {
         try {
             if (disconnecting) {
                 System.err.println("disconnectThread = " + disconnectThread);
@@ -5059,7 +5101,7 @@ public class CrclSwingClientJPanel
                 System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
                 throw new RuntimeException("runCurrentProgramAsync.disconnecting");
             }
-            XFuture<Boolean> future = internal.startRunProgramThread(0);
+            XFuture<Boolean> future = internal.startRunProgramThread(0, interactive);
             XFuture<Boolean> ret = checkFutureChange(future);
             lastProgramFuture = future;
             return ret;
@@ -5096,7 +5138,7 @@ public class CrclSwingClientJPanel
             internal.setPoll_ms(new_poll_ms);
             internal.setWaitForDoneDelay(Long.parseLong(jTextFieldWaitForDoneDelay.getText().trim()));
             setStepMode(stepMode);
-            this.jButtonResume.setEnabled(internal.isPaused());
+            this.jButtonProgramResume.setEnabled(internal.isPaused());
             this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
@@ -5144,9 +5186,9 @@ public class CrclSwingClientJPanel
         return stepMode;
     }
 
-    private void jButtonResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResumeActionPerformed
+    private void jButtonProgramResumeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramResumeActionPerformed
         resumeButtonAction();
-    }//GEN-LAST:event_jButtonResumeActionPerformed
+    }//GEN-LAST:event_jButtonProgramResumeActionPerformed
 
     private void resumeButtonAction() {
         if (pauseTime > this.internal.getRunStartMillis()) {
@@ -5154,7 +5196,7 @@ public class CrclSwingClientJPanel
             pauseTime = -1;
         }
         internal.unpause();
-        this.jButtonResume.setEnabled(internal.isPaused());
+        this.jButtonProgramResume.setEnabled(internal.isPaused());
         this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
@@ -5180,7 +5222,7 @@ public class CrclSwingClientJPanel
         if (internal.isPaused()) {
             resumeButtonAction();
         }
-        continueCurrentProgram(jCheckBoxStepping.isSelected());
+        continueCurrentProgram(jCheckBoxStepping.isSelected(), true);
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
 
     public boolean isPaused() {
@@ -5253,6 +5295,10 @@ public class CrclSwingClientJPanel
     XFuture<Boolean> lastContinueCurrentProgramRet = null;
 
     public XFuture<Boolean> continueCurrentProgram(boolean stepMode) {
+        return continueCurrentProgram(stepMode, false);
+    }
+
+    public XFuture<Boolean> continueCurrentProgram(boolean stepMode, boolean interactive) {
         if (internal.isBlockPrograms()) {
             internal.printStartBlockingProgramInfo();
             internal.showErrorMessage("Block Programs");
@@ -5313,7 +5359,7 @@ public class CrclSwingClientJPanel
 //                Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
 //            }
             XFuture<Boolean> newProgramFutureInternal
-                    = internal.startRunProgramThread(this.getCurrentProgramLine());
+                    = internal.startRunProgramThread(this.getCurrentProgramLine(), interactive);
             XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
             programFutureInternal = newProgramFutureInternal;
 //            latch.countDown();
@@ -5350,19 +5396,22 @@ public class CrclSwingClientJPanel
         if (l > 0) {
             l--;
         }
-        internal.startRunProgramThread(l);
+        internal.startRunProgramThread(l, true);
     }//GEN-LAST:event_jButtonStepBackActionPerformed
 
     private void jButtonStepFwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepFwdActionPerformed
         setStepMode(true);
         boolean wasPaused = internal.isPaused();
         boolean wasRunning = internal.isRunningProgram();
-        if (internal.isPaused()) {
+        if (wasPaused) {
             internal.unpause();
         }
         if (!wasRunning) {
-            internal.setLastProgramIndex(this.getCurrentProgramLine());
-            internal.startRunProgramThread(this.getCurrentProgramLine());
+            final int currentProgramLine = this.getCurrentProgramLine();
+            if (currentProgramLine >= 0 && currentProgramLine < internal.getProgram().getMiddleCommand().size()) {
+                internal.setLastProgramIndex(currentProgramLine + 1);
+                internal.startRunProgramThread(currentProgramLine + 1, true);
+            }
         }
     }//GEN-LAST:event_jButtonStepFwdActionPerformed
 
@@ -6099,10 +6148,10 @@ public class CrclSwingClientJPanel
     private javax.swing.JButton jButtonPlotStatus;
     private javax.swing.JButton jButtonProgramAbort;
     private javax.swing.JButton jButtonProgramPause;
+    private javax.swing.JButton jButtonProgramResume;
     private javax.swing.JButton jButtonProgramRun;
     private javax.swing.JButton jButtonRecordPoint;
     private javax.swing.JButton jButtonRemoveGuard;
-    private javax.swing.JButton jButtonResume;
     private javax.swing.JButton jButtonRunProgFromCurrentLine;
     private javax.swing.JButton jButtonShowCommandStatusLogFile;
     private javax.swing.JButton jButtonShowPerfInfo;
@@ -6135,7 +6184,6 @@ public class CrclSwingClientJPanel
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;

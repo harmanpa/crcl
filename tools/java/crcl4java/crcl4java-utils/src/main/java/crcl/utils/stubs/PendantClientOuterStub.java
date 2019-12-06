@@ -297,4 +297,8 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     public void readRecentCommandFiles() {
     }
 
+    @Override
+    public void showPaused(boolean paused) {
+    }
+
 }

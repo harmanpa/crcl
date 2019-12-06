@@ -106,7 +106,7 @@
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jButtonProgramPause" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jButtonResume" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jButtonProgramResume" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
                                       <Component id="jButtonProgramAbort" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
@@ -148,7 +148,7 @@
                           <Component id="jButtonProgramPause" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonProgramAbort" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonProgramRun" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jButtonResume" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jButtonProgramResume" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonRunProgFromCurrentLine" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jCheckBoxStepping" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel20" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -254,13 +254,13 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonProgramRunActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="jButtonResume">
+            <Component class="javax.swing.JButton" name="jButtonProgramResume">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Resume"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonResumeActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonProgramResumeActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JButton" name="jButtonPlotProgramItem">
@@ -1340,21 +1340,20 @@
                                                   <Group type="102" alignment="0" attributes="0">
                                                       <Component id="jCheckBoxPoll" min="-2" max="-2" attributes="0"/>
                                                       <EmptySpace max="-2" attributes="0"/>
-                                                      <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-                                                      <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
                                                       <Component id="jTextFieldPollTime" min="-2" pref="121" max="-2" attributes="0"/>
                                                   </Group>
                                               </Group>
-                                              <EmptySpace max="-2" attributes="0"/>
+                                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
                                               <Group type="103" groupAlignment="0" attributes="0">
                                                   <Group type="102" attributes="0">
                                                       <Component id="jLabel21" min="-2" max="-2" attributes="0"/>
                                                       <EmptySpace max="-2" attributes="0"/>
-                                                      <Component id="jTextFieldWaitForDoneDelay" max="32767" attributes="0"/>
+                                                      <Component id="jTextFieldWaitForDoneDelay" pref="130" max="32767" attributes="0"/>
+                                                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                                   </Group>
-                                                  <Group type="102" alignment="0" attributes="0">
+                                                  <Group type="102" attributes="0">
                                                       <Component id="jCheckBoxIgnoreWaitForDoneTimeouts" min="-2" max="-2" attributes="0"/>
-                                                      <EmptySpace min="0" pref="102" max="32767" attributes="0"/>
+                                                      <EmptySpace min="0" pref="103" max="32767" attributes="0"/>
                                                   </Group>
                                               </Group>
                                           </Group>
@@ -1399,7 +1398,6 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jCheckBoxPoll" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jTextFieldPollTime" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel21" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jTextFieldWaitForDoneDelay" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1478,7 +1476,7 @@
             <Component class="javax.swing.JCheckBox" name="jCheckBoxPoll">
               <Properties>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Poll"/>
+                <Property name="text" type="java.lang.String" value="Poll    Interval(ms):"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxPollActionPerformed"/>
@@ -1493,11 +1491,6 @@
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextFieldPollTimeActionPerformed"/>
               </Events>
-            </Component>
-            <Component class="javax.swing.JLabel" name="jLabel4">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Poll interval(ms):"/>
-              </Properties>
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBoxReadTimeout">
               <Properties>
