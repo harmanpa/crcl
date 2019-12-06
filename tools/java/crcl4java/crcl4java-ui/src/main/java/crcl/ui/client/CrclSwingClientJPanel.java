@@ -620,7 +620,7 @@ public class CrclSwingClientJPanel
 
         String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
         File programFile = File.createTempFile("logShowCurrentProgramLineInfo_program_" + getPort() + "_" + count, ".xml");
-        try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+        try ( PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
             psProgramFile.println(programString);
         }
 
@@ -637,7 +637,7 @@ public class CrclSwingClientJPanel
         if (null != status) {
             String statusString = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
             File statusFile = File.createTempFile("logShowCurrentProgramLineInfo_status_" + getPort() + "_" + count, ".xml");
-            try (PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
+            try ( PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
                 psStatusFile.println(statusString);
             }
             ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + ",status=\"" + statusFile + runDataListInfoString);
@@ -795,7 +795,7 @@ public class CrclSwingClientJPanel
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
-            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+            try ( PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
             AutomaticPropertyFileUtils.saveObjectProperties(f, o);
@@ -862,7 +862,7 @@ public class CrclSwingClientJPanel
             File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
-            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+            try ( PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
                 psRef.println(f.getCanonicalPath());
             }
             Map<String, Object> targetMap = new TreeMap<>();
@@ -926,9 +926,9 @@ public class CrclSwingClientJPanel
 
     public String getVersion() {
         try (
-                InputStream versionIs
+                 InputStream versionIs
                 = requireNonNull(ClassLoader.getSystemResourceAsStream("version"),
-                        "ClassLoader.getSystemResourceAsStream(\"version\")"); BufferedReader br = new BufferedReader(new InputStreamReader(versionIs))) {
+                        "ClassLoader.getSystemResourceAsStream(\"version\")");  BufferedReader br = new BufferedReader(new InputStreamReader(versionIs))) {
             StringBuilder sb = new StringBuilder();
             String line = null;
             while (null != (line = br.readLine())) {
@@ -1508,7 +1508,7 @@ public class CrclSwingClientJPanel
             showProgram(program, Collections.emptyList(), 0);
             internal.setProgram(program);
             this.saveRecentProgram(f);
-            this.jTabbedPaneLeftUpper.setSelectedComponent(this.jPanelProgram);
+            this.jTabbedPaneLeft.setSelectedComponent(this.jPanelProgram);
             programPlotterJPanelOverhead.setProgram(program);
             programPlotterJPanelSide.setProgram(program);
             programPlotterJPanelOverhead.repaint();
@@ -1523,7 +1523,7 @@ public class CrclSwingClientJPanel
     }
 
     private String getFirstLine(File f) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+        try ( BufferedReader br = new BufferedReader(new FileReader(f))) {
             return requireNonNull(br.readLine(), "br.readLine() : f=" + f);
         }
     }
@@ -2847,7 +2847,7 @@ public class CrclSwingClientJPanel
                 = new SimpleDateFormat("yyyy-MM-dd_hh_mm_ss_a_zzz_");
         String date_string = ft.format(dNow);
         File f = File.createTempFile(date_string, ".xml", fDir2);
-        try (FileWriter fw = new FileWriter(f)) {
+        try ( FileWriter fw = new FileWriter(f)) {
             fw.write(s);
         }
         menuOuter.readRecentCommandFiles();
@@ -2870,7 +2870,7 @@ public class CrclSwingClientJPanel
                 = new SimpleDateFormat("yyyy-MM-dd_hh_mm_ss_a_zzz_");
         String date_string = ft.format(dNow);
         File flink = File.createTempFile(name + "_" + date_string, ".txt", fDir);
-        try (FileWriter fw = new FileWriter(flink)) {
+        try ( FileWriter fw = new FileWriter(flink)) {
             fw.write(fprog.getCanonicalPath());
         }
     }
@@ -3037,7 +3037,7 @@ public class CrclSwingClientJPanel
 
     public static void saveJTable(File f, boolean append, JTable jtable) throws IOException {
         boolean fNotEmpty = f.exists() && f.length() > 0;
-        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             TableModel tm = jtable.getModel();
             if (!fNotEmpty || !append) {
                 List<String> colNameList = new ArrayList<>();
@@ -3115,7 +3115,7 @@ public class CrclSwingClientJPanel
         Map<String, Long> profileMap = internal.getCmdPerfMap();
         List<Map.Entry<String, Long>> entriesList = new ArrayList<>(profileMap.entrySet());
         Collections.sort(entriesList, Comparator.comparing((Map.Entry<String, Long> e) -> e.getValue()));
-        try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println("name,time");
             for (Map.Entry<String, Long> entry : entriesList) {
                 pw.println(entry.getKey() + "," + entry.getValue());
@@ -3248,7 +3248,7 @@ public class CrclSwingClientJPanel
 
             String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
             File programFile = File.createTempFile("showProgramLog_" + getPort() + "_" + count, ".xml");
-            try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+            try ( PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
                 psProgramFile.println(programString);
             }
             File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
@@ -3398,7 +3398,7 @@ public class CrclSwingClientJPanel
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTabbedPaneLeftUpper = new javax.swing.JTabbedPane();
+        jTabbedPaneLeft = new javax.swing.JTabbedPane();
         jPanelProgram = new javax.swing.JPanel();
         jScrollPaneProgram = new javax.swing.JScrollPane();
         jTableProgram = new javax.swing.JTable();
@@ -3503,7 +3503,7 @@ public class CrclSwingClientJPanel
         jCheckBoxIgnoreWaitForDoneTimeouts = new javax.swing.JCheckBox();
         jScrollPaneErrors = new javax.swing.JScrollPane();
         jTextAreaErrors = new javax.swing.JTextArea();
-        jTabbedPaneRightUpper = new javax.swing.JTabbedPane();
+        jTabbedPaneRight = new javax.swing.JTabbedPane();
         jPanelStatus = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jTextFieldStatCmdID = new javax.swing.JTextField();
@@ -3525,11 +3525,16 @@ public class CrclSwingClientJPanel
         jPanelOverheadProgramPlot1 = new javax.swing.JPanel();
         programPlotterJPanelSide = new crcl.ui.misc.ProgramPlotterJPanel();
 
-        jTabbedPaneLeftUpper.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jTabbedPaneLeftUpper.setName(""); // NOI18N
-        jTabbedPaneLeftUpper.addChangeListener(new javax.swing.event.ChangeListener() {
+        jTabbedPaneLeft.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jTabbedPaneLeft.setName(""); // NOI18N
+        jTabbedPaneLeft.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                jTabbedPaneLeftUpperStateChanged(evt);
+                jTabbedPaneLeftStateChanged(evt);
+            }
+        });
+        jTabbedPaneLeft.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                jTabbedPaneLeftComponentResized(evt);
             }
         });
 
@@ -3659,7 +3664,7 @@ public class CrclSwingClientJPanel
         jLabelExpectHoldingObject.setText("Expect Holding Object: FALSE");
         jLabelExpectHoldingObject.setOpaque(true);
 
-        jCheckBoxStepping.setText("Stepping");
+        jCheckBoxStepping.setText("Step");
         jCheckBoxStepping.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCheckBoxSteppingActionPerformed(evt);
@@ -3722,18 +3727,18 @@ public class CrclSwingClientJPanel
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel20)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextFieldDistToSelected, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(241, Short.MAX_VALUE))))
+                                .addComponent(jTextFieldDistToSelected, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(69, Short.MAX_VALUE))))
         );
         jPanelProgramLayout.setVerticalGroup(
             jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelProgramLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 267, Short.MAX_VALUE)
+                .addComponent(jScrollPaneProgram, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 204, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelProgramLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
@@ -3762,7 +3767,7 @@ public class CrclSwingClientJPanel
                 .addContainerGap())
         );
 
-        jTabbedPaneLeftUpper.addTab("Program", jPanelProgram);
+        jTabbedPaneLeft.addTab("Program", jPanelProgram);
 
         jPanelJogging.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jPanelJogging.setName("Jogging"); // NOI18N
@@ -4097,7 +4102,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonCloseToolChanger))
                             .addComponent(jLabel16)
                             .addComponent(jLabel17))))
-                .addContainerGap(332, Short.MAX_VALUE))
+                .addContainerGap(48, Short.MAX_VALUE))
         );
         jPanelJoggingLayout.setVerticalGroup(
             jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4153,10 +4158,10 @@ public class CrclSwingClientJPanel
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldJogInterval, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
-                .addContainerGap(274, Short.MAX_VALUE))
+                .addContainerGap(283, Short.MAX_VALUE))
         );
 
-        jTabbedPaneLeftUpper.addTab("Jog", jPanelJogging);
+        jTabbedPaneLeft.addTab("Jog", jPanelJogging);
 
         jPanelMoveTo.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jPanelMoveTo.setName("MoveTo"); // NOI18N
@@ -4297,7 +4302,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonMoveToCurrentPoint)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonMoveToDownPosition)))
-                .addContainerGap(473, Short.MAX_VALUE))
+                .addContainerGap(250, Short.MAX_VALUE))
         );
         jPanelMoveToLayout.setVerticalGroup(
             jPanelMoveToLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4320,11 +4325,11 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonAddGuard)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonRemoveGuard)))
-                .addContainerGap(191, Short.MAX_VALUE))
+                .addContainerGap(200, Short.MAX_VALUE))
         );
 
-        jTabbedPaneLeftUpper.addTab("MoveTo", jPanelMoveTo);
-        jTabbedPaneLeftUpper.addTab("Transform Setup", transformJPanel1);
+        jTabbedPaneLeft.addTab("MoveTo", jPanelMoveTo);
+        jTabbedPaneLeft.addTab("Transform Setup", transformJPanel1);
 
         jScrollPane7.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane7.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -4399,7 +4404,7 @@ public class CrclSwingClientJPanel
                         .addComponent(jButtonPlotStatus)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1)
-                        .addGap(0, 460, Short.MAX_VALUE)))
+                        .addGap(0, 192, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanelCommandStatusLogOuterLayout.setVerticalGroup(
@@ -4415,11 +4420,11 @@ public class CrclSwingClientJPanel
                     .addComponent(jButtonPlotStatus)
                     .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 563, Short.MAX_VALUE)
+                .addComponent(jScrollPane7, javax.swing.GroupLayout.DEFAULT_SIZE, 579, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        jTabbedPaneLeftUpper.addTab("Command Status Log", jPanelCommandStatusLogOuter);
+        jTabbedPaneLeft.addTab("Command Status Log", jPanelCommandStatusLogOuter);
 
         jPanelConnectionTab.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
@@ -4559,11 +4564,10 @@ public class CrclSwingClientJPanel
                                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jLabel21)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jTextFieldWaitForDoneDelay, javax.swing.GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
-                                                .addGap(0, 0, Short.MAX_VALUE))
+                                                .addComponent(jTextFieldWaitForDoneDelay))
                                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts)
-                                                .addGap(0, 103, Short.MAX_VALUE))))
+                                                .addGap(0, 0, Short.MAX_VALUE))))
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
                                         .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4572,7 +4576,7 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonInit)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonEnd)))
-                        .addGap(284, 284, 284))
+                        .addContainerGap(138, Short.MAX_VALUE))
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))))
@@ -4609,25 +4613,25 @@ public class CrclSwingClientJPanel
                 .addContainerGap(282, Short.MAX_VALUE))
         );
 
-        jTabbedPaneLeftUpper.addTab("Connection", jPanelConnectionTab);
+        jTabbedPaneLeft.addTab("Connection", jPanelConnectionTab);
 
         jTextAreaErrors.setColumns(20);
         jTextAreaErrors.setLineWrap(true);
         jTextAreaErrors.setRows(3);
         jTextAreaErrors.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextAreaErrorsMouseClicked(evt);
+            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 jTextAreaErrorsMousePressed(evt);
             }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 jTextAreaErrorsMouseReleased(evt);
             }
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTextAreaErrorsMouseClicked(evt);
-            }
         });
         jScrollPaneErrors.setViewportView(jTextAreaErrors);
 
-        jTabbedPaneLeftUpper.addTab("Errors", jScrollPaneErrors);
+        jTabbedPaneLeft.addTab("Errors", jScrollPaneErrors);
 
         jPanelStatus.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jPanelStatus.setName("Status"); // NOI18N
@@ -4787,7 +4791,7 @@ public class CrclSwingClientJPanel
                 .addContainerGap())
         );
 
-        jTabbedPaneRightUpper.addTab("Status", jPanelStatus);
+        jTabbedPaneRight.addTab("Status", jPanelStatus);
 
         jPanelProgramPlot.setName("ProgramPlot"); // NOI18N
 
@@ -4797,7 +4801,7 @@ public class CrclSwingClientJPanel
         programPlotterJPanelOverhead.setLayout(programPlotterJPanelOverheadLayout);
         programPlotterJPanelOverheadLayout.setHorizontalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 136, Short.MAX_VALUE)
+            .addGap(0, 143, Short.MAX_VALUE)
         );
         programPlotterJPanelOverheadLayout.setVerticalGroup(
             programPlotterJPanelOverheadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4872,7 +4876,7 @@ public class CrclSwingClientJPanel
                 .addContainerGap())
         );
 
-        jTabbedPaneRightUpper.addTab("Program Plot", jPanelProgramPlot);
+        jTabbedPaneRight.addTab("Program Plot", jPanelProgramPlot);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -4880,18 +4884,18 @@ public class CrclSwingClientJPanel
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPaneLeftUpper)
+                .addComponent(jTabbedPaneLeft)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPaneRightUpper)
-                .addGap(11, 11, 11))
+                .addComponent(jTabbedPaneRight, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPaneRightUpper)
-                    .addComponent(jTabbedPaneLeftUpper, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jTabbedPaneRight)
+                    .addComponent(jTabbedPaneLeft, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -5726,10 +5730,10 @@ public class CrclSwingClientJPanel
         }
     }//GEN-LAST:event_jTextFieldPollTimeActionPerformed
 
-    private void jTabbedPaneLeftUpperStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPaneLeftUpperStateChanged
+    private void jTabbedPaneLeftStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPaneLeftStateChanged
         jogWorldTransSpeedsSet = false;
         jogWorldRotSpeedsSet = false;
-    }//GEN-LAST:event_jTabbedPaneLeftUpperStateChanged
+    }//GEN-LAST:event_jTabbedPaneLeftStateChanged
 
     private void jTextAreaErrorsMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextAreaErrorsMousePressed
         if (evt.isPopupTrigger()) {
@@ -5964,6 +5968,53 @@ public class CrclSwingClientJPanel
     private void jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed
         internal.setIgnoreTimeouts(jCheckBoxIgnoreWaitForDoneTimeouts.isSelected());
     }//GEN-LAST:event_jCheckBoxIgnoreWaitForDoneTimeoutsActionPerformed
+
+    private void jTabbedPaneLeftComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jTabbedPaneLeftComponentResized
+        int maxwidth = 0;
+        int maxprefwidth = 0;
+        int maxminwidth = 0;
+        int maxmaxwidth = 0;
+        String maxwidthTitle = "";
+        String maxprefwidthTitle = "";
+        String maxminwidthTitle = "";
+        String maxmaxwidthTitle = "";
+        System.out.println("evt = " + evt);
+        System.out.println("getWidth() = " + getWidth());
+        for (int i = 0; i < jTabbedPaneLeft.getComponentCount(); i++) {
+            Component comp = jTabbedPaneLeft.getComponentAt(i);
+            if(null == comp) {
+                System.out.println("comp = " + comp);
+                System.out.println("i = " + i);
+                continue;
+            }
+            String titleI = jTabbedPaneLeft.getTitleAt(i);
+            if (comp.getWidth() > maxwidth) {
+                maxwidth = comp.getWidth();
+                maxwidthTitle = titleI;
+            }
+            if (comp.getPreferredSize().width > maxprefwidth) {
+                maxprefwidth = comp.getPreferredSize().width;
+                maxprefwidthTitle = titleI;
+            }
+            if (comp.getMinimumSize().width > maxprefwidth) {
+                maxminwidth = comp.getMinimumSize().width;
+                maxminwidthTitle = titleI;
+            }
+            if (comp.getMaximumSize().width > maxprefwidth) {
+                maxmaxwidth = comp.getMaximumSize().width;
+                maxmaxwidthTitle = titleI;
+            }
+        }
+        System.out.println("maxwidth = " + maxwidth);
+        System.out.println("maxprefwidth = " + maxprefwidth);
+        System.out.println("maxminwidth = " + maxminwidth);
+        System.out.println("maxmaxwidth = " + maxmaxwidth);
+        System.out.println("maxwidthTitle = " + maxwidthTitle);
+        System.out.println("maxprefwidthTitle = " + maxprefwidthTitle);
+        System.out.println("maxminwidthTitle = " + maxminwidthTitle);
+        System.out.println("maxmaxwidthTitle = " + maxmaxwidthTitle);
+
+    }//GEN-LAST:event_jTabbedPaneLeftComponentResized
 
     public void printPerfInfo(PrintStream ps, String prefix) {
         ps.print(internal.getPerfInfoString(prefix));
@@ -6219,8 +6270,8 @@ public class CrclSwingClientJPanel
     private javax.swing.JScrollPane jScrollPaneErrors;
     private javax.swing.JScrollPane jScrollPaneMoveToGuardTable;
     private javax.swing.JScrollPane jScrollPaneProgram;
-    private javax.swing.JTabbedPane jTabbedPaneLeftUpper;
-    private javax.swing.JTabbedPane jTabbedPaneRightUpper;
+    private javax.swing.JTabbedPane jTabbedPaneLeft;
+    private javax.swing.JTabbedPane jTabbedPaneRight;
     private javax.swing.JTable jTableCommandStatusLog;
     private javax.swing.JTable jTableJoints;
     private javax.swing.JTable jTableMoveToGuard;
