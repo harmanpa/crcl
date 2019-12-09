@@ -2151,7 +2151,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 return;
             }
             count++;
-            Thread.sleep(delayMillis);
+            if (delayMillis > 0) {
+                Thread.sleep(delayMillis);
+            }
         }
     }
 
