@@ -1057,7 +1057,7 @@ public class CrclSwingClientInner {
         }
         String str
                 = cs.programToPrettyString(programToSave, validateXmlSchema);
-        try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println(str);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1930,7 +1930,7 @@ public class CrclSwingClientInner {
                         .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
-        try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
             String headers = "time,relTime,cmdIdFromStatus,lastSentCmdId,State,cmdName,x,y,z,roll,pitch,yaw,"
                     + (havePos ? jointIds.stream().map((x) -> "Joint" + x + "Pos").collect(Collectors.joining(",")) : "")
                     + (haveVel ? "," + jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
@@ -2226,7 +2226,7 @@ public class CrclSwingClientInner {
             boolean headerAtStart,
             String headers[],
             int headerRepeat) throws IOException {
-        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             int i = 0;
             if (headerAtStart && null != headers && headers.length > 0) {
                 printer.printRecord((Object[]) headers);
@@ -3563,7 +3563,7 @@ public class CrclSwingClientInner {
     }
 
     public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
             printer.printRecord("time", "dist", "result", "id", "cmdString");
             for (ProgramRunData prd : list) {
                 if (null != prd) {
@@ -3660,11 +3660,13 @@ public class CrclSwingClientInner {
                 startLine = lastShowCurrentProgramLine;
             }
 
-            if (lastProgramIndex > startLine + 2 && startLine > 2) {
-                System.out.println("origStartLine = " + origStartLine);
-                System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
-                showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
-                throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
+            if (!interactive) {
+                if (lastProgramIndex > startLine + 2 && startLine > 2) {
+                    System.out.println("origStartLine = " + origStartLine);
+                    System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
+                    showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
+                    throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
+                }
             }
 
             if (prog != program) {
@@ -3804,9 +3806,11 @@ public class CrclSwingClientInner {
                 programName = prog.getName();
                 index = i + 1;
                 programIndex = index;
-                if (lastProgramIndex > index && index > 2) {
-                    showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + index);
-                    throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + index);
+                if (!interactive) {
+                    if (lastProgramIndex > index && index > 2) {
+                        showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + index);
+                        throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + index);
+                    }
                 }
                 lastProgramIndex = programIndex;
                 progName = prog.getName();
@@ -3916,7 +3920,7 @@ public class CrclSwingClientInner {
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
                 String s = statusToPrettyString();
                 System.err.println("status = " + s);
-                try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                try ( FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {
@@ -5346,21 +5350,23 @@ public class CrclSwingClientInner {
             throw new IllegalStateException("startRunProgramThread called when paused.");
         }
 
-        if (nextCheckedLastProgramIndex > startLine + 2 && startLine > 2) {
-            showErrorMessage("programIndex moving backwards: " + nextCheckedLastProgramIndex + ">" + startLine);
-            throw new IllegalStateException("programIndex moving backwards: " + nextCheckedLastProgramIndex + ">" + startLine);
-        }
+        if (!interactive) {
+            if (nextCheckedLastProgramIndex > startLine + 2 && startLine > 2) {
+                showErrorMessage("programIndex moving backwards: " + nextCheckedLastProgramIndex + ">" + startLine);
+                throw new IllegalStateException("programIndex moving backwards: " + nextCheckedLastProgramIndex + ">" + startLine);
+            }
 
-        if (startingLastProgramIndex > startLine + 2 && startLine >= 0 && null != nextCheckedLastProgramName && nextCheckedLastProgramName.equals(prog.getName())) {
-            showErrorMessage("programIndex moving backwards: " + startingLastProgramIndex + ">" + startLine + ": lastProgramName= " + nextCheckedLastProgramName);
-            throw new IllegalStateException("programIndex moving backwards: " + startingLastProgramIndex + ">" + startLine);
-        }
+            if (startingLastProgramIndex > startLine + 2 && startLine >= 0 && null != nextCheckedLastProgramName && nextCheckedLastProgramName.equals(prog.getName())) {
+                showErrorMessage("programIndex moving backwards: " + startingLastProgramIndex + ">" + startLine + ": lastProgramName= " + nextCheckedLastProgramName);
+                throw new IllegalStateException("programIndex moving backwards: " + startingLastProgramIndex + ">" + startLine);
+            }
 
-        if (lastProgramIndex > lastShowCurrentProgramLine + 2 && startLine == -2 && null != lastProgramName && lastProgramName.equals(prog.getName())) {
-            showErrorMessage("programIndex moving backwards: " + lastProgramName + ">" + startLine + ": lastProgramName= " + lastProgramName);
-            throw new IllegalStateException("programIndex moving backwards: " + lastProgramName + ">" + startLine);
-        }
+            if (lastProgramIndex > lastShowCurrentProgramLine + 2 && startLine == -2 && null != lastProgramName && lastProgramName.equals(prog.getName())) {
+                showErrorMessage("programIndex moving backwards: " + lastProgramName + ">" + startLine + ": lastProgramName= " + lastProgramName);
+                throw new IllegalStateException("programIndex moving backwards: " + lastProgramName + ">" + startLine);
+            }
 
+        }
         if (this.isBlockPrograms()) {
             printStartBlockingProgramInfo();
             throw new IllegalStateException("Block Programs");
@@ -5510,7 +5516,7 @@ public class CrclSwingClientInner {
     public void saveStatusAs(File f) {
         try {
             String s = statusToPrettyString();
-            try (FileWriter fw = new FileWriter(f)) {
+            try ( FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
         } catch (Exception ex) {

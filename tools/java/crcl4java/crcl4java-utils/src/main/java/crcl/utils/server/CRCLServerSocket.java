@@ -976,8 +976,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus2(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
-            CRCLStatusType statusToSend = state.filterSettings.filterStatus(suppliedStatus);
-            state.cmdId = statusToSend.getCommandStatus().getCommandID();
+            CRCLStatusType statusToSend;
+            synchronized (suppliedStatus) {
+                statusToSend = state.filterSettings.filterStatus(suppliedStatus);
+                state.cmdId = statusToSend.getCommandStatus().getCommandID();
+            }
             synchronized (source) {
                 source.writeStatus(statusToSend);
             }
@@ -1063,113 +1066,144 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             return;
         }
-        if (null == serverSideStatus.getSensorStatuses()) {
-            serverSideStatus.setSensorStatuses(new SensorStatusesType());
+        SensorStatusesType sensorStatuses;
+        final List<CountSensorStatusType> countSensorStatusList;
+        final List<OnOffSensorStatusType> onOffSensorStatusList;
+        final List<ScalarSensorStatusType> scalarSensorStatusList;
+        final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList;
+        synchronized (serverSideStatus) {
+            if (null == serverSideStatus.getSensorStatuses()) {
+                serverSideStatus.setSensorStatuses(new SensorStatusesType());
+            }
+            sensorStatuses = serverSideStatus.getSensorStatuses();
+            if (null != sensorStatuses) {
+                countSensorStatusList = new ArrayList<>(sensorStatuses.getCountSensorStatus());
+                onOffSensorStatusList = new ArrayList<>(sensorStatuses.getOnOffSensorStatus());
+                scalarSensorStatusList = new ArrayList<>(sensorStatuses.getScalarSensorStatus());
+                forceTorqueSensorStatusList = new ArrayList<>(sensorStatuses.getForceTorqueSensorStatus());
+            } else {
+                return;
+            }
         }
-        SensorStatusesType sensorStatuses = serverSideStatus.getSensorStatuses();
-        if (null != sensorStatuses) {
-            final List<CountSensorStatusType> countSensorStatusList = sensorStatuses.getCountSensorStatus();
-            final List<OnOffSensorStatusType> onOffSensorStatusList = sensorStatuses.getOnOffSensorStatus();
-            final List<ScalarSensorStatusType> scalarSensorStatusList = sensorStatuses.getScalarSensorStatus();
-            final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList = sensorStatuses.getForceTorqueSensorStatus();
-            if (null != onOffSensorStatusList) {
-                for (int i = 0; i < onOffSensorStatusList.size(); i++) {
-                    OnOffSensorStatusType onOffSensorStat = onOffSensorStatusList.get(i);
-                    if (onOffSensorStat.getSensorID() == null || onOffSensorStat.getSensorID().length() < 1) {
-                        onOffSensorStatusList.remove(i);
-                        break;
-                    }
+        List<SensorStatusType> newSensorStats = new ArrayList<>();
+        for (SensorServerInterface sensorServer : sensorServers.values()) {
+            SensorStatusType sensorStat = sensorServer.getCurrentSensorStatus();
+            newSensorStats.add(sensorStat);
+        }
+        boolean onOffStatusListModified = updateOnOffList(newSensorStats, onOffSensorStatusList);
+        boolean countStatusListModified = updateCountList(newSensorStats, countSensorStatusList);
+        boolean scalarStatusListModified = updateScalarList(newSensorStats, scalarSensorStatusList);
+        boolean forceTorqueStatusListModified = updateForceTorqueList(newSensorStats, forceTorqueSensorStatusList);
+        boolean modified = onOffStatusListModified || countStatusListModified || scalarStatusListModified || forceTorqueStatusListModified;
+        if (modified) {
+            synchronized (serverSideStatus) {
+                if (onOffStatusListModified) {
+                    sensorStatuses.getOnOffSensorStatus().clear();
+                    sensorStatuses.getOnOffSensorStatus().addAll(onOffSensorStatusList);
                 }
-            }
-            if (null != countSensorStatusList) {
-                for (int i = 0; i < countSensorStatusList.size(); i++) {
-                    CountSensorStatusType countSensorStat = countSensorStatusList.get(i);
-                    if (countSensorStat.getSensorID() == null || countSensorStat.getSensorID().length() < 1) {
-                        countSensorStatusList.remove(i);
-                        break;
-                    }
+                if (countStatusListModified) {
+                    sensorStatuses.getCountSensorStatus().clear();
+                    sensorStatuses.getCountSensorStatus().addAll(countSensorStatusList);
                 }
-            }
-            if (null != scalarSensorStatusList) {
-                for (int i = 0; i < scalarSensorStatusList.size(); i++) {
-                    ScalarSensorStatusType scalarSensorStat = scalarSensorStatusList.get(i);
-                    if (scalarSensorStat.getSensorID() == null || scalarSensorStat.getSensorID().length() < 1) {
-                        scalarSensorStatusList.remove(i);
-                        break;
-                    }
+                if (scalarStatusListModified) {
+                    sensorStatuses.getScalarSensorStatus().clear();
+                    sensorStatuses.getScalarSensorStatus().addAll(scalarSensorStatusList);
                 }
-            }
-            if (null != forceTorqueSensorStatusList) {
-                for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
-                    ForceTorqueSensorStatusType forceTorqueSensorStat = forceTorqueSensorStatusList.get(i);
-                    if (forceTorqueSensorStat.getSensorID() == null || forceTorqueSensorStat.getSensorID().length() < 1) {
-                        forceTorqueSensorStatusList.remove(i);
-                        break;
-                    }
-                }
-            }
-            for (SensorServerInterface sensorServer : sensorServers.values()) {
-                SensorStatusType sensorStat = sensorServer.getCurrentSensorStatus();
-                if (null != sensorStat) {
-
-                    if (null != sensorStat.getSensorID()) {
-                        if (null != onOffSensorStatusList) {
-                            for (int i = 0; i < onOffSensorStatusList.size(); i++) {
-                                OnOffSensorStatusType onOffSensorStat = onOffSensorStatusList.get(i);
-                                if (sensorStat.getSensorID().equals(onOffSensorStat.getSensorID())) {
-                                    onOffSensorStatusList.remove(i);
-                                    break;
-                                }
-                            }
-                        }
-                        if (null != countSensorStatusList) {
-                            for (int i = 0; i < countSensorStatusList.size(); i++) {
-                                CountSensorStatusType countSensorStat = countSensorStatusList.get(i);
-                                if (sensorStat.getSensorID().equals(countSensorStat.getSensorID())) {
-                                    countSensorStatusList.remove(i);
-                                    break;
-                                }
-                            }
-                        }
-                        if (null != scalarSensorStatusList) {
-                            for (int i = 0; i < scalarSensorStatusList.size(); i++) {
-                                ScalarSensorStatusType scalarSensorStat = scalarSensorStatusList.get(i);
-                                if (sensorStat.getSensorID().equals(scalarSensorStat.getSensorID())) {
-                                    scalarSensorStatusList.remove(i);
-                                    break;
-                                }
-                            }
-                        }
-                        if (null != forceTorqueSensorStatusList) {
-                            for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
-                                ForceTorqueSensorStatusType forceTorqueSensorStat = forceTorqueSensorStatusList.get(i);
-                                if (sensorStat.getSensorID().equals(forceTorqueSensorStat.getSensorID())) {
-                                    forceTorqueSensorStatusList.remove(i);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (sensorStat instanceof OnOffSensorStatusType) {
-                        OnOffSensorStatusType onOffSensorStat = (OnOffSensorStatusType) sensorStat;
-                        onOffSensorStatusList.add(onOffSensorStat);
-                    }
-                    if (sensorStat instanceof CountSensorStatusType) {
-                        CountSensorStatusType countSensorStat = (CountSensorStatusType) sensorStat;
-                        countSensorStatusList.add(countSensorStat);
-                    }
-                    if (sensorStat instanceof ScalarSensorStatusType) {
-                        ScalarSensorStatusType scalarSensorStat = (ScalarSensorStatusType) sensorStat;
-                        scalarSensorStatusList.add(scalarSensorStat);
-                    }
-                    if (sensorStat instanceof ForceTorqueSensorStatusType) {
-                        ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) sensorStat;
-                        forceTorqueSensorStatusList.add(forceTorqueSensorStat);
-                    }
+                if (forceTorqueStatusListModified) {
+                    sensorStatuses.getForceTorqueSensorStatus().clear();
+                    sensorStatuses.getForceTorqueSensorStatus().addAll(forceTorqueSensorStatusList);
                 }
             }
         }
         lastCheckSensorServersInternalTime = System.currentTimeMillis();
+    }
+
+    public boolean updateOnOffList(List<SensorStatusType> newSensorStats, final List<OnOffSensorStatusType> onOffSensorStatusList) {
+        boolean onOffStatusListModified = false;
+        for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
+            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            for (int i = 0; i < onOffSensorStatusList.size(); i++) {
+                OnOffSensorStatusType onOffSensorStat = onOffSensorStatusList.get(i);
+                if (sensorStat.getSensorID().equals(onOffSensorStat.getSensorID())) {
+                    onOffSensorStatusList.remove(i);
+                    onOffStatusListModified = true;
+                    break;
+                }
+            }
+            if (sensorStat instanceof OnOffSensorStatusType) {
+                OnOffSensorStatusType onOffSensorStat = (OnOffSensorStatusType) sensorStat;
+                onOffSensorStatusList.add(onOffSensorStat);
+                onOffStatusListModified = true;
+            }
+
+        }
+        return onOffStatusListModified;
+    }
+
+    public boolean updateCountList(List<SensorStatusType> newSensorStats, final List<CountSensorStatusType> countSensorStatusList) {
+        boolean countStatusListModified = false;
+        for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
+            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            for (int i = 0; i < countSensorStatusList.size(); i++) {
+                CountSensorStatusType countSensorStat = countSensorStatusList.get(i);
+                if (sensorStat.getSensorID().equals(countSensorStat.getSensorID())) {
+                    countSensorStatusList.remove(i);
+                    countStatusListModified = true;
+                    break;
+                }
+            }
+            if (sensorStat instanceof CountSensorStatusType) {
+                CountSensorStatusType countSensorStat = (CountSensorStatusType) sensorStat;
+                countSensorStatusList.add(countSensorStat);
+                countStatusListModified = true;
+            }
+
+        }
+        return countStatusListModified;
+    }
+
+    public boolean updateScalarList(List<SensorStatusType> newSensorStats, final List<ScalarSensorStatusType> scalarSensorStatusList) {
+        boolean scalarStatusListModified = false;
+        for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
+            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            for (int i = 0; i < scalarSensorStatusList.size(); i++) {
+                ScalarSensorStatusType scalarSensorStat = scalarSensorStatusList.get(i);
+                if (sensorStat.getSensorID().equals(scalarSensorStat.getSensorID())) {
+                    scalarSensorStatusList.remove(i);
+                    scalarStatusListModified = true;
+                    break;
+                }
+            }
+            if (sensorStat instanceof ScalarSensorStatusType) {
+                ScalarSensorStatusType scalarSensorStat = (ScalarSensorStatusType) sensorStat;
+                scalarSensorStatusList.add(scalarSensorStat);
+                scalarStatusListModified = true;
+            }
+
+        }
+        return scalarStatusListModified;
+    }
+
+    public boolean updateForceTorqueList(List<SensorStatusType> newSensorStats, final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList) {
+        boolean forceTorqueStatusListModified = false;
+        for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
+            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
+                ForceTorqueSensorStatusType forceTorqueSensorStat = forceTorqueSensorStatusList.get(i);
+                if (sensorStat.getSensorID().equals(forceTorqueSensorStat.getSensorID())) {
+                    forceTorqueSensorStatusList.remove(i);
+                    forceTorqueStatusListModified = true;
+                    break;
+                }
+            }
+            if (sensorStat instanceof ForceTorqueSensorStatusType) {
+                ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) sensorStat;
+                forceTorqueSensorStatusList.add(forceTorqueSensorStat);
+                forceTorqueStatusListModified = true;
+            }
+
+        }
+        return forceTorqueStatusListModified;
     }
 
     private CRCLCommandInstanceType createNewCommandInstance(CRCLCommandType newCRCLCommand, final CRCLCommandInstanceType instanceIn) {
@@ -2060,7 +2094,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return guard.getSensorID() + "." + guard.getSubField();
     }
 
+    public List<GuardHistoryElement> getGuardHistoryList() {
+        return guardHistory.getList();
+    }
+
+    private final GuardHistory guardHistory = new GuardHistory();
+
     private double getGuardValue(GuardType guard, Map<String, SensorStatusType> sensorStatMap) throws RuntimeException {
+
         double value;
         final String sensorID = guard.getSensorID();
         SensorStatusType stat = sensorStatMap.get(sensorID);
@@ -2072,7 +2113,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
             }
         }
-        guard.setLastCheckTime(stat.getLastReadTime());
+        final long time = stat.getLastReadTime();
+        guard.setLastCheckTime(time);
         if (null == guard.getCheckCount()) {
             guard.setCheckCount(1L);
         } else {
@@ -2117,7 +2159,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             value = 0;
         }
         guard.setLastCheckValue(value);
-        System.out.println("guard : value = " + value);
+        guardHistory.addElement(value, time);
         return value;
     }
 
@@ -2157,8 +2199,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private static final long MAX_GUARDS_CHECK_DELAY_MILLIS = 2000;
-    private static final long MIN_GUARDS_CHECK_DELAY_MILLIs = 10;
+    private static final long DEFAULT_GUARDS_CHECK_DELAY_MILLIS = 10;
 
     private Runnable createGuardsCheckerRunnable(final List<GuardType> guards,
             final STATE_TYPE guard_client_state,
@@ -2167,20 +2208,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
-        long delayMillis = MAX_GUARDS_CHECK_DELAY_MILLIS;
+        long delayMillis = DEFAULT_GUARDS_CHECK_DELAY_MILLIS;
         for (int i = 0; i < guards.size(); i++) {
             final GuardType guardI = guards.get(i);
             Long microsLong = guardI.getRecheckTimeMicroSeconds();
             if (null != microsLong) {
                 long micros = microsLong;
-                long millis = micros / 1000;
-                if (millis < delayMillis) {
-                    if (microsLong < MIN_GUARDS_CHECK_DELAY_MILLIs) {
-                        delayMillis = MIN_GUARDS_CHECK_DELAY_MILLIs;
-                    } else {
-                        delayMillis = millis;
-                    }
-                }
+                delayMillis = micros / 1000;
             }
             if (guardI.getLimitType() == GuardLimitEnumType.INCREASE_OVER_LIMIT
                     || guardI.getLimitType() == GuardLimitEnumType.DECREASE_BEYOND_LIMIT) {

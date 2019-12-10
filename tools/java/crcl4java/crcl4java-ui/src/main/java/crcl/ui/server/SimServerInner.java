@@ -533,6 +533,11 @@ public class SimServerInner {
     private volatile @Nullable
     CRCLServerSocket<SimServerClientState> crclServerSocket = null;
 
+    public CRCLServerSocket<SimServerClientState> getCrclServerSocket() {
+        return crclServerSocket;
+    }
+
+    
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
     final private CRCLStatusType status = new CRCLStatusType();

@@ -594,6 +594,10 @@
                   </Group>
                   <EmptySpace pref="23" max="32767" attributes="0"/>
               </Group>
+              <Group type="102" alignment="0" attributes="0">
+                  <Component id="jButtonPlotGaurdValues" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+              </Group>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -628,7 +632,9 @@
                       <Component id="jTextFieldEndEffector" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel8" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="71" max="32767" attributes="0"/>
+                  <EmptySpace pref="28" max="32767" attributes="0"/>
+                  <Component id="jButtonPlotGaurdValues" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -691,6 +697,14 @@
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextFieldCurrentCommandType">
+        </Component>
+        <Component class="javax.swing.JButton" name="jButtonPlotGaurdValues">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Plot Guard Values"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonPlotGaurdValuesActionPerformed"/>
+          </Events>
         </Component>
       </SubComponents>
     </Container>

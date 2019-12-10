@@ -43,6 +43,7 @@ import crcl.utils.PropertiesUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
+import crcl.utils.server.GuardHistoryElement;
 import java.awt.Container;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -450,6 +451,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jTextFieldEndEffector = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         jTextFieldCurrentCommandType = new javax.swing.JTextField();
+        jButtonPlotGaurdValues = new javax.swing.JButton();
 
         jMenu1.setText("File");
 
@@ -837,6 +839,13 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
         jLabel9.setText("Current Commant Type:");
 
+        jButtonPlotGaurdValues.setText("Plot Guard Values");
+        jButtonPlotGaurdValues.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPlotGaurdValuesActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -859,6 +868,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                     .addComponent(jTextFieldCycleCount, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextFieldConnectedClients, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(23, Short.MAX_VALUE))
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addComponent(jButtonPlotGaurdValues)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jPanel5Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextFieldConnectedClients, jTextFieldCurWaypoint, jTextFieldCurrentCommandType, jTextFieldCycleCount, jTextFieldEndEffector, jTextFieldNumWaypoints});
@@ -889,7 +901,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTextFieldEndEffector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addComponent(jButtonPlotGaurdValues)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -1621,6 +1635,19 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.viewCommandLogFullAction();
     }//GEN-LAST:event_jMenuItemViewCommandLogFullActionPerformed
 
+    private void jButtonPlotGaurdValuesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotGaurdValuesActionPerformed
+        try {
+            diagapplet.plotter.plotterJFrame  plotJFrame
+                    = new diagapplet.plotter.plotterJFrame();
+            final List<GuardHistoryElement> guardHistoryList = inner.getCrclServerSocket().getGuardHistoryList();
+            plotJFrame.LoadObjectsList("", guardHistoryList);
+            plotJFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            plotJFrame.setVisible(true);
+        } catch (Exception ex) {
+            Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonPlotGaurdValuesActionPerformed
+
     public boolean isDebugMoveDoneSelected() {
         return this.jCheckBoxMenuItemDebugMoveDone.isSelected();
     }
@@ -1655,6 +1682,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonPlotGaurdValues;
     private javax.swing.JButton jButtonReset;
     private javax.swing.JButton jButtonRestartServer;
     private javax.swing.JCheckBox jCheckBoxForceFail;
