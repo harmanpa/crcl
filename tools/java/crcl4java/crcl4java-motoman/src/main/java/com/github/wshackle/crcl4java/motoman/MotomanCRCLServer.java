@@ -131,6 +131,10 @@ public class MotomanCRCLServer implements AutoCloseable {
     private final MotoPlusConnection mpc;
     private final MotoPlusConnection triggerStopMpc;
 
+    public CRCLServerSocket<MotomanClientState> getCrclServerSocket() {
+        return crclServerSocket;
+    }
+
     public MotomanCRCLServer(CRCLServerSocket<MotomanClientState> svrSocket, MotoPlusConnection mpConnection) throws IOException {
         this.crclServerSocket = svrSocket;
         this.mpc = mpConnection;

@@ -106,12 +106,12 @@ public class CrclExiSocket extends CRCLSocket {
     private static final Logger LOGGER = Logger.getLogger(CrclExiSocket.class.getName());
 
     @Override
-    public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
+    public CRCLCommandInstanceType readCommand(boolean validate,int soTimeout) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         if (this.isEXIEnabled()) {
             if (!this.isPrefixEXISizeEnabled()) {
                 try {
-                    final CRCLCommandInstanceType c = this.readCommandFromEXIStream(getBufferedInputStream());
+                    final CRCLCommandInstanceType c = this.readCommandFromEXIStream(getBufferedInputStream(soTimeout));
                     final CRCLCommandType cc = c.getCRCLCommand();
                     final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
                     LOGGER.log(loglevel, "readCommand() returning {0} ID={1} called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
@@ -122,7 +122,7 @@ public class CrclExiSocket extends CRCLSocket {
             } else {
                 try {
                     byte sizeba[] = new byte[4];
-                    DataInputStream dis = new DataInputStream(getBufferedInputStream());
+                    DataInputStream dis = new DataInputStream(getBufferedInputStream(soTimeout));
                     dis.readFully(sizeba);
                     ByteBuffer bb = ByteBuffer.wrap(sizeba);
                     int size = bb.getInt();
@@ -566,14 +566,14 @@ public class CrclExiSocket extends CRCLSocket {
     }
 
     @Override
-    public CRCLStatusType readStatus(boolean validate)
+    public CRCLStatusType readStatus(boolean validate, int soTimeout)
             throws CRCLException {
         if (this.isEXIEnabled()) {
             if (this.isPrefixEXISizeEnabled()) {
                 try {
                     int size = 0;
                     byte sizeba[] = new byte[4];
-                    DataInputStream dis = new DataInputStream(getBufferedInputStream());
+                    DataInputStream dis = new DataInputStream(getBufferedInputStream(soTimeout));
                     dis.readFully(sizeba);
                     ByteBuffer bb = ByteBuffer.wrap(sizeba);
                     size = bb.getInt();
@@ -585,7 +585,7 @@ public class CrclExiSocket extends CRCLSocket {
                 }
             } else {
                 try {
-                    return this.readStatusFromEXIStream(getBufferedInputStream());
+                    return this.readStatusFromEXIStream(getBufferedInputStream(soTimeout));
                 } catch (EXIException | JAXBException | IOException ex) {
                     throw new CRCLException(ex);
                 }

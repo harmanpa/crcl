@@ -29,10 +29,12 @@ import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
+import crcl.ui.server.SimServerJPanel;
 import crcl.utils.CRCLSocket;
 import crcl.utils.PropertiesUtils;
 import crcl.utils.XFuture;
 import crcl.utils.server.CRCLServerSocket;
+import crcl.utils.server.GuardHistoryElement;
 import java.awt.Container;
 import java.io.File;
 import java.io.FileReader;
@@ -107,6 +109,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         jTextFieldConnectTimeout = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jTextFieldReadTimeout = new javax.swing.JTextField();
+        jButtonPlotGaurdValues = new javax.swing.JButton();
 
         jPanelTelnet.setBorder(javax.swing.BorderFactory.createTitledBorder("Telnet"));
 
@@ -116,7 +119,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             jPanelTelnetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelTelnetLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 614, Short.MAX_VALUE)
+                .addComponent(telnetJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 650, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanelTelnetLayout.setVerticalGroup(
@@ -218,6 +221,13 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             }
         });
 
+        jButtonPlotGaurdValues.setText("Plot Guard Values");
+        jButtonPlotGaurdValues.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPlotGaurdValuesActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanelMotoPlusCrclCommunicationsLayout = new javax.swing.GroupLayout(jPanelMotoPlusCrclCommunications);
         jPanelMotoPlusCrclCommunications.setLayout(jPanelMotoPlusCrclCommunicationsLayout);
         jPanelMotoPlusCrclCommunicationsLayout.setHorizontalGroup(
@@ -229,14 +239,16 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                         .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
                                 .addComponent(jCheckBox1)
-                                .addGap(39, 39, 39)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel5)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldConnectTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGap(43, 43, 43)
                                 .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonPlotGaurdValues)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createSequentialGroup()
                                 .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -300,9 +312,10 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                     .addComponent(jLabel5)
                     .addComponent(jTextFieldConnectTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6)
-                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonPlotGaurdValues, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 344, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelMotoPlusCrclCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCheckBoxDebug)
@@ -676,6 +689,19 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         setReadTimeoutMillis(Integer.parseInt(jTextFieldReadTimeout.getText().trim()));
     }//GEN-LAST:event_jTextFieldReadTimeoutActionPerformed
 
+    private void jButtonPlotGaurdValuesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotGaurdValuesActionPerformed
+       try {
+            diagapplet.plotter.plotterJFrame  plotJFrame
+                    = new diagapplet.plotter.plotterJFrame();
+            final List<GuardHistoryElement> guardHistoryList = motomanCrclServer.getCrclServerSocket().getGuardHistoryList();
+            plotJFrame.LoadObjectsList("", guardHistoryList);
+            plotJFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            plotJFrame.setVisible(true);
+        } catch (Exception ex) {
+            Logger.getLogger(SimServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButtonPlotGaurdValuesActionPerformed
+
     public String getPerformanceInfo() {
         if (null != motomanCrclServer) {
             return motomanCrclServer.getPerformanceInfo();
@@ -838,6 +864,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonMpcStatusOnly;
+    private javax.swing.JButton jButtonPlotGaurdValues;
     private javax.swing.JButton jButtonSendRequest;
     private javax.swing.JButton jButtonStatus;
     private javax.swing.JButton jButtonUpdatePerfInfo;
