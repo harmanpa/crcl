@@ -56,7 +56,7 @@ public class GuardHistory {
     
     private volatile long startTime = -1;
     
-    public synchronized  void addElement(double value, long time) {
+    public synchronized  void addElement(long time, double value, double x, double y, double z) {
         while(list.size() > maxLength) {
             list.remove(0);
         }
@@ -64,8 +64,16 @@ public class GuardHistory {
             startTime = time;
         }
         double dtime = (double) (1e-3*(time-startTime));
-        list.add(new GuardHistoryElement(value,dtime ));
+        list.add(new GuardHistoryElement(dtime,value,x,y,z ));
     }
+
+    @Override
+    public String toString() {
+        GuardHistoryElement lastElement = list.isEmpty() ? null: list.get(list.size()-1);
+        return "GuardHistory{" + "maxLength=" + maxLength + ", list.size()="+list.size()+", lastElement=" + lastElement + ", startTime=" + startTime + '}';
+    }
+    
+    
     
     
 }

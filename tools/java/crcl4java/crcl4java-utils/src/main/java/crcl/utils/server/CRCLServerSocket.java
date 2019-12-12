@@ -950,9 +950,87 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return false;
     }
 
+    private volatile double x;
+    private volatile double y;
+    private volatile double z;
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+        if (null != serverSideStatus) {
+            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+            if (null != poseStatus) {
+                PoseType pose = poseStatus.getPose();
+                if (null != pose) {
+                    PointType point = pose.getPoint();
+                    if (null != point) {
+                        point.setX(x);
+                    }
+                }
+            }
+        }
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+        if (null != serverSideStatus) {
+            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+            if (null != poseStatus) {
+                PoseType pose = poseStatus.getPose();
+                if (null != pose) {
+                    PointType point = pose.getPoint();
+                    if (null != point) {
+                        point.setY(y);
+                    }
+                }
+            }
+        }
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    public void setZ(double z) {
+        this.z = z;
+        if (null != serverSideStatus) {
+            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+            if (null != poseStatus) {
+                PoseType pose = poseStatus.getPose();
+                if (null != pose) {
+                    PointType point = pose.getPoint();
+                    if (null != point) {
+                        point.setZ(z);
+                    }
+                }
+            }
+        }
+    }
+
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
+            if (null != suppliedStatus) {
+                PoseStatusType poseStatus = suppliedStatus.getPoseStatus();
+                if (null != poseStatus) {
+                    PoseType pose = poseStatus.getPose();
+                    if (null != pose) {
+                        PointType point = pose.getPoint();
+                        if (null != point) {
+                            x = point.getX();
+                            y = point.getY();
+                            z = point.getZ();
+                        }
+                    }
+                }
+            }
             final ConfigureStatusReportType configureStatusReport = state.filterSettings.getConfigureStatusReport();
             if (configureStatusReport == null
                     || !configureStatusReport.isReportSensorsStatus()
@@ -2064,6 +2142,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private volatile long guardTriggerStartTime = -1;
+    private static final int EXTRA_GUARD_SAMPLES = 10;
 
     private void triggerGuard(double value, STATE_TYPE guard_client_state, CRCLCommandInstanceType commandInstance, GuardType guard) throws Exception {
         if (null == serverSideStatus) {
@@ -2088,6 +2167,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
         }
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
+        long delayMillis = DEFAULT_GUARDS_CHECK_DELAY_MILLIS;
+        Long microsLong = guard.getRecheckTimeMicroSeconds();
+        if (null != microsLong) {
+            long micros = microsLong;
+            delayMillis = micros / 1000;
+        }
+        for (int i = 0; i < EXTRA_GUARD_SAMPLES; i++) {
+            double extraValue = getGuardValue(guard, null);
+            System.out.println("extraValue = " + extraValue + ",i = " + i + ", guardHistory = " + guardHistory);
+            if (delayMillis > 0) {
+                Thread.sleep(delayMillis);
+            }
+        }
     }
 
     private static String guardMapId(GuardType guard) {
@@ -2104,11 +2196,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
         double value;
         final String sensorID = guard.getSensorID();
-        SensorStatusType stat = sensorStatMap.get(sensorID);
+        SensorStatusType stat = sensorStatMap != null ? sensorStatMap.get(sensorID) : null;
         if (null == stat) {
             stat = getNewSensorStatus(sensorID);
             if (null != stat) {
-                sensorStatMap.put(sensorID, stat);
+                if (sensorStatMap != null) {
+                    sensorStatMap.put(sensorID, stat);
+                }
             } else {
                 throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
             }
@@ -2159,7 +2253,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             value = 0;
         }
         guard.setLastCheckValue(value);
-        guardHistory.addElement(value, time);
+        guardHistory.addElement(time, value, x, y, z);
         return value;
     }
 

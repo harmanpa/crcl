@@ -28,20 +28,46 @@ package crcl.utils.server;
  */
 public class GuardHistoryElement {
 
-    public final double value;
     public final double time;
+    public final double value;
+    public final double x;
+    public final double y;
+    public final double z;
 
-    public GuardHistoryElement(double value, double time) {
-        this.value = value;
+    public GuardHistoryElement(double time, double value, double x, double y, double z) {
         this.time = time;
-    }
-
-    public double getValue() {
-        return value;
+        this.value = value;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public double getTime() {
         return time;
     }
 
+    public double getValue() {
+        return value;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
+    @Override
+    public String toString() {
+        return "GuardHistoryElement{" + "time=" + time + ", value=" + value + ", x=" + x + ", y=" + y + ", z=" + z + '}';
+    }
+
+    
+
+    
 }
