@@ -135,12 +135,36 @@ public class MotomanCRCLServer implements AutoCloseable {
         return crclServerSocket;
     }
 
+    private final  AtomicInteger updatePositionOnlyCount = new AtomicInteger();
+    private final  AtomicLong updatePositionOnlyTotalTime = new AtomicLong();
+    private volatile  long maxUpdatePositionOnlyTime = 0;
+    
+    public void updatePositionOnly() {
+        try {
+            long t0 = System.currentTimeMillis();
+            int upoCount = updatePositionOnlyCount.incrementAndGet();
+            MP_CART_POS_RSP_DATA cartData = triggerStopMpc.getCartPos(0);
+            crclServerSocket.setX(cartData.x());
+            crclServerSocket.setY(cartData.y());
+            crclServerSocket.setZ(cartData.z());
+            long t1 = System.currentTimeMillis();
+            long diff = t1-t0;
+            long totalUpoTime = updatePositionOnlyTotalTime.addAndGet(diff);
+            if(diff > maxUpdatePositionOnlyTime) {
+                maxUpdatePositionOnlyTime = diff;
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(MotomanCRCLServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public MotomanCRCLServer(CRCLServerSocket<MotomanClientState> svrSocket, MotoPlusConnection mpConnection) throws IOException {
         this.crclServerSocket = svrSocket;
         this.mpc = mpConnection;
         triggerStopMpc = new MotoPlusConnection(new Socket(mpc.getHost(), mpc.getPort()));
         this.crclServerSocket.addListener(crclSocketEventListener);
         this.crclServerSocket.setThreadNamePrefix("MotomanCrclServer");
+         this.crclServerSocket.setGuardCheckUpdatePositionOnlyRunnable(this::updatePositionOnly);
         this.startTime = System.currentTimeMillis();
         statusCount.set(0);
         statSkipCount.set(0);
@@ -199,7 +223,10 @@ public class MotomanCRCLServer implements AutoCloseable {
                 + "\n workingStatCount=" + workingStatCount.get()
                 + "\n targetRecieveSuccessCount=" + targetRecieveSuccessCount.get()
                 + "\n getMaxReadMpcStatusTimeDiffArray=" + Arrays.toString(mpc.getMaxReadMpcStatusTimeDiffArray())
-                + "\n getMaxReadMpcStatusTimeDiffArrayAfterMove=" + Arrays.toString(mpc.getMaxReadMpcStatusTimeDiffArrayAfterMove());
+                + "\n getMaxReadMpcStatusTimeDiffArrayAfterMove=" + Arrays.toString(mpc.getMaxReadMpcStatusTimeDiffArrayAfterMove())
+                + "\n updatePositionOnlyTotalTime=" + updatePositionOnlyTotalTime.get()
+                + "\n updatePositionOnlyCount=" + updatePositionOnlyCount.get()
+                + "\n maxUpdatePositionOnlyTime=" + maxUpdatePositionOnlyTime;
         return perfString;
     }
 

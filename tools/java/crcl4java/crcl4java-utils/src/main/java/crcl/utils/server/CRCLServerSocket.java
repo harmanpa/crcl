@@ -155,6 +155,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private volatile @MonotonicNonNull
     CRCLStatusType serverSideStatus;
 
+    private volatile Runnable guardCheckUpdatePositionOnlyRunnable = null;
+
+    public Runnable getGuardCheckUpdatePositionOnlyRunnable() {
+        return guardCheckUpdatePositionOnlyRunnable;
+    }
+
+    public void setGuardCheckUpdatePositionOnlyRunnable(Runnable guardCheckUpdatePositionOnlyRunnable) {
+        this.guardCheckUpdatePositionOnlyRunnable = guardCheckUpdatePositionOnlyRunnable;
+    }
+
     private final Map<String, SensorServerInterface> sensorServers = new HashMap<>();
 
     public void addSensorServer(String sensorId, SensorServerInterface sensorServer) {
@@ -2174,8 +2184,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             delayMillis = micros / 1000;
         }
         for (int i = 0; i < EXTRA_GUARD_SAMPLES; i++) {
+
             double extraValue = getGuardValue(guard, null);
-            System.out.println("extraValue = " + extraValue + ",i = " + i + ", guardHistory = " + guardHistory);
+//            System.out.println("extraValue = " + extraValue + ",i = " + i + ", guardHistory = " + guardHistory);
             if (delayMillis > 0) {
                 Thread.sleep(delayMillis);
             }
@@ -2253,6 +2264,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             value = 0;
         }
         guard.setLastCheckValue(value);
+        if (null != guardCheckUpdatePositionOnlyRunnable) {
+            guardCheckUpdatePositionOnlyRunnable.run();
+        }
         guardHistory.addElement(time, value, x, y, z);
         return value;
     }
