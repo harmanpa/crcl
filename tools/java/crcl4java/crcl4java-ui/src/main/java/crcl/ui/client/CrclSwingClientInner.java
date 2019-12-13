@@ -1330,8 +1330,16 @@ public class CrclSwingClientInner {
             return "null";
         }
     }
+    private volatile CRCLCommandType lastScheduledCommand = null;
+
+    public CRCLCommandType getLastScheduledCommand() {
+        return lastScheduledCommand;
+    }
+    
+    
 
     public XFuture<Boolean> scheduleIncAndSendCommand(CRCLCommandType cmd) {
+        lastScheduledCommand = cmd;
         if (Thread.currentThread() == crclSocketActionThread) {
             boolean ret = incAndSendCommand(cmd);
             return XFuture.completedFuture(ret);
