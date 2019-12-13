@@ -226,7 +226,26 @@ public class MotomanCRCLServer implements AutoCloseable {
                 + "\n getMaxReadMpcStatusTimeDiffArrayAfterMove=" + Arrays.toString(mpc.getMaxReadMpcStatusTimeDiffArrayAfterMove())
                 + "\n updatePositionOnlyTotalTime=" + updatePositionOnlyTotalTime.get()
                 + "\n updatePositionOnlyCount=" + updatePositionOnlyCount.get()
-                + "\n maxUpdatePositionOnlyTime=" + maxUpdatePositionOnlyTime;
+                + "\n maxUpdatePositionOnlyTime=" + maxUpdatePositionOnlyTime
+                + "\n stopCount=" + stopCount.get()
+                + "\n maxStopTime=" + maxStopTime
+                + "\n maxStopTime0=" + maxStopTime0
+                + "\n maxStopTime1=" + maxStopTime1
+                + "\n maxStopTime2=" + maxStopTime2
+                + "\n totalStopTime=" + totalStopTime.get()
+                + "\n totalStopTime0=" + totalStopTime0.get()
+                + "\n totalStopTime1=" + totalStopTime1.get()
+                + "\n totalStopTime2=" + totalStopTime2.get()
+                + "\n triggeredStopCount=" + triggeredStopCount.get()
+                + "\n maxTriggeredStopTime=" + maxTriggeredStopTime
+                + "\n maxTriggeredStopTime0=" + maxTriggeredStopTime0
+                + "\n maxTriggeredStopTime1=" + maxTriggeredStopTime1
+                + "\n maxTriggeredStopTime2=" + maxTriggeredStopTime2
+                + "\n totalTriggeredStopTime=" + totalTriggeredStopTime.get()
+                + "\n totalTriggeredStopTime0=" + totalTriggeredStopTime0.get()
+                + "\n totalTriggeredStopTime1=" + totalTriggeredStopTime1.get()
+                + "\n totalTriggeredStopTime2=" + totalTriggeredStopTime2.get()
+                ;
         return perfString;
     }
 
@@ -466,7 +485,7 @@ public class MotomanCRCLServer implements AutoCloseable {
                 }
                 final MP_PULSE_POS_RSP_DATA pulseData = mpcStatus.getPulseData();
                 final MP_CART_POS_RSP_DATA pos = mpcStatus.getPos();
-                if (localOrigCommandState == CRCL_WORKING ) {
+                if (localOrigCommandState == CRCL_WORKING) {
                     workingStatCount.incrementAndGet();
                     if (lastSentId != prevLastRecvdTargetId && lastCommand == lastIncrementTargetCommand) {
                         idDiffCount.incrementAndGet();
@@ -593,9 +612,9 @@ public class MotomanCRCLServer implements AutoCloseable {
             } else {
                 throw new RuntimeException("lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand + ", pulseData=" + pulseData);
             }
-        } else  if (lastCommand instanceof MoveToType) {
-            if(null == lastMoveToCoordTarget) {
-                throw new NullPointerException("lastMoveToCoordTarget: "+"lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand);
+        } else if (lastCommand instanceof MoveToType) {
+            if (null == lastMoveToCoordTarget) {
+                throw new NullPointerException("lastMoveToCoordTarget: " + "lastSendId=" + lastSentId + ",recvId=" + recvId + ",lastCommand=" + lastCommand);
             }
             final COORD_POS dst = lastMoveToCoordTarget.getDst();
             double diff = transDiffCartData(pos, dst);
@@ -636,26 +655,117 @@ public class MotomanCRCLServer implements AutoCloseable {
 
     private volatile boolean initialized = false;
 
+    private volatile long maxStopTime = 0;
+    private volatile long maxStopTime0 = 0;
+    private volatile long maxStopTime1 = 0;
+    private volatile long maxStopTime2 = 0;
+    private final AtomicLong totalStopTime = new AtomicLong();
+    private final AtomicLong totalStopTime0 = new AtomicLong();
+    private final AtomicLong totalStopTime1 = new AtomicLong();
+    private final AtomicLong totalStopTime2 = new AtomicLong();
+    private final AtomicInteger stopCount = new AtomicInteger();
+
     private void stopMotion() throws IOException {
-        MotCtrlReturnEnum stopRet = mpc.mpMotStop(0);
+        int sc = stopCount.incrementAndGet();
+        Starter starter = mpc.getStarter();
+        long t0 = System.nanoTime();
+        starter.startMpMotStop(0);
+        long t1 = System.nanoTime();
+        starter.startMpMotTargetClear(0xf, 0);
+        Returner returner = mpc.getReturner();
+
+        MotCtrlReturnEnum stopRet = returner.getMpMotStandardReturn();// mpc.mpMotStop(0);
+        long t2 = System.nanoTime();
         if (debug) {
             System.out.println("stopRet = " + stopRet);
         }
-        MotCtrlReturnEnum clearRet = mpc.mpMotTargetClear(0xf, 0);
+        MotCtrlReturnEnum clearRet = returner.getMpMotStandardReturn();//mpc.mpMotTargetClear(0xf, 0);
+        long t3 = System.nanoTime();
         if (debug) {
             System.out.println("clearRet = " + clearRet);
         }
+        long diff0 = t1 - t0;
+        long diff1 = t2 - t1;
+        long diff2 = t3 - t2;
+        long diff = t3 - t0;
+        if (diff0 > maxStopTime0) {
+            maxStopTime0 = diff0;
+        }
+        if (diff1 > maxStopTime1) {
+            maxStopTime1 = diff1;
+        }
+        if (diff2 > maxStopTime2) {
+            maxStopTime2 = diff2;
+        }
+        if (diff > maxStopTime2) {
+            maxStopTime2 = diff;
+        }
+        long totalT = totalStopTime.addAndGet(diff);
+        long totalT0 = totalStopTime0.addAndGet(diff0);
+        long totalT1 = totalStopTime1.addAndGet(diff1);
+        long totalT2 = totalStopTime2.addAndGet(diff2);
+
     }
 
+    private volatile long maxTriggeredStopTime = 0;
+    private volatile long maxTriggeredStopTime0 = 0;
+    private volatile long maxTriggeredStopTime1 = 0;
+    private volatile long maxTriggeredStopTime2 = 0;
+    private final AtomicLong totalTriggeredStopTime = new AtomicLong();
+    private final AtomicLong totalTriggeredStopTime0 = new AtomicLong();
+    private final AtomicLong totalTriggeredStopTime1 = new AtomicLong();
+    private final AtomicLong totalTriggeredStopTime2 = new AtomicLong();
+    private final AtomicInteger triggeredStopCount = new AtomicInteger();
+
     private void triggeredStopMotion() throws IOException {
-        MotCtrlReturnEnum stopRet = triggerStopMpc.mpMotStop(0);
+        int tsc = triggeredStopCount.incrementAndGet();
+        Starter starter = triggerStopMpc.getStarter();
+        long t0 = System.nanoTime();
+        starter.startMpMotStop(0);
+        long t1 = System.nanoTime();
+        starter.startMpMotTargetClear(0xf, 0);
+        Returner returner = triggerStopMpc.getReturner();
+
+        MotCtrlReturnEnum stopRet = returner.getMpMotStandardReturn();// mpc.mpMotStop(0);
+        long t2 = System.nanoTime();
         if (debug) {
             System.out.println("stopRet = " + stopRet);
         }
-        MotCtrlReturnEnum clearRet = triggerStopMpc.mpMotTargetClear(0xf, 0);
+        MotCtrlReturnEnum clearRet = returner.getMpMotStandardReturn();//mpc.mpMotTargetClear(0xf, 0);
+        long t3 = System.nanoTime();
         if (debug) {
             System.out.println("clearRet = " + clearRet);
         }
+//        MotCtrlReturnEnum stopRet = triggerStopMpc.mpMotStop(0);
+//        if (debug) {
+//            System.out.println("stopRet = " + stopRet);
+//        }
+//        MotCtrlReturnEnum clearRet = triggerStopMpc.mpMotTargetClear(0xf, 0);
+//        if (debug) {
+//            System.out.println("clearRet = " + clearRet);
+//        }
+
+        long diff0 = t1 - t0;
+        long diff1 = t2 - t1;
+        long diff2 = t3 - t2;
+        long diff = t3 - t0;
+        if (diff0 > maxTriggeredStopTime0) {
+            maxTriggeredStopTime0 = diff0;
+        }
+        if (diff1 > maxTriggeredStopTime1) {
+            maxTriggeredStopTime1 = diff1;
+        }
+        if (diff2 > maxTriggeredStopTime2) {
+            maxTriggeredStopTime2 = diff2;
+        }
+        if (diff > maxTriggeredStopTime2) {
+            maxTriggeredStopTime2 = diff;
+        }
+        long totalT = totalTriggeredStopTime.addAndGet(diff);
+        long totalT0 = totalTriggeredStopTime0.addAndGet(diff0);
+        long totalT1 = totalTriggeredStopTime1.addAndGet(diff1);
+        long totalT2 = totalTriggeredStopTime2.addAndGet(diff2);
+
     }
 
     private double maxVelocity = 100.0;
@@ -754,8 +864,8 @@ public class MotomanCRCLServer implements AutoCloseable {
     private final AtomicInteger moveToSetCoordCount = new AtomicInteger();
     private final AtomicInteger moveToSetGetPosCount = new AtomicInteger();
 
-    private volatile  MiddleCommandType lastIncrementTargetCommand = null;
-    
+    private volatile MiddleCommandType lastIncrementTargetCommand = null;
+
     private void moveTo(MoveToType cmd) throws IOException, MotoPlusConnection.MotoPlusConnectionException, PmException {
         boolean isStraight = cmd.isMoveStraight();
         final int newTargetId = mpc.incrementAndGetLastSentTargetId();
@@ -1245,7 +1355,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             }
         }
         System.out.println("Starting MotomanCrclServer on port " + crclPort + " after connecting to Motoman robot " + motomanHost + " on port " + motomanPort);
-        try (MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
+        try ( MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort, MOTOMAN_STATE_GENERATOR),
                 new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {
             motomanCrclServer.crclServerSocket.runServer();
