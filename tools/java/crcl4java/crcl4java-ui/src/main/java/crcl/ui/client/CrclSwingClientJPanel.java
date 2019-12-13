@@ -2630,19 +2630,22 @@ public class CrclSwingClientJPanel
                         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
                         final CommandStatusType commandStatus = requireNonNull(status.getCommandStatus(), "status.getCommandStatus()");
                         final CommandStateEnumType localCommandState = commandStatus.getCommandState();
-                        if (localCommandState != CommandStateEnumType.CRCL_DONE
-                                && (jCheckBoxWaitForPrevJogMoveDone.isSelected() || !(internal.getLastCommandSent() instanceof MoveToType))) {
-                            if (null == internal.getLastCommandSent() && null == internal.getLastScheduledCommand()) {
-                                throw new RuntimeException("commandStatus.getCommandState()=" + localCommandState + ", internal.getLastCommandSent()=" + internal.getLastCommandSent() + ", internal.getLastScheduledCommand()=" + internal.getLastScheduledCommand());
+                        final CRCLCommandType localLastCommandSent = internal.getLastCommandSent();
+                        if (!(localLastCommandSent instanceof StopMotionType)) {
+                            if (localCommandState != CommandStateEnumType.CRCL_DONE
+                                    && (!jCheckBoxWaitForPrevJogMoveDone.isSelected() || !(localLastCommandSent instanceof MoveToType))) {
+                                if (null == localLastCommandSent && null == internal.getLastScheduledCommand()) {
+                                    throw new RuntimeException("commandStatus.getCommandState()=" + localCommandState + ", internal.getLastCommandSent()=" + localLastCommandSent + ", internal.getLastScheduledCommand()=" + internal.getLastScheduledCommand());
+                                }
+                                String reasonString = "Jog Timer ActionListener waiting for DONE commandStatus.getCommandState()=" + localCommandState + ", internal.getLastCommandSent()=" + localLastCommandSent + ", internal.getLastScheduledCommand()=" + internal.getLastScheduledCommand() + "\n";
+                                if (CrclSwingClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
+                                        || CrclSwingClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
+                                    System.err.println(reasonString);
+                                }
+                                returnReasonStringBuilder.append(reasonString);
+                                System.out.println("reasonString = " + reasonString);
+                                return;
                             }
-                            String reasonString = "Jog Timer ActionListener waiting for DONE commandStatus.getCommandState()=" + localCommandState + ", internal.getLastCommandSent()=" + internal.getLastCommandSent() + ", internal.getLastScheduledCommand()=" + internal.getLastScheduledCommand() + "\n";
-                            if (CrclSwingClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
-                                    || CrclSwingClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
-                                System.err.println(reasonString);
-                            }
-                            returnReasonStringBuilder.append(reasonString);
-                            System.out.println("reasonString = " + reasonString);
-                            return;
                         }
                         if (actionCount < 2 && !internal.isInitSent()) {
                             InitCanonType initCmd = new InitCanonType();
@@ -2689,17 +2692,17 @@ public class CrclSwingClientJPanel
                         if (commandStatus.getCommandID() < internal.getCmdId()) {
                             if (jogStopFlag
                                     || actionCount > 10
-                                    || !(internal.getLastCommandSent() instanceof StopMotionType)) {
+                                    || !(localLastCommandSent instanceof StopMotionType)) {
                                 if (CrclSwingClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
                                         || CrclSwingClientJPanel.this.menuOuter.isDebugSendCommandSelected()) {
                                     System.err.println("Jog Timer ActionListener internal.getStatus().getCommandStatus().getCommandID() < internal.getCmdId() ");
                                     System.err.println("internal.getCmdId() = " + internal.getCmdId());
                                     System.err.println("commandStatus.getCommandID() = " + commandStatus.getCommandID());
-                                    System.err.println("internal.getLastCommandSent() = " + internal.getLastCommandSent());
+                                    System.err.println("internal.getLastCommandSent() = " + localLastCommandSent);
                                     System.err.println("internal.getLastCommandSentStackTrace() = " + Arrays.toString(internal.getLastCommandSentStackTrace()));
                                     System.err.println("internal.getPrevLastCommandSent() = " + internal.getPrevLastCommandSent());
                                 }
-                                String reasonString = "commandStatus.getCommandID() < internal.getCmdId() : jogStopFlag=" + jogStopFlag + ", actionCount=" + actionCount + ",  internal.getLastCommandSent()=" + internal.getLastCommandSent() + "\n";
+                                String reasonString = "commandStatus.getCommandID() < internal.getCmdId() : jogStopFlag=" + jogStopFlag + ", actionCount=" + actionCount + ",  internal.getLastCommandSent()=" + localLastCommandSent + "\n";
                                 returnReasonStringBuilder.append(reasonString);
                                 System.out.println("reasonString = " + reasonString);
                                 return;
