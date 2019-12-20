@@ -45,7 +45,7 @@ to a USB stick.
 
 From C:\Users\Public\Documents\YaskawaMotomanDocumentation\MotoPlus_SDK_For_Visual_Studio
 read 169286-1CD.pdf
-(aka "MOTOPLUS SDK FOR VISUAL STUDIO USER’S MANUAL")
+(aka "MOTOPLUS SDK FOR VISUAL STUDIO USER'S MANUAL")
 
 Insert the USB stick in the back of Motoman pendant.
 Reboot into maintenance mode by holding main menu during bootup and choosing special mode when offered.

@@ -234,8 +234,8 @@ public class CrclSwingClientInner {
     }
 
     private final PendantClientOuter outer;
-    private static final double JOG_INCREMENT_DEFAULT = 3.0;
-    private double jogIncrement = JOG_INCREMENT_DEFAULT;
+    private static final double JOINT_JOG_INCREMENT_DEFAULT = 3.0;
+    private double jointJogIncrement = JOINT_JOG_INCREMENT_DEFAULT;
     private volatile @Nullable
     CRCLProgramType program = null;
 
@@ -296,7 +296,7 @@ public class CrclSwingClientInner {
     final private Queue<AnnotatedPose> poseQueue = new ConcurrentLinkedQueue<>();
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
-    private double jointTol = jogIncrement * 5.0;
+    private double jointTol = jointJogIncrement * 5.0;
     private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
 
@@ -4068,7 +4068,7 @@ public class CrclSwingClientInner {
     public Map<String, String> getDefaultTestPropertiesMap() {
         Map<String, String> map = new HashMap<>();
         map.put("jointTol", Double.toString(jointTol));
-        map.put("jointPosIncrement", Double.toString(jogIncrement));
+        map.put("jointPosIncrement", Double.toString(jointJogIncrement));
         map.put("jointMoveSpeed", "");
         map.put("jointMoveAccel", "");
         map.put("xyzAxisIncrement", Double.toString(this.getXyzJogIncrement()));
@@ -4209,7 +4209,7 @@ public class CrclSwingClientInner {
                     = Optional.ofNullable(testProperies)
                             .map(m -> m.get("jointPosIncrement"))
                             .map(Double::parseDouble)
-                            .orElse(jogIncrement);
+                            .orElse(jointJogIncrement);
             Double testJointMoveSpeed
                     = Optional.ofNullable(testProperies)
                             .map(m -> m.get("jointMoveSpeed"))
@@ -5422,16 +5422,16 @@ public class CrclSwingClientInner {
         return commandId.get();
     }
 
-    public double getJogIncrement() {
-        return jogIncrement;
+    public double getJointJogIncrement() {
+        return jointJogIncrement;
     }
 
-    public void setJogIncrement(double jogIncrement) {
-        this.jogIncrement = jogIncrement;
+    public void setJointJogIncrement(double jointJogIncrement) {
+        this.jointJogIncrement = jointJogIncrement;
     }
 
     public void resetPrefs() {
-        jogIncrement = JOG_INCREMENT_DEFAULT;
+        jointJogIncrement = JOINT_JOG_INCREMENT_DEFAULT;
         xyzJogIncrement = XYZ_JOG_INCREMENT_DEFAULT;
         jogJointSpeed = JOG_JOINT_SPEED_DEFAULT;
         jogTransSpeed = JOG_TRANS_SPEED_DEFAULT;

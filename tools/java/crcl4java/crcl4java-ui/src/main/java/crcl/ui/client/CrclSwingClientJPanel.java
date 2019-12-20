@@ -1337,21 +1337,21 @@ public class CrclSwingClientJPanel
     private void enableJoggingControls() {
         this.jComboBoxJointAxis.setToolTipText(null);
         this.jComboBoxXYZRPY.setToolTipText(null);
+        jLabelJointJogMinus.setToolTipText(null);
         jLabelJogMinus.setToolTipText(null);
-        jLabelJogMinus1.setToolTipText(null);
+        jLabelJointJogPlus.setToolTipText(null);
         jLabelJogPlus.setToolTipText(null);
-        jLabelJogPlus1.setToolTipText(null);
 
         this.jComboBoxJointAxis.setEnabled(true);
         this.jComboBoxXYZRPY.setEnabled(true);
+        jLabelJointJogMinus.setEnabled(true);
+        jLabelJointJogMinus.setBackground(Color.white);
         jLabelJogMinus.setEnabled(true);
         jLabelJogMinus.setBackground(Color.white);
-        jLabelJogMinus1.setEnabled(true);
-        jLabelJogMinus1.setBackground(Color.white);
+        jLabelJointJogPlus.setEnabled(true);
+        jLabelJointJogPlus.setBackground(Color.white);
         jLabelJogPlus.setEnabled(true);
         jLabelJogPlus.setBackground(Color.white);
-        jLabelJogPlus1.setEnabled(true);
-        jLabelJogPlus1.setBackground(Color.white);
     }
 
     public void setDebugInterrupts(boolean debugInterrupts) {
@@ -1371,14 +1371,14 @@ public class CrclSwingClientJPanel
     public void showNotJogReady() {
         this.jComboBoxJointAxis.setEnabled(false);
         this.jComboBoxXYZRPY.setEnabled(false);
+        jLabelJointJogMinus.setEnabled(false);
+        jLabelJointJogMinus.setBackground(Color.gray);
         jLabelJogMinus.setEnabled(false);
         jLabelJogMinus.setBackground(Color.gray);
-        jLabelJogMinus1.setEnabled(false);
-        jLabelJogMinus1.setBackground(Color.gray);
+        jLabelJointJogPlus.setEnabled(false);
+        jLabelJointJogPlus.setBackground(Color.gray);
         jLabelJogPlus.setEnabled(false);
         jLabelJogPlus.setBackground(Color.gray);
-        jLabelJogPlus1.setEnabled(false);
-        jLabelJogPlus1.setBackground(Color.gray);
     }
 
     CrclSwingClientInner getInternal() {
@@ -1386,7 +1386,7 @@ public class CrclSwingClientJPanel
     }
 
     public void updateUIFromInternal() {
-        this.jTextFieldJointJogIncrement.setText(Double.toString(internal.getJogIncrement()));
+        this.jTextFieldJointJogIncrement.setText(Double.toString(internal.getJointJogIncrement()));
         this.jTextFieldXYZJogIncrement.setText(Double.toString(internal.getXyzJogIncrement()));
         this.jTextFieldJointJogSpeed.setText(Double.toString(internal.getJogJointSpeed()));
         this.jTextFieldTransSpeed.setText(Double.toString(internal.getJogTransSpeed()));
@@ -1803,10 +1803,10 @@ public class CrclSwingClientJPanel
         } else {
             this.jComboBoxJointAxis.setToolTipText("Not Polling?");
             this.jComboBoxXYZRPY.setToolTipText("Not Polling?");
+            jLabelJointJogMinus.setToolTipText("Not Polling?");
             jLabelJogMinus.setToolTipText("Not Polling?");
-            jLabelJogMinus1.setToolTipText("Not Polling?");
+            jLabelJointJogPlus.setToolTipText("Not Polling?");
             jLabelJogPlus.setToolTipText("Not Polling?");
-            jLabelJogPlus1.setToolTipText("Not Polling?");
         }
     }
 
@@ -2469,7 +2469,7 @@ public class CrclSwingClientJPanel
             showMessage("Can not send command when not connected.");
             return;
         }
-        internal.setJogIncrement(Double.parseDouble(this.jTextFieldJointJogIncrement.getText()));
+        internal.setJointJogIncrement(Double.parseDouble(this.jTextFieldJointJogIncrement.getText()));
 //        this.setJointControlModes(JointControlModeEnumType.POSITION);
         final int index = this.jComboBoxJointAxis.getSelectedIndex() + 1;
         if (null != jog_timer) {
@@ -2849,26 +2849,26 @@ public class CrclSwingClientJPanel
             showNotJogReady();
             return;
         }
+        this.jLabelJointJogMinus.setBackground(Color.WHITE);
+        this.jLabelJointJogMinus.setForeground(Color.BLACK);
+        this.jPanelJointJogMinus.setBackground(Color.WHITE);
+        this.jLabelJointJogMinus.repaint();
+        this.jPanelJointJogMinus.repaint();
         this.jLabelJogMinus.setBackground(Color.WHITE);
         this.jLabelJogMinus.setForeground(Color.BLACK);
         this.jPanelJogMinus.setBackground(Color.WHITE);
         this.jLabelJogMinus.repaint();
         this.jPanelJogMinus.repaint();
-        this.jLabelJogMinus1.setBackground(Color.WHITE);
-        this.jLabelJogMinus1.setForeground(Color.BLACK);
-        this.jPanelJogMinus1.setBackground(Color.WHITE);
-        this.jLabelJogMinus1.repaint();
-        this.jPanelJogMinus1.repaint();
+        this.jLabelJointJogPlus.setBackground(Color.WHITE);
+        this.jLabelJointJogPlus.setForeground(Color.BLACK);
+        this.jPanelJointJogPlus.setBackground(Color.WHITE);
+        this.jLabelJointJogPlus.repaint();
+        this.jPanelJointJogPlus.repaint();
         this.jLabelJogPlus.setBackground(Color.WHITE);
         this.jLabelJogPlus.setForeground(Color.BLACK);
         this.jPanelJogPlus.setBackground(Color.WHITE);
         this.jLabelJogPlus.repaint();
         this.jPanelJogPlus.repaint();
-        this.jLabelJogPlus1.setBackground(Color.WHITE);
-        this.jLabelJogPlus1.setForeground(Color.BLACK);
-        this.jPanelJogPlus1.setBackground(Color.WHITE);
-        this.jLabelJogPlus1.repaint();
-        this.jPanelJogPlus1.repaint();
     }
 
     public @Nullable
@@ -3482,15 +3482,15 @@ public class CrclSwingClientJPanel
         jTextFieldDistToSelected = new javax.swing.JTextField();
         jPanelJogging = new javax.swing.JPanel();
         jComboBoxJointAxis = new javax.swing.JComboBox<>();
-        jPanelJogMinus = new javax.swing.JPanel();
-        jLabelJogMinus = new javax.swing.JLabel();
+        jPanelJointJogMinus = new javax.swing.JPanel();
+        jLabelJointJogMinus = new javax.swing.JLabel();
+        jPanelJointJogPlus = new javax.swing.JPanel();
+        jLabelJointJogPlus = new javax.swing.JLabel();
+        jComboBoxXYZRPY = new javax.swing.JComboBox<>();
         jPanelJogPlus = new javax.swing.JPanel();
         jLabelJogPlus = new javax.swing.JLabel();
-        jComboBoxXYZRPY = new javax.swing.JComboBox<>();
-        jPanelJogPlus1 = new javax.swing.JPanel();
-        jLabelJogPlus1 = new javax.swing.JLabel();
-        jPanelJogMinus1 = new javax.swing.JPanel();
-        jLabelJogMinus1 = new javax.swing.JLabel();
+        jPanelJogMinus = new javax.swing.JPanel();
+        jLabelJogMinus = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -3832,45 +3832,78 @@ public class CrclSwingClientJPanel
         jComboBoxJointAxis.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Joint 1 (S)", "Joint 2 (L)", "Joint 3 (U)", "Joint 4 (R)", "Joint 5 (B)", "Joint 6 (T)", "Joint 7 (E)", "Joint 8 " }));
         jComboBoxJointAxis.setEnabled(false);
 
-        jPanelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
-        jPanelJogMinus.setBorder(new javax.swing.border.MatteBorder(null));
-        jPanelJogMinus.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jPanelJogMinusMousePressed(evt);
-            }
-        });
+        jPanelJointJogMinus.setBackground(new java.awt.Color(255, 255, 255));
+        jPanelJointJogMinus.setBorder(new javax.swing.border.MatteBorder(null));
 
-        jLabelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
-        jLabelJogMinus.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
-        jLabelJogMinus.setText("Jog -");
-        jLabelJogMinus.addMouseListener(new java.awt.event.MouseAdapter() {
+        jLabelJointJogMinus.setBackground(new java.awt.Color(255, 255, 255));
+        jLabelJointJogMinus.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
+        jLabelJointJogMinus.setText("Joint Jog -");
+        jLabelJointJogMinus.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                jLabelJogMinusMouseExited(evt);
+                jLabelJointJogMinusMouseExited(evt);
             }
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                jLabelJogMinusMousePressed(evt);
+                jLabelJointJogMinusMousePressed(evt);
             }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                jLabelJogMinusMouseReleased(evt);
+                jLabelJointJogMinusMouseReleased(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanelJogMinusLayout = new javax.swing.GroupLayout(jPanelJogMinus);
-        jPanelJogMinus.setLayout(jPanelJogMinusLayout);
-        jPanelJogMinusLayout.setHorizontalGroup(
-            jPanelJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogMinusLayout.createSequentialGroup()
+        javax.swing.GroupLayout jPanelJointJogMinusLayout = new javax.swing.GroupLayout(jPanelJointJogMinus);
+        jPanelJointJogMinus.setLayout(jPanelJointJogMinusLayout);
+        jPanelJointJogMinusLayout.setHorizontalGroup(
+            jPanelJointJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJointJogMinusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabelJogMinus)
+                .addComponent(jLabelJointJogMinus)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanelJogMinusLayout.setVerticalGroup(
-            jPanelJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogMinusLayout.createSequentialGroup()
+        jPanelJointJogMinusLayout.setVerticalGroup(
+            jPanelJointJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJointJogMinusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabelJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabelJointJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        jPanelJointJogPlus.setBackground(new java.awt.Color(255, 255, 255));
+        jPanelJointJogPlus.setBorder(new javax.swing.border.MatteBorder(null));
+
+        jLabelJointJogPlus.setBackground(new java.awt.Color(255, 255, 255));
+        jLabelJointJogPlus.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
+        jLabelJointJogPlus.setText("Joint Jog +");
+        jLabelJointJogPlus.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jLabelJointJogPlusMouseExited(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jLabelJointJogPlusMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                jLabelJointJogPlusMouseReleased(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanelJointJogPlusLayout = new javax.swing.GroupLayout(jPanelJointJogPlus);
+        jPanelJointJogPlus.setLayout(jPanelJointJogPlusLayout);
+        jPanelJointJogPlusLayout.setHorizontalGroup(
+            jPanelJointJogPlusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJointJogPlusLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabelJointJogPlus)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanelJointJogPlusLayout.setVerticalGroup(
+            jPanelJointJogPlusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJointJogPlusLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabelJointJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jComboBoxXYZRPY.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "X", "Y", "Z", "Roll", "Pitch", "Yaw", " " }));
+        jComboBoxXYZRPY.setEnabled(false);
 
         jPanelJogPlus.setBackground(new java.awt.Color(255, 255, 255));
         jPanelJogPlus.setBorder(new javax.swing.border.MatteBorder(null));
@@ -3907,81 +3940,38 @@ public class CrclSwingClientJPanel
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jComboBoxXYZRPY.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "X", "Y", "Z", "Roll", "Pitch", "Yaw", " " }));
-        jComboBoxXYZRPY.setEnabled(false);
+        jPanelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
+        jPanelJogMinus.setBorder(new javax.swing.border.MatteBorder(null));
 
-        jPanelJogPlus1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanelJogPlus1.setBorder(new javax.swing.border.MatteBorder(null));
-
-        jLabelJogPlus1.setBackground(new java.awt.Color(255, 255, 255));
-        jLabelJogPlus1.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
-        jLabelJogPlus1.setText("Jog +");
-        jLabelJogPlus1.addMouseListener(new java.awt.event.MouseAdapter() {
+        jLabelJogMinus.setBackground(new java.awt.Color(255, 255, 255));
+        jLabelJogMinus.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
+        jLabelJogMinus.setText("Jog -");
+        jLabelJogMinus.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                jLabelJogPlus1MouseExited(evt);
+                jLabelJogMinusMouseExited(evt);
             }
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                jLabelJogPlus1MousePressed(evt);
+                jLabelJogMinusMousePressed(evt);
             }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                jLabelJogPlus1MouseReleased(evt);
+                jLabelJogMinusMouseReleased(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanelJogPlus1Layout = new javax.swing.GroupLayout(jPanelJogPlus1);
-        jPanelJogPlus1.setLayout(jPanelJogPlus1Layout);
-        jPanelJogPlus1Layout.setHorizontalGroup(
-            jPanelJogPlus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogPlus1Layout.createSequentialGroup()
+        javax.swing.GroupLayout jPanelJogMinusLayout = new javax.swing.GroupLayout(jPanelJogMinus);
+        jPanelJogMinus.setLayout(jPanelJogMinusLayout);
+        jPanelJogMinusLayout.setHorizontalGroup(
+            jPanelJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJogMinusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabelJogPlus1)
+                .addComponent(jLabelJogMinus)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        jPanelJogPlus1Layout.setVerticalGroup(
-            jPanelJogPlus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogPlus1Layout.createSequentialGroup()
+        jPanelJogMinusLayout.setVerticalGroup(
+            jPanelJogMinusLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelJogMinusLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabelJogPlus1, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanelJogMinus1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanelJogMinus1.setBorder(new javax.swing.border.MatteBorder(null));
-        jPanelJogMinus1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jPanelJogMinus1MousePressed(evt);
-            }
-        });
-
-        jLabelJogMinus1.setBackground(new java.awt.Color(255, 255, 255));
-        jLabelJogMinus1.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
-        jLabelJogMinus1.setText("Jog -");
-        jLabelJogMinus1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                jLabelJogMinus1MouseExited(evt);
-            }
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                jLabelJogMinus1MousePressed(evt);
-            }
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                jLabelJogMinus1MouseReleased(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanelJogMinus1Layout = new javax.swing.GroupLayout(jPanelJogMinus1);
-        jPanelJogMinus1.setLayout(jPanelJogMinus1Layout);
-        jPanelJogMinus1Layout.setHorizontalGroup(
-            jPanelJogMinus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogMinus1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelJogMinus1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanelJogMinus1Layout.setVerticalGroup(
-            jPanelJogMinus1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelJogMinus1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabelJogMinus1, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabelJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -4113,25 +4103,24 @@ public class CrclSwingClientJPanel
                             .addGroup(jPanelJoggingLayout.createSequentialGroup()
                                 .addComponent(jComboBoxJointAxis, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanelJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPanelJointJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanelJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jPanelJointJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanelJoggingLayout.createSequentialGroup()
                                 .addComponent(jComboBoxXYZRPY, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanelJogMinus1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPanelJogMinus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanelJogPlus1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jPanelJogPlus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonOpenGripper)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelJoggingLayout.createSequentialGroup()
                                 .addComponent(jButtonRecordPoint)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabelHoldingObject))
-                            .addGroup(jPanelJoggingLayout.createSequentialGroup()
-                                .addComponent(jButtonOpenGripper)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonCloseGripper))))
+                            .addComponent(jButtonCloseGripper)))
                     .addGroup(jPanelJoggingLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4172,18 +4161,18 @@ public class CrclSwingClientJPanel
                 .addContainerGap()
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jPanelJogMinus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanelJointJogMinus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jComboBoxJointAxis)
-                        .addComponent(jPanelJogPlus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jPanelJointJogPlus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButtonRecordPoint)
                         .addComponent(jLabelHoldingObject)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jPanelJogMinus1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanelJogMinus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jComboBoxXYZRPY)
-                        .addComponent(jPanelJogPlus1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jPanelJogPlus, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanelJoggingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButtonOpenGripper)
                         .addComponent(jButtonCloseGripper)))
@@ -4971,7 +4960,8 @@ public class CrclSwingClientJPanel
     public XFutureVoid abortProgram() {
         pauseTime = System.currentTimeMillis();
         stopPollTimer();
-        return internal.abort();
+        return internal.abort()
+                .thenRun(() -> javax.swing.SwingUtilities.invokeLater(this::enableRunButtons));
     }
 
     private void jButtonProgramAbortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramAbortActionPerformed
@@ -5107,11 +5097,13 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonProgramRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonProgramRunActionPerformed
+        disableRunButtons();
         if (internal.isPaused()) {
             resumeButtonAction();
         }
         internal.setLastProgramIndex(-1);
-        runCurrentProgramAsync(jCheckBoxStepping.isSelected(), true);
+        runCurrentProgramAsync(jCheckBoxStepping.isSelected(), true)
+                .thenRun(() -> javax.swing.SwingUtilities.invokeLater(this::enableRunButtons));
     }//GEN-LAST:event_jButtonProgramRunActionPerformed
 
     public StackTraceElement @Nullable [] getRunProgramReturnFalseTrace() {
@@ -5206,8 +5198,8 @@ public class CrclSwingClientJPanel
             internal.setPoll_ms(new_poll_ms);
             internal.setWaitForDoneDelay(Long.parseLong(jTextFieldWaitForDoneDelay.getText().trim()));
             setStepMode(stepMode);
-            this.jButtonProgramResume.setEnabled(internal.isPaused());
-            this.jButtonProgramPause.setEnabled(internal.isRunningProgram());
+            this.jButtonProgramResume.setEnabled(false);
+            this.jButtonProgramPause.setEnabled(true);
             jogWorldTransSpeedsSet = false;
             jogWorldRotSpeedsSet = false;
         } catch (Exception exception) {
@@ -5286,12 +5278,32 @@ public class CrclSwingClientJPanel
 //        }
     }//GEN-LAST:event_jButtonPlotProgramItemActionPerformed
 
+    private void enableRunButtons() {
+        jButtonProgramRun.setEnabled(true);
+        jButtonRunProgFromCurrentLine.setEnabled(true);
+        jButtonStepFwd.setEnabled(true);
+        jButtonStepBack.setEnabled(true);
+        this.jButtonProgramResume.setEnabled(false);
+        this.jButtonProgramPause.setEnabled(false);
+    }
+
     private void jButtonRunProgFromCurrentLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunProgFromCurrentLineActionPerformed
+        disableRunButtons();
         if (internal.isPaused()) {
             resumeButtonAction();
         }
-        continueCurrentProgram(jCheckBoxStepping.isSelected(), true);
+        continueCurrentProgram(jCheckBoxStepping.isSelected(), true)
+                .thenRun(() -> javax.swing.SwingUtilities.invokeLater(this::enableRunButtons));
     }//GEN-LAST:event_jButtonRunProgFromCurrentLineActionPerformed
+
+    public void disableRunButtons() {
+        jButtonProgramRun.setEnabled(false);
+        jButtonRunProgFromCurrentLine.setEnabled(false);
+        jButtonStepFwd.setEnabled(false);
+        jButtonStepBack.setEnabled(false);
+        this.jButtonProgramResume.setEnabled(false);
+        this.jButtonProgramPause.setEnabled(true);
+    }
 
     public boolean isPaused() {
         return internal.isPaused();
@@ -5399,21 +5411,7 @@ public class CrclSwingClientJPanel
                 this.internal.runStartMillis = System.currentTimeMillis();
             }
 
-//            final CountDownLatch latch = new CountDownLatch(1);
-//            XFuture<Boolean> newProgramFutureInternal = 
-//                    XFuture.runAsync("continueCurrentProgram.step1", () -> {
-//                try {
-//                    latch.await();
-//                    this.internal.closeTestProgramThread();
-//                    this.internal.setStepMode(false);
-//                    if (internal.isPaused()) {
-//                        internal.unpause();
-//                    }
-//                    internal.resendInit();
-//                } catch (Exception ex) {
-//                    Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            })
+
             this.internal.closeTestProgramThread();
             setStepMode(stepMode);
             if (internal.isPaused()) {
@@ -5421,11 +5419,8 @@ public class CrclSwingClientJPanel
             } else {
                 System.out.println("internal.isPaused() = " + internal.isPaused());
             }
-//            try {
-//                internal.resendInit();
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-//            }
+
+            
             XFuture<Boolean> newProgramFutureInternal
                     = internal.startRunProgramThread(this.getCurrentProgramLine(), interactive);
             XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
@@ -5458,13 +5453,16 @@ public class CrclSwingClientJPanel
     }
 
     private void jButtonStepBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepBackActionPerformed
+        disableRunButtons();
         setStepMode(true);
         internal.abort();
         int l = this.getCurrentProgramLine();
         if (l > 0) {
             l--;
         }
-        internal.startRunProgramThread(l, true);
+        disableRunButtons();
+        internal.startRunProgramThread(l, true)
+                .thenRun(() -> javax.swing.SwingUtilities.invokeLater(this::enableRunButtons));
     }//GEN-LAST:event_jButtonStepBackActionPerformed
 
     private void jButtonStepFwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStepFwdActionPerformed
@@ -5477,59 +5475,67 @@ public class CrclSwingClientJPanel
         if (!wasRunning) {
             final int currentProgramLine = this.getCurrentProgramLine();
             if (currentProgramLine >= 0 && currentProgramLine < internal.getProgram().getMiddleCommand().size()) {
+                disableRunButtons();
                 internal.setLastProgramIndex(currentProgramLine + 1);
-                internal.startRunProgramThread(currentProgramLine + 1, true);
+                internal.startRunProgramThread(currentProgramLine + 1, true)
+                        .thenRun(() -> javax.swing.SwingUtilities.invokeLater(this::enableRunButtons));
             }
         }
     }//GEN-LAST:event_jButtonStepFwdActionPerformed
 
-    private void jLabelJogMinusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseExited
+    private void jLabelJointJogMinusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogMinusMouseExited
         this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogMinusMouseExited
+    }//GEN-LAST:event_jLabelJointJogMinusMouseExited
 
-    private void jLabelJogMinusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMousePressed
+    private void jLabelJointJogMinusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogMinusMousePressed
         if (!internal.isInitSent() || !internal.isConnected()) {
             showNotJogReady();
             return;
         }
-        this.jogJointStart(-1.0 * internal.getJogIncrement());
-        this.jLabelJogMinus.setBackground(Color.BLACK);
-        this.jLabelJogMinus.setForeground(Color.WHITE);
-        this.jPanelJogMinus.setBackground(Color.BLACK);
-        this.jLabelJogMinus.repaint();
-        this.jPanelJogMinus.repaint();
-    }//GEN-LAST:event_jLabelJogMinusMousePressed
+        this.jogJointStart(-1.0 * internal.getJointJogIncrement());
+        this.jLabelJointJogMinus.setBackground(Color.BLACK);
+        this.jLabelJointJogMinus.setForeground(Color.WHITE);
+        this.jPanelJointJogMinus.setBackground(Color.BLACK);
+        this.jLabelJointJogMinus.repaint();
+        this.jPanelJointJogMinus.repaint();
+    }//GEN-LAST:event_jLabelJointJogMinusMousePressed
 
-    private void jLabelJogMinusMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseReleased
+    private void jLabelJointJogMinusMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogMinusMouseReleased
         this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogMinusMouseReleased
+    }//GEN-LAST:event_jLabelJointJogMinusMouseReleased
 
-    private void jPanelJogMinusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelJogMinusMousePressed
-        //        ActuateJointsType jog = new ActuateJointsType();
-        //        cmdId = cmdId.shift(1);
-        //        jog.setCommandID(cmdId);
-        //        ActuateJointType joint = new ActuateJointType();
-        //        List<ActuateJointType> l = jog.getActuateJoint();
-        //        if(l == null) {
-        //            l = new ArrayList<>();
-        //        }
-        //        l.shift(joint);
-        //        joint.setActuate(true);
-        //
-        //        this.cmd_instance.setCRCLCommand(jog);
-        //        this.sendCommand();
-    }//GEN-LAST:event_jPanelJogMinusMousePressed
+    private void jLabelJointJogPlusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogPlusMouseExited
+        this.commonJogStop();
+    }//GEN-LAST:event_jLabelJointJogPlusMouseExited
+
+    private void jLabelJointJogPlusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogPlusMousePressed
+        
+        if (!internal.isInitSent() || !internal.isConnected()) {
+            showNotJogReady();
+            return;
+        }
+        this.jogJointStart(+1.0 * internal.getJointJogIncrement());
+        this.jLabelJointJogPlus.setBackground(Color.BLACK);
+        this.jLabelJointJogPlus.setForeground(Color.WHITE);
+        this.jPanelJointJogPlus.setBackground(Color.BLACK);
+        this.jLabelJointJogPlus.repaint();
+        this.jPanelJointJogPlus.repaint();
+    }//GEN-LAST:event_jLabelJointJogPlusMousePressed
+
+    private void jLabelJointJogPlusMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogPlusMouseReleased
+        this.commonJogStop();
+    }//GEN-LAST:event_jLabelJointJogPlusMouseReleased
 
     private void jLabelJogPlusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlusMouseExited
         this.commonJogStop();
     }//GEN-LAST:event_jLabelJogPlusMouseExited
 
     private void jLabelJogPlusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlusMousePressed
-        if (!internal.isInitSent() || !internal.isConnected()) {
+         if (!internal.isInitSent() || !internal.isConnected()) {
             showNotJogReady();
             return;
         }
-        this.jogJointStart(+1.0 * internal.getJogIncrement());
+        this.jogWorldStart(+1.0);
         this.jLabelJogPlus.setBackground(Color.BLACK);
         this.jLabelJogPlus.setForeground(Color.WHITE);
         this.jPanelJogPlus.setBackground(Color.BLACK);
@@ -5541,59 +5547,29 @@ public class CrclSwingClientJPanel
         this.commonJogStop();
     }//GEN-LAST:event_jLabelJogPlusMouseReleased
 
-    private void jLabelJogPlus1MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlus1MouseExited
-        this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogPlus1MouseExited
-
-    private void jLabelJogPlus1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlus1MousePressed
-        this.jogWorldStart(+1.0);
-        this.jLabelJogPlus1.setBackground(Color.BLACK);
-        this.jLabelJogPlus1.setForeground(Color.WHITE);
-        this.jPanelJogPlus1.setBackground(Color.BLACK);
-        this.jLabelJogPlus1.repaint();
-        this.jPanelJogPlus1.repaint();
-    }//GEN-LAST:event_jLabelJogPlus1MousePressed
-
-    private void jLabelJogPlus1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlus1MouseReleased
-        this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogPlus1MouseReleased
-
-    private void jLabelJogMinus1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinus1MousePressed
+    private void jLabelJogMinusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMousePressed
         if (!internal.isInitSent() || !internal.isConnected()) {
             showNotJogReady();
             return;
         }
         this.jogWorldStart(-1.0);
-        this.jLabelJogMinus1.setBackground(Color.BLACK);
-        this.jLabelJogMinus1.setForeground(Color.WHITE);
-        this.jPanelJogMinus1.setBackground(Color.BLACK);
-        this.jLabelJogMinus1.repaint();
-        this.jPanelJogMinus1.repaint();
-    }//GEN-LAST:event_jLabelJogMinus1MousePressed
+        this.jLabelJogMinus.setBackground(Color.BLACK);
+        this.jLabelJogMinus.setForeground(Color.WHITE);
+        this.jPanelJogMinus.setBackground(Color.BLACK);
+        this.jLabelJogMinus.repaint();
+        this.jPanelJogMinus.repaint();
+    }//GEN-LAST:event_jLabelJogMinusMousePressed
 
-    private void jLabelJogMinus1MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinus1MouseReleased
+    private void jLabelJogMinusMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseReleased
         this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogMinus1MouseReleased
+    }//GEN-LAST:event_jLabelJogMinusMouseReleased
 
-    private void jLabelJogMinus1MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinus1MouseExited
+    private void jLabelJogMinusMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogMinusMouseExited
         this.commonJogStop();
-    }//GEN-LAST:event_jLabelJogMinus1MouseExited
-
-    private void jPanelJogMinus1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanelJogMinus1MousePressed
-        if (!internal.isInitSent() || !internal.isConnected()) {
-            showNotJogReady();
-            return;
-        }
-        this.jogWorldStart(-1.0);
-        this.jLabelJogMinus1.setBackground(Color.BLACK);
-        this.jLabelJogMinus1.setForeground(Color.WHITE);
-        this.jPanelJogMinus1.setBackground(Color.BLACK);
-        this.jLabelJogMinus1.repaint();
-        this.jPanelJogMinus1.repaint();
-    }//GEN-LAST:event_jPanelJogMinus1MousePressed
+    }//GEN-LAST:event_jLabelJogMinusMouseExited
 
     private void jTextFieldJointJogIncrementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldJointJogIncrementActionPerformed
-        internal.setJogIncrement(Double.parseDouble(this.jTextFieldJointJogIncrement.getText()));
+        internal.setJointJogIncrement(Double.parseDouble(this.jTextFieldJointJogIncrement.getText()));
     }//GEN-LAST:event_jTextFieldJointJogIncrementActionPerformed
 
     private void jTextFieldXYZJogIncrementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldXYZJogIncrementActionPerformed
@@ -6328,16 +6304,16 @@ public class CrclSwingClientJPanel
     private javax.swing.JLabel jLabelHoldingObject;
     private javax.swing.JLabel jLabelHoldingObject2;
     private javax.swing.JLabel jLabelJogMinus;
-    private javax.swing.JLabel jLabelJogMinus1;
     private javax.swing.JLabel jLabelJogPlus;
-    private javax.swing.JLabel jLabelJogPlus1;
+    private javax.swing.JLabel jLabelJointJogMinus;
+    private javax.swing.JLabel jLabelJointJogPlus;
     private javax.swing.JPanel jPanelCommandStatusLogOuter;
     private javax.swing.JPanel jPanelConnectionTab;
     private javax.swing.JPanel jPanelJogMinus;
-    private javax.swing.JPanel jPanelJogMinus1;
     private javax.swing.JPanel jPanelJogPlus;
-    private javax.swing.JPanel jPanelJogPlus1;
     private javax.swing.JPanel jPanelJogging;
+    private javax.swing.JPanel jPanelJointJogMinus;
+    private javax.swing.JPanel jPanelJointJogPlus;
     private javax.swing.JPanel jPanelMoveTo;
     private javax.swing.JPanel jPanelOverheadProgramPlot;
     private javax.swing.JPanel jPanelOverheadProgramPlot1;

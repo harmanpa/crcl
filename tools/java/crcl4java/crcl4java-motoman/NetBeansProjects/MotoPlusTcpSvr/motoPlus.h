@@ -18,16 +18,13 @@
 
 
 
+struct sockaddr;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdlib.h>
+#include <stddef.h>
 #include <sys/select.h>
 
 #define NO_WAIT (0)

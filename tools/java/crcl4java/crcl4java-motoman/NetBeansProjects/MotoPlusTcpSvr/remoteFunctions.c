@@ -66,6 +66,14 @@ can be done without Motoman software with mpFakeLib.
 #include "motoPlus.h"
 #include "remoteFunctions.h"
 
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/select.h>
+
 extern void *malloc(size_t);
 extern void free(void *);
 
