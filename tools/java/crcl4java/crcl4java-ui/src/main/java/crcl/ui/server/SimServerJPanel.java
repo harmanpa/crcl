@@ -43,6 +43,7 @@ import crcl.utils.PropertiesUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
 import crcl.utils.outer.interfaces.SimServerOuter;
+import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.GuardHistoryElement;
 import java.awt.Container;
 import java.awt.event.MouseEvent;
@@ -1637,10 +1638,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private void jButtonPlotGaurdValuesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotGaurdValuesActionPerformed
         try {
-            diagapplet.plotter.plotterJFrame  plotJFrame
+            diagapplet.plotter.plotterJFrame plotJFrame
                     = new diagapplet.plotter.plotterJFrame();
-            final List<GuardHistoryElement> guardHistoryList = inner.getCrclServerSocket().getGuardHistoryList();
-            plotJFrame.LoadObjectsList("", guardHistoryList);
+            final CRCLServerSocket<?> innerCrclServerSocketLocal
+                    = inner.getCrclServerSocket();
+            if (null != innerCrclServerSocketLocal) {
+                final List<GuardHistoryElement> guardHistoryList = innerCrclServerSocketLocal.getGuardHistoryList();
+                plotJFrame.LoadObjectsList("", guardHistoryList);
+            }
             plotJFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             plotJFrame.setVisible(true);
         } catch (Exception ex) {

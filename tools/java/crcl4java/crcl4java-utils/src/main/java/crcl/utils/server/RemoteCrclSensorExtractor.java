@@ -148,8 +148,10 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                         return sensorStat;
                     }
                 }
-                if (firstSensorStat.getLastReadTime() <= 0 || firstSensorStat.getLastReadTime() > startReadTime) {
-                    firstSensorStat.setLastReadTime(startReadTime);
+                if (null != firstSensorStat) {
+                    if (firstSensorStat.getLastReadTime() <= 0 || firstSensorStat.getLastReadTime() > startReadTime) {
+                        firstSensorStat.setLastReadTime(startReadTime);
+                    }
                 }
                 return firstSensorStat;
             }

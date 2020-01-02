@@ -1720,11 +1720,11 @@ public class CRCLSocket implements AutoCloseable {
     public void setDefaultSoTimeout(int defaultSoTimeout) {
         this.defaultSoTimeout = defaultSoTimeout;
     }
-    
+
     public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
-        return readCommand(validate,defaultSoTimeout);
+        return readCommand(validate, defaultSoTimeout);
     }
-    
+
     public CRCLCommandInstanceType readCommand(boolean validate, int soTimeout) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         final String str = this.readUntilEndTag("CRCLCommandInstance", getBufferedInputStream(soTimeout));
@@ -1857,11 +1857,10 @@ public class CRCLSocket implements AutoCloseable {
             return bufferedInputStream;
         }
         Socket socket = getSocket();
-        socket.setSoTimeout(timeout);
         if (null == socket) {
             throw new IllegalStateException("socket is null");
         }
-        assert null != socket : "@AssumeAssertion(nullness)";
+        socket.setSoTimeout(timeout);
         if (!useBufferedInputStream) {
             return socket.getInputStream();
         }
@@ -1877,7 +1876,7 @@ public class CRCLSocket implements AutoCloseable {
     public CRCLStatusType readStatus(boolean validate) throws CRCLException {
         return readStatus(validate, defaultSoTimeout);
     }
-            
+
     public CRCLStatusType readStatus(boolean validate, int soTimeout)
             throws CRCLException {
         long t0 = System.currentTimeMillis();
@@ -1888,11 +1887,11 @@ public class CRCLSocket implements AutoCloseable {
             }
             return stringToStatus(this.lastStatusString, validate);
         } catch (Exception ex) {
-            long timeDiff = System.currentTimeMillis()-t0;
-            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, 
-                    "timeDiff="+timeDiff+",port="+getPort()+", validate="+validate+", soTimeout="+soTimeout, ex);
+            long timeDiff = System.currentTimeMillis() - t0;
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE,
+                    "timeDiff=" + timeDiff + ",port=" + getPort() + ", validate=" + validate + ", soTimeout=" + soTimeout, ex);
             final Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces();
-            for(Map.Entry<Thread,StackTraceElement[]> entry: allStackTraces.entrySet()) {
+            for (Map.Entry<Thread, StackTraceElement[]> entry : allStackTraces.entrySet()) {
                 System.out.println("Thread = " + entry.getKey());
                 System.out.println("Trace = " + Utils.traceToString(entry.getValue()));
                 System.out.println("");
@@ -2122,9 +2121,9 @@ public class CRCLSocket implements AutoCloseable {
             if (null != cmdSchemaFilesLocal) {
                 for (int i = 0; i < cmdSchemaFilesLocal.length; i++) {
                     try {
-                        System.err.println("cmdSchemaFiles["+i+"]="+cmdSchemaFilesLocal[i].getCanonicalPath());
+                        System.err.println("cmdSchemaFiles[" + i + "]=" + cmdSchemaFilesLocal[i].getCanonicalPath());
                     } catch (Exception ex) {
-                        Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, "i="+i+", cmdSchemaFiles[i]="+cmdSchemaFilesLocal[i], ex);
+                        Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, "i=" + i + ", cmdSchemaFiles[i]=" + cmdSchemaFilesLocal[i], ex);
                     }
                 }
             }
@@ -2288,7 +2287,7 @@ public class CRCLSocket implements AutoCloseable {
             try {
                 while (byteswritten < ba.length) {
                     writesTried++;
-                    final ByteBuffer remainingBB = ByteBuffer.wrap(ba, byteswritten, ba.length-byteswritten);
+                    final ByteBuffer remainingBB = ByteBuffer.wrap(ba, byteswritten, ba.length - byteswritten);
                     byteswritten += channel.write(remainingBB);
                     Thread.sleep(20);
                 }
@@ -2303,7 +2302,7 @@ public class CRCLSocket implements AutoCloseable {
                 LOGGER.log(Level.SEVERE,
                         "",
                         ex1);
-                if(ex1 instanceof RuntimeException) {
+                if (ex1 instanceof RuntimeException) {
                     throw (RuntimeException) ex1;
                 } else {
                     throw new RuntimeException(ex1);
@@ -2374,7 +2373,7 @@ public class CRCLSocket implements AutoCloseable {
                 }
                 return;
             }
-            
+
             final Socket socket = getSocket();
             if (null == socket) {
                 throw new IllegalStateException("Internal socket is null.");
@@ -2394,8 +2393,8 @@ public class CRCLSocket implements AutoCloseable {
             }
         } catch (IOException | InterruptedException | IllegalStateException iOException) {
             LOGGER.log(Level.SEVERE,
-                        "str="+str,
-                        iOException);
+                    "str=" + str,
+                    iOException);
             throw iOException;
         }
     }
@@ -2719,9 +2718,9 @@ public class CRCLSocket implements AutoCloseable {
             this.lastStatusString = statusToString(status, validate);
             this.writeWithFill(this.lastStatusString);
         } catch (IOException | InterruptedException ex) {
-            System.err.println("lastStatusString="+lastStatusString);
-            System.err.println("socketChannel="+socketChannel);
-            if(null != socketChannel) {
+            System.err.println("lastStatusString=" + lastStatusString);
+            System.err.println("socketChannel=" + socketChannel);
+            if (null != socketChannel) {
                 try {
                     System.err.println("socketChannel.getLocalAddress()=" + socketChannel.getLocalAddress());
                     System.err.println("socketChannel.getRemodeAddress()=" + socketChannel.getRemoteAddress());
@@ -2729,7 +2728,7 @@ public class CRCLSocket implements AutoCloseable {
                     LOGGER.log(Level.SEVERE, "", iOException);
                 }
             }
-            System.err.println("socket="+socket);
+            System.err.println("socket=" + socket);
             throw new CRCLException(ex);
         }
     }

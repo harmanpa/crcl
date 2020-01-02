@@ -1057,7 +1057,7 @@ public class CrclSwingClientInner {
         }
         String str
                 = cs.programToPrettyString(programToSave, validateXmlSchema);
-        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println(str);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1330,13 +1330,13 @@ public class CrclSwingClientInner {
             return "null";
         }
     }
-    private volatile CRCLCommandType lastScheduledCommand = null;
+    private volatile @Nullable
+    CRCLCommandType lastScheduledCommand = null;
 
-    public CRCLCommandType getLastScheduledCommand() {
+    public @Nullable
+    CRCLCommandType getLastScheduledCommand() {
         return lastScheduledCommand;
     }
-    
-    
 
     public XFuture<Boolean> scheduleIncAndSendCommand(CRCLCommandType cmd) {
         lastScheduledCommand = cmd;
@@ -1938,7 +1938,7 @@ public class CrclSwingClientInner {
                         .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
-        try ( PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
             String headers = "time,relTime,cmdIdFromStatus,lastSentCmdId,State,cmdName,x,y,z,roll,pitch,yaw,"
                     + (havePos ? jointIds.stream().map((x) -> "Joint" + x + "Pos").collect(Collectors.joining(",")) : "")
                     + (haveVel ? "," + jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
@@ -2191,7 +2191,7 @@ public class CrclSwingClientInner {
     static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
         String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
 
-    public void printCommandStatusLog(Appendable appendable, boolean clearLog, boolean headerOnStart, String[] headers, int headerRepeat) throws IOException {
+    public void printCommandStatusLog(Appendable appendable, boolean clearLog, boolean headerOnStart, String @Nullable [] headers, int headerRepeat) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
         int i = 0;
         if (clearLog) {
@@ -2200,7 +2200,7 @@ public class CrclSwingClientInner {
                 printLogElement(el, printer);
                 el = commandStatusLog.pollFirst();
                 i++;
-                if (headerRepeat > 0 && i % headerRepeat == 0) {
+                if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
                     printer.printRecord(headers);
                 }
             }
@@ -2208,7 +2208,7 @@ public class CrclSwingClientInner {
             for (CommandStatusLogElement el : commandStatusLog) {
                 printLogElement(el, printer);
                 i++;
-                if (headerRepeat > 0 && i % headerRepeat == 0) {
+                if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
                     printer.printRecord(headers);
                 }
             }
@@ -2234,7 +2234,7 @@ public class CrclSwingClientInner {
             boolean headerAtStart,
             String headers[],
             int headerRepeat) throws IOException {
-        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             int i = 0;
             if (headerAtStart && null != headers && headers.length > 0) {
                 printer.printRecord((Object[]) headers);
@@ -2470,7 +2470,8 @@ public class CrclSwingClientInner {
 
     private long doneStartTime = -1;
 
-    private volatile CommandStateEnumType lastStatusLogState = null;
+    private volatile @Nullable
+    CommandStateEnumType lastStatusLogState = null;
 
     private final ConcurrentHashMap<String, Long> cmdPerfMap = new ConcurrentHashMap<>();
 
@@ -2491,9 +2492,10 @@ public class CrclSwingClientInner {
                 || (lastCommandStatusLogElement instanceof CommandLogElement);
         if (curState == CRCL_DONE && notAlreadyDone) {
             doneStartTime = System.currentTimeMillis();
-            if (null != lastCommandLogElement) {
-                final String cmdName = lastCommandLogElement.getCmd().getClass().getSimpleName();
-                long cmdStartTime = lastCommandLogElement.getTime();
+            final CommandLogElement lastCommandLogElementLocal = lastCommandLogElement;
+            if (null != lastCommandLogElementLocal) {
+                final String cmdName = lastCommandLogElementLocal.getCmd().getClass().getSimpleName();
+                long cmdStartTime = lastCommandLogElementLocal.getTime();
                 long diffTime = doneStartTime - cmdStartTime;
                 cmdPerfMap.compute(cmdName, (String key, Long value) -> {
                     if (null == value) {
@@ -3571,7 +3573,7 @@ public class CrclSwingClientInner {
     }
 
     public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
-        try ( CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
             printer.printRecord("time", "dist", "result", "id", "cmdString");
             for (ProgramRunData prd : list) {
                 if (null != prd) {
@@ -3928,7 +3930,7 @@ public class CrclSwingClientInner {
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
                 String s = statusToPrettyString();
                 System.err.println("status = " + s);
-                try ( FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {
@@ -4400,8 +4402,9 @@ public class CrclSwingClientInner {
             return cmdName + " with ID = " + cmd.getCommandID() + "\n" + this.getTempCRCLSocket().commandToString(cmd, false) + "\n";
         } catch (Exception exception) {
             Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", exception);
-            showErrorMessage(exception.toString());
-            return exception.getMessage();
+            final String exceptionString = exception.toString();
+            showErrorMessage(exceptionString);
+            return exceptionString;
         }
     }
 
@@ -4893,7 +4896,9 @@ public class CrclSwingClientInner {
     private final AtomicInteger testCommandCount = new AtomicInteger();
     private volatile long testCommandMaxTime = 0;
     private final AtomicLong testCommandTotalTime = new AtomicLong();
-    private volatile CRCLCommandType testCommandMaxTimeCommand = null;
+    
+    private volatile @Nullable
+    CRCLCommandType testCommandMaxTimeCommand = null;
 
     /**
      * Test a command by sending it and waiting for the status to indicate it
@@ -5524,7 +5529,7 @@ public class CrclSwingClientInner {
     public void saveStatusAs(File f) {
         try {
             String s = statusToPrettyString();
-            try ( FileWriter fw = new FileWriter(f)) {
+            try (FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
         } catch (Exception ex) {
@@ -5610,7 +5615,7 @@ public class CrclSwingClientInner {
     private volatile long maxReadStatusOnlyTime = 0;
     private volatile long maxRequestAndReadStatusTime = 0;
 
-    public String getPerfInfoString(String prefix) {
+    public String getPerfInfoString(@Nullable String prefix) {
         long now = System.currentTimeMillis();
         long timeSinceFirstStatusRequest = now - firstRequestAndReadTime;
         final int count = internalRequestAndReadStatusCount.get();
@@ -5629,27 +5634,32 @@ public class CrclSwingClientInner {
         final long tcTimePerCount = tcTotalTime / tcCount;
         final long rpTotalTime = runProgramTotalTime.get();
         final long rpTimePerProgram = rpTotalTime / rpCount;
-
-        return prefix + " internalRequestAndReadStatusCount=" + count + "\n"
-                + prefix + " timeSinceFirstStatusRequest=" + timeSinceFirstStatusRequest + "\n"
-                + prefix + " timeDiffPerStatus=" + timeDiffPerStatus + "\n"
-                + prefix + " onlyReadTime=" + onlyReadTime + "\n"
-                + prefix + " onlyReadTimePerStatus=" + onlyReadTimePerStatus + "\n"
-                + prefix + " requestDelayAndReadTime=" + requestDelayAndReadTime + "\n"
-                + prefix + " requestDelayAndReadTimePerStatus=" + requestDelayAndReadTimePerStatus + "\n"
-                + prefix + " maxReadStatusOnlyTime=" + maxReadStatusOnlyTime + "\n"
-                + prefix + " maxRequestAndReadStatusTime=" + maxRequestAndReadStatusTime + "\n"
-                + prefix + " poll_ms=" + poll_ms + "\n"
-                + prefix + " waitForDoneDelay=" + waitForDoneDelay + "\n"
-                + prefix + " testCommandCount=" + tcCount + "\n"
-                + prefix + " testCommandTotalTime=" + tcTotalTime + "\n"
-                + prefix + " testCommandMaxTime=" + testCommandMaxTime + "\n"
-                + prefix + " testCommandMaxTimeCommand=" + cmdString(testCommandMaxTimeCommand) + "\n"
-                + prefix + " tcTimePerCount=" + tcTimePerCount + "\n"
-                + prefix + " runProgramCount=" + rpCount + "\n"
-                + prefix + " timeSinceFirstRunProgramStart=" + timeSinceFirstRunProgramStart + "\n"
-                + prefix + " runProgramTotalTime=" + rpTotalTime + "\n"
-                + prefix + " rpTimePerProgram=" + rpTimePerProgram + "\n";
+        final String prefixChecked;
+        if(null != prefix) {
+            prefixChecked = prefix;
+        } else {
+            prefixChecked = "";
+        }
+        return prefixChecked + " internalRequestAndReadStatusCount=" + count + "\n"
+                + prefixChecked + " timeSinceFirstStatusRequest=" + timeSinceFirstStatusRequest + "\n"
+                + prefixChecked + " timeDiffPerStatus=" + timeDiffPerStatus + "\n"
+                + prefixChecked + " onlyReadTime=" + onlyReadTime + "\n"
+                + prefixChecked + " onlyReadTimePerStatus=" + onlyReadTimePerStatus + "\n"
+                + prefixChecked + " requestDelayAndReadTime=" + requestDelayAndReadTime + "\n"
+                + prefixChecked + " requestDelayAndReadTimePerStatus=" + requestDelayAndReadTimePerStatus + "\n"
+                + prefixChecked + " maxReadStatusOnlyTime=" + maxReadStatusOnlyTime + "\n"
+                + prefixChecked + " maxRequestAndReadStatusTime=" + maxRequestAndReadStatusTime + "\n"
+                + prefixChecked + " poll_ms=" + poll_ms + "\n"
+                + prefixChecked + " waitForDoneDelay=" + waitForDoneDelay + "\n"
+                + prefixChecked + " testCommandCount=" + tcCount + "\n"
+                + prefixChecked + " testCommandTotalTime=" + tcTotalTime + "\n"
+                + prefixChecked + " testCommandMaxTime=" + testCommandMaxTime + "\n"
+                + prefixChecked + " testCommandMaxTimeCommand=" + cmdString(testCommandMaxTimeCommand) + "\n"
+                + prefixChecked + " tcTimePerCount=" + tcTimePerCount + "\n"
+                + prefixChecked + " runProgramCount=" + rpCount + "\n"
+                + prefixChecked + " timeSinceFirstRunProgramStart=" + timeSinceFirstRunProgramStart + "\n"
+                + prefixChecked + " runProgramTotalTime=" + rpTotalTime + "\n"
+                + prefixChecked + " rpTimePerProgram=" + rpTimePerProgram + "\n";
     }
 
     private synchronized CRCLStatusType internalRequestAndReadStatus(CRCLSocket crclReadSocket, int soTimeout, long delay)

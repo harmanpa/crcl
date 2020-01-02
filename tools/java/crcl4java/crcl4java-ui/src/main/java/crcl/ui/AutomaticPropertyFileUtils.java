@@ -35,6 +35,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.logging.Level;
@@ -285,15 +286,16 @@ public class AutomaticPropertyFileUtils {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","nullness"})
     private static void setParam(Map<String, Object> targetMap, Object defaultTarget, String args[]) {
         try {
             if (args.length < 2) {
                 return;
             }
+            final Class<? extends Object> defaultTargetClass = defaultTarget.getClass();
             if (args[0].equals("classname") || args[1].equals("classname")) {
-                if (!defaultTarget.getClass().getCanonicalName().equals(args[args.length-1])) {
-                    throw new RuntimeException("wrong class: defaultTarget.getClass()=" + defaultTarget.getClass() + ", args=" + Arrays.toString(args));
+                if (!Objects.equals(defaultTargetClass.getCanonicalName(),args[args.length-1])) {
+                    throw new RuntimeException("wrong class: defaultTarget.getClass()=" + defaultTargetClass + ", args=" + Arrays.toString(args));
                 }
                 return;
             }
@@ -377,7 +379,6 @@ public class AutomaticPropertyFileUtils {
             }
 
             String methodName = "set" + args[1].substring(0, 1).toUpperCase() + args[1].substring(1);
-            final Class<?> defaultTargetClass = defaultTarget.getClass();
             try {
                 m = defaultTargetClass.getMethod(methodName, clss);
             } catch (NoSuchMethodException ex) {

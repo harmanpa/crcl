@@ -155,9 +155,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private volatile @MonotonicNonNull
     CRCLStatusType serverSideStatus;
 
-    private volatile Runnable guardCheckUpdatePositionOnlyRunnable = null;
+    private volatile @Nullable
+    Runnable guardCheckUpdatePositionOnlyRunnable = null;
 
-    public Runnable getGuardCheckUpdatePositionOnlyRunnable() {
+    public @Nullable
+    Runnable getGuardCheckUpdatePositionOnlyRunnable() {
         return guardCheckUpdatePositionOnlyRunnable;
     }
 
@@ -1176,7 +1178,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         List<SensorStatusType> newSensorStats = new ArrayList<>();
         for (SensorServerInterface sensorServer : sensorServers.values()) {
             SensorStatusType sensorStat = sensorServer.getCurrentSensorStatus();
-            newSensorStats.add(sensorStat);
+            if (null != sensorStat) {
+                newSensorStats.add(sensorStat);
+            }
         }
         boolean onOffStatusListModified = updateOnOffList(newSensorStats, onOffSensorStatusList);
         boolean countStatusListModified = updateCountList(newSensorStats, countSensorStatusList);
@@ -2203,7 +2207,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private final GuardHistory guardHistory = new GuardHistory();
 
-    private double getGuardValue(GuardType guard, Map<String, SensorStatusType> sensorStatMap) throws RuntimeException {
+    private double getGuardValue(GuardType guard, @Nullable Map<String, SensorStatusType> sensorStatMap) throws RuntimeException {
 
         double value;
         final String sensorID = guard.getSensorID();

@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.PmEulerZyx;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRotationMatrix;
@@ -160,7 +161,7 @@ public class PoseDisplay {
         });
     }
 
-    public static void updatePoseTable(PoseType p, JTable jTable, PoseDisplayMode displayMode) {
+    public static void updatePoseTable(@Nullable PoseType p, JTable jTable, PoseDisplayMode displayMode) {
         try {
             if (null == p) {
                 p = CRCLPosemath.identityPose();

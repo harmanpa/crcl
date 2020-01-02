@@ -18,9 +18,9 @@ import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
-import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.XFuture;
+import crcl.utils.XFutureVoid;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
@@ -42,7 +42,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
@@ -576,16 +575,21 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
     }
 
-    private void getAndUpdatePose() {
-        getPoseFuture()
+    @SuppressWarnings("nullness")
+    private XFutureVoid getAndUpdatePose() {
+        XFuture<@Nullable PoseType> poseFuture
+                = getPoseFuture();
+        return poseFuture
                 .thenAccept((PoseType pose) -> {
                     updateDisplayAndStatusWithPose(pose);
                 });
     }
 
-    private void updateDisplayAndStatusWithPose(PoseType pose) {
-        javax.swing.SwingUtilities.invokeLater(() -> PoseDisplay.updatePoseTable(pose, jTablePose, PoseDisplayMode.XYZ_RPY));
-        updateSensorStatusWithPose(pose);
+    private void updateDisplayAndStatusWithPose(@Nullable PoseType pose) {
+        if (null != pose) {
+            javax.swing.SwingUtilities.invokeLater(() -> PoseDisplay.updatePoseTable(pose, jTablePose, PoseDisplayMode.XYZ_RPY));
+            updateSensorStatusWithPose(pose);
+        }
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -863,15 +867,16 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     private final AtomicInteger getPoseCount = new AtomicInteger();
-    
+
     private @Nullable
     PoseType getPose() {
-        if (null != poseInConnection) {
+        final CRCLSocket poseInConnectionStackCopy = poseInConnection;
+        if (null != poseInConnectionStackCopy) {
             try {
                 final GetStatusType getStatusCmd = new GetStatusType();
-                getStatusCmd.setName("ForceTorqueSimGetPose"+getPoseCount.incrementAndGet());
-                poseInConnection.writeCommand(getStatusCmd);
-                CRCLStatusType newStatus = Objects.requireNonNull(poseInConnection.readStatus(), "poseInConnection.readStatus()");
+                getStatusCmd.setName("ForceTorqueSimGetPose" + getPoseCount.incrementAndGet());
+                poseInConnectionStackCopy.writeCommand(getStatusCmd);
+                CRCLStatusType newStatus = Objects.requireNonNull(poseInConnectionStackCopy.readStatus(), "poseInConnection.readStatus()");
                 this.poseStatus = newStatus;
                 final PoseStatusType newPoseStatus = Objects.requireNonNull(newStatus.getPoseStatus(), "newStatus.getPoseStatus()");
                 final PoseType pose = Objects.requireNonNull(newPoseStatus.getPose(), "newPoseStatus.getPose()");
@@ -903,6 +908,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
     private final ExecutorService getPoseService = Executors.newSingleThreadExecutor(getPoseServiceThreadFactory);
 
+    @SuppressWarnings("nullness")
     private XFuture<@Nullable PoseType> getPoseFuture() {
         if (null == poseInConnection) {
             return XFuture.completedFuture(null);
@@ -957,20 +963,21 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     private final CRCLServerSocketEventListener<ForceTorqueSimClientState> crclSocketEventListener
             = this::handleCrclServerSocketEvent;
 
-    private CRCLServerSocket<ForceTorqueSimClientState> crclServerSocket;
+    private @Nullable
+    CRCLServerSocket<ForceTorqueSimClientState> crclServerSocket;
 
     private void handleCrclServerSocketEvent(CRCLServerSocketEvent<ForceTorqueSimClientState> evt) {
 
     }
 
     private XFuture<CRCLStatusType> updateSensorStatus() {
-        XFuture<PoseType> f = getPoseFuture();
+        XFuture<@Nullable PoseType> f = getPoseFuture();
         return f.thenCompose((PoseType pose) -> {
             return updateSensorStatusWithPose(pose);
         });
     }
 
-    private XFuture<CRCLStatusType> updateSensorStatusWithPose(PoseType pose) {
+    private XFuture<CRCLStatusType> updateSensorStatusWithPose(@Nullable PoseType pose) {
         double xposeEffect = 0.0;
         double yposeEffect = 0.0;
         double zposeEffect = 0.0;
@@ -1023,7 +1030,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             sensorStatus.setSensorID("ForceTorqueSim");
         }
         final ForceTorqueSensorStatusType sensorStatusCopy = CRCLCopier.copy(sensorStatus);
-        javax.swing.SwingUtilities.invokeLater(() -> updateForceTorqueDisplay(sensorStatusCopy));
+        if (null != sensorStatusCopy) {
+            javax.swing.SwingUtilities.invokeLater(() -> updateForceTorqueDisplay(sensorStatusCopy));
+        }
         return XFuture.completedFuture(statusOut);
     }
 

@@ -46,6 +46,7 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
 import crcl.base.PointType;
+import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.RotSpeedAbsoluteType;
 import crcl.base.SetEndEffectorType;
@@ -511,13 +512,24 @@ public class CrclSwingClientJPanel
         programLineShowing = line;
     }
 
-    private void updateDistToSelected(CRCLStatusType status) {
+    private void updateDistToSelected(@Nullable CRCLStatusType status) {
         if (null != status && currentCommand instanceof MoveToType) {
             MoveToType currentMoveCmd = (MoveToType) currentCommand;
-            double dist = CRCLPosemath.diffPosesTran(currentMoveCmd.getEndPosition(), status.getPoseStatus().getPose());
-            jTextFieldDistToSelected.setText(String.format("%.3f", dist));
-            jTextFieldDistToSelected.setEditable(true);
-            jTextFieldDistToSelected.setEnabled(true);
+            final PoseStatusType statusPoseStatusLocal = status.getPoseStatus();
+            if (null != statusPoseStatusLocal) {
+                final PoseType poseLocal = statusPoseStatusLocal.getPose();
+                final PoseType currentMoveCmdEndPosition = currentMoveCmd.getEndPosition();
+                if (null != poseLocal && null != currentMoveCmdEndPosition) {
+                    double dist = CRCLPosemath.diffPosesTran(currentMoveCmdEndPosition, poseLocal);
+                    jTextFieldDistToSelected.setText(String.format("%.3f", dist));
+                    jTextFieldDistToSelected.setEditable(true);
+                    jTextFieldDistToSelected.setEnabled(true);
+                } else {
+                    jTextFieldDistToSelected.setText("NA");
+                    jTextFieldDistToSelected.setEnabled(false);
+                    jTextFieldDistToSelected.setEditable(false);
+                }
+            }
         } else {
             jTextFieldDistToSelected.setText("NA");
             jTextFieldDistToSelected.setEnabled(false);
@@ -575,9 +587,10 @@ public class CrclSwingClientJPanel
         programPlotterJPanelSide.repaint();
     }
 
-    private volatile CRCLCommandType currentCommand = null;
+    private volatile @Nullable
+    CRCLCommandType currentCommand = null;
 
-    private void showSelectedProgramCommand(CRCLCommandType cmd, @Nullable CRCLStatusType status) {
+    private void showSelectedProgramCommand(@Nullable CRCLCommandType cmd, @Nullable CRCLStatusType status) {
         try {
             currentCommand = cmd;
             updateDistToSelected(status);
@@ -5411,7 +5424,6 @@ public class CrclSwingClientJPanel
                 this.internal.runStartMillis = System.currentTimeMillis();
             }
 
-
             this.internal.closeTestProgramThread();
             setStepMode(stepMode);
             if (internal.isPaused()) {
@@ -5420,7 +5432,6 @@ public class CrclSwingClientJPanel
                 System.out.println("internal.isPaused() = " + internal.isPaused());
             }
 
-            
             XFuture<Boolean> newProgramFutureInternal
                     = internal.startRunProgramThread(this.getCurrentProgramLine(), interactive);
             XFuture<Boolean> ret = checkFutureChange(newProgramFutureInternal);
@@ -5474,7 +5485,10 @@ public class CrclSwingClientJPanel
         }
         if (!wasRunning) {
             final int currentProgramLine = this.getCurrentProgramLine();
-            if (currentProgramLine >= 0 && currentProgramLine < internal.getProgram().getMiddleCommand().size()) {
+            final CRCLProgramType internalProgram = internal.getProgram();
+            if (currentProgramLine >= 0 
+                    && null != internalProgram
+                    && currentProgramLine < internalProgram.getMiddleCommand().size()) {
                 disableRunButtons();
                 internal.setLastProgramIndex(currentProgramLine + 1);
                 internal.startRunProgramThread(currentProgramLine + 1, true)
@@ -5509,7 +5523,7 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jLabelJointJogPlusMouseExited
 
     private void jLabelJointJogPlusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJointJogPlusMousePressed
-        
+
         if (!internal.isInitSent() || !internal.isConnected()) {
             showNotJogReady();
             return;
@@ -5531,7 +5545,7 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jLabelJogPlusMouseExited
 
     private void jLabelJogPlusMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelJogPlusMousePressed
-         if (!internal.isInitSent() || !internal.isConnected()) {
+        if (!internal.isInitSent() || !internal.isConnected()) {
             showNotJogReady();
             return;
         }
