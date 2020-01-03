@@ -139,7 +139,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return "";
     }
 
-    public static String traceToString(StackTraceElement trace @Nullable []) {
+    public static String traceToString(@Nullable StackTraceElement trace @Nullable []) {
         if (null == trace) {
             return "";
         }
@@ -150,18 +150,22 @@ public class XFuture<T> extends CompletableFuture<T> {
                 int lastExternal = trace.length - 1;
                 for (int i = 0; i < trace.length - 1; i++) {
                     StackTraceElement stackTraceElement = trace[i];
-                    final String className = stackTraceElement.getClassName();
-                    if (!className.startsWith("java.") && !className.contains("Future")) {
-                        firstExternal = i;
-                        break;
+                    if (null != stackTraceElement) {
+                        final String className = stackTraceElement.getClassName();
+                        if (!className.startsWith("java.") && !className.contains("Future")) {
+                            firstExternal = i;
+                            break;
+                        }
                     }
                 }
                 for (int i = trace.length - 1; i > firstExternal; i--) {
                     StackTraceElement stackTraceElement = trace[i];
-                    final String className = stackTraceElement.getClassName();
-                    if (!className.startsWith("java.") && !className.contains("Future")) {
-                        lastExternal = i;
-                        break;
+                    if (null != stackTraceElement) {
+                        final String className = stackTraceElement.getClassName();
+                        if (!className.startsWith("java.") && !className.contains("Future")) {
+                            lastExternal = i;
+                            break;
+                        }
                     }
                 }
                 if (firstExternal > 0) {
