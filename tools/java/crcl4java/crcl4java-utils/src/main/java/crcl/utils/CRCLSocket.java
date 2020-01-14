@@ -258,21 +258,55 @@ public class CRCLSocket implements AutoCloseable {
     private static File defaultCmdSchemaFiles @Nullable []  = null;
     private static File defaultProgramSchemaFiles @Nullable []  = null;
 
-    @SuppressWarnings("nullness")
-    public static @Nullable
-    synchronized Schema filesToCmdSchema(File fa @Nullable []) throws CRCLException {
-        if (null == fa) {
-            return null;
+    @SuppressWarnings("unchecked")
+    private static <T> T[] arrayCopy(T[] oldArray) {
+        final Class<?> oldArrayClass = oldArray.getClass();
+        if(null == oldArrayClass) {
+            throw new IllegalArgumentException("oldArrayClass="+oldArrayClass+", oldArray="+oldArray);
         }
-        File arrayCopy[] = Arrays.copyOf(fa, fa.length);
+        final Class<T> oldArrayComponentType = (Class<T>) oldArrayClass.getComponentType();
+        if(null == oldArrayComponentType) {
+            throw new IllegalArgumentException("oldArrayComponentType="+oldArrayComponentType+", oldArray="+oldArray);
+        }
+        T[] newArray = (T[]) Array.newInstance(oldArrayComponentType, oldArray.length);
+        for (int i = 0; i < newArray.length; i++) {
+            T oldElement = oldArray[i];
+            if (null == oldElement) {
+                throw new IllegalArgumentException("oldArray[" + i + "]=" + oldArray[i]);
+            } else {
+                newArray[i] = oldElement;
+            }
+        }
+        return newArray;
+    }
+
+//    private static <T> T[] arrayCopy(Class<T> componentType, T[] oldArray) {
+//        T[] newArray = (T[]) Array.newInstance(componentType, oldArray.length);
+//        for (int i = 0; i < newArray.length; i++) {
+//            T oldElement = oldArray[i];
+//            if (null == oldElement) {
+//                throw new IllegalArgumentException("oldArray[" + i + "]=" + oldArray[i]);
+//            } else {
+//                newArray[i] = oldElement;
+//            }
+//        }
+//        return newArray;
+//    }
+    public static synchronized Schema filesToCmdSchema(File fa[]) throws CRCLException {
+        if (null == fa || fa.length < 1) {
+            throw new IllegalArgumentException("File fa[]=" + fa);
+        }
+        File arrayCopy[] = arrayCopy(fa);
         File[] reorderedFa = reorderAndFilterCommandSchemaFiles(arrayCopy);
         defaultCmdSchemaFiles = reorderedFa;
         return filesToSchema(reorderedFa);
     }
 
-    @SuppressWarnings("nullness")
     public static synchronized @Nullable
     Schema getDefaultCmdSchema() throws CRCLException {
+        if (null == defaultCmdSchemaFiles) {
+            return null;
+        }
         return filesToCmdSchema(defaultCmdSchemaFiles);
     }
 
@@ -292,35 +326,38 @@ public class CRCLSocket implements AutoCloseable {
         return Arrays.copyOf(defaultProgramSchemaFiles, defaultProgramSchemaFiles.length);
     }
 
-    @SuppressWarnings("nullness")
-    public static synchronized @Nullable
-    Schema filesToStatSchema(File fa @Nullable []) throws CRCLException {
-        if (null == fa) {
-            return null;
+    public static synchronized Schema filesToStatSchema(File fa[]) throws CRCLException {
+        if (null == fa || fa.length < 1) {
+            throw new IllegalArgumentException("File fa[]=" + fa);
         }
-        File[] reorderedFa = reorderAndFilterStatSchemaFiles(Arrays.copyOf(fa, fa.length));
+        File[] reorderedFa = reorderAndFilterStatSchemaFiles(arrayCopy( fa));
         defaultStatSchemaFiles = reorderedFa;
         return filesToSchema(reorderedFa);
     }
 
-    @SuppressWarnings("nullness")
-    public static synchronized Schema getDefaultStatSchema() throws CRCLException {
+    public static synchronized @Nullable
+    Schema getDefaultStatSchema() throws CRCLException {
+        if (null == defaultStatSchemaFiles) {
+            return null;
+        }
         return filesToStatSchema(defaultStatSchemaFiles);
     }
 
-    @SuppressWarnings("nullness")
-    public static synchronized @Nullable
-    Schema filesToProgramSchema(File fa @Nullable []) throws CRCLException {
+    public static synchronized Schema filesToProgramSchema(File fa[]) throws CRCLException {
         if (null == fa) {
-            return null;
+            throw new IllegalArgumentException("File fa[]=null");
         }
-        fa = reorderProgramSchemaFiles(Arrays.copyOf(fa, fa.length));
+        final File[] faCopy = arrayCopy(fa);
+        fa = reorderProgramSchemaFiles(faCopy);
         defaultProgramSchemaFiles = fa;
         return filesToSchema(fa);
     }
 
-    @SuppressWarnings("nullness")
-    public static synchronized Schema getDefaultProgramSchema() throws CRCLException {
+    public static synchronized @Nullable
+    Schema getDefaultProgramSchema() throws CRCLException {
+        if (null == defaultProgramSchemaFiles) {
+            return null;
+        }
         return filesToProgramSchema(defaultProgramSchemaFiles);
     }
 
@@ -660,16 +697,29 @@ public class CRCLSocket implements AutoCloseable {
         return newList;
     }
 
-    @SuppressWarnings("nullness")
+    @SuppressWarnings("unchecked")
+    private static <T> T[] listToArray(Class<T> componentType, List<T> list) {
+        T[] newArray = (T[]) Array.newInstance(componentType, list.size());
+        for (int i = 0; i < newArray.length; i++) {
+            T object = list.get(i);
+            if (object == null) {
+                throw new IllegalArgumentException("list.get(" + i + ")=" + object);
+            } else {
+                newArray[i] = object;
+            }
+        }
+        return newArray;
+    }
+
     public static File[] reorderAndFilterStatSchemaFiles(File fa[]) {
         if (null == fa || fa.length < 1) {
-            return EMPTY_FILE_ARRAY;
+            throw new IllegalArgumentException("File fa[]=" + fa);
         }
         List<File> fl = new ArrayList<>();
         fl.addAll(Arrays.asList(fa));
         List<File> newList = reorderAndFilterStatSchemaFiles(fl);
         if (null != newList) {
-            File files[] = newList.toArray(EMPTY_FILE_ARRAY);
+            File files[] = listToArray(File.class, newList);
             if (null != files) {
                 File newFiles[] = (/*@NonNull*/File[]) files;
                 return newFiles;

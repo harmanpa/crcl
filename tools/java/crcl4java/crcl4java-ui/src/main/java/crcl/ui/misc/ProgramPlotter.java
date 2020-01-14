@@ -20,13 +20,14 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.utils;
+package crcl.ui.misc;
 
 import crcl.base.CRCLProgramType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
+import crcl.utils.CRCLPosemath;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -485,7 +486,7 @@ public class ProgramPlotter {
         this.outerColor = outerColor;
     }
 
-    private @MonotonicNonNull
+    private @Nullable
     PointType initPoint;
 
     /**
@@ -503,7 +504,7 @@ public class ProgramPlotter {
      *
      * @param initPoint new value of initPoint
      */
-    public void setInitPoint(/*@Nullable*/PointType initPoint) {
+    public void setInitPoint(@Nullable PointType initPoint) {
         this.initPoint = initPoint;
     }
 

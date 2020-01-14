@@ -88,6 +88,10 @@ public class IconImages {
         return DefaultRobotImageLoader.DEFAULT_ROBOT_IMAGE;
     }
 
+    @SuppressWarnings("nullness")
+    private static void g2dDrawImage(Graphics2D g2d, Image baseImage) {
+        g2d.drawImage(baseImage, 0, 0, null);
+    }
     private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
@@ -95,7 +99,8 @@ public class IconImages {
         g2d.setColor(textColor);
         g2d.clearRect(0, 0, d.width, d.height);
         g2d.setFont(new Font(g2d.getFont().getName(), g2d.getFont().getStyle(), 24));
-        g2d.drawImage(baseImage, 0, 0, null);
+        g2dDrawImage(g2d,baseImage);
+//        g2d.drawImage(baseImage, 0, 0, null);
         bi.flush();
         return bi;
     }

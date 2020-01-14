@@ -2201,7 +2201,7 @@ public class CrclSwingClientInner {
                 el = commandStatusLog.pollFirst();
                 i++;
                 if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
-                    printer.printRecord(headers);
+                    printer.printRecord((Object[])headers);
                 }
             }
         } else {
@@ -2209,7 +2209,7 @@ public class CrclSwingClientInner {
                 printLogElement(el, printer);
                 i++;
                 if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
-                    printer.printRecord(headers);
+                    printer.printRecord((Object[])headers);
                 }
             }
         }

@@ -2176,7 +2176,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final PoseType serverSidePose = serverSideStatus.getPoseStatus().getPose();
             if (null != serverSidePose) {
                 final PoseType serverSidePoseCopy = copy(serverSidePose);
-                assert (null != serverSidePoseCopy);
+                if(null == serverSidePoseCopy) {
+                    throw new NullPointerException("serverSidePoseCopy");
+                }
                 serverSideStatus.getGuardsStatuses().setTriggerPose(serverSidePoseCopy);
             }
         }

@@ -79,6 +79,7 @@ import static crcl.ui.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
+import crcl.ui.misc.ProgramPlotter;
 import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -88,7 +89,6 @@ import static crcl.utils.CRCLPosemath.vector;
 import crcl.utils.CRCLSocket;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
-import crcl.utils.ProgramPlotter;
 import crcl.utils.Utils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import diagapplet.plotter.PlotData;
@@ -3441,11 +3441,7 @@ public class CrclSwingClientJPanel
             for (int i = 0; i < dtm.getRowCount(); i++) {
                 for (int j = 0; j < dtm.getColumnCount(); j++) {
                     Object o = dtm.getValueAt(i, j);
-                    Class<?> clss = dtm.getColumnClass(j);
-                    if (!clss.isInstance(o)) {
-                        System.err.println("Bad object : " + o + " at " + i + "," + j + ": columnClass =" + clss);
-                        dtm.setValueAt(null, i, j);
-                    }
+                    checkClearTableModelValue(dtm, j, o, i);
                 }
             }
 
@@ -3456,6 +3452,15 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
         programLineShowing = -1;
+    }
+
+    @SuppressWarnings("nullness")
+    private void checkClearTableModelValue(DefaultTableModel dtm, int j, Object o, int i) {
+        Class<?> clss = dtm.getColumnClass(j);
+        if (!clss.isInstance(o)) {
+            System.err.println("Bad object : " + o + " at " + i + "," + j + ": columnClass =" + clss);
+            dtm.setValueAt(null, i, j);
+        }
     }
 
     /**

@@ -36,6 +36,7 @@ import java.util.logging.Logger;
  */
 public class DefaultMain {
 
+    
     public static void main(String[] args) {
         String mode = "Launcher";
         for (int i = 0; i < args.length; i++) {

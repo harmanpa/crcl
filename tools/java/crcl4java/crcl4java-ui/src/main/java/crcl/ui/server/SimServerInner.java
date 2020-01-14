@@ -2341,7 +2341,9 @@ public class SimServerInner {
 
             case GUARD_LIMIT_REACHED:
                 executeStopMotionCmd();
-                assert (null != crclServerSocket) : "null==crclServerSocket";
+                if(null == crclServerSocket)  {
+                    throw new RuntimeException("null==crclServerSocket");
+                }
                 crclServerSocket.comleteGuardTrigger();
                 break;
         }

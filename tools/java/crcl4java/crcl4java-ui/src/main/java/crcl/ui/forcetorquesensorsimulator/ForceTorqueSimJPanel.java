@@ -5,7 +5,6 @@
  */
 package crcl.ui.forcetorquesensorsimulator;
 
-import com.sun.istack.logging.Logger;
 import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
@@ -43,6 +42,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -525,7 +525,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 crclServerSocket.close();
             }
         } catch (Exception ex) {
-            Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "connect=" + doStart, ex);
+            LOGGER.log(Level.SEVERE, "connect=" + doStart, ex);
         }
     }//GEN-LAST:event_jCheckBoxStartSensorOutServerActionPerformed
 
@@ -813,7 +813,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
     }
 
-    private static final Logger LOGGER = Logger.getLogger(ForceTorqueSimJPanel.class);
+    private static final Logger LOGGER = Logger.getLogger(ForceTorqueSimJPanel.class.getName());
 
     public int getCRCLSensorOutPort() {
         if (crclServerSocket != null) {
@@ -921,7 +921,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         try {
             startServer(port);
         } catch (Exception ex) {
-            Logger.getLogger(ForceTorqueSimJPanel.class).log(Level.SEVERE, "port=" + port, ex);
+            LOGGER.log(Level.SEVERE, "port=" + port, ex);
         }
     }
 

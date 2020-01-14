@@ -205,7 +205,7 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    PoseType getPose(/*@Nullable*/CRCLStatusType stat) {
+    PoseType getPose(@Nullable CRCLStatusType stat) {
         if (stat != null) {
             PoseStatusType poseStatus = stat.getPoseStatus();
             if (null != poseStatus) {
@@ -223,7 +223,7 @@ public class CRCLPosemath {
 //     * modified.
 //     */
 //    public static @Nullable
-//    PointType copy(/*@Nullable*/PointType pt) {
+//    PointType copy(@Nullable PointType pt) {
 //        if (null == pt) {
 //            return null;
 //        }
@@ -234,7 +234,6 @@ public class CRCLPosemath {
 //        newPt.setZ(pt.getZ());
 //        return newPt;
 //    }
-
     /**
      * Extract the X and Y coordinates for a Point2D.Double. The Z coordinate is
      * ignored.
@@ -311,7 +310,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    PoseType copyNullable(/*@Nullable*/PoseType pose) {
+//    PoseType copyNullable(@Nullable PoseType pose) {
 //        if (null == pose) {
 //            return null;
 //        }
@@ -703,7 +702,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    GripperStatusType copy(/*@Nullable*/GripperStatusType status) {
+//    GripperStatusType copy(@Nullable GripperStatusType status) {
 //        if (null == status) {
 //            return null;
 //        }
@@ -758,7 +757,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    PoseStatusType copy(/*@Nullable*/PoseStatusType status) {
+//    PoseStatusType copy(@Nullable PoseStatusType status) {
 //        if (null == status) {
 //            return null;
 //        }
@@ -786,7 +785,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    TwistType copy(/*@Nullable*/TwistType twist) {
+//    TwistType copy(@Nullable TwistType twist) {
 //        if (null == twist) {
 //            return null;
 //        }
@@ -802,7 +801,6 @@ public class CRCLPosemath {
 //        }
 //        return newTwist;
 //    }
-
 //    /**
 //     * Copy or clone a command status.
 //     *
@@ -811,7 +809,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    WrenchType copy(/*@Nullable*/WrenchType wrench) {
+//    WrenchType copy(@Nullable WrenchType wrench) {
 //        if (null == wrench) {
 //            return null;
 //        }
@@ -836,7 +834,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    JointStatusesType copy(/*@Nullable*/JointStatusesType status) {
+//    JointStatusesType copy(@Nullable JointStatusesType status) {
 //        if (null == status) {
 //            return null;
 //        }
@@ -878,7 +876,7 @@ public class CRCLPosemath {
 //     * independently modified.
 //     */
 //    public static @Nullable
-//    CommandStatusType copy(/*@Nullable*/CommandStatusType status) {
+//    CommandStatusType copy(@Nullable CommandStatusType status) {
 //        if (null == status) {
 //            return null;
 //        }
@@ -894,7 +892,6 @@ public class CRCLPosemath {
 //        newStatus.setOverridePercent(status.getOverridePercent());
 //        return newStatus;
 //    }
-
     /**
      * Copy or clone the pose.
      *
@@ -973,7 +970,9 @@ public class CRCLPosemath {
                 setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
                 if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
                     final PoseType endPositionCopy = copy(moveToCmdIn.getEndPosition());
-                    assert(null!=endPositionCopy);
+                    if (null == endPositionCopy) {
+                        throw new NullPointerException("endPositionCopy");
+                    }
                     moveToCmdOut.setEndPosition(endPositionCopy);
                 } else {
                     moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
@@ -1026,7 +1025,6 @@ public class CRCLPosemath {
         programOut.setEndCanon(endCmdOut);
         return programOut;
     }
-
 
     /**
      * Compute a transform such that two points on a rigid body taken in one
@@ -1143,7 +1141,7 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    PointType getPoint(/*@Nullable*/CRCLStatusType stat) {
+    PointType getPoint(@Nullable CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1154,7 +1152,7 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    VectorType getXAxis(/*@Nullable*/CRCLStatusType stat) {
+    VectorType getXAxis(@Nullable CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1165,7 +1163,7 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    VectorType getZAxis(/*@Nullable*/CRCLStatusType stat) {
+    VectorType getZAxis(@Nullable CRCLStatusType stat) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (pose != null) {
@@ -1175,7 +1173,7 @@ public class CRCLPosemath {
         return null;
     }
 
-    public static void setPose(/*@Nullable*/CRCLStatusType stat, PoseType pose) {
+    public static void setPose(@Nullable CRCLStatusType stat, PoseType pose) {
         if (null != stat) {
             PoseStatusType poseStatus = stat.getPoseStatus();
             if (null != poseStatus) {
@@ -1188,7 +1186,7 @@ public class CRCLPosemath {
         }
     }
 
-    public static void setPoint(/*@Nullable*/CRCLStatusType stat, PointType pt) {
+    public static void setPoint(@Nullable CRCLStatusType stat, PointType pt) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (null != pose) {
@@ -1201,7 +1199,7 @@ public class CRCLPosemath {
         }
     }
 
-    public static void setXAxis(/*@Nullable*/CRCLStatusType stat, VectorType xAxis) {
+    public static void setXAxis(@Nullable CRCLStatusType stat, VectorType xAxis) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (null != pose) {
@@ -1214,7 +1212,7 @@ public class CRCLPosemath {
         }
     }
 
-    public static void setZAxis(/*@Nullable*/CRCLStatusType stat, VectorType zAxis) {
+    public static void setZAxis(@Nullable CRCLStatusType stat, VectorType zAxis) {
         if (stat != null) {
             PoseType pose = getPose(stat);
             if (null != pose) {

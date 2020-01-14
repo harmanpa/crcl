@@ -38,6 +38,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -69,7 +70,7 @@ public class XpathUtils {
         documentBuilder = documentBuilderFactory.newDocumentBuilder();
     }
 
-    public String getDocumentation(/*@Nullable*/File schemaFiles[], String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
+    public String getDocumentation(@Nullable File schemaFiles[], String name) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
         return queryXml(schemaFiles, "/schema/complexType[@name=\"" + name + "\"]/annotation/documentation/text()");
     }
 
@@ -94,7 +95,7 @@ public class XpathUtils {
         return nodeListToString(nl);
     }
 
-    public String queryXml(/*@Nullable*/File fa[], String query) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
+    public String queryXml(@Nullable File fa[], String query) throws SAXException, IOException, XPathExpressionException, ParserConfigurationException {
         StringBuilder sb = new StringBuilder();
         if (null != fa) {
             for (File f : fa) {
@@ -103,6 +104,7 @@ public class XpathUtils {
                 }
             }
         }
+        
         return sb.toString();
     }
 
