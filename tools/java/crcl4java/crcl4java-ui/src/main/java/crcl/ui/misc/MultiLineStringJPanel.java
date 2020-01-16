@@ -274,6 +274,9 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         panel.dialog = _dialog;
         _dialog.add(panel);
         _dialog.pack();
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            _dialog.toFront();
+        });
         _dialog.setVisible(true);
         return !panel.cancelled;
     }
@@ -291,22 +294,22 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     public static XFuture<Boolean> showException(Throwable throwable) {
-        return showText(throwable.getMessage()+"\n\n" + throwable.toString(), null, "Exception: "+throwable.getMessage(), false, true);
+        return showText(throwable.getMessage() + "\n\n" + throwable.toString(), null, "Exception: " + throwable.getMessage(), false, true);
     }
 
     public static XFuture<Boolean> showException(Throwable throwable, StackTraceElement trace[]) {
-        return showText(throwable.getMessage()+"\n\n" + throwable.toString() + "\n\n Thrown from:\r\n" + XFuture.traceToString(throwable.getStackTrace()) + "\n\n Logged from:\r\n" + XFuture.traceToString(trace), null, "Exception : "+throwable.getMessage(), false, true);
+        return showText(throwable.getMessage() + "\n\n" + throwable.toString() + "\n\n Thrown from:\r\n" + XFuture.traceToString(throwable.getStackTrace()) + "\n\n Logged from:\r\n" + XFuture.traceToString(trace), null, "Exception : " + throwable.getMessage(), false, true);
     }
 
     public static XFuture<Boolean> showText(String init) {
         return showText(init, null, "", false, false);
     }
 
-    public static XFuture<Boolean> forceShowText(String init , JFrame parentJframe) {
-        if(null == parentJframe) {
+    public static XFuture<Boolean> forceShowText(String init, JFrame parentJframe) {
+        if (null == parentJframe) {
             throw new IllegalArgumentException("null == parentJframe");
         }
-        return showText(init, parentJframe, "Message from " +parentJframe.getTitle(), false, true);
+        return showText(init, parentJframe, "Message from " + parentJframe.getTitle(), false, true);
     }
 
     public static XFuture<Boolean> showText(String init,
@@ -330,15 +333,16 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
         final XFuture<Boolean> ret = new XFuture<>("showText(" + init + "," + _title + ")");
         if (!disableShowText || (forceShow && !ignoreForceShow)) {
             runOnDispatchThread(() -> {
-                
+
                 final JDialog dialog;
-                if(null != _owner) {
+                if (null != _owner) {
                     dialog = new JDialog(_owner, _title, _modal);
                 } else {
                     dialog = new JDialog();
                     dialog.setTitle(_title);
                     dialog.setModal(_modal);
                 }
+
                 ret.complete(showTextPrivate(dialog, init));
             });
         } else {

@@ -1733,6 +1733,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new IllegalStateException("ssocketToStateMap.get(crclSocket) returned null");
                     }
                     List<CRCLCommandInstanceType> cmdInstances;
+
                     try {
                         SocketChannel s = ((SocketChannel) key.channel());
                         try {
@@ -1761,10 +1762,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             }
                         } catch (Exception ex) {
                             if (!closing && (!(ex instanceof ClosedChannelException) && !(ex.getCause() instanceof ClosedChannelException))) {
-                                System.err.println("port =" + port + ",closing = " + closing);
-                                Logger
+                                final Logger logger = Logger
                                         .getLogger(CRCLServerSocket.class
-                                                .getName()).log(Level.SEVERE, "", ex);
+                                                .getName());
+                                logger.log(Level.SEVERE,"EXCEPTION: " + ex.getMessage() + ", startTrace = " + Utils.traceToString(startTrace));
+                                final String exInfoString = " port =" + port + ",closing = " + closing + ",key=" + key;
+                                logger.log(Level.SEVERE,"EXCEPTION: " + ex.getMessage() + exInfoString);
+                                logger.log(Level.SEVERE, "", ex);
                             }
                             handleEvent(CRCLServerSocketEvent.exceptionOccured(state, ex));
                             try {
@@ -1790,10 +1794,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         }
                     } catch (Exception ex2) {
                         if (!closing && (!(ex2 instanceof ClosedChannelException) && !(ex2.getCause() instanceof ClosedChannelException))) {
-                            System.err.println("port =" + port + ",closing = " + closing);
-                            Logger
-                                    .getLogger(CRCLServerSocket.class
-                                            .getName()).log(Level.SEVERE, "", ex2);
+                            final Logger logger = Logger
+                                        .getLogger(CRCLServerSocket.class
+                                                .getName());
+                            logger.log(Level.SEVERE, "port =" + port + ",closing = " + closing, ex2);
                         }
                         handleEvent(CRCLServerSocketEvent.exceptionOccured(state, ex2));
                     }
@@ -2176,7 +2180,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final PoseType serverSidePose = serverSideStatus.getPoseStatus().getPose();
             if (null != serverSidePose) {
                 final PoseType serverSidePoseCopy = copy(serverSidePose);
-                if(null == serverSidePoseCopy) {
+                if (null == serverSidePoseCopy) {
                     throw new NullPointerException("serverSidePoseCopy");
                 }
                 serverSideStatus.getGuardsStatuses().setTriggerPose(serverSidePoseCopy);

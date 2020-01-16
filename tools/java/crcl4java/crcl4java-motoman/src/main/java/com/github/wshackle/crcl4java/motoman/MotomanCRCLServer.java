@@ -609,7 +609,7 @@ public class MotomanCRCLServer implements AutoCloseable {
             if (null != pulseData && null != actuateJointsLastJointTarget) {
                 System.arraycopy(pulseData.lPos, 0, lastJointPos, 0, lastJointPos.length);
                 int diffMax = computeJointDiffMax(pulseData.lPos, actuateJointsLastJointTarget.getDst());
-                if (diffMax < 100) {
+                if (diffMax < 10) {
                     getCommandStatus().setCommandState(CRCL_DONE);
                 }
             } else {
