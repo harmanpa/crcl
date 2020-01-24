@@ -166,12 +166,30 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     @Override
-    public XFutureVoid always(Runnable r) {
-        return this.always(defaultName(), r);
+    public XFutureVoid alwaysRun(Runnable r) {
+        return this.alwaysRun(defaultName(), r);
+    }
+    
+    public <U> XFuture<U> alwaysComposeToOutput(Supplier<? extends CompletionStage<U>> supplier) {
+        return this.alwaysComposeToOutput(defaultName(), supplier);
     }
 
+    public <U> XFuture<U> alwaysComposeToOutput(String name, Supplier<? extends CompletionStage<U>>supplier) {
+        return super.alwaysCompose(name, supplier)
+                .thenApply((ComposedPair<Void,U> pair) -> pair.getOutput());
+    }
+
+     public <U> XFuture<U> alwaysComposeAsyncToOutput(Supplier<? extends CompletionStage<U>> supplier ,ExecutorService service) {
+        return this.alwaysComposeToOutput(defaultName(), supplier);
+    }
+
+    public <U> XFuture<U> alwaysComposeAsyncToOutput(String name, Supplier<? extends CompletionStage<U>>supplier, ExecutorService service) {
+        return super.alwaysComposeAsync(name, supplier,service)
+                .thenApply((ComposedPair<Void,U> pair) -> pair.getOutput());
+    }
+    
     @Override
-    public XFutureVoid always(String name, Runnable r) {
+    public XFutureVoid alwaysRun(String name, Runnable r) {
         return staticwrapvoid(name, super.handle((x, t) -> {
             try {
                 r.run();
@@ -197,12 +215,12 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     @Override
-    public XFutureVoid alwaysCompose(Supplier<XFutureVoid> supplier) {
-        return this.alwaysCompose(defaultName(), supplier);
+    public XFutureVoid alwaysComposeToVoid(Supplier<XFutureVoid> supplier) {
+        return this.alwaysComposeToVoid(defaultName(), supplier);
     }
 
     @Override
-    public XFutureVoid alwaysCompose(String name, Supplier<XFutureVoid> supplier) {
+    public XFutureVoid alwaysComposeToVoid(String name, Supplier<XFutureVoid> supplier) {
         XFutureVoid retXFV = new XFutureVoid(name);
         XFutureVoid orig
                 = staticwrapvoid(name, super.handle((x, t) -> {
@@ -242,12 +260,13 @@ public class XFutureVoid extends XFuture<Void> {
         return retXFV;
     }
 
-    public XFutureVoid alwaysAsync(Runnable r, ExecutorService service) {
-        return this.alwaysAsync(defaultName(), r, service);
+    @Override
+    public XFutureVoid alwaysRunAsync(Runnable r, ExecutorService service) {
+        return this.alwaysRunAsync(defaultName(), r, service);
     }
 
     @Override
-    public XFutureVoid alwaysAsync(String name, Runnable r, ExecutorService service) {
+    public XFutureVoid alwaysRunAsync(String name, Runnable r, ExecutorService service) {
         return staticwrapvoid(name, super.handleAsync((x, t) -> {
             try {
                 r.run();
@@ -272,11 +291,13 @@ public class XFutureVoid extends XFuture<Void> {
         }, service));
     }
 
-    public XFutureVoid alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
-        return alwaysComposeAsync(defaultName(), supplier, service);
+    @Override
+    public XFutureVoid alwaysComposeAsyncToVoid(Supplier<XFutureVoid> supplier, ExecutorService service) {
+        return alwaysComposeAsyncToVoid(defaultName(), supplier, service);
     }
 
-    public XFutureVoid alwaysComposeAsync(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
+    @Override
+    public XFutureVoid alwaysComposeAsyncToVoid(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
         XFutureVoid retXFV = new XFutureVoid(name);
         XFutureVoid orig
                 = staticwrapvoid(retXFV.getName() + ".wrap",

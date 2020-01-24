@@ -153,6 +153,10 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 
     private final ConcurrentLinkedDeque<File> propsFiles = new ConcurrentLinkedDeque<>();
 
+    public boolean isRunning() {
+        return inner.isRunning();
+    }
+    
     public void restartServer() {
         try {
             inner.restartServer(inner.getServerIsDaemon());

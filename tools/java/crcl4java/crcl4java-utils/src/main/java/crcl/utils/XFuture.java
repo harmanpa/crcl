@@ -1481,11 +1481,11 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name, super.exceptionally(fn));
     }
 
-    public XFuture<T> always(Runnable r) {
-        return this.always(defaultName(), r);
+    public XFuture<T> alwaysRun(Runnable r) {
+        return this.alwaysRun(defaultName(), r);
     }
 
-    public XFuture<T> always(String name, Runnable r) {
+    public XFuture<T> alwaysRun(String name, Runnable r) {
         return wrap(name, super.handle((x, t) -> {
             try {
                 r.run();
@@ -1497,7 +1497,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         }));
     }
 
-    public XFuture<T> alwaysAsync(String name, Runnable r, ExecutorService service) {
+    public XFuture<T> alwaysRunAsync(String name, Runnable r, ExecutorService service) {
         return wrap(name, super.handleAsync((x, t) -> {
             try {
                 r.run();
@@ -1509,8 +1509,8 @@ public class XFuture<T> extends CompletableFuture<T> {
         }, service));
     }
 
-    public XFuture<T> alwaysAsync(Runnable r, ExecutorService service) {
-        return this.alwaysAsync(defaultName(), r, service);
+    public XFuture<T> alwaysRunAsync(Runnable r, ExecutorService service) {
+        return this.alwaysRunAsync(defaultName(), r, service);
     }
 
     @Override
@@ -1818,18 +1818,37 @@ public class XFuture<T> extends CompletableFuture<T> {
         return wrap(name, super.thenApply(fn));
     }
 
-    public XFuture<T> alwaysCompose(Supplier<XFutureVoid> supplier) {
+    public static class ComposedPair<T, U> {
+
+        private final T input;
+        private final U output;
+
+        private ComposedPair(T input, U output) {
+            this.input = input;
+            this.output = output;
+        }
+
+        public T getInput() {
+            return input;
+        }
+
+        public U getOutput() {
+            return output;
+        }
+    }
+
+    public <U> XFuture<ComposedPair<T, U>> alwaysCompose(Supplier<XFuture<U>> supplier) {
         return this.alwaysCompose(defaultName(), supplier);
     }
 
-    public XFuture<T> alwaysCompose(String name, Supplier<XFutureVoid> supplier) {
-        XFuture<T> retXF = new XFuture<T>(name);
+    public <U> XFuture<ComposedPair<T, U>> alwaysCompose(String name, Supplier<? extends CompletionStage<U>> supplier) {
+        XFuture<ComposedPair<T, U>> retXF = new XFuture<>(name);
         XFuture<T> orig
                 = wrap(name,
                         super.handle((T x, Throwable t) -> {
                             try {
                                 supplier.get()
-                                        .thenRun(() -> {
+                                        .thenAccept((U u) -> {
                                             if (null != t) {
                                                 retXF.completeExceptionally(t);
                                                 if (t instanceof RuntimeException) {
@@ -1838,7 +1857,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                                                     throw new RuntimeException(t);
                                                 }
                                             }
-                                            retXF.complete((T) x);
+                                            retXF.complete(new ComposedPair<>(x, u));
                                         });
                             } catch (Throwable t2) {
                                 logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
@@ -1863,18 +1882,18 @@ public class XFuture<T> extends CompletableFuture<T> {
         return retXF;
     }
 
-    public XFuture<T> alwaysComposeAsync(Supplier<XFutureVoid> supplier, ExecutorService service) {
+    public <U> XFuture<ComposedPair<T, U>> alwaysComposeAsync(Supplier<? extends CompletionStage<U>> supplier, ExecutorService service) {
         return this.alwaysComposeAsync(defaultName(), supplier, service);
     }
 
-    public XFuture<T> alwaysComposeAsync(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
-        XFuture<T> retXF = new XFuture<T>(name);
+    public <U> XFuture<ComposedPair<T, U>> alwaysComposeAsync(String name, Supplier<? extends CompletionStage<U>> supplier, ExecutorService service) {
+        XFuture<ComposedPair<T, U>> retXF = new XFuture<>(name);
         XFuture<T> orig
                 = wrap(name,
                         super.handleAsync((T x, Throwable t) -> {
                             try {
                                 supplier.get()
-                                        .thenRun(() -> {
+                                        .thenAccept((U u) -> {
                                             if (null != t) {
                                                 retXF.completeExceptionally(t);
                                                 if (t instanceof RuntimeException) {
@@ -1883,7 +1902,7 @@ public class XFuture<T> extends CompletableFuture<T> {
                                                     throw new RuntimeException(t);
                                                 }
                                             }
-                                            retXF.complete((T) x);
+                                            retXF.complete(new ComposedPair<>(x, u));
                                         });
                             } catch (Throwable t2) {
                                 logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
@@ -1908,4 +1927,114 @@ public class XFuture<T> extends CompletableFuture<T> {
         retXF.alsoCancelAdd(orig);
         return retXF;
     }
+
+    public XFuture<T> alwaysComposeToInput(Supplier<XFutureVoid> supplier) {
+        return this.alwaysComposeToInput(defaultName(), supplier);
+    }
+
+    public XFuture<T> alwaysComposeToInput(String name, Supplier<XFutureVoid> supplier) {
+        return alwaysCompose(name, supplier)
+                .thenApply((ComposedPair<T, Void> pair) -> pair.getInput());
+    }
+
+    public XFuture<T> alwaysComposeAsyncToInput(Supplier<XFutureVoid> supplier, ExecutorService service) {
+        return this.alwaysComposeAsyncToInput(defaultName(), supplier, service);
+    }
+
+    public XFuture<T> alwaysComposeAsyncToInput(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
+        return alwaysCompose(name, supplier)
+                .thenApply((ComposedPair<T, Void> pair) -> pair.getInput());
+    }
+
+    public XFutureVoid alwaysComposeToVoid(Supplier<XFutureVoid> supplier) {
+        return this.alwaysComposeToVoid(defaultName(), supplier);
+    }
+
+    public XFutureVoid alwaysComposeToVoid(String name, Supplier<XFutureVoid> supplier) {
+        XFutureVoid retXF = new XFutureVoid(name);
+        XFuture<T> orig
+                = wrap(name,
+                        super.handle((T x, Throwable t) -> {
+                            try {
+                                supplier.get()
+                                        .thenRun(() -> {
+                                            if (null != t) {
+                                                retXF.completeExceptionally(t);
+                                                if (t instanceof RuntimeException) {
+                                                    throw ((RuntimeException) t);
+                                                } else {
+                                                    throw new RuntimeException(t);
+                                                }
+                                            }
+                                            retXF.complete();
+                                        });
+                            } catch (Throwable t2) {
+                                logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
+                                if (null == t) {
+                                    if (t2 instanceof RuntimeException) {
+                                        throw ((RuntimeException) t2);
+                                    } else {
+                                        throw new RuntimeException(t2);
+                                    }
+                                }
+                            }
+                            if (null != t) {
+                                if (t instanceof RuntimeException) {
+                                    throw ((RuntimeException) t);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return x;
+                        }));
+        retXF.alsoCancelAdd(orig);
+        return retXF;
+    }
+
+    public XFutureVoid alwaysComposeAsyncToVoid(Supplier<XFutureVoid> supplier, ExecutorService service) {
+        return this.alwaysComposeAsyncToVoid(defaultName(), supplier, service);
+    }
+
+    public XFutureVoid alwaysComposeAsyncToVoid(String name, Supplier<XFutureVoid> supplier, ExecutorService service) {
+        XFutureVoid retXF = new XFutureVoid(name);
+        XFuture<T> orig
+                = wrap(name,
+                        super.handleAsync((T x, Throwable t) -> {
+                            try {
+                                supplier.get()
+                                        .thenRun(() -> {
+                                            if (null != t) {
+                                                retXF.completeExceptionally(t);
+                                                if (t instanceof RuntimeException) {
+                                                    throw ((RuntimeException) t);
+                                                } else {
+                                                    throw new RuntimeException(t);
+                                                }
+                                            }
+                                            retXF.complete();
+                                        });
+                            } catch (Throwable t2) {
+                                logStaticException("Exception in XFutureVoid  " + XFuture.this.toString(), t2);
+                                if (null == t) {
+                                    if (t2 instanceof RuntimeException) {
+                                        throw ((RuntimeException) t2);
+                                    } else {
+                                        throw new RuntimeException(t2);
+                                    }
+                                }
+                            }
+                            if (null != t) {
+                                if (t instanceof RuntimeException) {
+                                    throw ((RuntimeException) t);
+                                } else {
+                                    throw new RuntimeException(t);
+                                }
+                            }
+                            return x;
+                        },
+                                service));
+        retXF.alsoCancelAdd(orig);
+        return retXF;
+    }
+
 }

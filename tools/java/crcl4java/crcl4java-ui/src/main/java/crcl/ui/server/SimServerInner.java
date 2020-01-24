@@ -40,6 +40,8 @@ import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
+import crcl.base.JointPositionToleranceSettingType;
+import crcl.base.JointPositionsTolerancesType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
@@ -252,9 +254,9 @@ public class SimServerInner {
             if (null != minCartesianLimit) {
                 settingsStatus.setMinCartesianLimit(minCartesianLimit);
             }
-            PoseToleranceType poseTolerance = newSettingsStatus.getPoseTolerance();
-            if (null != poseTolerance) {
-                settingsStatus.setPoseTolerance(poseTolerance);
+            PoseToleranceType endPoseTolerance = newSettingsStatus.getEndPoseTolerance();
+            if (null != endPoseTolerance) {
+                settingsStatus.setEndPoseTolerance(endPoseTolerance);
             }
             settingsStatus.getRobotParameterSetting().clear();
             settingsStatus.getRobotParameterSetting().addAll(newSettingsStatus.getRobotParameterSetting());
@@ -1034,10 +1036,29 @@ public class SimServerInner {
                 this.simulatedTeleportToPose(goalPose);
             }
         }
+    }
 
+    public @Nullable
+    PoseToleranceType getEndPoseTolerance() {
+        if (null == status) {
+            return null;
+        }
+        SettingsStatusType settingsStatus = status.getSettingsStatus();
+        if (null == settingsStatus) {
+            return null;
+        }
+        return settingsStatus.getEndPoseTolerance();
     }
 
     public boolean isFinishedMove() {
+        PoseToleranceType endPoseTol = getEndPoseTolerance();
+        final PoseType currentPose = status.getPoseStatus().getPose();
+        if (null != goalPose && null != endPoseTol && null != currentPose) {
+            boolean goalInTol = PoseToleranceChecker.isInTolerance(goalPose, currentPose, endPoseTol, status.getSettingsStatus().getAngleUnitName());
+            if (goalInTol) {
+                return true;
+            }
+        }
         double jpa1[] = this.jointPositions;
         if (null == jpa1) {
             throw new IllegalStateException("null == jointPositions");
@@ -1049,15 +1070,31 @@ public class SimServerInner {
         // double currentJointPositions[]= 
         double jpa2[] = jpa1;
         double cjpa2[] = cjpa1;
+        JointPositionsTolerancesType jointTolSettings = status.getSettingsStatus().getJointTolerances();
+
         double jointdiffs[] = new double[jpa2.length];
-        Arrays.setAll(jointdiffs, (i) -> Math.abs(jpa2[i] - cjpa2[i]));
-        double maxdiff = Arrays.stream(jointdiffs).max().orElse(0);
-        if (maxdiff > getJointDiffMax()) {
-            return false;
+        double jointtols[] = new double[jpa2.length];
+        for (int i = 0; i < jointtols.length; i++) {
+            jointtols[i] = getJointDiffMax();
         }
-        Arrays.setAll(jointdiffs, (i) -> Math.abs(jpa2[i] - cjpa2[i]));
-        maxdiff = Arrays.stream(jointdiffs).max().orElse(0);
-        return maxdiff <= getJointDiffMax();
+        if (null != jointTolSettings && null == goalPose) {
+            for (int i = 0; i < jointTolSettings.getSetting().size(); i++) {
+                JointPositionToleranceSettingType setting = jointTolSettings.getSetting().get(i);
+                int n = setting.getJointNumber();
+                if (n > 1 && n <= jointtols.length) {
+                    jointtols[n-1] = setting.getJointPositionTolerance();
+                }
+            }
+        }
+        boolean jointTolExceeded = false;
+        for (int i = 0; i < jointdiffs.length; i++) {
+            double jointdiff = Math.abs(jpa2[i] - cjpa2[i]);
+            jointdiffs[i] = jointdiff;
+            if(jointdiffs[i] > jointtols[i]) {
+                jointTolExceeded = true;
+            }
+        }
+        return jointTolExceeded;
     }
 
     public @Nullable
@@ -1949,7 +1986,8 @@ public class SimServerInner {
                     outer.updatePanels(jointschanged);
                     if (executingMoveCommand
                             && this.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                        if (!jointschanged) {
+                        boolean finished = (null != goalPose  && isFinishedMove());
+                        if (!jointschanged || finished) {
                             if (null == newGoalPose
                                     || null == this.waypoints
                                     || this.currentWaypoint >= this.waypoints.size()) {
@@ -2029,7 +2067,6 @@ public class SimServerInner {
     }
 
     private double getJointDiffMax() {
-
         return jointSpeedMax * delayMillis * 1e-3;
     }
 
@@ -2341,7 +2378,7 @@ public class SimServerInner {
 
             case GUARD_LIMIT_REACHED:
                 executeStopMotionCmd();
-                if(null == crclServerSocket)  {
+                if (null == crclServerSocket) {
                     throw new RuntimeException("null==crclServerSocket");
                 }
                 crclServerSocket.comleteGuardTrigger();
@@ -2853,7 +2890,7 @@ public class SimServerInner {
                     SetEndPoseToleranceType endPoseTol = (SetEndPoseToleranceType) cmd;
                     this.setExpectedEndPoseTolerance(endPoseTol.getTolerance());
                     setCommandState(CommandStateEnumType.CRCL_DONE);
-                    settingsStatus.setPoseTolerance(endPoseTol.getTolerance());
+                    settingsStatus.setEndPoseTolerance(endPoseTol.getTolerance());
                 } else if (cmd instanceof SetIntermediatePoseToleranceType) {
                     SetIntermediatePoseToleranceType intermediatePoseTol = (SetIntermediatePoseToleranceType) cmd;
                     this.setExpectedIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
@@ -3005,6 +3042,22 @@ public class SimServerInner {
     static final private Map<Integer, CRCLServerSocket> serverMap = new ConcurrentHashMap<>();
     static final private Map<Integer, StackTraceElement[]> traceMap = new ConcurrentHashMap<>();
     static final private Map<Integer, Thread> threadMap = new ConcurrentHashMap<>();
+
+    public boolean isRunning() {
+        if (!SimServerInner.runningServers.contains(this)) {
+            return false;
+        } else if (null == this.crclServerSocket) {
+            return false;
+        } else if (!this.crclServerSocket.isStartingSocketChannel() && (this.crclServerSocket.isClosed() || !this.crclServerSocket.isRunning())) {
+            return false;
+        } else if (this.simulationThread == null) {
+            return false;
+        } else if (!this.simulationThread.isAlive()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     public synchronized void restartServer(boolean asDaemon) {
         if (null == cmdSchema) {

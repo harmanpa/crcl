@@ -51,6 +51,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         pack();
         this.simServerJPanel1.setMenuOuter(this);
     }
+    
+    public boolean isRunning() {
+        return this.simServerJPanel1.isRunning();
+    }
 
     public void restartServer() {
         this.simServerJPanel1.restartServer();
