@@ -22,11 +22,14 @@
  */
 package crcl.utils.server;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public interface ServerJInternalFrameProviderFinderInterface {
-    
-    public ServerJInternalFrameProviderInterface findJInternalFrameProvider(String name, Object ...args);
+
+    public @Nullable
+    ServerJInternalFrameProviderInterface findJInternalFrameProvider(String name, Object... args);
 }

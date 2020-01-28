@@ -23,20 +23,22 @@
 package com.github.wshackle.fanuccrclservermain;
 
 import crcl.utils.server.ServerJInternalFrameProviderFinderInterface;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
- *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucCRCLServerJInternalFrameProviderFinder implements ServerJInternalFrameProviderFinderInterface {
 
     @Override
-    public FanucCRCLServerJInternalFrameProvider findJInternalFrameProvider(String name, Object... args) {
-        if(name.startsWith("FanucCRCLServer")) {
+    public @Nullable
+    FanucCRCLServerJInternalFrameProvider findJInternalFrameProvider(String name, Object... args) {
+        if (name.startsWith("FanucCRCLServer")) {
             return new FanucCRCLServerJInternalFrameProvider();
         } else {
             return null;
         }
     }
-    
+
 }

@@ -27,24 +27,29 @@ import static com.github.wshackle.fanuccrclservermain.FanucCRCLMain.DEFAULT_AGIL
 import crcl.utils.CRCLSocket;
 import crcl.utils.server.ServerJInternalFrameProviderInterface;
 import java.io.File;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
- *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class FanucCRCLServerJInternalFrameProvider implements ServerJInternalFrameProviderInterface {
 
-    private volatile FanucCRCLMain fanucCRCLMain;
-    private volatile FanucCRCLServerJInternalFrame fanucCRCLServerJInternalFrame;
+    private volatile @MonotonicNonNull
+    FanucCRCLMain fanucCRCLMain = null;
+    private volatile @MonotonicNonNull
+    FanucCRCLServerJInternalFrame fanucCRCLServerJInternalFrame = null;
 
     @Override
     public void start(Object... args) {
         try {
             FanucCRCLMain newFanucCrclMain = new FanucCRCLMain();
-            FanucCRCLServerJInternalFrame newFanucCRCLServerJInternalFrame = 
-                    getJInternalFrame();
+            FanucCRCLServerJInternalFrame newFanucCRCLServerJInternalFrame
+                    = getJInternalFrame();
             newFanucCrclMain.setDisplayInterface(newFanucCRCLServerJInternalFrame);
             boolean preferRobotNeighborhood = false;
             String neighborhoodname = DEFAULT_AGILITY_FANUC_NEIGHBORHOOD_NAME;
@@ -85,15 +90,15 @@ public class FanucCRCLServerJInternalFrameProvider implements ServerJInternalFra
                 }
             }
             newFanucCrclMain.startDisplayInterface();
-            newFanucCrclMain.start(preferRobotNeighborhood, neighborhoodname, remoteRobotHost, port); 
+            newFanucCrclMain.start(preferRobotNeighborhood, neighborhoodname, remoteRobotHost, port);
             fanucCRCLMain = newFanucCrclMain;
             fanucCRCLServerJInternalFrame = newFanucCRCLServerJInternalFrame;
             //            return runOnDispatchThread(() -> newFanuCRCLServerJInternalFrame(newFanucCrclMain))
-                    //                    .thenComposeToVoid(() -> newFanucCrclMain.startDisplayInterface())
-                    //                    .thenComposeToVoid(() -> newFanucCrclMain.start(fanucPreferRNN, fanucNeighborhoodName, fanucRobotHost, fanucCrclPort))
-                    //                    .thenRun(() -> {
-                    //                        this.fanuc = newFanucCrclMain;
-                    //                    });
+            //                    .thenComposeToVoid(() -> newFanucCrclMain.startDisplayInterface())
+            //                    .thenComposeToVoid(() -> newFanucCrclMain.start(fanucPreferRNN, fanucNeighborhoodName, fanucRobotHost, fanucCrclPort))
+            //                    .thenRun(() -> {
+            //                        this.fanuc = newFanucCrclMain;
+            //                    });
         } catch (Exception ex) {
             Logger.getLogger(FanucCRCLServerJInternalFrameProvider.class.getName()).log(Level.SEVERE, "", ex);
             if (ex instanceof RuntimeException) {
@@ -105,17 +110,17 @@ public class FanucCRCLServerJInternalFrameProvider implements ServerJInternalFra
     }
 
     @Override
-    public synchronized  FanucCRCLServerJInternalFrame getJInternalFrame() {
-       if(null == fanucCRCLServerJInternalFrame) {
-           FanucCRCLServerJInternalFrame newFanucCRCLServerJInternalFrame = new FanucCRCLServerJInternalFrame();
-           this.fanucCRCLServerJInternalFrame = newFanucCRCLServerJInternalFrame;
-           return newFanucCRCLServerJInternalFrame;
-       }
-       return fanucCRCLServerJInternalFrame;
+    public synchronized FanucCRCLServerJInternalFrame getJInternalFrame() {
+        if (null == fanucCRCLServerJInternalFrame) {
+            FanucCRCLServerJInternalFrame newFanucCRCLServerJInternalFrame = new FanucCRCLServerJInternalFrame();
+            this.fanucCRCLServerJInternalFrame = newFanucCRCLServerJInternalFrame;
+            return newFanucCRCLServerJInternalFrame;
+        }
+        return fanucCRCLServerJInternalFrame;
     }
-    
 
     private String name = "FanucCRCLServer";
+
     @Override
     public String getName() {
         return name;
@@ -127,44 +132,61 @@ public class FanucCRCLServerJInternalFrameProvider implements ServerJInternalFra
     }
 
     @Override
-    public File getPropertiesFile() {
-        return fanucCRCLServerJInternalFrame.getPropertiesFile();
+    public @Nullable
+    File getPropertiesFile() {
+        if (null != fanucCRCLServerJInternalFrame) {
+            return fanucCRCLServerJInternalFrame.getPropertiesFile();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public void setPropertiesFile(File propertiesFile) {
-        fanucCRCLMain.setPropertiesFile(propertiesFile);
-        fanucCRCLServerJInternalFrame.setPropertiesFile(propertiesFile);
+        final FanucCRCLMain localFanucCRCLMain = Objects.requireNonNull(fanucCRCLMain, "fanucCRCLMain");
+        localFanucCRCLMain.setPropertiesFile(propertiesFile);
+        final FanucCRCLServerJInternalFrame localFanucCRCLServerJInternalFrame = Objects.requireNonNull(fanucCRCLServerJInternalFrame, "fanucCRCLServerJInternalFrame");
+        localFanucCRCLServerJInternalFrame.setPropertiesFile(propertiesFile);
     }
 
     @Override
     public void saveProperties() {
-        fanucCRCLServerJInternalFrame.saveProperties();
+        final FanucCRCLServerJInternalFrame localFanucCRCLServerJInternalFrame = Objects.requireNonNull(fanucCRCLServerJInternalFrame, "fanucCRCLServerJInternalFrame");
+        localFanucCRCLServerJInternalFrame.saveProperties();
     }
 
     @Override
     public void loadProperties() {
-         fanucCRCLServerJInternalFrame.loadProperties();
+        final FanucCRCLServerJInternalFrame localFanucCRCLServerJInternalFrame = Objects.requireNonNull(fanucCRCLServerJInternalFrame, "fanucCRCLServerJInternalFrame");
+        localFanucCRCLServerJInternalFrame.loadProperties();
     }
 
     @Override
     public void setCrclPort(int crclPort) {
-        fanucCRCLMain.setLocalPort(crclPort);
+        final FanucCRCLMain localFanucCRCLMain = Objects.requireNonNull(fanucCRCLMain, "fanucCRCLMain");
+        localFanucCRCLMain.setLocalPort(crclPort);
     }
 
     @Override
     public int getCrclPort() {
-        return fanucCRCLMain.getLocalPort();
+        final FanucCRCLMain localFanucCRCLMain = Objects.requireNonNull(fanucCRCLMain, "fanucCRCLMain");
+        return localFanucCRCLMain.getLocalPort();
     }
 
     @Override
-    public String getRemoteRobotHost() {
-        return fanucCRCLMain.getRemoteRobotHost();
+    public @Nullable
+    String getRemoteRobotHost() {
+        if (null != fanucCRCLMain) {
+            return fanucCRCLMain.getRemoteRobotHost();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public void setRemotRobotHost(String remoteRobotHost) {
-        fanucCRCLMain.setRemoteRobotHost(remoteRobotHost);
+        final FanucCRCLMain localFanucCRCLMain = Objects.requireNonNull(fanucCRCLMain, "fanucCRCLMain");
+        localFanucCRCLMain.setRemoteRobotHost(remoteRobotHost);
     }
 
 }

@@ -26,12 +26,14 @@ import crcl.base.CRCLStatusType;
 import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
 import crcl.base.InitCanonType;
+import crcl.base.JointStatusesType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
+import crcl.base.SettingsStatusType;
 import crcl.base.VectorType;
 import static crcl.utils.CRCLCopier.copy;
 import java.awt.geom.Point2D;
@@ -72,6 +74,21 @@ public class CRCLPosemath {
 
     private CRCLPosemath() {
         // never to be called.
+    }
+
+    @SuppressWarnings("nullness")
+    public static void clearJointStatuses(CRCLStatusType status) {
+        status.setJointStatuses((JointStatusesType) null);
+    }
+
+    @SuppressWarnings("nullness")
+    public static void clearPoseStatus(CRCLStatusType status) {
+        status.setPoseStatus((PoseStatusType) null);
+    }
+
+    @SuppressWarnings("nullness")
+    public static void clearSettingsStatus(CRCLStatusType status) {
+        status.setSettingsStatus((SettingsStatusType) null);
     }
 
     /**

@@ -20,9 +20,11 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -33,6 +35,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -43,29 +46,36 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     /**
      * Creates new form FanucCRCLServerJInternalFrame
      */
+    @SuppressWarnings("initialization")
     public FanucCRCLServerJInternalFrame() {
         initComponents();
         jCheckBoxMenuItemDebug.setSelected(FanucCRCLMain.isDebug());
     }
-    
-    
+
+    @Override
     public IVar getOverrideVar() {
         return fanucCRCLServerJPanel1.getOverrideVar();
     }
 
+    @Override
     public void setMorSafetyStatVar(IVar morSafetyStatVar) {
         fanucCRCLServerJPanel1.setMorSafetyStatVar(morSafetyStatVar);
     }
 
-    public IVar getMorSafetyStatVar() {
+    @Override
+    public @Nullable
+    IVar getMorSafetyStatVar() {
         return fanucCRCLServerJPanel1.getMorSafetyStatVar();
     }
 
+    @Override
     public void setMoveGroup1ServoReadyVar(IVar var) {
         fanucCRCLServerJPanel1.setMoveGroup1ServoReadyVar(var);
     }
 
-    public IVar getMoveGroup1ServoReadyVar() {
+    @Override
+    public @Nullable
+    IVar getMoveGroup1ServoReadyVar() {
         return fanucCRCLServerJPanel1.getMoveGroup1ServoReadyVar();
     }
 
@@ -74,6 +84,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
      *
      * @param overrideVar new value of overrideVar
      */
+    @Override
     public void setOverrideVar(IVar overrideVar) {
         fanucCRCLServerJPanel1.setOverrideVar(overrideVar);
     }
@@ -86,7 +97,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         fanucCRCLServerJPanel1.launchPressureSensorServer();
     }
 
-
+    @SuppressWarnings("nullness")
     private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
@@ -100,27 +111,30 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     }
 
     public static Image getRobotImage() {
-        Image img = null;
+        final Image img;
         try {
-            img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
+            final URL robotImageSystemResourceUrl
+                    = Objects.requireNonNull(ClassLoader.getSystemResource("robot.png"), "ClassLoader.getSystemResource(\"robot.png\")");
+            img = ImageIO.read(robotImageSystemResourceUrl);
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
         }
         return img;
     }
+
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image BASE_IMAGE = getRobotImage();
-    public static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
+    private static final Image BASE_IMAGE = Objects.requireNonNull(getRobotImage(), "BASE_IMAGE");
+    public static final Image SERVER_IMAGE = Objects.requireNonNull(createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE), "SERVER_IMAGE");
 
-
-    private void shutDown() {
-        fanucCRCLServerJPanel1.shutDown();
-    }
-
+//    private void shutDown() {
+//        fanucCRCLServerJPanel1.shutDown();
+//    }
     private void launchWebServer() {
         fanucCRCLServerJPanel1.launchWebServer();
     }
 
+    @Override
     public JTextField getjTextFieldHostName() {
         return fanucCRCLServerJPanel1.getjTextFieldHostName();
     }
@@ -141,7 +155,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
                     JMenuItem jmi = new JMenuItem(p.name());
                     jmi.addActionListener(e -> {
                         runReconnectAction(e);
-                        if (JOptionPane.showConfirmDialog(FanucCRCLServerJInternalFrame.this.getParent(), 
+                        if (JOptionPane.showConfirmDialog(FanucCRCLServerJInternalFrame.this.getParent(),
                                 "Run " + p.name()) == JOptionPane.YES_OPTION) {
                             p.run(FREStepTypeConstants.frStepNone, 1, FREExecuteConstants.frExecuteFwd);
                             runReconnectAction(e);
@@ -168,21 +182,19 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
         }
     }
 
-    public File getPropertiesFile() {
+    public @Nullable
+    File getPropertiesFile() {
         return fanucCRCLServerJPanel1.getPropertiesFile();
     }
 
     public void setPropertiesFile(File propertiesFile) {
         fanucCRCLServerJPanel1.setPropertiesFile(propertiesFile);
     }
-    
+
     public void loadProperties() {
         fanucCRCLServerJPanel1.loadProperties();
     }
-    
-    
-    
-    
+
     public void setMain(FanucCRCLMain _main) {
         fanucCRCLServerJPanel1.setMain(_main);
     }
@@ -266,6 +278,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     public JMenuItem getjMenuItemResetAlarms() {
         return jMenuItemResetAlarms;
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -425,7 +438,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     }//GEN-LAST:event_jCheckBoxMenuItemStartClientActionPerformed
 
     private void jCheckBoxMenuItemDebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemDebugActionPerformed
-         FanucCRCLMain.setDebug(jCheckBoxMenuItemDebug.isSelected());
+        FanucCRCLMain.setDebug(jCheckBoxMenuItemDebug.isSelected());
     }//GEN-LAST:event_jCheckBoxMenuItemDebugActionPerformed
 
 

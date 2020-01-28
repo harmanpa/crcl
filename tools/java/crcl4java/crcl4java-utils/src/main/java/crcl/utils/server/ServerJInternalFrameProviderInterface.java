@@ -24,34 +24,37 @@ package crcl.utils.server;
 
 import java.io.File;
 import javax.swing.JInternalFrame;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public interface ServerJInternalFrameProviderInterface {
-    
-    public void start(Object ...args);
-    
+
+    public void start(Object... args);
+
     public JInternalFrame getJInternalFrame();
-    
+
     public String getName();
-    
+
     public void setName(String name);
-    
-    public File getPropertiesFile();
-    
+
+    public @Nullable
+    File getPropertiesFile();
+
     public void setPropertiesFile(File propertiesFile);
 
     public void saveProperties();
-    
+
     public void loadProperties();
-    
+
     public void setCrclPort(int crclPort);
-    
+
     public int getCrclPort();
-    
-    public String getRemoteRobotHost();
-    
+
+    public @Nullable
+    String getRemoteRobotHost();
+
     public void setRemotRobotHost(String remoteRobotHost);
 }

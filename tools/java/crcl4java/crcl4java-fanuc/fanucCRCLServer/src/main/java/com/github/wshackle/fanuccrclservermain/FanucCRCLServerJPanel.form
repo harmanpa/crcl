@@ -86,7 +86,7 @@
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="jCheckBoxEnableCRCL" min="-2" max="-2" attributes="0"/>
+                      <Component id="jCheckBoxEnableCRCLServer" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jRadioButtonUseRobotNeighborhood" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -179,7 +179,7 @@
                   <Component id="jRadioButtonUseRobotNeighborhood" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel11" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jTextFieldCrclPort" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jCheckBoxEnableCRCL" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jCheckBoxEnableCRCLServer" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -609,13 +609,13 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextFieldCrclPortActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JCheckBox" name="jCheckBoxEnableCRCL">
+    <Component class="javax.swing.JCheckBox" name="jCheckBoxEnableCRCLServer">
       <Properties>
         <Property name="selected" type="boolean" value="true"/>
         <Property name="text" type="java.lang.String" value="Enable"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxEnableCRCLActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxEnableCRCLServerActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JCheckBox" name="jCheckBoxKeepMoveToLog">

@@ -34,9 +34,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -47,6 +49,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -57,6 +60,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     /**
      * Creates new form FanucCRCLServerJFrame
      */
+    @SuppressWarnings("initialization")
     public FanucCRCLServerJFrame() {
         initComponents();
 //        timer = new Timer(500, e -> updateDisplay());
@@ -77,10 +81,11 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
 //                serverSensorJFrame.setVisible(jCheckBoxMenuItemShowPressureOutput.isSelected());
 //            }
         }
-        
+
     }
 
-    public IVar getOverrideVar() {
+    public @Nullable
+    IVar getOverrideVar() {
         return fanucCRCLServerJPanel1.getOverrideVar();
     }
 
@@ -88,7 +93,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         fanucCRCLServerJPanel1.setMorSafetyStatVar(morSafetyStatVar);
     }
 
-    public IVar getMorSafetyStatVar() {
+    public @Nullable
+    IVar getMorSafetyStatVar() {
         return fanucCRCLServerJPanel1.getMorSafetyStatVar();
     }
 
@@ -96,7 +102,8 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         fanucCRCLServerJPanel1.setMoveGroup1ServoReadyVar(var);
     }
 
-    public IVar getMoveGroup1ServoReadyVar() {
+    public @Nullable
+    IVar getMoveGroup1ServoReadyVar() {
         return fanucCRCLServerJPanel1.getMoveGroup1ServoReadyVar();
     }
 
@@ -122,6 +129,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         super.setIconImage(image);
     }
 
+    @SuppressWarnings("nullness")
     private static Image createImage(Dimension d, Color bgColor, Color textColor, Image baseImage) {
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
@@ -135,14 +143,17 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     }
 
     public static Image getRobotImage() {
-        Image img = null;
+        final Image img;
         try {
-            img = ImageIO.read(ClassLoader.getSystemResource("robot.png"));
+            final URL systemResourceRobotImageUrl = Objects.requireNonNull(ClassLoader.getSystemResource("robot.png"),"ClassLoader.getSystemResource(\"robot.png\")");
+            img = ImageIO.read(systemResourceRobotImageUrl);
         } catch (IOException ex) {
             Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            throw new RuntimeException(ex);
         }
         return img;
     }
+    
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
     private static final Image BASE_IMAGE = getRobotImage();
     public static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);

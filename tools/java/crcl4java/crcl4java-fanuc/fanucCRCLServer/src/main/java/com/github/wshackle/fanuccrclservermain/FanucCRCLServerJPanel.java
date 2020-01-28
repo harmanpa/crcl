@@ -54,6 +54,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -71,6 +72,7 @@ import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
 import rcs.posemath.PmRpy;
@@ -85,6 +87,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     /**
      * Creates new form FanucCRCLServerJPanel
      */
+    @SuppressWarnings("initialization")
     public FanucCRCLServerJPanel() {
         initComponents();
         timer = new Timer(100, e -> updateDisplay());
@@ -104,17 +107,20 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 //        }
     }
 
-    private javax.swing.Timer timer = null;
+    private javax.swing.@Nullable Timer timer = null;
 
     public void updatePerformanceString(String s) {
         javax.swing.SwingUtilities.invokeLater(() -> jLabelPerformance.setText(s));
     }
 
-    public File getPropertiesFile() {
+    public @Nullable
+    File getPropertiesFile() {
         return main.getPropertiesFile();
     }
 
+    private @Nullable
     File externalSetPropertiesFile = null;
+
     boolean mainNeedsLoadProperties = false;
 
     public void setPropertiesFile(File propertiesFile) {
@@ -212,6 +218,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         return jCheckBoxLogAllCommands;
     }
 
+    private @Nullable
     IVar varToWatch = null;
 
     public void updateCartesianLimits(float xMax,
@@ -241,25 +248,29 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         return jTextFieldLimitSafetyBumper;
     }
 
-    private IVar morSafetyStatVar = null;
+    private @Nullable
+    IVar morSafetyStatVar = null;
 
     /**
      * Get the value of morSafetyStatVar
      *
      * @return the value of morSafetyStatVar
      */
-    public IVar getMorSafetyStatVar() {
+    public @Nullable
+    IVar getMorSafetyStatVar() {
         return morSafetyStatVar;
     }
 
-    private IVar moveGroup1ServoReadyVar = null;
+    private @Nullable
+    IVar moveGroup1ServoReadyVar = null;
 
     /**
      * Get the value of moveGroup1ServoReadyVar
      *
      * @return the value of moveGroup1ServoReadyVar
      */
-    public IVar getMoveGroup1ServoReadyVar() {
+    public @Nullable
+    IVar getMoveGroup1ServoReadyVar() {
         return moveGroup1ServoReadyVar;
     }
 
@@ -380,7 +391,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                                 CommandStatusType cmdStatus = stat.getCommandStatus();
                                 if (null != cmdStatus) {
                                     CommandStateEnumType cmdState = cmdStatus.getCommandState();
-                                    if(null != cmdState) {
+                                    if (null != cmdState) {
                                         cmdStateString = cmdState.toString();
                                     }
                                 }
@@ -477,7 +488,10 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                     }
                 } catch (ComException e) {
                     if (e.getMessage().contains("8004000e compobj.dll is too old for the ole2.dll initialized : Object is no longer valid.")) {
-                        this.updateWatchVar(main.getRobot());
+                        final IRobot2 localMainRobot = main.getRobot();
+                        if (null != localMainRobot) {
+                            this.updateWatchVar(localMainRobot);
+                        }
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -547,13 +561,19 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 
     private static final String DEFAULT_FINGER_SENSOR_SERVER_COMMAND = "C:\\Program Files\\nodejs\\node.exe sensorServer.js";
     private static final String DEFAULT_FINGER_SENSOR_SERVER_DIRECTORY = "C:\\Users\\Public\\Documents\\FingerPressureSensorNodeJS";
-    private String fingerSensorServerCmd = null;
-    private String fingerSensorServerDirectory = null;
+
+    private @Nullable
+    String fingerSensorServerCmd = null;
+    private @Nullable
+    String fingerSensorServerDirectory = null;
 
     private static final String DEFAULT_WEB_SERVER_COMMAND = "C:\\Users\\Public\\Documents\\runWebApp.bat";
     private static final String DEFAULT_WEB_SERVER_DIRECTORY = "C:\\Users\\Public\\Documents\\";
-    private String webServerCmd = null;
-    private String webServerDirectory = null;
+
+    private @Nullable
+    String webServerCmd = null;
+    private @Nullable
+    String webServerDirectory = null;
 
     private void readPropertiesFile() {
         try {
@@ -673,8 +693,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             setCommandId(initCmd);
             crclProg.setInitCanon(initCmd);
             Map<Integer, PmXyzWpr> posMap = new TreeMap<>();
-            IRobot2 robot = main.getRobot();
-            for (Com4jObject posObj : robot.regPositions()) {
+            IRobot2 localMainRobot = Objects.requireNonNull(main.getRobot(), "main.getRobot()");
+            for (Com4jObject posObj : localMainRobot.regPositions()) {
                 ISysPosition pos = posObj.queryInterface(ISysPosition.class);
                 Optional.ofNullable(pos)
                         .filter(ISysPosition::isInitialized)
@@ -789,12 +809,17 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         main.setKeepMoveToLog(jCheckBoxKeepMoveToLog.isSelected());
     }
 
+    @SuppressWarnings("nullness")
     public void updateWatchVar(IRobot2 robot1) {
         try {
             if (null != robot1) {
                 String varName = this.jTextFieldSysVarName.getText();
                 IVars sysVars = robot1.sysVariables();
-                varToWatch = Optional.ofNullable(sysVars).map(ivars -> ivars.item(varName, null)).map(o -> o.queryInterface(IVar.class)).orElse(null);
+                varToWatch = Optional
+                        .ofNullable(sysVars)
+                        .map(ivars -> ivars.item(varName, null))
+                        .map(o -> o.queryInterface(IVar.class))
+                        .orElse(null);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -881,13 +906,19 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                     int el_index = Integer.parseInt(el_index_string);
                     if (rhs.startsWith("(") && rhs.endsWith(")")) {
                         double value = Double.parseDouble(rhs.substring(1, rhs.length() - 1));
-                        posMap.get(lhs_id).setOne(el_index, value);
+                        final PmXyzWpr posMapLhsValue
+                                = Objects.requireNonNull(posMap.get(lhs_id), "posMap.get(lhs_id)");
+                        posMapLhsValue.setOne(el_index, value);
                     }
                 } else {
                     lhs_id = Integer.parseInt(lhs.substring(3, lhs.length() - 1));
                     if (rhs.startsWith("PR[") && rhs.endsWith("]")) {
                         Integer rhs_id = Integer.parseInt(rhs.substring(3, rhs.length() - 1));
-                        posMap.get(lhs_id).setAll(posMap.get(rhs_id));
+                        final PmXyzWpr posMapLhsValue
+                                = Objects.requireNonNull(posMap.get(lhs_id), "posMap.get(lhs_id)");
+                        final PmXyzWpr posMapRhsValue
+                                = Objects.requireNonNull(posMap.get(rhs_id), "posMap.get(rhs_id)");
+                        posMapLhsValue.setAll(posMapRhsValue);
                     }
                 }
             }
@@ -976,6 +1007,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         }
     }
 
+    private @Nullable
     ServerSensorJFrame serverSensorJFrame = null;
 
     public void saveProperties() {
@@ -992,8 +1024,12 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                 webServerDirectory = webServerJFrame.getDirectoryString();
             }
             props.setProperty("keepMoveToLog", Boolean.toString(main.isKeepMoveToLog()));
-            props.setProperty("fingerSensorServerCmd", fingerSensorServerCmd);
-            props.setProperty("fingerSensorServerDirectory", fingerSensorServerDirectory);
+            if (null != fingerSensorServerCmd) {
+                props.setProperty("fingerSensorServerCmd", fingerSensorServerCmd);
+            }
+            if (null != fingerSensorServerDirectory) {
+                props.setProperty("fingerSensorServerDirectory", fingerSensorServerDirectory);
+            }
 //            props.setProperty("autoStartClient", Boolean.toString(jCheckBoxMenuItemStartClient.isSelected()));
 //            props.setProperty("autoStartPressureSensorServer", Boolean.toString(jCheckBoxMenuItemStartPressureServer.isSelected()));
 //            props.setProperty("showPressureOutput", Boolean.toString(jCheckBoxMenuItemShowPressureOutput.isSelected()));
@@ -1034,8 +1070,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         FanucCRCLMain.stop();
     }
 
-
-    public ServerSensorJFrame getSensorJFrame() {
+    public @Nullable
+    ServerSensorJFrame getSensorJFrame() {
         return serverSensorJFrame;
     }
 
@@ -1073,6 +1109,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
 //        }
     }
 
+    private @Nullable
     WebServerJFrame webServerJFrame = null;
 
     public void launchWebServer() {
@@ -1099,7 +1136,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings({"unchecked","deprecation"})
+    @SuppressWarnings({"unchecked", "deprecation", "nullness"})
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -1144,7 +1181,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         jCheckBoxConnnected = new javax.swing.JCheckBox();
         jLabel11 = new javax.swing.JLabel();
         jTextFieldCrclPort = new javax.swing.JTextField();
-        jCheckBoxEnableCRCL = new javax.swing.JCheckBox();
+        jCheckBoxEnableCRCLServer = new javax.swing.JCheckBox();
         jCheckBoxKeepMoveToLog = new javax.swing.JCheckBox();
         jButtonShowMoveLog = new javax.swing.JButton();
         jLabel12 = new javax.swing.JLabel();
@@ -1380,11 +1417,11 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             }
         });
 
-        jCheckBoxEnableCRCL.setSelected(true);
-        jCheckBoxEnableCRCL.setText("Enable");
-        jCheckBoxEnableCRCL.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxEnableCRCLServer.setSelected(true);
+        jCheckBoxEnableCRCLServer.setText("Enable");
+        jCheckBoxEnableCRCLServer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxEnableCRCLActionPerformed(evt);
+                jCheckBoxEnableCRCLServerActionPerformed(evt);
             }
         });
 
@@ -1472,7 +1509,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jCheckBoxEnableCRCL)
+                        .addComponent(jCheckBoxEnableCRCLServer)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jRadioButtonUseRobotNeighborhood)
@@ -1548,7 +1585,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
                     .addComponent(jRadioButtonUseRobotNeighborhood)
                     .addComponent(jLabel11)
                     .addComponent(jTextFieldCrclPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBoxEnableCRCL))
+                    .addComponent(jCheckBoxEnableCRCLServer))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -1621,11 +1658,13 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jTextFieldRobotNeighborhoodPathActionPerformed
 
     private void jTextFieldSysVarNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldSysVarNameActionPerformed
-        this.updateWatchVar(main.getRobot());
+        final IRobot2 localMainRobot = Objects.requireNonNull(main.getRobot(), "main.getRobot()");
+        this.updateWatchVar(localMainRobot);
     }//GEN-LAST:event_jTextFieldSysVarNameActionPerformed
 
     private void jButtonAbortAllTasksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAbortAllTasksActionPerformed
-        main.getRobot().tasks().abortAll(true);
+        final IRobot2 localMainRobot = Objects.requireNonNull(main.getRobot(), "main.getRobot()");
+        localMainRobot.tasks().abortAll(true);
     }//GEN-LAST:event_jButtonAbortAllTasksActionPerformed
 
     private void jCheckBoxEditJointLimitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEditJointLimitsActionPerformed
@@ -1654,8 +1693,8 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         setLocalCrclPort(Integer.parseInt(jTextFieldCrclPort.getText()));
     }//GEN-LAST:event_jTextFieldCrclPortActionPerformed
 
-    private void jCheckBoxEnableCRCLActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCRCLActionPerformed
-        if (jCheckBoxConnnected.isSelected()) {
+    private void jCheckBoxEnableCRCLServerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCRCLServerActionPerformed
+        if (jCheckBoxEnableCRCLServer.isSelected()) {
             try {
                 main.startCrclServer();
             } catch (IOException ex) {
@@ -1664,7 +1703,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         } else {
             main.stopCrclServer();
         }
-    }//GEN-LAST:event_jCheckBoxEnableCRCLActionPerformed
+    }//GEN-LAST:event_jCheckBoxEnableCRCLServerActionPerformed
 
     private void jRadioButtonUseRobotNeighborhoodActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonUseRobotNeighborhoodActionPerformed
         if (null != main) {
@@ -1719,7 +1758,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     private javax.swing.JCheckBox jCheckBoxConnnected;
     private javax.swing.JCheckBox jCheckBoxEditCartesianLimits;
     private javax.swing.JCheckBox jCheckBoxEditJointLimits;
-    private javax.swing.JCheckBox jCheckBoxEnableCRCL;
+    private javax.swing.JCheckBox jCheckBoxEnableCRCLServer;
     private javax.swing.JCheckBox jCheckBoxKeepMoveToLog;
     private javax.swing.JCheckBox jCheckBoxLogAllCommands;
     private javax.swing.JCheckBox jCheckBoxMonitorTasks;
