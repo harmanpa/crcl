@@ -587,7 +587,22 @@ public class FanucCRCLMain {
         return XFuture.completedFuture(status);
     }
 
+    private volatile boolean failJointCheckStackDumped = false;
+
     private void checkJointStatuses(CRCLStatusType status1) {
+        if (!robotIsConnected || this.robot == null) {
+            if (null != status) {
+                final CommandStatusType commandStatus = status.getCommandStatus();
+                if (null != commandStatus
+                        && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR) {
+                    return;
+                }
+            }
+            setStatusErrorDescription("!robotIsConnected");
+            setCommandState(CommandStateEnumType.CRCL_ERROR);
+            showError("!robotIsConnected");
+            Thread.dumpStack();
+        }
         if (null == jointStatuses) {
             setStatusErrorDescription("null == jointStatuses");
             setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -604,7 +619,20 @@ public class FanucCRCLMain {
             setStatusErrorDescription(errMsg);
             setCommandState(CommandStateEnumType.CRCL_ERROR);
             showError(errMsg);
-            Thread.dumpStack();
+            if (!failJointCheckStackDumped) {
+                failJointCheckStackDumped = true;
+                System.out.println("");
+                System.out.flush();
+                System.err.println("");
+                System.err.flush();
+                System.err.println("errMsg=\"" + errMsg + "\"");
+                Thread.dumpStack();
+                System.err.println("errMsg=\"" + errMsg + "\"");
+                System.out.println("");
+                System.out.flush();
+                System.err.println("");
+                System.err.flush();
+            }
         } else {
             status1.setJointStatuses(jointStatuses);
         }
@@ -1760,7 +1788,22 @@ public class FanucCRCLMain {
             }
 
             setCommandState(CommandStateEnumType.CRCL_ERROR);
-            status.getCommandStatus().setStateDescription(error);
+            if(null != connectionError && connectionError.length() > 0 && !error.startsWith(connectionError)) {
+                 status.getCommandStatus().setStateDescription(connectionError+" "+error);
+            } else {
+                status.getCommandStatus().setStateDescription(error);
+            }
+        } else {
+            System.out.println("");
+            System.out.flush();
+            System.err.println("");
+            System.err.flush();
+            System.err.println("status==null, error=\"" + error + "\"");
+            Thread.dumpStack();
+            System.out.println("");
+            System.out.flush();
+            System.err.println("");
+            System.err.flush();
         }
     }
 
@@ -3331,6 +3374,8 @@ public class FanucCRCLMain {
         this.overrideValue = Math.max(1, Math.min(100, overrideValue));
     }
 
+    private volatile @Nullable String connectionError = null;
+    
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
@@ -3383,9 +3428,10 @@ public class FanucCRCLMain {
 
             if (!robotIsConnected) {
                 showError("Failed to connect to robot: " + checkedRemoteRobotHost);
+                connectionError = "Failed to connect to robot: " + checkedRemoteRobotHost;
                 return;
             }
-
+            connectionError = null;
             IIndPosition iip = localRobot.createIndependentPosition(FREGroupBitMaskConstants.frGroup1BitMask);
             iip.record();
             groupPos = iip.group((short) 1);
@@ -3489,9 +3535,11 @@ public class FanucCRCLMain {
             logDebug("Connect to Remote Fanuc Robot complete.");
         } catch (ComException comEx) {
             showComException(comEx);
+            connectionError = comEx.toString();
         } catch (Exception e) {
             e.printStackTrace();
             showError(e.toString());
+            connectionError = e.toString();
         }
     }
 
@@ -3521,7 +3569,7 @@ public class FanucCRCLMain {
     }
 
     public void readCartLimitsFromRobot() {
-        final IRobot2 localRobot = Objects.requireNonNull(robot,"robot");
+        final IRobot2 localRobot = Objects.requireNonNull(robot, "robot");
         IVars sysvars = localRobot.sysVariables();
         IVar xLimitVar1 = getNamedItemIVar(sysvars, "$DCSS_CPC[1].$X[1]");
         if (null != xLimitVar1) {
