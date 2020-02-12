@@ -44,8 +44,8 @@ import crcl.ui.misc.WebServerJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
+import crcl.utils.CRCLUtils;
 import crcl.utils.PropertiesUtils;
-import crcl.utils.Utils;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileReader;
@@ -535,7 +535,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
         }
     }
 
-    public static final File PROPERTIES_FILE = new File(Utils.getCrclUserHomeDir(),
+    public static final File PROPERTIES_FILE = new File(CRCLUtils.getCrclUserHomeDir(),
             ".fanucCRLCProperties.txt");
     Properties props = new Properties();
 
@@ -734,7 +734,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
             crclProg.setEndCanon(end);
             String crclProgText = new CRCLSocket().programToPrettyString(crclProg, true);
             JFileChooser chooser = new JFileChooser();
-            chooser.setSelectedFile(new File(Utils.getCrclUserHomeDir(), prog.name() + ".xml"));
+            chooser.setSelectedFile(new File(CRCLUtils.getCrclUserHomeDir(), prog.name() + ".xml"));
             if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
                 File f = chooser.getSelectedFile();
                 Files.write(f.toPath(), crclProgText.getBytes());

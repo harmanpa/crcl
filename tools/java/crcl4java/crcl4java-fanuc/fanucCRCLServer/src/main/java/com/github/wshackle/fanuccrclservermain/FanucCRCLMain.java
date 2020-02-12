@@ -146,7 +146,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import static crcl.utils.CRCLPosemath.point;
-import crcl.utils.Utils;
+import crcl.utils.CRCLUtils;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.utils.server.CRCLServerClientState;
@@ -391,7 +391,7 @@ public class FanucCRCLMain {
     public XFutureVoid start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
         try {
             if (this.started) {
-                System.err.println("fanucStartTrace = " + Utils.traceToString(fanucStartTrace));
+                System.err.println("fanucStartTrace = " + CRCLUtils.traceToString(fanucStartTrace));
                 System.err.println("");
                 throw new IllegalStateException("started twice");
             }
@@ -2126,7 +2126,7 @@ public class FanucCRCLMain {
     private int currentWaypointNumber = 0;
 
     public double distTransFrom(PoseType pose) {
-        PmCartesian cart = CRCLPosemath.toPmCartesian(Objects.requireNonNull(CRCLPosemath.getPoint(status)));
+        PmCartesian cart = CRCLPosemath.toPmCartesian(Objects.requireNonNull(CRCLPosemath.getNullablePoint(status)));
         return cart.distFrom(CRCLPosemath.toPmCartesian(pose.getPoint()));
     }
 
@@ -3227,9 +3227,9 @@ public class FanucCRCLMain {
         this.cartLimitsFile = cartLimitsFile;
     }
 
-    private static final File CART_LIMITS_FILE = new File(Utils.getCrclUserHomeDir(),
+    private static final File CART_LIMITS_FILE = new File(CRCLUtils.getCrclUserHomeDir(),
             ".fanucCRLCCartLimits.txt");
-    private static final File JOINT_LIMITS_FILE = new File(Utils.getCrclUserHomeDir(),
+    private static final File JOINT_LIMITS_FILE = new File(CRCLUtils.getCrclUserHomeDir(),
             ".fanucCRLCJointLimits.txt");
 
     private void findString(String input, String token, Consumer<String> tailConsumer) {
