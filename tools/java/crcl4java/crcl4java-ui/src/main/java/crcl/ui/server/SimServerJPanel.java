@@ -38,7 +38,10 @@ import crcl.utils.XFuture;
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.misc.ObjTableJPanel;
 import crcl.utils.CRCLException;
+import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLSocket;
+import crcl.utils.CRCLUtils;
+import static crcl.utils.CRCLUtils.getNonNullJointStatusIterable;
 import crcl.utils.PropertiesUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
@@ -75,6 +78,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -156,7 +160,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     public boolean isRunning() {
         return inner.isRunning();
     }
-    
+
     public void restartServer() {
         try {
             inner.restartServer(inner.getServerIsDaemon());
@@ -248,14 +252,18 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             if (null != initStatusFilename) {
                 try {
                     inner.setInitStatusFilename(initStatusFilename);
-                    CRCLStatusType initStatus = CRCLSocket.readStatusFile(new File(propertiesFile.getParentFile(), initStatusFilename));
+                    CRCLStatusType initStatus = CRCLUtils.readStatusFile(new File(propertiesFile.getParentFile(), initStatusFilename));
                     if (null != initStatus) {
                         JointStatusesType jsst = initStatus.getJointStatuses();
                         if (null != jsst) {
-                            setCommandState(CommandStateEnumType.CRCL_DONE);
-                            List<JointStatusType> jsl = jsst.getJointStatus();
-                            for (JointStatusType jst : jsl) {
-                                inner.setJointPosition(jst.getJointPosition(), jst.getJointNumber() - 1);
+                            setCommandStatDONE();
+                            Iterable<JointStatusType> jsIterable
+                                    = getNonNullJointStatusIterable(jsst);
+                            for (JointStatusType jst : jsIterable) {
+                                final Double jointPosition
+                                        = Objects.requireNonNull(jst.getJointPosition(), "jst.getJointPosition()");
+                                final int jointNumber = jst.getJointNumber();
+                                inner.setJointPosition(jointPosition, jointNumber - 1);
                             }
                         }
                         PoseStatusType poseStatus = initStatus.getPoseStatus();
@@ -265,7 +273,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                                 PoseType initPose = poseStatus.getPose();
                                 if (null != initPose) {
                                     double newjpos[] = inner.poseToJoints(jpos, initPose);
-                                    setCommandState(CommandStateEnumType.CRCL_DONE);
+                                    setCommandStatDONE();
                                     inner.teleportJoints(newjpos);
                                     inner.setPose(initPose);
                                 }
@@ -291,6 +299,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         }
         jCheckBoxMenuItemValidateXML.setSelected(this.isValidateXMLSelected());
     }
+
+    private void setCommandStatDONE() {
+        setCommandState(CRCL_DONE);
+    }
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    CommandStateEnumType CRCL_DONE = CommandStateEnumType.CRCL_DONE;
 
     private static final String SIM_INIT_STATUS_PROPERTY_NAME = "crcl.sim.initStatus";
     private static final String SIM_ROBOT_TYPE_PROPERTY_NAME = "crcl.sim.robotType";
@@ -999,9 +1015,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             File fa[] = jFileChooser.getSelectedFiles();
             setCmdSchema(fa);
             DefaultSchemaFiles defaultsInstance = DefaultSchemaFiles.instance();
-            CRCLSocket.saveCmdSchemaFiles(defaultsInstance.getCmdSchemasFile(), fa);
+            CRCLSchemaUtils.saveCmdSchemaFiles(defaultsInstance.getCmdSchemasFile(), fa);
             setStatSchema(fa);
-            CRCLSocket.saveStatSchemaFiles(defaultsInstance.getStatSchemasFile(), fa);
+            CRCLSchemaUtils.saveStatSchemaFiles(defaultsInstance.getStatSchemasFile(), fa);
         }
     }
 
@@ -1123,12 +1139,16 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                 if (null == jsst) {
                     return;
                 }
-                List<JointStatusType> jsl = jsst.getJointStatus();
-                for (JointStatusType jst : jsl) {
+                Iterable<JointStatusType> jsIterable
+                        = CRCLUtils.getNonNullJointStatusIterable(jsst);
+                for (JointStatusType jst : jsIterable) {
                     int jvindex = jst.getJointNumber() - 1;
-                    double pos = jst.getJointPosition();
-                    inner.setJointPosition(pos, jvindex);
-                    inner.setCommandedJointPosition(pos, jvindex);
+                    final Double jointPosition = jst.getJointPosition();
+                    if (null != jointPosition) {
+                        double pos = jointPosition;
+                        inner.setJointPosition(pos, jvindex);
+                        inner.setCommandedJointPosition(pos, jvindex);
+                    }
                 }
                 this.updatePanels(true);
             }
@@ -1153,7 +1173,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             while (null != (line = br.readLine())) {
                 sb.append(line);
             }
-            sb.append("\nSchema versions = ").append(CRCLSocket.getSchemaVersions().toString());
+            sb.append("\nSchema versions = ").append(CRCLSchemaUtils.getSchemaVersions().toString());
             return sb.toString();
         }
     }

@@ -92,7 +92,7 @@ public class XFutureVoid extends XFuture<Void> {
 //                System.out.println("errMsg = " + errMsg);
 //                System.err.println(errMsg);
                 LOGGER.log(Level.SEVERE, errMsg, throwable);
-                if(throwable instanceof RuntimeException) {
+                if (throwable instanceof RuntimeException) {
                     throw (RuntimeException) throwable;
                 } else {
                     throw new PrintedException(throwable);
@@ -144,9 +144,14 @@ public class XFutureVoid extends XFuture<Void> {
     public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> supplier) {
         XFuture<Void> future = this.thenComposeAsync(name, x -> supplier.get());
         XFutureVoid retXFV = new XFutureVoid(name);
-        future.handle(createVoidHandleBiFunction(retXFV));
+        setupFutureHandling(future, retXFV);
         retXFV.alsoCancelAdd(future);
         return retXFV;
+    }
+
+    private void setupFutureHandling(XFuture<Void> future, XFutureVoid retXFV) {
+        XFuture<Void> handledFuture = future.handle(createVoidHandleBiFunction(retXFV));
+        retXFV.alsoCancelAdd(handledFuture);
     }
 
     public XFutureVoid thenComposeAsyncToVoid(Supplier< ? extends XFuture<Void>> supplier) {
@@ -156,7 +161,7 @@ public class XFutureVoid extends XFuture<Void> {
     public XFutureVoid thenComposeAsyncToVoid(String name, Supplier< ? extends XFuture<Void>> supplier, ExecutorService es) {
         XFuture<Void> future = this.thenComposeAsync(name, x -> supplier.get(), es);
         XFutureVoid retXFV = new XFutureVoid(name);
-        future.handle(createVoidHandleBiFunction(retXFV));
+        setupFutureHandling(future, retXFV);
         retXFV.alsoCancelAdd(future);
         return retXFV;
     }
@@ -169,25 +174,25 @@ public class XFutureVoid extends XFuture<Void> {
     public XFutureVoid alwaysRun(Runnable r) {
         return this.alwaysRun(defaultName(), r);
     }
-    
+
     public <U> XFuture<U> alwaysComposeToOutput(Supplier<? extends CompletionStage<U>> supplier) {
         return this.alwaysComposeToOutput(defaultName(), supplier);
     }
 
-    public <U> XFuture<U> alwaysComposeToOutput(String name, Supplier<? extends CompletionStage<U>>supplier) {
+    public <U> XFuture<U> alwaysComposeToOutput(String name, Supplier<? extends CompletionStage<U>> supplier) {
         return super.alwaysCompose(name, supplier)
-                .thenApply((ComposedPair<Void,U> pair) -> pair.getOutput());
+                .thenApply((ComposedPair<Void, U> pair) -> pair.getOutput());
     }
 
-     public <U> XFuture<U> alwaysComposeAsyncToOutput(Supplier<? extends CompletionStage<U>> supplier ,ExecutorService service) {
+    public <U> XFuture<U> alwaysComposeAsyncToOutput(Supplier<? extends CompletionStage<U>> supplier, ExecutorService service) {
         return this.alwaysComposeToOutput(defaultName(), supplier);
     }
 
-    public <U> XFuture<U> alwaysComposeAsyncToOutput(String name, Supplier<? extends CompletionStage<U>>supplier, ExecutorService service) {
-        return super.alwaysComposeAsync(name, supplier,service)
-                .thenApply((ComposedPair<Void,U> pair) -> pair.getOutput());
+    public <U> XFuture<U> alwaysComposeAsyncToOutput(String name, Supplier<? extends CompletionStage<U>> supplier, ExecutorService service) {
+        return super.alwaysComposeAsync(name, supplier, service)
+                .thenApply((ComposedPair<Void, U> pair) -> pair.getOutput());
     }
-    
+
     @Override
     public XFutureVoid alwaysRun(String name, Runnable r) {
         return staticwrapvoid(name, super.handle((x, t) -> {

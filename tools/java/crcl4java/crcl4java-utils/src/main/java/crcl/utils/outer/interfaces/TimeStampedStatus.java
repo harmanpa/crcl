@@ -29,6 +29,8 @@ import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
+import static crcl.utils.CRCLUtils.getNonNullCommandStatus;
+import static java.util.Objects.requireNonNull;
 
 /**
  *
@@ -52,11 +54,11 @@ public class TimeStampedStatus {
         final PoseStatusType poseStatus = status.getPoseStatus();
         final PoseType pose = (poseStatus != null) ? poseStatus.getPose() : null;
         final PointType point = (pose != null) ? pose.getPoint() : null;
-        final CommandStatusType commandStatus = status.getCommandStatus();
+        final CommandStatusType commandStatus = getNonNullCommandStatus(status);
         final SensorStatusesType sensorStatuses = status.getSensorStatuses();
         final ForceTorqueSensorStatusType forceTorqueStatus
-                = (null != sensorStatuses && sensorStatuses.getForceTorqueSensorStatus().size() > 0)
-                ? sensorStatuses.getForceTorqueSensorStatus().get(0) : null;
+                = (null != sensorStatuses && requireNonNull(sensorStatuses.getForceTorqueSensorStatus()).size() > 0)
+                ? requireNonNull(sensorStatuses.getForceTorqueSensorStatus()).get(0) : null;
         x = (point != null) ? point.getX() : 0.0;
         y = (point != null) ? point.getY() : 0.0;
         z = (point != null) ? point.getZ() : 0.0;
@@ -64,10 +66,15 @@ public class TimeStampedStatus {
         fy = (forceTorqueStatus != null) ? forceTorqueStatus.getFy() : 0.0;
         fz = (forceTorqueStatus != null) ? forceTorqueStatus.getFz() : 0.0;
         cmdId = (double) ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
-        state = (double) ((commandStatus != null) ? commandStatus.getCommandState().ordinal() : -1.0);
+        state = (double) getCommandStateDouble(commandStatus);
         this.absTime = absTime * 1e-3;
         this.relTime = relTime * 1e-3;
         this.timeDiff = timediff *1e-3;
+    }
+
+    @SuppressWarnings("nullness")
+    private static double getCommandStateDouble(final CommandStatusType commandStatus) {
+        return (commandStatus != null) ? commandStatus.getCommandState().ordinal() : -1.0;
     }
 
 }

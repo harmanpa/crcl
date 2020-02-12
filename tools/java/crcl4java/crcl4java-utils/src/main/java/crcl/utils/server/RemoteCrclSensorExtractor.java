@@ -24,14 +24,20 @@ package crcl.utils.server;
 
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CountSensorStatusType;
+import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GetStatusType;
+import crcl.base.OnOffSensorStatusType;
 import crcl.base.ParameterSettingType;
+import crcl.base.ScalarSensorStatusType;
 import crcl.base.SensorStatusType;
 import crcl.base.SensorStatusesType;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import static crcl.utils.CRCLUtils.getNonNullIterable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -52,8 +58,10 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
 
     private static String findParam(List<ParameterSettingType> sensorParameterSetting, String name, String defaultValue) {
         for (ParameterSettingType param : sensorParameterSetting) {
-            if (param.getParameterName().equals(name)) {
-                return param.getParameterValue();
+            final String parameterName = Objects.requireNonNull(param.getParameterName(), "param.getParameterName()");
+            final String parameterValue = param.getParameterValue();
+            if (Objects.equals(parameterName, name) && null != parameterValue) {
+                return parameterValue;
             }
         }
         return defaultValue;
@@ -88,11 +96,13 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
             SensorStatusesType sensors = status.getSensorStatuses();
             SensorStatusType firstSensorStat = null;
             if (null != sensors) {
-                for (SensorStatusType sensorStat : sensors.getCountSensorStatus()) {
+                final Iterable<CountSensorStatusType> countSensorsIterable 
+                        = getNonNullIterable(sensors.getCountSensorStatus());
+                for (SensorStatusType sensorStat : countSensorsIterable) {
                     if (null == firstSensorStat && null != sensorStat) {
                         firstSensorStat = sensorStat;
                     }
-                    if (sensorStat.getSensorID().equals(remoteSensorId)) {
+                    if (Objects.equals(sensorStat.getSensorID(),remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
                             sensorStat.setLastReadTime(startReadTime);
@@ -100,11 +110,13 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                         return sensorStat;
                     }
                 }
-                for (SensorStatusType sensorStat : sensors.getCountSensorStatus()) {
+                final Iterable<OnOffSensorStatusType> onOffSensorsIterable 
+                        = getNonNullIterable(sensors.getOnOffSensorStatus());
+                for (SensorStatusType sensorStat : onOffSensorsIterable) {
                     if (null == firstSensorStat && null != sensorStat) {
                         firstSensorStat = sensorStat;
                     }
-                    if (sensorStat.getSensorID().equals(remoteSensorId)) {
+                    if (Objects.equals(sensorStat.getSensorID(),remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
                             sensorStat.setLastReadTime(startReadTime);
@@ -112,11 +124,13 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                         return sensorStat;
                     }
                 }
-                for (SensorStatusType sensorStat : sensors.getOnOffSensorStatus()) {
+                final Iterable<ScalarSensorStatusType> scalerSensorsIterable 
+                        = getNonNullIterable(sensors.getScalarSensorStatus());
+                for (SensorStatusType sensorStat : scalerSensorsIterable) {
                     if (null == firstSensorStat && null != sensorStat) {
                         firstSensorStat = sensorStat;
                     }
-                    if (sensorStat.getSensorID().equals(remoteSensorId)) {
+                    if (Objects.equals(sensorStat.getSensorID(),remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
                             sensorStat.setLastReadTime(startReadTime);
@@ -124,23 +138,13 @@ public class RemoteCrclSensorExtractor implements SensorServerInterface {
                         return sensorStat;
                     }
                 }
-                for (SensorStatusType sensorStat : sensors.getScalarSensorStatus()) {
+                final Iterable<ForceTorqueSensorStatusType> forceSensorsIterable
+                        = getNonNullIterable(sensors.getForceTorqueSensorStatus());
+                for (SensorStatusType sensorStat : forceSensorsIterable) {
                     if (null == firstSensorStat && null != sensorStat) {
                         firstSensorStat = sensorStat;
                     }
-                    if (sensorStat.getSensorID().equals(remoteSensorId)) {
-                        sensorStat.setSensorID(outSensorId);
-                        if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
-                            sensorStat.setLastReadTime(startReadTime);
-                        }
-                        return sensorStat;
-                    }
-                }
-                for (SensorStatusType sensorStat : sensors.getForceTorqueSensorStatus()) {
-                    if (null == firstSensorStat && null != sensorStat) {
-                        firstSensorStat = sensorStat;
-                    }
-                    if (sensorStat.getSensorID().equals(remoteSensorId)) {
+                    if (Objects.equals(sensorStat.getSensorID(),remoteSensorId)) {
                         sensorStat.setSensorID(outSensorId);
                         if (sensorStat.getLastReadTime() <= 0 || sensorStat.getLastReadTime() > startReadTime) {
                             sensorStat.setLastReadTime(startReadTime);

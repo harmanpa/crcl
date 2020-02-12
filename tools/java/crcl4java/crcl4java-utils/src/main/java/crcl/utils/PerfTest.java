@@ -35,13 +35,16 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
+import static crcl.utils.CRCLPosemath.addJointStatus;
+import static crcl.utils.CRCLUtils.getNonNullCmd;
+import static crcl.utils.CRCLUtils.getNonNullCommandStatus;
+
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -96,7 +99,7 @@ public class PerfTest {
             JointStatusType js = new JointStatusType();
             js.setJointNumber(i);
             js.setJointPosition(i * 0.1);
-            jst.getJointStatus().add(js);
+            addJointStatus(jst, js);
         }
         stat.setJointStatuses(jst);
         return stat;
@@ -151,8 +154,8 @@ public class PerfTest {
         }
     }
 
-    
-    public static @Nullable MinMaxAvg runPerfTest(final boolean enableEXI, final boolean validate, final int repeats) throws RuntimeException {
+    public static @Nullable
+    MinMaxAvg runPerfTest(final boolean enableEXI, final boolean validate, final int repeats) throws RuntimeException {
         ServerSocket ss = null;
         try {
             System.out.println("Starting runPerfTest(enableEXI=" + enableEXI + ",validate=" + validate + ",repeats=" + repeats + ") ...");
@@ -188,9 +191,11 @@ public class PerfTest {
                                                 && cs.isConnected()
                                                 && !exServ.isShutdown()) {
                                             CRCLCommandInstanceType cmdInstance = cs.readCommand(validate);
-                                            CRCLCommandType cmd = cmdInstance.getCRCLCommand();
-                                            status.getCommandStatus().setCommandID(cmd.getCommandID());
-                                            status.getCommandStatus().setStatusID(status.getCommandStatus().getStatusID() + 1);
+                                            CRCLCommandType cmd = getNonNullCmd(cmdInstance);
+                                            final CommandStatusType statusCommandStatus
+                                                    = requireNonNull(getNonNullCommandStatus(status), "status.getCommandStatus()");
+                                            statusCommandStatus.setCommandID(cmd.getCommandID());
+                                            statusCommandStatus.setStatusID(statusCommandStatus.getStatusID() + 1);
                                             cs.writeStatus(status, validate);
                                         }
                                     } catch (Exception ex) {
@@ -202,6 +207,7 @@ public class PerfTest {
                                         }
                                     }
                                 }
+
                             });
                         } catch (Exception ex) {
                             if (null != ssf && !ssf.isClosed()) {
@@ -235,12 +241,12 @@ public class PerfTest {
                 start = System.nanoTime();
                 for (int i = 0; i < repeats; i++) {
                     long t1 = System.nanoTime();
-                    getStatus.setCommandID(getStatus.getCommandID()+ 1);
+                    getStatus.setCommandID(getStatus.getCommandID() + 1);
                     cs.writeCommand(cmdInstance, validate);
                     CRCLStatusType stat = cs.readStatus(validate);
-                    if (stat.getCommandStatus().getCommandID() != getStatus.getCommandID()) {
+                    if (getNonNullCommandStatus(stat).getCommandID() != getStatus.getCommandID()) {
                         throw new RuntimeException("Command ID doesn't match : "
-                                + stat.getCommandStatus().getCommandID() + " != " + getStatus.getCommandID());
+                                + getNonNullCommandStatus(stat).getCommandID() + " != " + getStatus.getCommandID());
                     }
                     long t2 = System.nanoTime();
                     long diff = t2 - t1;
@@ -292,5 +298,7 @@ public class PerfTest {
         }
         return null;
     }
+
+    
     private static final Logger LOG = Logger.getLogger(PerfTest.class.getName());
 }

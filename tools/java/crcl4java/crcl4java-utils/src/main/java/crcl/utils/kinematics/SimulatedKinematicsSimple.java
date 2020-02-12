@@ -22,8 +22,8 @@ package crcl.utils.kinematics;
 
 import crcl.base.PoseType;
 import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLUtils.getNonNullPoint;
 import java.util.Arrays;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import rcs.posemath.PmCartesian;
 import rcs.posemath.PmException;
@@ -125,7 +125,7 @@ public class SimulatedKinematicsSimple {
             jv = new double[NUM_JOINTS];
         }
         double[] sl = this.scaled_seglengths;
-        PmCartesian cart = CRCLPosemath.toPmCartesian(pose.getPoint());
+        PmCartesian cart = CRCLPosemath.toPmCartesian(getNonNullPoint(pose));
         double endr = sl[0];
         PmRotationMatrix rmat = CRCLPosemath.toPmRotationMatrix(pose);
         PmCartesian endSeg = cart.add(rmat.multiply(new PmCartesian(-endr, 0.0, 0.0)));

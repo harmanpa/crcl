@@ -6,8 +6,8 @@
 package crcl.ui.misc;
 
 import static crcl.ui.IconImages.SERVER_IMAGE;
+import crcl.utils.CRCLUtils;
 import crcl.utils.PropertiesUtils;
-import crcl.utils.Utils;
 import java.awt.Desktop;
 import java.awt.Image;
 import java.io.BufferedReader;
@@ -613,7 +613,7 @@ public class WebServerJFrame extends javax.swing.JFrame {
 
     }
 
-    private static final File PROPERTIES_FILE = new File(Utils.getCrclUserHomeDir(), ".crcl4java.webserver.properties.txt");
+    private static final File PROPERTIES_FILE = new File(CRCLUtils.getCrclUserHomeDir(), ".crcl4java.webserver.properties.txt");
 
     private boolean commandStringSet = false;
 

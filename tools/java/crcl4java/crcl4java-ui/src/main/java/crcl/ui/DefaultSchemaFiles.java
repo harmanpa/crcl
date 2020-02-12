@@ -1,7 +1,7 @@
 package crcl.ui;
 
-import crcl.utils.CRCLSocket;
-import crcl.utils.Utils;
+import crcl.utils.CRCLSchemaUtils;
+import crcl.utils.CRCLUtils;
 import java.io.File;
 import java.io.IOException;
 
@@ -42,7 +42,7 @@ public class DefaultSchemaFiles {
         File startingCmdSchemaFiles[];
         boolean startingCmdSchemasFileExists = cmdSchemasFile.exists();
         if(startingCmdSchemasFileExists) {
-            startingCmdSchemaFiles = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
+            startingCmdSchemaFiles = CRCLSchemaUtils.readCmdSchemaFiles(cmdSchemasFile);
             cmdSchemaFilesLength= startingCmdSchemaFiles.length;
         } else {
             startingCmdSchemaFiles = null;
@@ -51,16 +51,16 @@ public class DefaultSchemaFiles {
         if (!startingCmdSchemasFileExists || cmdSchemaFilesLength < 1) {
             File resourceDir = new File(cmdSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
-            CRCLSocket.copySchemaResources(resourceDir);
-            File[] fa = CRCLSocket.findSchemaFiles(resourceDir);
-            CRCLSocket.saveCmdSchemaFiles(cmdSchemasFile, fa);
+            CRCLSchemaUtils.copySchemaResources(resourceDir);
+            File[] fa = CRCLSchemaUtils.findSchemaFiles(resourceDir);
+            CRCLSchemaUtils.saveCmdSchemaFiles(cmdSchemasFile, fa);
         }
 
         int statSchemaFilesLength;
         File startingStatSchemaFiles[];
         boolean startingStatSchemasFileExists = statSchemasFile.exists();
         if(startingStatSchemasFileExists) {
-            startingStatSchemaFiles = CRCLSocket.readStatSchemaFiles(statSchemasFile);
+            startingStatSchemaFiles = CRCLSchemaUtils.readStatSchemaFiles(statSchemasFile);
             statSchemaFilesLength= startingStatSchemaFiles.length;
         } else {
             startingStatSchemaFiles = null;
@@ -69,16 +69,16 @@ public class DefaultSchemaFiles {
         if (!startingStatSchemasFileExists || statSchemaFilesLength < 1) {
             File resourceDir = new File(statSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
-            CRCLSocket.copySchemaResources(resourceDir);
-            File[] fa = CRCLSocket.findSchemaFiles(resourceDir);
-            CRCLSocket.saveStatSchemaFiles(statSchemasFile, fa);
+            CRCLSchemaUtils.copySchemaResources(resourceDir);
+            File[] fa = CRCLSchemaUtils.findSchemaFiles(resourceDir);
+            CRCLSchemaUtils.saveStatSchemaFiles(statSchemasFile, fa);
         }
         
         int programSchemaFilesLength;
         File startingProgramSchemaFiles[];
         boolean startingProgramSchemasFileExists = programSchemasFile.exists();
         if(startingProgramSchemasFileExists) {
-            startingProgramSchemaFiles = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
+            startingProgramSchemaFiles = CRCLSchemaUtils.readProgramSchemaFiles(programSchemasFile);
             programSchemaFilesLength= startingProgramSchemaFiles.length;
         } else {
             startingProgramSchemaFiles = null;
@@ -87,15 +87,15 @@ public class DefaultSchemaFiles {
         if (!startingProgramSchemasFileExists || programSchemaFilesLength < 1) {
             File resourceDir = new File(programSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
-            CRCLSocket.copySchemaResources(resourceDir);
-            File[] fa = CRCLSocket.findSchemaFiles(resourceDir);
-            CRCLSocket.saveProgramSchemaFiles(programSchemasFile, fa);
+            CRCLSchemaUtils.copySchemaResources(resourceDir);
+            File[] fa = CRCLSchemaUtils.findSchemaFiles(resourceDir);
+            CRCLSchemaUtils.saveProgramSchemaFiles(programSchemasFile, fa);
         }
         this.cmdSchemasFile = cmdSchemasFile;
         this.statSchemasFile = statSchemasFile;
         this.programSchemasFile = programSchemasFile;
     }
-    private static final String HOME = Utils.getCrclUserHomeDir();
+    private static final String HOME = CRCLUtils.getCrclUserHomeDir();
     private static final String SCHEMA_FILES_DIR = System.getProperty("crcl4java.schemaFilesDir", HOME);
     
 //    private static final String HOME = 
@@ -123,14 +123,14 @@ public class DefaultSchemaFiles {
         File tmpDirFile = File.createTempFile("crclResources", ".holder");
         File resourceDir = new File(tmpDirFile.getParentFile(), tmpDirFile.getName() + "_dir");
         resourceDir.mkdirs();
-        CRCLSocket.copySchemaResources(resourceDir);
-        File[] fa = CRCLSocket.findSchemaFiles(resourceDir);
+        CRCLSchemaUtils.copySchemaResources(resourceDir);
+        File[] fa = CRCLSchemaUtils.findSchemaFiles(resourceDir);
         File cmdFile = File.createTempFile("crcljava_ui_cmd_schemas", ".txt");
-        CRCLSocket.saveCmdSchemaFiles(cmdFile, fa);
+        CRCLSchemaUtils.saveCmdSchemaFiles(cmdFile, fa);
         File statFile = File.createTempFile("crcljava_ui_stat_schemas", ".txt");
-        CRCLSocket.saveStatSchemaFiles(statFile, fa);
+        CRCLSchemaUtils.saveStatSchemaFiles(statFile, fa);
         File progFile = File.createTempFile("crcljava_ui_program_schemas", ".txt");
-        CRCLSocket.saveProgramSchemaFiles(progFile, fa);
+        CRCLSchemaUtils.saveProgramSchemaFiles(progFile, fa);
         return new DefaultSchemaFiles(cmdFile,
                 statFile,
                 progFile);

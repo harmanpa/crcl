@@ -20,43 +20,34 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-package crcl.ui.client;
+package crcl.utils;
 
-import crcl.utils.outer.interfaces.CommandStatusLogElement;
-import crcl.base.CRCLStatusType;
-import crcl.base.CommandStatusType;
-import static crcl.utils.CRCLCopier.copy;
+import java.io.File;
+import java.io.IOException;
+import javax.xml.bind.SchemaOutputResolver;
+import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class StatusLogElement extends CommandStatusLogElement {
+public class CRCLSchemaOutputResolver extends SchemaOutputResolver {
 
-    @SuppressWarnings("nullness")
-    public StatusLogElement(CRCLStatusType status, long time, @Nullable String progName, int progIndex, @Nullable String svrString) {
-        super(status.getCommandStatus().getCommandID(), time, progName, progIndex, svrString);
-        this.status = copy(status);
-    }
-    final CRCLStatusType status;
+    private @Nullable
+    File file = null;
 
-    /**
-     * Get the value of status
-     *
-     * @return the value of status
-     */
-    public CRCLStatusType getStatus() {
-        return status;
+    public @Nullable
+    File getFile() {
+        return file;
     }
 
-    public String toString() {
-        final CommandStatusType commandStatus = status.getCommandStatus();
-        if (null != commandStatus) {
-            return " [" + getTimeString() + "," + commandStatus.getCommandState() + "," + commandStatus.getCommandID() + "," + commandStatus.getStateDescription() + "] ";
-        } else {
-            return " [" + getTimeString() + ",null,-1,null] ";
-        }
+    @Override
+    public Result createOutput(String namespaceURI, String suggestedFileName) throws IOException {
+        file = new File(suggestedFileName);
+        StreamResult result = new StreamResult(file);
+        result.setSystemId(file.toURI().toURL().toString());
+        return result;
     }
-
 }

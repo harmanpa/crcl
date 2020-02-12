@@ -24,74 +24,48 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
-import crcl.base.CommandStatusType;
 import crcl.base.GetStatusType;
-import crcl.base.JointStatusType;
-import crcl.base.JointStatusesType;
 import crcl.base.ObjectFactory;
-import crcl.base.PointType;
-import crcl.base.PoseType;
-import crcl.base.VectorType;
+import static crcl.utils.CRCLUtils.getNonNullCmd;
+import static crcl.utils.CRCLUtils.statToDebugString;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Array;
-import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -120,17 +94,11 @@ public class CRCLSocket implements AutoCloseable {
     public static final int DEFAULT_PORT = 64444;
 
     static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
-
         @Override
         public String apply(String t) {
             return addCRCLToStatePriv(t);
         }
-
     };
-
-    public static File getCrclSchemaDirFile() {
-        return crclSchemaDirFile;
-    }
 
     private static class UtilSocketHider {
 
@@ -149,88 +117,10 @@ public class CRCLSocket implements AutoCloseable {
         return socket;
     }
 
-    public static interface CRCLSocketConsumer {
-
-        public void accept(CRCLSocket socket);
-    }
-
-    public static void
-            runSimpleServer(int port, CRCLSocketConsumer consumer) {
-
-    }
-
     @Override
     public String toString() {
         Socket socket = getSocket();
         return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
-    }
-
-    /**
-     * Read a CRCL Status from a File with the given file.
-     *
-     * @param f File to read
-     * @return CRCLStatus read from file.
-     * @throws CRCLException file is not valid CRCLStatus
-     * @throws IOException unable to read from file
-     */
-    public static CRCLStatusType readStatusFile(File f) throws CRCLException, IOException {
-        return readStatusFile(f.toPath());
-    }
-
-    /**
-     * Read a CRCL Status from a File with the given path.
-     *
-     * @param p Path to file to read
-     * @return CRCLStatus read from file.
-     * @throws CRCLException file is not valid CRCLStatus
-     * @throws IOException unable to read from file
-     */
-    public static CRCLStatusType readStatusFile(Path p) throws CRCLException, IOException {
-        CRCLSocket cs = getUtilSocket();
-        String str = new String(Files.readAllBytes(p));
-        synchronized (cs) {
-            return cs.stringToStatus(str, true);
-        }
-    }
-
-    /**
-     * Read a CRCL Program from a File with the given file.
-     *
-     * @param f File to read
-     * @return CRCLProgram read from file.
-     * @throws CRCLException file is not valid CRCLProgram
-     * @throws IOException unable to read from file
-     */
-    public static CRCLProgramType readProgramFile(File f) throws CRCLException, IOException {
-        return readProgramFile(f.toPath());
-    }
-
-    /**
-     * Read a CRCL Program from a File with the given path.
-     *
-     * @param p Path to file to read
-     * @return CRCLProgram read from file.
-     * @throws CRCLException file is not valid CRCLProgram
-     * @throws IOException unable to read from file
-     */
-    public static CRCLProgramType readProgramFile(Path p) throws CRCLException, IOException {
-        CRCLSocket cs = getUtilSocket();
-        String str = new String(Files.readAllBytes(p));
-        synchronized (cs) {
-            return cs.stringToProgram(str, true);
-        }
-    }
-
-    /**
-     * Read a CRCL Program from a File with the given filename.
-     *
-     * @param filename name of file to read
-     * @return CRCLProgram read from file.
-     * @throws CRCLException file is not valid CRCLProgram
-     * @throws IOException unable to read from file
-     */
-    public static CRCLProgramType readProgramFile(String filename) throws CRCLException, IOException {
-        return readProgramFile(Paths.get(filename));
     }
 
     static final public UnaryOperator<String> removeCRCLFromState = new UnaryOperator<String>() {
@@ -254,136 +144,12 @@ public class CRCLSocket implements AutoCloseable {
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLProgramInstance.xsd\">";
     final public static boolean DEFAULT_JAXB_FRAGMENT = true;
 
-    private static File defaultStatSchemaFiles @Nullable []  = null;
-    private static File defaultCmdSchemaFiles @Nullable []  = null;
-    private static File defaultProgramSchemaFiles @Nullable []  = null;
-
-    @SuppressWarnings("unchecked")
-    private static <T> T[] arrayCopy(T[] oldArray) {
-        final Class<?> oldArrayClass = oldArray.getClass();
-        if(null == oldArrayClass) {
-            throw new IllegalArgumentException("oldArrayClass="+oldArrayClass+", oldArray="+oldArray);
-        }
-        final Class<T> oldArrayComponentType = (Class<T>) oldArrayClass.getComponentType();
-        if(null == oldArrayComponentType) {
-            throw new IllegalArgumentException("oldArrayComponentType="+oldArrayComponentType+", oldArray="+oldArray);
-        }
-        T[] newArray = (T[]) Array.newInstance(oldArrayComponentType, oldArray.length);
-        for (int i = 0; i < newArray.length; i++) {
-            T oldElement = oldArray[i];
-            if (null == oldElement) {
-                throw new IllegalArgumentException("oldArray[" + i + "]=" + oldArray[i]);
-            } else {
-                newArray[i] = oldElement;
-            }
-        }
-        return newArray;
-    }
-
-//    private static <T> T[] arrayCopy(Class<T> componentType, T[] oldArray) {
-//        T[] newArray = (T[]) Array.newInstance(componentType, oldArray.length);
-//        for (int i = 0; i < newArray.length; i++) {
-//            T oldElement = oldArray[i];
-//            if (null == oldElement) {
-//                throw new IllegalArgumentException("oldArray[" + i + "]=" + oldArray[i]);
-//            } else {
-//                newArray[i] = oldElement;
-//            }
-//        }
-//        return newArray;
-//    }
-    public static synchronized Schema filesToCmdSchema(File fa[]) throws CRCLException {
-        if (null == fa || fa.length < 1) {
-            throw new IllegalArgumentException("File fa[]=" + fa);
-        }
-        File arrayCopy[] = arrayCopy(fa);
-        File[] reorderedFa = reorderAndFilterCommandSchemaFiles(arrayCopy);
-        defaultCmdSchemaFiles = reorderedFa;
-        return filesToSchema(reorderedFa);
-    }
-
-    public static synchronized @Nullable
-    Schema getDefaultCmdSchema() throws CRCLException {
-        if (null == defaultCmdSchemaFiles) {
-            return null;
-        }
-        return filesToCmdSchema(defaultCmdSchemaFiles);
-    }
-
-    @SuppressWarnings("nullness")
-    public static synchronized File[] getDefaultCmdSchemaFiles() {
-        if (null == defaultCmdSchemaFiles || defaultCmdSchemaFiles.length < 1) {
-            return new File[0];
-        }
-        return Arrays.copyOf(defaultCmdSchemaFiles, defaultCmdSchemaFiles.length);
-    }
-
-    @SuppressWarnings("nullness")
-    public static synchronized File[] getDefaultProgramSchemaFiles() {
-        if (null == defaultProgramSchemaFiles || defaultProgramSchemaFiles.length < 1) {
-            return new File[0];
-        }
-        return Arrays.copyOf(defaultProgramSchemaFiles, defaultProgramSchemaFiles.length);
-    }
-
-    public static synchronized Schema filesToStatSchema(File fa[]) throws CRCLException {
-        if (null == fa || fa.length < 1) {
-            throw new IllegalArgumentException("File fa[]=" + fa);
-        }
-        File[] reorderedFa = reorderAndFilterStatSchemaFiles(arrayCopy( fa));
-        defaultStatSchemaFiles = reorderedFa;
-        return filesToSchema(reorderedFa);
-    }
-
-    public static synchronized @Nullable
-    Schema getDefaultStatSchema() throws CRCLException {
-        if (null == defaultStatSchemaFiles) {
-            return null;
-        }
-        return filesToStatSchema(defaultStatSchemaFiles);
-    }
-
-    public static synchronized Schema filesToProgramSchema(File fa[]) throws CRCLException {
-        if (null == fa) {
-            throw new IllegalArgumentException("File fa[]=null");
-        }
-        final File[] faCopy = arrayCopy(fa);
-        fa = reorderProgramSchemaFiles(faCopy);
-        defaultProgramSchemaFiles = fa;
-        return filesToSchema(fa);
-    }
-
-    public static synchronized @Nullable
-    Schema getDefaultProgramSchema() throws CRCLException {
-        if (null == defaultProgramSchemaFiles) {
-            return null;
-        }
-        return filesToProgramSchema(defaultProgramSchemaFiles);
-    }
-
-    private static @Nullable
+    static @Nullable
     File commandXsdFile = null;
 
     public static @Nullable
     File getCommandXsdFile() {
         return commandXsdFile;
-    }
-
-    private static final Logger LOGGER = Logger.getLogger(CRCLSocket.class.getName());
-    private final static File statSchemasFile = new File(Utils.getCrclUserHomeDir(),
-            ".crcljava_stat_schemas.txt");
-    private final static File cmdSchemasFile = new File(Utils.getCrclUserHomeDir(),
-            ".crcljava_cmd_schemas.txt");
-    private final static File programSchemasFile = new File(Utils.getCrclUserHomeDir(),
-            ".crcljava_program_schemas.txt");
-    final static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
-    final static public boolean DEFAULT_RANDOM_PACKETING = false;
-    private static final File crclSchemaDirFile;
-    private static boolean resourcesCopied = false;
-
-    static {
-        File startFile = new File(Utils.getCrclUserHomeDir());
-        crclSchemaDirFile = new File(startFile, "crclXmlSchemas");
     }
 
     private static String addCRCLToStatePriv(String in) {
@@ -398,621 +164,6 @@ public class CRCLSocket implements AutoCloseable {
                 .replaceAll("<CommandState>DONE</CommandState>", "<CommandState>Done</CommandState>")
                 .replaceAll("<CommandState>ERROR</CommandState>", "<CommandState>Error</CommandState>")
                 .replaceAll("<CommandState>CRCL_Ready</CommandState>", "<CommandState>Ready</CommandState>");
-    }
-
-    static public @Nullable
-    File generateSchema(Class<?> clss) throws CRCLException {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(clss);
-            CRCLSchemaOutputResolver sor = new CRCLSchemaOutputResolver();
-            jaxbContext.generateSchema(sor);
-            return sor.getFile();
-        } catch (JAXBException | IOException ex) {
-            throw new CRCLException(ex);
-        }
-    }
-
-    public static @Nullable
-    JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
-        return getJointStatus(_status, bi.intValue());
-    }
-
-    public static @Nullable
-    JointStatusType getJointStatus(CRCLStatusType _status, int bi) {
-        if (null == _status) {
-            return null;
-        }
-        JointStatusesType jsst = _status.getJointStatuses();
-        if (null == jsst) {
-            return null;
-        }
-        List<JointStatusType> jsl = jsst.getJointStatus();
-        for (JointStatusType js : jsl) {
-            if (js.getJointNumber() == bi) {
-                return js;
-            }
-        }
-        return null;
-    }
-
-    private static String vectorToDebugString(final @Nullable VectorType v) {
-        return v == null ? "null" : v.toString() + " { "
-                + "I=" + v.getI() + ","
-                + "J=" + v.getJ() + ","
-                + "K=" + v.getK() + " } ";
-    }
-
-    private static String pointToDebugString(final @Nullable PointType p) {
-        return p == null ? "null" : p.toString() + " { "
-                + "X=" + p.getX() + ","
-                + "Y=" + p.getY() + ","
-                + "Z=" + p.getZ() + " } ";
-    }
-
-    private static String poseToDebugString(final @Nullable PoseType p) {
-        return p == null ? "null" : p.toString() + " { "
-                + "Point=" + pointToDebugString(p.getPoint()) + ","
-                + "XAxis=" + vectorToDebugString(p.getXAxis()) + ","
-                + "ZAxis=" + vectorToDebugString(p.getZAxis()) + " } ";
-    }
-
-    private static String commandStatToDebugString(final @Nullable CommandStatusType c) {
-        return c == null ? "null" : c.toString() + " { "
-                + "CommandId=" + c.getCommandID() + ","
-                + "CommandState=" + c.getCommandState() + ","
-                + "StatusId=" + c.getStatusID() + " } ";
-    }
-
-    private static String jointStatusToDebugString(final @Nullable JointStatusType j) {
-        return j == null ? "null" : j.toString() + " { "
-                + "JointNumber=" + j.getJointNumber() + ","
-                + "Position=" + j.getJointPosition() + ","
-                + "Velocity=" + j.getJointVelocity() + ","
-                + "TorqueOrForce=" + j.getJointTorqueOrForce()
-                + " } ";
-    }
-
-    private static String jointStatusListToDebugString(final List<JointStatusType> l) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<JointStatusType> it = l.iterator();
-        while (it.hasNext()) {
-            JointStatusType jst = it.next();
-            sb.append(CRCLSocket.jointStatusToDebugString(jst));
-            if (it.hasNext()) {
-                sb.append(',');
-            }
-        }
-        return sb.toString();
-    }
-
-    private static String jointStatusesToDebugString(final JointStatusesType j) {
-        return j == null ? "null" : j.toString() + " { "
-                + "JointStatus=" + jointStatusListToDebugString(j.getJointStatus()) + " } ";
-    }
-
-    public static String statToDebugString(final CRCLStatusType stat) {
-        return stat == null ? "null" : stat.toString() + " { "
-                + "CommandStatus=" + commandStatToDebugString(stat.getCommandStatus()) + ","
-                + "Pose=" + poseToDebugString(CRCLPosemath.getPose(stat)) + ","
-                + "JointStatuses=" + jointStatusesToDebugString(stat.getJointStatuses()) + " } ";
-    }
-
-    public static void clearSchemas() {
-        if (null != programSchemasFile && programSchemasFile.exists()) {
-            boolean deleted = programSchemasFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(programSchemasFile + " not deleted");
-            }
-        }
-        if (null != cmdSchemasFile && cmdSchemasFile.exists()) {
-            boolean deleted = cmdSchemasFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(cmdSchemasFile + " not deleted");
-            }
-        }
-        if (null != statSchemasFile && statSchemasFile.exists()) {
-            boolean deleted = statSchemasFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(statSchemasFile + " not deleted");
-            }
-        }
-        if (null != crclSchemaDirFile && crclSchemaDirFile.exists()) {
-            boolean deleted = crclSchemaDirFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(crclSchemaDirFile + " not deleted");
-            }
-        }
-    }
-
-    private static final File[] EMPTY_FILE_ARRAY = new File[0];
-
-    public static File[] findSchemaFiles() {
-        copySchemaResources();
-        File files[] = crclSchemaDirFile.listFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".xsd");
-            }
-        });
-        if (files != null) {
-            return files;
-        }
-        return EMPTY_FILE_ARRAY;
-    }
-
-    public static File[] findSchemaFiles(File dir) {
-        copySchemaResources(dir);
-        File files[] = dir.listFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".xsd");
-            }
-        });
-        if (files != null) {
-            return files;
-        }
-        return EMPTY_FILE_ARRAY;
-    }
-
-    protected static void copySchemaResources() {
-        if (resourcesCopied) {
-            return;
-        }
-        boolean made_directory = crclSchemaDirFile.mkdirs();
-        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, crclSchemaDirFile + "mkdirs() returned" + made_directory);
-        copySchemaResources(crclSchemaDirFile);
-        resourcesCopied = true;
-    }
-
-    public static void copySchemaResources(File directory) {
-        copyResourcesToFiles(directory,
-                "CRCLCommandInstance.xsd",
-                "CRCLCommands.xsd",
-                "CRCLProgramInstance.xsd",
-                "DataPrimitives.xsd",
-                "CRCLStatus.xsd");
-    }
-
-    private static String getVersion(String resourceName) {
-        try {
-            InputStream is = resourceAsStream(resourceName);
-            Document doc
-                    = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
-            Element el = doc.getDocumentElement();
-            String version = el.getAttribute("version");
-            return version;
-        } catch (Exception ex) {
-            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return "";
-    }
-
-    private static InputStream resourceAsStream(String resourceName) throws IllegalStateException {
-        ClassLoader cl = CRCLStatusType.class.getClassLoader();
-        if (null == cl) {
-            throw new IllegalStateException("CRCLStatusType.class.getClassLoader() returned null");
-        }
-        InputStream is
-                = cl.getResourceAsStream(resourceName);
-        if (null == is) {
-            throw new IllegalStateException("CRCLStatusType.class.getClassLoader().getResourceAsStream(" + resourceName + ") returned null");
-        }
-        return is;
-    }
-
-    public static Map<String, String> getSchemaVersions(String... resourcNames) {
-        Map<String, String> map = new HashMap<>();
-        for (int i = 0; i < resourcNames.length; i++) {
-            String resourcName = resourcNames[i];
-            map.put(resourcName, getVersion(resourcName));
-        }
-        return map;
-    }
-
-    public static Map<String, String> getSchemaVersions() {
-        return getSchemaVersions(
-                "CRCLCommandInstance.xsd",
-                "CRCLCommands.xsd",
-                "CRCLProgramInstance.xsd",
-                "DataPrimitives.xsd",
-                "CRCLStatus.xsd");
-    }
-
-    static private void copyInputStreamToFile(InputStream is, File f) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(f)) {
-            while (true) {
-                byte buf[] = new byte[4096];
-                int bytes_read = is.read(buf);
-                if (bytes_read < 1) {
-                    return;
-                }
-                fos.write(buf, 0, bytes_read);
-            }
-        }
-    }
-
-    /**
-     *
-     * @param dirFile the value of dirFile
-     * @param names the value of names
-     */
-    private static void copyResourcesToFiles(File dirFile, String... names) {
-        boolean made_directory = dirFile.mkdirs();
-        Logger.getLogger(CRCLSocket.class.getName()).log(Level.FINEST, dirFile + "mkdirs() returned" + made_directory);
-        ClassLoader classLoader = CRCLStatusType.class.getClassLoader();
-        if (null != classLoader) {
-            for (String name : names) {
-                try {
-                    File f = new File(dirFile, name);
-                    if (f.exists()
-                            && (RESOURCE_CHANGE_TIME < 0
-                            || (System.currentTimeMillis() - f.lastModified()) < RESOURCE_CHANGE_TIME)) {
-                        continue;
-                    }
-                    InputStream resourceStream = classLoader.getResourceAsStream(name);
-                    if (resourceStream != null) {
-                        copyInputStreamToFile(
-                                resourceStream,
-                                f);
-
-                    }
-                } catch (MalformedURLException ex) {
-                    LOGGER.log(Level.SEVERE, "Bad resource name " + name, ex);
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, "Failed to copy resource " + name, ex);
-                }
-            }
-        }
-    }
-    private static final long RESOURCE_CHANGE_TIME = getLongProperty("crcl.resourceChangeTime", 600000);
-
-    public static List<File> reorderAndFilterStatSchemaFiles(List<File> fl) {
-        List<File> newList = new ArrayList<>();
-        for (int i = 0; i < fl.size(); i++) {
-            File fileI = fl.get(i);
-            if (fileI.getName().contains("Status") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
-                newList.add(fileI);
-            }
-        }
-        Collections.sort(newList, new Comparator<File>() {
-
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        int statIndex = -1;
-        for (int i = 0; i < newList.size(); i++) {
-            if (newList.get(i).getName().contains("Status")) {
-                statIndex = i;
-                break;
-            }
-        }
-        if (statIndex > 0 && statIndex < newList.size()) {
-            File f = newList.remove(statIndex);
-            newList.add(0, f);
-        }
-        return newList;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T[] listToArray(Class<T> componentType, List<T> list) {
-        T[] newArray = (T[]) Array.newInstance(componentType, list.size());
-        for (int i = 0; i < newArray.length; i++) {
-            T object = list.get(i);
-            if (object == null) {
-                throw new IllegalArgumentException("list.get(" + i + ")=" + object);
-            } else {
-                newArray[i] = object;
-            }
-        }
-        return newArray;
-    }
-
-    public static File[] reorderAndFilterStatSchemaFiles(File fa[]) {
-        if (null == fa || fa.length < 1) {
-            throw new IllegalArgumentException("File fa[]=" + fa);
-        }
-        List<File> fl = new ArrayList<>();
-        fl.addAll(Arrays.asList(fa));
-        List<File> newList = reorderAndFilterStatSchemaFiles(fl);
-        if (null != newList) {
-            File files[] = listToArray(File.class, newList);
-            if (null != files) {
-                File newFiles[] = (/*@NonNull*/File[]) files;
-                return newFiles;
-            }
-        }
-        return EMPTY_FILE_ARRAY;
-    }
-
-    public static Schema filesToSchema(File fa[]) throws CRCLException {
-        try {
-            Source sources[] = new Source[fa.length];
-            for (int i = 0; i < sources.length; i++) {
-                sources[i] = new StreamSource(fa[i]);
-            }
-            SchemaFactory schemaFactory = SchemaFactory
-                    .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            return schemaFactory.newSchema(sources);
-        } catch (SAXException ex) {
-            throw new CRCLException(ex);
-        }
-    }
-
-    public static File[] readStatSchemaFiles(File schemaListFile) {
-        if (schemaListFile.exists()
-                && SCHEMA_CHANGE_TIME > 0
-                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
-            boolean deleted = schemaListFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
-            }
-            saveStatSchemaFiles(schemaListFile, findSchemaFiles());
-        } else if (!schemaListFile.exists()) {
-            saveStatSchemaFiles(schemaListFile, findSchemaFiles());
-        }
-        if (!schemaListFile.exists()) {
-//            showMessage("Could not find CRCL Schema xsd files.");
-            throw new IllegalStateException(schemaListFile + " does not exist.");
-        }
-        try {
-            List<File> fl = readSchemaListFile(schemaListFile);
-            fl = reorderAndFilterStatSchemaFiles(fl);
-            return fl.toArray(new File[fl.size()]);
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Failed to read " + schemaListFile, ex);
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
-    private static List<File> readSchemaListFile(File schemaListFile) throws IOException {
-        List<File> fl = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(schemaListFile))) {
-            String line = null;
-
-            while (null != (line = br.readLine())) {
-                File file = new File(line.trim());
-                if (file.isAbsolute()) {
-                    fl.add(file);
-                } else {
-                    String absFilePath = schemaListFile.getParent() + File.separator + line.trim();
-                    fl.add(new File(absFilePath));
-                }
-            }
-        }
-        return fl;
-    }
-
-    public static void saveProgramSchemaFiles(File schemaListFile, File fa[]) {
-        if (null == fa) {
-            return;
-        }
-        fa = reorderProgramSchemaFiles(fa);
-        saveSchemaListFile(schemaListFile, fa);
-    }
-
-    public static void saveStatSchemaFiles(File schemaListFile, File fa[]) {
-        if (null == fa) {
-            return;
-        }
-        fa = reorderAndFilterStatSchemaFiles(fa);
-        saveSchemaListFile(schemaListFile, fa);
-    }
-
-    private static void saveSchemaListFile(File schemaListFile, File[] fa) {
-        PrintStream ps = null;
-        try {
-            File schemaParent = schemaListFile.getParentFile();
-            if (null == schemaParent) {
-                throw new NullPointerException("schemaListFile.getParentFile() schemaListFile=" + schemaListFile);
-            }
-            String schemaParentPath = schemaParent.getCanonicalPath();
-            if (null == schemaParentPath) {
-                throw new NullPointerException("schemaParent.getCanonicalPath() schemaParent=" + schemaParent);
-            }
-            ps = new PrintStream(new FileOutputStream(schemaListFile));
-            for (int i = 0; i < fa.length; i++) {
-                final File fai = fa[i];
-                if (null == fai) {
-                    throw new NullPointerException("fa=" + Arrays.toString(fa) + ", contains null at i=" + i);
-                }
-                String elementCanonicalPath = fai.getCanonicalPath();
-                if (elementCanonicalPath.startsWith(schemaParentPath)) {
-                    elementCanonicalPath = elementCanonicalPath.substring(schemaParentPath.length() + 1);
-                }
-                ps.println(elementCanonicalPath);
-            }
-        } catch (Exception ex) {
-            String errmsg = "Can not write " + schemaListFile;
-            LOGGER.log(Level.SEVERE, errmsg, ex);
-            throw new RuntimeException(errmsg, ex);
-        } finally {
-            if (null != ps) {
-                try {
-                    ps.close();
-                } catch (Exception exx) {
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings({"nullness", "unchecked"})
-    private static <T> T[] toNonNullArray(List<T> list, Class<T> clzz) {
-        final T[] zeroArray = (T[]) Array.newInstance(clzz, 0);
-        if (null == list) {
-            return zeroArray;
-        }
-        List<T> listCopy = new ArrayList<>(list);
-        for (int i = 0; i < list.size(); i++) {
-            if (listCopy.get(i) == null) {
-                listCopy.remove(i);
-                i--;
-            }
-        }
-        @Nullable
-        T nullableArray[] = listCopy.toArray(zeroArray);
-        if (nullableArray == null) {
-            return zeroArray;
-        }
-        return (/*@NonNull*/T[]) nullableArray;
-    }
-
-    public static File[] reorderAndFilterCommandSchemaFiles(File[] fa) {
-        if (null == fa || fa.length < 1) {
-            return EMPTY_FILE_ARRAY;
-        }
-        List<File> fl = new ArrayList<>();
-        fl.addAll(Arrays.asList(fa));
-        List<File> newList = reorderAndFilterCommandSchemaFiles(fl);
-        if (newList != null) {
-            return toNonNullArray(newList, File.class);
-        }
-        return EMPTY_FILE_ARRAY;
-    }
-
-    public static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
-        List<File> newList = new ArrayList<>();
-        for (int i = 0; i < fl.size(); i++) {
-            File fileI = fl.get(i);
-            if (fileI.getName().contains("Command") || fileI.getName().contains("Data") || fileI.getName().contains("Primitive")) {
-                newList.add(fileI);
-            }
-        }
-        Collections.sort(newList, new Comparator<File>() {
-
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        int cmdInstanceIndex = -1;
-        for (int i = 0; i < newList.size(); i++) {
-            final File fileI = newList.get(i);
-            if (fileI.getName().contains("CommandInstance")) {
-                cmdInstanceIndex = i;
-                break;
-            }
-        }
-        if (cmdInstanceIndex > 0 && cmdInstanceIndex < newList.size()) {
-            File f = newList.remove(cmdInstanceIndex);
-            CRCLSocket.commandXsdFile = f;
-            newList.add(0, f);
-        }
-        return newList;
-    }
-
-    public static File[] reorderProgramSchemaFiles(File[] fa) {
-        if (null == fa) {
-            return EMPTY_FILE_ARRAY;
-        }
-        List<File> fl = new ArrayList<>();
-        fl.addAll(Arrays.asList(fa));
-        return toNonNullArray(fl, File.class);
-    }
-
-    public static List<File> reorderProgramSchemaFiles(List<File> fl) {
-        Collections.sort(fl, new Comparator<File>() {
-
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        int cmdInstanceIndex = -1;
-        for (int i = 0; i < fl.size(); i++) {
-            if (fl.get(i).getName().contains("ProgramInstance")) {
-                cmdInstanceIndex = i;
-                break;
-            }
-        }
-        if (cmdInstanceIndex > 0 && cmdInstanceIndex < fl.size()) {
-            File f = fl.remove(cmdInstanceIndex);
-            CRCLSocket.commandXsdFile = f;
-            fl.add(0, f);
-        }
-        return fl;
-    }
-
-    public static File[] readCmdSchemaFiles(File schemaListFile) {
-        if (schemaListFile.exists()
-                && SCHEMA_CHANGE_TIME > 0
-                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
-            boolean deleted = schemaListFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
-            }
-            saveCmdSchemaFiles(schemaListFile, findSchemaFiles());
-        } else if (!schemaListFile.exists()) {
-            saveCmdSchemaFiles(schemaListFile, findSchemaFiles());
-        }
-        if (!schemaListFile.exists()) {
-            throw new IllegalStateException(schemaListFile + " does not exist.");
-        }
-        try {
-            List<File> fl = readSchemaListFile(schemaListFile);
-            fl = reorderAndFilterCommandSchemaFiles(fl);
-            return toNonNullArray(fl, File.class);
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-    private static final long SCHEMA_CHANGE_TIME = getLongProperty("crcl.schemaChangeTime", 600000);
-
-    private static long getLongProperty(String name, long defaultValue) {
-        String propVal = System.getProperty(name);
-        if (propVal == null) {
-            return defaultValue;
-        }
-        return Long.parseLong(propVal);
-    }
-
-    public static File[] readProgramSchemaFiles(File schemaListFile) {
-        if (schemaListFile.exists()
-                && SCHEMA_CHANGE_TIME > 0
-                && (System.currentTimeMillis() - schemaListFile.lastModified()) > SCHEMA_CHANGE_TIME) {
-            boolean deleted = schemaListFile.delete();
-            if (!deleted) {
-                Logger.getLogger(CRCLSocket.class.getName()).warning(schemaListFile + " not deleted");
-            }
-            saveProgramSchemaFiles(schemaListFile, findSchemaFiles());
-        } else if (!schemaListFile.exists()) {
-            saveProgramSchemaFiles(schemaListFile, findSchemaFiles());
-        }
-        if (!schemaListFile.exists()) {
-            throw new IllegalStateException(schemaListFile + " does not exist.");
-        }
-        try {
-            List<File> fl = readSchemaListFile(schemaListFile);
-            fl = reorderProgramSchemaFiles(fl);
-            return fl.toArray(new File[fl.size()]);
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Can not read " + schemaListFile, ex);
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else {
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
-    public static void saveCmdSchemaFiles(File schemasListFile, File fa[]) {
-        if (null == fa) {
-            return;
-        }
-        fa = reorderAndFilterCommandSchemaFiles(fa);
-        saveSchemaListFile(schemasListFile, fa);
     }
 
     private @MonotonicNonNull
@@ -1073,6 +224,8 @@ public class CRCLSocket implements AutoCloseable {
     SAXSource exiStatusInSaxSource = null;
     private final ObjectFactory objectFactory
             = new ObjectFactory();
+    final static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
+    final static public boolean DEFAULT_RANDOM_PACKETING = false;
     public boolean appendTrailingZero = DEFAULT_APPEND_TRAILING_ZERO;
     public boolean randomPacketing = DEFAULT_RANDOM_PACKETING;
     private @Nullable
@@ -1090,6 +243,7 @@ public class CRCLSocket implements AutoCloseable {
         this.socket = null;
     }
 
+    private static final Logger LOGGER = Logger.getLogger(CRCLSocket.class.getName());
     private static final boolean DEBUG_JAXB_SELECTION
             = Boolean.getBoolean("crcl.DEBUG_JAXB_SELECTION");
 
@@ -1168,11 +322,6 @@ public class CRCLSocket implements AutoCloseable {
 
     public void setCmdSchemaFiles(File[] cmdSchemaFiles) {
         this.cmdSchemaFiles = cmdSchemaFiles;
-    }
-
-    public static @Nullable
-    File getCmdSchemasFile() {
-        return cmdSchemasFile;
     }
 
     public StackTraceElement @Nullable [] getCmdSchemSetTrace() {
@@ -1572,7 +721,7 @@ public class CRCLSocket implements AutoCloseable {
     private byte readUntilMatch(String toMatch, final InputStream is, StringBuilder sb) throws IOException {
         byte[] tagBytes;
         byte[] tagBytesPrep;
-        tagBytes = toMatch.getBytes();
+        tagBytes = toMatch.getBytes(UTF_8);
         tagBytesPrep = new byte[tagBytes.length];
         int tagBytesPrepped = 0;
         byte lastbyte = 0;
@@ -1585,7 +734,7 @@ public class CRCLSocket implements AutoCloseable {
                         while (i < tagBytesPrepped - 1 && tagBytesPrep[i + 1] != tagBytes[0]) {
                             i++;
                         }
-                        sb.append(new String(tagBytesPrep, 0, (i + 1)));
+                        sb.append(new String(tagBytesPrep, 0, (i + 1),UTF_8));
                         lastbyte = tagBytesPrep[i];
                         if (i < tagBytesPrepped - 1) {
                             System.arraycopy(tagBytesPrep, i + 1, tagBytesPrep, 0, tagBytesPrepped - i - 1);
@@ -1784,7 +933,8 @@ public class CRCLSocket implements AutoCloseable {
         CRCLCommandInstanceType cmd = stringToCommand(str, validate);
         final CRCLCommandType cc = cmd.getCRCLCommand();
         final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
-        LOGGER.log(loglevel, "readCommand() returning {0} ID={1}str={2}  called from Thread: {3}", new Object[]{cc, cc.getCommandID(), str, threadName});
+        final long ccID = (cc != null) ? cc.getCommandID() : -1;
+        LOGGER.log(loglevel, "readCommand() returning {0} ID={1} str={2}  called from Thread: {3}", new Object[]{cc, ccID, str, threadName});
         this.lastCommandString = str;
         return cmd;
     }
@@ -1795,7 +945,8 @@ public class CRCLSocket implements AutoCloseable {
             if (null != channel) {
                 ByteBuffer bb = ByteBuffer.allocate(4096);
                 int bytesread = channel.read(bb);
-                String string = new String(bb.array(), 0, bytesread);
+                final byte[] array = bb.array();
+                String string = arrayToString(array, bytesread);
                 return parseMultiCommandString(string, validate);
             }
             Socket sock = this.socket;
@@ -1805,7 +956,7 @@ public class CRCLSocket implements AutoCloseable {
                     byte buf[] = new byte[bytesavail];
                     int bytes_read = sock.getInputStream().read(buf);
                     if (bytes_read > 0) {
-                        String s = new String(buf, 0, bytes_read);
+                        String s = new String(buf, 0, bytes_read,UTF_8);
                         return parseMultiCommandString(s, validate);
                     }
                 }
@@ -1819,13 +970,18 @@ public class CRCLSocket implements AutoCloseable {
         return Collections.emptyList();
     }
 
+    private String arrayToString(final byte[] array, int bytesread) {
+        String string = new String(array, 0, bytesread,UTF_8);
+        return string;
+    }
+
     public List<CRCLStatusType> checkForStatusMessages(boolean validate) throws CRCLException {
         try {
             SocketChannel channel = this.socketChannel;
             if (null != channel) {
                 ByteBuffer bb = ByteBuffer.allocate(4096);
                 int bytesread = channel.read(bb);
-                String string = new String(bb.array(), 0, bytesread);
+                String string = arrayToString(bb.array(), bytesread);
                 return parseMultiStatusString(string, validate);
             }
             Socket sock = this.socket;
@@ -1835,7 +991,7 @@ public class CRCLSocket implements AutoCloseable {
                     byte buf[] = new byte[bytesavail];
                     int bytes_read = sock.getInputStream().read(buf);
                     if (bytes_read > 0) {
-                        String s = new String(buf, 0, bytes_read);
+                        String s = arrayToString(buf, bytes_read);
                         return parseMultiStatusString(s, validate);
                     }
                 }
@@ -1866,8 +1022,8 @@ public class CRCLSocket implements AutoCloseable {
                 }
                 return instance;
             } catch (JAXBException ex) {
-                System.err.println("defaultStatSchemaFiles = " + Arrays.toString(defaultStatSchemaFiles));
-                throw new CRCLException(ex);
+                System.err.println("defaultStatSchemaFiles = " + Arrays.toString(CRCLSchemaUtils.getDefaultStatSchemaFiles()));
+                throw new CRCLException(str, ex);
             }
         }
     }
@@ -1943,7 +1099,7 @@ public class CRCLSocket implements AutoCloseable {
             final Map<Thread, StackTraceElement[]> allStackTraces = Thread.getAllStackTraces();
             for (Map.Entry<Thread, StackTraceElement[]> entry : allStackTraces.entrySet()) {
                 System.out.println("Thread = " + entry.getKey());
-                System.out.println("Trace = " + Utils.traceToString(entry.getValue()));
+                System.out.println("Trace = " + CRCLUtils.traceToString(entry.getValue()));
                 System.out.println("");
             }
             throw new CRCLException(ex);
@@ -1966,6 +1122,12 @@ public class CRCLSocket implements AutoCloseable {
             if (str.endsWith("</CRCLCommandInstance>")) {
                 str = str.substring(0, str.length() - "</CRCLCommandInstance>".length());
             }
+            if (str.startsWith("<Name>")) {
+                int endnameIndex = str.indexOf("</Name>");
+                if (endnameIndex > 0) {
+                    str = str.substring(endnameIndex + 7);
+                }
+            }
             return str;
         } catch (Exception ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
@@ -1983,11 +1145,11 @@ public class CRCLSocket implements AutoCloseable {
         }
         if (validate) {
             if (null == cmdSchema) {
-                Schema defaultCmdSchema = CRCLSocket.getDefaultCmdSchema();
+                Schema defaultCmdSchema = CRCLSchemaUtils.getDefaultCmdSchema();
                 if (null == defaultCmdSchema) {
-                    File fa[] = CRCLSocket.readCmdSchemaFiles(cmdSchemasFile);
+                    File fa[] = CRCLSchemaUtils.readCmdSchemaFiles();
                     if (null != fa) {
-                        Schema cmdSchemaFromFiles = CRCLSocket.filesToCmdSchema(fa);
+                        Schema cmdSchemaFromFiles = CRCLSchemaUtils.filesToCmdSchema(fa);
                         if (null != cmdSchemaFromFiles) {
                             setCmdSchema(cmdSchemaFromFiles);
                             setCmdSchemaFiles(fa);
@@ -1996,7 +1158,7 @@ public class CRCLSocket implements AutoCloseable {
                 } else {
                     setCmdSchema(defaultCmdSchema);
                     if (null == cmdSchemaFiles) {
-                        cmdSchemaFiles = defaultCmdSchemaFiles;
+                        cmdSchemaFiles = CRCLSchemaUtils.getDefaultCmdSchemaFiles();;
                     }
                 }
             }
@@ -2013,11 +1175,11 @@ public class CRCLSocket implements AutoCloseable {
         }
         if (validate) {
             if (null == statSchema) {
-                Schema defaultStatSchema = CRCLSocket.getDefaultStatSchema();
+                Schema defaultStatSchema = CRCLSchemaUtils.getDefaultStatSchema();
                 if (null == defaultStatSchema) {
-                    File fa[] = CRCLSocket.readStatSchemaFiles(statSchemasFile);
+                    File fa[] = CRCLSchemaUtils.readStatSchemaFiles();
                     if (null != fa) {
-                        Schema schemaFromFiles = CRCLSocket.filesToStatSchema(fa);
+                        Schema schemaFromFiles = CRCLSchemaUtils.filesToStatSchema(fa);
                         if (null != schemaFromFiles) {
                             setStatSchema(schemaFromFiles);
                         }
@@ -2039,11 +1201,11 @@ public class CRCLSocket implements AutoCloseable {
         }
         if (validate) {
             if (null == programSchema) {
-                Schema defaultProgramSchema = CRCLSocket.getDefaultProgramSchema();
+                Schema defaultProgramSchema = CRCLSchemaUtils.getDefaultProgramSchema();
                 if (null == defaultProgramSchema) {
-                    File fa[] = CRCLSocket.readProgramSchemaFiles(programSchemasFile);
+                    File fa[] = CRCLSchemaUtils.readProgramSchemaFiles();
                     if (null != fa) {
-                        setProgramSchema(CRCLSocket.filesToProgramSchema(fa));
+                        setProgramSchema(CRCLSchemaUtils.filesToProgramSchema(fa));
                     }
                 } else {
                     setProgramSchema(defaultProgramSchema);
@@ -2059,15 +1221,25 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    @SuppressWarnings({"nullness", "initialization"})
+    private static <T> @NonNull JAXBElement<@NonNull T> filterJaxbElement(@Nullable JAXBElement<T> in) {
+        if (null == in) {
+            throw new NullPointerException("JAXBElement< T> in");
+        }
+        if (null == in.getValue()) {
+            throw new NullPointerException("in.getValue()");
+        }
+        return (JAXBElement<T>) in;
+    }
+
     public String commandToString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         if (null == cmd.getCRCLCommand()) {
             throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
         }
-//        if (null == cmd.getCRCLCommand().getCommandID()) {
-//            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
-//        }
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
-                = objectFactory.createCRCLCommandInstance(cmd);
+                = filterJaxbElement(
+                        objectFactory.createCRCLCommandInstance(cmd)
+                );
         StringWriter sw = new StringWriter();
         String ret = null;
         this.checkCommandSchema(validate);
@@ -2092,7 +1264,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String programToString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
-                = objectFactory.createCRCLProgram(prog);
+                = filterJaxbElement(
+                        objectFactory.createCRCLProgram(prog)
+                );
         StringWriter sw = new StringWriter();
         this.checkProgramSchema(validate);
         synchronized (m_prog) {
@@ -2144,7 +1318,9 @@ public class CRCLSocket implements AutoCloseable {
 //            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
 //        }
         JAXBElement<CRCLCommandInstanceType> jaxb_cmd
-                = objectFactory.createCRCLCommandInstance(cmd);
+                = filterJaxbElement(
+                        objectFactory.createCRCLCommandInstance(cmd)
+                );
         StringWriter sw = new StringWriter();
         String ret = null;
         try {
@@ -2165,7 +1341,7 @@ public class CRCLSocket implements AutoCloseable {
         } catch (Exception exception) {
             System.out.println("");
             System.out.flush();
-            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(this.cmdSchemSetTrace));
+            System.err.println("cmdSchemSetTrace = " + CRCLUtils.traceToString(this.cmdSchemSetTrace));
             final File[] cmdSchemaFilesLocal = cmdSchemaFiles;
             System.err.println("cmdSchemaFiles = " + Arrays.toString(cmdSchemaFilesLocal));
             if (null != cmdSchemaFilesLocal) {
@@ -2194,7 +1370,9 @@ public class CRCLSocket implements AutoCloseable {
                 throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
             }
             JAXBElement<CRCLCommandInstanceType> jaxb_cmd
-                    = objectFactory.createCRCLCommandInstance(cmd);
+                    = filterJaxbElement(
+                            objectFactory.createCRCLCommandInstance(cmd)
+                    );
             StringWriter sw = new StringWriter();
             String ret = null;
             checkCommandSchema(validate);
@@ -2223,7 +1401,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String programToPrettyString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
-                = objectFactory.createCRCLProgram(prog);
+                = filterJaxbElement(
+                        objectFactory.createCRCLProgram(prog)
+                );
         StringWriter sw = new StringWriter();
         this.checkProgramSchema(validate);
         synchronized (m_prog) {
@@ -2248,7 +1428,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String programToPrettyDocString(CRCLProgramType prog, boolean validate) throws JAXBException {
         JAXBElement<CRCLProgramType> jaxb_proj
-                = objectFactory.createCRCLProgram(prog);
+                = filterJaxbElement(
+                        objectFactory.createCRCLProgram(prog)
+                );
         StringWriter sw = new StringWriter();
         synchronized (m_prog) {
             setMarshallerSchema(m_prog, validate ? programSchema : null);
@@ -2414,11 +1596,11 @@ public class CRCLSocket implements AutoCloseable {
         try {
             if (null != socketChannel) {
                 if (!appendTrailingZero) {
-                    this.writePackets(socketChannel, str.getBytes());
+                    this.writePackets(socketChannel, str.getBytes(UTF_8));
                 } else {
                     int len = str.length();
                     byte bytesPlusOne[] = new byte[len + 1];
-                    System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
+                    System.arraycopy(str.getBytes(UTF_8), 0, bytesPlusOne, 0, len);
                     this.writePackets(socketChannel, bytesPlusOne);
                 }
                 return;
@@ -2432,11 +1614,11 @@ public class CRCLSocket implements AutoCloseable {
             OutputStream os = socket.getOutputStream();
             synchronized (os) {
                 if (!appendTrailingZero) {
-                    this.writePackets(os, str.getBytes());
+                    this.writePackets(os, str.getBytes(UTF_8));
                 } else {
                     int len = str.length();
                     byte bytesPlusOne[] = new byte[len + 1];
-                    System.arraycopy(str.getBytes(), 0, bytesPlusOne, 0, len);
+                    System.arraycopy(str.getBytes(UTF_8), 0, bytesPlusOne, 0, len);
                     this.writePackets(os, bytesPlusOne);
                 }
                 os.flush();
@@ -2491,7 +1673,9 @@ public class CRCLSocket implements AutoCloseable {
 //            throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
 //        }
         JAXBElement<CRCLStatusType> jaxb_status
-                = objectFactory.createCRCLStatus(status);
+                = filterJaxbElement(
+                        objectFactory.createCRCLStatus(status)
+                );
         StringWriter sw = new StringWriter();
         this.checkStatusSchema(validate);
         synchronized (m_stat) {
@@ -2554,7 +1738,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public String statusToPrettyString(CRCLStatusType status, boolean validate) throws JAXBException {
         JAXBElement<CRCLStatusType> jaxb_status
-                = objectFactory.createCRCLStatus(status);
+                = filterJaxbElement(
+                        objectFactory.createCRCLStatus(status)
+                );
         StringWriter sw = new StringWriter();
         synchronized (m_stat) {
             setMarshallerSchema(m_stat, validate ? statSchema : null);
@@ -2576,7 +1762,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     public String commandToSimpleString(CRCLCommandInstanceType cmdInstance) throws ParserConfigurationException, SAXException, IOException {
-        return commandToSimpleString(cmdInstance.getCRCLCommand());
+        return commandToSimpleString(getNonNullCmd(cmdInstance));
     }
 
     public static String cmdToString(CRCLCommandType cmd) {
@@ -2602,7 +1788,9 @@ public class CRCLSocket implements AutoCloseable {
 
     public static class XmlToCsvHandler extends DefaultHandler {
 
+        @SuppressWarnings({"deprecation","JdkObsolete"})
         private final StringBuffer buffer = new StringBuffer();
+        
         private int fields = 0;
         private int last_end_buffer_length = 0;
         private int maxFields;
@@ -2643,10 +1831,10 @@ public class CRCLSocket implements AutoCloseable {
 
     }
 
-    static public String commandToSimpleString(CRCLCommandType cmd) {
+    static public String commandToSimpleString(@Nullable CRCLCommandType cmd) {
         try {
             if (null == cmd) {
-                throw new IllegalArgumentException("cmd == null");
+                return "null";
             }
             return getUtilSocket().commandToSimpleString(cmd, 15, 80);
         } catch (Exception ex) {
@@ -2655,15 +1843,16 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public String commandToSimpleString(CRCLCommandType cmd, final int max_fields, final int max_length) throws ParserConfigurationException, SAXException, IOException {
+    public String commandToSimpleString(@Nullable CRCLCommandType cmd, final int max_fields, final int max_length) throws ParserConfigurationException, SAXException, IOException {
         if (null == cmd) {
-            throw new IllegalArgumentException("cmd == null");
+            return "null";
         }
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
             cmd = wrapper.getWrappedCommand();
         }
         String xmlString = this.commandToString(cmd, false);
+//        throw new RuntimeException(xmlString);
         try {
             XmlToCsvHandler handler = new XmlToCsvHandler();
             handler.setMaxFields(max_fields);
@@ -2693,10 +1882,10 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    static public String statusToSimpleString(CRCLStatusType stat) {
+    static public String statusToSimpleString(@Nullable CRCLStatusType stat) {
         try {
             if (null == stat) {
-                throw new IllegalArgumentException("cmd == null");
+                return "null";
             }
             return " CRCLStatusType{ " + getUtilSocket().statusToSimpleString(stat, 30, 160) + " } ";
         } catch (Exception ex) {
@@ -2705,9 +1894,9 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public String statusToSimpleString(CRCLStatusType stat, final int max_fields, final int max_length) {
+    public String statusToSimpleString(@Nullable CRCLStatusType stat, final int max_fields, final int max_length) {
         if (null == stat) {
-            throw new IllegalArgumentException("stat == null");
+            return "null";
         }
         try {
             String xmlString = this.statusToString(stat, false);
@@ -2798,24 +1987,4 @@ public class CRCLSocket implements AutoCloseable {
 
     private static final IdentityUnaryOperator<String> STRING_IDENTITY_OPERATOR
             = new IdentityUnaryOperator<>();
-
-    static private class CRCLSchemaOutputResolver extends SchemaOutputResolver {
-
-        private @Nullable
-        File file = null;
-
-        public @Nullable
-        File getFile() {
-            return file;
-        }
-
-        @Override
-        public Result createOutput(String namespaceURI, String suggestedFileName) throws IOException {
-            file = new File(suggestedFileName);
-            StreamResult result = new StreamResult(file);
-            result.setSystemId(file.toURI().toURL().toString());
-            return result;
-        }
-
-    }
 }

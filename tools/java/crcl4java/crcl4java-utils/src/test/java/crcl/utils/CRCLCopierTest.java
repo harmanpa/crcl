@@ -38,6 +38,8 @@ import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
 import static crcl.utils.CRCLCopier.copy;
+import static crcl.utils.CRCLUtils.readProgramFile;
+import static crcl.utils.CRCLUtils.readStatusFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -456,7 +458,7 @@ public class CRCLCopierTest {
                 Class<?> randClzz = availClasses.get(random.nextInt(availClassesSize));
 
                 try {
-                    newObj = (T) randClzz.newInstance();
+                    newObj = (T) randClzz.getConstructor().newInstance();
                 } catch (Throwable throwable) {
                     System.out.println("clzz = " + clzz);
                     System.out.println("randClzz = " + randClzz);
@@ -718,7 +720,7 @@ public class CRCLCopierTest {
                 try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
                     pw.println(randProgramString);
                 }
-                CRCLProgramType readBackRandProgram = CRCLSocket.readProgramFile(randomProgramFile);
+                CRCLProgramType readBackRandProgram = readProgramFile(randomProgramFile);
                 reflectiveCheckEquals("readBackRandProgram", randProgram, readBackRandProgram, 0);
 //            System.out.println("randProgramString = " + randProgramString);
                 CRCLProgramType randProgramCopy = copy(randProgram);
@@ -815,7 +817,7 @@ public class CRCLCopierTest {
                 try (PrintWriter pw = new PrintWriter(randomStatusFile)) {
                     pw.println(randStatusString);
                 }
-                CRCLStatusType readBackRandStatus = CRCLSocket.readStatusFile(randomStatusFile);
+                CRCLStatusType readBackRandStatus = readStatusFile(randomStatusFile);
                 reflectiveCheckEquals("readBackRandStatus", randStatus, readBackRandStatus, 0);
 //            System.out.println("randStatusString = \n" + randStatusString);
                 CRCLStatusType randStatusCopy = copy(randStatus);

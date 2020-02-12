@@ -31,6 +31,7 @@ import crcl.base.TorqueUnitEnumType;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("nullness")
 public class UnitsTypeSet {
     private AngleUnitEnumType angleUnit = AngleUnitEnumType.DEGREE;
     private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;

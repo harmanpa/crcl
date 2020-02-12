@@ -24,11 +24,10 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.utils.XFuture;
 import crcl.utils.CRCLSocket;
-import crcl.utils.Utils;
+import crcl.utils.CRCLUtils;
 import crcl.utils.XpathUtils;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
@@ -959,7 +958,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
 //            Logger.getLogger(ObjTableJPanel.class
 //                    .getName()).log(Level.SEVERE, null, ex);
             String outText = ex.toString() + "\n\n"
-                    + Utils.traceToString(ex.getStackTrace());
+                    + CRCLUtils.traceToString(ex.getStackTrace());
             jTextAreaOutput.setText(outText);
         }
     }

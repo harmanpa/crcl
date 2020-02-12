@@ -772,20 +772,19 @@
                     <xs:element name="LimitType"
                                 type="GuardLimitEnumType"/>
                     <xs:element name="LimitValue"
-                                type="xs:double"
-                                minOccurs="0" />
+                                type="xs:double" />
                     <xs:element name="RecheckTimeMicroSeconds"
                                 type="xs:long"
-                                minOccurs="0" />
+                                default="0" />
                     <xs:element name="CheckCount"
                                 type="xs:long"
-                                minOccurs="0" />
+                                default="0" />
                     <xs:element name="LastCheckTime"
                                 type="xs:long"
-                                minOccurs="0" />
+                                default="0" />
                     <xs:element name="LastCheckValue"
                                 type="xs:double"
-                                minOccurs="0" />
+                                default="0" />
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

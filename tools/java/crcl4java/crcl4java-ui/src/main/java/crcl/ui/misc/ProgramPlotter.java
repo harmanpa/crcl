@@ -28,6 +28,9 @@ import crcl.base.MoveToType;
 import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLUtils.getNonNullFilteredList;
+import static crcl.utils.CRCLUtils.getNonNullIterable;
+import static crcl.utils.CRCLUtils.getNonNullPoint;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -36,12 +39,9 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
+import java.util.List;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import rcs.posemath.PmCartesian;
 
 /*
  * 
@@ -163,13 +163,16 @@ public class ProgramPlotter {
         double ymin = Double.POSITIVE_INFINITY;
         double ymax = Double.NEGATIVE_INFINITY;
         int movecount = 0;
-        for (MiddleCommandType cmd : program.getMiddleCommand()) {
+        final Iterable<MiddleCommandType> middleCommandsIterable
+                = getNonNullIterable(program.getMiddleCommand());
+        for (MiddleCommandType cmd : middleCommandsIterable) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
                 PoseType endPose = moveCmd.getEndPosition();
                 if (null != endPose) {
                     movecount++;
-                    Point2D.Double pt2D = toPoint2D(((MoveToType) cmd).getEndPosition());
+                    final PoseType endPosition = CRCLPosemath.getNonNullEndPosition((MoveToType) cmd);
+                    Point2D.Double pt2D = toPoint2D(endPosition);
                     if (Double.isFinite(pt2D.x) && Double.isFinite(pt2D.y)) {
                         xmin = Math.min(xmin, pt2D.x);
                         xmax = Math.max(xmax, pt2D.x);
@@ -272,7 +275,8 @@ public class ProgramPlotter {
     }
 
     public Point2D.Double toPoint2D(PoseType pose) {
-        return toPoint2D(pose.getPoint());
+        final PointType pt = getNonNullPoint(pose);
+        return toPoint2D(pt);
     }
 
     private Color background = Color.white;
@@ -578,12 +582,15 @@ public class ProgramPlotter {
             g2d.setColor(currentPointAlphaColor);
             paintFullCrossHairs(g2d, currentPoint2D, halfPointSize, pointSize, scale, heightUnder, widthUnder);
         }
+        final List<MiddleCommandType> middleCommandsList
+                = getNonNullFilteredList(program.getMiddleCommand());
 
-        for (int i = 0; i < program.getMiddleCommand().size(); i++) {
-            MiddleCommandType cmd = program.getMiddleCommand().get(i);
+        for (int i = 0; i < middleCommandsList.size(); i++) {
+            MiddleCommandType cmd = middleCommandsList.get(i);
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
-                Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
+                final PoseType endPosition = CRCLPosemath.getNonNullEndPosition(moveCmd);
+                Point2D.Double nextPoint = toPoint2D(endPosition);
                 if (null != lastPoint) {
                     if (i > programIndex + 1) {
                         g2d.setColor(afterIndexLineColor);
@@ -596,11 +603,12 @@ public class ProgramPlotter {
             }
         }
         lastPoint = initPoint2D;
-        for (int i = 0; i < program.getMiddleCommand().size() && i <= programIndex; i++) {
-            MiddleCommandType cmd = program.getMiddleCommand().get(i);
+        for (int i = 0; i < middleCommandsList.size() && i <= programIndex; i++) {
+            MiddleCommandType cmd = middleCommandsList.get(i);
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
-                Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
+                final PoseType endPosition = CRCLPosemath.getNonNullEndPosition(moveCmd);
+                Point2D.Double nextPoint = toPoint2D(endPosition);
                 if (null != lastPoint) {
                     if (i > programIndex + 1) {
                         g2d.setColor(afterIndexLineColor);
@@ -612,11 +620,12 @@ public class ProgramPlotter {
                 lastPoint = nextPoint;
             }
         }
-        for (int i = 0; i < program.getMiddleCommand().size(); i++) {
-            MiddleCommandType cmd = program.getMiddleCommand().get(i);
+        for (int i = 0; i < middleCommandsList.size(); i++) {
+            MiddleCommandType cmd = middleCommandsList.get(i);
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
-                Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
+                final PoseType endPosition = CRCLPosemath.getNonNullEndPosition(moveCmd);
+                Point2D.Double nextPoint = toPoint2D(endPosition);
                 if (i > programIndex + 1) {
                     g2d.setColor(afterIndexPointColor);
                 } else {
@@ -646,11 +655,12 @@ public class ProgramPlotter {
                 g2d.fill(new Arc2D.Double(nextPoint.x - halfPointSize, nextPoint.y - halfPointSize, pointSize, pointSize, 0, 360.0, Arc2D.PIE));
             }
         }
-        for (int i = 0; i < program.getMiddleCommand().size() && i <= programIndex + 1; i++) {
-            MiddleCommandType cmd = program.getMiddleCommand().get(i);
+        for (int i = 0; i < middleCommandsList.size() && i <= programIndex + 1; i++) {
+            MiddleCommandType cmd = middleCommandsList.get(i);
             if (cmd instanceof MoveToType) {
                 MoveToType moveCmd = (MoveToType) cmd;
-                Point2D.Double nextPoint = toPoint2D(moveCmd.getEndPosition());
+                final PoseType endPosition = CRCLPosemath.getNonNullEndPosition(moveCmd);
+                Point2D.Double nextPoint = toPoint2D(endPosition);
                 if (i > programIndex + 1) {
                     g2d.setColor(afterIndexPointColor);
                 } else {

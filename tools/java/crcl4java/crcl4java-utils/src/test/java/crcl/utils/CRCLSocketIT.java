@@ -6,12 +6,16 @@
 package crcl.utils;
 
 import crcl.base.CRCLCommandInstanceType;
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
+import crcl.base.EndCanonType;
 import crcl.base.InitCanonType;
+import crcl.base.MiddleCommandType;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -53,7 +57,7 @@ public class CRCLSocketIT {
 
     @Before
     public void setUp() {
-        CRCLSocket.clearSchemas();
+        CRCLSchemaUtils.clearSchemas();
     }
 
     @After
@@ -79,14 +83,17 @@ public class CRCLSocketIT {
         boolean validate = false;
         CRCLSocket instance = new CRCLSocket();
         CRCLCommandInstanceType result = instance.stringToCommand(str, validate);
-        assertTrue(result.getCRCLCommand().getCommandID() == 1);
-        assertTrue(result.getCRCLCommand() instanceof InitCanonType);
+        final CRCLCommandType crclCommand = result.getCRCLCommand();
+        assertTrue(crclCommand instanceof InitCanonType);
+        if (null != crclCommand) {
+            assertTrue(crclCommand.getCommandID() == 1);
+        }
 //        fail("forced failure");
     }
 
     private @Nullable
     Exception serverThreadEx = null;
-    
+
     private boolean interruptingServer = false;
     private boolean timeoutOccured = false;
 
@@ -104,7 +111,7 @@ public class CRCLSocketIT {
         System.out.println(testName);
         System.setProperty("CRCLServerSocket.multithreaded", Boolean.toString(serverMultiThreaded));
         final Thread serverThread = new Thread(new Runnable() {
-            
+
             @Override
             public void run() {
                 try {
@@ -116,7 +123,7 @@ public class CRCLSocketIT {
                         case POLLING:
                             CRCLServerSocketPollingExample.main(new String[]{});
                             break;
-                            
+
                         case CALLBACK:
                             CRCLServerSocketCallbackExample.main(new String[]{});
                             break;
@@ -363,6 +370,7 @@ public class CRCLSocketIT {
                 ExampleType.CALLBACK,
                 true);
     }
+
     /**
      * Test of stringToProgram method, of class CRCLSocket.
      *
@@ -1105,9 +1113,21 @@ public class CRCLSocketIT {
         boolean validate = false;
         CRCLSocket instance = new CRCLSocket();
         CRCLProgramType result = instance.stringToProgram(str, validate);
-        assertTrue(result.getInitCanon().getCommandID()== 1);
-        assertEquals(result.getMiddleCommand().size(), 39);
-        assertTrue(result.getEndCanon().getCommandID() == 41);
+        final InitCanonType initCanon = result.getInitCanon();
+        assertTrue(initCanon != null);
+        if (null != initCanon) {
+            assertTrue(initCanon.getCommandID() == 1);
+        }
+        final List<MiddleCommandType> middleCommandList = CRCLUtils.getNonNullFilteredList(result.getMiddleCommand());
+        assertTrue(middleCommandList != null);
+        if (null != middleCommandList) {
+            assertEquals(middleCommandList.size(), 39);
+        }
+        final EndCanonType endCanon = result.getEndCanon();
+        assertTrue(endCanon != null);
+        if (null != endCanon) {
+            assertTrue(endCanon.getCommandID() == 41);
+        }
 
     }
 

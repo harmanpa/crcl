@@ -24,8 +24,9 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.VectorType;
 import crcl.utils.CRCLPosemath;
+import static crcl.utils.CRCLUtils.getNonNullPoint;
+import static crcl.utils.CRCLUtils.getNonNullXAxis;
 import java.awt.geom.Point2D;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -132,7 +133,7 @@ public class SimulatedKinematicsPlausible {
                 throw new IllegalArgumentException("poseToJoints: jv[" + i + "] isInfinite");
             }
         }
-        PointType pt = pose.getPoint();
+        PointType pt = getNonNullPoint(pose);
         Point2D.Double endPtXY = new Point2D.Double(
                 pt.getX(),
                 pt.getY());
@@ -141,7 +142,7 @@ public class SimulatedKinematicsPlausible {
 //                + endPtXY.y * endPtXY.y
 //        );
 //        double z = pt.getZ().doubleValue();
-        VectorType xv = pose.getXAxis();
+        VectorType xv = getNonNullXAxis(pose);
         double xvi = xv.getI();
         double xvj = xv.getJ();
         double xvk = xv.getK();

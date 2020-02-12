@@ -35,6 +35,7 @@
         </repository>
     </repositories>
     <build>
+        
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -42,11 +43,7 @@
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <compilerArgs>
-                        <arg>-source</arg>
-                        <arg>1.7</arg>
-                        <arg>-target</arg>
-                        <arg>1.7</arg>
-                        <arg>-parameters</arg>
+                        <arg>-AsuppressWarnings=purity,uninitialized,nullness,keyfor</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -90,7 +87,15 @@
                 <configuration>
                     <!-- <forceRegenerate>true</forceRegenerate> -->
                     <generatePackage>crcl.base</generatePackage>
-                    <schemaDirectory>${project.basedir}/src/main/resources/</schemaDirectory>                                           
+                    <schemaDirectory>${project.basedir}/src/main/resources/</schemaDirectory>
+                    <bindingDirectory>${project.basedir}/src/main/resources/</bindingDirectory>
+                    <bindingIncludes>
+                        <include>inject.xjb</include>
+                    </bindingIncludes>
+                    <args>
+                        <arg>-Xinject-code</arg>
+                    </args>
+                                                         
                     <!-- <schemas>                                                                                      
                         <schema>
                             <url>${crcl.schemaBaseUrl}CRCLCommandInstance.xsd</url>

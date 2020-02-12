@@ -32,7 +32,7 @@ import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import crcl.utils.XFutureVoid;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
-import crcl.utils.Utils;
+import crcl.utils.CRCLUtils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -143,7 +143,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
 
     @Override
     public void readRecentCommandFiles() {
-        File fMainDir = new File(Utils.getCrclUserHomeDir(),
+        File fMainDir = new File(CRCLUtils.getCrclUserHomeDir(),
                 recent_files_dir);
         if (!fMainDir.exists()) {
             return;

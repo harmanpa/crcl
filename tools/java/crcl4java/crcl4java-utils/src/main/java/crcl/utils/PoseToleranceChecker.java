@@ -28,8 +28,13 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
 import crcl.base.VectorType;
+import static crcl.utils.CRCLPosemath.dot;
+import static crcl.utils.CRCLPosemath.getNonNullZAxis;
+import static crcl.utils.CRCLUtils.getNonNullPoint;
+import static crcl.utils.CRCLUtils.getNonNullXAxis;
 import java.math.BigDecimal;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 
 public class PoseToleranceChecker {
@@ -39,14 +44,14 @@ public class PoseToleranceChecker {
     }
     
     
-    static public boolean containsNull(PointType pt) {
+    static public boolean containsNull(@Nullable PointType pt) {
         return  pt == null;
 //                || pt.getY() == null 
 //                || pt.getY() == null
 //                || pt.getZ() == null;
     }
     
-    static public boolean containsNull(VectorType vec) {
+    static public boolean containsNull(@Nullable VectorType vec) {
         return  vec == null;
 //                || vec.getI() == null 
 //                || vec.getJ() == null
@@ -54,14 +59,14 @@ public class PoseToleranceChecker {
     }
     
     
-    static public boolean containsNull(PoseType pose) {
+    static public boolean containsNull(@Nullable PoseType pose) {
         return pose == null
                 || containsNull(pose.getPoint())
                 || containsNull(pose.getXAxis())
                 || containsNull(pose.getZAxis());
     }
     
-    static public boolean containsNull(PoseToleranceType tol) {
+    static public boolean containsNull(@Nullable PoseToleranceType tol) {
         return tol == null
                 || tol.getYPointTolerance() == null
                 || tol.getYPointTolerance() == null
@@ -75,15 +80,22 @@ public class PoseToleranceChecker {
            return v1.subtract(v2).abs().compareTo(tol) <= 0;
     }
     
+    static public boolean isInTolerance(double v1, double v2,@Nullable Double tol) {
+           return tol == null || Double.compare(Math.abs(v2-v1), tol.doubleValue()) <= 0;
+    }
+    
     static public boolean isInTolerance(double v1, double v2, double tol) {
            return Double.compare(Math.abs(v2-v1), tol) <= 0;
     }
     
     static public boolean isInTolerance(final PointType pt1, final PointType pt2, final PoseToleranceType tol) {
+        final Double xPointTolerance = tol.getXPointTolerance();
+        final Double yPointTolerance = tol.getYPointTolerance();
+        final Double zPointTolerance = tol.getZPointTolerance();
         return 
-                isInTolerance(pt1.getY(),pt2.getY(),tol.getYPointTolerance())
-                && isInTolerance(pt1.getY(),pt2.getY(),tol.getYPointTolerance())
-                && isInTolerance(pt1.getZ(),pt2.getZ(),tol.getZPointTolerance());
+                isInTolerance(pt1.getX(),pt2.getX(), xPointTolerance)
+                && isInTolerance(pt1.getY(),pt2.getY(), yPointTolerance)
+                && isInTolerance(pt1.getZ(),pt2.getZ(), zPointTolerance);
     }
     
     
@@ -95,8 +107,12 @@ public class PoseToleranceChecker {
         return isInTolerance(v1, v2, tol.doubleValue(), angleType);
     }
 
+     static public boolean isInTolerance(VectorType v1, VectorType v2, @Nullable Double tol, AngleUnitEnumType angleType) {
+        return tol == null || isInTolerance(v1, v2, tol.doubleValue(), angleType);
+    }
+     
     static public boolean isInTolerance(VectorType v1, VectorType v2, double tol, AngleUnitEnumType angleType) {
-        double dot = CRCLPosemath.dot(v1, v2);
+        double dot = dot(v1, v2);
         if(angleType == AngleUnitEnumType.DEGREE) {
             return dot > Math.cos(Math.toRadians(tol));
         }
@@ -105,9 +121,15 @@ public class PoseToleranceChecker {
     
     static public boolean isInTolerance(final PoseType pose1, final PoseType pose2, 
             final PoseToleranceType tol, final AngleUnitEnumType angleType) {
-        return isInTolerance(pose1.getPoint(),pose2.getPoint(),tol)
-               && isInTolerance(pose1.getXAxis(),pose2.getXAxis(),tol.getXAxisTolerance(),angleType)
-               && isInTolerance(pose1.getZAxis(),pose2.getZAxis(),tol.getZAxisTolerance(),angleType);
+        final PointType pt1 = getNonNullPoint(pose1);
+        final PointType pt2 = getNonNullPoint(pose2);
+        final VectorType xAxis1 = getNonNullXAxis(pose1);
+        final VectorType xAxis2 = getNonNullXAxis(pose2);
+        final VectorType zAxis1 = getNonNullZAxis(pose1);
+        final VectorType zAxis2 = getNonNullZAxis(pose2);
+        return isInTolerance(pt1, pt2,tol)
+               && isInTolerance(xAxis1, xAxis2,tol.getXAxisTolerance(),angleType)
+               && isInTolerance(zAxis1, zAxis2,tol.getZAxisTolerance(),angleType);
     }
     
     private static double absDiff(double a, double b) {
@@ -118,37 +140,48 @@ public class PoseToleranceChecker {
         return a.subtract(b).abs();
     }
     
-    static public String checkToleranceString(final PoseType pose1, final PoseType pose2, 
-            final PoseToleranceType tol, final AngleUnitEnumType angleType) {
+    static public String checkToleranceString(
+            final PoseType pose1, 
+            final PoseType pose2, 
+            final PoseToleranceType tol, 
+            final AngleUnitEnumType angleType) {
         StringBuilder sb = new StringBuilder();
-        if(!isInTolerance(pose1.getPoint().getX(), pose2.getPoint().getX(), tol.getXPointTolerance())) {
-            double diff = absDiff(pose1.getPoint().getX(), pose2.getPoint().getX());
-            sb.append("X Point positions ").append(pose1.getPoint().getX()).append(" and ").append(pose2.getPoint().getX()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getXPointTolerance()).append("\n");
+        final PointType pt1 = getNonNullPoint(pose1);
+        final PointType pt2 = getNonNullPoint(pose2);
+        if(!isInTolerance(pt1.getX(), pt2.getX(), tol.getXPointTolerance())) {
+            double diff = absDiff(pt1.getX(), pt2.getX());
+            sb.append("X Point positions ").append(pt1.getX()).append(" and ").append(pt2.getX()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getXPointTolerance()).append("\n");
         }
-        if(!isInTolerance(pose1.getPoint().getY(), pose2.getPoint().getY(), tol.getYPointTolerance())) {
-            double diff = absDiff(pose1.getPoint().getY(), pose2.getPoint().getY());
-            sb.append("Y Point positions ").append(pose1.getPoint().getY()).append(" and ").append(pose2.getPoint().getY()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getYPointTolerance()).append("\n");
+        if(!isInTolerance(pt1.getY(), pt2.getY(), tol.getYPointTolerance())) {
+            double diff = absDiff(pt1.getY(), pt2.getY());
+            sb.append("Y Point positions ").append(pt1.getY()).append(" and ").append(pt2.getY()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getYPointTolerance()).append("\n");
         }
-        if(!isInTolerance(pose1.getPoint().getZ(), pose2.getPoint().getZ(), tol.getZPointTolerance())) {
-            double diff = absDiff(pose1.getPoint().getZ(), pose2.getPoint().getZ());
-            sb.append("Z Point positions ").append(pose1.getPoint().getZ()).append(" and ").append(pose2.getPoint().getZ()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getZPointTolerance()).append("\n");
+        if(!isInTolerance(pt1.getZ(), pt2.getZ(), tol.getZPointTolerance())) {
+            double diff = absDiff(pt1.getZ(), pt2.getZ());
+            sb.append("Z Point positions ").append(pt1.getZ()).append(" and ").append(pt2.getZ()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getZPointTolerance()).append("\n");
         }
-        if(!isInTolerance(pose1.getXAxis(),pose2.getXAxis(),tol.getXAxisTolerance(),angleType)) {
-            sb.append("X Axis diff by ").append(Math.toDegrees(Math.acos(CRCLPosemath.dot(pose1.getXAxis(),pose2.getXAxis())))).append(" degrees.");
+        final VectorType xAxis1 = getNonNullXAxis(pose1);
+        final VectorType xAxis2 = getNonNullXAxis(pose2);
+        final Double xAxisTolerance = tol.getXAxisTolerance();
+        if(null != xAxisTolerance && !isInTolerance(xAxis1, xAxis2, xAxisTolerance,angleType)) {
+            sb.append("X Axis diff by ").append(Math.toDegrees(Math.acos(dot(xAxis1, xAxis2)))).append(" degrees.");
             if(angleType == AngleUnitEnumType.DEGREE) {
-                sb.append(" over tolerance of ").append(tol.getXAxisTolerance()).append(" degrees\n");
+                sb.append(" over tolerance of ").append(xAxisTolerance).append(" degrees\n");
             }
             else {
-                sb.append(" over tolerance of ").append(Math.toDegrees(tol.getXAxisTolerance().doubleValue())).append(" degrees\n");
+                sb.append(" over tolerance of ").append(Math.toDegrees(xAxisTolerance)).append(" degrees\n");
             }
         }
-        if(!isInTolerance(pose1.getZAxis(),pose2.getZAxis(),tol.getZAxisTolerance(),angleType)) {
-            sb.append("Z Axis diff by ").append(Math.toDegrees(Math.acos(CRCLPosemath.dot(pose1.getZAxis(),pose2.getZAxis())))).append(" degrees.");
+        final VectorType zAxis1 = getNonNullZAxis(pose1);
+        final VectorType zAxis2 = getNonNullZAxis(pose2);        
+        final Double zAxisTolerance = tol.getZAxisTolerance();
+        if(null != zAxisTolerance && !isInTolerance(zAxis1, zAxis2, zAxisTolerance,angleType)) {
+            sb.append("Z Axis diff by ").append(Math.toDegrees(Math.acos(dot(zAxis1, zAxis2)))).append(" degrees.");
             if(angleType == AngleUnitEnumType.DEGREE) {
-                sb.append(" over tolerance of ").append(tol.getZAxisTolerance()).append(" degrees\n");
+                sb.append(" over tolerance of ").append(zAxisTolerance).append(" degrees\n");
             }
             else {
-                sb.append(" over tolerance of ").append(Math.toDegrees(tol.getZAxisTolerance().doubleValue())).append(" degrees\n");
+                sb.append(" over tolerance of ").append(Math.toDegrees(zAxisTolerance)).append(" degrees\n");
             }
         }
         return sb.toString();

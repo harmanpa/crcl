@@ -23,7 +23,6 @@
 package crcl.ui;
 
 import crcl.ui.client.CrclSwingClientJPanel;
-import crcl.utils.Utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,7 +36,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;

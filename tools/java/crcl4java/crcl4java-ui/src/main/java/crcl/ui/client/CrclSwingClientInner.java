@@ -31,10 +31,7 @@ import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CommandStateEnumType;
-import static crcl.base.CommandStateEnumType.CRCL_DONE;
-import static crcl.base.CommandStateEnumType.CRCL_ERROR;
-import static crcl.base.CommandStateEnumType.CRCL_READY;
-import static crcl.base.CommandStateEnumType.CRCL_WORKING;
+
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
@@ -55,18 +52,10 @@ import crcl.base.MiddleCommandType;
 import crcl.base.MoveScrewType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
-import crcl.base.ParallelGripperStatusType;
 import crcl.base.PointType;
-import crcl.base.PoseAndSetType;
 import crcl.base.PoseType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseToleranceType;
-import crcl.base.RotAccelAbsoluteType;
-import crcl.base.RotAccelRelativeType;
-import crcl.base.RotAccelType;
-import crcl.base.RotSpeedAbsoluteType;
-import crcl.base.RotSpeedRelativeType;
-import crcl.base.RotSpeedType;
 import crcl.base.SetAngleUnitsType;
 import crcl.base.SetEndEffectorType;
 import crcl.base.SetEndPoseToleranceType;
@@ -75,14 +64,9 @@ import crcl.base.SetLengthUnitsType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.StopConditionEnumType;
 import crcl.base.StopMotionType;
-import crcl.base.ThreeFingerGripperStatusType;
-import crcl.base.TransAccelAbsoluteType;
-import crcl.base.TransAccelRelativeType;
-import crcl.base.TransAccelType;
 import crcl.base.TransSpeedAbsoluteType;
 import crcl.base.TransSpeedRelativeType;
 import crcl.base.TransSpeedType;
-import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
 import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.DefaultSchemaFiles;
@@ -102,9 +86,11 @@ import crcl.utils.CRCLException;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.pose;
 import static crcl.utils.CRCLPosemath.vectorToPmCartesian;
+import crcl.utils.CRCLSchemaUtils;
+import crcl.utils.CRCLUtils;
+import static crcl.utils.CRCLUtils.middleCommands;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
-import crcl.utils.Utils;
 import crcl.utils.XpathUtils;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.ProgramRunData;
@@ -154,6 +140,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
@@ -161,6 +148,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
@@ -193,6 +181,7 @@ public class CrclSwingClientInner {
         return Optional.empty();
     }
 
+    @SuppressWarnings("nullness")
     public static Optional<JointStatusType> getJointStatus(CRCLStatusType status, int id) {
         return Optional.ofNullable(status)
                 .map((x) -> x.getJointStatuses())
@@ -297,8 +286,14 @@ public class CrclSwingClientInner {
     private boolean disconnecting = false;
     private boolean stopStatusReaderFlag = false;
     private double jointTol = jointJogIncrement * 5.0;
-    private AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
-    private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
+
+    @SuppressWarnings("nullness")
+    private @NonNull
+    AngleUnitEnumType angleType = AngleUnitEnumType.RADIAN;
+
+    @SuppressWarnings("nullness")
+    private @NonNull
+    LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
 
     @SuppressWarnings("initialization")
     private final PropertyChangeSupport propertyChangeSupport
@@ -319,7 +314,11 @@ public class CrclSwingClientInner {
     private volatile @Nullable
     CRCLStatusType testCommandStartStatus = null;
     private boolean lengthUnitSent = false;
-    private LengthUnitEnumType testCommandStartLengthUnit = LengthUnitEnumType.MILLIMETER;
+
+    @SuppressWarnings("nullness")
+    private @NonNull
+    LengthUnitEnumType testCommandStartLengthUnit = LengthUnitEnumType.MILLIMETER;
+
     boolean testCommandStartLengthUnitSent = false;
 
     private double jogRotSpeed = 3.0;
@@ -413,11 +412,11 @@ public class CrclSwingClientInner {
         this.expectedIntermediatePoseTolerance.setXPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setYPointTolerance(3.0);
         this.expectedIntermediatePoseTolerance.setZPointTolerance(3.0);
-        this.statSchemaFiles = CRCLSocket.readStatSchemaFiles(defaultsInstance.getStatSchemasFile());
+        this.statSchemaFiles = CRCLSchemaUtils.readStatSchemaFiles(defaultsInstance.getStatSchemasFile());
         this.setStatSchema(this.statSchemaFiles);
-        this.cmdSchemaFiles = CRCLSocket.readCmdSchemaFiles(defaultsInstance.getCmdSchemasFile());
+        this.cmdSchemaFiles = CRCLSchemaUtils.readCmdSchemaFiles(defaultsInstance.getCmdSchemasFile());
         this.setCmdSchema(this.cmdSchemaFiles);
-        this.progSchemaFiles = CRCLSocket.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile());
+        this.progSchemaFiles = CRCLSchemaUtils.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile());
         this.setProgramSchema(this.progSchemaFiles);
     }
 
@@ -488,7 +487,7 @@ public class CrclSwingClientInner {
         this.program = program;
         progRunDataList.clear();
         outer.clearProgramTimesDistances();
-        final boolean enableSave = program != null && !program.getMiddleCommand().isEmpty();
+        final boolean enableSave = program != null && !middleCommands(program).isEmpty();
         final PendantClientMenuOuter outerMenuOuter = menuOuter();
         outerMenuOuter.setEnableSaveProgram(enableSave);
     }
@@ -589,7 +588,7 @@ public class CrclSwingClientInner {
             final CommandStatusType commandStatus = stat.getCommandStatus();
             if (null != commandStatus) {
                 return commandStatus.getCommandID() == minCmdId
-                        && commandStatus.getCommandState() == CommandStateEnumType.CRCL_DONE;
+                        && commandStatus.getCommandState() == CRCL_DONE;
             }
         }
         return false;
@@ -609,7 +608,7 @@ public class CrclSwingClientInner {
         final CommandStatusType commandStatus = stat.getCommandStatus();
         if (null != commandStatus) {
             boolean ret = commandStatus.getCommandID() == minCmdId
-                    && commandStatus.getCommandState() == CommandStateEnumType.CRCL_ERROR;
+                    && commandStatus.getCommandState() == CRCL_ERROR;
             if (ret) {
                 lastErrorStat = copy(stat);
                 errorStateDescription = commandStatus.getStateDescription();
@@ -720,6 +719,14 @@ public class CrclSwingClientInner {
             }
         }
     }
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    CommandStateEnumType CRCL_ERROR = CommandStateEnumType.CRCL_ERROR;
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    CommandStateEnumType CRCL_READY = CommandStateEnumType.CRCL_READY;
 
     private volatile boolean skipWrappedMessageCommands = true;
 
@@ -881,7 +888,7 @@ public class CrclSwingClientInner {
                 if (num_positions < 2) {
                     throw new RuntimeException("MoveThroughToType : NumPositions must be at-least 2 but was " + num_positions);
                 }
-                int wpts_length = mtt.getWaypoint().size();
+                int wpts_length = waypoints(mtt).size();
                 if (wpts_length != num_positions) {
                     throw new RuntimeException("MoveThroughToType : NumPositions must equal number of waypoints but NumPostions=" + num_positions
                             + " but number of waypoints = " + wpts_length);
@@ -899,12 +906,17 @@ public class CrclSwingClientInner {
         return XFuture.completedFuture(false);
     }
 
+    @SuppressWarnings("nullness")
+    private static List<PoseType> waypoints(MoveThroughToType mtt) {
+        return mtt.getWaypoint();
+    }
+
     private volatile @MonotonicNonNull
     Schema statSchema = null;
 
     final synchronized void setStatSchema(File[] fa) {
         try {
-            statSchema = CRCLSocket.filesToStatSchema(fa);
+            statSchema = CRCLSchemaUtils.filesToStatSchema(fa);
             this.statSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setStatSchema(statSchema);
@@ -926,7 +938,7 @@ public class CrclSwingClientInner {
 
     final void setCmdSchema(File[] fa) {
         try {
-            cmdSchema = CRCLSocket.filesToCmdSchema(fa);
+            cmdSchema = CRCLSchemaUtils.filesToCmdSchema(fa);
             this.cmdSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setCmdSchema(cmdSchema);
@@ -953,7 +965,7 @@ public class CrclSwingClientInner {
             if (fa.length < 1) {
 
             }
-            progSchema = CRCLSocket.filesToProgramSchema(fa);
+            progSchema = CRCLSchemaUtils.filesToProgramSchema(fa);
             this.progSchemaFiles = fa;
             if (null != this.crclSocket) {
                 this.crclSocket.setProgramSchema(progSchema);
@@ -964,7 +976,7 @@ public class CrclSwingClientInner {
             if (null != this.crclStatusPollingSocket) {
                 this.crclStatusPollingSocket.setProgramSchema(progSchema);
             }
-        } catch (CRCLException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -1292,7 +1304,7 @@ public class CrclSwingClientInner {
         if (sid <= 1 && id <= 1 && null != status) {
             final CommandStatusType commandStatus = status.getCommandStatus();
             if (null != commandStatus) {
-                if (commandStatus.getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                if (commandStatus.getCommandState() == CRCL_DONE) {
                     commandStatus.setCommandState(CommandStateEnumType.CRCL_READY);
                 }
                 commandStatus.setCommandID(System.currentTimeMillis());
@@ -1347,7 +1359,7 @@ public class CrclSwingClientInner {
             StackTraceElement callerTrace[] = Thread.currentThread().getStackTrace();
             return XFuture.supplyAsync("scheduleIncAndSendCommand", () -> incAndSendCommand(cmd), crclSocketActionExecutorService)
                     .peekNoCancelException((Throwable t) -> {
-                        System.out.println("callerTrace = " + Utils.traceToString(callerTrace));
+                        System.out.println("callerTrace = " + CRCLUtils.traceToString(callerTrace));
                         LOGGER.log(Level.SEVERE, "peekNoCancelException", t);
                     });
         } else {
@@ -1404,20 +1416,30 @@ public class CrclSwingClientInner {
                 initSent = true;
             } else if (cmd instanceof SetAngleUnitsType) {
                 SetAngleUnitsType setAngle = (SetAngleUnitsType) cmd;
-                this.setAngleType(setAngle.getUnitName());
+                final AngleUnitEnumType angleUnitName
+                        = Objects.requireNonNull(setAngle.getUnitName(), "setAngle.getUnitName()");
+                this.setAngleType(angleUnitName);
             } else if (cmd instanceof SetLengthUnitsType) {
                 SetLengthUnitsType setLengthUnit = (SetLengthUnitsType) cmd;
-                this.setLengthUnit(setLengthUnit.getUnitName());
+                final LengthUnitEnumType cmdLengthUnitName
+                        = Objects.requireNonNull(setLengthUnit.getUnitName(), "setLengthUnit.getUnitName()");
+                this.setLengthUnit(cmdLengthUnitName);
                 this.lengthUnitSent = true;
             } else if (cmd instanceof SetEndPoseToleranceType) {
                 SetEndPoseToleranceType endPoseTol = (SetEndPoseToleranceType) cmd;
-                this.setExpectedEndPoseTolerance(endPoseTol.getTolerance());
+                final PoseToleranceType tolerance
+                        = Objects.requireNonNull(endPoseTol.getTolerance(), "endPoseTol.getTolerance()");
+                this.setExpectedEndPoseTolerance(tolerance);
             } else if (cmd instanceof SetIntermediatePoseToleranceType) {
                 SetIntermediatePoseToleranceType intermediatePoseTol = (SetIntermediatePoseToleranceType) cmd;
-                this.setExpectedIntermediatePoseTolerance(intermediatePoseTol.getTolerance());
+                final PoseToleranceType tolerance
+                        = Objects.requireNonNull(intermediatePoseTol.getTolerance(), "intermediatePoseTol.getTolerance()");
+                this.setExpectedIntermediatePoseTolerance(tolerance);
             } else if (cmd instanceof ConfigureJointReportsType) {
                 ConfigureJointReportsType cjrs = (ConfigureJointReportsType) cmd;
-                for (ConfigureJointReportType cjr : cjrs.getConfigureJointReport()) {
+                final Iterable<ConfigureJointReportType> configureJointReportsIterable
+                        = CRCLUtils.getNonNullIterable(cjrs.getConfigureJointReport());
+                for (ConfigureJointReportType cjr : configureJointReportsIterable) {
                     cjrMap.put(cjr.getJointNumber(), cjr);
                 }
             } else if (cmd instanceof SetEndEffectorType) {
@@ -1463,8 +1485,8 @@ public class CrclSwingClientInner {
                 if (menuOuter().isDebugSendCommandSelected()) {
                     showDebugMessage("PendantClientInner.sendCommand() : ret = " + ret);
                 }
-            } else if (getCommandState() == CommandStateEnumType.CRCL_DONE) {
-                setCommandState(CommandStateEnumType.CRCL_WORKING);
+            } else if (getCommandState() == CRCL_DONE) {
+                setCommandStateWORKING();
             }
             return ret;
         } catch (Exception ex) {
@@ -1476,6 +1498,18 @@ public class CrclSwingClientInner {
             }
         }
     }
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    CommandStateEnumType CRCL_DONE = CommandStateEnumType.CRCL_DONE;
+
+    private void setCommandStateWORKING() {
+        setCommandState(CRCL_WORKING);
+    }
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    CommandStateEnumType CRCL_WORKING = CommandStateEnumType.CRCL_WORKING;
 
     public void setCommandState(CommandStateEnumType state) {
         if (null != status) {
@@ -1531,7 +1565,7 @@ public class CrclSwingClientInner {
                 runProgramAbortCount.incrementAndGet();
             }
             this.closeTestProgramThread();
-            stopMotion(StopConditionEnumType.FAST);
+            stopMotionFAST();
             if (!wasRunning && !isRunningProgram()) {
                 aborting = false;
                 return XFutureVoid.completedFuture();
@@ -1559,6 +1593,14 @@ public class CrclSwingClientInner {
         }
 
     }
+
+    private void stopMotionFAST() {
+        stopMotion(FAST);
+    }
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    StopConditionEnumType FAST = StopConditionEnumType.FAST;
 
     private volatile boolean initSent = false;
 
@@ -1768,7 +1810,8 @@ public class CrclSwingClientInner {
                             System.err.flush();
                             System.out.println("ERROR occured but error state description not set");
                         }
-                        errorStateDescription = newStatus.getCommandStatus().getStateDescription();
+                        errorStateDescription
+                                = CRCLUtils.getNonNullCommandStatus(newStatus).getStateDescription();
                         return WaitForDoneResult.WFD_ERROR;
                     }
                     return WaitForDoneResult.WFD_TIMEOUT;
@@ -1798,13 +1841,15 @@ public class CrclSwingClientInner {
     private void showDebugStatus() {
         if (null == this.status) {
             showDebugMessage("PendantClient this.status == null");
-        } else if (null == this.status.getCommandStatus()) {
-            showDebugMessage("PendantClient this.status.getCommandStatus() == null");
+        } else if (null == CRCLUtils.getNonNullCommandStatus(this.status)) {
+            showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status) == null");
         } else {
-            showDebugMessage("PendantClient this.status.getCommandStatus().getCommandID() ="
-                    + this.status.getCommandStatus().getCommandID());
-            showDebugMessage("PendantClient this.status.getCommandStatus().getCommandState() ="
-                    + this.status.getCommandStatus().getCommandState());
+            final CommandStatusType nonNullCommandStatus
+                    = CRCLUtils.getNonNullCommandStatus(this.status);
+            showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status).getCommandID() ="
+                    + nonNullCommandStatus.getCommandID());
+            showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status).getCommandState() ="
+                    + nonNullCommandStatus.getCommandState());
         }
     }
 
@@ -1844,23 +1889,26 @@ public class CrclSwingClientInner {
     public CommandStateEnumType getCommandState() {
         CommandStatusType cs = getCommandStatus();
         if (null != cs) {
-            return cs.getCommandState();
+            final CommandStateEnumType commandState = cs.getCommandState();
+            if (null != commandState) {
+                return commandState;
+            }
         }
-        return CommandStateEnumType.CRCL_ERROR;
+        return CRCL_ERROR;
     }
 
     public PoseType currentStatusPose() {
         if (status == null) {
             throw new IllegalStateException("status==null");
         }
-        return requireNonNull(CRCLPosemath.getPose(status), "CRCLPosemath.getPose(status)");
+        return requireNonNull(CRCLPosemath.getNullablePose(status), "CRCLPosemath.getPose(status)");
     }
 
     public PointType currentStatusPoint() {
         if (status == null) {
             throw new IllegalStateException("status==null");
         }
-        return requireNonNull(CRCLPosemath.getPoint(status), "CRCLPosemath.getPoint(status)");
+        return Objects.requireNonNull(CRCLPosemath.getNullablePoint(status), "CRCLPosemath.getNullablePoint(status)");
     }
 
     private int maxPoseListLength = 1000;
@@ -2049,7 +2097,7 @@ public class CrclSwingClientInner {
         if (null == lastLogMoveToCmdPoint) {
             return null;
         }
-        PointType pt = CRCLPosemath.getPoint(status);
+        PointType pt = CRCLPosemath.getNullablePoint(status);
         if (null == pt) {
             return null;
         }
@@ -2119,7 +2167,7 @@ public class CrclSwingClientInner {
         } else if (el instanceof StatusLogElement) {
             StatusLogElement sel = (StatusLogElement) el;
             CRCLStatusType status = sel.getStatus();
-            PointType point = CRCLPosemath.getPoint(status);
+            PointType point = CRCLPosemath.getNullablePoint(status);
             final long timeSinceCmdStart = sel.getTime() - lastLogCmdTime;
             final long timeSinceLastStat = sel.getTime() - lastLogStatTime;
             double distanceFromlastStat = lastLogStatusPoint != null && point != null
@@ -2201,7 +2249,7 @@ public class CrclSwingClientInner {
                 el = commandStatusLog.pollFirst();
                 i++;
                 if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
-                    printer.printRecord((Object[])headers);
+                    printer.printRecord((Object[]) headers);
                 }
             }
         } else {
@@ -2209,7 +2257,7 @@ public class CrclSwingClientInner {
                 printLogElement(el, printer);
                 i++;
                 if (headerRepeat > 0 && i % headerRepeat == 0 && null != headers && headers.length > 0) {
-                    printer.printRecord((Object[])headers);
+                    printer.printRecord((Object[]) headers);
                 }
             }
         }
@@ -2345,7 +2393,19 @@ public class CrclSwingClientInner {
             }
             if (outer.isMonitoringHoldingObject() && holdingObjectExpected) {
                 GripperStatusType gripperStatus = curStatus.getGripperStatus();
-                if (null == gripperStatus || null == gripperStatus.isHoldingObject() || !gripperStatus.isHoldingObject()) {
+                final boolean newError;
+
+                if (null == gripperStatus) {
+                    newError = true;
+                } else {
+                    final Boolean holdingObject = gripperStatus.isHoldingObject();
+                    if (null == holdingObject || !holdingObject) {
+                        newError = true;
+                    } else {
+                        newError = false;
+                    }
+                }
+                if (newError) {
                     holdingErrorRepCount++;
                     if (holdingErrorRepCount > 25 && !holdingErrorOccured) {
                         outer.showMessage("Object dropped or missing?");
@@ -2358,7 +2418,7 @@ public class CrclSwingClientInner {
 
             outer.checkXmlQuery(readSocket);
             if (menuOuterLocal.isRecordPoseSelected()
-                    && null != CRCLPosemath.getPose(curStatus)) {
+                    && null != CRCLPosemath.getNullablePose(curStatus)) {
 
                 PmPose pmPose = CRCLPosemath.toPmPose(curStatus);
                 final CommandStatusType commandStatus = curStatus.getCommandStatus();
@@ -2485,8 +2545,10 @@ public class CrclSwingClientInner {
     public void addStatusToCommandStatusLog(final CRCLStatusType curStatus) {
         long curTime = System.currentTimeMillis();
         CommandStatusLogElement lastEl = getLastCommandStatusLogElement();
-        CommandStatusType curCmdStatus = curStatus.getCommandStatus();
-        CommandStateEnumType curState = curCmdStatus.getCommandState();
+        CommandStatusType curCmdStatus
+                = CRCLUtils.getNonNullCommandStatus(curStatus);
+        CommandStateEnumType curState
+                = Objects.requireNonNull(curCmdStatus.getCommandState(), "curCmdStatus.getCommandState()");
         final boolean notAlreadyDone
                 = lastStatusLogState == CRCL_WORKING
                 || (lastCommandStatusLogElement instanceof CommandLogElement);
@@ -2519,7 +2581,8 @@ public class CrclSwingClientInner {
                 requiredTimeDiff = 50;
             }
         }
-        if (lastEl == null && curStatus.getCommandStatus().getCommandID() < 1) {
+        final long curCmdStatusCommandID = curCmdStatus.getCommandID();
+        if (lastEl == null && curCmdStatusCommandID < 1) {
             StatusLogElement statEl = new StatusLogElement(
                     curStatus,
                     curTime,
@@ -2531,12 +2594,13 @@ public class CrclSwingClientInner {
         }
 
         if (lastEl != null
-                && lastEl.getId() != curStatus.getCommandStatus().getCommandID()) {
+                && lastEl.getId() != curCmdStatusCommandID) {
             lastIdChangeTime = curTime;
         }
         if (lastEl instanceof StatusLogElement) {
             StatusLogElement statLastEl = (StatusLogElement) lastEl;
-            CommandStatusType lastCmdStatus = statLastEl.getStatus().getCommandStatus();
+            CommandStatusType lastCmdStatus
+                    = CRCLUtils.getNonNullCommandStatus(statLastEl.getStatus());
             CommandStateEnumType lastState = lastCmdStatus.getCommandState();
             if (curState != lastState) {
                 lastStateChangeTime = curTime;
@@ -2638,7 +2702,7 @@ public class CrclSwingClientInner {
                 System.err.println("defaultsInstance.getProgramSchemasFile() = " + defaultsInstance.getProgramSchemasFile());
                 System.err.println("progSchemaFiles = " + Arrays.toString(progSchemaFiles));
                 System.err.println("PendantClientInner : createStackTrace = " + XFuture.traceToString(createStackTrace));
-                throw new IllegalStateException("null==progSchema:  Utils.getCrclUserHomeDir()= " + Utils.getCrclUserHomeDir());
+                throw new IllegalStateException("null==progSchema:  CRCLUtils.getCrclUserHomeDir()= " + CRCLUtils.getCrclUserHomeDir());
             }
             disconnecting = false;
             connectThread = Thread.currentThread();
@@ -2914,7 +2978,10 @@ public class CrclSwingClientInner {
     private boolean testCommandEffect(CRCLCommandType cmd, long cmdStartTime) {
         effectFailedMessage = "effectFailedMessage NOT set";
         if (cmd instanceof MessageType) {
-            setLastMessage(((MessageType) cmd).getMessage());
+            final String message = ((MessageType) cmd).getMessage();
+            if (null != message) {
+                setLastMessage(message);
+            }
             return true;
         }
         if (cmd instanceof ActuateJointsType) {
@@ -2956,19 +3023,19 @@ public class CrclSwingClientInner {
         if (null == status) {
             throw new IllegalStateException("null==status");
         }
-        List<ActuateJointType> ajl = ajst.getActuateJoint();
+        Iterable<ActuateJointType> ajIterable = CRCLUtils.getNonNullIterable(ajst.getActuateJoint());
         final JointStatusesType jointStatuses = status.getJointStatuses();
         if (null == jointStatuses) {
             showMessage("ActuateJoints failed : (null == status.getJointStatuses() ");
             return false;
         }
-        for (ActuateJointType aj : ajl) {
-            List<JointStatusType> jointListTest = jointStatuses.getJointStatus();
+        for (ActuateJointType aj : ajIterable) {
+            Iterable<JointStatusType> jointListIterable
+                    = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
             JointStatusType jointStatusTest = null;
-            for (int j = 0; j < jointListTest.size(); j++) {
-                JointStatusType jsj = jointListTest.get(j);
+            for (JointStatusType jsj : jointListIterable) {
                 if (jsj.getJointNumber() == aj.getJointNumber()) {
-                    jointStatusTest = jointListTest.get(j);
+                    jointStatusTest = jsj;
                     break;
                 }
             }
@@ -2976,7 +3043,9 @@ public class CrclSwingClientInner {
                 showMessage("ActuateJoints failed : no jointStatus for " + aj.getJointNumber());
                 return false;
             }
-            double jointDiff = Math.abs(jointStatusTest.getJointPosition() - aj.getJointPosition());
+            final double testJointPosition = Objects.requireNonNull(jointStatusTest.getJointPosition(), "jointStatusTest.getJointPosition()").doubleValue();
+            final double ajJointPosition = Objects.requireNonNull(aj.getJointPosition(), "aj.getJointPosition()").doubleValue();
+            double jointDiff = Math.abs(testJointPosition - ajJointPosition);
             if (jointDiff > jointTol) {
                 effectFailedMessage = "ActuateJoints failed measured position differs from commanded position." + NEW_LINE
                         + "JointNumber: " + aj.getJointNumber() + NEW_LINE
@@ -3044,7 +3113,7 @@ public class CrclSwingClientInner {
 
     private boolean testMoveThroughToEffect(MoveThroughToType moveThroughTo) {
         PoseType curPose = this.currentStatusPose();
-        PoseType cmdPose = moveThroughTo.getWaypoint().get(moveThroughTo.getNumPositions() - 1);
+        PoseType cmdPose = waypoints(moveThroughTo).get(moveThroughTo.getNumPositions() - 1);
         return PoseToleranceChecker.isInTolerance(curPose, cmdPose, expectedEndPoseTolerance, angleType);
     }
 
@@ -3084,30 +3153,32 @@ public class CrclSwingClientInner {
             return true;
         }
         CRCLStatusType origStatus = requireNonNull(this.testCommandStartStatus, "testCommandStartStatus");
-        PointType origPoint = requireNonNull(CRCLPosemath.getPoint(origStatus), "CRCLPosemath.getPoint(testCommandStartStatus)");
+        PointType origPoint = requireNonNull(CRCLPosemath.getNullablePoint(origStatus), "CRCLPosemath.getPoint(testCommandStartStatus)");
         PointType curPoint = this.currentStatusPoint();
-        double newScale = unitToScale(slu.getUnitName());
+        final LengthUnitEnumType sluUnitName
+                = Objects.requireNonNull(slu.getUnitName(), "slu.getUnitName()");
+        double newScale = unitToScale(sluUnitName);
         double oldScale = unitToScale(testCommandStartLengthUnit);
         double convertScale = newScale / oldScale;
         double origX = origPoint.getX();
         double expectedX = origX / convertScale;
         double curX = curPoint.getX();
         if (Math.abs(expectedX - curX) > 0.0001) {
-            showMessage("X value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origX + " " + testCommandStartLengthUnit + " was expected to become " + expectedX + " " + slu.getUnitName() + " but instead was " + curX);
+            showMessage("X value after SelLengthUnits to " + sluUnitName + " with original value " + origX + " " + testCommandStartLengthUnit + " was expected to become " + expectedX + " " + sluUnitName + " but instead was " + curX);
             return false;
         }
         double origY = origPoint.getY();
         double expectedY = origY / convertScale;
         double curY = curPoint.getY();
         if (Math.abs(expectedY - curY) > 0.0001) {
-            showMessage("Y value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origY + " " + testCommandStartLengthUnit + " was expected to become " + expectedY + " " + slu.getUnitName() + " but instead was " + curY);
+            showMessage("Y value after SelLengthUnits to " + sluUnitName + " with original value " + origY + " " + testCommandStartLengthUnit + " was expected to become " + expectedY + " " + sluUnitName + " but instead was " + curY);
             return false;
         }
         double origZ = origPoint.getZ();
         double expectedZ = origZ / convertScale;
         double curZ = curPoint.getZ();
         if (Math.abs(expectedZ - curZ) > 0.0001) {
-            showMessage("Z value after SelLengthUnits to " + slu.getUnitName() + " with original value " + origZ + " " + testCommandStartLengthUnit + " was expected to become " + expectedZ + " " + slu.getUnitName() + " but instead was " + curZ);
+            showMessage("Z value after SelLengthUnits to " + sluUnitName + " with original value " + origZ + " " + testCommandStartLengthUnit + " was expected to become " + expectedZ + " " + sluUnitName + " but instead was " + curZ);
             return false;
         }
         return true;
@@ -3125,8 +3196,8 @@ public class CrclSwingClientInner {
         if (null == jointStatuses) {
             return checkCJRMap();
         }
-        List<JointStatusType> jsl = jointStatuses.getJointStatus();
-        for (JointStatusType js : jsl) {
+        Iterable<JointStatusType> jsIterable = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
+        for (JointStatusType js : jsIterable) {
             int number = js.getJointNumber();
             ConfigureJointReportType cjr = cjrMap.get(number);
             if (null != cjr) {
@@ -3171,7 +3242,7 @@ public class CrclSwingClientInner {
     private final String NEW_LINE = System.lineSeparator();
 
     private boolean testMoveToEffect(MoveToType moveTo) {
-        if (!moveTo.getGuard().isEmpty()) {
+        if (!Objects.requireNonNull(moveTo.getGuard(), "moveTo.getGuard()").isEmpty()) {
             return true;
         }
         PoseType curPose = this.currentStatusPose();
@@ -3267,15 +3338,24 @@ public class CrclSwingClientInner {
             if (isConnected()
                     && status != null
                     && !lastCmdTriedWasStop) {
+                final CommandStatusType commandStatus
+                        = CRCLUtils.getNonNullCommandStatus(status);
+                final CommandStateEnumType commandState = commandStatus.getCommandState();
                 if (!isRunningProgram()
-                        || status.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                    stopMotion(StopConditionEnumType.NORMAL);
+                        || commandState == null
+                        || commandState == CRCL_WORKING) {
+                    stopMotionNORMAL();
                 }
             }
 
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    @SuppressWarnings("nullness")
+    private void stopMotionNORMAL() {
+        stopMotion(StopConditionEnumType.NORMAL);
     }
 
     public String pauseInfoString() {
@@ -3704,10 +3784,11 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("probram aborted : runProgamAbortCount1=" + runProgamAbortCount1 + ", startRunProgramAbortCount=" + startRunProgramAbortCount);
             }
             long id = commandId.get();
-            InitCanonType initCmd = prog.getInitCanon();
+            final InitCanonType initCmd
+                    = Objects.requireNonNull(prog.getInitCanon(), "prog.getInitCanon()");
             long progId = initCmd.getCommandID();
-            if (null != prog && null != prog.getMiddleCommand()) {
-                setOutgoingProgramLength(prog.getMiddleCommand().size());
+            if (null != prog && null != middleCommands(prog)) {
+                setOutgoingProgramLength(middleCommands(prog).size());
             } else {
                 setOutgoingProgramLength(0);
             }
@@ -3764,7 +3845,7 @@ public class CrclSwingClientInner {
                                 = requireNonNull(
                                         curStatus.getCommandStatus(),
                                         "curStatus.getCommandStatus()");
-                        return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
+                        return commandStatus.getCommandState() != CRCL_ERROR;
                     } else {
                         pause();
                     }
@@ -3782,12 +3863,12 @@ public class CrclSwingClientInner {
             outer.showLastProgramLineExecTimeMillisDists(0, prd);
             p0 = p1;
             showCurrentProgramLine(startLine, prog, getStatus());
-            List<MiddleCommandType> middleCommands = prog.getMiddleCommand();
+            List<MiddleCommandType> middleCommands = middleCommands(prog);
             MiddleCommandType cmd = null;
             for (i = (startLine > 1 ? startLine : 1); i < middleCommands.size() + 1; i++) {
                 if (null != future && future.isCancelled()) {
                     try {
-                        stopMotion(StopConditionEnumType.FAST);
+                        stopMotionFAST();
                     } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
                     }
@@ -3847,7 +3928,7 @@ public class CrclSwingClientInner {
                                 curStatus.getCommandStatus(),
                                 "curStatus.getCommandStatus()");
                 CommandStateEnumType commandState = commandStatus.getCommandState();
-                if (commandState != CommandStateEnumType.CRCL_DONE) {
+                if (commandState != CRCL_DONE) {
                     throw new RuntimeException("commandState=" + commandState + " when expected to be done. index=" + index + ", cmd=" + cmdString(cmd));
                 }
                 time_to_exec = System.currentTimeMillis() - programCommandStartTime;
@@ -3864,7 +3945,7 @@ public class CrclSwingClientInner {
                 p0 = p1;
                 if (stepMode) {
                     if (interactive) {
-                        return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
+                        return commandStatus.getCommandState() != CRCL_ERROR;
                     } else {
                         pause();
                     }
@@ -3883,7 +3964,8 @@ public class CrclSwingClientInner {
             }
 
             programCommandStartTime = System.currentTimeMillis();
-            EndCanonType endCmd = prog.getEndCanon();
+            EndCanonType endCmd
+                    = Objects.requireNonNull(prog.getEndCanon(), "prog.getEndCanon()");
             programName = prog.getName();
             index = -1;
             programIndex = -1;
@@ -3910,11 +3992,11 @@ public class CrclSwingClientInner {
                     = requireNonNull(
                             curStatus.getCommandStatus(),
                             "curStatus.getCommandStatus()");
-            return commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR;
+            return commandStatus.getCommandState() != CRCL_ERROR;
 
         } catch (Exception ex) {
             try {
-                stopMotion(StopConditionEnumType.FAST);
+                stopMotionFAST();
             } catch (Exception exception) {
                 Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, exception);
             }
@@ -3997,7 +4079,7 @@ public class CrclSwingClientInner {
     private PmCartesian getPoseCart() {
         PmCartesian p0
                 = Optional.ofNullable(status)
-                        .map(CRCLPosemath::getPoint)
+                        .map(CRCLPosemath::getNullablePoint)
                         .filter(x -> x != null)
                         .map(CRCLPosemath::toPmCartesian)
                         .orElse(new PmCartesian());
@@ -4189,15 +4271,16 @@ public class CrclSwingClientInner {
             final JointStatusesType jointStatuses = requireNonNull(curStatus.getJointStatuses(), "curStatus.getJointStatuses()");
             if (null != jointStatuses) {
                 ConfigureJointReportsType cjrs = new ConfigureJointReportsType();
-                List<JointStatusType> jointList = jointStatuses.getJointStatus();
-                cjrs.getConfigureJointReport().clear();
-                for (int i = 0; i < jointList.size(); i++) {
+                Iterable<JointStatusType> jointStatusIterable = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
+                List<ConfigureJointReportType> newConfigureJointReportsList = new ArrayList<>();
+                for (JointStatusType jointStatus : jointStatusIterable) {
                     ConfigureJointReportType cjr = new ConfigureJointReportType();
                     cjr.setReportPosition(true);
                     cjr.setReportVelocity(true);
-                    cjr.setJointNumber(jointList.get(i).getJointNumber());
-                    cjrs.getConfigureJointReport().add(cjr);
+                    cjr.setJointNumber(jointStatus.getJointNumber());
+                    newConfigureJointReportsList.add(cjr);
                 }
+                CRCLUtils.clearAndSetList(cjrs.getConfigureJointReport(), newConfigureJointReportsList);
                 testCommand(cjrs, startRunProgramAbortCount);
             }
 
@@ -4233,65 +4316,54 @@ public class CrclSwingClientInner {
             TransSpeedRelativeType transRel = new TransSpeedRelativeType();
             transRel.setFraction(1.0);
             setTransSpeed.setTransSpeed(transRel);
-            testProgram.getMiddleCommand().add(setTransSpeed);
+            final List<MiddleCommandType> testProgramMiddleCommandsList
+                    = middleCommands(testProgram);
+            testProgramMiddleCommandsList.add(setTransSpeed);
             if (null != jointStatuses) {
-                List<JointStatusType> jointList = jointStatuses.getJointStatus();
+                Iterable<JointStatusType> jointStatusIterable
+                        = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
                 ConfigureJointReportsType cjrs = new ConfigureJointReportsType();
-                cjrs.getConfigureJointReport().clear();
-                for (int i = 0; i < jointList.size(); i++) {
+                List<ConfigureJointReportType> newConfigureJointReportsList
+                        = new ArrayList<>();
+                for (JointStatusType jointStatus : jointStatusIterable) {
                     ConfigureJointReportType cjr = new ConfigureJointReportType();
                     cjr.setReportPosition(true);
                     cjr.setReportVelocity(true);
-                    cjr.setJointNumber(jointList.get(i).getJointNumber());
-                    cjrs.getConfigureJointReport().add(cjr);
+                    cjr.setJointNumber(jointStatus.getJointNumber());
+                    newConfigureJointReportsList.add(cjr);
                 }
-                testProgram.getMiddleCommand().add(cjrs);
+                CRCLUtils.clearAndSetList(cjrs.getConfigureJointReport(), newConfigureJointReportsList);
+                testProgramMiddleCommandsList.add(cjrs);
                 int maxJoint = Integer.parseInt(testProperies.getOrDefault("maxJoint", "10"));
-                for (int i = 0; i < jointList.size() && i < maxJoint; i++) {
-                    JointStatusType js = jointList.get(i);
-                    ActuateJointsType ajst = new ActuateJointsType();
-                    List<ActuateJointType> ajl = ajst.getActuateJoint();
-                    ActuateJointType aj = new ActuateJointType();
-                    aj.setJointNumber(js.getJointNumber());
-                    double origPosition = js.getJointPosition();
-                    aj.setJointPosition(js.getJointPosition() + jointPosIncrement);
-                    JointSpeedAccelType jsa = new JointSpeedAccelType();
-                    if (null != testJointMoveSpeed) {
-                        jsa.setJointSpeed(testJointMoveSpeed);
-                    }
-                    if (null != testJointMoveAccel) {
-                        jsa.setJointAccel(testJointMoveAccel);
-                    }
-                    aj.setJointDetails(jsa);
-                    ajl.add(aj);
-                    testProgram.getMiddleCommand().add(ajst);
-                    ajst = new ActuateJointsType();
-                    ajl = ajst.getActuateJoint();
-                    aj = new ActuateJointType();
-                    aj.setJointNumber(js.getJointNumber());
-                    aj.setJointPosition(origPosition);
-                    jsa = new JointSpeedAccelType();
-                    jsa.setJointSpeed(jointTol);
-                    aj.setJointDetails(jsa);
-                    ajl.add(aj);
-                    testProgram.getMiddleCommand().add(ajst);
+                Iterable<JointStatusType> jointStatusIterable2
+                        = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
+                for (JointStatusType jointStatus2 : jointStatusIterable2) {
+                    double origPosition
+                            = Objects.requireNonNull(jointStatus2.getJointPosition(), "jointStatus2.getJointPosition()").doubleValue();
+                    final double newJointPosition = origPosition + jointPosIncrement;
+                    ActuateJointsType firstActuateJointsCmd
+                            = createActuateJointsCmd(jointStatus2, newJointPosition, testJointMoveSpeed, testJointMoveAccel);
+                    testProgramMiddleCommandsList.add(firstActuateJointsCmd);
+                    ActuateJointsType secondActuateJointsCmd
+                            = createActuateJointsCmd(jointStatus2, origPosition, testJointMoveSpeed, testJointMoveAccel);
+                    testProgramMiddleCommandsList.add(secondActuateJointsCmd);
                     DwellType dwell = new DwellType();
                     dwell.setDwellTime(0.25);
-                    testProgram.getMiddleCommand().add(dwell);
+                    testProgramMiddleCommandsList.add(dwell);
                 }
             }
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.INCH);
-            testProgram.getMiddleCommand().add(setUnitType);
+            testProgramMiddleCommandsList.add(setUnitType);
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.METER);
-            testProgram.getMiddleCommand().add(setUnitType);
+            testProgramMiddleCommandsList.add(setUnitType);
             setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(LengthUnitEnumType.MILLIMETER);
-            testProgram.getMiddleCommand().add(setUnitType);
+            testProgramMiddleCommandsList.add(setUnitType);
             PoseType pose = Optional.ofNullable(this)
                     .map(CrclSwingClientInner::getStatus)
-                    .map(CRCLPosemath::getPose)
+                    .map(CRCLPosemath::getNullablePose)
                     .map(CRCLCopier::copy)
                     .orElse(null);
             if (null != pose) {
@@ -4316,7 +4388,7 @@ public class CrclSwingClientInner {
                 origEndPos.setXAxis(origEndXAxis);
                 origEndPos.setZAxis(origEndZAxis);
                 moveToOrig.setEndPosition(origEndPos);
-                testProgram.getMiddleCommand().add(moveToOrig);
+                testProgramMiddleCommandsList.add(moveToOrig);
                 MoveToType moveToXPlus = new MoveToType();
                 PoseType xPlusPos
                         = pose(
@@ -4324,11 +4396,11 @@ public class CrclSwingClientInner {
                                 poseXAxis,
                                 poseZAxis);
                 moveToXPlus.setEndPosition(xPlusPos);
-                testProgram.getMiddleCommand().add(moveToXPlus);
+                testProgramMiddleCommandsList.add(moveToXPlus);
                 DwellType dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                testProgram.getMiddleCommand().add(dwell);
-                testProgram.getMiddleCommand().add(moveToOrig);
+                testProgramMiddleCommandsList.add(dwell);
+                testProgramMiddleCommandsList.add(moveToOrig);
                 MoveToType moveToYPlus = new MoveToType();
                 PoseType yPlusPos
                         = pose(
@@ -4336,11 +4408,11 @@ public class CrclSwingClientInner {
                                 poseXAxis,
                                 poseZAxis);
                 moveToYPlus.setEndPosition(yPlusPos);
-                testProgram.getMiddleCommand().add(moveToYPlus);
+                testProgramMiddleCommandsList.add(moveToYPlus);
                 dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                testProgram.getMiddleCommand().add(dwell);
-                testProgram.getMiddleCommand().add(moveToOrig);
+                testProgramMiddleCommandsList.add(dwell);
+                testProgramMiddleCommandsList.add(moveToOrig);
                 MoveToType moveToZPlus = new MoveToType();
                 PoseType zPlusPos
                         = pose(
@@ -4348,11 +4420,11 @@ public class CrclSwingClientInner {
                                 poseXAxis,
                                 poseZAxis);
                 moveToZPlus.setEndPosition(zPlusPos);
-                testProgram.getMiddleCommand().add(moveToZPlus);
+                testProgramMiddleCommandsList.add(moveToZPlus);
                 dwell = new DwellType();
                 dwell.setDwellTime(0.25);
-                testProgram.getMiddleCommand().add(dwell);
-                testProgram.getMiddleCommand().add(moveToOrig);
+                testProgramMiddleCommandsList.add(dwell);
+                testProgramMiddleCommandsList.add(moveToOrig);
             }
             EndCanonType endCmd = new EndCanonType();
             testProgram.setEndCanon(endCmd);
@@ -4372,6 +4444,25 @@ public class CrclSwingClientInner {
             outer.checkPollSelected();
         }
         return false;
+    }
+
+    private ActuateJointsType createActuateJointsCmd(JointStatusType jointStatus2, final double newJointPosition, @Nullable Double testJointMoveSpeed, @Nullable Double testJointMoveAccel) {
+        final ActuateJointsType firstActuateJointsCmd = new ActuateJointsType();
+        final List<ActuateJointType> firstActuateJointsList = new ArrayList<>();
+        ActuateJointType firstAj = new ActuateJointType();
+        firstAj.setJointNumber(jointStatus2.getJointNumber());
+        firstAj.setJointPosition(newJointPosition);
+        JointSpeedAccelType jsa = new JointSpeedAccelType();
+        if (null != testJointMoveSpeed) {
+            jsa.setJointSpeed(testJointMoveSpeed);
+        }
+        if (null != testJointMoveAccel) {
+            jsa.setJointAccel(testJointMoveAccel);
+        }
+        firstAj.setJointDetails(jsa);
+        firstActuateJointsList.add(firstAj);
+        CRCLUtils.clearAndSetList(firstActuateJointsCmd.getActuateJoint(), firstActuateJointsList);
+        return firstActuateJointsCmd;
     }
 
     private String cmdNameString(@Nullable CRCLCommandType cmd) {
@@ -4411,22 +4502,21 @@ public class CrclSwingClientInner {
     public double getJointPosition(int jointNumber) {
         CRCLStatusType stat = requireNonNull(this.status, "this.status");
         JointStatusesType jointStatuses = requireNonNull(stat.getJointStatuses(), "stat.getJointStatuses()");
-        List<JointStatusType> jsl = jointStatuses.getJointStatus();
-        if (null == jsl) {
-            throw new IllegalStateException("status.getJointStatuses().getJointStatus() == null");
-        }
-        for (JointStatusType js : jsl) {
+        Iterable<JointStatusType> jsIterable
+                = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
+        for (JointStatusType js : jsIterable) {
             if (js.getJointNumber() == jointNumber) {
-                return js.getJointPosition();
+                return Objects.requireNonNull(js.getJointPosition(), "js.getJointPosition()");
             }
         }
-        throw new IllegalStateException("No match for jointNumber " + jointNumber + " on JointStatus list " + jsl);
+        throw new IllegalStateException("No match for jointNumber " + jointNumber + " on JointStatus list " + jsIterable);
     }
 
     private long getTimeoutForAcuateJoints(ActuateJointsType ajst) {
-        List<ActuateJointType> ajl = ajst.getActuateJoint();
+        Iterable<ActuateJointType> ajIterable
+                = CRCLUtils.getNonNullIterable(ajst.getActuateJoint());
         double maxDiff = 0;
-        for (ActuateJointType aj : ajl) {
+        for (ActuateJointType aj : ajIterable) {
             double jp = getJointPosition(aj.getJointNumber());
 //            double thisDiff = jp.subtract(aj.getJointPosition()).abs();
             double thisDiff = Math.abs(jp - aj.getJointPosition());
@@ -4502,308 +4592,311 @@ public class CrclSwingClientInner {
         return 3000;
     }
 
-    private CommandStatusType copyCommandStatus(CommandStatusType oldCmdStat) {
-        if (null == oldCmdStat) {
-            throw new IllegalArgumentException("null == oldCmdStat");
-        }
-        CommandStatusType newCmdStat = new CommandStatusType();
-        newCmdStat.setCommandID(oldCmdStat.getCommandID());
-        newCmdStat.setCommandState(oldCmdStat.getCommandState());
-        newCmdStat.setStatusID(oldCmdStat.getStatusID());
-        String oldCmdStatName = oldCmdStat.getName();
-        if (null != oldCmdStatName) {
-            newCmdStat.setName(oldCmdStatName);
-        }
-        return newCmdStat;
-    }
-
-    private GripperStatusType copyGripperStatusType(GripperStatusType oldGripperStat) {
-        if (null == oldGripperStat) {
-            throw new IllegalArgumentException("null == oldGripperStat");
-        }
-        GripperStatusType newGripperStat = null;
-        if (oldGripperStat instanceof VacuumGripperStatusType) {
-            VacuumGripperStatusType oldVacGripperStat = (VacuumGripperStatusType) oldGripperStat;
-            VacuumGripperStatusType newVacGripperStat = new VacuumGripperStatusType();
-            newVacGripperStat.setIsPowered(oldVacGripperStat.isIsPowered());
-            newGripperStat = newVacGripperStat;
-        } else if (oldGripperStat instanceof ThreeFingerGripperStatusType) {
-            ThreeFingerGripperStatusType oldThreeFingerGripperStat = (ThreeFingerGripperStatusType) oldGripperStat;
-            ThreeFingerGripperStatusType newThreeFingerGripperStat = new ThreeFingerGripperStatusType();
-            newThreeFingerGripperStat.setFinger1Force(oldThreeFingerGripperStat.getFinger1Force());
-            newThreeFingerGripperStat.setFinger2Force(oldThreeFingerGripperStat.getFinger2Force());
-            newThreeFingerGripperStat.setFinger3Force(oldThreeFingerGripperStat.getFinger3Force());
-            newThreeFingerGripperStat.setFinger1Position(oldThreeFingerGripperStat.getFinger1Position());
-            newThreeFingerGripperStat.setFinger2Position(oldThreeFingerGripperStat.getFinger2Position());
-            newThreeFingerGripperStat.setFinger3Position(oldThreeFingerGripperStat.getFinger3Position());
-            newGripperStat = newThreeFingerGripperStat;
-        } else if (oldGripperStat instanceof ParallelGripperStatusType) {
-            ParallelGripperStatusType oldParallelGripperStat = (ParallelGripperStatusType) oldGripperStat;
-            ParallelGripperStatusType newParallelGripperStat = new ParallelGripperStatusType();
-            newParallelGripperStat.setSeparation(oldParallelGripperStat.getSeparation());
-            newGripperStat = newParallelGripperStat;
-        } else {
-            throw new IllegalArgumentException("Unexpected Class for GripperStatus:" + oldGripperStat.getClass());
-        }
-        newGripperStat.setGripperName(oldGripperStat.getGripperName());
-        String oldGripperStatName = oldGripperStat.getName();
-        if (null != oldGripperStatName) {
-            newGripperStat.setName(oldGripperStatName);
-        }
-        return newGripperStat;
-    }
-
-    private JointStatusType copyJointStatus(JointStatusType oldJointStat) {
-        if (oldJointStat == null) {
-            throw new IllegalArgumentException("null == oldJointStat");
-        }
-        JointStatusType newJointStat = new JointStatusType();
-        newJointStat.setJointNumber(oldJointStat.getJointNumber());
-        newJointStat.setJointPosition(oldJointStat.getJointPosition());
-        newJointStat.setJointVelocity(oldJointStat.getJointVelocity());
-        newJointStat.setJointTorqueOrForce(oldJointStat.getJointTorqueOrForce());
-        String oldJointStatName = oldJointStat.getName();
-        if (null != oldJointStatName) {
-            newJointStat.setName(oldJointStatName);
-        }
-        return newJointStat;
-    }
-
-    private JointStatusesType copyJointStatuses(JointStatusesType oldJointStats) {
-        if (null == oldJointStats) {
-            throw new IllegalArgumentException("null == oldJointStats");
-        }
-        JointStatusesType newJointStats = new JointStatusesType();
-        for (JointStatusType js : oldJointStats.getJointStatus()) {
-            newJointStats.getJointStatus().add(copyJointStatus(js));
-        }
-        String oldJointStatsName = oldJointStats.getName();
-        if (null != oldJointStatsName) {
-            newJointStats.setName(oldJointStatsName);
-        }
-        return newJointStats;
-    }
-
-    private RotAccelType copyRotAccel(RotAccelType oldRotAccel) {
-        if (null == oldRotAccel) {
-            throw new IllegalArgumentException("null == oldRotAccel");
-        }
-        RotAccelType newRotAccel = null;
-        if (oldRotAccel instanceof RotAccelAbsoluteType) {
-            RotAccelAbsoluteType oldRotAccelAbsolute = (RotAccelAbsoluteType) oldRotAccel;
-            RotAccelAbsoluteType newRotAccelAbsolute = new RotAccelAbsoluteType();
-            newRotAccelAbsolute.setSetting(oldRotAccelAbsolute.getSetting());
-            newRotAccel = newRotAccelAbsolute;
-        } else if (oldRotAccel instanceof RotAccelRelativeType) {
-            RotAccelRelativeType oldRotAccelRel = (RotAccelRelativeType) oldRotAccel;
-            RotAccelRelativeType newRotAccelRel = new RotAccelRelativeType();
-            newRotAccelRel.setFraction(oldRotAccelRel.getFraction());
-            newRotAccel = newRotAccelRel;
-        } else {
-            throw new IllegalArgumentException("Unrecognized class :" + oldRotAccel.getClass());
-        }
-        String oldRotAccelName = oldRotAccel.getName();
-        if (null != oldRotAccelName) {
-            newRotAccel.setName(oldRotAccelName);
-        }
-        return newRotAccel;
-    }
-
-    private RotSpeedType copyRotSpeed(RotSpeedType oldRotSpeed) {
-        if (null == oldRotSpeed) {
-            throw new IllegalArgumentException("null == oldRotSpeed");
-        }
-        RotSpeedType newRotSpeed = null;
-        if (oldRotSpeed instanceof RotSpeedAbsoluteType) {
-            RotSpeedAbsoluteType oldRotSpeedAbsolute = (RotSpeedAbsoluteType) oldRotSpeed;
-            RotSpeedAbsoluteType newRotSpeedAbsolute = new RotSpeedAbsoluteType();
-            newRotSpeedAbsolute.setSetting(oldRotSpeedAbsolute.getSetting());
-            newRotSpeed = newRotSpeedAbsolute;
-        } else if (oldRotSpeed instanceof RotSpeedRelativeType) {
-            RotSpeedRelativeType oldRotSpeedRel = (RotSpeedRelativeType) oldRotSpeed;
-            RotSpeedRelativeType newRotSpeedRel = new RotSpeedRelativeType();
-            newRotSpeedRel.setFraction(oldRotSpeedRel.getFraction());
-            newRotSpeed = newRotSpeedRel;
-        } else {
-            throw new IllegalArgumentException("unrecognized class :" + oldRotSpeed.getClass());
-        }
-        String oldRotSpeedName = oldRotSpeed.getName();
-        if (null != oldRotSpeedName) {
-            newRotSpeed.setName(oldRotSpeedName);
-        }
-        return newRotSpeed;
-    }
-
-    private TransAccelType copyTransAccel(TransAccelType oldTransAccel) {
-        if (null == oldTransAccel) {
-            throw new IllegalArgumentException("null == oldTransAccel");
-        }
-        TransAccelType newTransAccel = null;
-        if (oldTransAccel instanceof TransAccelAbsoluteType) {
-            TransAccelAbsoluteType oldTransAccelAbsolute = (TransAccelAbsoluteType) oldTransAccel;
-            TransAccelAbsoluteType newTransAccelAbsolute = new TransAccelAbsoluteType();
-            newTransAccelAbsolute.setSetting(oldTransAccelAbsolute.getSetting());
-            newTransAccel = newTransAccelAbsolute;
-        } else if (oldTransAccel instanceof TransAccelRelativeType) {
-            TransAccelRelativeType oldTransAccelRel = (TransAccelRelativeType) oldTransAccel;
-            TransAccelRelativeType newTransAccelRel = new TransAccelRelativeType();
-            newTransAccelRel.setFraction(oldTransAccelRel.getFraction());
-            newTransAccel = newTransAccelRel;
-        } else {
-            throw new IllegalArgumentException("unrecognized class :" + oldTransAccel.getClass());
-        }
-        String oldTransAccelName = oldTransAccel.getName();
-        if (null != oldTransAccelName) {
-            newTransAccel.setName(oldTransAccelName);
-        }
-        return newTransAccel;
-    }
-
-    private TransSpeedType copyTransSpeed(TransSpeedType oldTransSpeed) {
-        if (null == oldTransSpeed) {
-            throw new IllegalArgumentException("null == oldTransSpeed");
-        }
-        TransSpeedType newTransSpeed = null;
-        if (oldTransSpeed instanceof TransSpeedAbsoluteType) {
-            TransSpeedAbsoluteType oldTransSpeedAbsolute = (TransSpeedAbsoluteType) oldTransSpeed;
-            TransSpeedAbsoluteType newTransSpeedAbsolute = new TransSpeedAbsoluteType();
-            newTransSpeedAbsolute.setSetting(oldTransSpeedAbsolute.getSetting());
-            newTransSpeed = newTransSpeedAbsolute;
-        } else if (oldTransSpeed instanceof TransSpeedRelativeType) {
-            TransSpeedRelativeType oldTransSpeedRel = (TransSpeedRelativeType) oldTransSpeed;
-            TransSpeedRelativeType newTransSpeedRel = new TransSpeedRelativeType();
-            newTransSpeedRel.setFraction(oldTransSpeedRel.getFraction());
-            newTransSpeed = newTransSpeedRel;
-        } else {
-            throw new IllegalArgumentException("unrecognized class :" + oldTransSpeed.getClass());
-        }
-        String oldTransSpeedName = oldTransSpeed.getName();
-        if (null != oldTransSpeedName) {
-            newTransSpeed.setName(oldTransSpeedName);
-        }
-        return newTransSpeed;
-    }
-
-    private PoseToleranceType copyPoseTolerance(PoseToleranceType oldPoseTol) {
-        if (null == oldPoseTol) {
-            throw new IllegalArgumentException("null == oldPoseTol");
-        }
-        PoseToleranceType newPoseTol = new PoseToleranceType();
-        newPoseTol.setXAxisTolerance(oldPoseTol.getXAxisTolerance());
-        newPoseTol.setZAxisTolerance(oldPoseTol.getZAxisTolerance());
-        newPoseTol.setXPointTolerance(oldPoseTol.getXPointTolerance());
-        newPoseTol.setYPointTolerance(oldPoseTol.getYPointTolerance());
-        newPoseTol.setZPointTolerance(oldPoseTol.getZPointTolerance());
-        return newPoseTol;
-    }
-
-    private PointType copyPoint(PointType oldPoint) {
-        if (null == oldPoint) {
-            throw new IllegalArgumentException("null == oldPoint");
-        }
-        PointType newPoint = new PointType();
-        newPoint.setX(oldPoint.getX());
-        newPoint.setY(oldPoint.getY());
-        newPoint.setZ(oldPoint.getZ());
-        String oldPointName = oldPoint.getName();
-        if (null != oldPointName) {
-            newPoint.setName(oldPointName);
-        }
-        return newPoint;
-    }
-
-    private VectorType copyVector(VectorType oldVector) {
-        if (null == oldVector) {
-            throw new IllegalArgumentException("null == oldVector");
-        }
-        VectorType newVector = new VectorType();
-        newVector.setI(oldVector.getI());
-        newVector.setJ(oldVector.getJ());
-        newVector.setK(oldVector.getK());
-        String oldVectorName = oldVector.getName();
-        if (null != oldVectorName) {
-            newVector.setName(oldVectorName);
-        }
-        return newVector;
-    }
-
-    private PoseType copyPose(PoseType oldPose) {
-        if (null == oldPose) {
-            throw new IllegalArgumentException("null == oldPose");
-        }
-        PoseType newPose = null;
-        if (oldPose instanceof PoseAndSetType) {
-            PoseAndSetType oldPoseAndSet = (PoseAndSetType) oldPose;
-            PoseAndSetType newPoseAndSet = new PoseAndSetType();
-            newPoseAndSet.setCoordinated(oldPoseAndSet.isCoordinated());
-            newPoseAndSet.setRotAccel(copyRotAccel(oldPoseAndSet.getRotAccel()));
-            newPoseAndSet.setRotSpeed(copyRotSpeed(oldPoseAndSet.getRotSpeed()));
-            newPoseAndSet.setTransAccel(copyTransAccel(oldPoseAndSet.getTransAccel()));
-            newPoseAndSet.setTransSpeed(copyTransSpeed(oldPoseAndSet.getTransSpeed()));
-            newPoseAndSet.setTolerance(copyPoseTolerance(oldPoseAndSet.getTolerance()));
-            newPose = newPoseAndSet;
-        } else {
-            newPose = new PoseType();
-        }
-        PointType oldPosePoint = oldPose.getPoint();
-        if (null != oldPosePoint) {
-            newPose.setPoint(copyPoint(oldPosePoint));
-        }
-        VectorType oldPoseXAxis = oldPose.getXAxis();
-        if (null != oldPoseXAxis) {
-            newPose.setXAxis(copyVector(oldPoseXAxis));
-        }
-        VectorType oldPoseZAxis = oldPose.getZAxis();
-        if (null != oldPoseZAxis) {
-            newPose.setZAxis(copyVector(oldPoseZAxis));
-        }
-        String oldPoseName = oldPose.getName();
-        if (null != oldPoseName) {
-            newPose.setName(oldPoseName);
-        }
-        return newPose;
-    }
-
-    private PoseStatusType copyPoseStatus(PoseStatusType oldPoseStatus) {
-        if (null == oldPoseStatus) {
-            throw new IllegalArgumentException("null == oldPoseStatus");
-        }
-        PoseStatusType newPoseStatus = new PoseStatusType();
-        PoseType oldPoseStatusPose = requireNonNull(oldPoseStatus.getPose(), "oldPoseStatus.getPose()");
-        newPoseStatus.setPose(copyPose(oldPoseStatusPose));
-        String oldPoseStatusName = oldPoseStatus.getName();
-        if (null != oldPoseStatusName) {
-            newPoseStatus.setName(oldPoseStatusName);
-        }
-        return newPoseStatus;
-    }
-
-    private CRCLStatusType copyStatus(CRCLStatusType oldStatus) {
-        if (null == oldStatus) {
-            throw new IllegalArgumentException("null == oldStatus");
-        }
-        CRCLStatusType newStat = new CRCLStatusType();
-        CommandStatusType commandStatus = requireNonNull(oldStatus.getCommandStatus(), "oldStatus.getCommandStatus()");
-        newStat.setCommandStatus(copyCommandStatus(commandStatus));
-        GripperStatusType gripperStatus = oldStatus.getGripperStatus();
-        if (null != gripperStatus) {
-            newStat.setGripperStatus(copyGripperStatusType(gripperStatus));
-        }
-        JointStatusesType jointStatuses = oldStatus.getJointStatuses();
-        if (null != jointStatuses) {
-            newStat.setJointStatuses(copyJointStatuses(jointStatuses));
-        }
-        PoseStatusType poseStatus = oldStatus.getPoseStatus();
-        if (null != poseStatus) {
-            newStat.setPoseStatus(copyPoseStatus(poseStatus));
-        }
-        String oldStatusName = oldStatus.getName();
-        if (null != oldStatusName) {
-            newStat.setName(oldStatusName);
-        }
-        return newStat;
-    }
-
+//    private CommandStatusType copyCommandStatus(CommandStatusType oldCmdStat) {
+//        if (null == oldCmdStat) {
+//            throw new IllegalArgumentException("null == oldCmdStat");
+//        }
+//        CommandStatusType newCmdStat = new CommandStatusType();
+//        newCmdStat.setCommandID(oldCmdStat.getCommandID());
+//        newCmdStat.setCommandState(oldCmdStat.getCommandState());
+//        newCmdStat.setStatusID(oldCmdStat.getStatusID());
+//        String oldCmdStatName = oldCmdStat.getName();
+//        if (null != oldCmdStatName) {
+//            newCmdStat.setName(oldCmdStatName);
+//        }
+//        return newCmdStat;
+//    }
+//
+//    private GripperStatusType copyGripperStatusType(GripperStatusType oldGripperStat) {
+//        if (null == oldGripperStat) {
+//            throw new IllegalArgumentException("null == oldGripperStat");
+//        }
+//        GripperStatusType newGripperStat = null;
+//        if (oldGripperStat instanceof VacuumGripperStatusType) {
+//            VacuumGripperStatusType oldVacGripperStat = (VacuumGripperStatusType) oldGripperStat;
+//            VacuumGripperStatusType newVacGripperStat = new VacuumGripperStatusType();
+//            newVacGripperStat.setIsPowered(oldVacGripperStat.isIsPowered());
+//            newGripperStat = newVacGripperStat;
+//        } else if (oldGripperStat instanceof ThreeFingerGripperStatusType) {
+//            ThreeFingerGripperStatusType oldThreeFingerGripperStat = (ThreeFingerGripperStatusType) oldGripperStat;
+//            ThreeFingerGripperStatusType newThreeFingerGripperStat = new ThreeFingerGripperStatusType();
+//            newThreeFingerGripperStat.setFinger1Force(oldThreeFingerGripperStat.getFinger1Force());
+//            newThreeFingerGripperStat.setFinger2Force(oldThreeFingerGripperStat.getFinger2Force());
+//            newThreeFingerGripperStat.setFinger3Force(oldThreeFingerGripperStat.getFinger3Force());
+//            newThreeFingerGripperStat.setFinger1Position(oldThreeFingerGripperStat.getFinger1Position());
+//            newThreeFingerGripperStat.setFinger2Position(oldThreeFingerGripperStat.getFinger2Position());
+//            newThreeFingerGripperStat.setFinger3Position(oldThreeFingerGripperStat.getFinger3Position());
+//            newGripperStat = newThreeFingerGripperStat;
+//        } else if (oldGripperStat instanceof ParallelGripperStatusType) {
+//            ParallelGripperStatusType oldParallelGripperStat = (ParallelGripperStatusType) oldGripperStat;
+//            ParallelGripperStatusType newParallelGripperStat = new ParallelGripperStatusType();
+//            newParallelGripperStat.setSeparation(oldParallelGripperStat.getSeparation());
+//            newGripperStat = newParallelGripperStat;
+//        } else {
+//            throw new IllegalArgumentException("Unexpected Class for GripperStatus:" + oldGripperStat.getClass());
+//        }
+//        newGripperStat.setGripperName(oldGripperStat.getGripperName());
+//        String oldGripperStatName = oldGripperStat.getName();
+//        if (null != oldGripperStatName) {
+//            newGripperStat.setName(oldGripperStatName);
+//        }
+//        return newGripperStat;
+//    }
+//
+//    private JointStatusType copyJointStatus(JointStatusType oldJointStat) {
+//        if (oldJointStat == null) {
+//            throw new IllegalArgumentException("null == oldJointStat");
+//        }
+//        JointStatusType newJointStat = new JointStatusType();
+//        newJointStat.setJointNumber(oldJointStat.getJointNumber());
+//        newJointStat.setJointPosition(oldJointStat.getJointPosition());
+//        newJointStat.setJointVelocity(oldJointStat.getJointVelocity());
+//        newJointStat.setJointTorqueOrForce(oldJointStat.getJointTorqueOrForce());
+//        String oldJointStatName = oldJointStat.getName();
+//        if (null != oldJointStatName) {
+//            newJointStat.setName(oldJointStatName);
+//        }
+//        return newJointStat;
+//    }
+//
+//    private JointStatusesType copyJointStatuses(JointStatusesType oldJointStats) {
+//        if (null == oldJointStats) {
+//            throw new IllegalArgumentException("null == oldJointStats");
+//        }
+//        JointStatusesType newJointStats = new JointStatusesType();
+//        final Iterable<JointStatusType> oldJointStatusIterable 
+//                = CRCLUtils.getNonNullJointStatusIterable(oldJointStats);
+//        final List<JointStatusType> newJointStatusList = new ArrayList<>();
+//        for (JointStatusType js : oldJointStatusIterable) {
+//           newJointStatusList.add(copyJointStatus(js));
+//        }
+//        CRCLUtils.clearAndSetList(newJointStats.getJointStatus(), newJointStatusList);
+//        String oldJointStatsName = oldJointStats.getName();
+//        if (null != oldJointStatsName) {
+//            newJointStats.setName(oldJointStatsName);
+//        }
+//        return newJointStats;
+//    }
+//
+//    private RotAccelType copyRotAccel(RotAccelType oldRotAccel) {
+//        if (null == oldRotAccel) {
+//            throw new IllegalArgumentException("null == oldRotAccel");
+//        }
+//        RotAccelType newRotAccel = null;
+//        if (oldRotAccel instanceof RotAccelAbsoluteType) {
+//            RotAccelAbsoluteType oldRotAccelAbsolute = (RotAccelAbsoluteType) oldRotAccel;
+//            RotAccelAbsoluteType newRotAccelAbsolute = new RotAccelAbsoluteType();
+//            newRotAccelAbsolute.setSetting(oldRotAccelAbsolute.getSetting());
+//            newRotAccel = newRotAccelAbsolute;
+//        } else if (oldRotAccel instanceof RotAccelRelativeType) {
+//            RotAccelRelativeType oldRotAccelRel = (RotAccelRelativeType) oldRotAccel;
+//            RotAccelRelativeType newRotAccelRel = new RotAccelRelativeType();
+//            newRotAccelRel.setFraction(oldRotAccelRel.getFraction());
+//            newRotAccel = newRotAccelRel;
+//        } else {
+//            throw new IllegalArgumentException("Unrecognized class :" + oldRotAccel.getClass());
+//        }
+//        String oldRotAccelName = oldRotAccel.getName();
+//        if (null != oldRotAccelName) {
+//            newRotAccel.setName(oldRotAccelName);
+//        }
+//        return newRotAccel;
+//    }
+//
+//    private RotSpeedType copyRotSpeed(RotSpeedType oldRotSpeed) {
+//        if (null == oldRotSpeed) {
+//            throw new IllegalArgumentException("null == oldRotSpeed");
+//        }
+//        RotSpeedType newRotSpeed = null;
+//        if (oldRotSpeed instanceof RotSpeedAbsoluteType) {
+//            RotSpeedAbsoluteType oldRotSpeedAbsolute = (RotSpeedAbsoluteType) oldRotSpeed;
+//            RotSpeedAbsoluteType newRotSpeedAbsolute = new RotSpeedAbsoluteType();
+//            newRotSpeedAbsolute.setSetting(oldRotSpeedAbsolute.getSetting());
+//            newRotSpeed = newRotSpeedAbsolute;
+//        } else if (oldRotSpeed instanceof RotSpeedRelativeType) {
+//            RotSpeedRelativeType oldRotSpeedRel = (RotSpeedRelativeType) oldRotSpeed;
+//            RotSpeedRelativeType newRotSpeedRel = new RotSpeedRelativeType();
+//            newRotSpeedRel.setFraction(oldRotSpeedRel.getFraction());
+//            newRotSpeed = newRotSpeedRel;
+//        } else {
+//            throw new IllegalArgumentException("unrecognized class :" + oldRotSpeed.getClass());
+//        }
+//        String oldRotSpeedName = oldRotSpeed.getName();
+//        if (null != oldRotSpeedName) {
+//            newRotSpeed.setName(oldRotSpeedName);
+//        }
+//        return newRotSpeed;
+//    }
+//
+//    private TransAccelType copyTransAccel(TransAccelType oldTransAccel) {
+//        if (null == oldTransAccel) {
+//            throw new IllegalArgumentException("null == oldTransAccel");
+//        }
+//        TransAccelType newTransAccel = null;
+//        if (oldTransAccel instanceof TransAccelAbsoluteType) {
+//            TransAccelAbsoluteType oldTransAccelAbsolute = (TransAccelAbsoluteType) oldTransAccel;
+//            TransAccelAbsoluteType newTransAccelAbsolute = new TransAccelAbsoluteType();
+//            newTransAccelAbsolute.setSetting(oldTransAccelAbsolute.getSetting());
+//            newTransAccel = newTransAccelAbsolute;
+//        } else if (oldTransAccel instanceof TransAccelRelativeType) {
+//            TransAccelRelativeType oldTransAccelRel = (TransAccelRelativeType) oldTransAccel;
+//            TransAccelRelativeType newTransAccelRel = new TransAccelRelativeType();
+//            newTransAccelRel.setFraction(oldTransAccelRel.getFraction());
+//            newTransAccel = newTransAccelRel;
+//        } else {
+//            throw new IllegalArgumentException("unrecognized class :" + oldTransAccel.getClass());
+//        }
+//        String oldTransAccelName = oldTransAccel.getName();
+//        if (null != oldTransAccelName) {
+//            newTransAccel.setName(oldTransAccelName);
+//        }
+//        return newTransAccel;
+//    }
+//
+//    private TransSpeedType copyTransSpeed(TransSpeedType oldTransSpeed) {
+//        if (null == oldTransSpeed) {
+//            throw new IllegalArgumentException("null == oldTransSpeed");
+//        }
+//        TransSpeedType newTransSpeed = null;
+//        if (oldTransSpeed instanceof TransSpeedAbsoluteType) {
+//            TransSpeedAbsoluteType oldTransSpeedAbsolute = (TransSpeedAbsoluteType) oldTransSpeed;
+//            TransSpeedAbsoluteType newTransSpeedAbsolute = new TransSpeedAbsoluteType();
+//            newTransSpeedAbsolute.setSetting(oldTransSpeedAbsolute.getSetting());
+//            newTransSpeed = newTransSpeedAbsolute;
+//        } else if (oldTransSpeed instanceof TransSpeedRelativeType) {
+//            TransSpeedRelativeType oldTransSpeedRel = (TransSpeedRelativeType) oldTransSpeed;
+//            TransSpeedRelativeType newTransSpeedRel = new TransSpeedRelativeType();
+//            newTransSpeedRel.setFraction(oldTransSpeedRel.getFraction());
+//            newTransSpeed = newTransSpeedRel;
+//        } else {
+//            throw new IllegalArgumentException("unrecognized class :" + oldTransSpeed.getClass());
+//        }
+//        String oldTransSpeedName = oldTransSpeed.getName();
+//        if (null != oldTransSpeedName) {
+//            newTransSpeed.setName(oldTransSpeedName);
+//        }
+//        return newTransSpeed;
+//    }
+//
+//    private PoseToleranceType copyPoseTolerance(PoseToleranceType oldPoseTol) {
+//        if (null == oldPoseTol) {
+//            throw new IllegalArgumentException("null == oldPoseTol");
+//        }
+//        PoseToleranceType newPoseTol = new PoseToleranceType();
+//        newPoseTol.setXAxisTolerance(oldPoseTol.getXAxisTolerance());
+//        newPoseTol.setZAxisTolerance(oldPoseTol.getZAxisTolerance());
+//        newPoseTol.setXPointTolerance(oldPoseTol.getXPointTolerance());
+//        newPoseTol.setYPointTolerance(oldPoseTol.getYPointTolerance());
+//        newPoseTol.setZPointTolerance(oldPoseTol.getZPointTolerance());
+//        return newPoseTol;
+//    }
+//
+//    private PointType copyPoint(PointType oldPoint) {
+//        if (null == oldPoint) {
+//            throw new IllegalArgumentException("null == oldPoint");
+//        }
+//        PointType newPoint = new PointType();
+//        newPoint.setX(oldPoint.getX());
+//        newPoint.setY(oldPoint.getY());
+//        newPoint.setZ(oldPoint.getZ());
+//        String oldPointName = oldPoint.getName();
+//        if (null != oldPointName) {
+//            newPoint.setName(oldPointName);
+//        }
+//        return newPoint;
+//    }
+//
+//    private VectorType copyVector(VectorType oldVector) {
+//        if (null == oldVector) {
+//            throw new IllegalArgumentException("null == oldVector");
+//        }
+//        VectorType newVector = new VectorType();
+//        newVector.setI(oldVector.getI());
+//        newVector.setJ(oldVector.getJ());
+//        newVector.setK(oldVector.getK());
+//        String oldVectorName = oldVector.getName();
+//        if (null != oldVectorName) {
+//            newVector.setName(oldVectorName);
+//        }
+//        return newVector;
+//    }
+//
+//    private PoseType copyPose(PoseType oldPose) {
+//        if (null == oldPose) {
+//            throw new IllegalArgumentException("null == oldPose");
+//        }
+//        PoseType newPose = null;
+//        if (oldPose instanceof PoseAndSetType) {
+//            PoseAndSetType oldPoseAndSet = (PoseAndSetType) oldPose;
+//            PoseAndSetType newPoseAndSet = new PoseAndSetType();
+//            newPoseAndSet.setCoordinated(oldPoseAndSet.isCoordinated());
+//            newPoseAndSet.setRotAccel(copyRotAccel(oldPoseAndSet.getRotAccel()));
+//            newPoseAndSet.setRotSpeed(copyRotSpeed(oldPoseAndSet.getRotSpeed()));
+//            newPoseAndSet.setTransAccel(copyTransAccel(oldPoseAndSet.getTransAccel()));
+//            newPoseAndSet.setTransSpeed(copyTransSpeed(oldPoseAndSet.getTransSpeed()));
+//            newPoseAndSet.setTolerance(copyPoseTolerance(oldPoseAndSet.getTolerance()));
+//            newPose = newPoseAndSet;
+//        } else {
+//            newPose = new PoseType();
+//        }
+//        PointType oldPosePoint = oldPose.getPoint();
+//        if (null != oldPosePoint) {
+//            newPose.setPoint(copyPoint(oldPosePoint));
+//        }
+//        VectorType oldPoseXAxis = oldPose.getXAxis();
+//        if (null != oldPoseXAxis) {
+//            newPose.setXAxis(copyVector(oldPoseXAxis));
+//        }
+//        VectorType oldPoseZAxis = oldPose.getZAxis();
+//        if (null != oldPoseZAxis) {
+//            newPose.setZAxis(copyVector(oldPoseZAxis));
+//        }
+//        String oldPoseName = oldPose.getName();
+//        if (null != oldPoseName) {
+//            newPose.setName(oldPoseName);
+//        }
+//        return newPose;
+//    }
+//
+//    private PoseStatusType copyPoseStatus(PoseStatusType oldPoseStatus) {
+//        if (null == oldPoseStatus) {
+//            throw new IllegalArgumentException("null == oldPoseStatus");
+//        }
+//        PoseStatusType newPoseStatus = new PoseStatusType();
+//        PoseType oldPoseStatusPose = requireNonNull(oldPoseStatus.getPose(), "oldPoseStatus.getPose()");
+//        newPoseStatus.setPose(copyPose(oldPoseStatusPose));
+//        String oldPoseStatusName = oldPoseStatus.getName();
+//        if (null != oldPoseStatusName) {
+//            newPoseStatus.setName(oldPoseStatusName);
+//        }
+//        return newPoseStatus;
+//    }
+//
+//    private CRCLStatusType copyStatus(CRCLStatusType oldStatus) {
+//        if (null == oldStatus) {
+//            throw new IllegalArgumentException("null == oldStatus");
+//        }
+//        CRCLStatusType newStat = new CRCLStatusType();
+//        CommandStatusType commandStatus = requireNonNull(oldStatus.getCommandStatus(), "oldStatus.getCommandStatus()");
+//        newStat.setCommandStatus(copyCommandStatus(commandStatus));
+//        GripperStatusType gripperStatus = oldStatus.getGripperStatus();
+//        if (null != gripperStatus) {
+//            newStat.setGripperStatus(copyGripperStatusType(gripperStatus));
+//        }
+//        JointStatusesType jointStatuses = oldStatus.getJointStatuses();
+//        if (null != jointStatuses) {
+//            newStat.setJointStatuses(copyJointStatuses(jointStatuses));
+//        }
+//        PoseStatusType poseStatus = oldStatus.getPoseStatus();
+//        if (null != poseStatus) {
+//            newStat.setPoseStatus(copyPoseStatus(poseStatus));
+//        }
+//        String oldStatusName = oldStatus.getName();
+//        if (null != oldStatusName) {
+//            newStat.setName(oldStatusName);
+//        }
+//        return newStat;
+//    }
     private String createInterrupStackString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < this.interruptStacks.size(); i++) {
@@ -4860,7 +4953,19 @@ public class CrclSwingClientInner {
             final PoseType tmpStatusPose = (null != tmpPoseStatus) ? tmpPoseStatus.getPose() : null;
             final String tmpPoseStatusString = (null != tmpStatusPose) ? label + " status.getPose()=" + CRCLPosemath.toString(tmpStatusPose) + "." + NEW_LINE : "";
             final JointStatusesType tmpJointStatuses = tmpStatus.getJointStatuses();
-            final String tmpJointStatusesString = (tmpJointStatuses != null) ? label + " status.getJoints()=" + (tmpJointStatuses.getJointStatus().stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition))) + "." + NEW_LINE : "";
+            final Map<Integer, Double> tmpJointStatusesMap = new HashMap<>();
+
+            if (tmpJointStatuses != null) {
+                final Iterable<JointStatusType> tmpJointStatusIterable
+                        = CRCLUtils.getNonNullJointStatusIterable(tmpJointStatuses);
+                for (JointStatusType js : tmpJointStatusIterable) {
+                    final Double jointPosition = js.getJointPosition();
+                    if (null != jointPosition) {
+                        tmpJointStatusesMap.put(js.getJointNumber(), jointPosition);
+                    }
+                }
+            }
+            final String tmpJointStatusesString = (tmpJointStatuses != null) ? label + " status.getJoints()=" + tmpJointStatusesMap + "." + NEW_LINE : "";
             final CommandStatusType tmpCommandStatus = tmpStatus.getCommandStatus();
             final String tmpStatusString = label + " status=" + tmpXmlStatusString + "." + NEW_LINE
                     + tmpPoseStatusString
@@ -4896,7 +5001,7 @@ public class CrclSwingClientInner {
     private final AtomicInteger testCommandCount = new AtomicInteger();
     private volatile long testCommandMaxTime = 0;
     private final AtomicLong testCommandTotalTime = new AtomicLong();
-    
+
     private volatile @Nullable
     CRCLCommandType testCommandMaxTimeCommand = null;
 
@@ -4966,9 +5071,9 @@ public class CrclSwingClientInner {
                 showMessage("testCommand can not get starting status");
                 throw new IllegalStateException("testCommand can not get starting status");
             }
-            CRCLStatusType origStatus = copyStatus(origStatuPrep);
+            CRCLStatusType origStatus = copy(origStatuPrep);
             CRCLStatusType lastCmdStartStatus = origStatus;
-            CRCLStatusType startStatus = copyStatus(origStatus);
+            CRCLStatusType startStatus = copy(origStatus);
             WaitForDoneResult wfdResult = WaitForDoneResult.WFD_NOT_CALLED;
             final long timeout = getTimeout(cmd);
 
@@ -5055,7 +5160,7 @@ public class CrclSwingClientInner {
                     showMessage("testCommand can not get starting status");
                     throw new RuntimeException("failed to get starting status");
                 }
-                startStatus = copyStatus(startStatusPrep);
+                startStatus = copy(startStatusPrep);
                 lastCmdStartStatus = startStatus;
                 this.testCommandStartStatus = startStatus;
                 sendCommandTime = System.currentTimeMillis();
@@ -5067,7 +5172,9 @@ public class CrclSwingClientInner {
                     showMessage("Can not send " + cmdString + ".");
                     throw new RuntimeException("incAndSendCommand failed");
                 }
-                if (cmd.getCommandID() == startStatus.getCommandStatus().getCommandID() && cmd.getCommandID() > 1) {
+                final CommandStatusType startCommandStatus
+                        = CRCLUtils.getNonNullCommandStatus(startStatus);
+                if (cmd.getCommandID() == startCommandStatus.getCommandID() && cmd.getCommandID() > 1) {
                     String commandLogString = commandStatusLogToString();
                     System.err.println("commandLogString = " + commandLogString);
                     String lastCmdString = commandToSimpleString(lastCommandSent);
@@ -5193,17 +5300,21 @@ public class CrclSwingClientInner {
             CRCLStatusType curStatus = getStatus();
             final String cmdString = cmdString(cmd);
             String lastCmdString = commandToSimpleString(lastCommandSent);
+            Map<Integer, Double> startStatusJointsMap = new HashMap<>();
             JointStatusesType jointStatuses
                     = startStatus.getJointStatuses();
-            List<JointStatusType> jointStatus
-                    = (jointStatuses == null) ? null
-                            : jointStatuses.getJointStatus();
-            Map<Integer, Double> startStatusJointsMap
-                    = (null == jointStatus) ? null
-                            : jointStatus.stream().collect(Collectors.toMap(JointStatusType::getJointNumber, JointStatusType::getJointPosition));
+            if (null != jointStatuses) {
+                Iterable<JointStatusType> jointStatusIterable
+                        = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
+                for (JointStatusType jointStatus : jointStatusIterable) {
+                    final Double jointPosition = jointStatus.getJointPosition();
+                    if (null != jointPosition) {
+                        startStatusJointsMap.put(jointStatus.getJointNumber(), jointPosition);
+                    }
+                }
+            }
             String startStatusJointsMapString
-                    = (null == startStatusJointsMap) ? null
-                            : startStatusJointsMap.toString();
+                    = startStatusJointsMap.toString();
             final String curStatusString = statusToMessageString("current", curStatus);
             final String startStatusString = statusToMessageString("start", startStatus);
             final CRCLStatusType lastErrorStatFinal = lastErrorStat;
@@ -5334,7 +5445,8 @@ public class CrclSwingClientInner {
         lastStartRunProgramThreadStartLine = startLine;
         long id = commandId.get();
         lastStartRunProgramThreadCommandId = id;
-        InitCanonType initCmd = prog.getInitCanon();
+        InitCanonType initCmd
+                = Objects.requireNonNull(prog.getInitCanon(), "prog.getInitCanon()");
         if (startLine == 0) {
             long progId = initCmd.getCommandID();
             System.out.println("startRunProgramThread(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + prog.getName() + ", progId = " + progId);
@@ -5342,8 +5454,8 @@ public class CrclSwingClientInner {
             if (Math.abs(id - progId) > 3 && id > 3) {
                 System.err.println("Math.abs(id-progId)>3: progId=" + progId + ", id=" + id);
             }
-        } else if (startLine < prog.getMiddleCommand().size() && startLine > 0) {
-            long progId = prog.getMiddleCommand().get(startLine - 1).getCommandID();
+        } else if (startLine < middleCommands(prog).size() && startLine > 0) {
+            long progId = middleCommands(prog).get(startLine - 1).getCommandID();
             System.out.println("startRunProgramThread(startLine = " + startLine + ") :id = " + id + ", program.getName() = " + prog.getName() + ", progId = " + progId);
             lastStartRunProgramThreadProgId = progId;
             if (Math.abs(id - progId) > 3 && id > 3) {
@@ -5635,7 +5747,7 @@ public class CrclSwingClientInner {
         final long rpTotalTime = runProgramTotalTime.get();
         final long rpTimePerProgram = rpTotalTime / rpCount;
         final String prefixChecked;
-        if(null != prefix) {
+        if (null != prefix) {
             prefixChecked = prefix;
         } else {
             prefixChecked = "";
@@ -5741,7 +5853,7 @@ public class CrclSwingClientInner {
     private void checkCrclActionThread() throws RuntimeException {
         if (null != crclSocketActionThread) {
             if (Thread.currentThread() != crclSocketActionThread) {
-                System.err.println("crclSocketActtionThreadSetTrace = " + Utils.traceToString(crclSocketActtionThreadSetTrace));
+                System.err.println("crclSocketActtionThreadSetTrace = " + CRCLUtils.traceToString(crclSocketActtionThreadSetTrace));
                 throw new RuntimeException("Thread.currentThread()=" + Thread.currentThread() + ", crclSocketActionThread=" + crclSocketActionThread);
             }
         } else {

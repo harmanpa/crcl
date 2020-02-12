@@ -86,10 +86,12 @@ import crcl.utils.CRCLPosemath;
 import static crcl.utils.CRCLPosemath.point;
 import static crcl.utils.CRCLPosemath.pose;
 import static crcl.utils.CRCLPosemath.vector;
+import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLSocket;
+import crcl.utils.CRCLUtils;
+import static crcl.utils.CRCLUtils.middleCommands;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
-import crcl.utils.Utils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
@@ -131,6 +133,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
@@ -169,6 +172,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
@@ -208,7 +212,11 @@ public class CrclSwingClientJPanel
     private long max_diff_readStatusEndTime_requestStatusStartTime = 0;
     private long maxPollStatusCycleTime = 0;
     private long cycles = 0;
-    private LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
+
+    @SuppressWarnings("nullness")
+    private @NonNull
+    LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
+
     private @Nullable
     CRCLProgramType recordPointsProgram = null;
     private static final String SETTINGSREF = "clientsettingsref";
@@ -327,11 +335,11 @@ public class CrclSwingClientJPanel
             File fa[] = jFileChooser.getSelectedFiles();
             internal.setCmdSchema(fa);
             DefaultSchemaFiles defaultSchemaFiles = DefaultSchemaFiles.instance();
-            CRCLSocket.saveCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile(), fa);
+            CRCLSchemaUtils.saveCmdSchemaFiles(defaultSchemaFiles.getCmdSchemasFile(), fa);
             internal.setStatSchema(fa);
-            CRCLSocket.saveStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile(), fa);
+            CRCLSchemaUtils.saveStatSchemaFiles(defaultSchemaFiles.getStatSchemasFile(), fa);
             internal.setProgramSchema(fa);
-            CRCLSocket.saveProgramSchemaFiles(defaultSchemaFiles.getProgramSchemasFile(), fa);
+            CRCLSchemaUtils.saveProgramSchemaFiles(defaultSchemaFiles.getProgramSchemasFile(), fa);
         }
     }
 
@@ -452,19 +460,33 @@ public class CrclSwingClientJPanel
         return internal.getStatus();
     }
 
-    private void finishShowCurrentProgramLine(final int line, final CRCLProgramType program, @Nullable CRCLStatusType status, List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
+    private void finishShowCurrentProgramLine(final int line, final CRCLProgramType newProgram, @Nullable CRCLStatusType status, List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
+        final List<MiddleCommandType> middleCommandsList
+                = CRCLUtils.getNonNullFilteredList(newProgram.getMiddleCommand());
 
         if (programShowing == null) {
-            showProgram(program, progRunDataList, line);
-        } else if (program != programShowing) {
-            if (programShowing.getMiddleCommand().size() != program.getMiddleCommand().size()
-                    || programShowing.getInitCanon().getCommandID() != program.getInitCanon().getCommandID()
-                    || programShowing.getEndCanon().getCommandID() != program.getEndCanon().getCommandID()) {
-                showProgram(program, progRunDataList, line);
+            showProgram(newProgram, progRunDataList, line);
+        } else if (newProgram != programShowing) {
+            final List<MiddleCommandType> programShowingMiddleCommandsList
+                    = CRCLUtils.getNonNullFilteredList(programShowing.getMiddleCommand());
+            final int newProgramSize = Objects.requireNonNull(middleCommandsList, "program.getMiddleCommand()").size();
+            final InitCanonType showingInit = programShowing.getInitCanon();
+            final InitCanonType newInit = newProgram.getInitCanon();
+            final EndCanonType showingEnd = programShowing.getEndCanon();
+            final EndCanonType newEnd = newProgram.getEndCanon();
+            if (null != newEnd && null != newInit && newProgramSize > 0) {
+                if (programShowingMiddleCommandsList == null
+                        || programShowingMiddleCommandsList.size() != newProgramSize
+                        || showingInit == null
+                        || showingInit.getCommandID() != newInit.getCommandID()
+                        || showingEnd == null
+                        || showingEnd.getCommandID() != newEnd.getCommandID()) {
+                    showProgram(newProgram, progRunDataList, line);
+                }
             }
         }
         try {
-            logShowCurrentProgramLineInfo(line, program, status, progRunDataList, ste);
+            logShowCurrentProgramLineInfo(line, newProgram, status, progRunDataList, ste);
         } catch (IOException | JAXBException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -472,7 +494,7 @@ public class CrclSwingClientJPanel
             return;
         }
         if (line != programLineShowing) {
-            if (null != program) {
+            if (null != newProgram) {
                 if (getProgramRow() != line) {
                     jTableProgram.getSelectionModel().setSelectionInterval(line, line);
                 }
@@ -481,9 +503,9 @@ public class CrclSwingClientJPanel
                     Object idObject = jTableProgram.getValueAt(row, 1);
                     if (idObject instanceof Long) {
                         long id = (Long) idObject;
-                        if (program.getMiddleCommand().size() <= line - 1
-                                || id != program.getMiddleCommand().get(line - 1).getCommandID()) {
-                            showProgram(program, progRunDataList, line);
+                        if (middleCommandsList.size() <= line - 1
+                                || id != middleCommandsList.get(line - 1).getCommandID()) {
+                            showProgram(newProgram, progRunDataList, line);
                         }
                     }
                 }
@@ -496,7 +518,7 @@ public class CrclSwingClientJPanel
                         ? internal.getRunEndMillis() : System.currentTimeMillis();
                 double runTime = (endMillis - this.internal.getRunStartMillis()) / 1000.0;
                 this.jTextFieldRunTime.setText(String.format("%.1f", runTime));
-                showSelectedProgramLine(line, program, status);
+                showSelectedProgramLine(line, newProgram, status);
             } else {
                 showSelectedProgramCommand(null, status);
             }
@@ -506,7 +528,7 @@ public class CrclSwingClientJPanel
         if (null != status) {
             for (int i = 0; i < programLineListeners.size(); i++) {
                 ProgramLineListener l = programLineListeners.get(i);
-                l.accept(this, line, program, status);
+                l.accept(this, line, newProgram, status);
             }
         }
         programLineShowing = line;
@@ -549,6 +571,8 @@ public class CrclSwingClientJPanel
         }
         lastShowSelectedProgramLineLine = line;
         lastshowSelectedProgramLineProgram = program;
+        final List<MiddleCommandType> middleCommandsList
+                = CRCLUtils.getNonNullFilteredList(program.getMiddleCommand());
         if (line == 0) {
             try {
                 InitCanonType cmd = program.getInitCanon();
@@ -557,21 +581,21 @@ public class CrclSwingClientJPanel
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (line > 0 && (null == program.getMiddleCommand())) {
+        } else if (line > 0 && (null == middleCommandsList)) {
             try {
                 EndCanonType cmd = program.getEndCanon();
                 showSelectedProgramCommand(cmd, status);
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (line > 0 && line <= program.getMiddleCommand().size()) {
+        } else if (line > 0 && line <= middleCommandsList.size()) {
             try {
-                MiddleCommandType cmd = program.getMiddleCommand().get(line - 1);
+                MiddleCommandType cmd = middleCommandsList.get(line - 1);
                 showSelectedProgramCommand(cmd, status);
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else if (line == program.getMiddleCommand().size() + 1) {
+        } else if (line == middleCommandsList.size() + 1) {
             try {
                 EndCanonType cmd = program.getEndCanon();
                 showSelectedProgramCommand(cmd, status);
@@ -788,7 +812,7 @@ public class CrclSwingClientJPanel
     }
 
     public void resetPrefs() {
-        File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+        File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
         if (crcljavaDir.exists()) {
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             boolean deleted = settingsRef.delete();
@@ -805,7 +829,7 @@ public class CrclSwingClientJPanel
 
     public static void saveObjectProperties(File f, Object o) {
         try {
-            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
@@ -821,7 +845,7 @@ public class CrclSwingClientJPanel
     private void checkSettingsRef() {
 
         try {
-            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
 //            Logger.getLogger(CrclSwingClientJPanel.class.getName()).finest(() -> "mkdir " + crcljavaDir + " returned " + made_dir);
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
@@ -872,7 +896,7 @@ public class CrclSwingClientJPanel
 
     private void loadPrefsFile(File f) {
         try {
-            File crcljavaDir = new File(Utils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+            File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
             try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
@@ -948,7 +972,7 @@ public class CrclSwingClientJPanel
             while (null != (line = br.readLine())) {
                 sb.append(line);
             }
-            sb.append("\nSchema versions = ").append(CRCLSocket.getSchemaVersions().toString());
+            sb.append("\nSchema versions = ").append(CRCLSchemaUtils.getSchemaVersions().toString());
             return sb.toString();
         } catch (Exception ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -1002,10 +1026,16 @@ public class CrclSwingClientJPanel
             }
             moveToCmd.setEndPosition(endPose);
             moveToCmd.setMoveStraight(this.jCheckBoxStraight.isSelected());
-            program.getMiddleCommand().add(moveToCmd);
-            setCommandId(moveToCmd, program.getMiddleCommand().size() + 1);
-            if (moveToCmd.getCommandID() + 1 > program.getEndCanon().getCommandID()) {
-                setCommandId(program.getEndCanon(), moveToCmd.getCommandID() + 1);
+            final List<MiddleCommandType> middleCommandsList
+                    = middleCommands(program);
+            middleCommandsList.add(moveToCmd);
+            setCommandId(moveToCmd, middleCommandsList.size() + 1);
+            final EndCanonType endCommand
+                    = Objects.requireNonNull(
+                            program.getEndCanon(),
+                            "program.getEndCanon()");
+            if (moveToCmd.getCommandID() + 1 > endCommand.getCommandID()) {
+                setCommandId(endCommand, moveToCmd.getCommandID() + 1);
             }
             internal.setProgram(program);
             showProgram(program, Collections.emptyList(), 0);
@@ -1017,7 +1047,7 @@ public class CrclSwingClientJPanel
     public void recordCurrentPoint() {
         Optional.ofNullable(internal)
                 .map(CrclSwingClientInner::getStatus)
-                .map(CRCLPosemath::getPose)
+                .map(CRCLPosemath::getNullablePose)
                 .ifPresent(this::recordPoint);
     }
 
@@ -1025,7 +1055,11 @@ public class CrclSwingClientJPanel
         CRCLProgramType program = this.recordPointsProgram;
         if (null != program) {
             try {
-                program.getMiddleCommand().clear();
+                final List<MiddleCommandType> middleCommandsList
+                        = nullableMiddleCommands(program);
+                if (null != middleCommandsList) {
+                    middleCommandsList.clear();
+                }
                 this.internal.setProgram(program);
                 internal.getProgRunDataList().clear();
                 this.showProgram(program, Collections.emptyList(), -1);
@@ -1035,10 +1069,10 @@ public class CrclSwingClientJPanel
         }
     }
 
-    private void updateLengthUnit(LengthUnitEnumType newUnit) {
+    private void updateLengthUnit(@Nullable LengthUnitEnumType newUnit) {
         LengthUnitEnumType oldUnit
                 = lengthUnit;
-        if (newUnit != oldUnit) {
+        if (newUnit != oldUnit && newUnit != null) {
             double oldScale = 1.0;
             double newScale = 1.0;
             switch (oldUnit) {
@@ -1197,7 +1231,7 @@ public class CrclSwingClientJPanel
     @Override
     public PoseType currentStatusPose() {
         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
-        return requireNonNull(CRCLPosemath.getPose(status), "CRCLPosemath.getPose(status)");
+        return requireNonNull(CRCLPosemath.getNullablePose(status), "CRCLPosemath.getNullablePose(status)");
     }
 
     public Optional<CRCLStatusType> currentStatus() {
@@ -1503,10 +1537,12 @@ public class CrclSwingClientJPanel
         if (null == program) {
             prevSetProgramProgram = null;
             showProgramCopy = null;
-        } else if (showProgramCopy == null || prevSetProgramProgram != program || program.getMiddleCommand().size() != prevSetProgramLength) {
+        } else if (showProgramCopy == null
+                || prevSetProgramProgram != program
+                || Objects.requireNonNull(program.getMiddleCommand(), "program.getMiddleCommand()").size() != prevSetProgramLength) {
             showProgramCopy = copy(program);
             prevSetProgramProgram = program;
-            prevSetProgramLength = program.getMiddleCommand().size();
+            prevSetProgramLength = middleCommands(program).size();
         }
         if (null != showProgramCopy) {
             CRCLProgramType programToShow = showProgramCopy;
@@ -1547,7 +1583,7 @@ public class CrclSwingClientJPanel
     }
 
     public Set<String> getRecentPrograms() {
-        File fMainDir = new File(Utils.getCrclUserHomeDir(), recent_programs_dir);
+        File fMainDir = new File(CRCLUtils.getCrclUserHomeDir(), recent_programs_dir);
         Set<String> pathSet = new TreeSet<>();
         if (!fMainDir.exists()) {
             return pathSet;
@@ -1778,7 +1814,11 @@ public class CrclSwingClientJPanel
     private void copyJointPositions(List<JointStatusType> jsl) {
         this.last_joints.clear();
         for (JointStatusType jst : jsl) {
-            this.last_joints.put(jst.getJointNumber(), jst.getJointPosition());
+            final int jointNumber = jst.getJointNumber();
+            final Double jointPosition = jst.getJointPosition();
+            if (null != jointPosition) {
+                this.last_joints.put(jointNumber, jointPosition);
+            }
         }
     }
 
@@ -1848,6 +1888,16 @@ public class CrclSwingClientJPanel
     CRCLProgramType lastFinishSetStatusInternalProgram = null;
     private volatile int lastFinishSetStatusInternalProgramLength = -1;
 
+
+    @SuppressWarnings("nullness")
+    private @Nullable
+    List<@NonNull MiddleCommandType> nullableMiddleCommands(@Nullable CRCLProgramType program) {
+        if (null == program) {
+            return null;
+        }
+        return program.getMiddleCommand();
+    }
+
     private @Nullable
     CRCLProgramType getFinishSetStatusProgramCopy(CRCLProgramType internalProgram) {
         if (null == internalProgram) {
@@ -1857,11 +1907,11 @@ public class CrclSwingClientJPanel
             return null;
         }
         if (lastFinishSetStatusInternalProgram == internalProgram && null != lastFinishSetStatusProgramCopy
-                && lastFinishSetStatusInternalProgramLength == internalProgram.getMiddleCommand().size()) {
+                && lastFinishSetStatusInternalProgramLength == middleCommands(internalProgram).size()) {
             return lastFinishSetStatusProgramCopy;
         } else {
             lastFinishSetStatusProgramCopy = copy(internalProgram);
-            lastFinishSetStatusInternalProgramLength = internalProgram.getMiddleCommand().size();
+            lastFinishSetStatusInternalProgramLength = middleCommands(internalProgram).size();
             return lastFinishSetStatusProgramCopy;
         }
     }
@@ -1876,7 +1926,7 @@ public class CrclSwingClientJPanel
         CRCLProgramType internalProgram = internal.getProgram();
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
         updateCurrentPoseListeners(curInternalStatus, lastCmd, isHoldingObjectExpected, statRecieveTime);
-        CommandStatusType ccst = curInternalStatus.getCommandStatus();
+        CommandStatusType ccst = CRCLUtils.getNonNullCommandStatus(curInternalStatus);
         String ccstStateDescription = ccst.getStateDescription();
         String stateDescription;
         if (null != ccstStateDescription) {
@@ -1884,7 +1934,8 @@ public class CrclSwingClientJPanel
         } else {
             stateDescription = "";
         }
-        final CommandStateEnumType state = ccst.getCommandState();
+        final CommandStateEnumType state
+                = Objects.requireNonNull(ccst.getCommandState(), "ccst.getCommandState()");
         String stateString = state.toString();
         updateTitle(ccst, stateString, stateDescription);
         boolean isRunning = internal.isRunningProgram();
@@ -1983,7 +2034,7 @@ public class CrclSwingClientJPanel
 
     private void finishSetStatusPriv(
             @Nullable CRCLProgramType program,
-            @Nullable CRCLStatusType curInternalStatus,
+            CRCLStatusType curInternalStatus,
             @Nullable CRCLCommandType lastCommandSent,
             boolean isHoldingObject,
             StackTraceElement[] ste,
@@ -1992,272 +2043,273 @@ public class CrclSwingClientJPanel
             String stateDescription,
             boolean isRunning) {
         if (needInitPoint && null != curInternalStatus) {
-            PointType pt = CRCLPosemath.getPoint(curInternalStatus);
+            PointType pt = CRCLPosemath.getNullablePoint(curInternalStatus);
             if (null != pt) {
                 pt = copy(pt);
                 setPlottersInitPoint(pt);
                 needInitPoint = false;
             }
         }
-        if (null != curInternalStatus && null != curInternalStatus.getCommandStatus()) {
-            ccst = curInternalStatus.getCommandStatus();
-            if (null != ccst) {
-                this.jTextFieldStatCmdID.setText("" + ccst.getCommandID());
-                String ccstStateDescription = ccst.getStateDescription();
+        if (null != ccst) {
+            this.jTextFieldStatCmdID.setText("" + ccst.getCommandID());
+            String ccstStateDescription = ccst.getStateDescription();
 
-                if (null != ccstStateDescription) {
-                    stateDescription = ccstStateDescription;
+            if (null != ccstStateDescription) {
+                stateDescription = ccstStateDescription;
+            }
+            Container container = this.getOuterContainer();
+            final CommandStateEnumType state = ccst.getCommandState();
+            if (null != state) {
+                String stateString = state.toString();
+                if (stateString.startsWith("CRCL_")) {
+                    stateString = stateString.substring("CRCL_".length());
                 }
-                Container container = this.getOuterContainer();
-                if (null != ccst.getCommandState()) {
-                    final CommandStateEnumType state = ccst.getCommandState();
-                    String stateString = state.toString();
-                    if (stateString.startsWith("CRCL_")) {
-                        stateString = stateString.substring("CRCL_".length());
-                    }
-                    if (!stateString.equals(jTextFieldStatus.getText())) {
-                        this.jTextFieldStatus.setText(stateString);
+                if (!stateString.equals(jTextFieldStatus.getText())) {
+                    this.jTextFieldStatus.setText(stateString);
 
-                        switch (state) {
+                    switch (state) {
 
-                            case CRCL_ERROR:
-                                this.jTextFieldStatus.setBackground(Color.RED);
-                                if (null != outerJFrame) {
-                                    outerJFrame.setIconImage(ERROR_IMAGE);
-                                }
-                                break;
-
-                            case CRCL_WORKING:
-                                this.jTextFieldStatus.setBackground(Color.GREEN);
-                                if (null != outerJFrame) {
-                                    outerJFrame.setIconImage(WORKING_IMAGE);
-                                }
-                                break;
-
-                            case CRCL_READY:
-                            case CRCL_DONE:
-                            default:
-                                this.jTextFieldStatus.setBackground(Color.WHITE);
-                                int line = internal.getCurrentProgramLine();
-                                if (null != outerJFrame) {
-                                    if (lastIconState == CRCL_ERROR
-                                            || lastIconState == null
-                                            || !isRunning
-                                            || program == null
-                                            || line < 1
-                                            || line >= program.getMiddleCommand().size()) {
-                                        outerJFrame.setIconImage(DONE_IMAGE);
-                                    }
-                                }
-                                break;
-
-                        }
-                        lastIconState = state;
-                    }
-
-                    if (!isRunning) {
-                        String ccstProgramFile = ccst.getProgramFile();
-                        if (null != ccstProgramFile
-                                && !ccstProgramFile.equals(internal.getOutgoingProgramFile())
-                                && !ccstProgramFile.equals(lastProgramFile)) {
-                            File f = findProgram(ccstProgramFile);
-                            if (null != f) {
-                                openXmlProgramFile(f);
+                        case CRCL_ERROR:
+                            this.jTextFieldStatus.setBackground(Color.RED);
+                            if (null != outerJFrame) {
+                                outerJFrame.setIconImage(ERROR_IMAGE);
                             }
-                            lastProgramFile = ccstProgramFile;
-                        }
-                        Integer ccstProgramIndex = ccst.getProgramIndex();
-                        if (null != ccstProgramIndex) {
-                            int index = ccstProgramIndex.intValue();
-                            if (index != internal.getLastProgramIndex() && null != program) {
-                                finishShowCurrentProgramLine(index, program, curInternalStatus, internal.getProgRunDataList(), ste);
-                                internal.setLastProgramIndex(index);
-                            }
-                        }
-                    } else {
-                        updateDistToSelected(curInternalStatus);
-                    }
-                }
-                this.jTextFieldStatusID.setText("" + ccst.getStatusID());
-                if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
-                    this.jTextAreaStateDescription.setText(stateDescription);
-                    lastStateDescription = stateDescription;
-                }
-                GripperStatusType gripperStatus = curInternalStatus.getGripperStatus();
-                if (null == gripperStatus || null == gripperStatus.isHoldingObject()) {
+                            break;
 
-                    jLabelHoldingObject.setText("HoldingObject: UNKNOWN");
-                    jLabelHoldingObject.setOpaque(false);
-                    jLabelHoldingObject.setForeground(Color.BLACK);
-                    jLabelHoldingObject2.setText("HoldingObject: UNKNOWN");
-                    jLabelHoldingObject2.setOpaque(false);
-                    jLabelHoldingObject2.setForeground(Color.BLACK);
+                        case CRCL_WORKING:
+                            this.jTextFieldStatus.setBackground(Color.GREEN);
+                            if (null != outerJFrame) {
+                                outerJFrame.setIconImage(WORKING_IMAGE);
+                            }
+                            break;
+
+                        case CRCL_READY:
+                        case CRCL_DONE:
+                        default:
+                            this.jTextFieldStatus.setBackground(Color.WHITE);
+                            int line = internal.getCurrentProgramLine();
+                            if (null != outerJFrame) {
+                                if (lastIconState == CRCL_ERROR
+                                        || lastIconState == null
+                                        || !isRunning
+                                        || program == null
+                                        || line < 1
+                                        || line >= middleCommands(program).size()) {
+                                    outerJFrame.setIconImage(DONE_IMAGE);
+                                }
+                            }
+                            break;
+
+                    }
+                    lastIconState = state;
+                }
+
+                if (!isRunning) {
+                    String ccstProgramFile = ccst.getProgramFile();
+                    if (null != ccstProgramFile
+                            && !ccstProgramFile.equals(internal.getOutgoingProgramFile())
+                            && !ccstProgramFile.equals(lastProgramFile)) {
+                        File f = findProgram(ccstProgramFile);
+                        if (null != f) {
+                            openXmlProgramFile(f);
+                        }
+                        lastProgramFile = ccstProgramFile;
+                    }
+                    Integer ccstProgramIndex = ccst.getProgramIndex();
+                    if (null != ccstProgramIndex) {
+                        int index = ccstProgramIndex.intValue();
+                        if (index != internal.getLastProgramIndex() && null != program) {
+                            finishShowCurrentProgramLine(index, program, curInternalStatus, internal.getProgRunDataList(), ste);
+                            internal.setLastProgramIndex(index);
+                        }
+                    }
                 } else {
-                    if (gripperStatus.isHoldingObject()) {
-                        jLabelHoldingObject.setText("HoldingObject: TRUE");
-                        jLabelHoldingObject.setForeground(Color.BLACK);
-                        jLabelHoldingObject.setBackground(Color.WHITE);
-                        jLabelHoldingObject2.setText("HoldingObject: TRUE");
-                        jLabelHoldingObject2.setForeground(Color.BLACK);
-                        jLabelHoldingObject2.setBackground(Color.WHITE);
-                    } else {
-                        jLabelHoldingObject.setText("HoldingObject: FALSE");
-                        jLabelHoldingObject.setForeground(Color.WHITE);
-                        jLabelHoldingObject.setBackground(Color.BLACK);
-                        jLabelHoldingObject2.setText("HoldingObject: FALSE");
-                        jLabelHoldingObject2.setForeground(Color.WHITE);
-                        jLabelHoldingObject2.setBackground(Color.BLACK);
-                    }
-                    jLabelHoldingObject.setOpaque(true);
-                    jLabelHoldingObject2.setOpaque(true);
+                    updateDistToSelected(curInternalStatus);
                 }
             }
-            JointStatusesType jsst = curInternalStatus.getJointStatuses();
-            if (jsst != null) {
-                List<JointStatusType> jsl = jsst.getJointStatus();
-                boolean joints_changed = this.jointsChanged(jsl);
-                if (joints_changed) {
-                    this.copyJointPositions(jsl);
-                    DefaultTableModel tm = (DefaultTableModel) this.jTableJoints.getModel();
-                    double t = System.currentTimeMillis();
-                    tm.setRowCount(jsl.size());
-                    boolean hasForce = false;
-                    boolean hasVel = false;
-                    for (JointStatusType js : jsl) {
-                        int jn = js.getJointNumber();
-                        if (null != js.getJointVelocity()) {
-                            if (tm.getColumnCount() < 3) {
-                                tm.setColumnCount(3);
-                            }
-                            tm.setValueAt(js.getJointVelocity(), jn - 1, 2);
-                            hasVel = true;
-                        }
-                        if (null != js.getJointTorqueOrForce()) {
-                            if (tm.getColumnCount() < 4) {
-                                tm.setColumnCount(4);
-                            }
-                            tm.setValueAt(js.getJointTorqueOrForce(), jn - 1, 3);
-                            hasForce = true;
-                        }
-                        if (null == js.getJointPosition()) {
-//                            tm.setValueAt(Double.NaN, jn-1,1);
-                            continue;
-                        }
+            this.jTextFieldStatusID.setText("" + ccst.getStatusID());
+            if (null != stateDescription && !stateDescription.equals(lastStateDescription)) {
+                this.jTextAreaStateDescription.setText(stateDescription);
+                lastStateDescription = stateDescription;
+            }
+            GripperStatusType gripperStatus = curInternalStatus.getGripperStatus();
+            if (null == gripperStatus || null == gripperStatus.isHoldingObject()) {
 
-                        double pos = js.getJointPosition();
-                        tm.setValueAt(jn, jn - 1, 0);
-                        tm.setValueAt(pos, jn - 1, 1);
-                        if (this.getMenuOuter().isPlotJointsSelected()) {
-                            plotterJFrame plotter = this.jointsPlotter;
-                            if (null == this.jointsPlotter) {
-                                plotter = new plotterJFrame();
-                                plotter.setTitle("JOINTS");
-                                plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                                plotter.setVisible(true);
-                                this.jointsPlotter = plotter;
-                            }
-                            if (null == plotter) {
-                                throw new IllegalStateException("null == plotter");
-                            }
-                            String pname = "joint[" + jn + "]";
-                            PlotData pd = plotter.getPlotByName(pname);
-                            if (null == pd) {
-                                pd = new PlotData();
-                                pd.name = pname;
-                                plotter.AddPlot(pd, pname);
-                            }
-                            plotter.AddPointToPlot(pd, t, pos, true);
-                            if (pd.get_num_points() < 100) {
-                                plotter.FitToGraph();
-                            }
+                jLabelHoldingObject.setText("HoldingObject: UNKNOWN");
+                jLabelHoldingObject.setOpaque(false);
+                jLabelHoldingObject.setForeground(Color.BLACK);
+                jLabelHoldingObject2.setText("HoldingObject: UNKNOWN");
+                jLabelHoldingObject2.setOpaque(false);
+                jLabelHoldingObject2.setForeground(Color.BLACK);
+            } else {
+                final Boolean holdingObject = gripperStatus.isHoldingObject();
+                if (null != holdingObject && holdingObject.booleanValue()) {
+                    jLabelHoldingObject.setText("HoldingObject: TRUE");
+                    jLabelHoldingObject.setForeground(Color.BLACK);
+                    jLabelHoldingObject.setBackground(Color.WHITE);
+                    jLabelHoldingObject2.setText("HoldingObject: TRUE");
+                    jLabelHoldingObject2.setForeground(Color.BLACK);
+                    jLabelHoldingObject2.setBackground(Color.WHITE);
+                } else {
+                    jLabelHoldingObject.setText("HoldingObject: FALSE");
+                    jLabelHoldingObject.setForeground(Color.WHITE);
+                    jLabelHoldingObject.setBackground(Color.BLACK);
+                    jLabelHoldingObject2.setText("HoldingObject: FALSE");
+                    jLabelHoldingObject2.setForeground(Color.WHITE);
+                    jLabelHoldingObject2.setBackground(Color.BLACK);
+                }
+                jLabelHoldingObject.setOpaque(true);
+                jLabelHoldingObject2.setOpaque(true);
+            }
+        }
+        JointStatusesType jsst = curInternalStatus.getJointStatuses();
+        if (jsst != null) {
+            List<JointStatusType> jsl = CRCLUtils.getNonNullFilteredList(jsst.getJointStatus());
+            boolean joints_changed = this.jointsChanged(jsl);
+            if (joints_changed) {
+                this.copyJointPositions(jsl);
+                DefaultTableModel tm = (DefaultTableModel) this.jTableJoints.getModel();
+                double t = System.currentTimeMillis();
+                tm.setRowCount(jsl.size());
+                boolean hasForce = false;
+                boolean hasVel = false;
+                for (JointStatusType js : jsl) {
+                    int jn = js.getJointNumber();
+                    final Double jointVelocity = js.getJointVelocity();
+                    if (null != jointVelocity) {
+                        if (tm.getColumnCount() < 3) {
+                            tm.setColumnCount(3);
+                        }
+                        tm.setValueAt(jointVelocity, jn - 1, 2);
+                        hasVel = true;
+                    }
+                    final Double jointTorqueOrForce = js.getJointTorqueOrForce();
+                    if (null != jointTorqueOrForce) {
+                        if (tm.getColumnCount() < 4) {
+                            tm.setColumnCount(4);
+                        }
+                        tm.setValueAt(jointTorqueOrForce, jn - 1, 3);
+                        hasForce = true;
+                    }
+                    final Double jointPosition = js.getJointPosition();
+                    if (null == jointPosition) {
+//                            tm.setValueAt(Double.NaN, jn-1,1);
+                        continue;
+                    }
+
+                    double pos = jointPosition;
+                    tm.setValueAt(jn, jn - 1, 0);
+                    tm.setValueAt(pos, jn - 1, 1);
+                    if (this.getMenuOuter().isPlotJointsSelected()) {
+                        plotterJFrame plotter = this.jointsPlotter;
+                        if (null == this.jointsPlotter) {
+                            plotter = new plotterJFrame();
+                            plotter.setTitle("JOINTS");
+                            plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                            plotter.setVisible(true);
+                            this.jointsPlotter = plotter;
+                        }
+                        if (null == plotter) {
+                            throw new IllegalStateException("null == plotter");
+                        }
+                        String pname = "joint[" + jn + "]";
+                        PlotData pd = plotter.getPlotByName(pname);
+                        if (null == pd) {
+                            pd = new PlotData();
+                            pd.name = pname;
+                            plotter.AddPlot(pd, pname);
+                        }
+                        plotter.AddPointToPlot(pd, t, pos, true);
+                        if (pd.get_num_points() < 100) {
+                            plotter.FitToGraph();
                         }
                     }
-                    if (!hasForce && !hasVel) {
-                        tm.setColumnIdentifiers(new String[]{"Joint", "Position"});
-                        tm.setColumnCount(2);
-                    } else if (!hasForce) {
-                        tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity"});
-                        tm.setColumnCount(3);
-                    } else {
-                        tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity", "TorqueOrForce"});
-                        tm.setColumnCount(4);
-                    }
-                    if (null != this.jointsPlotter) {
-                        this.jointsPlotter.ScrollRight();
-                    }
+                }
+                if (!hasForce && !hasVel) {
+                    tm.setColumnIdentifiers(new String[]{"Joint", "Position"});
+                    tm.setColumnCount(2);
+                } else if (!hasForce) {
+                    tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity"});
+                    tm.setColumnCount(3);
+                } else {
+                    tm.setColumnIdentifiers(new String[]{"Joint", "Position", "Velocity", "TorqueOrForce"});
+                    tm.setColumnCount(4);
+                }
+                if (null != this.jointsPlotter) {
+                    this.jointsPlotter.ScrollRight();
                 }
             }
-            PoseType p
-                    = Optional.ofNullable(curInternalStatus)
-                            .map(CRCLPosemath::getPose)
-                            .orElse(null);
-            if (null != p) {
-                updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
-                PointType pt = p.getPoint();
-                if (null != pt) {
-                    ProgramPlotter overheadPlotter = programPlotterJPanelOverhead.getPlotter();
-                    if (null != overheadPlotter) {
-                        overheadPlotter.setCurrentPoint(pt);
-                    }
-                    ProgramPlotter sidePlotter = programPlotterJPanelSide.getPlotter();
-                    if (null != sidePlotter) {
-                        sidePlotter.setCurrentPoint(pt);
-                    }
+        }
+        PoseType p
+                = Optional.ofNullable(curInternalStatus)
+                        .map(CRCLPosemath::getNullablePose)
+                        .orElse(null);
+        if (null != p) {
+            updatePoseTable(p, this.jTablePose, getCurrentPoseDisplayMode());
+            PointType pt = p.getPoint();
+            if (null != pt) {
+                ProgramPlotter overheadPlotter = programPlotterJPanelOverhead.getPlotter();
+                if (null != overheadPlotter) {
+                    overheadPlotter.setCurrentPoint(pt);
+                }
+                ProgramPlotter sidePlotter = programPlotterJPanelSide.getPlotter();
+                if (null != sidePlotter) {
+                    sidePlotter.setCurrentPoint(pt);
+                }
 //                    programPlotterJPanelOverhead.getPlotter().setCurrentPoint(pt);
 //                    programPlotterJPanelSide.getPlotter().setCurrentPoint(pt);
+            }
+            checkMenuOuter();
+            if (this.menuOuter.isPlotXyzSelected() && null != pt) {
+                plotterJFrame plotter = this.xyzPlotter;
+                if (null == plotter) {
+                    plotter = new plotterJFrame();
+                    plotter.setTitle("XYZ");
+                    plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    plotter.setVisible(true);
+                    this.xyzPlotter = plotter;
                 }
-                checkMenuOuter();
-                if (this.menuOuter.isPlotXyzSelected() && null != pt) {
-                    plotterJFrame plotter = this.xyzPlotter;
-                    if (null == plotter) {
-                        plotter = new plotterJFrame();
-                        plotter.setTitle("XYZ");
-                        plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        plotter.setVisible(true);
-                        this.xyzPlotter = plotter;
-                    }
-                    if (null == plotter) {
-                        throw new IllegalStateException("null == plotter");
-                    }
-                    double t = System.currentTimeMillis();
+                if (null == plotter) {
+                    throw new IllegalStateException("null == plotter");
+                }
+                double t = System.currentTimeMillis();
 //                    XMLGregorianCalendar xgc = p.getTimestamp();
 //                    if (null != xgc) {
 //                        double old_t = t;
 //                        t = (double) xgc.toGregorianCalendar().getTime().getTime();
 //                    }
-                    if (t > this.last_t_pos_logged) {
+                if (t > this.last_t_pos_logged) {
 
-                        PlotData xpd = plotter.getPlotByName("x");
-                        if (null == xpd) {
-                            xpd = new PlotData();
-                            xpd.name = "x";
-                            plotter.AddPlot(xpd, "x");
-                        }
-                        double x = pt.getX();
-                        plotter.AddPointToPlot(xpd, t, x, true);
-                        PlotData ypd = plotter.getPlotByName("y");
-                        if (null == ypd) {
-                            ypd = new PlotData();
-                            ypd.name = "y";
-                            plotter.AddPlot(xpd, "y");
-                        }
-                        double y = pt.getY();
-                        plotter.AddPointToPlot(ypd, t, y, true);
-                        PlotData zpd = plotter.getPlotByName("z");
-                        if (null == zpd) {
-                            zpd = new PlotData();
-                            zpd.name = "x";
-                            plotter.AddPlot(zpd, "z");
-                        }
-                        double z = pt.getZ();
-                        plotter.AddPointToPlot(zpd, t, z, true);
-                        if (xpd.get_num_points() < 100) {
-                            plotter.FitToGraph();
-                        }
-                        plotter.ScrollRight();
-                        plotter.repaint();
-                        this.last_t_pos_logged = t;
+                    PlotData xpd = plotter.getPlotByName("x");
+                    if (null == xpd) {
+                        xpd = new PlotData();
+                        xpd.name = "x";
+                        plotter.AddPlot(xpd, "x");
                     }
+                    double x = pt.getX();
+                    plotter.AddPointToPlot(xpd, t, x, true);
+                    PlotData ypd = plotter.getPlotByName("y");
+                    if (null == ypd) {
+                        ypd = new PlotData();
+                        ypd.name = "y";
+                        plotter.AddPlot(xpd, "y");
+                    }
+                    double y = pt.getY();
+                    plotter.AddPointToPlot(ypd, t, y, true);
+                    PlotData zpd = plotter.getPlotByName("z");
+                    if (null == zpd) {
+                        zpd = new PlotData();
+                        zpd.name = "x";
+                        plotter.AddPlot(zpd, "z");
+                    }
+                    double z = pt.getZ();
+                    plotter.AddPointToPlot(zpd, t, z, true);
+                    if (xpd.get_num_points() < 100) {
+                        plotter.FitToGraph();
+                    }
+                    plotter.ScrollRight();
+                    plotter.repaint();
+                    this.last_t_pos_logged = t;
                 }
             }
         }
@@ -2504,7 +2556,7 @@ public class CrclSwingClientJPanel
                     }
                     final CRCLStatusType status
                             = requireNonNull(internal.getStatus(), "internal.getStatus()");
-                    final JointStatusType js = CRCLSocket.getJointStatus(status, index);
+                    final JointStatusType js = CRCLUtils.getJointStatus(status, index);
                     if (null == js) {
                         showMessage("Can't jog without joint position internal.getStatus() for joint " + index);
                         return;
@@ -2515,7 +2567,8 @@ public class CrclSwingClientJPanel
                         showMessage("Can't when status commandState = " + CommandStateEnumType.CRCL_ERROR);
                         jogStop();
                     }
-                    double pos = js.getJointPosition();
+                    final double currentJointPositionn = Objects.requireNonNull(js.getJointPosition(), "js.getJointPosition()").doubleValue();
+                    double pos = currentJointPositionn;
                     if (apCount > 1) {
                         if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_DONE) {
                             if (CrclSwingClientJPanel.this.menuOuter.isDebugWaitForDoneSelected()
@@ -2535,18 +2588,17 @@ public class CrclSwingClientJPanel
                             System.err.println("Position unchanged from last jog attempt. pos=" + pos);
                         }
                     }
-                    ActuateJointsType ajst = new ActuateJointsType();
-                    List<ActuateJointType> ajl = ajst.getActuateJoint();
                     ActuateJointType aj = new ActuateJointType();
                     aj.setJointNumber(js.getJointNumber());
 
 //                    
                     lastJogJointPos = pos;
-                    aj.setJointPosition(js.getJointPosition() + increment);
+                    aj.setJointPosition(currentJointPositionn + increment);
                     JointSpeedAccelType jsa = new JointSpeedAccelType();
                     jsa.setJointSpeed(Double.parseDouble(CrclSwingClientJPanel.this.jTextFieldJointJogSpeed.getText()));
                     aj.setJointDetails(jsa);
-                    ajl.add(aj);
+                    ActuateJointsType ajst = new ActuateJointsType();
+                    addToActuateJoint(ajst, aj);
                     incAndSendCommandFromAwt(ajst);
 //                    apCount = 0;
                 } catch (Exception ex) {
@@ -2554,6 +2606,7 @@ public class CrclSwingClientJPanel
                     jogStop();
                 }
             }
+
         };
         jogActionListener.actionPerformed(new ActionEvent(this, JOG_JOINT_START_ACTION_ID, "jogJointStart"));
         jog_timer = new javax.swing.Timer(internal.getJogInterval(), jogActionListener);
@@ -2563,6 +2616,11 @@ public class CrclSwingClientJPanel
     private static final int JOG_WORLD_START_ACTION_ID = ACTION_FIRST + 2;
 
     private boolean jogStopFlag = true;
+
+    @SuppressWarnings("nullness")
+    private static void addToActuateJoint(ActuateJointsType ajst, ActuateJointType aj) {
+        ajst.getActuateJoint().add(aj);
+    }
 
     /**
      * Get the value of rpyJogIncrement
@@ -2693,7 +2751,7 @@ public class CrclSwingClientJPanel
                         }
                         if (localCommandState == CommandStateEnumType.CRCL_ERROR) {
                             jogStop();
-                            final String statusString = status.getCommandStatus().getStateDescription();
+                            final String statusString = commandStatus.getStateDescription();
                             String reasonString = "Can not jog when status is " + CommandStateEnumType.CRCL_ERROR + " : "
                                     + statusString + "\n";
                             showMessage(reasonString);
@@ -2732,7 +2790,7 @@ public class CrclSwingClientJPanel
                         moveToCmd.setEndPosition(endPos);
                         PoseType pose = Optional.ofNullable(internal)
                                 .map(CrclSwingClientInner::getStatus)
-                                .map(CRCLPosemath::getPose)
+                                .map(CRCLPosemath::getNullablePose)
                                 .orElse(null);
                         if (null != pose) {
                             final PointType posePoint = requireNonNull(pose.getPoint(), "pose.getPoint()");
@@ -2842,12 +2900,15 @@ public class CrclSwingClientJPanel
             try {
                 jog_timer.stop();
                 jog_timer = null;
-                internal.stopMotion(StopConditionEnumType.FAST);
+                internal.stopMotion(FAST);
             } catch (Exception ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    StopConditionEnumType FAST = StopConditionEnumType.FAST;
 
     @Override
     public void checkPollSelected() {
@@ -2896,7 +2957,7 @@ public class CrclSwingClientJPanel
     private void saveRecentCommandInstance(CRCLCommandInstanceType cmdInstance) throws Exception {
         CRCLSocket tmpcs = internal.getTempCRCLSocket();
         String s = tmpcs.commandInstanceToPrettyDocString(cmdInstance, true);
-        File fDir = new File(Utils.getCrclUserHomeDir(), recent_files_dir);
+        File fDir = new File(CRCLUtils.getCrclUserHomeDir(), recent_files_dir);
         boolean made_dir = fDir.mkdirs();
 //        Logger.getLogger(CrclSwingClientJPanel.class.getName()).finest(() -> "mkdir " + fDir + " returned " + made_dir);
         final CRCLCommandType crclCommand = cmdInstance.getCRCLCommand();
@@ -2929,7 +2990,7 @@ public class CrclSwingClientJPanel
         if (pathSet.contains(fprog.getCanonicalPath())) {
             return;
         }
-        File fDir = new File(Utils.getCrclUserHomeDir(), recent_programs_dir);
+        File fDir = new File(CRCLUtils.getCrclUserHomeDir(), recent_programs_dir);
         boolean made_dir = fDir.mkdirs();
 //        Logger.getLogger(CrclSwingClientJPanel.class.getName()).finest(() -> "mkdir " + fDir + " returned " + made_dir);
         String name = fprog.getName();
@@ -3033,7 +3094,7 @@ public class CrclSwingClientJPanel
     }
 
     public void loadPrefsAction() {
-        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
+        JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             File f = chooser.getSelectedFile();
             loadPrefsFile(f);
@@ -3057,7 +3118,7 @@ public class CrclSwingClientJPanel
     }
 
     public void savePrefsAction() {
-        JFileChooser chooser = new JFileChooser(new File(Utils.getCrclUserHomeDir()));
+        JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             File f = chooser.getSelectedFile();
             saveObjectProperties(f, this);
@@ -3209,7 +3270,7 @@ public class CrclSwingClientJPanel
         this.clearRecordedPoints();
         final CRCLProgramType program = internal.getProgram();
         if (null != program) {
-            program.getMiddleCommand().clear();
+            programMiddlCommandsClear(program);
             try {
                 this.showProgram(program, Collections.emptyList(), 0);
             } catch (Exception ex) {
@@ -3219,6 +3280,13 @@ public class CrclSwingClientJPanel
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
             openXmlProgramFile(f);
+        }
+    }
+
+    @SuppressWarnings("nullness")
+    private void programMiddlCommandsClear(final CRCLProgramType program) {
+        if (null != program && null != program.getMiddleCommand()) {
+            program.getMiddleCommand().clear();
         }
     }
 
@@ -3358,10 +3426,12 @@ public class CrclSwingClientJPanel
                 dtm.setRowCount(0);
                 return;
             }
-            InitCanonType init = program.getInitCanon();
+            InitCanonType init
+                    = Objects.requireNonNull(program.getInitCanon(), "program.getInitCanon()");
             List<MiddleCommandType> middleCommands
-                    = new ArrayList<>(program.getMiddleCommand());
-            EndCanonType endCommand = program.getEndCanon();
+                    = CRCLUtils.getNonNullFilteredList(program.getMiddleCommand());
+            EndCanonType endCommand
+                    = Objects.requireNonNull(program.getEndCanon(), "program.getEndCanon()");
             dtm.setRowCount(2 + middleCommands.size());
             long initCmdId = init.getCommandID();
             dtm.setValueAt(-1, 0, 0);
@@ -4994,7 +5064,9 @@ public class CrclSwingClientJPanel
                 if (null == program) {
                     return;
                 }
-                MiddleCommandType cmdOrig = program.getMiddleCommand().get(index - 1);
+                final List<MiddleCommandType> middleCommandsList
+                        = middleCommands(program);
+                MiddleCommandType cmdOrig = middleCommandsList.get(index - 1);
                 CRCLSocket editCrclSocket = CRCLSocket.getUtilSocket();
                 MiddleCommandType cmdEdited
                         = (MiddleCommandType) ObjTableJPanel.editObject(cmdOrig,
@@ -5006,7 +5078,7 @@ public class CrclSwingClientJPanel
                     showDebugMessage("Edit Program Item cancelled. cmdEdited == null");
                     return;
                 }
-                program.getMiddleCommand().set(index - 1, cmdEdited);
+                middleCommandsList.set(index - 1, cmdEdited);
                 this.showProgram(program, null, -1);
                 this.showCurrentProgramLine(index, program, internal.getStatus(), internal.getProgRunDataList());
             } catch (Exception ex) {
@@ -5046,7 +5118,9 @@ public class CrclSwingClientJPanel
                 if (null == program) {
                     return;
                 }
-                program.getMiddleCommand().remove(index - 1);
+                final List<MiddleCommandType> middleCommandsList
+                        = middleCommands(program);
+                middleCommandsList.remove(index - 1);
                 internal.getProgRunDataList().clear();
                 this.showProgram(program, Collections.emptyList(), -1);
                 this.showCurrentProgramLine(index, program, internal.getStatus(), internal.getProgRunDataList());
@@ -5107,7 +5181,9 @@ public class CrclSwingClientJPanel
                 program.setEndCanon(new EndCanonType());
                 internal.setProgram(program);
             }
-            program.getMiddleCommand().add(index - 1, cmdEdited);
+            final List<MiddleCommandType> middleCommandsList
+                    = middleCommands(program);
+            middleCommandsList.add(index - 1, cmdEdited);
             internal.getProgRunDataList().clear();
             this.showProgram(program, Collections.emptyList(), -1);
             this.showCurrentProgramLine(index, program, internal.getStatus(), internal.getProgRunDataList());
@@ -5418,7 +5494,7 @@ public class CrclSwingClientJPanel
             final CRCLProgramType program = internal.getProgram();
             if (null == program
                     || getCurrentProgramLine() < 0
-                    || getCurrentProgramLine() > (program.getMiddleCommand().size() + 1)) {
+                    || getCurrentProgramLine() > (middleCommands(program).size() + 1)) {
                 return XFuture.completedFuture(internal.getCommandState() != CommandStateEnumType.CRCL_ERROR);
             }
             if (pauseTime > this.internal.runStartMillis) {
@@ -5491,9 +5567,9 @@ public class CrclSwingClientJPanel
         if (!wasRunning) {
             final int currentProgramLine = this.getCurrentProgramLine();
             final CRCLProgramType internalProgram = internal.getProgram();
-            if (currentProgramLine >= 0 
+            if (currentProgramLine >= 0
                     && null != internalProgram
-                    && currentProgramLine < internalProgram.getMiddleCommand().size()) {
+                    && currentProgramLine < middleCommands(internalProgram).size()) {
                 disableRunButtons();
                 internal.setLastProgramIndex(currentProgramLine + 1);
                 internal.startRunProgramThread(currentProgramLine + 1, true)
@@ -5640,7 +5716,7 @@ public class CrclSwingClientJPanel
             CRCLProgramType recProgram = this.recordPointsProgram;
             if (null != recProgram) {
                 this.recordCurrentPoint();
-                recProgram.getMiddleCommand().add(seeCmd);
+                middleCommands(recProgram).add(seeCmd);
                 internal.setProgram(recProgram);
                 showProgram(recProgram, Collections.emptyList(), -1);
             }
@@ -5657,7 +5733,7 @@ public class CrclSwingClientJPanel
             CRCLProgramType recProgram = this.recordPointsProgram;
             if (null != recProgram) {
                 this.recordCurrentPoint();
-                recProgram.getMiddleCommand().add(seeCmd);
+                middleCommands(recProgram).add(seeCmd);
                 internal.setProgram(recProgram);
                 showProgram(recProgram, Collections.emptyList(), -1);
             }
@@ -5711,7 +5787,7 @@ public class CrclSwingClientJPanel
                         }
                     }
                 }
-                moveto.getGuard().add(guard);
+                addGuard(moveto, guard);
             }
             incAndSendCommandFromAwt(moveto);
 
@@ -5719,6 +5795,13 @@ public class CrclSwingClientJPanel
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButtonMoveToActionPerformed
+
+    private void addGuard(CRCLCommandType cmd, GuardType guard) {
+        Objects.requireNonNull(
+                Objects.requireNonNull(cmd, "cmd").getGuard(),
+                "getGuard()")
+                .add(guard);
+    }
 
     public PoseDisplayMode getCurrentPoseDisplayMode() {
         return (PoseDisplayMode) jComboBoxPoseDisplayMode.getSelectedItem();
@@ -5933,7 +6016,7 @@ public class CrclSwingClientJPanel
             CRCLProgramType recProgram = this.recordPointsProgram;
             if (null != recProgram) {
                 this.recordCurrentPoint();
-                recProgram.getMiddleCommand().add(otcCmd);
+                middleCommands(recProgram).add(otcCmd);
                 internal.setProgram(recProgram);
                 showProgram(recProgram, Collections.emptyList(), -1);
             }
@@ -5949,7 +6032,7 @@ public class CrclSwingClientJPanel
             CRCLProgramType recProgram = this.recordPointsProgram;
             if (null != recProgram) {
                 this.recordCurrentPoint();
-                recProgram.getMiddleCommand().add(ctcCmd);
+                middleCommands(recProgram).add(ctcCmd);
                 internal.setProgram(recProgram);
                 showProgram(recProgram, Collections.emptyList(), -1);
             }
@@ -5981,9 +6064,14 @@ public class CrclSwingClientJPanel
     }//GEN-LAST:event_jButtonMoveToDownPositionActionPerformed
 
     private void jButtonAddGuardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddGuardActionPerformed
-        ((DefaultTableModel) jTableMoveToGuard.getModel()).addRow(new Object[]{"sensorId", "subfield", 0.0, GuardLimitEnumType.OVER_MAX});
+        ((DefaultTableModel) jTableMoveToGuard.getModel())
+                .addRow(new Object[]{"sensorId", "subfield", 0.0, OVER_MAX});
         jButtonRemoveGuard.setEnabled(true);
     }//GEN-LAST:event_jButtonAddGuardActionPerformed
+
+    @SuppressWarnings("nullness")
+    private static final @NonNull
+    GuardLimitEnumType OVER_MAX = GuardLimitEnumType.OVER_MAX;
 
     private void jButtonRemoveGuardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveGuardActionPerformed
         final DefaultTableModel tm = (DefaultTableModel) jTableMoveToGuard.getModel();

@@ -26,6 +26,7 @@ import crcl.base.CRCLStatusType;
 import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
 import crcl.base.InitCanonType;
+import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
@@ -36,11 +37,15 @@ import crcl.base.PoseToleranceType;
 import crcl.base.SettingsStatusType;
 import crcl.base.VectorType;
 import static crcl.utils.CRCLCopier.copy;
+import static crcl.utils.CRCLUtils.getNonNullPoint;
+import static crcl.utils.CRCLUtils.getNonNullXAxis;
+import static crcl.utils.CRCLUtils.middleCommands;
 import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
 import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -89,6 +94,11 @@ public class CRCLPosemath {
     @SuppressWarnings("nullness")
     public static void clearSettingsStatus(CRCLStatusType status) {
         status.setSettingsStatus((SettingsStatusType) null);
+    }
+
+    @SuppressWarnings("nullness")
+    public static void addJointStatus(JointStatusesType jst, JointStatusType js) {
+        jst.getJointStatus().add(js);
     }
 
     /**
@@ -210,7 +220,7 @@ public class CRCLPosemath {
             if (null != initCmd) {
                 max = Math.max(max, initCmd.getCommandID());
             }
-            for (MiddleCommandType cmd : prog.getMiddleCommand()) {
+            for (MiddleCommandType cmd : middleCommands(prog)) {
                 max = Math.max(max, cmd.getCommandID());
             }
             EndCanonType endCmd = prog.getEndCanon();
@@ -221,8 +231,10 @@ public class CRCLPosemath {
         return max;
     }
 
+    
+
     public static @Nullable
-    PoseType getPose(@Nullable CRCLStatusType stat) {
+    PoseType getNullablePose(@Nullable CRCLStatusType stat) {
         if (stat != null) {
             PoseStatusType poseStatus = stat.getPoseStatus();
             if (null != poseStatus) {
@@ -271,7 +283,7 @@ public class CRCLPosemath {
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double xyPoint2D(PoseType pose) {
-        return xyPoint2D(pose.getPoint());
+        return xyPoint2D(getNonNullPoint(pose));
     }
 
     /**
@@ -296,7 +308,7 @@ public class CRCLPosemath {
      * @return Point2D.Double with x and y from PointType
      */
     public static Point2D.Double rzPoint2D(PoseType pose) {
-        return rzPoint2D(pose.getPoint());
+        return rzPoint2D(getNonNullPoint(pose));
     }
 
 //    /**
@@ -347,15 +359,15 @@ public class CRCLPosemath {
 //        }
 //        PoseAndSetType newPose = new PoseAndSetType();
 //        newPose.setName(pose.getName());
-//        PointType pt = copy(pose.getPoint());
+//        PointType pt = copy(getNonNullPoint(pose));
 //        if (null != pt) {
 //            newPose.setPoint(pt);
 //        }
-//        VectorType xAxis = copy(pose.getXAxis());
+//        VectorType xAxis = copy(pose.getNullableXAxis());
 //        if (null != xAxis) {
 //            newPose.setXAxis(xAxis);
 //        }
-//        VectorType zAxis = copy(pose.getZAxis());
+//        VectorType zAxis = copy(pose.getNullableZAxis());
 //        if (null != zAxis) {
 //            newPose.setZAxis(zAxis);
 //        }
@@ -378,15 +390,15 @@ public class CRCLPosemath {
 //        }
 //        PoseType newPose = new PoseType();
 //        newPose.setName(pose.getName());
-//        PointType pt = copy(pose.getPoint());
+//        PointType pt = copy(getNonNullPoint(pose));
 //        if (null != pt) {
 //            newPose.setPoint(pt);
 //        }
-//        VectorType xAxis = copy(pose.getXAxis());
+//        VectorType xAxis = copy(pose.getNullableXAxis());
 //        if (null != xAxis) {
 //            newPose.setXAxis(xAxis);
 //        }
-//        VectorType zAxis = copy(pose.getZAxis());
+//        VectorType zAxis = copy(pose.getNullableZAxis());
 //        if (null != zAxis) {
 //            newPose.setZAxis(zAxis);
 //        }
@@ -780,7 +792,7 @@ public class CRCLPosemath {
 //        }
 //        PoseStatusType newStatus = new PoseStatusType();
 //        newStatus.setName(status.getName());
-//        newStatus.setPose(copy(status.getPose()));
+//        newStatus.setPose(copy(status.getNullablePose()));
 //        newStatus.setConfiguration(status.getConfiguration());
 //        TwistType twist = copy(status.getTwist());
 //        if (twist != null) {
@@ -919,17 +931,18 @@ public class CRCLPosemath {
     public static PoseType flipXAxis(PoseType pose) {
         PoseType newPose = new PoseType();
         newPose.setName(pose.getName());
-        PointType pt = copy(pose.getPoint());
+        PointType pt = copy(getNonNullPoint(pose));
         if (null != pt) {
             newPose.setPoint(pt);
         }
         VectorType newXAxis = new VectorType();
         final BigDecimal MINUS_ONE = BigDecimal.valueOf(-1);
-        newXAxis.setI(pose.getXAxis().getI() * -1.0);
-        newXAxis.setJ(pose.getXAxis().getJ() * -1.0);
-        newXAxis.setK(pose.getXAxis().getK() * -1.0);
+        final VectorType localPoselXAxis = getNonNullXAxis(pose);
+        newXAxis.setI(localPoselXAxis.getI() * -1.0);
+        newXAxis.setJ(localPoselXAxis.getJ() * -1.0);
+        newXAxis.setK(localPoselXAxis.getK() * -1.0);
         newPose.setXAxis(newXAxis);
-        VectorType zAxis = copy(pose.getZAxis());
+        VectorType zAxis = CRCLCopier.copyNullable(pose.getZAxis());
         if (null != zAxis) {
             newPose.setZAxis(zAxis);
         }
@@ -980,24 +993,22 @@ public class CRCLPosemath {
             id = initCmdIn.getCommandID();
             programOut.setInitCanon(initCmdOut);
         }
-        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+        for (MiddleCommandType cmd : middleCommands(programIn)) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
                 setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
-                if (null != filter && !filter.test(moveToCmdIn.getEndPosition())) {
-                    final PoseType endPositionCopy = copy(moveToCmdIn.getEndPosition());
-                    if (null == endPositionCopy) {
-                        throw new NullPointerException("endPositionCopy");
-                    }
+                final PoseType nonNullEndPosition = getNonNullEndPosition(moveToCmdIn);
+                if (null != filter && !filter.test(nonNullEndPosition)) {
+                    final PoseType endPositionCopy = copy(nonNullEndPosition);
                     moveToCmdOut.setEndPosition(endPositionCopy);
                 } else {
-                    moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, moveToCmdIn.getEndPosition()));
+                    moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, nonNullEndPosition));
                 }
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-                programOut.getMiddleCommand().add(moveToCmdOut);
+                middleCommands(programOut).add(moveToCmdOut);
             } else {
-                programOut.getMiddleCommand().add(cmd);
+                middleCommands(programOut).add(cmd);
             }
             id = Math.max(id, cmd.getCommandID()) + 1;
         }
@@ -1008,6 +1019,14 @@ public class CRCLPosemath {
         }
         programOut.setEndCanon(endCmdOut);
         return programOut;
+    }
+
+    public static PoseType getNonNullEndPosition(MoveToType moveToCmdIn) {
+        return requireNonNull(
+                requireNonNull(moveToCmdIn, "moveToCmdIn")
+                        .getEndPosition(),
+                "getEndPosition()"
+        );
     }
 
     public static CRCLProgramType flipXAxis(CRCLProgramType programIn) {
@@ -1021,16 +1040,16 @@ public class CRCLPosemath {
             programOut.setInitCanon(initCmdOut);
         }
 
-        for (MiddleCommandType cmd : programIn.getMiddleCommand()) {
+        for (MiddleCommandType cmd : middleCommands(programIn)) {
             if (cmd instanceof MoveToType) {
                 MoveToType moveToCmdIn = (MoveToType) cmd;
                 MoveToType moveToCmdOut = new MoveToType();
                 setCommandId(moveToCmdOut, moveToCmdIn.getCommandID());
-                moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(moveToCmdIn.getEndPosition()));
+                moveToCmdOut.setEndPosition(CRCLPosemath.flipXAxis(getNonNullEndPosition(moveToCmdIn)));
                 moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-                programOut.getMiddleCommand().add(moveToCmdOut);
+                middleCommands(programOut).add(moveToCmdOut);
             } else {
-                programOut.getMiddleCommand().add(cmd);
+                middleCommands(programOut).add(cmd);
             }
             id = Math.max(id, cmd.getCommandID()) + 1;
         }
@@ -1158,9 +1177,9 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    PointType getPoint(@Nullable CRCLStatusType stat) {
+    PointType getNullablePoint(@Nullable CRCLStatusType stat) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (pose != null) {
                 return pose.getPoint();
             }
@@ -1168,10 +1187,12 @@ public class CRCLPosemath {
         return null;
     }
 
+    
+
     public static @Nullable
-    VectorType getXAxis(@Nullable CRCLStatusType stat) {
+    VectorType getNullableXAxis(@Nullable CRCLStatusType stat) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (pose != null) {
                 return pose.getXAxis();
             }
@@ -1180,9 +1201,9 @@ public class CRCLPosemath {
     }
 
     public static @Nullable
-    VectorType getZAxis(@Nullable CRCLStatusType stat) {
+    VectorType getNullableZAxis(@Nullable CRCLStatusType stat) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (pose != null) {
                 return pose.getZAxis();
             }
@@ -1205,7 +1226,7 @@ public class CRCLPosemath {
 
     public static void setPoint(@Nullable CRCLStatusType stat, PointType pt) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (null != pose) {
                 pose.setPoint(pt);
             } else {
@@ -1218,7 +1239,7 @@ public class CRCLPosemath {
 
     public static void setXAxis(@Nullable CRCLStatusType stat, VectorType xAxis) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (null != pose) {
                 pose.setXAxis(xAxis);
             } else {
@@ -1231,7 +1252,7 @@ public class CRCLPosemath {
 
     public static void setZAxis(@Nullable CRCLStatusType stat, VectorType zAxis) {
         if (stat != null) {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (null != pose) {
                 pose.setZAxis(zAxis);
             } else {
@@ -1243,16 +1264,16 @@ public class CRCLPosemath {
     }
 
     public static void initPose(CRCLStatusType status) {
-        if (null == CRCLPosemath.getPose(status)) {
+        if (null == CRCLPosemath.getNullablePose(status)) {
             CRCLPosemath.setPose(status, new PoseType());
         }
-        if (null == CRCLPosemath.getPoint(status)) {
+        if (null == CRCLPosemath.getNullablePoint(status)) {
             CRCLPosemath.setPoint(status, new PointType());
         }
-        if (null == CRCLPosemath.getXAxis(status)) {
+        if (null == CRCLPosemath.getNullableXAxis(status)) {
             CRCLPosemath.setXAxis(status, new VectorType());
         }
-        if (null == CRCLPosemath.getZAxis(status)) {
+        if (null == CRCLPosemath.getNullableZAxis(status)) {
             CRCLPosemath.setZAxis(status, new VectorType());
         }
     }
@@ -1262,7 +1283,7 @@ public class CRCLPosemath {
                 + ((dtt.getName() != null) ? "name=" + dtt.getName() + "," : "");
     }
 
-    public static String toString(PointType pt) {
+    public static String toString(@Nullable PointType pt) {
         if (null == pt) {
             return "null";
         }
@@ -1273,7 +1294,7 @@ public class CRCLPosemath {
                 + "}";
     }
 
-    public static String toString(VectorType v) {
+    public static String toString(@Nullable VectorType v) {
         if (null == v) {
             return "null";
         }
@@ -1293,6 +1314,14 @@ public class CRCLPosemath {
                 + "xAxis=" + toString(pose.getXAxis()) + ","
                 + "zAxis=" + toString(pose.getZAxis())
                 + "}";
+    }
+
+    public static VectorType getNonNullZAxis(PoseType pose) {
+        return requireNonNull(
+                requireNonNull(pose, "pose")
+                        .getZAxis(),
+                "getZAxis"
+        );
     }
 
     public static String toString(PoseToleranceType posetol) {
@@ -1357,7 +1386,7 @@ public class CRCLPosemath {
                 return "null";
             }
             PmRotationMatrix rmat = toPmRotationMatrix(pose);
-            PmCartesian cart = toPmCartesian(pose.getPoint());
+            PmCartesian cart = toPmCartesian(getNonNullPoint(pose));
             return String.format("{%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g},%n{%.3g,%.3g,%.3g,%.3g}%n}",
                     rmat.x.x, rmat.x.y, rmat.x.z, cart.x,
                     rmat.y.x, rmat.y.y, rmat.y.z, cart.y,
@@ -1372,7 +1401,7 @@ public class CRCLPosemath {
     public static String poseToXyzRpyString(PoseType pose) {
         try {
             PmRpy rpy = toPmRpy(pose);
-            PmCartesian cart = toPmCartesian(pose.getPoint());
+            PmCartesian cart = toPmCartesian(getNonNullPoint(pose));
             return String.format("X=%.3f,Y=%.3f,Z=%.3f,Roll=%.3f,Pitch=%.3f,Yaw=%.3f",
                     cart.x, cart.y, cart.z,
                     Math.toDegrees(rpy.r), Math.toDegrees(rpy.p), Math.toDegrees(rpy.y));
@@ -1403,9 +1432,9 @@ public class CRCLPosemath {
             throw new IllegalArgumentException("Can not convert null status to PmPose");
         }
         try {
-            PoseType pose = getPose(stat);
+            PoseType pose = getNullablePose(stat);
             if (pose != null) {
-                PointType pt = getPoint(stat);
+                PointType pt = getNullablePoint(stat);
                 if (null != pt) {
                     PmCartesian cart = toPmCartesian(pt);
                     PmRotationMatrix mat = toPmRotationMatrix(pose);
@@ -1422,8 +1451,11 @@ public class CRCLPosemath {
 
     public static PmPose toPmPose(PoseType p) throws CRCLException {
         try {
-            return new PmPose(toPmCartesian(p.getPoint()),
-                    Posemath.toQuat(toPmRotationMatrix(p)));
+            final PointType nonNullPoint = getNonNullPoint(p);
+            final PmCartesian pointCartesian = toPmCartesian(nonNullPoint);
+            final PmRotationMatrix rotationMatrix = toPmRotationMatrix(p);
+            final PmQuaternion quat = Posemath.toQuat(rotationMatrix);
+            return new PmPose(pointCartesian, quat);
         } catch (PmException pmException) {
             throw new CRCLException(pmException);
         }
@@ -1580,19 +1612,19 @@ public class CRCLPosemath {
             {0.0, 0.0, 1.0, 0.0},
             {0.0, 0.0, 0.0, 1.0}
         };
-        PointType pt = poseIn.getPoint();
+        PointType pt = getNonNullPoint(poseIn);
         mat[0][3] = pt.getX();
         mat[1][3] = pt.getY();
         mat[2][3] = pt.getZ();
-        VectorType xAxis = poseIn.getXAxis();
+        VectorType xAxis = getNonNullXAxis(poseIn);
         mat[0][0] = xAxis.getI();
         mat[0][1] = xAxis.getJ();
         mat[0][2] = xAxis.getK();
-        VectorType yAxis = cross(poseIn.getZAxis(), poseIn.getXAxis());
+        final VectorType zAxis = getNonNullZAxis(poseIn);
+        VectorType yAxis = cross(zAxis, xAxis);
         mat[1][0] = yAxis.getI();
         mat[1][1] = yAxis.getJ();
         mat[1][2] = yAxis.getK();
-        VectorType zAxis = poseIn.getZAxis();
         mat[2][0] = zAxis.getI();
         mat[2][1] = zAxis.getJ();
         mat[2][2] = zAxis.getK();
@@ -1601,25 +1633,26 @@ public class CRCLPosemath {
 
     public static PoseType invert(PoseType p) {
         PoseType pOut = new PoseType();
-        VectorType xAxisIn = p.getXAxis();
-        VectorType zAxisIn = p.getZAxis();
-        VectorType yAxisIn = cross(p.getZAxis(), p.getXAxis());
+        VectorType xAxisIn = getNonNullXAxis(p);
+        VectorType zAxisIn = getNonNullZAxis(p);
+        VectorType yAxisIn = cross(zAxisIn, xAxisIn);
         VectorType xAxisOut = new VectorType();
-        xAxisOut.setI(p.getXAxis().getI());
+        xAxisOut.setI(xAxisIn.getI());
         xAxisOut.setJ(yAxisIn.getI());
-        xAxisOut.setK(p.getZAxis().getI());
+        xAxisOut.setK(zAxisIn.getI());
         pOut.setXAxis(xAxisOut);
         VectorType zAxisOut = new VectorType();
-        zAxisOut.setI(p.getXAxis().getK());
+        zAxisOut.setI(xAxisIn.getK());
         zAxisOut.setJ(yAxisIn.getK());
-        zAxisOut.setK(p.getZAxis().getK());
+        zAxisOut.setK(zAxisIn.getK());
         pOut.setZAxis(zAxisOut);
 //        VectorType yAxisOut = cross(zAxisOut,xAxisOut);
 
         PointType pt = new PointType();
-        pt.setX(dot(xAxisIn, p.getPoint()) * -1.0);
-        pt.setY(dot(yAxisIn, p.getPoint()) * -1.0);
-        pt.setZ(dot(zAxisIn, p.getPoint()) * -1.0);
+        final PointType pointIn = getNonNullPoint(p);
+        pt.setX(dot(xAxisIn, pointIn) * -1.0);
+        pt.setY(dot(yAxisIn, pointIn) * -1.0);
+        pt.setZ(dot(zAxisIn, pointIn) * -1.0);
         pOut.setPoint(pt);
 
         return pOut;
@@ -1627,82 +1660,83 @@ public class CRCLPosemath {
 
     public static PoseType multiply(PoseType p1, PoseType p2) {
         PoseType poseOut = new PoseType();
-        VectorType yAxis1 = cross(p1.getZAxis(), p1.getXAxis());
+        final VectorType xAxis1 = getNonNullXAxis(p1);
+        final VectorType zAxis1 = getNonNullZAxis(p1);
+        VectorType yAxis1 = cross(zAxis1, xAxis1);
         VectorType xAxisOut = new VectorType();
         VectorType zAxisOut = new VectorType();
-        PointType pt2 = p2.getPoint();
+        PointType pt2 = getNonNullPoint(p2);
         PointType pt2rot = new PointType();
-        pt2rot.setX(p1.getXAxis().getI() * pt2.getX()
+        pt2rot.setX(xAxis1.getI() * pt2.getX()
                 + yAxis1.getI() * pt2.getY()
-                + p1.getZAxis().getI() * pt2.getZ()
+                + zAxis1.getI() * pt2.getZ()
         );
-        pt2rot.setY(p1.getXAxis().getJ() * pt2.getX()
+        pt2rot.setY(xAxis1.getJ() * pt2.getX()
                 + yAxis1.getJ() * pt2.getY()
-                + p1.getZAxis().getJ() * pt2.getZ()
+                + zAxis1.getJ() * pt2.getZ()
         );
-        pt2rot.setZ(p1.getXAxis().getK() * pt2.getX()
+        pt2rot.setZ(xAxis1.getK() * pt2.getX()
                 + yAxis1.getK() * pt2.getY()
-                + p1.getZAxis().getK() * pt2.getZ()
+                + zAxis1.getK() * pt2.getZ()
         );
-        PointType pt = add(p1.getPoint(), pt2rot);
+        final PointType pt1 = getNonNullPoint(p1);
+        PointType pt = add(pt1, pt2rot);
         poseOut.setPoint(pt);
+        final VectorType xAxis2 = getNonNullXAxis(p2);
 //        xAxisOut.setI(
-//                p1.getXAxis().getI().multiply(p2.getXAxis().getI())
-//                .add(p1.getXAxis().getJ().multiply(yAxis2.getI()))
-//                .add(p1.getXAxis().getK().multiply(p2.getZAxis().getI()))
+//                p1.getNullableXAxis().getI().multiply(p2.getNullableXAxis().getI())
+//                .add(p1.getNullableXAxis().getJ().multiply(yAxis2.getI()))
+//                .add(p1.getNullableXAxis().getK().multiply(p2.getNullableZAxis().getI()))
 //                );
 //        xAxisOut.setJ(
-//                p1.getXAxis().getI().multiply(p2.getXAxis().getJ())
-//                .add(p1.getXAxis().getJ().multiply(yAxis2.getJ()))
-//                .add(p1.getXAxis().getK().multiply(p2.getZAxis().getJ()))
+//                p1.getNullableXAxis().getI().multiply(p2.getNullableXAxis().getJ())
+//                .add(p1.getNullableXAxis().getJ().multiply(yAxis2.getJ()))
+//                .add(p1.getNullableXAxis().getK().multiply(p2.getNullableZAxis().getJ()))
 //                );
 //        xAxisOut.setK(
-//                p1.getXAxis().getI().multiply(p2.getXAxis().getK())
-//                .add(p1.getXAxis().getJ().multiply(yAxis2.getK()))
-//                .add(p1.getXAxis().getK().multiply(p2.getZAxis().getK()))
+//                p1.getNullableXAxis().getI().multiply(p2.getNullableXAxis().getK())
+//                .add(p1.getNullableXAxis().getJ().multiply(yAxis2.getK()))
+//                .add(p1.getNullableXAxis().getK().multiply(p2.getNullableZAxis().getK()))
 //                );
-        xAxisOut.setI(
-                p1.getXAxis().getI() * p2.getXAxis().getI()
-                + yAxis1.getI() * p2.getXAxis().getJ()
-                + p1.getZAxis().getI() * p2.getXAxis().getK()
+        xAxisOut.setI(xAxis1.getI() * xAxis2.getI()
+                + yAxis1.getI() * xAxis2.getJ()
+                + zAxis1.getI() * xAxis2.getK()
         );
-        xAxisOut.setJ(
-                p1.getXAxis().getJ() * p2.getXAxis().getI()
-                + yAxis1.getJ() * p2.getXAxis().getJ()
-                + p1.getZAxis().getJ() * p2.getXAxis().getK()
+        xAxisOut.setJ(xAxis1.getJ() * xAxis2.getI()
+                + yAxis1.getJ() * xAxis2.getJ()
+                + zAxis1.getJ() * xAxis2.getK()
         );
-        xAxisOut.setK(
-                p1.getXAxis().getK() * p2.getXAxis().getI()
-                + yAxis1.getK() * p2.getXAxis().getJ()
-                + p1.getZAxis().getK() * p2.getXAxis().getK()
+        xAxisOut.setK(xAxis1.getK() * xAxis2.getI()
+                + yAxis1.getK() * xAxis2.getJ()
+                + zAxis1.getK() * xAxis2.getK()
         );
 
         poseOut.setXAxis(xAxisOut);
-        zAxisOut.setI(
-                p1.getXAxis().getI() * p2.getZAxis().getI()
-                + yAxis1.getI() * p2.getZAxis().getJ()
-                + p1.getZAxis().getI() * p2.getZAxis().getK()
+        final VectorType zAxis2 = getNonNullZAxis(p2);
+        zAxisOut.setI(xAxis1.getI() * zAxis2.getI()
+                + yAxis1.getI() * zAxis2.getJ()
+                + zAxis1.getI() * zAxis2.getK()
         );
-        zAxisOut.setJ(
-                p1.getXAxis().getJ() * p2.getZAxis().getI()
-                + yAxis1.getJ() * p2.getZAxis().getJ()
-                + p1.getZAxis().getJ() * p2.getZAxis().getK()
+        zAxisOut.setJ(xAxis1.getJ() * zAxis2.getI()
+                + yAxis1.getJ() * zAxis2.getJ()
+                + zAxis1.getJ() * zAxis2.getK()
         );
-        zAxisOut.setK(
-                p1.getXAxis().getK() * p2.getZAxis().getI()
-                + yAxis1.getK() * p2.getZAxis().getJ()
-                + p1.getZAxis().getK() * p2.getZAxis().getK()
+        zAxisOut.setK(xAxis1.getK() * zAxis2.getI()
+                + yAxis1.getK() * zAxis2.getJ()
+                + zAxis1.getK() * zAxis2.getK()
         );
         poseOut.setZAxis(zAxisOut);
         return poseOut;
     }
 
+    @SuppressWarnings("nullness")
     public static PoseType shift(final PoseType poseIn, final PointType pt) {
         PoseType poseOut = new PoseType();
-        PointType sum = add(poseIn.getPoint(), pt);
+        final PointType ptIn = getNonNullPoint(poseIn);
+        PointType sum = add(ptIn, pt);
         poseOut.setPoint(sum);
-        poseOut.setXAxis(poseIn.getXAxis());
-        poseOut.setZAxis(poseIn.getZAxis());
+        poseOut.setXAxis(CRCLCopier.copyNullable(poseIn.getXAxis()));
+        poseOut.setZAxis(CRCLCopier.copyNullable(poseIn.getZAxis()));
         return poseOut;
     }
 
@@ -1734,7 +1768,9 @@ public class CRCLPosemath {
      * @return distance between p1 and p2
      */
     public static double diffPosesTran(PoseType p1, PoseType p2) {
-        return diffPoints(p1.getPoint(), p2.getPoint());
+        final PointType pt1 = getNonNullPoint(p1);
+        final PointType pt2 = getNonNullPoint(p2);
+        return diffPoints(pt1, pt2);
     }
 
     /**
@@ -1882,10 +1918,13 @@ public class CRCLPosemath {
      * @throws PmException if rotation vectors are invalid
      */
     public static PmRotationMatrix toPmRotationMatrix(PoseType p) throws PmException {
-        PmCartesian cx = vectorToPmCartesian(p.getXAxis());
-        PmCartesian cz = vectorToPmCartesian(p.getZAxis());
+        final VectorType localPoseXAxis = getNonNullXAxis(p);
+        PmCartesian cx = vectorToPmCartesian(localPoseXAxis);
+        final VectorType localPoseZAxis = getNonNullZAxis(p);
+        PmCartesian cz = vectorToPmCartesian(localPoseZAxis);
+        final VectorType computedYAxis = cross(localPoseZAxis, localPoseXAxis);
         //PmCartesian cy = Posemath.cross(cz, cx);
-        PmCartesian cy = vectorToPmCartesian(cross(p.getZAxis(), p.getXAxis()));
+        PmCartesian cy = vectorToPmCartesian(computedYAxis);
         return new PmRotationMatrix(cx, cy, cz);
     }
 

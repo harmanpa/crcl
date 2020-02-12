@@ -500,7 +500,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         return Hider.DEFAULT_EXECUTOR_SERVICE;
     }
 
-    private void alsoCancelAddAll(Iterable<? extends CompletableFuture<?>> cfs) {
+    private void alsoCancelAddAllXFV(Iterable<? extends CompletableFuture<?>> cfs) {
         for (CompletableFuture<?> cf : cfs) {
             alsoCancelAdd(cf);
         }
@@ -513,7 +513,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static XFuture<Object> anyOfWithName(String name, CompletableFuture<?>... cfs) {
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
         XFuture<Object> retXF = staticwrap(name, orig);
-        retXF.alsoCancelAddAll(Arrays.asList(cfs));
+        retXF.alsoCancelAddAllXFV(Arrays.asList(cfs));
         return retXF;
     }
 
@@ -524,7 +524,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static XFuture<Object> anyOf(CompletableFuture<?>... cfs) {
         CompletableFuture<Object> orig = CompletableFuture.anyOf(cfs);
         XFuture<Object> retXF = staticwrap("anyOfWithName", orig);
-        retXF.alsoCancelAddAll(Arrays.asList(cfs));
+        retXF.alsoCancelAddAllXFV(Arrays.asList(cfs));
         return retXF;
     }
 

@@ -77,8 +77,11 @@ import crcl.base.TransSpeedType;
 import crcl.utils.CRCLCopier;
 import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
+import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
-import crcl.utils.Utils;
+import crcl.utils.CRCLUtils;
+import static crcl.utils.CRCLUtils.getNonNullCmd;
+import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import java.io.EOFException;
@@ -605,7 +608,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             long now = System.currentTimeMillis();
             long timeDiff = now - this.guardTriggerStartTime;
             long timeDiffMicros = 1000 * timeDiff;
-            serverSideStatus.getGuardsStatuses().setTriggerStopTimeMicros(timeDiffMicros);
+            final GuardsStatusesType guardsStatuses = serverSideStatus.getGuardsStatuses();
+            if (null != guardsStatuses) {
+                guardsStatuses.setTriggerStopTimeMicros(timeDiffMicros);
+            }
         }
     }
 
@@ -734,12 +740,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         final PoseToleranceType inputEndPoseTolerance = setEndPoseToleranceCommand.getTolerance();
                         final PoseToleranceType endPoseTolerance
                                 = CRCLCopier.copy(inputEndPoseTolerance);
-                        if(automaticallyConvertUnits) {
+                        if (automaticallyConvertUnits) {
                             endPoseTolerance.setXPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getXPointTolerance()));
                             endPoseTolerance.setYPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getYPointTolerance()));
                             endPoseTolerance.setZPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getZPointTolerance()));
-                            
-                            
+
                             endPoseTolerance.setXAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getXAxisTolerance()));
                             endPoseTolerance.setZAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getZAxisTolerance()));
                         }
@@ -1180,21 +1185,23 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             return;
         }
-        SensorStatusesType sensorStatuses;
+        final SensorStatusesType sensorStatuses;
         final List<CountSensorStatusType> countSensorStatusList;
         final List<OnOffSensorStatusType> onOffSensorStatusList;
         final List<ScalarSensorStatusType> scalarSensorStatusList;
         final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList;
+
         synchronized (serverSideStatus) {
             if (null == serverSideStatus.getSensorStatuses()) {
                 serverSideStatus.setSensorStatuses(new SensorStatusesType());
             }
             sensorStatuses = serverSideStatus.getSensorStatuses();
+
             if (null != sensorStatuses) {
-                countSensorStatusList = new ArrayList<>(sensorStatuses.getCountSensorStatus());
-                onOffSensorStatusList = new ArrayList<>(sensorStatuses.getOnOffSensorStatus());
-                scalarSensorStatusList = new ArrayList<>(sensorStatuses.getScalarSensorStatus());
-                forceTorqueSensorStatusList = new ArrayList<>(sensorStatuses.getForceTorqueSensorStatus());
+                countSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatuses.getCountSensorStatus());
+                onOffSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatuses.getOnOffSensorStatus());
+                scalarSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatuses.getScalarSensorStatus());
+                forceTorqueSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatuses.getForceTorqueSensorStatus());
             } else {
                 return;
             }
@@ -1213,41 +1220,53 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         boolean modified = onOffStatusListModified || countStatusListModified || scalarStatusListModified || forceTorqueStatusListModified;
         if (modified) {
             synchronized (serverSideStatus) {
-                if (onOffStatusListModified) {
-                    sensorStatuses.getOnOffSensorStatus().clear();
-                    sensorStatuses.getOnOffSensorStatus().addAll(onOffSensorStatusList);
-                }
-                if (countStatusListModified) {
-                    sensorStatuses.getCountSensorStatus().clear();
-                    sensorStatuses.getCountSensorStatus().addAll(countSensorStatusList);
-                }
-                if (scalarStatusListModified) {
-                    sensorStatuses.getScalarSensorStatus().clear();
-                    sensorStatuses.getScalarSensorStatus().addAll(scalarSensorStatusList);
-                }
-                if (forceTorqueStatusListModified) {
-                    sensorStatuses.getForceTorqueSensorStatus().clear();
-                    sensorStatuses.getForceTorqueSensorStatus().addAll(forceTorqueSensorStatusList);
-                }
+                completeCheckSensorServersInternal(sensorStatuses, onOffStatusListModified, onOffSensorStatusList, countStatusListModified, countSensorStatusList, scalarStatusListModified, scalarSensorStatusList, forceTorqueStatusListModified, forceTorqueSensorStatusList);
             }
         }
         lastCheckSensorServersInternalTime = System.currentTimeMillis();
     }
 
-    public boolean updateOnOffList(List<SensorStatusType> newSensorStats, final List<OnOffSensorStatusType> onOffSensorStatusList) {
+    @SuppressWarnings({"nullness", "initialization"})
+    private void completeCheckSensorServersInternal(final SensorStatusesType sensorStatuses, boolean onOffStatusListModified, final List<OnOffSensorStatusType> onOffSensorStatusList, boolean countStatusListModified, final List<CountSensorStatusType> countSensorStatusList, boolean scalarStatusListModified, final List<ScalarSensorStatusType> scalarSensorStatusList, boolean forceTorqueStatusListModified, final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList) {
+        final List<OnOffSensorStatusType> onOffSensorStatus = sensorStatuses.getOnOffSensorStatus();
+        final List<CountSensorStatusType> countSensorStatus = sensorStatuses.getCountSensorStatus();
+        final List<ScalarSensorStatusType> scalarSensorStatus = sensorStatuses.getScalarSensorStatus();
+        final List<ForceTorqueSensorStatusType> forceTorqueSensorStatus = sensorStatuses.getForceTorqueSensorStatus();
+
+        if (onOffStatusListModified && null != onOffSensorStatus) {
+            onOffSensorStatus.clear();
+            onOffSensorStatus.addAll(onOffSensorStatusList);
+        }
+        if (countStatusListModified && null != countSensorStatus) {
+            countSensorStatus.clear();
+            countSensorStatus.addAll(countSensorStatusList);
+        }
+        if (scalarStatusListModified && null != scalarSensorStatus) {
+            scalarSensorStatus.clear();
+            scalarSensorStatus.addAll(scalarSensorStatusList);
+        }
+        if (forceTorqueStatusListModified && null != forceTorqueSensorStatus) {
+            forceTorqueSensorStatus.clear();
+            forceTorqueSensorStatus.addAll(forceTorqueSensorStatusList);
+        }
+    }
+
+    public boolean updateOnOffList(
+            List<SensorStatusType> newSensorStats,
+            List<OnOffSensorStatusType> onOffSensorStatusList) {
         boolean onOffStatusListModified = false;
         for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
-            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            SensorStatusType newSensorStat = newSensorStats.get(newSensorStatsIndex);
             for (int i = 0; i < onOffSensorStatusList.size(); i++) {
                 OnOffSensorStatusType onOffSensorStat = onOffSensorStatusList.get(i);
-                if (sensorStat.getSensorID().equals(onOffSensorStat.getSensorID())) {
+                if (Objects.equals(newSensorStat.getSensorID(), onOffSensorStat.getSensorID())) {
                     onOffSensorStatusList.remove(i);
                     onOffStatusListModified = true;
                     break;
                 }
             }
-            if (sensorStat instanceof OnOffSensorStatusType) {
-                OnOffSensorStatusType onOffSensorStat = (OnOffSensorStatusType) sensorStat;
+            if (newSensorStat instanceof OnOffSensorStatusType) {
+                OnOffSensorStatusType onOffSensorStat = (OnOffSensorStatusType) newSensorStat;
                 onOffSensorStatusList.add(onOffSensorStat);
                 onOffStatusListModified = true;
             }
@@ -1256,20 +1275,22 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return onOffStatusListModified;
     }
 
-    public boolean updateCountList(List<SensorStatusType> newSensorStats, final List<CountSensorStatusType> countSensorStatusList) {
+    public boolean updateCountList(
+            List<SensorStatusType> newSensorStats,
+            List<CountSensorStatusType> countSensorStatusList) {
         boolean countStatusListModified = false;
         for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
-            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            SensorStatusType newSensorStat = newSensorStats.get(newSensorStatsIndex);
             for (int i = 0; i < countSensorStatusList.size(); i++) {
                 CountSensorStatusType countSensorStat = countSensorStatusList.get(i);
-                if (sensorStat.getSensorID().equals(countSensorStat.getSensorID())) {
+                if (Objects.equals(newSensorStat.getSensorID(), countSensorStat.getSensorID())) {
                     countSensorStatusList.remove(i);
                     countStatusListModified = true;
                     break;
                 }
             }
-            if (sensorStat instanceof CountSensorStatusType) {
-                CountSensorStatusType countSensorStat = (CountSensorStatusType) sensorStat;
+            if (newSensorStat instanceof CountSensorStatusType) {
+                CountSensorStatusType countSensorStat = (CountSensorStatusType) newSensorStat;
                 countSensorStatusList.add(countSensorStat);
                 countStatusListModified = true;
             }
@@ -1278,42 +1299,45 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return countStatusListModified;
     }
 
-    public boolean updateScalarList(List<SensorStatusType> newSensorStats, final List<ScalarSensorStatusType> scalarSensorStatusList) {
+    public boolean updateScalarList(
+            List<SensorStatusType> newSensorStats,
+            List<ScalarSensorStatusType> scalarSensorStatusList) {
         boolean scalarStatusListModified = false;
         for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
-            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            SensorStatusType newSensorStat = newSensorStats.get(newSensorStatsIndex);
             for (int i = 0; i < scalarSensorStatusList.size(); i++) {
                 ScalarSensorStatusType scalarSensorStat = scalarSensorStatusList.get(i);
-                if (sensorStat.getSensorID().equals(scalarSensorStat.getSensorID())) {
+                if (Objects.equals(newSensorStat.getSensorID(), scalarSensorStat.getSensorID())) {
                     scalarSensorStatusList.remove(i);
                     scalarStatusListModified = true;
                     break;
                 }
             }
-            if (sensorStat instanceof ScalarSensorStatusType) {
-                ScalarSensorStatusType scalarSensorStat = (ScalarSensorStatusType) sensorStat;
+            if (newSensorStat instanceof ScalarSensorStatusType) {
+                ScalarSensorStatusType scalarSensorStat = (ScalarSensorStatusType) newSensorStat;
                 scalarSensorStatusList.add(scalarSensorStat);
                 scalarStatusListModified = true;
             }
-
         }
         return scalarStatusListModified;
     }
 
-    public boolean updateForceTorqueList(List<SensorStatusType> newSensorStats, final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList) {
+    public boolean updateForceTorqueList(
+            List<SensorStatusType> newSensorStats,
+            List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList) {
         boolean forceTorqueStatusListModified = false;
         for (int newSensorStatsIndex = 0; newSensorStatsIndex < newSensorStats.size(); newSensorStatsIndex++) {
-            SensorStatusType sensorStat = newSensorStats.get(newSensorStatsIndex);
+            SensorStatusType newSensorStat = newSensorStats.get(newSensorStatsIndex);
             for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
                 ForceTorqueSensorStatusType forceTorqueSensorStat = forceTorqueSensorStatusList.get(i);
-                if (sensorStat.getSensorID().equals(forceTorqueSensorStat.getSensorID())) {
+                if (Objects.equals(newSensorStat.getSensorID(), forceTorqueSensorStat.getSensorID())) {
                     forceTorqueSensorStatusList.remove(i);
                     forceTorqueStatusListModified = true;
                     break;
                 }
             }
-            if (sensorStat instanceof ForceTorqueSensorStatusType) {
-                ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) sensorStat;
+            if (newSensorStat instanceof ForceTorqueSensorStatusType) {
+                ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) newSensorStat;
                 forceTorqueSensorStatusList.add(forceTorqueSensorStat);
                 forceTorqueStatusListModified = true;
             }
@@ -1342,9 +1366,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             if (null == state) {
                 throw new NullPointerException("event.getState() ==null : event=" + event);
             }
-            CRCLCommandType cmd = instanceIn.getCRCLCommand();
-            if (!cmd.getGuard().isEmpty()) {
-                startCheckingGuards(cmd.getGuard(), state, cmd.getCommandID(), instanceIn);
+            CRCLCommandType cmd = getNonNullCmd(instanceIn);
+            final List<GuardType> cmdGuardList = getNonNullFilteredList(cmd.getGuard());
+            if (null != cmdGuardList && !cmdGuardList.isEmpty()) {
+                startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
             }
         }
         for (int i = 0; i < listeners.size(); i++) {
@@ -1538,7 +1563,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
         @Override
         public String toString() {
-            return "TraceInfo{" + "thread=" + thread + ", time=" + time + " (" + (System.currentTimeMillis() - time) + " ago)" + ", threadname=" + threadname + ",\n trace=" + Utils.traceToString(trace) + "}\n";
+            return "TraceInfo{" + "thread=" + thread + ", time=" + time + " (" + (System.currentTimeMillis() - time) + " ago)" + ", threadname=" + threadname + ",\n trace=" + CRCLUtils.traceToString(trace) + "}\n";
         }
     }
 
@@ -1744,19 +1769,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     final boolean sameServer = otherServer == this;
                     System.out.println("(otherServer==this) = " + sameServer);
                     if (!sameServer) {
-                        System.out.println("otherServer.startTrace = " + Utils.traceToString(otherServer.startTrace));
+                        System.out.println("otherServer.startTrace = " + CRCLUtils.traceToString(otherServer.startTrace));
                         System.out.println("otherServer.startThread = " + otherServer.startThread);
-                        System.out.println("otherServer.bindTrace = " + Utils.traceToString(otherServer.bindTrace));
+                        System.out.println("otherServer.bindTrace = " + CRCLUtils.traceToString(otherServer.bindTrace));
                         System.out.println("otherServer.bindThread = " + otherServer.bindThread);
                     }
                 }
                 System.err.println("portMap = " + portMap);
 
                 System.err.println("Thread.currentThread() = " + Thread.currentThread());
-                System.err.println("startTrace = " + Utils.traceToString(startTrace));
-                System.err.println("bindTrace = " + Utils.traceToString(bindTrace));
+                System.err.println("startTrace = " + CRCLUtils.traceToString(startTrace));
+                System.err.println("bindTrace = " + CRCLUtils.traceToString(bindTrace));
                 System.out.println("bindThread = " + bindThread);
-                System.err.println("initBindTrace = " + Utils.traceToString(initBindTrace));
+                System.err.println("initBindTrace = " + CRCLUtils.traceToString(initBindTrace));
                 System.out.println("initBindThread = " + bindThread);
 
                 System.out.println("");
@@ -1851,7 +1876,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                 final Logger logger = Logger
                                         .getLogger(CRCLServerSocket.class
                                                 .getName());
-                                logger.log(Level.SEVERE, "EXCEPTION: " + ex.getMessage() + ", startTrace = " + Utils.traceToString(startTrace));
+                                logger.log(Level.SEVERE, "EXCEPTION: " + ex.getMessage() + ", startTrace = " + CRCLUtils.traceToString(startTrace));
                                 final String exInfoString = " port =" + port + ",closing = " + closing + ",key=" + key;
                                 logger.log(Level.SEVERE, "EXCEPTION: " + ex.getMessage() + exInfoString);
                                 logger.log(Level.SEVERE, "", ex);
@@ -1908,17 +1933,21 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (automaticallyConvertUnits && null != serverUnits) {
             state.filterSettings.setServerUserSet(serverUnits);
         }
-        if (sendAllJointPositionsByDefault && null != serverSideStatus && null != serverSideStatus.getJointStatuses()) {
-            final List<JointStatusType> jointStatusList = serverSideStatus.getJointStatuses().getJointStatus();
-            List<ConfigureJointReportType> cjrList = new ArrayList<>();
-            for (int j = 0; j < jointStatusList.size(); j++) {
-                JointStatusType jst = jointStatusList.get(j);
-                ConfigureJointReportType cjr = new ConfigureJointReportType();
-                cjr.setJointNumber(jst.getJointNumber());
-                cjr.setReportPosition(true);
-                cjrList.add(cjr);
+        if (sendAllJointPositionsByDefault && null != serverSideStatus) {
+            final JointStatusesType jointStatuses = serverSideStatus.getJointStatuses();
+            if (null != jointStatuses) {
+                final List<JointStatusType> jointStatusList
+                        = getNonNullFilteredList(jointStatuses.getJointStatus());
+                List<ConfigureJointReportType> cjrList = new ArrayList<>();
+                for (int j = 0; j < jointStatusList.size(); j++) {
+                    JointStatusType jst = jointStatusList.get(j);
+                    ConfigureJointReportType cjr = new ConfigureJointReportType();
+                    cjr.setJointNumber(jst.getJointNumber());
+                    cjr.setReportPosition(true);
+                    cjrList.add(cjr);
+                }
+                state.filterSettings.configureJointReports(cjrList);
             }
-            state.filterSettings.configureJointReports(cjrList);
         }
     }
 
@@ -2203,7 +2232,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             double value = getGuardValue(guard, sensorStatMap);
             final String guardMapId = guardMapId(guard);
-            switch (guard.getLimitType()) {
+            final GuardLimitEnumType guarLimitType = Objects.requireNonNull(guard.getLimitType());
+            switch (guarLimitType) {
                 case OVER_MAX:
                     if (value > guard.getLimitValue()) {
                         triggerGuard(value, guard_client_state, commandInstance, guard);
@@ -2252,24 +2282,30 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
-        if (null == serverSideStatus.getGuardsStatuses()) {
-            serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
+        final GuardsStatusesType initialGuardsStatuses = serverSideStatus.getGuardsStatuses();
+        final GuardsStatusesType guardsStatuses;
+        if (null == initialGuardsStatuses) {
+            final GuardsStatusesType newGuardsStatusesType = new GuardsStatusesType();
+            serverSideStatus.setGuardsStatuses(newGuardsStatusesType);
+            guardsStatuses = newGuardsStatusesType;
+        } else {
+            guardsStatuses = initialGuardsStatuses;
         }
-        if (guard.getLastCheckTime() != null) {
+        if (guard.getLastCheckTime() > 0) {
             guardTriggerStartTime = guard.getLastCheckTime();
         } else {
             guardTriggerStartTime = System.currentTimeMillis();
         }
-        serverSideStatus.getGuardsStatuses().setTriggerCount(serverSideStatus.getGuardsStatuses().getTriggerCount() + 1);
-        serverSideStatus.getGuardsStatuses().setTriggerValue(value);
+        guardsStatuses.setTriggerCount(guardsStatuses.getTriggerCount() + 1);
+        guardsStatuses.setTriggerValue(value);
         if (null != serverSideStatus.getPoseStatus()) {
-            final PoseType serverSidePose = serverSideStatus.getPoseStatus().getPose();
+            final PoseType serverSidePose = CRCLPosemath.getNullablePose(serverSideStatus);
             if (null != serverSidePose) {
                 final PoseType serverSidePoseCopy = copy(serverSidePose);
                 if (null == serverSidePoseCopy) {
                     throw new NullPointerException("serverSidePoseCopy");
                 }
-                serverSideStatus.getGuardsStatuses().setTriggerPose(serverSidePoseCopy);
+                guardsStatuses.setTriggerPose(serverSidePoseCopy);
             }
         }
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
@@ -2304,7 +2340,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         double value;
         final String sensorID = guard.getSensorID();
         SensorStatusType stat = sensorStatMap != null ? sensorStatMap.get(sensorID) : null;
-        if (null == stat) {
+        if (null == stat && null != sensorID) {
             stat = getNewSensorStatus(sensorID);
             if (null != stat) {
                 if (sensorStatMap != null) {
@@ -2314,56 +2350,61 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
             }
         }
-        final long time = stat.getLastReadTime();
-        guard.setLastCheckTime(time);
-        if (null == guard.getCheckCount()) {
-            guard.setCheckCount(1L);
-        } else {
-            guard.setCheckCount(guard.getCheckCount() + 1);
-        }
-        if (stat instanceof ForceTorqueSensorStatusType) {
-            ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;
-            if (null == guard.getSubField()) {
-                throw new RuntimeException("stat instanceof ForceTorqueSensorStatusType but null == guard.getSubField() " + sensorID + ", guard=" + guard + ", stat=" + stat);
+        if (stat != null) {
+            final long time = stat.getLastReadTime();
+            guard.setLastCheckTime(time);
+            if (guard.getCheckCount() < 1) {
+                guard.setCheckCount(1L);
+            } else {
+                guard.setCheckCount(guard.getCheckCount() + 1);
             }
-            switch (guard.getSubField()) {
-                case "Fx":
-                    value = forceTorqueSensorStat.getFx();
-                    break;
+            if (stat instanceof ForceTorqueSensorStatusType) {
+                ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;
+                final String subField = guard.getSubField();
+                if (null == subField) {
+                    throw new RuntimeException("stat instanceof ForceTorqueSensorStatusType but null == guard.getSubField() " + sensorID + ", guard=" + guard + ", stat=" + stat);
+                }
+                switch (subField) {
+                    case "Fx":
+                        value = forceTorqueSensorStat.getFx();
+                        break;
 
-                case "Fy":
-                    value = forceTorqueSensorStat.getFy();
-                    break;
+                    case "Fy":
+                        value = forceTorqueSensorStat.getFy();
+                        break;
 
-                case "Fz":
-                    value = forceTorqueSensorStat.getFz();
-                    break;
+                    case "Fz":
+                        value = forceTorqueSensorStat.getFz();
+                        break;
 
-                case "Tx":
-                    value = forceTorqueSensorStat.getTz();
-                    break;
+                    case "Tx":
+                        value = forceTorqueSensorStat.getTz();
+                        break;
 
-                case "Ty":
-                    value = forceTorqueSensorStat.getTy();
-                    break;
+                    case "Ty":
+                        value = forceTorqueSensorStat.getTy();
+                        break;
 
-                case "Tz":
-                    value = forceTorqueSensorStat.getTz();
-                    break;
+                    case "Tz":
+                        value = forceTorqueSensorStat.getTz();
+                        break;
 
-                default:
-                    value = 0;
-                    break;
+                    default:
+                        value = 0;
+                        break;
 
+                }
+            } else {
+                value = 0;
             }
+            guard.setLastCheckValue(value);
+            if (null != guardCheckUpdatePositionOnlyRunnable) {
+                guardCheckUpdatePositionOnlyRunnable.run();
+            }
+            guardHistory.addElement(time, value, x, y, z);
         } else {
             value = 0;
         }
-        guard.setLastCheckValue(value);
-        if (null != guardCheckUpdatePositionOnlyRunnable) {
-            guardCheckUpdatePositionOnlyRunnable.run();
-        }
-        guardHistory.addElement(time, value, x, y, z);
         return value;
     }
 
@@ -2427,8 +2468,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         if (null == serverSideStatus) {
                             throw new RuntimeException("null == serverSideStatus)");
                         }
-                        serverSideStatus.getCommandStatus().setStateDescription("Invalid guard:" + guardI.getName() + " for sensor " + guardI.getSensorID() + " with limit type " + guardI.getLimitType() + " must have positive limit value. limit value=" + guardI.getLimitValue());
-                        serverSideStatus.getCommandStatus().setCommandState(CommandStateEnumType.CRCL_ERROR);
+                        final CommandStatusType commandStatus = CRCLUtils.getNonNullCommandStatus(serverSideStatus);
+                        commandStatus.setStateDescription("Invalid guard:" + guardI.getName() + " for sensor " + guardI.getSensorID() + " with limit type " + guardI.getLimitType() + " must have positive limit value. limit value=" + guardI.getLimitValue());
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                     };
                     r.run();
                     return r;
@@ -2449,11 +2491,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     }
                     checkGuardsUntilDone(guards, guard_client_state, cmdID, commandInstance, finalDelayMillis, newInitalialValuesMap);
                 } catch (Exception ex) {
-                    Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "commandInstance=" + CRCLSocket.commandToSimpleString(commandInstance.getCRCLCommand()), ex);
+                    final String errMsg;
+                    if (null != commandInstance) {
+                        final CRCLCommandType crclCommand = commandInstance.getCRCLCommand();
+                        errMsg = "commandInstance=" + CRCLSocket.commandToSimpleString(crclCommand);
+                    } else {
+                        errMsg = "commandInstance=null";
+                    }
+                    Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex);
                     try {
                         handleEvent(CRCLServerSocketEvent.exceptionOccured(guard_client_state, ex));
                     } catch (Exception ex1) {
-                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "commandInstance=" + CRCLSocket.commandToSimpleString(commandInstance.getCRCLCommand()), ex1);
+                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex1);
                     }
                 }
             }
@@ -2528,17 +2577,17 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             CRCLServerSocket otherServer = portMap.get(port1);
             System.err.println("this = " + this);
             if (null != this && this.startTrace != null) {
-                System.out.println("this.startTrace = " + Utils.traceToString(this.startTrace));
+                System.out.println("this.startTrace = " + CRCLUtils.traceToString(this.startTrace));
             }
             if (null != this && this.createTrace != null) {
-                System.out.println("this.createTrace = " + Utils.traceToString(this.createTrace));
+                System.out.println("this.createTrace = " + CRCLUtils.traceToString(this.createTrace));
             }
             System.err.println("otherServer = " + otherServer);
             if (null != otherServer && otherServer.startTrace != null) {
-                System.out.println("otherServer.startTrace = " + Utils.traceToString(otherServer.startTrace));
+                System.out.println("otherServer.startTrace = " + CRCLUtils.traceToString(otherServer.startTrace));
             }
             if (null != otherServer && otherServer.createTrace != null) {
-                System.out.println("otherServer.createTrace = " + Utils.traceToString(otherServer.createTrace));
+                System.out.println("otherServer.createTrace = " + CRCLUtils.traceToString(otherServer.createTrace));
             }
             System.err.println("portMap = " + portMap);
             throw new IllegalStateException("two servers for same port " + port);
@@ -2576,8 +2625,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private boolean started = false;
 
     private volatile StackTraceElement startTrace @Nullable []  = null;
-    private volatile @Nullable Thread startThread = null;
-    
+    private volatile @Nullable
+    Thread startThread = null;
+
     private static final ConcurrentLinkedDeque<TraceInfo> startServerTraces
             = new ConcurrentLinkedDeque<>();
 

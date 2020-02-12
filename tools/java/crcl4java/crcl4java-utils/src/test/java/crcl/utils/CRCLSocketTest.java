@@ -735,7 +735,7 @@ public class CRCLSocketTest {
         CRCLSocket instance = new CRCLSocket();
         try {
             String mttString = instance.commandInstanceToPrettyDocString(mttInstanceType, validate);
-//            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
+//            System.err.println("cmdSchemSetTrace = " + CRCLUtils.traceToString(instance.getCmdSchemSetTrace()));
 //            System.err.println("cmdSchema = " + instance.getCmdSchema());
 //            System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
 //            System.out.println("mttString = " + mttString);
@@ -746,7 +746,7 @@ public class CRCLSocketTest {
             result = instance.stringToCommand(str, validate);
         } catch (Exception ex) {
             System.out.println("str = " + str);
-            System.err.println("cmdSchemSetTrace = " + Utils.traceToString(instance.getCmdSchemSetTrace()));
+            System.err.println("cmdSchemSetTrace = " + CRCLUtils.traceToString(instance.getCmdSchemSetTrace()));
             System.err.println("cmdSchema = " + instance.getCmdSchema());
             System.err.println("cmdSchemaFiles = " + Arrays.toString(instance.getCmdSchemaFiles()));
             ex.printStackTrace();

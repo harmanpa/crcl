@@ -37,6 +37,7 @@ import crcl.base.VacuumGripperStatusType;
 import static crcl.ui.IconImages.SERVER_IMAGE;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
+import crcl.utils.CRCLUtils;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -510,7 +511,8 @@ public class GripperJFrame extends javax.swing.JFrame {
 
     private void updateStatus() {
         this.prepStatus();
-        CommandStatusType cst = status.getCommandStatus();
+        CommandStatusType cst 
+                = CRCLUtils.getNonNullCommandStatus(status);
         long statusId = cst.getStatusID();
         cst.setStatusID(statusId + 1);
         switch (this.jTabbedPane1.getSelectedComponent().getName()) {

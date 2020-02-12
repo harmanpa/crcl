@@ -11,7 +11,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <checker-framework.version>3.1.0</checker-framework.version>
+        <checker-framework.version>3.1.1</checker-framework.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
@@ -50,11 +50,34 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository> -->
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
     </repositories>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>https://repo1.maven.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+    
     <licenses>
         <license>
             <name>Public Domain(US Government Work)</name>
-            <url>http://www.copyright.gov/title17/92chap1.html#105</url>
+            <url>https://www.copyright.gov/title17/92chap1.html#105</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -79,7 +102,79 @@
         <url>https://github.com/usnistgov/crcl4java</url>
     </scm>
     
+    <dependencies>
+        <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <!-- Use checker-qual7 if targeting Java 7 -->
+            <!-- <artifactId>checker-qual7</artifactId> -->
+            <version>${checker-framework.version}</version>
+        </dependency>
+    </dependencies>
     <profiles>
+        <profile>
+            <id>verbose_javac</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <compilerArgs>
+                                <arg>-Xlint:all</arg>
+                                <arg>-Werror</arg>
+                            </compilerArgs>
+                        </configuration> 
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>errorprone</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <fork>true</fork>
+                            <compilerId>javac-with-errorprone</compilerId>
+                            <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <showWarnings>true</showWarnings>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>com.uber.nullaway</groupId>
+                                    <artifactId>nullaway</artifactId>
+                                    <version>0.3.0</version>
+                                </path>
+                            </annotationProcessorPaths>
+                            <compilerArgs>
+                                <arg>-Xep:NullAway:ERROR</arg>
+                                <arg>-XepOpt:NullAway:AnnotatedPackages</arg>
+                            </compilerArgs>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.codehaus.plexus</groupId>
+                                <artifactId>plexus-compiler-javac-errorprone</artifactId>
+                                <version>2.8</version>
+                            </dependency>
+                            <!-- override plexus-compiler-javac-errorprone's dependency on
+                            Error Prone with the latest version -->
+                            <dependency>
+                                <groupId>com.google.errorprone</groupId>
+                                <artifactId>error_prone_core</artifactId>
+                                <version>2.1.3</version>
+                            </dependency>
+                        </dependencies>        
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>add_sources_jar</id>
             <build>
@@ -96,28 +191,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>jdk8_diags_verbose</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${maven-compiler-plugin.version}</version>
-                        <configuration>
-                            <compilerArgs>
-                                <arg>-parameters</arg>
-                                <arg>-Xdiags:verbose</arg>
-                                <arg>-Xlint:unchecked</arg>
-                            </compilerArgs>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -534,7 +607,7 @@
             
                     <plugin>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.0</version>
+                        <version>${maven-compiler-plugin.version}</version>
                         <configuration>
                             <fork>true</fork>
                             <!-- If using JDK 8, add source and target. -->
@@ -577,7 +650,7 @@
         
         <profile>
             <id>checkerframework_jdk11</id>
-           <dependencies>
+            <dependencies>
                 <dependency>
                     <groupId>org.checkerframework</groupId>
                     <artifactId>checker</artifactId>

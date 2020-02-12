@@ -28,14 +28,13 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.MiddleCommandType;
 import crcl.base.PoseType;
 import crcl.ui.ConcurrentBlockProgramsException;
-import static crcl.ui.client.CrclSwingClientJPanel.saveJTable;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.ui.misc.PropertiesJPanel;
 import crcl.ui.misc.TransformSetupJFrame;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
-import crcl.utils.Utils;
+import crcl.utils.CRCLUtils;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
@@ -64,11 +63,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.xml.sax.SAXException;
 import rcs.posemath.PmCartesian;
 
 /**
@@ -320,7 +316,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
 
     @Override
     public void readRecentCommandFiles() {
-        File fMainDir = new File(Utils.getCrclUserHomeDir(),
+        File fMainDir = new File(CRCLUtils.getCrclUserHomeDir(),
                 recent_files_dir);
         if (!fMainDir.exists()) {
             return;
