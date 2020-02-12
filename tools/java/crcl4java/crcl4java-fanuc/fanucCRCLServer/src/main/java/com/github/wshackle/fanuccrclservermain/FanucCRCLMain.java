@@ -3403,7 +3403,12 @@ public class FanucCRCLMain {
             final IRobot2 localRobot;
             if (null == initialLocalRobot) {
                 logDebug("Calling createFRCRobot ...");
-                localRobot = com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot();
+                localRobot =
+                        Objects.requireNonNull(
+                                com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot(),
+                                "com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot()"
+                        );
+                this.robot = localRobot;
                 logDebug("createFRCRobot returned " + localRobot);
                 setPreferRobotNeighborhood(false);
             } else {
@@ -3450,7 +3455,6 @@ public class FanucCRCLMain {
                         if (null != program && program.name().equalsIgnoreCase("GRIPPER_OPEN")) {
                             logDebug("Found open_gripper program.");
                             open_gripper_prog = program;
-
                         }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_W_TIME")) {
                             logDebug("Found MOVE_W_TIME program.");
