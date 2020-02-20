@@ -532,21 +532,64 @@ public class CrclSwingClientInner {
         return blockPrograms;
     }
 
-    public int startBlockingPrograms() {
+    
+    public static class BlockingProgramsInfo {
+        final StackTraceElement trace[];
+        final boolean start;
+        final int count;
+        final Thread thread;
+        final long time;
+
+        public BlockingProgramsInfo(StackTraceElement[] trace, boolean start, int count, Thread thread, long time) {
+            this.trace = trace;
+            this.start = start;
+            this.count = count;
+            this.thread = thread;
+            this.time = time;
+        }
+
+        @Override
+        public String toString() {
+            return "BlockingProgramsInfo{" + "trace=" + CRCLUtils.traceToString(trace) + ", start=" + start + ", count=" + count + ", thread=" + thread + ", time=" + time + "( "+(System.currentTimeMillis()-time)+" ago) }";
+        }
+
+        
+    }
+    private final ConcurrentLinkedDeque<BlockingProgramsInfo> blockingProgramsLog = new ConcurrentLinkedDeque<>();
+    
+    
+    public synchronized  int startBlockingPrograms() {
         startBlockProgramsThread = Thread.currentThread();
         startBlockProgramsTrace = startBlockProgramsThread.getStackTrace();
         startBlockProgramsTime = System.currentTimeMillis();
         this.blockPrograms = true;
-        return blockProgramsSetCount.incrementAndGet();
+        int ret = blockProgramsSetCount.incrementAndGet();
+        blockingProgramsLog.add(new BlockingProgramsInfo(startBlockProgramsTrace, true, ret,startBlockProgramsThread,startBlockProgramsTime));
+        return ret;
     }
 
-    public void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
+    public synchronized  void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         int c = blockProgramsSetCount.get();
         if (c != count) {
+            for(BlockingProgramsInfo info : blockingProgramsLog) {
+                System.err.println(info);
+            }
             throw new ConcurrentBlockProgramsException("wrong count " + count + "!= " + c);
         }
         this.blockPrograms = false;
-        blockProgramsSetCount.incrementAndGet();
+        int ret = blockProgramsSetCount.incrementAndGet();
+        while(blockingProgramsLog.size() > 10) {
+            BlockingProgramsInfo info = blockingProgramsLog.getFirst();
+            if(info.count < c) {
+                 BlockingProgramsInfo removedInfo = blockingProgramsLog.poll();
+                 if(removedInfo == null) {
+                     break;
+                 }
+            } else {
+                break;
+            }
+        }
+        blockingProgramsLog.add(new BlockingProgramsInfo(Thread.currentThread().getStackTrace(), false, count,Thread.currentThread(),System.currentTimeMillis()));
     }
 
     private volatile StackTraceElement @Nullable [] closeTestProgramRunProgramThreadTrace = null;
