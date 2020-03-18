@@ -20,13 +20,15 @@
  *  See http://www.copyright.gov/title17/92chap1.html#105
  * 
  */
-@DefaultQualifiers(
-        {
-            @DefaultQualifier(org.checkerframework.checker.initialization.qual.Initialized.class),
-            @DefaultQualifier(org.checkerframework.checker.nullness.qual.Nullable.class)
-        }
-)
+//@DefaultQualifiers(
+//        {
+//            @DefaultQualifier(org.checkerframework.checker.initialization.qual.Initialized.class),
+//            @DefaultQualifier(org.checkerframework.checker.nullness.qual.Nullable.class)
+//        }
+//)
 package crcl.base;
 
+//
+//import org.checkerframework.framework.qual.DefaultQualifier;
+//import org.checkerframework.framework.qual.DefaultQualifiers;
 
-import org.checkerframework.framework.qual.*;

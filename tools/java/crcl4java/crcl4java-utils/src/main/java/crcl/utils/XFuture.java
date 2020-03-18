@@ -115,6 +115,11 @@ public class XFuture<T> extends CompletableFuture<T> {
 
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
+        for (CompletableFuture<?> cf: cfsCollection) {
+            if(null == cf) {
+                throw new RuntimeException("name="+name+", cfsCollection contains null");
+            }
+        }
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
     }
 
@@ -507,6 +512,12 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     public static XFutureVoid allOfWithName(String name, CompletableFuture<?>... cfs) {
+        for (int i = 0; i < cfs.length; i++) {
+            CompletableFuture<?> cf = cfs[i];
+            if(null == cf) {
+                throw new RuntimeException("name="+name+", cfs["+i+"] is null");
+            }
+        }
         return XFutureVoid.allOfWithName(name, cfs);
     }
 

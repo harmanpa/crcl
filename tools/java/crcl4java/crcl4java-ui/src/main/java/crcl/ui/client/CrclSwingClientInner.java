@@ -552,19 +552,19 @@ public class CrclSwingClientInner {
         public String toString() {
             return "BlockingProgramsInfo{" + "trace=" + CRCLUtils.traceToString(trace) + ", start=" + start + ", count=" + count + ", thread=" + thread + ", time=" + time + "( "+(System.currentTimeMillis()-time)+" ago) }";
         }
-
-        
     }
     private final ConcurrentLinkedDeque<BlockingProgramsInfo> blockingProgramsLog = new ConcurrentLinkedDeque<>();
     
     
     public synchronized  int startBlockingPrograms() {
-        startBlockProgramsThread = Thread.currentThread();
-        startBlockProgramsTrace = startBlockProgramsThread.getStackTrace();
+        final Thread thread = Thread.currentThread();
+        startBlockProgramsThread = thread;
+        final StackTraceElement[] trace = startBlockProgramsThread.getStackTrace();
+        startBlockProgramsTrace = trace;
         startBlockProgramsTime = System.currentTimeMillis();
         this.blockPrograms = true;
         int ret = blockProgramsSetCount.incrementAndGet();
-        blockingProgramsLog.add(new BlockingProgramsInfo(startBlockProgramsTrace, true, ret,startBlockProgramsThread,startBlockProgramsTime));
+        blockingProgramsLog.add(new BlockingProgramsInfo(trace, true, ret,thread,startBlockProgramsTime));
         return ret;
     }
 
@@ -4323,7 +4323,11 @@ public class CrclSwingClientInner {
                     cjr.setJointNumber(jointStatus.getJointNumber());
                     newConfigureJointReportsList.add(cjr);
                 }
-                CRCLUtils.clearAndSetList(cjrs.getConfigureJointReport(), newConfigureJointReportsList);
+                final List<ConfigureJointReportType> configureJointReportsListLocal
+                        = cjrs.getConfigureJointReport();
+                configureJointReportsListLocal.clear();
+                configureJointReportsListLocal.addAll(newConfigureJointReportsList);
+//                CRCLUtils.clearAndSetList(configureJointReportsListLocal, newConfigureJointReportsList);
                 testCommand(cjrs, startRunProgramAbortCount);
             }
 
@@ -4375,7 +4379,11 @@ public class CrclSwingClientInner {
                     cjr.setJointNumber(jointStatus.getJointNumber());
                     newConfigureJointReportsList.add(cjr);
                 }
-                CRCLUtils.clearAndSetList(cjrs.getConfigureJointReport(), newConfigureJointReportsList);
+                final List<ConfigureJointReportType> configureJointReportsListLocal 
+                        = cjrs.getConfigureJointReport();
+                configureJointReportsListLocal.clear();
+                configureJointReportsListLocal.addAll(newConfigureJointReportsList);
+//                CRCLUtils.clearAndSetList(configureJointReportsListLocal, newConfigureJointReportsList);
                 testProgramMiddleCommandsList.add(cjrs);
                 int maxJoint = Integer.parseInt(testProperies.getOrDefault("maxJoint", "10"));
                 Iterable<JointStatusType> jointStatusIterable2
@@ -4504,7 +4512,11 @@ public class CrclSwingClientInner {
         }
         firstAj.setJointDetails(jsa);
         firstActuateJointsList.add(firstAj);
-        CRCLUtils.clearAndSetList(firstActuateJointsCmd.getActuateJoint(), firstActuateJointsList);
+        final List<ActuateJointType> actuateJointsListLocal
+                = firstActuateJointsCmd.getActuateJoint();
+        actuateJointsListLocal.clear();
+        actuateJointsListLocal.addAll(firstActuateJointsList);
+//        CRCLUtils.clearAndSetList(actuateJointsListLocal, firstActuateJointsList);
         return firstActuateJointsCmd;
     }
 

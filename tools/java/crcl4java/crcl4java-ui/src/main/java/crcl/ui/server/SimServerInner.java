@@ -39,6 +39,7 @@ import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
+import crcl.base.JointLimitType;
 import crcl.base.JointPositionToleranceSettingType;
 import crcl.base.JointPositionsTolerancesType;
 import crcl.base.JointSpeedAccelType;
@@ -49,6 +50,7 @@ import crcl.base.MoveScrewType;
 import crcl.base.MoveThroughToType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
+import crcl.base.ParameterSettingType;
 import crcl.base.PointType;
 import crcl.base.PoseAndSetType;
 import crcl.base.PoseStatusType;
@@ -231,7 +233,11 @@ public class SimServerInner {
             if (null != newJointStatusesName) {
                 jointStatuses.setName(newJointStatusesName);
             }
-            clearAndSetList(jointStatuses.getJointStatus(), newJointStatuses.getJointStatus());
+            final List<JointStatusType> jointStatusesListLocal 
+                    = jointStatuses.getJointStatus();
+            jointStatusesListLocal.clear();
+            jointStatusesListLocal.addAll(newJointStatuses.getJointStatus());
+//            clearAndSetList(jointStatusesListLocal, newJointStatuses.getJointStatus());
 //            final List<JointStatusType> jointStatusList = getNonNullFilteredList(jointStatuses.getJointStatus());
 //            if (null != jointStatusList) {
 //                jointStatusList.clear();
@@ -251,9 +257,12 @@ public class SimServerInner {
             if (null != endEffectorSetting) {
                 settingsStatus.setEndEffectorSetting(endEffectorSetting);
             }
-            clearAndSetList(
-                    settingsStatus.getEndEffectorParameterSetting(),
-                    newSettingsStatus.getEndEffectorParameterSetting());
+            final List<ParameterSettingType> endEffectorParameterSettingsListLocal
+                    = settingsStatus.getEndEffectorParameterSetting();
+            endEffectorParameterSettingsListLocal.clear();
+            endEffectorParameterSettingsListLocal.addAll(newSettingsStatus.getEndEffectorParameterSetting());
+//            clearAndSetList(endEffectorParameterSettingsListLocal,
+//                    newSettingsStatus.getEndEffectorParameterSetting());
             ForceUnitEnumType forceUnitName = newSettingsStatus.getForceUnitName();
             if (null != forceUnitName) {
                 settingsStatus.setForceUnitName(forceUnitName);
@@ -262,9 +271,12 @@ public class SimServerInner {
             if (null != intermediatePoseTolerance) {
                 settingsStatus.setIntermediatePoseTolerance(intermediatePoseTolerance);
             }
-            clearAndSetList(
-                    settingsStatus.getJointLimits(),
-                    newSettingsStatus.getJointLimits());
+            final List<JointLimitType> jointLimitsListLocal 
+                    = settingsStatus.getJointLimits();
+            jointLimitsListLocal.clear();
+            jointLimitsListLocal.addAll(newSettingsStatus.getJointLimits());
+//            clearAndSetList(jointLimitsListLocal,
+//                    newSettingsStatus.getJointLimits());
             settingsStatus.setLengthUnitName(newSettingsStatus.getLengthUnitName());
             PointType maxCartesianLimit = newSettingsStatus.getMaxCartesianLimit();
             if (null != maxCartesianLimit) {
@@ -278,7 +290,11 @@ public class SimServerInner {
             if (null != endPoseTolerance) {
                 settingsStatus.setEndPoseTolerance(endPoseTolerance);
             }
-            clearAndSetList(settingsStatus.getRobotParameterSetting(), newSettingsStatus.getRobotParameterSetting());
+            final List<ParameterSettingType> robotParameterSettingsListLocal 
+                    = settingsStatus.getRobotParameterSetting();
+            robotParameterSettingsListLocal.clear();
+            robotParameterSettingsListLocal.addAll(newSettingsStatus.getRobotParameterSetting());
+//            clearAndSetList(robotParameterSettingsListLocal, newSettingsStatus.getRobotParameterSetting());
 
             RotAccelAbsoluteType rotAccelAbsolute = newSettingsStatus.getRotAccelAbsolute();
             if (null != rotAccelAbsolute) {
@@ -2033,7 +2049,11 @@ public class SimServerInner {
                             jsl.add(js);
                         }
                         JointStatusesType jsst = getJointStatuses();
-                        CRCLUtils.clearAndSetList(jsst.getJointStatus(), jsl);
+                        final List<JointStatusType> jointStatusesListLocal 
+                                = jsst.getJointStatus();
+                        jointStatusesListLocal.clear();
+                        jointStatusesListLocal.addAll(jsl);
+//                        CRCLUtils.clearAndSetList(jointStatusesListLocal, jsl);
                     }
                     if (jointschanged
                             || null == currentPose) {

@@ -267,7 +267,7 @@ public class CRCLUtils {
         return ret;
     }
 
-    @SuppressWarnings({"nullness", "initialization"})
+//    @SuppressWarnings({"nullness", "initialization"})
     public static <T> void clearAndSetList(@Nullable List<@Nullable T> list, @Nullable Collection<? extends T> collectionToAdd) {
         if (null != list) {
             list.clear();
@@ -278,7 +278,7 @@ public class CRCLUtils {
     }
 
     @SuppressWarnings({"nullness", "initialization"})
-    public static <T> List<@NonNull T> getNonNullFilteredList(@Nullable Iterable<@Nullable T> itIn) {
+    public static <T> List<@NonNull T> getNonNullFilteredList(@Nullable Iterable<T> itIn) {
         if (null == itIn) {
             return Collections.emptyList();
         }

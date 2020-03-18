@@ -448,6 +448,12 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     public static XFutureVoid allOfWithName(String name, CompletableFuture<?>... cfs) {
+        for (int i = 0; i < cfs.length; i++) {
+            CompletableFuture<?> cf = cfs[i];
+            if(null == cf) {
+                throw new RuntimeException("name="+name+", cfs["+i+"] is null");
+            }
+        }
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFutureVoid retXFV = staticwrapvoid(name, orig);
         if (retXFV != orig) {
@@ -457,6 +463,12 @@ public class XFutureVoid extends XFuture<Void> {
     }
 
     public static XFutureVoid allOf(CompletableFuture<?>... cfs) {
+        for (int i = 0; i < cfs.length; i++) {
+            CompletableFuture<?> cf = cfs[i];
+            if(null == cf) {
+                throw new RuntimeException("cfs["+i+"] is null");
+            }
+        }
         CompletableFuture<Void> orig = CompletableFuture.allOf(cfs);
         XFutureVoid retXFV = staticwrapvoid("XFutureVoid.allOf.cfs.length=" + cfs.length, orig);
         if (retXFV != orig) {

@@ -16,6 +16,7 @@
               
         // Start of code Injected with xjc/maven-jaxb2-plugin  arg -Xinject-code -b inject.xjb
         @Override
+        @SuppressWarnings("nullness")
         public String toString() { 
             return this.getName();
         }
@@ -24,7 +25,7 @@
             = new java.util.concurrent.atomic.AtomicInteger();
 
         protected DataThingType() {
-            this.name=this.getClass().getName()+"."+NAME_ID_ATOMIC_INTEGER.incrementAndGet();
+            this.name="thing."+NAME_ID_ATOMIC_INTEGER.incrementAndGet();
         }
 
         // End of code Injected with xjc/maven-jaxb2-plugin  arg -Xinject-code -b inject.xjb
@@ -40,6 +41,7 @@
         // Start of code Injected with xjc/maven-jaxb2-plugin  arg -Xinject-code -b inject.xjb
 
         @Override
+        @SuppressWarnings("nullness")
         public String toString() { 
             return "{"+this.parameterName+"="+this.parameterValue+"} ";
         }
