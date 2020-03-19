@@ -943,7 +943,10 @@ public class FanucCRCLMain {
         if (null != crclServerSocket && null != serverSocketStatus) {
             synchronized (status) {
                 synchronized (crclServerSocket) {
-                    serverSocketStatus.setJointStatuses(copy(status.getJointStatuses()));
+                    final JointStatusesType jointStatusesLocal = status.getJointStatuses();
+                    if(null != jointStatusesLocal) {
+                        serverSocketStatus.setJointStatuses(copy(jointStatusesLocal));
+                    }
                     if (null == status.getPoseStatus()) {
                         serverSocketStatus.setPoseStatus(copy(poseStatus));
                     } else {
