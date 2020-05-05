@@ -15,6 +15,7 @@ import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
 import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
+import static crcl.ui.forcetorquesensorsimulator.InOutJPanel.insideStack;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
@@ -25,6 +26,7 @@ import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
 import crcl.utils.server.CRCLServerSocketEventListener;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -44,6 +47,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.apache.commons.csv.CSVFormat;
@@ -72,6 +77,26 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         PoseDisplay.updateDisplayMode(jTablePose, PoseDisplayMode.XYZ_RPY, false);
         PoseDisplay.updateDisplayMode(jTablePoseForceOut, PoseDisplayMode.XYZ_RPY, false);
         updateSensorStatus();
+        final DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
+        model.addTableModelListener((TableModelEvent e) -> {
+//            System.out.println("e = " + e);
+//            System.out.println("e.getType() = " + e.getType());
+//            switch (e.getType()) {
+//                case TableModelEvent.INSERT:
+//                    System.out.println("INSERT");
+//                    break;
+//
+//                case TableModelEvent.DELETE:
+//                    System.out.println("DELETE");
+//                    break;
+//
+//                case TableModelEvent.UPDATE:
+//                    System.out.println("UPDATE");
+//                    break;
+//
+//            }
+            inOutJPanel1.setStacks(modelToList(model));
+        });
     }
 
     /**
@@ -110,13 +135,17 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         valueJPanelTy = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         valueJPanelTz = new crcl.ui.forcetorquesensorsimulator.ValueJPanel();
         jPanel2 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        jTextFieldObjectsFile = new javax.swing.JTextField();
+        jButtonDeleteObject = new javax.swing.JButton();
+        jButtonOpenObjectsFile = new javax.swing.JButton();
+        jButtonSaveObjectsFile = new javax.swing.JButton();
+        jButtonAddObject = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableObjects = new javax.swing.JTable();
-        jTextFieldObjectsFile = new javax.swing.JTextField();
-        jButtonSaveObjectsFile = new javax.swing.JButton();
-        jButtonOpenObjectsFile = new javax.swing.JButton();
-        jButtonAddObject = new javax.swing.JButton();
-        jButtonDeleteObject = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        inOutJPanel1 = new crcl.ui.forcetorquesensorsimulator.InOutJPanel();
+        jSlider1 = new javax.swing.JSlider();
 
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
@@ -360,7 +389,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 .addGroup(jPanelCommunicationsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanelForceOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(107, Short.MAX_VALUE))
+                .addContainerGap(184, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Communications", jPanelCommunications);
@@ -407,33 +436,15 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 .addComponent(valueJPanelTy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(valueJPanelTz, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(176, Short.MAX_VALUE))
+                .addContainerGap(245, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Offset: ", jPanelOffsets);
 
-        jTableObjects.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Name", "X_Min", "Y_Min", "Z_Min", "X_Maxl", "Y_Max", "Z_Max", "X_Scale", "Y_Scale", "Z_Scale"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        jScrollPane1.setViewportView(jTableObjects);
-
-        jButtonSaveObjectsFile.setText("Save");
-        jButtonSaveObjectsFile.addActionListener(new java.awt.event.ActionListener() {
+        jButtonDeleteObject.setText("Delete");
+        jButtonDeleteObject.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonSaveObjectsFileActionPerformed(evt);
+                jButtonDeleteObjectActionPerformed(evt);
             }
         });
 
@@ -444,6 +455,13 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             }
         });
 
+        jButtonSaveObjectsFile.setText("Save");
+        jButtonSaveObjectsFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSaveObjectsFileActionPerformed(evt);
+            }
+        });
+
         jButtonAddObject.setText("Add");
         jButtonAddObject.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -451,52 +469,133 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             }
         });
 
-        jButtonDeleteObject.setText("Delete");
-        jButtonDeleteObject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonDeleteObjectActionPerformed(evt);
+        jTableObjects.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Name", "Count", "Width", "Length", "Height", "X", "Y", "Z", "Rotation", "Scale"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Integer.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
             }
         });
+        jScrollPane1.setViewportView(jTableObjects);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 676, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 663, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
                         .addComponent(jTextFieldObjectsFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonOpenObjectsFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonSaveObjectsFile))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
                         .addComponent(jButtonAddObject)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButtonDeleteObject)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldObjectsFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButtonSaveObjectsFile)
                     .addComponent(jButtonOpenObjectsFile))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonAddObject)
                     .addComponent(jButtonDeleteObject))
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Objects", jPanel2);
+        javax.swing.GroupLayout inOutJPanel1Layout = new javax.swing.GroupLayout(inOutJPanel1);
+        inOutJPanel1.setLayout(inOutJPanel1Layout);
+        inOutJPanel1Layout.setHorizontalGroup(
+            inOutJPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        inOutJPanel1Layout.setVerticalGroup(
+            inOutJPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 284, Short.MAX_VALUE)
+        );
+
+        jSlider1.setMaximum(89);
+        jSlider1.setPaintTicks(true);
+        jSlider1.setValue(30);
+        jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jSlider1StateChanged(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(inOutJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(15, 15, 15))
+                    .addComponent(jSlider1, javax.swing.GroupLayout.DEFAULT_SIZE, 663, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(23, 23, 23)
+                .addComponent(inOutJPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(384, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                    .addGap(259, 259, 259)
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+
+        jTabbedPane1.addTab("Stacks", jPanel2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -596,9 +695,13 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         getPose();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private double addx = 0;
+
     private void jButtonAddObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddObjectActionPerformed
-        DefaultTableModel dtm = (DefaultTableModel) jTableObjects.getModel();
-        dtm.addRow(new Object[]{"object" + dtm.getRowCount(), -100.0, -100.0, -100.0, 100.0, 100.0, 100.0, 0.0, 0.0, 1000.0});
+        DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
+        addx += 100.0;
+        model.addRow(new Object[]{"object" + model.getRowCount(), 1, 100.0, 100.0, 100.0, addx, 0.0, 0.0, 0.0, -1.00});
+        this.inOutJPanel1.setStacks(modelToList(model));
     }//GEN-LAST:event_jButtonAddObjectActionPerformed
 
     private void jButtonDeleteObjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeleteObjectActionPerformed
@@ -606,8 +709,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         if (selectedRow < 0 || selectedRow > jTableObjects.getRowCount()) {
             return;
         }
-        DefaultTableModel dtm = (DefaultTableModel) jTableObjects.getModel();
-        dtm.removeRow(selectedRow);
+        DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
+        model.removeRow(selectedRow);
+        this.inOutJPanel1.setStacks(modelToList(model));
     }//GEN-LAST:event_jButtonDeleteObjectActionPerformed
 
     private void jButtonOpenObjectsFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenObjectsFileActionPerformed
@@ -642,10 +746,113 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_jButtonSaveObjectsFileActionPerformed
 
+    private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
+        inOutJPanel1.setHeightViewAngle((double) jSlider1.getValue());
+    }//GEN-LAST:event_jSlider1StateChanged
+
+    List<TrayStack> modelToList(DefaultTableModel model) {
+        List<TrayStack> newList = new ArrayList<>();
+        final int nameColumn = model.findColumn("Name");
+        final int countColumn = model.findColumn("Count");
+        final int widthColumn = model.findColumn("Width");
+        final int lengthColumn = model.findColumn("Length");
+        final int heightColumn = model.findColumn("Height");
+        final int xColumn = model.findColumn("X");
+        final int yColumn = model.findColumn("Y");
+        final int zColumn = model.findColumn("Z");
+        final int rotationColumn = model.findColumn("Rotation");
+        final int scaleColumn = model.findColumn("Scale");
+        final Vector dataVector = model.getDataVector();
+//        System.out.println("dataVector = " + dataVector);
+        for (int i = 0; i < model.getRowCount(); i++) {
+            TrayStack stack = new TrayStack();
+            final Object nameObject = model.getValueAt(i, nameColumn);
+            if (nameObject instanceof String) {
+                stack.name = (String) nameObject;
+            } else {
+                continue;
+            }
+            Object countObject = model.getValueAt(i, countColumn);
+            if (countObject instanceof Integer) {
+                stack.count = (Integer) countObject;
+            } else if (countObject != null) {
+                stack.count = Integer.parseInt(countObject.toString());
+            } else {
+                continue;
+            }
+            Object widthObject = model.getValueAt(i, widthColumn);
+            if (widthObject instanceof Double) {
+                stack.width = (Double) widthObject;
+            } else if (widthObject != null) {
+                stack.width = Double.parseDouble(widthObject.toString());
+            } else {
+                continue;
+            }
+            Object lengthObject = model.getValueAt(i, lengthColumn);
+            if (lengthObject instanceof Double) {
+                stack.length = (Double) lengthObject;
+            } else if (lengthObject != null) {
+                stack.length = Double.parseDouble(lengthObject.toString());
+            } else {
+                continue;
+            }
+            Object heightObject = model.getValueAt(i, heightColumn);
+            if (heightObject instanceof Double) {
+                stack.height = (Double) heightObject;
+            } else if (heightObject != null) {
+                stack.height = Double.parseDouble(heightObject.toString());
+            }
+            Object xObject = model.getValueAt(i, xColumn);
+            if (xObject instanceof Double) {
+                stack.x = (Double) xObject;
+            } else if (xObject != null) {
+                stack.x = Double.parseDouble(xObject.toString());
+            } else {
+                continue;
+            }
+            Object yObject = model.getValueAt(i, yColumn);
+            if (yObject instanceof Double) {
+                stack.y = (Double) yObject;
+            } else if (yObject != null) {
+                stack.y = Double.parseDouble(yObject.toString());
+            } else {
+                continue;
+            }
+            Object zObject = model.getValueAt(i, zColumn);
+            if (zObject instanceof Double) {
+                stack.z = (Double) zObject;
+            } else if (zObject != null) {
+                stack.z = Double.parseDouble(zObject.toString());
+            } else {
+                continue;
+            }
+            Object rotationObject = model.getValueAt(i, rotationColumn);
+            if (rotationObject instanceof Double) {
+                stack.rotationRadians = Math.toRadians((Double) rotationObject);
+            } else if (rotationObject != null) {
+                stack.rotationRadians = Math.toRadians(Double.parseDouble(rotationObject.toString()));
+            } else {
+                continue;
+            }
+            Object scaleObject = model.getValueAt(i, scaleColumn);
+            if (scaleObject instanceof Double) {
+                stack.scale = (Double) scaleObject;
+            } else if (scaleObject != null) {
+                stack.scale = Double.parseDouble(scaleObject.toString());
+            } else {
+                continue;
+            }
+            newList.add(stack);
+        }
+        return newList;
+    }
+
     private void loadObjectsFile(final File selectedFile) {
         try {
             jTextFieldObjectsFile.setText(selectedFile.getCanonicalPath());
-            readCsvFileToTableAndMap(false, (DefaultTableModel) jTableObjects.getModel(), selectedFile, null, null, null);
+            final DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
+            readCsvFileToTableAndMap(false, model, selectedFile, null, null, null);
+            this.inOutJPanel1.setStacks(modelToList(model));
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "selectedFile=" + selectedFile, ex);
         }
@@ -983,30 +1190,42 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         double zposeEffect = 0.0;
         if (null != pose) {
             final PointType point = pose.getPoint();
+//            Point2D.Double pt2d = new Point2D.Double(point.getX(), point.getY());
             if (null != point) {
-                double x = point.getX();
-                double y = point.getY();
-                double z = point.getZ();
-                for (int i = 0; i < jTableObjects.getRowCount(); i++) {
-                    double xmin = (Double) jTableObjects.getModel().getValueAt(i, 1);
-                    double ymin = (Double) jTableObjects.getModel().getValueAt(i, 2);
-                    double zmin = (Double) jTableObjects.getModel().getValueAt(i, 3);
-                    double xmax = (Double) jTableObjects.getModel().getValueAt(i, 4);
-                    double ymax = (Double) jTableObjects.getModel().getValueAt(i, 5);
-                    double zmax = (Double) jTableObjects.getModel().getValueAt(i, 6);
-                    double xscale = (Double) jTableObjects.getModel().getValueAt(i, 7);
-                    double yscale = (Double) jTableObjects.getModel().getValueAt(i, 8);
-                    double zscale = (Double) jTableObjects.getModel().getValueAt(i, 9);
-                    if (x > xmin && x < xmax
-                            && y > ymin && y < ymax
-                            && z > zmin && z < zmax) {
-                        double xdiff = Math.min(x - xmin, xmax - x);
-                        double ydiff = Math.min(y - ymin, ymax - y);
-                        double zdiff = Math.min(z - zmin, zmax - z);
-                        xposeEffect += xscale * xdiff;
-                        yposeEffect += yscale * ydiff;
-                        zposeEffect += zscale * zdiff;
+                inOutJPanel1.setRobotPose(pose);
+                List<TrayStack> stacks = inOutJPanel1.getStacks();
+                for (TrayStack stack : stacks) {
+//                    Rectangle2D.Double rect = new Rectangle2D.Double(stack.x, stack.y, stack.width, stack.length);
+                    final double zdiff = inOutJPanel1.poseStackZDiff(stack);
+                    if (Double.isFinite(zdiff) && zdiff > 0) {
+                        zposeEffect += stack.scale * zdiff;
                     }
+
+//                double pointX = point.getX();
+//                double pointY = point.getY();
+//                double pointZ = point.getZ();
+//                for (int i = 0; i < jTableObjects.getRowCount(); i++) {
+//                    int count = (Integer) jTableObjects.getModel().getValueAt(i, 1);
+//                    double width = (Double) jTableObjects.getModel().getValueAt(i, 2);
+//                    double length = (Double) jTableObjects.getModel().getValueAt(i, 3);
+//                    double height = (Double) jTableObjects.getModel().getValueAt(i, 4);
+//                    double objectX = (Double) jTableObjects.getModel().getValueAt(i, 5);
+//                    double objectY = (Double) jTableObjects.getModel().getValueAt(i, 6);
+//                    double objectZ = (Double) jTableObjects.getModel().getValueAt(i, 7);
+//                    double rotation = (Double) jTableObjects.getModel().getValueAt(i, 7);
+//                    double scale = (Double) jTableObjects.getModel().getValueAt(i, 8);
+//                    double zscale = (Double) jTableObjects.getModel().getValueAt(i, 9);
+////                    if (pointX > xmin && pointX < xmax
+////                            && pointY > ymin && pointY < ymax
+////                            && pointZ > zmin && pointZ < zmax) {
+////                        double xdiff = Math.min(pointX - xmin, xmax - pointX);
+////                        double ydiff = Math.min(pointY - ymin, ymax - pointY);
+////                        double zdiff = Math.min(pointZ - zmin, zmax - pointZ);
+////                        xposeEffect += xscale * xdiff;
+////                        yposeEffect += yscale * ydiff;
+////                        zposeEffect += zscale * zdiff;
+////                    }
+//                }
                 }
             }
         }
@@ -1046,6 +1265,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private crcl.ui.forcetorquesensorsimulator.InOutJPanel inOutJPanel1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButtonAddObject;
     private javax.swing.JButton jButtonDeleteObject;
@@ -1061,12 +1281,15 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     final javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanelCRCLPositionIn;
     private javax.swing.JPanel jPanelCommunications;
     private javax.swing.JPanel jPanelCrclSensorServerOut;
     private javax.swing.JPanel jPanelForceOut;
     private javax.swing.JPanel jPanelOffsets;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSlider jSlider1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTableObjects;
     private javax.swing.JTable jTablePose;
