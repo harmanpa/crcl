@@ -76,6 +76,11 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         return this.pendantClientJPanel1.getCurrentProgramLine();
     }
 
+    public CrclSwingClientJPanel getPendantClientJPanel1() {
+        return pendantClientJPanel1;
+    }
+
+    
     @SuppressWarnings("initialization")
     public CrclSwingClientJFrame(String title) throws ParserConfigurationException {
         super(title);

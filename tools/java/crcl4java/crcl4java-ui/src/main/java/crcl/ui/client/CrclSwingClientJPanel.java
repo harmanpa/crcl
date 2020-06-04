@@ -1935,7 +1935,9 @@ public class CrclSwingClientJPanel
             stateDescription = "";
         }
         final CommandStateEnumType state
-                = Objects.requireNonNull(ccst.getCommandState(), "ccst.getCommandState()");
+                = Objects.requireNonNull(
+                        ccst.getCommandState(), 
+                        "ccst.getCommandState()");
         String stateString = state.toString();
         updateTitle(ccst, stateString, stateDescription);
         boolean isRunning = internal.isRunningProgram();

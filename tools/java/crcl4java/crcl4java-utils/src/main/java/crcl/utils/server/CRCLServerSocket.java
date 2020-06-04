@@ -1926,7 +1926,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private void completeSetupNewClientState(STATE_TYPE state) {
+    private synchronized void completeSetupNewClientState(STATE_TYPE state) {
         if (automaticallyConvertUnits && null != serverToClientScales) {
             state.filterSettings.setServerToClientScaleSet(serverToClientScales);
         }

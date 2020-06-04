@@ -5,17 +5,20 @@
  */
 package crcl.ui.forcetorquesensorsimulator;
 
+import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GetStatusType;
+import crcl.base.GripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
 import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
-import static crcl.ui.forcetorquesensorsimulator.InOutJPanel.insideStack;
+import crcl.ui.client.CrclSwingClientJPanel;
+import crcl.ui.client.CurrentPoseListener;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
@@ -48,7 +51,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.apache.commons.csv.CSVFormat;
@@ -663,6 +665,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             CRCLSocket newConnection = new CRCLSocket(jTextFieldPoseCRCLHost.getText(), Integer.parseInt(jTextFieldPoseCRCLPort.getText().trim()));
             ConfigureStatusReportType confStatus = new ConfigureStatusReportType();
             confStatus.setReportPoseStatus(true);
+            confStatus.setReportGripperStatus(true);
             newConnection.writeCommand(confStatus);
             poseInConnection = newConnection;
             timer = new javax.swing.Timer(50, e -> {
@@ -750,6 +753,35 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         inOutJPanel1.setHeightViewAngle((double) jSlider1.getValue());
     }//GEN-LAST:event_jSlider1StateChanged
 
+    
+    void listToModel(DefaultTableModel model,List<TrayStack> newList) {
+        final int nameColumn = model.findColumn("Name");
+        final int countColumn = model.findColumn("Count");
+        final int widthColumn = model.findColumn("Width");
+        final int lengthColumn = model.findColumn("Length");
+        final int heightColumn = model.findColumn("Height");
+        final int xColumn = model.findColumn("X");
+        final int yColumn = model.findColumn("Y");
+        final int zColumn = model.findColumn("Z");
+        final int rotationColumn = model.findColumn("Rotation");
+        final int scaleColumn = model.findColumn("Scale");
+//        final Vector dataVector = model.getDataVector();
+//        dataVector.setSize(newList.size());
+        model.setRowCount(newList.size());
+        for (int i = 0; i < newList.size(); i++) {
+            TrayStack stack = newList.get(i);
+//            final Vector rowVector = (Vector) dataVector.elementAt(i);
+            
+            model.setValueAt(stack.name, i,  nameColumn);
+            model.setValueAt(stack.count, i,  countColumn);
+            model.setValueAt(stack.width, i,  widthColumn);
+            model.setValueAt(stack.length, i,  lengthColumn);
+            model.setValueAt(stack.height, i,  heightColumn);
+            model.setValueAt(stack.x, i,  xColumn);
+            model.setValueAt(stack.y, i,  yColumn);
+            model.setValueAt(stack.z, i,  zColumn);
+        }
+    }
     List<TrayStack> modelToList(DefaultTableModel model) {
         List<TrayStack> newList = new ArrayList<>();
         final int nameColumn = model.findColumn("Name");
@@ -1075,6 +1107,57 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
     private final AtomicInteger getPoseCount = new AtomicInteger();
 
+    private CrclSwingClientJPanel crclClientPanel;
+
+    /**
+     * Get the value of crclClientPanel
+     *
+     * @return the value of crclClientPanel
+     */
+    public CrclSwingClientJPanel getCrclClientPanel() {
+        return crclClientPanel;
+    }
+
+    /**
+     * Set the value of crclClientPanel
+     *
+     * @param crclClientPanel new value of crclClientPanel
+     */
+    public void setCrclClientPanel(CrclSwingClientJPanel crclClientPanel) {
+        this.crclClientPanel = crclClientPanel;
+        if (null != crclClientPanel) {
+            this.jTextFieldPoseCRCLHost.setEditable(false);
+            this.jTextFieldPoseCRCLHost.setEnabled(false);
+            this.jTextFieldPoseCRCLPort.setEditable(false);
+            this.jTextFieldPoseCRCLPort.setEnabled(false);
+            this.crclClientPanel.addCurrentPoseListener(currentPoseListener);
+        } else {
+            this.jTextFieldPoseCRCLHost.setEditable(true);
+            this.jTextFieldPoseCRCLHost.setEnabled(true);
+            this.jTextFieldPoseCRCLPort.setEditable(true);
+            this.jTextFieldPoseCRCLPort.setEnabled(true);
+        }
+    }
+
+    private volatile XFuture<PoseType> nextPoseFuture = null;
+
+    private volatile boolean lastIsHoldingObjectExpected = false;
+    private final AtomicInteger holdingObjectChanges = new AtomicInteger();
+
+    private final CurrentPoseListener currentPoseListener = new CurrentPoseListener() {
+        @Override
+        public synchronized void handlePoseUpdate(CrclSwingClientJPanel panel, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime) {
+            if (null != nextPoseFuture && !nextPoseFuture.isDone() && null != stat && null != stat.getPoseStatus()) {
+                if (isHoldingObjectExpected != lastIsHoldingObjectExpected) {
+                    lastIsHoldingObjectExpected = isHoldingObjectExpected;
+                    holdingObjectChanges.incrementAndGet();
+                    System.out.println("isHoldingObjectExpected = " + isHoldingObjectExpected);
+                }
+                nextPoseFuture.complete(stat.getPoseStatus().getPose());
+            }
+        }
+    };
+
     private @Nullable
     PoseType getPose() {
         final CRCLSocket poseInConnectionStackCopy = poseInConnection;
@@ -1084,6 +1167,11 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 getStatusCmd.setName("ForceTorqueSimGetPose" + getPoseCount.incrementAndGet());
                 poseInConnectionStackCopy.writeCommand(getStatusCmd);
                 CRCLStatusType newStatus = Objects.requireNonNull(poseInConnectionStackCopy.readStatus(), "poseInConnection.readStatus()");
+//                final GripperStatusType gripperStatus = newStatus.getGripperStatus();
+//                if (null != gripperStatus) {
+//                    final Boolean holdingObject = gripperStatus.isHoldingObject();
+//                    System.out.println("holdingObject = " + holdingObject);
+//                }
                 this.poseStatus = newStatus;
                 final PoseStatusType newPoseStatus = Objects.requireNonNull(newStatus.getPoseStatus(), "newStatus.getPoseStatus()");
                 final PoseType pose = Objects.requireNonNull(newPoseStatus.getPose(), "newPoseStatus.getPose()");
@@ -1117,6 +1205,10 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
     @SuppressWarnings("nullness")
     private XFuture<@Nullable PoseType> getPoseFuture() {
+        if (null != crclClientPanel) {
+            nextPoseFuture = new XFuture<>("nextPose");
+            return nextPoseFuture;
+        }
         if (null == poseInConnection) {
             return XFuture.completedFuture(null);
         }
@@ -1184,48 +1276,61 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         });
     }
 
-    private XFuture<CRCLStatusType> updateSensorStatusWithPose(@Nullable PoseType pose) {
+    public List<TrayStack> getStacks() {
+        return inOutJPanel1.getStacks();
+    }
+
+    /**
+     * Set the value of stacks
+     *
+     * @param stacks new value of stacks
+     */
+    public void setStacks(List<TrayStack> stacks) {
+        listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
+        inOutJPanel1.setStacks(stacks);
+        this.repaint();
+    }
+    
+    private volatile int lastUpdateSensorStatusWithPoseHoldingObjectChanges = -1;
+
+    private synchronized XFuture<CRCLStatusType> updateSensorStatusWithPose(@Nullable PoseType pose) {
         double xposeEffect = 0.0;
         double yposeEffect = 0.0;
         double zposeEffect = 0.0;
         if (null != pose) {
-            final PointType point = pose.getPoint();
+            final PointType posePoint = pose.getPoint();
 //            Point2D.Double pt2d = new Point2D.Double(point.getX(), point.getY());
-            if (null != point) {
+            if (null != posePoint) {
                 inOutJPanel1.setRobotPose(pose);
+                int changesCount = holdingObjectChanges.get();
+                boolean newHoldingStatus = changesCount != lastUpdateSensorStatusWithPoseHoldingObjectChanges;
+                lastUpdateSensorStatusWithPoseHoldingObjectChanges = changesCount;
                 List<TrayStack> stacks = inOutJPanel1.getStacks();
-                for (TrayStack stack : stacks) {
-//                    Rectangle2D.Double rect = new Rectangle2D.Double(stack.x, stack.y, stack.width, stack.length);
-                    final double zdiff = inOutJPanel1.poseStackZDiff(stack);
-                    if (Double.isFinite(zdiff) && zdiff > 0) {
-                        zposeEffect += stack.scale * zdiff;
+                if (null != stacks) {
+                    for (TrayStack stack : stacks) {
+                        if (newHoldingStatus) {
+                            boolean inside = InOutJPanel.insideStack(stack, new Point2D.Double(posePoint.getX(), posePoint.getY()));
+                            if (inside) {
+                                if (lastIsHoldingObjectExpected) {
+                                    if (stack.count > 0) {
+                                        stack.count--;
+                                        inOutJPanel1.setHoldingFromStack(stack);
+                                        listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
+                                        
+                                    }
+                                } else {
+                                    stack.count++;
+                                    inOutJPanel1.setHoldingFromStack(null);
+                                    listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
+                                }
+                                newHoldingStatus = false;
+                            }
+                        }
+                        final double zdiff = inOutJPanel1.poseStackZDiff(stack);
+                        if (Double.isFinite(zdiff) && zdiff > 0) {
+                            zposeEffect += stack.scale * zdiff;
+                        }
                     }
-
-//                double pointX = point.getX();
-//                double pointY = point.getY();
-//                double pointZ = point.getZ();
-//                for (int i = 0; i < jTableObjects.getRowCount(); i++) {
-//                    int count = (Integer) jTableObjects.getModel().getValueAt(i, 1);
-//                    double width = (Double) jTableObjects.getModel().getValueAt(i, 2);
-//                    double length = (Double) jTableObjects.getModel().getValueAt(i, 3);
-//                    double height = (Double) jTableObjects.getModel().getValueAt(i, 4);
-//                    double objectX = (Double) jTableObjects.getModel().getValueAt(i, 5);
-//                    double objectY = (Double) jTableObjects.getModel().getValueAt(i, 6);
-//                    double objectZ = (Double) jTableObjects.getModel().getValueAt(i, 7);
-//                    double rotation = (Double) jTableObjects.getModel().getValueAt(i, 7);
-//                    double scale = (Double) jTableObjects.getModel().getValueAt(i, 8);
-//                    double zscale = (Double) jTableObjects.getModel().getValueAt(i, 9);
-////                    if (pointX > xmin && pointX < xmax
-////                            && pointY > ymin && pointY < ymax
-////                            && pointZ > zmin && pointZ < zmax) {
-////                        double xdiff = Math.min(pointX - xmin, xmax - pointX);
-////                        double ydiff = Math.min(pointY - ymin, ymax - pointY);
-////                        double zdiff = Math.min(pointZ - zmin, zmax - pointZ);
-////                        xposeEffect += xscale * xdiff;
-////                        yposeEffect += yscale * ydiff;
-////                        zposeEffect += zscale * zdiff;
-////                    }
-//                }
                 }
             }
         }

@@ -22,6 +22,7 @@
  */
 package crcl.ui.forcetorquesensorsimulator;
 
+import crcl.ui.client.CrclSwingClientJPanel;
 import java.io.IOException;
 import java.util.logging.Level;
 
@@ -85,6 +86,23 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
         forceTorqueSimJPanel2.setObjectsFileName(name);
     }
     
+    /**
+     * Get the value of crclClientPanel
+     *
+     * @return the value of crclClientPanel
+     */
+    public CrclSwingClientJPanel getCrclClientPanel() {
+        return forceTorqueSimJPanel2.getCrclClientPanel();
+    }
+
+    /**
+     * Set the value of crclClientPanel
+     *
+     * @param crclClientPanel new value of crclClientPanel
+     */
+    public void setCrclClientPanel(CrclSwingClientJPanel crclClientPanel) {
+        forceTorqueSimJPanel2.setCrclClientPanel(crclClientPanel);
+    }
     private final crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
     private final javax.swing.JMenuBar jMenuBar1;
 }
