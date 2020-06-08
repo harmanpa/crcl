@@ -81,6 +81,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         this(null);
     }
 
+    public CrclSwingClientJPanel getPendantClientJPanel1() {
+        return pendantClientJPanel1;
+    }
+    
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
         return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran);
     }
