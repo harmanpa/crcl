@@ -10,7 +10,6 @@ import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.GetStatusType;
-import crcl.base.GripperStatusType;
 import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
@@ -50,6 +49,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -81,22 +82,6 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         updateSensorStatus();
         final DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
         model.addTableModelListener((TableModelEvent e) -> {
-//            System.out.println("e = " + e);
-//            System.out.println("e.getType() = " + e.getType());
-//            switch (e.getType()) {
-//                case TableModelEvent.INSERT:
-//                    System.out.println("INSERT");
-//                    break;
-//
-//                case TableModelEvent.DELETE:
-//                    System.out.println("DELETE");
-//                    break;
-//
-//                case TableModelEvent.UPDATE:
-//                    System.out.println("UPDATE");
-//                    break;
-//
-//            }
             inOutJPanel1.setStacks(modelToList(model));
         });
     }
@@ -1085,7 +1070,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     }
 
     public void setPoseCRCLPort(int port) {
-        if (poseInConnection != null && port != poseInConnection.getPort()) {
+        if (poseInConnection != null && port != poseInConnection.getPort() && null == this.crclClientPanel) {
             stopPoseInConnection();
             jTextFieldPoseCRCLPort.setText(Integer.toString(port));
             if (null != getPoseServiceThread) {
@@ -1130,12 +1115,24 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             this.jTextFieldPoseCRCLHost.setEnabled(false);
             this.jTextFieldPoseCRCLPort.setEditable(false);
             this.jTextFieldPoseCRCLPort.setEnabled(false);
+            this.setPoseCRCLPort(crclClientPanel.getPort());
+            this.setPoseCRCLHost(crclClientPanel.getHost());
             this.crclClientPanel.addCurrentPoseListener(currentPoseListener);
+            final Border border = jPanelCRCLPositionIn.getBorder();
+            if(border instanceof TitledBorder) {
+                TitledBorder titledBorder  = (TitledBorder) border;
+                titledBorder.setTitle("CRCL Pose In Connection : "+crclClientPanel);
+            }
         } else {
             this.jTextFieldPoseCRCLHost.setEditable(true);
             this.jTextFieldPoseCRCLHost.setEnabled(true);
             this.jTextFieldPoseCRCLPort.setEditable(true);
             this.jTextFieldPoseCRCLPort.setEnabled(true);
+            final Border border = jPanelCRCLPositionIn.getBorder();
+            if(border instanceof TitledBorder) {
+                TitledBorder titledBorder  = (TitledBorder) border;
+                titledBorder.setTitle("CRCL Pose In Connection");
+            }
         }
     }
 

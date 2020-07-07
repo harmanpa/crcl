@@ -101,6 +101,7 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
      * @param crclClientPanel new value of crclClientPanel
      */
     public void setCrclClientPanel(CrclSwingClientJPanel crclClientPanel) {
+        System.out.println("crclClientPanel = " + crclClientPanel);
         forceTorqueSimJPanel2.setCrclClientPanel(crclClientPanel);
     }
     private final crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
