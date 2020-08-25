@@ -23,16 +23,34 @@
 package crcl.utils;
 
 /**
+ * Marker class used to mark exceptions generated within CRCL utilities.
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("javadoc")
 public class CRCLException extends Exception {
-    
-    public CRCLException(Throwable cause) {
+
+    /**
+     * Constructor to wrap super class Exception constructor.
+     *
+     * @param cause the cause (which is saved for later retrieval by the
+     * {@link #getCause()} method). (A <tt>null</tt> value is permitted, and
+     * indicates that the cause is nonexistent or unknown.)
+     */
+    CRCLException(Throwable cause) {
         super(cause);
     }
-    
-    public CRCLException(String msg, Throwable cause) {
-        super(msg,cause);
+
+    /**
+     * Constructor to wrap super class Exception constructor.
+     *
+     * @param message the detail message (which is saved for later retrieval by
+     * the {@link #getMessage()} method).
+     * @param cause the cause (which is saved for later retrieval by the
+     * {@link #getCause()} method). (A <tt>null</tt> value is permitted, and
+     * indicates that the cause is nonexistent or unknown.)
+     */
+    CRCLException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

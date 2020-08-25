@@ -915,7 +915,7 @@ public class CrclSwingClientInner {
         if (progSchema == null) {
             throw new IllegalStateException("progSchema==null");
         }
-        return (checkerCRCLSocket = new CRCLSocket(cmdSchema, statSchema, progSchema));
+        return (checkerCRCLSocket = CRCLSocket.newCRCLSocketForSocketSchemas((Socket)null, cmdSchema, statSchema, progSchema));
     }
 
     public XFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
@@ -2408,11 +2408,12 @@ public class CrclSwingClientInner {
             if (null == readSocket) {
                 throw new IllegalArgumentException("readSocket==null");
             }
-            if (menuOuterLocal.replaceStateSelected()) {
-                readSocket.setStatusStringInputFilter(CRCLSocket.addCRCLToState);
-            } else {
-                readSocket.setStatusStringInputFilter(x -> x);
-            }
+//            if (menuOuterLocal.replaceStateSelected()) {
+//                readSocket.setStatusStringInputFilter(CRCLSocket.addCRCLToState);
+//            } else {
+//                readSocket.setStatusStringInputFilter(x -> x);
+//            }
+            readSocket.setStatusStringInputFilter(x -> x);
             long readStatusStartTime = System.currentTimeMillis();
             final CRCLStatusType curStatus
                     = readSocket.readStatus(validateXmlSchema, timeout);
@@ -2757,12 +2758,11 @@ public class CrclSwingClientInner {
             }
             connectCount.incrementAndGet();
 
-            CRCLSocket origCrclSocket = this.crclSocket;
-            CRCLSocket newCrclSocket = new CRCLSocket(host, port, cmdSchema, statSchema, progSchema);
+            CRCLSocket newCrclSocket = CRCLSocket.newCRCLSocketForHostPortSchemas(host, port, cmdSchema, statSchema, progSchema);
             this.crclSocket = newCrclSocket;
-            CRCLSocket newEmergencyStopSocket = new CRCLSocket(host, port, cmdSchema, statSchema, progSchema);
+            CRCLSocket newEmergencyStopSocket = CRCLSocket.newCRCLSocketForHostPortSchemas(host, port, cmdSchema, statSchema, progSchema);
             this.crclEmergencyStopSocket = newEmergencyStopSocket;
-            CRCLSocket newPollingSocket = new CRCLSocket(host, port, cmdSchema, statSchema, progSchema);
+            CRCLSocket newPollingSocket = CRCLSocket.newCRCLSocketForHostPortSchemas(host, port, cmdSchema, statSchema, progSchema);
             this.crclStatusPollingSocket = newPollingSocket;
             lastSocketLocalPort = socketLocalPort;
             lastSocketRemotePort = socketRemotePort;
@@ -4480,7 +4480,7 @@ public class CrclSwingClientInner {
             EndCanonType endCmd = new EndCanonType();
             testProgram.setEndCanon(endCmd);
             String progString
-                    = getTempCRCLSocket().programToPrettyDocString(testProgram, true);
+                    = getTempCRCLSocket().programToPrettyString(testProgram, true);
             File testProgramFile = (null != tempLogDir)
                     ? File.createTempFile("crclTest", ".xml", tempLogDir)
                     : File.createTempFile("crclTest", ".xml");

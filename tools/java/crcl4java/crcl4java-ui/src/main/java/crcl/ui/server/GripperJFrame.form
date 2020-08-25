@@ -18,13 +18,6 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Options"/>
           </Properties>
-          <SubComponents>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemReplaceState">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Replace CRCL_Working,CRCL_Done with Working,Done ..."/>
-              </Properties>
-            </MenuItem>
-          </SubComponents>
         </Menu>
       </SubComponents>
     </Menu>

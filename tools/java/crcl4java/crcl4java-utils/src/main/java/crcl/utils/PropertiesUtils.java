@@ -30,13 +30,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
- *
- * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * Utility class for saving or reading text property files.
+ * 
+ * @author Will Shackleford
+ * {@literal <william.shackleford@nist.gov>,<wshackle@gmail.com>}
  */
 public class PropertiesUtils {
 
@@ -200,9 +200,15 @@ public class PropertiesUtils {
 //            }
 //        }
 //    }
-    
+
+    /**
+     * Save the given properties in a sorted text file.
+     * @param file file to save properties in or overwrite
+     * @param props properties to save
+     * @throws IOException could not save file
+     */
     public static void saveProperties(File file, Properties props) throws IOException {
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         for(Object key : props.keySet()) {
             names.add(key.toString());
         }

@@ -495,7 +495,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         jMenuItemSetSchemaFiles = new javax.swing.JMenuItem();
         jCheckBoxMenuItemValidateXml = new javax.swing.JCheckBoxMenuItem();
         jMenuOptions = new javax.swing.JMenu();
-        jCheckBoxMenuItemReplaceState = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugWaitForDone = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugSendCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadStatus = new javax.swing.JCheckBoxMenuItem();
@@ -732,9 +731,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         jMenuBarPendantClient.add(jMenuXmlSchemas);
 
         jMenuOptions.setText("Options");
-
-        jCheckBoxMenuItemReplaceState.setText("Replace Ready,Done,.. with CRCL_Ready,CRCL_DONE ...");
-        jMenuOptions.add(jCheckBoxMenuItemReplaceState);
 
         jCheckBoxMenuItemDebugWaitForDone.setText("Debug waitForDone()");
         jMenuOptions.add(jCheckBoxMenuItemDebugWaitForDone);
@@ -999,7 +995,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordCommands;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordPoseList;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceState;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemUseEXI;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXml;
     private javax.swing.JMenu jMenu1;
@@ -1198,10 +1193,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         return jCheckBoxMenuItemValidateXml.isSelected();
     }
 
-    @Override
-    public boolean replaceStateSelected() {
-        return jCheckBoxMenuItemReplaceState.isSelected();
-    }
+//    @Override
+//    public boolean replaceStateSelected() {
+//        return jCheckBoxMenuItemReplaceState.isSelected();
+//    }
 
     @Override
     public boolean isDebugWaitForDoneSelected() {

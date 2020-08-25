@@ -22,10 +22,13 @@
  */
 package crcl.utils;
 
+import java.util.function.Consumer;
+
 /**
- *
+ * Interface implemented by all CRCLCommand listeners 
+ * (previously required to avoid Java 8 Consumer dependency).
+ * 
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface CRCLCommandWrapperConsumer {
-    public void accept(CRCLCommandWrapper wrapper);
+public interface CRCLCommandWrapperConsumer extends Consumer<CRCLCommandWrapper> {
 }

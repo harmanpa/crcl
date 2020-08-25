@@ -120,11 +120,6 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jCheckBoxMenuItemIncludeGripperStatusActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemReplaceState">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Replace CRCL_Working,CRCL_Done with Working,Done ..."/>
-              </Properties>
-            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemDebugMoveDone">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Debug MOVE Done"/>

@@ -715,7 +715,7 @@ public class CRCLCopierTest {
             CRCLProgramType randProgram = reflectiveRandomGenerate(CRCLProgramType.class, new Random(10), new TreeSet<>(Arrays.asList("CRCLCommandWrapper")));
             try {
 
-                String randProgramString = CRCLSocket.getUtilSocket().programToPrettyDocString(randProgram, true);
+                String randProgramString = CRCLSocket.getUtilSocket().programToPrettyString(randProgram, true);
 //            System.out.println("randomProgramFile = " + randomProgramFile);
                 try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
                     pw.println(randProgramString);

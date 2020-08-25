@@ -65,7 +65,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
-public class PerfTest {
+class PerfTest {
 
     private static CRCLStatusType createStatus() {
         CRCLStatusType stat = new CRCLStatusType();

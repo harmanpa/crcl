@@ -485,11 +485,7 @@ public class CrclSwingClientJPanel
                 }
             }
         }
-        try {
-            logShowCurrentProgramLineInfo(line, newProgram, status, progRunDataList, ste);
-        } catch (IOException | JAXBException ex) {
-            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        logShowCurrentProgramLineInfo(line, newProgram, status, progRunDataList, ste);
         if (line >= this.jTableProgram.getRowCount() || line < 0) {
             return;
         }
@@ -647,41 +643,45 @@ public class CrclSwingClientJPanel
         }
     }
 
-    private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, @Nullable CRCLStatusType status, @Nullable List<ProgramRunData> progRunDataList, StackTraceElement trace[]) throws IOException, JAXBException {
+    private void logShowCurrentProgramLineInfo(final int line, CRCLProgramType program, @Nullable CRCLStatusType status, @Nullable List<ProgramRunData> progRunDataList, StackTraceElement trace[]) {
         if (!debugShowProgram) {
             return;
         }
-        PrintStream ps = getShowProgramLogPrintStream();
-        ps.println(" \ttrace=" + Arrays.toString(trace));
-        int count = logShowProgramCount.incrementAndGet();
+        try {
+            PrintStream ps = getShowProgramLogPrintStream();
+            ps.println(" \ttrace=" + Arrays.toString(trace));
+            int count = logShowProgramCount.incrementAndGet();
 
-        String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
-        File programFile = File.createTempFile("logShowCurrentProgramLineInfo_program_" + getPort() + "_" + count, ".xml");
-        try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
-            psProgramFile.println(programString);
-        }
-
-        File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
-        if (null != progRunDataList) {
-            saveProgramRunDataListToCsv(progRunDataListFile, progRunDataList);
-        }
-        long time = System.currentTimeMillis();
-        ps.println("count=" + count + ",time=" + time + ",(time-showProgramLogStartTime)=" + (time - showProgramLogStartTime));
-        String runDataListInfoString = "";
-        if (null != progRunDataList) {
-            runDataListInfoString = "\", programRunDataList=\"" + progRunDataListFile + "\" (size=" + progRunDataList.size() + "))";
-        }
-        if (null != status) {
-            String statusString = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
-            File statusFile = File.createTempFile("logShowCurrentProgramLineInfo_status_" + getPort() + "_" + count, ".xml");
-            try (PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
-                psStatusFile.println(statusString);
+            String programString = CRCLSocket.getUtilSocket().programToPrettyString(program, false);
+            File programFile = File.createTempFile("logShowCurrentProgramLineInfo_program_" + getPort() + "_" + count, ".xml");
+            try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
+                psProgramFile.println(programString);
             }
-            ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + ",status=\"" + statusFile + runDataListInfoString);
-        } else {
-            ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + runDataListInfoString);
+
+            File progRunDataListFile = File.createTempFile("showProgramLog_progRunDataList_" + getPort() + "_" + count, ".csv");
+            if (null != progRunDataList) {
+                saveProgramRunDataListToCsv(progRunDataListFile, progRunDataList);
+            }
+            long time = System.currentTimeMillis();
+            ps.println("count=" + count + ",time=" + time + ",(time-showProgramLogStartTime)=" + (time - showProgramLogStartTime));
+            String runDataListInfoString = "";
+            if (null != progRunDataList) {
+                runDataListInfoString = "\", programRunDataList=\"" + progRunDataListFile + "\" (size=" + progRunDataList.size() + "))";
+            }
+            if (null != status) {
+                String statusString = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
+                File statusFile = File.createTempFile("logShowCurrentProgramLineInfo_status_" + getPort() + "_" + count, ".xml");
+                try (PrintStream psStatusFile = new PrintStream(new FileOutputStream(statusFile))) {
+                    psStatusFile.println(statusString);
+                }
+                ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + ",status=\"" + statusFile + runDataListInfoString);
+            } else {
+                ps.println("logShowCurrentProgramLineInfo(line=" + line + ",program=\"" + programFile + runDataListInfoString);
+            }
+            ps.flush();
+        } catch (Exception exception) {
+            Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, exception);
         }
-        ps.flush();
     }
 
     @Override
@@ -1888,7 +1888,6 @@ public class CrclSwingClientJPanel
     CRCLProgramType lastFinishSetStatusInternalProgram = null;
     private volatile int lastFinishSetStatusInternalProgramLength = -1;
 
-
     @SuppressWarnings("nullness")
     private @Nullable
     List<@NonNull MiddleCommandType> nullableMiddleCommands(@Nullable CRCLProgramType program) {
@@ -1936,7 +1935,7 @@ public class CrclSwingClientJPanel
         }
         final CommandStateEnumType state
                 = Objects.requireNonNull(
-                        ccst.getCommandState(), 
+                        ccst.getCommandState(),
                         "ccst.getCommandState()");
         String stateString = state.toString();
         updateTitle(ccst, stateString, stateDescription);
@@ -3385,7 +3384,7 @@ public class CrclSwingClientJPanel
             PrintStream ps = getShowProgramLogPrintStream();
             int count = logShowProgramCount.incrementAndGet();
 
-            String programString = CRCLSocket.getUtilSocket().programToPrettyDocString(program, false);
+            String programString = CRCLSocket.getUtilSocket().programToPrettyString(program, false);
             File programFile = File.createTempFile("showProgramLog_" + getPort() + "_" + count, ".xml");
             try (PrintStream psProgramFile = new PrintStream(new FileOutputStream(programFile))) {
                 psProgramFile.println(programString);

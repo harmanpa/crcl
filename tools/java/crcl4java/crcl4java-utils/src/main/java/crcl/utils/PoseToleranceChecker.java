@@ -29,14 +29,18 @@ import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
 import crcl.base.VectorType;
 import static crcl.utils.CRCLPosemath.dot;
-import static crcl.utils.CRCLPosemath.getNonNullZAxis;
 import static crcl.utils.CRCLUtils.getNonNullPoint;
 import static crcl.utils.CRCLUtils.getNonNullXAxis;
-import java.math.BigDecimal;
+import static crcl.utils.CRCLUtils.getNonNullZAxis;
 import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-
+/**
+ * Utility class for comparing pose differences with required tolerances.
+ * 
+ * @author Will Shackleford
+ * {@literal <william.shackleford@nist.gov>,<wshackle@gmail.com>}
+ */
 public class PoseToleranceChecker {
     
     private PoseToleranceChecker() {
@@ -44,21 +48,26 @@ public class PoseToleranceChecker {
     }
     
     
-    static public boolean containsNull(@Nullable PointType pt) {
+    static private boolean containsNull(@Nullable PointType pt) {
         return  pt == null;
 //                || pt.getY() == null 
 //                || pt.getY() == null
 //                || pt.getZ() == null;
     }
     
-    static public boolean containsNull(@Nullable VectorType vec) {
+    static private boolean containsNull(@Nullable VectorType vec) {
         return  vec == null;
 //                || vec.getI() == null 
 //                || vec.getJ() == null
 //                || vec.getK() == null;
     }
     
-    
+    /**
+     * Checks whether the given pose is null or has a null value in a required field.
+     * 
+     * @param pose object to check
+     * @return whether the arg is null or contains a null field
+     */
     static public boolean containsNull(@Nullable PoseType pose) {
         return pose == null
                 || containsNull(pose.getPoint())
@@ -66,51 +75,88 @@ public class PoseToleranceChecker {
                 || containsNull(pose.getZAxis());
     }
     
-    static public boolean containsNull(@Nullable PoseToleranceType tol) {
-        return tol == null
-                || tol.getYPointTolerance() == null
-                || tol.getYPointTolerance() == null
-                || tol.getZPointTolerance() == null
-                || tol.getXAxisTolerance() == null
-                || tol.getZAxisTolerance() == null;
-    }
+//    static public boolean containsNull(@Nullable PoseToleranceType tol) {
+//        return tol == null
+//                || tol.getYPointTolerance() == null
+//                || tol.getYPointTolerance() == null
+//                || tol.getZPointTolerance() == null
+//                || tol.getXAxisTolerance() == null
+//                || tol.getZAxisTolerance() == null;
+//    }
     
     
-    static public boolean isInTolerance(BigDecimal v1, BigDecimal v2, BigDecimal tol) {
-           return v1.subtract(v2).abs().compareTo(tol) <= 0;
-    }
+//    static public boolean isInTolerance(BigDecimal v1, BigDecimal v2, BigDecimal tol) {
+//           return v1.subtract(v2).abs().compareTo(tol) <= 0;
+//    }
     
-    static public boolean isInTolerance(double v1, double v2,@Nullable Double tol) {
+    /**
+     * Check whether the absolute value of the difference between two given values is less than or equal to a the tolerance given, if the tolerance is null an infinite difference is still considered in tolerance.
+     * 
+     * @param v1 first value
+     * @param v2 second value
+     * @param tol tolerance  if the tolerance is null an infinite difference is still considered in tolerance.
+     * @return whether the absolute value of the difference between two given values is less than or equal to a the tolerance given.
+     */
+    static private boolean isDoubleInTolerance(double v1, double v2,@Nullable Double tol) {
            return tol == null || Double.compare(Math.abs(v2-v1), tol.doubleValue()) <= 0;
     }
     
+    /**
+     * Check whether the absolute value of the difference between two given values is less than or equal to a the tolerance given.
+     * 
+     * @param v1 first value
+     * @param v2 second value
+     * @param tol tolerance 
+     * @return whether the absolute value of the difference between two given values is less than or equal to a the tolerance given.
+     */
     static public boolean isInTolerance(double v1, double v2, double tol) {
            return Double.compare(Math.abs(v2-v1), tol) <= 0;
     }
     
+    /**
+     * Check whether differences between the two given points in each axis is less than or equal to the tolerance fields for point values.
+     * @param pt1 first point   
+     * @param pt2 second point
+     * @param tol tolerance for the difference
+     * @return whether differences between the two given points is each axis is less than or equal to the tolerance fields for point values.
+     */
     static public boolean isInTolerance(final PointType pt1, final PointType pt2, final PoseToleranceType tol) {
         final Double xPointTolerance = tol.getXPointTolerance();
         final Double yPointTolerance = tol.getYPointTolerance();
         final Double zPointTolerance = tol.getZPointTolerance();
         return 
-                isInTolerance(pt1.getX(),pt2.getX(), xPointTolerance)
-                && isInTolerance(pt1.getY(),pt2.getY(), yPointTolerance)
-                && isInTolerance(pt1.getZ(),pt2.getZ(), zPointTolerance);
+                isDoubleInTolerance(pt1.getX(),pt2.getX(), xPointTolerance)
+                && isDoubleInTolerance(pt1.getY(),pt2.getY(), yPointTolerance)
+                && isDoubleInTolerance(pt1.getZ(),pt2.getZ(), zPointTolerance);
     }
     
-    
-    
-    static public boolean isInTolerance(VectorType v1, VectorType v2, BigDecimal tol, AngleUnitEnumType angleType) {
-        if(null == tol) {
-            return true;
-        }
-        return isInTolerance(v1, v2, tol.doubleValue(), angleType);
-    }
+//    static public boolean isInTolerance(VectorType v1, VectorType v2, BigDecimal tol, AngleUnitEnumType angleType) {
+//        if(null == tol) {
+//            return true;
+//        }
+//        return isInTolerance(v1, v2, tol.doubleValue(), angleType);
+//    }
 
+    /**
+     * Check to see if the angle between two vectors exceeds a given tolerance
+     * @param v1 first vector
+     * @param v2 second vector
+     * @param tol maximum angle to allow, if null always return true
+     * @param angleType AngleUnitEnumType.DEGREE or AngleUnitEnumType.RADIAN
+     * @return two vectors differ by an angle less than the tolerance
+     */
      static public boolean isInTolerance(VectorType v1, VectorType v2, @Nullable Double tol, AngleUnitEnumType angleType) {
         return tol == null || isInTolerance(v1, v2, tol.doubleValue(), angleType);
     }
      
+     /**
+     * Check to see if the angle between two vectors exceeds a given tolerance
+     * @param v1 first vector
+     * @param v2 second vector
+     * @param tol maximum angle to allow
+     * @param angleType AngleUnitEnumType.DEGREE or AngleUnitEnumType.RADIAN
+     * @return two vectors differ by an angle less than the tolerance
+     */
     static public boolean isInTolerance(VectorType v1, VectorType v2, double tol, AngleUnitEnumType angleType) {
         double dot = dot(v1, v2);
         if(angleType == AngleUnitEnumType.DEGREE) {
@@ -119,6 +165,14 @@ public class PoseToleranceChecker {
         return dot > Math.cos(tol);
     }
     
+    /**
+     * Check the differences between each  field of two poses to see if they are within the given tolerance.
+     * @param pose1 first pose
+     * @param pose2 second pose
+     * @param tol tolerance
+     * @param angleType units for tol axis fields
+     * @return whether all field differences are less than or equal to the limits in tol.
+     */
     static public boolean isInTolerance(final PoseType pose1, final PoseType pose2, 
             final PoseToleranceType tol, final AngleUnitEnumType angleType) {
         final PointType pt1 = getNonNullPoint(pose1);
@@ -136,10 +190,18 @@ public class PoseToleranceChecker {
         return Math.abs(a-b);
     }
     
-    private static BigDecimal absDiff(BigDecimal a, BigDecimal b) {
-        return a.subtract(b).abs();
-    }
-    
+//    private static BigDecimal absDiff(BigDecimal a, BigDecimal b) {
+//        return a.subtract(b).abs();
+//    }
+
+    /**
+     * Create an informative string for logging or display describing why two poses are not in tolerance.
+      * @param pose1 first pose
+     * @param pose2 second pose
+     * @param tol tolerance
+     * @param angleType units for tol axis fields
+     * @return string describing tolerance information.
+     */
     static public String checkToleranceString(
             final PoseType pose1, 
             final PoseType pose2, 
@@ -148,15 +210,15 @@ public class PoseToleranceChecker {
         StringBuilder sb = new StringBuilder();
         final PointType pt1 = getNonNullPoint(pose1);
         final PointType pt2 = getNonNullPoint(pose2);
-        if(!isInTolerance(pt1.getX(), pt2.getX(), tol.getXPointTolerance())) {
+        if(!isDoubleInTolerance(pt1.getX(), pt2.getX(), tol.getXPointTolerance())) {
             double diff = absDiff(pt1.getX(), pt2.getX());
             sb.append("X Point positions ").append(pt1.getX()).append(" and ").append(pt2.getX()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getXPointTolerance()).append("\n");
         }
-        if(!isInTolerance(pt1.getY(), pt2.getY(), tol.getYPointTolerance())) {
+        if(!isDoubleInTolerance(pt1.getY(), pt2.getY(), tol.getYPointTolerance())) {
             double diff = absDiff(pt1.getY(), pt2.getY());
             sb.append("Y Point positions ").append(pt1.getY()).append(" and ").append(pt2.getY()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getYPointTolerance()).append("\n");
         }
-        if(!isInTolerance(pt1.getZ(), pt2.getZ(), tol.getZPointTolerance())) {
+        if(!isDoubleInTolerance(pt1.getZ(), pt2.getZ(), tol.getZPointTolerance())) {
             double diff = absDiff(pt1.getZ(), pt2.getZ());
             sb.append("Z Point positions ").append(pt1.getZ()).append(" and ").append(pt2.getZ()).append(" differ by ").append(diff).append(" over tolerance of ").append(tol.getZPointTolerance()).append("\n");
         }

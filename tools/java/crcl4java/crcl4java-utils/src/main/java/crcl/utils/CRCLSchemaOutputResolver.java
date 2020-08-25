@@ -38,7 +38,7 @@ public class CRCLSchemaOutputResolver extends SchemaOutputResolver {
     private @Nullable
     File file = null;
 
-    public @Nullable
+    @Nullable
     File getFile() {
         return file;
     }

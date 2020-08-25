@@ -38,7 +38,7 @@ public interface SimServerMenuOuter {
 
     public boolean isRandomPacketSelected();
 
-    public boolean isReplaceStateSelected();
+//    public boolean isReplaceStateSelected();
 
     public boolean isDebugMoveDoneSelected();
 

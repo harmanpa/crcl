@@ -1818,7 +1818,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     } else {
                         clientSocketChannel
                                 = (SocketChannel) clientSocketChannel.configureBlocking(false);
-                        CRCLSocket crclSocket = new CRCLSocket(clientSocketChannel);
+                        CRCLSocket crclSocket = CRCLSocket.newCRCLSocketForSocketChannel(clientSocketChannel);
                         if (null != statSchema) {
                             crclSocket.setStatSchema(statSchema);
                         }
@@ -2052,7 +2052,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             if (null == socket) {
                 return;
             }
-            final CRCLSocket crclSocket = new CRCLSocket(socket, cmdSchema, statSchema, null);
+            final CRCLSocket crclSocket = CRCLSocket.newCRCLSocketForSocketSchemas(socket, cmdSchema, statSchema, null);
             STATE_TYPE state = generateNewClientState(crclSocket);
             Future<?> future = runMultiExecutorService.submit(createHandleClientThreadRunnable(state));
             clients.add(new CRCLServerClientInfo(crclSocket, future, state));

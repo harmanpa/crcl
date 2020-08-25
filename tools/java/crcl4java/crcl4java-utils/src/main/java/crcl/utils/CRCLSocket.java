@@ -24,10 +24,16 @@ import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStatusType;
 import crcl.base.GetStatusType;
+import crcl.base.JointStatusType;
+import crcl.base.JointStatusesType;
 import crcl.base.ObjectFactory;
+import crcl.base.PointType;
+import crcl.base.PoseType;
+import crcl.base.VectorType;
 import static crcl.utils.CRCLUtils.getNonNullCmd;
-import static crcl.utils.CRCLUtils.statToDebugString;
+import static crcl.utils.CRCLUtils.getNonNullJointStatusIterable;
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -38,7 +44,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -47,6 +52,7 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -61,7 +67,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -86,29 +91,58 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.checkerframework.checker.nullness.qual.*;
  */
 /**
- *
+ * Class user for reading and writing CRCL xml data via an java.net.Socket.
+ * 
  * @author Will Shackleford {@literal <william.shackleford@nist.gov> }
  */
 public class CRCLSocket implements AutoCloseable {
 
+    /**
+     * @return the randomPacketing
+     */
+    public boolean isRandomPacketing() {
+        return randomPacketing;
+    }
+
+    /**
+     * @param randomPacketing the randomPacketing to set
+     */
+    public void setRandomPacketing(boolean randomPacketing) {
+        this.randomPacketing = randomPacketing;
+    }
+
+    /**
+     * Default TCP port to connect to or bind. 64444
+     */
     public static final int DEFAULT_PORT = 64444;
 
-    static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
-        @Override
-        public String apply(String t) {
-            return addCRCLToStatePriv(t);
-        }
-    };
-
+//    static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
+//        @Override
+//        public String apply(String t) {
+//            return addCRCLToStatePriv(t);
+//        }
+//    };
     private static class UtilSocketHider {
 
         static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
     }
 
+    /**
+     * Create a utility socket if it does not already exist. It connects to
+     * nothing but is useful for string conversions etc. Multiple calls to this
+     * will return the same object.
+     *
+     * @return new or existing utility socket.
+     */
     public static CRCLSocket getUtilSocket() {
         return UtilSocketHider.UTIL_SOCKET;
     }
 
+    /**
+     * Get the underlying associated java.net.Socket if one exists.
+     *
+     * @return associated socket.
+     */
     final public @Nullable
     Socket getSocket() {
         if (null != socketChannel) {
@@ -123,49 +157,46 @@ public class CRCLSocket implements AutoCloseable {
         return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
     }
 
-    static final public UnaryOperator<String> removeCRCLFromState = new UnaryOperator<String>() {
-
-        @Override
-        public String apply(String t) {
-            return removeCRCLFromStatePriv(t);
-        }
-    };
-    final public static String statusHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+//    static final public UnaryOperator<String> removeCRCLFromState = new UnaryOperator<String>() {
+//
+//        @Override
+//        public String apply(String t) {
+//            return removeCRCLFromStatePriv(t);
+//        }
+//    };
+    final private static String STATUS_HEADER_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLStatus\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLStatus.xsd\">";
-    final public static String cmdHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    final private static String CMD_HEADER_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLCommandInstance\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLCommandInstance.xsd\">";
-    final public static String progHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    final private static String PROG_HEADER_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLProgram\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLProgramInstance.xsd\">";
-    final public static boolean DEFAULT_JAXB_FRAGMENT = true;
+    private static boolean DEFAULT_JAXB_FRAGMENT = true;
 
-    static @Nullable
-    File commandXsdFile = null;
-
-    public static @Nullable
-    File getCommandXsdFile() {
-        return commandXsdFile;
-    }
-
-    private static String addCRCLToStatePriv(String in) {
-        return in.replaceAll("<CommandState>Working</CommandState>", "<CommandState>WORKING</CommandState>")
-                .replaceAll("<CommandState>Done</CommandState>", "<CommandState>DONE</CommandState>")
-                .replaceAll("<CommandState>Error</CommandState>", "<CommandState>ERROR</CommandState>")
-                .replaceAll("<CommandState>Ready</CommandState>", "<CommandState>CRCL_Ready</CommandState>");
-    }
-
-    private static String removeCRCLFromStatePriv(String in) {
-        return in.replaceAll("<CommandState>WORKING</CommandState>", "<CommandState>Working</CommandState>")
-                .replaceAll("<CommandState>DONE</CommandState>", "<CommandState>Done</CommandState>")
-                .replaceAll("<CommandState>ERROR</CommandState>", "<CommandState>Error</CommandState>")
-                .replaceAll("<CommandState>CRCL_Ready</CommandState>", "<CommandState>Ready</CommandState>");
-    }
-
+//    static @Nullable
+//    File commandXsdFile = null;
+//
+//    public static @Nullable
+//    File getCommandXsdFile() {
+//        return commandXsdFile;
+//    }
+//    private static String addCRCLToStatePriv(String in) {
+//        return in.replaceAll("<CommandState>Working</CommandState>", "<CommandState>WORKING</CommandState>")
+//                .replaceAll("<CommandState>Done</CommandState>", "<CommandState>DONE</CommandState>")
+//                .replaceAll("<CommandState>Error</CommandState>", "<CommandState>ERROR</CommandState>")
+//                .replaceAll("<CommandState>Ready</CommandState>", "<CommandState>CRCL_Ready</CommandState>");
+//    }
+//    private static String removeCRCLFromStatePriv(String in) {
+//        return in.replaceAll("<CommandState>WORKING</CommandState>", "<CommandState>Working</CommandState>")
+//                .replaceAll("<CommandState>DONE</CommandState>", "<CommandState>Done</CommandState>")
+//                .replaceAll("<CommandState>ERROR</CommandState>", "<CommandState>Error</CommandState>")
+//                .replaceAll("<CommandState>CRCL_Ready</CommandState>", "<CommandState>Ready</CommandState>");
+//    }
     private @MonotonicNonNull
     SocketChannel socketChannel;
 
@@ -207,30 +238,31 @@ public class CRCLSocket implements AutoCloseable {
     Schema programSchema = null;
     private @Nullable
     Schema statSchema = null;
-    /*@NonNull*/ protected final Marshaller m_cmd;
-    /*@NonNull*/ protected final Unmarshaller u_cmd;
-    /*@NonNull*/ protected final Marshaller m_prog;
-    /*@NonNull*/ protected final Unmarshaller u_prog;
-    /*@NonNull*/ protected final Marshaller m_stat;
-    /*@NonNull*/ protected final Unmarshaller u_stat;
+    /*@NonNull*/ private final Marshaller m_cmd;
+    /*@NonNull*/ private final Unmarshaller u_cmd;
+    /*@NonNull*/ private final Marshaller m_prog;
+    /*@NonNull*/ private final Unmarshaller u_prog;
+    /*@NonNull*/ private final Marshaller m_stat;
+    /*@NonNull*/ private final Unmarshaller u_stat;
     private String readInProgressString = "";
 
     private @Nullable
     BufferedInputStream bufferedInputStream = null;
     private boolean useBufferedInputStream = true;
-    private @Nullable
-    SAXSource exiCommandInSaxSource = null;
-    private @Nullable
-    SAXSource exiStatusInSaxSource = null;
+//    private @Nullable
+//    SAXSource exiCommandInSaxSource = null;
+//    private @Nullable
+//    SAXSource exiStatusInSaxSource = null;
     private final ObjectFactory objectFactory
             = new ObjectFactory();
-    final static public boolean DEFAULT_APPEND_TRAILING_ZERO = false;
-    final static public boolean DEFAULT_RANDOM_PACKETING = false;
-    public boolean appendTrailingZero = DEFAULT_APPEND_TRAILING_ZERO;
-    public boolean randomPacketing = DEFAULT_RANDOM_PACKETING;
+    final static private boolean DEFAULT_APPEND_TRAILING_ZERO = false;
+    final static private boolean DEFAULT_RANDOM_PACKETING = false;
+    private boolean appendTrailingZero = DEFAULT_APPEND_TRAILING_ZERO;
+    private boolean randomPacketing = DEFAULT_RANDOM_PACKETING;
+
     private @Nullable
     Random random = null;
-    public int rand_seed = 12345;
+    private int rand_seed = 12345;
     private @Nullable
     String last_xml_version_header = null;
     private @Nullable
@@ -239,159 +271,56 @@ public class CRCLSocket implements AutoCloseable {
 
     private static volatile boolean protectionDomainChecked = false;
 
-    public CRCLSocket() {
-        this.socket = null;
-    }
-
     private static final Logger LOGGER = Logger.getLogger(CRCLSocket.class.getName());
     private static final boolean DEBUG_JAXB_SELECTION
             = Boolean.getBoolean("crcl.DEBUG_JAXB_SELECTION");
 
-    // Instance initializer called by all constructors , but not seperately callable.
-    {
-        try {
-            ClassLoader cl = crcl.base.ObjectFactory.class.getClassLoader();
-            if (null == cl) {
-                throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
-            }
-            final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
-
-            if (!protectionDomainChecked) {
-                String javaClassVersion = System.getProperty("java.class.version");
-                if (DEBUG_JAXB_SELECTION) {
-                    System.out.println("javaClassVersion = " + javaClassVersion);
-                    String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
-                    System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
-                    String javaVmVersion = System.getProperty("java.vm.version");
-                    System.out.println("javaVmVersion = " + javaVmVersion);
-                    String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
-                    System.out.println("jaxbFactory = " + jaxbFactory);
-                    ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                    System.out.println("jaxbProDeom = " + jaxbProDeom);
-                }
-                protectionDomainChecked = true;
-                if (javaClassVersion.compareTo("52.0") > 0) {
-                    String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
-                    boolean useEclipseJaxb = false;
-                    if (null != useEclipseJaxbPropertyString) {
-                        useEclipseJaxb = Boolean.valueOf(useEclipseJaxbPropertyString);
-                    }
-                    if (useEclipseJaxb) {
-                        Class<?> eclipselinkClass;
-                        try {
-                            eclipselinkClass = Class.forName("org.eclipse.persistence.jaxb.JAXBContextFactory");
-                            if (DEBUG_JAXB_SELECTION) {
-                                System.out.println("eclipselinkClass = " + eclipselinkClass);
-                            }
-                            ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                            LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
-                            System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
-                        } catch (ClassNotFoundException ex) {
-                            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-            JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
-            assert null != context : "@AssumeAssertion(nullness)";
-            u_cmd = context.createUnmarshaller();
-            m_cmd = context.createMarshaller();
-            u_stat = context.createUnmarshaller();
-            m_stat = context.createMarshaller();
-            u_prog = context.createUnmarshaller();
-            m_prog = context.createMarshaller();
-
-            bufferedInputStream = null;
-        } catch (JAXBException ex) {
-            LOGGER.log(Level.SEVERE, "", ex);
-            System.exit(0);
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
-        this(null, cmdSchema, statSchema, programSchema);
-    }
-
     private volatile StackTraceElement cmdSchemSetTrace @Nullable []  = null;
     private volatile File @Nullable [] cmdSchemaFiles = null;
 
+    /**
+     * Get the set of xsd files used for commands.
+     *
+     * @return array of files
+     */
     public File @Nullable [] getCmdSchemaFiles() {
         return cmdSchemaFiles;
     }
 
+    /**
+     * Set the list of xsd files used to create schema objects for command
+     * channels.
+     *
+     * @param cmdSchemaFiles xsd files for commands
+     */
     public void setCmdSchemaFiles(File[] cmdSchemaFiles) {
         this.cmdSchemaFiles = cmdSchemaFiles;
     }
 
-    public StackTraceElement @Nullable [] getCmdSchemSetTrace() {
+    StackTraceElement @Nullable [] getCmdSchemSetTrace() {
         return cmdSchemSetTrace;
     }
 
-    public CRCLSocket(@Nullable Socket socket, @Nullable Schema cmdSchema, @Nullable Schema statSchema, @Nullable Schema programSchema) {
-        this.socket = socket;
-        this.cmdSchema = cmdSchema;
-        this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
-        this.statSchema = statSchema;
-        this.programSchema = programSchema;
-    }
-
-    public CRCLSocket(@Nullable Socket socket) {
-        this.socket = socket;
-    }
-
-    public CRCLSocket(SocketChannel socketChannel) {
-        this.socketChannel = socketChannel;
-        this.socket = socketChannel.socket();
-    }
-
-    public CRCLSocket(String hostname, int port) throws CRCLException, IOException {
-
-        try {
-            this.socket = new Socket(hostname, port);
-        } catch (IOException iOException) {
-            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
-            throw iOException;
-        }
-    }
-
-    public CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
-
-        try {
-            this.socket = new Socket(hostname, port);
-            this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
-            this.cmdSchema = cmdSchema;
-            this.statSchema = statSchema;
-            this.programSchema = programSchema;
-        } catch (IOException iOException) {
-            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
-            throw iOException;
-        }
-    }
-
+    /**
+     * Check if the underlying socket is connected.
+     *
+     * @return true if the socket has been initialized and is connected.
+     *
+     */
     public boolean isConnected() {
-        Socket socket = getSocket();
-        if (null == socket) {
+        Socket returnedSocket = getSocket();
+        if (null == returnedSocket) {
             return false;
         }
-        return socket.isConnected();
+        return returnedSocket.isConnected();
     }
 
-    public void reconnect() throws IOException {
-        if (null != socketChannel) {
-            throw new RuntimeException("socketChannel != null");
-        }
-        Socket socketToReconnect = this.socket;
-        if (null == socketToReconnect) {
-            throw new RuntimeException("null == socket");
-        }
-        final SocketAddress remoteSocketAddress = socketToReconnect.getRemoteSocketAddress();
-        if (null == remoteSocketAddress) {
-            throw new RuntimeException("null == remoteSocketAddress");
-        }
-        socketToReconnect.connect(remoteSocketAddress);
-    }
-
+    /**
+     * Check if the underlying socket is closed.
+     *
+     * @return true if the socket has been initialized and is closed.
+     *
+     */
     public boolean isClosed() {
         Socket socket = getSocket();
         if (null == socket) {
@@ -400,6 +329,12 @@ public class CRCLSocket implements AutoCloseable {
         return socket.isClosed();
     }
 
+    /**
+     * Get the local port of the underlying socket.
+     *
+     * @return the local port of the underlying socket or -1 if the socket has
+     * not been initialized.
+     */
     public int getLocalPort() {
         if (null != socketChannel) {
             return socketChannel.socket().getLocalPort();
@@ -410,6 +345,12 @@ public class CRCLSocket implements AutoCloseable {
         return this.socket.getLocalPort();
     }
 
+    /**
+     * Get the port of the underlying socket.
+     *
+     * @return the port of the underlying socket or -1 if the socket has not
+     * been initialized.
+     */
     public int getPort() {
         if (null != socketChannel) {
             return socketChannel.socket().getLocalPort();
@@ -420,6 +361,12 @@ public class CRCLSocket implements AutoCloseable {
         return this.socket.getPort();
     }
 
+    /**
+     * Get the java.net.InetAddress associated with the underlying socket if it
+     * exists.
+     *
+     * @return inetaddress or null if socket is not initialized
+     */
     public @Nullable
     InetAddress getInetAddress() {
         if (null != socketChannel) {
@@ -596,7 +543,7 @@ public class CRCLSocket implements AutoCloseable {
     @Override
     public void close() throws IOException {
 //        creatorInfo.closed = true;
-        exiCommandInSaxSource = null;
+//        exiCommandInSaxSource = null;
         if (null != bufferedInputStream) {
             bufferedInputStream.close();
             bufferedInputStream = null;
@@ -630,71 +577,17 @@ public class CRCLSocket implements AutoCloseable {
 //        super.finalize();
 //        this.close();
 //    }
+    /**
+     * Get the string read so far, typically used to log additional information
+     * after an exception is thrown while reading/parsing.
+     *
+     * @return string read so far.
+     */
     public String getReadInProgressString() {
         return this.readInProgressString;
     }
 
-//    public String readUntilEndTagOld(final String tag, final InputStream is) throws IOException {
-//        byte ba1[] = new byte[1];
-//        String rips = "";
-//        final String endTagStartString = "</" + tag;
-//        final String startTag = "<" + tag;
-//        boolean insideStartTag = false;
-//        boolean startTag_found = false;
-//        boolean endTag_started = false;
-//        String str = "";
-//        String skipped_str = "";
-//        StringBuilder skipped_str_sb = new StringBuilder();
-//        synchronized (is) {
-//            while (ba1[0] != '>' || !endTag_started && !Thread.currentThread().isInterrupted()) {
-//                int bytes_read = is.read(ba1);
-//                if (bytes_read != 1) {
-//                    Level lvl = rips.length() > 0 ? Level.SEVERE : Level.FINE;
-//                    final int brF = bytes_read;
-//                    final String ripsF = rips;
-//                    LOGGER.log(lvl, "CRCLSocket.readUntilEndTag({0}): read returned {1} before end of tag was found. str = {2}", new Object[]{tag, brF, ripsF});
-//                    throw new SocketException("socket closed after read returned:" + bytes_read);
-//                }
-//                if (ba1[0] == 0) {
-//                    continue;
-//                }
-//                rips += new String(ba1);
-//                if (ba1[0] == '>' && !endTag_started && insideStartTag) {
-//                    if (rips.endsWith("/>")) {
-//                        break;
-//                    }
-//                    insideStartTag = false;
-//                }
-//                this.readInProgressString = rips;
-//                if (!startTag_found) {
-//                    while (rips.length() > 0
-//                            && !rips.startsWith(startTag.substring(0, Math.min(rips.length(), startTag.length())))) {
-////                        skipped_str += rips.substring(0, 1);
-//                        if(LOGGER.isLoggable(Level.FINER)) {
-//                            skipped_str_sb.append(rips.substring(0, 1));
-//                        }
-//                        rips = rips.substring(1);
-//                        this.readInProgressString = rips;
-//                    }
-//                    if (rips.startsWith(startTag)) {
-//                        startTag_found = true;
-//                        insideStartTag = true;
-//                    }
-//                } else if (!endTag_started) {
-//                    endTag_started = rips.endsWith(endTagStartString);
-//                }
-//            }
-//            str = rips;
-//            rips = "";
-//            this.readInProgressString = rips;
-//        }
-//        final String threadName = Thread.currentThread().getName();
-//        skipped_str = skipped_str_sb.toString();
-//        final String skipped_str_f = skipped_str;
-//        LOGGER.log(Level.FINER, "readUntilEndTag({0}) called with skipped_str=\"{1}\"  from Thread: {2}", new Object[]{tag, skipped_str_f, threadName});
-//        return str;
-//    }
-    public String readUntilEndTag(final String tag, final InputStream is) throws IOException {
+    String readUntilEndTag(final String tag, final InputStream is) throws IOException {
         String rips = "";
         final String endTagStartString = "</" + tag;
         final String startTag = "<" + tag;
@@ -734,7 +627,7 @@ public class CRCLSocket implements AutoCloseable {
                         while (i < tagBytesPrepped - 1 && tagBytesPrep[i + 1] != tagBytes[0]) {
                             i++;
                         }
-                        sb.append(new String(tagBytesPrep, 0, (i + 1),UTF_8));
+                        sb.append(new String(tagBytesPrep, 0, (i + 1), UTF_8));
                         lastbyte = tagBytesPrep[i];
                         if (i < tagBytesPrepped - 1) {
                             System.arraycopy(tagBytesPrep, i + 1, tagBytesPrep, 0, tagBytesPrepped - i - 1);
@@ -847,9 +740,16 @@ public class CRCLSocket implements AutoCloseable {
         return list;
     }
 
+    /**
+     * Create a new command instance from a string of CRCL.
+     *
+     * @param str string to convert
+     * @param validate do additional validation
+     * @return
+     * @throws CRCLException the string contained invalid CRCL
+     */
     public CRCLCommandInstanceType stringToCommand(String str, boolean validate) throws CRCLException {
         this.checkCommandSchema(validate);
-
         synchronized (u_cmd) {
             try {
                 this.lastCommandString = str;
@@ -866,10 +766,9 @@ public class CRCLSocket implements AutoCloseable {
                 throw new CRCLException("str=" + str + " \n" + ex, ex);
             }
         }
-
     }
 
-    public CRCLCommandInstanceType readCommandFromStream(final InputStream is, boolean validate) throws JAXBException {
+    CRCLCommandInstanceType readCommandFromStream(final InputStream is, boolean validate) throws JAXBException {
 
         synchronized (u_cmd) {
             setUnmarshallerSchema(u_cmd, validate ? cmdSchema : null);
@@ -883,6 +782,14 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Create a new CRCL program object from a string in CRCL format.
+     *
+     * @param str string to convert
+     * @param validate do additional validation
+     * @return
+     * @throws CRCLException string to convert was not valid
+     */
     public CRCLProgramType stringToProgram(String str, boolean validate) throws CRCLException {
         this.checkProgramSchema(validate);
         try {
@@ -902,28 +809,66 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public CRCLCommandInstanceType readCommand() throws CRCLException {
-        try {
-            return readCommand(false);
-        } catch (Exception ex) {
-            throw new CRCLException(ex);
-        }
+    /**
+     * Wait to be sent one command and construct a new command object from the
+     * CRCL data.Additional optional validation will not be done. The default
+     * timeout is used.
+     *
+     * @return new command received
+     * @throws CRCLException a parsing failure
+     * @throws java.io.IOException a network failure
+     */
+    public CRCLCommandInstanceType readCommand() throws CRCLException, IOException {
+        return readCommand(false);
     }
 
     private int defaultSoTimeout = 0;
 
+    /**
+     * Get the default timeout used on blocking socket operations. The timeout
+     * is in milliseconds and a timeout of 0 is interpreted as an infinite
+     * timeout.
+     *
+     * @return default timeout
+     */
     public int getDefaultSoTimeout() {
         return defaultSoTimeout;
     }
 
+    /**
+     * Set the default timeout used on blocking socket operations. The timeout
+     * is in milliseconds and a timeout of 0 is interpreted as an infinite
+     * timeout.
+     *
+     * @param defaultSoTimeout new value of default timeout
+     */
     public void setDefaultSoTimeout(int defaultSoTimeout) {
         this.defaultSoTimeout = defaultSoTimeout;
     }
 
+    /**
+     * Wait to be sent one command and construct a new command object from the
+     * CRCL data.The default timeout is used.
+     *
+     * @param validate do additional optional validation
+     * @return new command received
+     * @throws CRCLException a parsing failure
+     * @throws java.io.IOException a network failure
+     */
     public CRCLCommandInstanceType readCommand(boolean validate) throws CRCLException, IOException {
         return readCommand(validate, defaultSoTimeout);
     }
 
+    /**
+     * Wait to be sent one command and construct a new command object from the
+     * CRCL data.
+     *
+     * @param validate do additional optional validation
+     * @param soTimeout timeout in milliseconds or use 0 for infinite timeout
+     * @return new command received
+     * @throws CRCLException a parsing failure
+     * @throws java.io.IOException a network failure
+     */
     public CRCLCommandInstanceType readCommand(boolean validate, int soTimeout) throws CRCLException, IOException {
         final String threadName = Thread.currentThread().getName();
         final String str = this.readUntilEndTag("CRCLCommandInstance", getBufferedInputStream(soTimeout));
@@ -939,6 +884,14 @@ public class CRCLSocket implements AutoCloseable {
         return cmd;
     }
 
+    /**
+     * Check to see if one or more commands have been received without blocking
+     * or waiting.
+     *
+     * @param validate do additional validation
+     * @return possibly empty list of commands received since the last call.
+     * @throws CRCLException invalid data was received
+     */
     public List<CRCLCommandInstanceType> checkForCommands(boolean validate) throws CRCLException {
         try {
             SocketChannel channel = this.socketChannel;
@@ -956,7 +909,7 @@ public class CRCLSocket implements AutoCloseable {
                     byte buf[] = new byte[bytesavail];
                     int bytes_read = sock.getInputStream().read(buf);
                     if (bytes_read > 0) {
-                        String s = new String(buf, 0, bytes_read,UTF_8);
+                        String s = new String(buf, 0, bytes_read, UTF_8);
                         return parseMultiCommandString(s, validate);
                     }
                 }
@@ -971,10 +924,18 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private String arrayToString(final byte[] array, int bytesread) {
-        String string = new String(array, 0, bytesread,UTF_8);
+        String string = new String(array, 0, bytesread, UTF_8);
         return string;
     }
 
+    /**
+     * Check for status messages received without blocking or waiting
+     *
+     * @param validate do additional validation
+     * @return possibly empty list of status messages received since the last
+     * call
+     * @throws CRCLException invalid data was received
+     */
     public List<CRCLStatusType> checkForStatusMessages(boolean validate) throws CRCLException {
         try {
             SocketChannel channel = this.socketChannel;
@@ -1005,6 +966,14 @@ public class CRCLSocket implements AutoCloseable {
         return Collections.emptyList();
     }
 
+    /**
+     * Create a new CRCL status object from a string in CRCL format.
+     *
+     * @param str string to convert
+     * @param validate do additional validation
+     * @return new CRCL status object
+     * @throws CRCLException string was invalid
+     */
     public CRCLStatusType stringToStatus(String str, boolean validate) throws CRCLException {
         this.checkStatusSchema(validate);
         synchronized (u_stat) {
@@ -1028,7 +997,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public CRCLStatusType readStatusFromStream(final InputStream is, boolean validate) throws JAXBException {
+    CRCLStatusType readStatusFromStream(final InputStream is, boolean validate) throws JAXBException {
         synchronized (u_stat) {
             setUnmarshallerSchema(u_stat, validate ? statSchema : null);
             JAXBElement<?> el = (JAXBElement) u_stat.unmarshal(is);
@@ -1041,17 +1010,16 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public CRCLStatusType
-            readStatusFromSaxSource(SAXSource saxSource) throws JAXBException {
-        synchronized (u_stat) {
-            JAXBElement<CRCLStatusType> el
-                    = u_stat.unmarshal(saxSource, CRCLStatusType.class
-                    );
-            return el.getValue();
-        }
-    }
-
-    protected InputStream getBufferedInputStream(int timeout) throws IOException {
+//    public CRCLStatusType
+//            readStatusFromSaxSource(SAXSource saxSource) throws JAXBException {
+//        synchronized (u_stat) {
+//            JAXBElement<CRCLStatusType> el
+//                    = u_stat.unmarshal(saxSource, CRCLStatusType.class
+//                    );
+//            return el.getValue();
+//        }
+//    }
+    private InputStream getBufferedInputStream(int timeout) throws IOException {
 
         if (null != socketChannel) {
             if (!socketChannel.isBlocking() && socketChannel.isRegistered()) {
@@ -1075,14 +1043,38 @@ public class CRCLSocket implements AutoCloseable {
         return newBufferedInputStream;
     }
 
+    /**
+     * Read data from the socket and convert it to a single status object
+     * without additional validation using the default timeout.
+     *
+     * @return new status object
+     * @throws CRCLException socket could not be read or data was invalid
+     */
     public CRCLStatusType readStatus() throws CRCLException {
         return readStatus(false);
     }
 
+    /**
+     * Read data from the socket and convert it to a single status object using
+     * the default timeout.
+     *
+     * @param validate do additional validation
+     * @return new status object
+     * @throws CRCLException socket could not be read or data was invalid
+     */
     public CRCLStatusType readStatus(boolean validate) throws CRCLException {
         return readStatus(validate, defaultSoTimeout);
     }
 
+    /**
+     * Read data from the socket and convert it to a single status object.
+     *
+     * @param validate do additional validation
+     * @param soTimeout timeout in milliseconds, 0 is interpreted as an infinite
+     * timeout
+     * @return new status object
+     * @throws CRCLException socket could not be read or data was invalid
+     */
     public CRCLStatusType readStatus(boolean validate, int soTimeout)
             throws CRCLException {
         long t0 = System.currentTimeMillis();
@@ -1106,6 +1098,13 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Convert a command object to a CRCL string.
+     *
+     * @param cmd command to be converted
+     * @param validate do additional validation
+     * @return string representation of command
+     */
     public String commandToString(CRCLCommandType cmd, boolean validate) {
         try {
             if (null == cmd) {
@@ -1232,6 +1231,14 @@ public class CRCLSocket implements AutoCloseable {
         return (JAXBElement<T>) in;
     }
 
+    /**
+     * Convert a command object to a CRCL string.
+     *
+     * @param cmd command to be converted
+     * @param validate do additional validation
+     * @return string representation of command
+     * @throws crcl.utils.CRCLException command was invalid
+     */
     public String commandToString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         if (null == cmd.getCRCLCommand()) {
             throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
@@ -1250,7 +1257,7 @@ public class CRCLSocket implements AutoCloseable {
                 String str = sw.toString();
                 if (replaceHeader) {
                     str = removeHeader(str);
-                    ret = cmdHeader + str;
+                    ret = CMD_HEADER_STRING + str;
                 } else {
                     ret = str;
                 }
@@ -1262,6 +1269,14 @@ public class CRCLSocket implements AutoCloseable {
         return ret;
     }
 
+    /**
+     * Convert a program object to a CRCL string.
+     *
+     * @param prog program to be converted
+     * @param validate do additional validation
+     * @return string representation of command
+     * @throws crcl.utils.CRCLException program was invalid
+     */
     public String programToString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
                 = filterJaxbElement(
@@ -1276,7 +1291,7 @@ public class CRCLSocket implements AutoCloseable {
                 String str = sw.toString();
                 if (replaceHeader) {
                     str = removeHeader(str);
-                    this.lastProgramString = progHeader + str;
+                    this.lastProgramString = PROG_HEADER_STRING + str;
                 } else {
                     this.lastProgramString = str;
                 }
@@ -1287,7 +1302,14 @@ public class CRCLSocket implements AutoCloseable {
         return this.lastProgramString;
     }
 
-    public String commandToPrettyString(CRCLCommandType cmd) throws JAXBException, CRCLException {
+    /**
+     * Convert a command object to a CRCL string with additional tabs and
+     * new-lines to make it more readable.
+     *
+     * @param cmd command to be converted
+     * @return string representation of command
+     */
+    public String commandToPrettyString(CRCLCommandType cmd) {
         CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
@@ -1297,6 +1319,15 @@ public class CRCLSocket implements AutoCloseable {
         return commandInstanceToPrettyString(instance, false);
     }
 
+    /**
+     * Convert a command object to a CRCL string with additional tabs and
+     * new-lines to make it more readable.
+     *
+     * @param cmd command to be converted
+     * @param errorText text to be returned if an exception occurred
+     * @return string representation of command or the provided error text if an
+     * exception occurs
+     */
     public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
@@ -1304,13 +1335,22 @@ public class CRCLSocket implements AutoCloseable {
         }
         try {
             return commandToPrettyString(cmd);
-        } catch (JAXBException | CRCLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, "could not convert cmd=" + cmd, ex);
         }
         return errorText;
     }
 
-    public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) throws JAXBException, CRCLException {
+    /**
+     * Convert a command object to a CRCL string with additional tabs and
+     * new-lines to make it more readable.
+     *
+     * @param cmd command to be converted
+     * @param validate do additional validation
+     * @return string representation of command or the provided error text if an
+     * exception occurs
+     */
+    public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) {
         if (null == cmd.getCRCLCommand()) {
             throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
         }
@@ -1333,7 +1373,7 @@ public class CRCLSocket implements AutoCloseable {
                 String str = sw.toString();
                 if (replaceHeader) {
                     str = removeHeader(str);
-                    ret = cmdHeader + str;
+                    ret = CMD_HEADER_STRING + str;
                 } else {
                     ret = str;
                 }
@@ -1364,6 +1404,16 @@ public class CRCLSocket implements AutoCloseable {
         return ret;
     }
 
+    /**
+     * Convert a command object to a CRCL string with additional tabs and
+     * new-lines to make it more readable.
+     *
+     * @param cmd command to be converted
+     * @param validate do additional validation
+     * @return string representation of command or the provided error text if an
+     * exception occurs
+     * @throws crcl.utils.CRCLException command was invalid
+     */
     public String commandInstanceToPrettyDocString(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         try {
             if (null == cmd.getCRCLCommand()) {
@@ -1387,7 +1437,7 @@ public class CRCLSocket implements AutoCloseable {
                 String str = sw.toString();
                 if (replaceHeader) {
                     str = removeHeader(str);
-                    ret = cmdHeader + str;
+                    ret = CMD_HEADER_STRING + str;
                 } else {
                     ret = str;
                 }
@@ -1399,6 +1449,16 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Convert a program object to a CRCL string with additional tabs and
+     * new-lines to make it more readable.
+     *
+     * @param prog program to be converted
+     * @param validate do additional validation
+     * @return string representation of command or the provided error text if an
+     * exception occurs
+     * @throws crcl.utils.CRCLException program was invalid
+     */
     public String programToPrettyString(CRCLProgramType prog, boolean validate) throws CRCLException {
         JAXBElement<CRCLProgramType> jaxb_prog
                 = filterJaxbElement(
@@ -1415,7 +1475,7 @@ public class CRCLSocket implements AutoCloseable {
                 String str = sw.toString();
                 if (replaceHeader) {
                     str = removeHeader(str);
-                    this.lastProgramString = progHeader + str;
+                    this.lastProgramString = PROG_HEADER_STRING + str;
                 } else {
                     this.lastProgramString = str;
                 }
@@ -1426,43 +1486,63 @@ public class CRCLSocket implements AutoCloseable {
         return this.lastProgramString;
     }
 
-    public String programToPrettyDocString(CRCLProgramType prog, boolean validate) throws JAXBException {
-        JAXBElement<CRCLProgramType> jaxb_proj
-                = filterJaxbElement(
-                        objectFactory.createCRCLProgram(prog)
-                );
-        StringWriter sw = new StringWriter();
-        synchronized (m_prog) {
-            setMarshallerSchema(m_prog, validate ? programSchema : null);
-            m_prog.setProperty(Marshaller.JAXB_FRAGMENT, false);
-            m_prog.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m_prog.marshal(jaxb_proj, sw);
-            m_prog.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-            m_prog.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
-            String str = sw.toString();
-            if (replaceHeader) {
-                str = removeHeader(str);
-                this.lastProgramString = progHeader + str;
-            } else {
-                this.lastProgramString = str;
-            }
-        }
-        return this.lastProgramString;
-    }
-
+//    public String programToPrettyDocString(CRCLProgramType prog, boolean validate) throws JAXBException {
+//        JAXBElement<CRCLProgramType> jaxb_proj
+//                = filterJaxbElement(
+//                        objectFactory.createCRCLProgram(prog)
+//                );
+//        StringWriter sw = new StringWriter();
+//        synchronized (m_prog) {
+//            setMarshallerSchema(m_prog, validate ? programSchema : null);
+//            m_prog.setProperty(Marshaller.JAXB_FRAGMENT, false);
+//            m_prog.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//            m_prog.marshal(jaxb_proj, sw);
+//            m_prog.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+//            m_prog.setProperty(Marshaller.JAXB_FRAGMENT, jaxbFragment);
+//            String str = sw.toString();
+//            if (replaceHeader) {
+//                str = removeHeader(str);
+//                this.lastProgramString = PROG_HEADER_STRING + str;
+//            } else {
+//                this.lastProgramString = str;
+//            }
+//        }
+//        return this.lastProgramString;
+//    }
+    /**
+     * Convert the command object to CRCL xml format without additional
+     * validation and send over the socket.
+     *
+     * @param cmd command to send
+     * @throws CRCLException command is invalid or network fails
+     *
+     * Note: Exceptions only occur when the command cannot be sent or is
+     * detected as invalid according to the schema on this side of the socket.
+     * Failures on the robot or simulation result in a CRCL_ERROR in the status
+     * message read separately.
+     */
     public void writeCommand(CRCLCommandInstanceType cmd) throws CRCLException {
         writeCommand(cmd, false);
     }
 
+    /**
+     * Convert the command object to CRCL xml format and send over the socket.
+     *
+     * @param cmd command to send
+     * @param validate do additional validation
+     * @throws CRCLException command is invalid or network fails
+     *
+     * Note: Exceptions only occur when the command cannot be sent or is
+     * detected as invalid according to the schema on this side of the socket.
+     * Failures on the robot or simulation result in a CRCL_ERROR in the status
+     * message read separately.
+     */
     public synchronized void writeCommand(CRCLCommandInstanceType cmd, boolean validate) throws CRCLException {
         try {
             final CRCLCommandType cc = cmd.getCRCLCommand();
             if (null == cc) {
                 throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
             }
-//            if (null == cc.getCommandID()) {
-//                throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
-//            }
             final String threadName = Thread.currentThread().getName();
             final Level loglevel = (cc instanceof GetStatusType) ? Level.FINER : Level.FINE;
             LOGGER.log(loglevel, "writeCommand({0} ID={1}) called from Thread: {2}", new Object[]{cc, cc.getCommandID(), threadName});
@@ -1488,31 +1568,54 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public void writeCommand(CRCLCommandType cc) throws CRCLException {
-        writeCommand(cc, false);
+    /**
+     * Convert the command object to CRCL xml format without additonal
+     * validation and send over the socket.
+     *
+     * @param cmd command to send
+     * @throws CRCLException command is invalid or network fails
+     *
+     * Note: Exceptions only occur when the command cannot be sent or is
+     * detected as invalid according to the schema on this side of the socket.
+     * Failures on the robot or simulation result in a CRCL_ERROR in the status
+     * message read separately.
+     */
+    public void writeCommand(CRCLCommandType cmd) throws CRCLException {
+        writeCommand(cmd, false);
     }
 
-    public synchronized void writeCommand(CRCLCommandType cc, boolean validate) throws CRCLException {
+    /**
+     * Convert the command object to CRCL xml format and send over the socket.
+     *
+     * @param cmd command to send
+     * @param validate do additional validation
+     * @throws CRCLException command is invalid or network fails
+     *
+     * Note: Exceptions only occur when the command cannot be sent or is
+     * detected as invalid according to the schema on this side of the socket.
+     * Failures on the robot or simulation result in a CRCL_ERROR in the status
+     * message read separately.
+     */
+    public synchronized void writeCommand(CRCLCommandType cmd, boolean validate) throws CRCLException {
         CRCLCommandInstanceType commandInstance = new CRCLCommandInstanceType();
-        commandInstance.setCRCLCommand(cc);
+        commandInstance.setCRCLCommand(cmd);
         writeCommand(commandInstance, validate);
     }
 
-    protected void writePackets(byte ba[]) throws IOException, InterruptedException {
-        SocketChannel channel = this.socketChannel;
-        if (null != channel) {
-            writePackets(channel, ba);
-        } else {
-            Socket sock = getSocket();
-            if (null == sock) {
-                throw new IllegalStateException("getSocket() returned null");
-            }
-            writePackets(sock.getOutputStream(), ba);
-        }
-    }
-
+//    protected void writePackets(byte ba[]) throws IOException, InterruptedException {
+//        SocketChannel channel = this.socketChannel;
+//        if (null != channel) {
+//            writePackets(channel, ba);
+//        } else {
+//            Socket sock = getSocket();
+//            if (null == sock) {
+//                throw new IllegalStateException("getSocket() returned null");
+//            }
+//            writePackets(sock.getOutputStream(), ba);
+//        }
+//    }
     private void writePackets(SocketChannel channel, byte ba[]) throws IOException, InterruptedException {
-        if (!this.randomPacketing) {
+        if (!this.isRandomPacketing()) {
             int writesTried = 0;
             final ByteBuffer baWrapBB = ByteBuffer.wrap(ba);
             int byteswritten = channel.write(baWrapBB);
@@ -1550,7 +1653,7 @@ public class CRCLSocket implements AutoCloseable {
     }
 
     private void writePackets(OutputStream os, byte ba[]) throws IOException, InterruptedException {
-        if (!this.randomPacketing) {
+        if (!this.isRandomPacketing()) {
             os.write(ba);
         } else {
             if (null == random) {
@@ -1592,10 +1695,22 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Write a string which should already be in CRCL xml to the underlying
+     * socket. An additional trailing byte may be added.
+     *
+     * Note: It is generally safer and easier to use writeCommand, writeProgram
+     * or writeStatus instead.
+     *
+     * @param str string to send
+     * @throws IOException network failure
+     * @throws InterruptedException this thread was interrupted during the
+     * operation
+     */
     public void writeWithFill(String str) throws IOException, InterruptedException {
         try {
             if (null != socketChannel) {
-                if (!appendTrailingZero) {
+                if (!isAppendTrailingZero()) {
                     this.writePackets(socketChannel, str.getBytes(UTF_8));
                 } else {
                     int len = str.length();
@@ -1613,7 +1728,7 @@ public class CRCLSocket implements AutoCloseable {
             assert null != socket : "@AssumeAssertion(nullable)";
             OutputStream os = socket.getOutputStream();
             synchronized (os) {
-                if (!appendTrailingZero) {
+                if (!isAppendTrailingZero()) {
                     this.writePackets(os, str.getBytes(UTF_8));
                 } else {
                     int len = str.length();
@@ -1631,6 +1746,18 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Convert the program object to CRCL xml format and send over the socket.
+     *
+     * @param prog program to send
+     * @param validate do additional validation
+     * @throws CRCLException command is invalid or network fails
+     *
+     * Note: Exceptions only occur when the command cannot be sent or is
+     * detected as invalid according to the schema on this side of the socket.
+     * Failures on the robot or simulation result in a CRCL_ERROR in the status
+     * message read separately.
+     */
     public void writeProgram(CRCLProgramType prog, boolean validate) throws CRCLException {
         try {
             this.lastProgramString = programToString(prog, validate);
@@ -1658,6 +1785,80 @@ public class CRCLSocket implements AutoCloseable {
         this.replaceHeader = replaceHeader;
     }
 
+    private static String vectorToDebugString(final @Nullable VectorType v) {
+        return v == null ? "null" : v.toString() + " { "
+                + "I=" + v.getI() + ","
+                + "J=" + v.getJ() + ","
+                + "K=" + v.getK() + " } ";
+    }
+
+    private static String pointToDebugString(final @Nullable PointType p) {
+        return p == null ? "null" : p.toString() + " { "
+                + "X=" + p.getX() + ","
+                + "Y=" + p.getY() + ","
+                + "Z=" + p.getZ() + " } ";
+    }
+
+  
+
+    
+
+    private static String jointStatusToDebugString(final @Nullable JointStatusType j) {
+        return j == null ? "null" : j.toString() + " { "
+                + "JointNumber=" + j.getJointNumber() + ","
+                + "Position=" + j.getJointPosition() + ","
+                + "Velocity=" + j.getJointVelocity() + ","
+                + "TorqueOrForce=" + j.getJointTorqueOrForce()
+                + " } ";
+    }
+
+    private static String jointStatusListToDebugString(final Iterable<JointStatusType> iterable) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<JointStatusType> it = iterable.iterator();
+        while (it.hasNext()) {
+            JointStatusType jst = it.next();
+            sb.append(jointStatusToDebugString(jst));
+            if (it.hasNext()) {
+                sb.append(',');
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String jointStatusesToDebugString(@Nullable JointStatusesType j) {
+        return j == null ? "null" : j.toString() + " { "
+                + "JointStatus=" + jointStatusListToDebugString(getNonNullJointStatusIterable(j)) + " } ";
+    }
+
+    
+    private static String commandStatToDebugString(final @Nullable CommandStatusType c) {
+        return c == null ? "null" : c.toString() + " { "
+                + "CommandId=" + c.getCommandID() + ","
+                + "CommandState=" + c.getCommandState() + ","
+                + "StatusId=" + c.getStatusID() + " } ";
+    }
+      private static String poseToDebugString(final @Nullable PoseType p) {
+        return p == null ? "null" : p.toString() + " { "
+                + "Point=" + pointToDebugString(p.getPoint()) + ","
+                + "XAxis=" + vectorToDebugString(p.getXAxis()) + ","
+                + "ZAxis=" + vectorToDebugString(p.getZAxis()) + " } ";
+    }
+      
+    private static String statToDebugString(@Nullable CRCLStatusType stat) {
+        return stat == null ? "null" : stat.toString() + " { "
+                + "CommandStatus=" + commandStatToDebugString(stat.getCommandStatus()) + ","
+                + "Pose=" + poseToDebugString(CRCLPosemath.getNullablePose(stat)) + ","
+                + "JointStatuses=" + jointStatusesToDebugString(stat.getJointStatuses()) + " } ";
+    }
+
+    /**
+     * Convert the status object to a string in CRCL xml format.
+     *
+     * @param status status to convert
+     * @param validate do additional validation
+     * @return new string representation
+     * @throws CRCLException status object was invalid
+     */
     public String statusToString(CRCLStatusType status, boolean validate) throws CRCLException {
 
         if (null == status) {
@@ -1666,12 +1867,6 @@ public class CRCLSocket implements AutoCloseable {
         if (status.getCommandStatus() == null) {
             throw new IllegalArgumentException("status.getCommandStatus()  must not be null. Use setCommandStatus(...)");
         }
-//        if (status.getCommandStatus().getCommandID() == null) {
-//            throw new IllegalArgumentException("status.getCommandStatus().getCommandID()  must not be null. Use getCommandStatus().setCommandID(BigInteger.valueOf(...))");
-//        }
-//        if (status.getCommandStatus().getStatusID() == null) {
-//            throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
-//        }
         JAXBElement<CRCLStatusType> jaxb_status
                 = filterJaxbElement(
                         objectFactory.createCRCLStatus(status)
@@ -1698,7 +1893,7 @@ public class CRCLSocket implements AutoCloseable {
             String str = sw.toString();
             if (replaceHeader) {
                 str = removeHeader(str);
-                this.lastStatusString = statusHeader + str;
+                this.lastStatusString = STATUS_HEADER_STRING + str;
             } else {
                 this.lastStatusString = str;
             }
@@ -1723,6 +1918,13 @@ public class CRCLSocket implements AutoCloseable {
         return str;
     }
 
+    /**
+     * Convert the status object to a CRCL xml string representation with
+     * additional new lines and tabs to make it more readable.
+     *
+     * @param status object to convert
+     * @return new string representation
+     */
     public static String statusToPrettyString(CRCLStatusType status) {
         try {
             return getUtilSocket().statusToPrettyString(status, false);
@@ -1736,6 +1938,15 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    /**
+     * Convert the status object to a CRCL xml string representation with
+     * additional new lines and tabs to make it more readable.
+     *
+     * @param status object to convert
+     * @param validate do additonal validation
+     * @return new string representation
+     * @throws javax.xml.bind.JAXBException invalid status
+     */
     public String statusToPrettyString(CRCLStatusType status, boolean validate) throws JAXBException {
         JAXBElement<CRCLStatusType> jaxb_status
                 = filterJaxbElement(
@@ -1750,7 +1961,7 @@ public class CRCLSocket implements AutoCloseable {
             String str = sw.toString();
             if (replaceHeader) {
                 str = removeHeader(str);
-                this.lastStatusString = statusHeader + str;
+                this.lastStatusString = STATUS_HEADER_STRING + str;
             } else {
                 this.lastStatusString = str;
             }
@@ -1761,36 +1972,50 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public String commandToSimpleString(CRCLCommandInstanceType cmdInstance) throws ParserConfigurationException, SAXException, IOException {
+    /**
+     * Convert the command object to a string representation useful for logging
+     * or compact displays.
+     *
+     * @param cmdInstance command to convert
+     * @return new string representation
+     */
+    public String cmdToString(CRCLCommandInstanceType cmdInstance) {
         return commandToSimpleString(getNonNullCmd(cmdInstance));
     }
 
+    /**
+     * Convert the command object to a string representation useful for logging
+     * or compact displays. It converts a maximum of 12 fields and truncates the
+     * string after 60 characters.
+     *
+     * @param cmd command to convert
+     * @return new string
+     */
     public static String cmdToString(CRCLCommandType cmd) {
         try {
-            return getUtilSocket().commandToSimpleString(cmd, 12, 60);
-        } catch (ParserConfigurationException | SAXException | IOException ex) {
+            return getUtilSocket().cmdToString(cmd, 12, 60);
+        } catch (Exception ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
             return ex.toString();
         }
     }
 
-    public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
-        try {
-            if (null == cmd) {
-                throw new IllegalArgumentException("cmd == null");
-            }
-            return getUtilSocket().commandToSimpleString(cmd, max_fields, max_length);
-        } catch (ParserConfigurationException | SAXException | IOException ex) {
-            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
-            return ex.toString();
-        }
-    }
+//    public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
+//        try {
+//            if (null == cmd) {
+//                throw new IllegalArgumentException("cmd == null");
+//            }
+//            return getUtilSocket().cmdToString(cmd, max_fields, max_length);
+//        } catch (Exception ex) {
+//            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            return ex.toString();
+//        }
+//    }
+    private static class XmlToCsvHandler extends DefaultHandler {
 
-    public static class XmlToCsvHandler extends DefaultHandler {
-
-        @SuppressWarnings({"deprecation","JdkObsolete"})
+        @SuppressWarnings({"deprecation", "JdkObsolete"})
         private final StringBuffer buffer = new StringBuffer();
-        
+
         private int fields = 0;
         private int last_end_buffer_length = 0;
         private int maxFields;
@@ -1831,19 +2056,37 @@ public class CRCLSocket implements AutoCloseable {
 
     }
 
+    /**
+     * Convert the command object to a string representation useful for logging
+     * or compact displays.
+     *
+     * @param cmd command to convert
+     * @return new string representation
+     */
     static public String commandToSimpleString(@Nullable CRCLCommandType cmd) {
         try {
             if (null == cmd) {
                 return "null";
             }
-            return getUtilSocket().commandToSimpleString(cmd, 15, 80);
+            return getUtilSocket().cmdToString(cmd, 15, 80);
         } catch (Exception ex) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
             return ex.toString();
         }
     }
 
-    public String commandToSimpleString(@Nullable CRCLCommandType cmd, final int max_fields, final int max_length) throws ParserConfigurationException, SAXException, IOException {
+    /**
+     * Convert the command object to a string representation useful for logging
+     * or compact displays.
+     *
+     * @param cmd command to convert
+     * @param max_fields maximum number of fields in the command to include
+     * before truncation
+     * @param max_length maximum length of the string which may require
+     * truncation
+     * @return new string
+     */
+    public String cmdToString(@Nullable CRCLCommandType cmd, final int max_fields, final int max_length) {
         if (null == cmd) {
             return "null";
         }
@@ -1852,7 +2095,6 @@ public class CRCLSocket implements AutoCloseable {
             cmd = wrapper.getWrappedCommand();
         }
         String xmlString = this.commandToString(cmd, false);
-//        throw new RuntimeException(xmlString);
         try {
             XmlToCsvHandler handler = new XmlToCsvHandler();
             handler.setMaxFields(max_fields);
@@ -1875,80 +2117,83 @@ public class CRCLSocket implements AutoCloseable {
                 content = content.substring(0, (max_length - 4)) + " ...";
             }
             return cmdName + " " + content;
-        } catch (SAXException sAXException) {
-            throw new SAXException("xmlString=\"" + xmlString + "\"", sAXException);
-        } catch (IOException iOException) {
-            throw new IOException("xmlString=" + xmlString, iOException);
-        }
-    }
-
-    static public String statusToSimpleString(@Nullable CRCLStatusType stat) {
-        try {
-            if (null == stat) {
-                return "null";
-            }
-            return " CRCLStatusType{ " + getUtilSocket().statusToSimpleString(stat, 30, 160) + " } ";
-        } catch (Exception ex) {
-            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException | IOException | ParserConfigurationException ex) {
             return ex.toString();
         }
     }
 
-    public String statusToSimpleString(@Nullable CRCLStatusType stat, final int max_fields, final int max_length) {
-        if (null == stat) {
-            return "null";
-        }
-        try {
-            String xmlString = this.statusToString(stat, false);
-            try {
-                XmlToCsvHandler handler = new XmlToCsvHandler();
-                handler.setMaxFields(max_fields);
-                SAXParserFactory factory = SAXParserFactory.newInstance();
-                SAXParser parser = factory.newSAXParser();
-                XMLReader xmlreader = parser.getXMLReader();
-                xmlreader.setContentHandler(handler);
-                xmlreader.parse(new InputSource(new StringReader(xmlString)));
-                String cmdName = stat.getClass().getName();
-                int lpindex = cmdName.lastIndexOf('.');
-                if (lpindex > 0 && lpindex < cmdName.length() - 1) {
-                    cmdName = cmdName.substring(lpindex + 1);
-                }
-                if (cmdName.endsWith("Type")) {
-                    cmdName = cmdName.substring(0, cmdName.length() - 4);
-                }
-                String content = handler.toString();
-                content = content.trim();
-                if (content.length() > max_length) {
-                    content = content.substring(0, (max_length - 4)) + " ...";
-                }
-                return cmdName + " " + content;
-            } catch (SAXException sAXException) {
-                throw new SAXException("xmlString=" + xmlString, sAXException);
-            } catch (IOException iOException) {
-                throw new IOException("xmlString=" + xmlString, iOException);
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "stat=" + stat, ex);
-            throw new RuntimeException(ex);
-        }
-    }
-
+//    static public String statusToSimpleString(@Nullable CRCLStatusType stat) {
+//        try {
+//            if (null == stat) {
+//                return "null";
+//            }
+//            return " CRCLStatusType{ " + getUtilSocket().statusToSimpleString(stat, 30, 160) + " } ";
+//        } catch (Exception ex) {
+//            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+//            return ex.toString();
+//        }
+//    }
+//    public String statusToSimpleString(@Nullable CRCLStatusType stat, final int max_fields, final int max_length) {
+//        if (null == stat) {
+//            return "null";
+//        }
+//        try {
+//            String xmlString = this.statusToString(stat, false);
+//            try {
+//                XmlToCsvHandler handler = new XmlToCsvHandler();
+//                handler.setMaxFields(max_fields);
+//                SAXParserFactory factory = SAXParserFactory.newInstance();
+//                SAXParser parser = factory.newSAXParser();
+//                XMLReader xmlreader = parser.getXMLReader();
+//                xmlreader.setContentHandler(handler);
+//                xmlreader.parse(new InputSource(new StringReader(xmlString)));
+//                String cmdName = stat.getClass().getName();
+//                int lpindex = cmdName.lastIndexOf('.');
+//                if (lpindex > 0 && lpindex < cmdName.length() - 1) {
+//                    cmdName = cmdName.substring(lpindex + 1);
+//                }
+//                if (cmdName.endsWith("Type")) {
+//                    cmdName = cmdName.substring(0, cmdName.length() - 4);
+//                }
+//                String content = handler.toString();
+//                content = content.trim();
+//                if (content.length() > max_length) {
+//                    content = content.substring(0, (max_length - 4)) + " ...";
+//                }
+//                return cmdName + " " + content;
+//            } catch (SAXException sAXException) {
+//                throw new SAXException("xmlString=" + xmlString, sAXException);
+//            } catch (IOException iOException) {
+//                throw new IOException("xmlString=" + xmlString, iOException);
+//            }
+//        } catch (Exception ex) {
+//            LOGGER.log(Level.SEVERE, "stat=" + stat, ex);
+//            throw new RuntimeException(ex);
+//        }
+//    }
+    /**
+     * Convert the status object to CRCL xml format and send over the socket.
+     *
+     * @param status status to send
+     * @throws CRCLException status was invalid or network failed
+     */
     public void writeStatus(CRCLStatusType status) throws CRCLException {
         writeStatus(status, false);
     }
 
+    /**
+     * Convert the status object to CRCL xml format and send over the socket.
+     *
+     * @param status status to send
+     * @param validate do additional validation
+     * @throws CRCLException status was invalid or network failed
+     */
     public synchronized void writeStatus(CRCLStatusType status, boolean validate)
             throws CRCLException {
         try {
             if (status.getCommandStatus() == null) {
                 throw new IllegalArgumentException("status.getCommandStatus()  must not be null. Use setCommandStatus(...)");
             }
-//            if (status.getCommandStatus().getCommandID() == null) {
-//                throw new IllegalArgumentException("status.getCommandStatus().getCommandID()  must not be null. Use getCommandStatus().setCommandID(BigInteger.valueOf(...))");
-//            }
-//            if (status.getCommandStatus().getStatusID() == null) {
-//                throw new IllegalArgumentException("status.getCommandStatus().getStatusID()  must not be null. Use getCommandStatus().setStatusID(BigInteger.valueOf(...))");
-//            }
             final Socket socket = getSocket();
             if (null == socket) {
                 throw new IllegalStateException("Internal socket is null.");
@@ -1972,8 +2217,22 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    static public interface UnaryOperator<T> {
+    /**
+     * The class exists for previous pre- Java 8 code. Represents an operation
+     * on a single operand that produces a result of the same type as its
+     * operand. This is a specialization of {@code Function} for the case where
+     * the operand and result are of the same type.
+     *
+     * <p>
+     * This is a <a href="package-summary.html">functional interface</a>
+     * whose functional method is {@link #apply(Object)}.
+     *
+     * @param <T> the type of the operand and result of the operator
+     *
+     */
+    static public interface UnaryOperator<T> extends java.util.function.UnaryOperator<T> {
 
+        @Override
         public T apply(T t);
     }
 
@@ -1987,4 +2246,228 @@ public class CRCLSocket implements AutoCloseable {
 
     private static final IdentityUnaryOperator<String> STRING_IDENTITY_OPERATOR
             = new IdentityUnaryOperator<>();
+
+    /**
+     * @return the appendTrailingZero
+     */
+    public boolean isAppendTrailingZero() {
+        return appendTrailingZero;
+    }
+
+    /**
+     * @param appendTrailingZero the appendTrailingZero to set
+     */
+    public void setAppendTrailingZero(boolean appendTrailingZero) {
+        this.appendTrailingZero = appendTrailingZero;
+    }
+
+    // Instance initializer called by all constructors , but not seperately callable.
+    {
+        try {
+            ClassLoader cl = crcl.base.ObjectFactory.class.getClassLoader();
+            if (null == cl) {
+                throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
+            }
+            final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
+
+            if (!protectionDomainChecked) {
+                String javaClassVersion = System.getProperty("java.class.version");
+                if (DEBUG_JAXB_SELECTION) {
+                    System.out.println("javaClassVersion = " + javaClassVersion);
+                    String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
+                    System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
+                    String javaVmVersion = System.getProperty("java.vm.version");
+                    System.out.println("javaVmVersion = " + javaVmVersion);
+                    String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
+                    System.out.println("jaxbFactory = " + jaxbFactory);
+                    ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                    System.out.println("jaxbProDeom = " + jaxbProDeom);
+                }
+                protectionDomainChecked = true;
+                if (javaClassVersion.compareTo("52.0") > 0) {
+                    String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
+                    boolean useEclipseJaxb = false;
+                    if (null != useEclipseJaxbPropertyString) {
+                        useEclipseJaxb = Boolean.valueOf(useEclipseJaxbPropertyString);
+                    }
+                    if (useEclipseJaxb) {
+                        Class<?> eclipselinkClass;
+                        try {
+                            eclipselinkClass = Class.forName("org.eclipse.persistence.jaxb.JAXBContextFactory");
+                            if (DEBUG_JAXB_SELECTION) {
+                                System.out.println("eclipselinkClass = " + eclipselinkClass);
+                            }
+                            ProtectionDomain proDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
+                            LOGGER.log(Level.FINE, "JAXBContext.class.getProtectionDomain() = {0}", proDeom);
+                            System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }
+            JAXBContext context = JAXBContext.newInstance("crcl.base", nnCl);
+            assert null != context : "@AssumeAssertion(nullness)";
+            u_cmd = context.createUnmarshaller();
+            m_cmd = context.createMarshaller();
+            u_stat = context.createUnmarshaller();
+            m_stat = context.createMarshaller();
+            u_prog = context.createUnmarshaller();
+            m_prog = context.createMarshaller();
+
+            bufferedInputStream = null;
+        } catch (JAXBException ex) {
+            LOGGER.log(Level.SEVERE, "", ex);
+            System.exit(0);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Create a new socket using default schemas not yet connected to anything.
+     */
+    public CRCLSocket() {
+        this.socket = null;
+    }
+
+//    /**
+//     * Create a new socket not yet connected to anything using given schemas.
+//     *
+//     * @param cmdSchema schema for commands
+//     * @param statSchema schema for status
+//     * @param programSchema schema for programs
+//     */
+//    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
+//        this(null, cmdSchema, statSchema, programSchema);
+//    }
+    /**
+     * Create a new CRCL socket wrapped around the given java.net.Socket and
+     * cmd,stat and program schemas.
+     *
+     * @param socket socket used to send and receive CRCL data
+     * @param cmdSchema schema for commands
+     * @param statSchema schema for status
+     * @param programSchema schema for programs
+     */
+    private CRCLSocket(
+            @Nullable Socket socket,
+            @Nullable Schema cmdSchema,
+            @Nullable Schema statSchema,
+            @Nullable Schema programSchema) {
+        this.socket = socket;
+        this.cmdSchema = cmdSchema;
+        this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
+        this.statSchema = statSchema;
+        this.programSchema = programSchema;
+    }
+
+    /**
+     * Create a new CRCL socket wrapped around the given java.net.Socket and
+     * cmd,stat and program schemas.
+     *
+     * @param socket socket used to send and receive CRCL data
+     * @param cmdSchema schema for commands
+     * @param statSchema schema for status
+     * @param programSchema schema for programs
+     * @return new CRCLSocket object
+     */
+    public static CRCLSocket newCRCLSocketForSocketSchemas(
+            @Nullable Socket socket,
+            @Nullable Schema cmdSchema,
+            @Nullable Schema statSchema,
+            @Nullable Schema programSchema) {
+        return new CRCLSocket(socket, cmdSchema, statSchema, programSchema);
+    }
+
+    /**
+     * Create a new CRCL socket wrapped around the given java.net.Socket
+     *
+     * @param socket socket used to send and receive CRCL data
+     */
+    public CRCLSocket(@Nullable Socket socket) {
+        this.socket = socket;
+    }
+
+    /**
+     * Create a new CRCL socket wrapped around the given
+     * java.nio.channels.SocketChannel
+     *
+     * @param socketChannel
+     */
+    private CRCLSocket(SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
+        this.socket = socketChannel.socket();
+    }
+
+    /**
+     * Create a new CRCL socket wrapped around the given
+     * java.nio.channels.SocketChannel
+     *
+     * @param socketChannel
+     * @return new CRCLSocket object
+     */
+    public static CRCLSocket newCRCLSocketForSocketChannel(SocketChannel socketChannel) {
+        return new CRCLSocket(socketChannel);
+    }
+
+    /**
+     * Create a new CRCLSocket connected to the given host and port via TCP.
+     *
+     * @param hostname name of computer running the CRCL server
+     * @param port port number of CRCL server
+     * @throws CRCLException CRCL schemas could not be found or are invalid
+     * @throws IOException host or port invalid or network unavailable
+     */
+    public CRCLSocket(String hostname, int port)
+            throws CRCLException, IOException {
+        try {
+            this.socket = new Socket(hostname, port);
+        } catch (IOException iOException) {
+            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
+            throw iOException;
+        }
+    }
+
+    /**
+     * Create a new CRCLSocket connected to the given host and port via TCP and
+     * using the given schemas for parsing/generation.
+     *
+     * @param hostname name of computer running the CRCL server
+     * @param port port number of CRCL server
+     * @param cmdSchema schema for commands
+     * @param statSchema schema for status
+     * @param programSchema schema for programs
+     * @throws CRCLException CRCL schemas could not be found or are invalid
+     * @throws IOException host or port invalid or network unavailable
+     */
+    private CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
+
+        try {
+            this.socket = new Socket(hostname, port);
+            this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
+            this.cmdSchema = cmdSchema;
+            this.statSchema = statSchema;
+            this.programSchema = programSchema;
+        } catch (IOException iOException) {
+            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
+            throw iOException;
+        }
+    }
+
+    /**
+     * Create a new CRCLSocket connected to the given host and port via TCP and
+     * using the given schemas for parsing/generation.
+     *
+     * @param hostname name of computer running the CRCL server
+     * @param port port number of CRCL server
+     * @param cmdSchema schema for commands
+     * @param statSchema schema for status
+     * @param programSchema schema for programs
+     * @return new CRCLSocket object
+     * @throws CRCLException CRCL schemas could not be found or are invalid
+     * @throws IOException host or port invalid or network unavailable
+     */
+    public static CRCLSocket newCRCLSocketForHostPortSchemas(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
+        return new CRCLSocket(hostname, port, cmdSchema, statSchema, programSchema);
+    }
 }

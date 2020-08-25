@@ -68,12 +68,12 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
         return this.randomPacket;
     }
 
-    private final boolean replaceState;
-    
-    @Override
-    public boolean isReplaceStateSelected() {
-        return this.replaceState;
-    }
+//    private final boolean replaceState;
+//    
+//    @Override
+//    public boolean isReplaceStateSelected() {
+//        return this.replaceState;
+//    }
 
     
     @Override
@@ -147,7 +147,7 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
                 prop("crcjava.SimServer.sendStatusWithoutRequest",false),// sendStatusWithoutRequest
                 prop("crcjava.SimServer.appendZero",false),// appendZero
                 prop("crcjava.SimServer.randomPacket",false),// randomPacket
-                prop("crcjava.SimServer.replaceState",false),// replaceState
+//                prop("crcjava.SimServer.replaceState",false),// replaceState
                 prop("crcjava.SimServer.debugMoveDone",false),// debugMoveDone
                 prop("crcjava.SimServer.debugReadCommand",false),// debugReadCommand
                 prop("crcjava.SimServer.replaceXmlHeader",true),// replaceXmlHeader
@@ -161,7 +161,7 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
             boolean sendStatusWithoutRequest, 
             boolean appendZero, 
             boolean randomPacket, 
-            boolean replaceState, 
+//            boolean replaceState, 
             boolean debugMoveDone, 
             boolean debugReadCommand,
             boolean replaceXmlHeader,
@@ -171,7 +171,7 @@ public class SimServerOuterStub implements SimServerOuter, SimServerMenuOuter {
         this.sendStatusWithoutRequest = sendStatusWithoutRequest;
         this.appendZero = appendZero;
         this.randomPacket = randomPacket;
-        this.replaceState = replaceState;
+//        this.replaceState = replaceState;
         this.debugMoveDone = debugMoveDone;
         this.debugReadCommand = debugReadCommand;
         this.replaceXmlHeader = replaceXmlHeader;

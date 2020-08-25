@@ -163,10 +163,10 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
         return simServerJPanel1.isRandomPacketSelected();
     }
 
-    @Override
-    public boolean isReplaceStateSelected() {
-        return simServerJPanel1.isReplaceStateSelected();
-    }
+//    @Override
+//    public boolean isReplaceStateSelected() {
+//        return simServerJPanel1.isReplaceStateSelected();
+//    }
 
     @Override
     public boolean isEditingStatus() {

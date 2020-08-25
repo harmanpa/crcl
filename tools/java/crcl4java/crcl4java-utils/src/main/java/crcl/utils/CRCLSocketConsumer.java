@@ -22,11 +22,21 @@
  */
 package crcl.utils;
 
+import java.util.function.Consumer;
+
 /**
+ * This class exists because of previos pre- Java 8 compatibility. Represents an operation that accepts a single input argument and returns no
+ * result. Unlike most other functional interfaces, {@code Consumer} is expected
+ * to operate via side-effects.
  *
+ * <p>This is a <a href="package-summary.html">functional interface</a>
+ * whose functional method is {@link #accept(Object)}.
+ *
+ * 
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface CRCLSocketConsumer {
+public interface CRCLSocketConsumer  extends Consumer<CRCLSocket>{
 
+    @Override
     public void accept(CRCLSocket socket);
 }

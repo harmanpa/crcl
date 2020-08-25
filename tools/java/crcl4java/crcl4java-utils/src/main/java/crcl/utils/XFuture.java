@@ -57,6 +57,14 @@ import java.util.logging.Logger;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+/**
+ * An extension of java.util.concurrent.CompletableFuture that allows additional
+ * tracing,cancellation and convenience compared to the base class.
+ *
+ * @author Will Shackleford
+ * {@literal <william.shackleford@nist.gov>,<wshackle@gmail.com>}
+ * @param <T> the type of object to be obtained from the future
+ */
 public class XFuture<T> extends CompletableFuture<T> {
 
     private volatile @MonotonicNonNull
@@ -80,23 +88,45 @@ public class XFuture<T> extends CompletableFuture<T> {
     private final AtomicInteger xFutureAlsoCancelCount = new AtomicInteger();
     private final AtomicInteger cfFutureAlsoCancelCount = new AtomicInteger();
 
-    protected @Nullable
-    Future<T> getFutureFromExecSubmit() {
-        return futureFromExecSubmit;
-    }
-
+//    protected @Nullable
+//    Future<T> getFutureFromExecSubmit() {
+//        return futureFromExecSubmit;
+//    }
+    /**
+     * Sets the future returned directly from ExecutorService.submit to be
+     * stored for possible emergency cancellation.
+     *
+     * @param f new value for the field
+     */
     protected void setFutureFromExecSubmit(Future<T> f) {
         this.futureFromExecSubmit = f;
     }
 
+    /**
+     * Get the time when this object was constructed in milliseconds.
+     *
+     * @return time when this object was constructed in milliseconds.
+     */
     public long getStartTime() {
         return startTime;
     }
 
+    /**
+     * Get the time when it was first completed, cancelled or completed
+     * exceptionally.
+     *
+     * @return time when it was first completed, cancelled or completed
+     * exceptionally.
+     */
     public long getCompleteTime() {
         return completeTime;
     }
 
+    /**
+     * Construct a new object with the given name used for logging or display.
+     *
+     * @param name
+     */
     public XFuture(String name) {
         this.name = defaultName(name);
         this.startTime = System.currentTimeMillis();
@@ -105,24 +135,51 @@ public class XFuture<T> extends CompletableFuture<T> {
         this.createTrace = this.createThread.getStackTrace();
     }
 
+    /**
+     * Get the thread that created this future.
+     *
+     * @return thread that created this future
+     */
     public Thread getCreateThread() {
         return createThread;
     }
 
+    /**
+     * Get the stack trace when this future was created.
+     *
+     * @return stack trace when this future was created
+     */
     public StackTraceElement[] getCreateTrace() {
         return createTrace;
     }
 
+    /**
+     * Create a future that will be complete when all the futures in a
+     * collection have completed.
+     *
+     * @param name name for logging or display
+     * @param cfsCollection collection of futures
+     * @return a future that will be complete when all the futures in a
+     * collection have completed
+     */
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOfWithName(String name, Collection<? extends CompletableFuture<?>> cfsCollection) {
-        for (CompletableFuture<?> cf: cfsCollection) {
-            if(null == cf) {
-                throw new RuntimeException("name="+name+", cfsCollection contains null");
+        for (CompletableFuture<?> cf : cfsCollection) {
+            if (null == cf) {
+                throw new RuntimeException("name=" + name + ", cfsCollection contains null");
             }
         }
         return allOfWithName(name, cfsCollection.toArray(new CompletableFuture[0]));
     }
 
+    /**
+     * Create a future that will be complete when all the futures in a
+     * collection have completed.
+     *
+     * @param cfsCollection collection of futures
+     * @return a future that will be complete when all the futures in a
+     * collection have completed
+     */
     @SuppressWarnings("rawtypes")
     public static XFutureVoid allOf(Collection<? extends CompletableFuture<?>> cfsCollection) {
         return allOf(cfsCollection.toArray(new CompletableFuture[0]));
@@ -144,6 +201,14 @@ public class XFuture<T> extends CompletableFuture<T> {
         return "";
     }
 
+    /**
+     * Create a more readable string from an array of stack trace elements as
+     * returned by Thread.currentThread().getStackTrace() or
+     * Exception.getStackTrace().
+     *
+     * @param trace
+     * @return string for logging or display
+     */
     public static String traceToString(@Nullable StackTraceElement trace @Nullable []) {
         if (null == trace) {
             return "";
@@ -199,19 +264,35 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
+    /**
+     * Print a list of futures this future depends on to standard out.
+     */
     public void printProfile() {
         printProfile(System.out);
     }
 
+    /**
+     * Print a list of futures this future depends on to given print stream.
+     *
+     * @param ps print stream to output info.
+     */
     public void printProfile(PrintStream ps) {
         ps.println("num,start_time,end_time,time_diff,runTime,name,exception,cancel,done,xdeps,nonxdeps,trace");
         internalPrintProfile(ps);
     }
 
+    /**
+     * Print the status of this future to standard out.
+     */
     public void printStatus() {
         printStatus(System.out);
     }
 
+    /**
+     * Print the status of this future to given print stream.
+     *
+     * @param ps print stream for output
+     */
     public void printStatus(PrintStream ps) {
         ps.println();
         ps.println("Status for " + XFuture.this.toString());
@@ -244,11 +325,22 @@ public class XFuture<T> extends CompletableFuture<T> {
         return null;
     }
 
+    /**
+     * Return the name passed when future was created.
+     *
+     * @return this future's name
+     */
     public String getName() {
         return name;
     }
 
-    public ConcurrentLinkedDeque<CompletableFuture<?>> getAlsoCancel() {
+    /**
+     * Get a collection of future's that should also be cancelled if this future is
+     * cancelled.
+     *
+     * @return future's that should also be cancelled
+     */
+    public Collection<CompletableFuture<?>> getAlsoCancel() {
         return alsoCancel;
     }
 
@@ -514,8 +606,8 @@ public class XFuture<T> extends CompletableFuture<T> {
     public static XFutureVoid allOfWithName(String name, CompletableFuture<?>... cfs) {
         for (int i = 0; i < cfs.length; i++) {
             CompletableFuture<?> cf = cfs[i];
-            if(null == cf) {
-                throw new RuntimeException("name="+name+", cfs["+i+"] is null");
+            if (null == cf) {
+                throw new RuntimeException("name=" + name + ", cfs[" + i + "] is null");
             }
         }
         return XFutureVoid.allOfWithName(name, cfs);

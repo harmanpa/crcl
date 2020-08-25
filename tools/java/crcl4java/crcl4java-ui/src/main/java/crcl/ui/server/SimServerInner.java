@@ -104,8 +104,6 @@ import static crcl.utils.CRCLSchemaUtils.filesToStatSchema;
 import static crcl.utils.CRCLSchemaUtils.readCmdSchemaFiles;
 import static crcl.utils.CRCLSchemaUtils.readStatSchemaFiles;
 import crcl.utils.CRCLSocket;
-import crcl.utils.CRCLUtils;
-import static crcl.utils.CRCLUtils.clearAndSetList;
 import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import static crcl.utils.CRCLUtils.getNonNullIterable;
 import crcl.utils.PoseToleranceChecker;
@@ -1659,14 +1657,15 @@ public class SimServerInner {
                 }
                 if (null != socket) {
                     try {
-                        socket.appendTrailingZero = menuOuter().isAppendZeroSelected();
-                        socket.randomPacketing = menuOuter().isRandomPacketSelected();
+                        socket.setAppendTrailingZero(menuOuter().isAppendZeroSelected());
+                        socket.setRandomPacketing(menuOuter().isRandomPacketSelected());
                         socket.setReplaceHeader(menuOuter().isReplaceXmlHeaderSelected());
-                        if (menuOuter().isReplaceStateSelected()) {
-                            socket.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
-                        } else {
-                            socket.setStatusStringOutputFilter(NOP_FILTER);
-                        }
+//                        if (menuOuter().isReplaceStateSelected()) {
+//                            socket.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
+//                        } else {
+//                            socket.setStatusStringOutputFilter(NOP_FILTER);
+//                        }
+                        socket.setStatusStringOutputFilter(NOP_FILTER);
                         boolean new_state = true;
                         if (null != this.lastStatusMap) {
                             LastStatusInfo lsi = this.lastStatusMap.get(socket);
@@ -1716,11 +1715,12 @@ public class SimServerInner {
                     return;
                 }
                 curSocket = clientStates.element().getCs();
-                if (menuOuter().isReplaceStateSelected()) {
-                    curSocket.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
-                } else {
-                    curSocket.setStatusStringOutputFilter(NOP_FILTER);
-                }
+//                if (menuOuter().isReplaceStateSelected()) {
+//                    curSocket.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
+//                } else {
+//                    curSocket.setStatusStringOutputFilter(NOP_FILTER);
+//                }
+                curSocket.setStatusStringOutputFilter(NOP_FILTER);
                 LastStatusInfo lsi = this.lastStatusMap.get(curSocket);
                 boolean new_state = isStateNew(lsi, commandStatus, commandState);
                 if (menuOuter().isDebugSendStatusSelected() && new_state) {
@@ -1741,8 +1741,8 @@ public class SimServerInner {
                     curSocket = clientState.getCs();
 
                     try {
-                        curSocket.appendTrailingZero = menuOuter().isAppendZeroSelected();
-                        curSocket.randomPacketing = menuOuter().isRandomPacketSelected();
+                        curSocket.setAppendTrailingZero(menuOuter().isAppendZeroSelected());
+                        curSocket.setRandomPacketing(menuOuter().isRandomPacketSelected());
                         curSocket.setReplaceHeader(menuOuter().isReplaceXmlHeaderSelected());
                         curSocket.writeWithFill(xmls);
                         write_count++;
@@ -2264,7 +2264,7 @@ public class SimServerInner {
                 this.updateStatus();
                 ps.println("End printClientStates");
             }
-        } catch (CRCLException | JAXBException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(SimServerInner.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -2525,7 +2525,8 @@ public class SimServerInner {
         if (null == statSchema) {
             throw new IllegalStateException("null==statSchema");
         }
-        final CRCLSocket cs = new CRCLSocket(s, cmdSchema, statSchema, null);
+        final CRCLSocket cs 
+                = CRCLSocket.newCRCLSocketForSocketSchemas(s, cmdSchema, statSchema, null);
         return cs;
     }
 

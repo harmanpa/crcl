@@ -744,19 +744,19 @@ public class CRCLPosemathTest {
         checkEquals("444rot90", expResult, result);
     }
 
-    /**
-     * Test of pointXAxisZAxisToPose method, of class CRCLPosemath.
-     */
-    @Test
-    public void testPointXAxisZAxisToPose() {
-        System.out.println("pointXAxisZAxisToPose");
-        PointType pt = this.pt123;
-        VectorType x = this.xvec;
-        VectorType z = this.zvec;
-        PoseType expResult = this.pose123;
-        PoseType result = CRCLPosemath.pointXAxisZAxisToPose(pt, x, z);
-        checkEquals("123", expResult, result);
-    }
+//    /**
+//     * Test of pointXAxisZAxisToPose method, of class CRCLPosemath.
+//     */
+//    @Test
+//    public void testPointXAxisZAxisToPose() {
+//        System.out.println("pointXAxisZAxisToPose");
+//        PointType pt = this.pt123;
+//        VectorType x = this.xvec;
+//        VectorType z = this.zvec;
+//        PoseType expResult = this.pose123;
+//        PoseType result = CRCLPosemath.pointXAxisZAxisToPose(pt, x, z);
+//        checkEquals("123", expResult, result);
+//    }
 
     /**
      * Test of toPoseType method, of class CRCLPosemath.
@@ -1462,24 +1462,24 @@ public class CRCLPosemathTest {
         checkEquals("pose", transformedMoveCmd2.getEndPosition(), pose321);
     }
 
-    /**
-     * Test of flipXAxis method, of class CRCLPosemath.
-     */
-    @Test
-    public void testFlipXAxis_CRCLProgramType() {
-        System.out.println("flipXAxis");
-        // Create a program with one MoveTo command.
-        CRCLProgramType programIn = new CRCLProgramType();
-        MoveToType moveCmd = new MoveToType();
-        moveCmd.setEndPosition(pose123);
-        programIn.getMiddleCommand().add(moveCmd);
-
-        CRCLProgramType result = CRCLPosemath.flipXAxis(programIn);
-        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
-        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
-
-        checkEquals("pose", transformedMoveCmd.getEndPosition(), pose(pt123, vector(-1, 0, 0), zvec));
-    }
+//    /**
+//     * Test of flipXAxis method, of class CRCLPosemath.
+//     */
+//    @Test
+//    public void testFlipXAxis_CRCLProgramType() {
+//        System.out.println("flipXAxis");
+//        // Create a program with one MoveTo command.
+//        CRCLProgramType programIn = new CRCLProgramType();
+//        MoveToType moveCmd = new MoveToType();
+//        moveCmd.setEndPosition(pose123);
+//        programIn.getMiddleCommand().add(moveCmd);
+//
+//        CRCLProgramType result = CRCLPosemath.flipXAxis(programIn);
+//        assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
+//        MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
+//
+//        checkEquals("pose", transformedMoveCmd.getEndPosition(), pose(pt123, vector(-1, 0, 0), zvec));
+//    }
 
     
     /**

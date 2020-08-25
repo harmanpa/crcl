@@ -111,6 +111,20 @@
             <version>${checker-framework.version}</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration> 
+            </plugin>
+        </plugins>
+    </build>
     <profiles>
         <profile>
             <id>verbose_javac</id>
@@ -124,6 +138,7 @@
                             <compilerArgs>
                                 <arg>-Xlint:all</arg>
                                 <arg>-Werror</arg>
+                                <arg>-parameters</arg>
                             </compilerArgs>
                         </configuration> 
                     </plugin>
@@ -634,6 +649,8 @@
                                 <!-- If using JDK 8, use only the two arguments immediately below. -->
                                 <arg>-J-Xbootclasspath/p:${errorProneJavac}</arg>
                                 <arg>-Xbootclasspath/p:${annotatedJdk}</arg>
+                                <arg>-parameters</arg>
+                            
                                 <!-- If using JDK 11, remove the two arguments above, remove the
                                 space in the one below, and uncomment it. -->
                                 <!-- <arg>-J- -add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg> -->
@@ -715,7 +732,8 @@
                                 <!-- If using JDK 11, remove the two arguments above, remove the
                                 space in the one below, and uncomment it. -->
                                 <arg>-J- -add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-
+                                <arg>-parameters</arg>
+                            
                                 <!-- Optionally, -Awarns turns type-checking errors into warnings. -->
                                 <!-- <arg>-Awarns</arg> -->
                             </compilerArgs>

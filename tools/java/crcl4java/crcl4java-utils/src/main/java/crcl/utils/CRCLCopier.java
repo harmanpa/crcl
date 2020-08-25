@@ -103,8 +103,12 @@ import crcl.base.WrenchType;
 import java.util.Iterator;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+/**
+ * Automatically generated utility class for deep copying nullable or non nullable CRCL objects.
+ * 
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ */
 public class CRCLCopier {
-    // i = 0,clzzi=class crcl.base.DataThingType
 
     static @Nullable
     DataThingType copyNullable(@Nullable DataThingType in) {
@@ -3389,12 +3393,5 @@ public class CRCLCopier {
         return out;
     }
 
-    // i = 94,clzzi=class crcl.base.StopConditionEnumType
-    // i = 95,clzzi=interface java.util.List
-    // i = 96,clzzi=class java.lang.Number
-    // i = 97,clzzi=class java.lang.Double
-    // i = 98,clzzi=class java.lang.Long
-    // i = 99,clzzi=class java.lang.Integer
-    // i = 100,clzzi=class java.lang.Boolean
 }
 

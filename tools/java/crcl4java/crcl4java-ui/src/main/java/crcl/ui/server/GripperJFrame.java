@@ -99,7 +99,6 @@ public class GripperJFrame extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         jMenuOptions = new javax.swing.JMenu();
-        jCheckBoxMenuItemReplaceState = new javax.swing.JCheckBoxMenuItem();
 
         FormListener formListener = new FormListener();
 
@@ -284,10 +283,6 @@ public class GripperJFrame extends javax.swing.JFrame {
         jMenuBar1.add(jMenu2);
 
         jMenuOptions.setText("Options");
-
-        jCheckBoxMenuItemReplaceState.setText("Replace CRCL_Working,CRCL_Done with Working,Done ...");
-        jMenuOptions.add(jCheckBoxMenuItemReplaceState);
-
         jMenuBar1.add(jMenuOptions);
 
         setJMenuBar(jMenuBar1);
@@ -585,11 +580,12 @@ public class GripperJFrame extends javax.swing.JFrame {
             if (clientsList.size() > 0) {
                 try {
                     CRCLSocket cs0 = clientsList.get(0);
-                    if (jCheckBoxMenuItemReplaceState.isSelected()) {
-                        cs0.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
-                    } else {
-                        cs0.setStatusStringOutputFilter(NOP_FILTER);
-                    }
+//                    if (jCheckBoxMenuItemReplaceState.isSelected()) {
+//                        cs0.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
+//                    } else {
+//                        cs0.setStatusStringOutputFilter(NOP_FILTER);
+//                    }
+                    cs0.setStatusStringOutputFilter(NOP_FILTER);
                     String xmlS = cs0.statusToString(status, false);
                     for (int i = 0; i < clientsList.size(); i++) {
                         try {
@@ -645,9 +641,10 @@ public class GripperJFrame extends javax.swing.JFrame {
                         CRCLCommandType cmd = cmdInstance.getCRCLCommand();
                         if (cmd instanceof GetStatusType) {
                             prepStatus();
-                            if (jCheckBoxMenuItemReplaceState.isSelected()) {
-                                cs.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
-                            }
+//                            if (jCheckBoxMenuItemReplaceState.isSelected()) {
+//                                cs.setStatusStringOutputFilter(CRCLSocket.removeCRCLFromState);
+//                            }
+                            cs.setStatusStringOutputFilter(NOP_FILTER);
                             cs.writeStatus(status, false);
                         } else if (cmd != null) {
                             cmdQueue.put(cmd);
@@ -771,7 +768,6 @@ public class GripperJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButtonReset;
     private javax.swing.JButton jButtonRestartServer;
     private javax.swing.JCheckBox jCheckBoxInitialized;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceState;
     private javax.swing.JCheckBox jCheckBoxSendStatusWithoutRequest;
     private javax.swing.JCheckBox jCheckBoxVacuumPower;
     private javax.swing.JLabel jLabel1;
