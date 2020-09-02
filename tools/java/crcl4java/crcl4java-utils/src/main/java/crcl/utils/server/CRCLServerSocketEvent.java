@@ -132,7 +132,7 @@ public class CRCLServerSocketEvent<STATE_TYPE extends CRCLServerClientState> {
         String instanceString;
         if (null != instance && null != source) {
             try {
-                instanceString = ",instance=" + source.commandToSimpleString(instance);
+                instanceString = ",instance=" + source.cmdToString(instance);
             } catch (Exception ex) {
                 instanceString = "";
             }

@@ -32,7 +32,7 @@ public interface PendantClientMenuOuter {
 
     public boolean isPlotXyzSelected();
 
-    public boolean replaceStateSelected();
+//    public boolean replaceStateSelected();
 
     public boolean isDebugWaitForDoneSelected();
 

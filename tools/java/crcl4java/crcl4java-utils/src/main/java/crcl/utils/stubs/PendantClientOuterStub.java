@@ -64,12 +64,12 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return currentProgramLine;
     }
 
-    private final boolean replaceState;
-
-    @Override
-    public boolean replaceStateSelected() {
-        return this.replaceState;
-    }
+//    private final boolean replaceState;
+//
+//    @Override
+//    public boolean replaceStateSelected() {
+//        return this.replaceState;
+//    }
 
     private final String host;
 
@@ -161,7 +161,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 
     public PendantClientOuterStub() {
         this(prop("crcjava.PendandClient.validateXML", false),// validateXML
-                prop("crcjava.PendandClient.replaceState", false),// validateXML
+//                prop("crcjava.PendandClient.replaceState", false),// validateXML
                 System.getProperty("crcl4java.host", "localhost"), Integer.parseInt(System.getProperty("crcl4java.port",
                         Integer.toString(CRCLSocket.DEFAULT_PORT))), //port
                 prop("crcjava.PendandClient.debugWaitForDone", false),// debugWaitForDone
@@ -174,7 +174,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 
     public PendantClientOuterStub(
             boolean validateXml,
-            boolean replaceState,
+//            boolean replaceState,
             String host,
             int port,
             boolean debugWaitForDone,
@@ -182,7 +182,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
             boolean debugReadStatus,
             boolean recordPose,
             boolean exiSelected) {
-        this.replaceState = replaceState;
+//        this.replaceState = replaceState;
         this.host = host;
         this.port = port;
         this.debugWaitForDone = debugWaitForDone;

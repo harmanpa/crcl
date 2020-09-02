@@ -428,7 +428,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         jCheckBoxMenuItemRandomPacket = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemAppendZero = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemIncludeGripperStatus = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItemReplaceState = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugMoveDone = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugReadCommand = new javax.swing.JCheckBoxMenuItem();
         jCheckBoxMenuItemDebugSendStatus = new javax.swing.JCheckBoxMenuItem();
@@ -566,9 +565,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             }
         });
         jMenu4.add(jCheckBoxMenuItemIncludeGripperStatus);
-
-        jCheckBoxMenuItemReplaceState.setText("Replace CRCL_Working,CRCL_Done with Working,Done ...");
-        jMenu4.add(jCheckBoxMenuItemReplaceState);
 
         jCheckBoxMenuItemDebugMoveDone.setText("Debug MOVE Done");
         jMenu4.add(jCheckBoxMenuItemDebugMoveDone);
@@ -1701,9 +1697,9 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         return jCheckBoxMenuItemRandomPacket.isSelected();
     }
 
-    public boolean isReplaceStateSelected() {
-        return jCheckBoxMenuItemReplaceState.isSelected();
-    }
+//    public boolean isReplaceStateSelected() {
+//        return jCheckBoxMenuItemReplaceState.isSelected();
+//    }
 
     public boolean isEXISelected() {
         return jCheckBoxMenuItemEXI.isSelected();
@@ -1725,7 +1721,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemIncludeGripperStatus;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemLogImages;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRandomPacket;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceState;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemReplaceXmlHeader;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXML;
     private javax.swing.JCheckBox jCheckBoxSendStatusWithoutRequest;

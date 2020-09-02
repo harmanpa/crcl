@@ -22,6 +22,7 @@
  */
 package crcl.ui.forcetorquesensorsimulator;
 
+import crcl.ui.client.CrclSwingClientJPanel;
 import java.io.IOException;
 
 /**
@@ -84,6 +85,24 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame {
                 new ForceTorqueSimJFrame().setVisible(true);
             }
         });
+    }
+    
+    /**
+     * Get the value of crclClientPanel
+     *
+     * @return the value of crclClientPanel
+     */
+    public CrclSwingClientJPanel getCrclClientPanel() {
+        return forceTorqueSimJPanel2.getCrclClientPanel();
+    }
+
+    /**
+     * Set the value of crclClientPanel
+     *
+     * @param crclClientPanel new value of crclClientPanel
+     */
+    public void setCrclClientPanel(CrclSwingClientJPanel crclClientPanel) {
+        forceTorqueSimJPanel2.setCrclClientPanel(crclClientPanel);
     }
 
     public void startServer() throws IOException, NumberFormatException {

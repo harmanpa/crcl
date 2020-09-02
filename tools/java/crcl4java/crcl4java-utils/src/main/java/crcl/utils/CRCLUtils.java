@@ -38,13 +38,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -62,6 +60,13 @@ public class CRCLUtils {
     private CRCLUtils() {
     }
 
+    /**
+     * Convert an array returned from Thread.currentThread().getStackTrace() or
+     * exception.getStackTrace() to a readable loggable string.
+     *
+     * @param trace array of stack trace elements
+     * @return new string representation
+     */
     public static String traceToString(StackTraceElement trace @Nullable []) {
         if (null == trace) {
             return "";
@@ -82,10 +87,18 @@ public class CRCLUtils {
             stringWriter.flush();
             return stringWriter.toString();
         } catch (IOException ex) {
+
             throw new RuntimeException(ex);
         }
     }
 
+    /**
+     * Get the user's home directory unless it has been overridden with a system
+     * property "crcl.user.home", "windows.crcl.user.home" or
+     * "linux.crcl.user.home".
+     *
+     * @return home directory path string or property override value
+     */
     public static String getCrclUserHomeDir() {
         boolean isWindows = System.getProperty("os.name").startsWith("Windows");
 
@@ -95,13 +108,6 @@ public class CRCLUtils {
         } else {
             dir = System.getProperty("linux.crcl.user.home", System.getProperty("crcl.user.home", System.getProperty("user.home")));
         }
-//        if(!dir.endsWith("netbeans_run_user_home")) {
-//            System.out.println("System.getProperty(\"user.home\") = " + System.getProperty("user.home"));
-//            System.out.println("System.getProperty(\"crcl.user.home\") = " + System.getProperty("crcl.user.home"));
-//            System.out.println("dir = " + dir);
-//            Properties props = System.getProperties();
-//            props.list(System.out);
-//        }
         return dir;
     }
 
@@ -127,7 +133,7 @@ public class CRCLUtils {
      */
     public static CRCLStatusType readStatusFile(Path p) throws CRCLException, IOException {
         CRCLSocket cs = getUtilSocket();
-        String str = new String(Files.readAllBytes(p),StandardCharsets.UTF_8);
+        String str = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
         synchronized (cs) {
             return cs.stringToStatus(str, true);
         }
@@ -155,7 +161,7 @@ public class CRCLUtils {
      */
     public static CRCLProgramType readProgramFile(Path p) throws CRCLException, IOException {
         CRCLSocket cs = getUtilSocket();
-        String str = new String(Files.readAllBytes(p),StandardCharsets.UTF_8);
+        String str = new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
         synchronized (cs) {
             return cs.stringToProgram(str, true);
         }
@@ -173,6 +179,12 @@ public class CRCLUtils {
         return readProgramFile(Paths.get(filename));
     }
 
+    /**
+     * Get a property and parse it as a long
+     * @param name name of property
+     * @param defaultValue value to be returned if property is not found
+     * @return value of property
+     */
     public static long getLongProperty(String name, long defaultValue) {
         String propVal = System.getProperty(name);
         if (propVal == null) {
@@ -181,13 +193,19 @@ public class CRCLUtils {
         return Long.parseLong(propVal);
     }
 
+//    public static @Nullable
+//    JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
+//        return getJointStatus(_status, bi.intValue());
+//    }
+    /**
+     * Get the joint status with the given joint number.
+     *
+     * @param _status status to get jointstatus field value from
+     * @param jointNumber joint number being looked for
+     * @return joint status with given number or null if one does not exist
+     */
     public static @Nullable
-    JointStatusType getJointStatus(CRCLStatusType _status, BigInteger bi) {
-        return getJointStatus(_status, bi.intValue());
-    }
-
-    public static @Nullable
-    JointStatusType getJointStatus(CRCLStatusType _status, int bi) {
+    JointStatusType getJointStatus(CRCLStatusType _status, int jointNumber) {
         if (null == _status) {
             return null;
         }
@@ -198,7 +216,7 @@ public class CRCLUtils {
         Iterable<JointStatusType> jsl = getNonNullJointStatusIterable(jsst);
         if (null != jsl) {
             for (JointStatusType js : jsl) {
-                if (js.getJointNumber() == bi) {
+                if (js.getJointNumber() == jointNumber) {
                     return js;
                 }
             }
@@ -258,6 +276,14 @@ public class CRCLUtils {
         };
     }
 
+    /**
+     * Create an iterable from one that may have null values to one where null values are
+     * filtered out.
+     *
+     * @param <T> the type of elements returned by the iterator
+     * @param itIn input iterable that may return null values
+     * @return
+     */
     @SuppressWarnings({"nullness", "initialization"})
     public static <T> Iterable<@NonNull T> getNonNullIterable(@Nullable Iterable<T> itIn) {
         if (null == itIn) {
@@ -268,15 +294,21 @@ public class CRCLUtils {
     }
 
 //    @SuppressWarnings({"nullness", "initialization"})
-    public static <T> void clearAndSetList(@Nullable List<@Nullable T> list, @Nullable Collection<? extends T> collectionToAdd) {
-        if (null != list) {
-            list.clear();
-            if (null != collectionToAdd) {
-                list.addAll(collectionToAdd);
-            }
-        }
-    }
+//    public static <T> void clearAndSetList(@Nullable List<@Nullable T> list, @Nullable Collection<? extends T> collectionToAdd) {
+//        if (null != list) {
+//            list.clear();
+//            if (null != collectionToAdd) {
+//                list.addAll(collectionToAdd);
+//            }
+//        }
+//    }
 
+    /**
+     * Create a new list from the set of elements taken from an iterable excluding null values.
+     * @param <T> the type of elements returned by the iterator
+     * @param itIn input iterable that may return null values
+     * @return new list without null values
+     */
     @SuppressWarnings({"nullness", "initialization"})
     public static <T> List<@NonNull T> getNonNullFilteredList(@Nullable Iterable<T> itIn) {
         if (null == itIn) {
@@ -290,7 +322,12 @@ public class CRCLUtils {
         return Collections.unmodifiableList(newList);
     }
 
-    static public CRCLCommandType getNonNullCmd(CRCLCommandInstanceType cmdInstance) {
+    /**
+     * Get the command field from a command instance object or throw a more informative NullPointerException 
+     * @param cmdInstance object to get field from
+     * @return value of CRCLCommand field if not null
+     */
+    static public CRCLCommandType getNonNullCmd(CRCLCommandInstanceType cmdInstance) throws NullPointerException {
         return requireNonNull(
                 requireNonNull(cmdInstance, "cmdInstance")
                         .getCRCLCommand(),
@@ -298,7 +335,12 @@ public class CRCLUtils {
         );
     }
 
-    public static CommandStatusType getNonNullCommandStatus(CRCLStatusType stat) {
+    /**
+     * Get the command status field from a status object or throw a more informative NullPointerException 
+     * @param stat object to get field from
+     * @return command status field if not null
+     */
+    public static CommandStatusType getNonNullCommandStatus(CRCLStatusType stat) throws NullPointerException {
         return requireNonNull(
                 requireNonNull(stat, "stat")
                         .getCommandStatus(),
@@ -306,6 +348,24 @@ public class CRCLUtils {
         );
     }
 
+    /**
+     * Get the zaxis field from a pose object or throw a more informative NullPointerException 
+     * @param pose object to get field from
+     * @return zaxis field if not null
+     */
+    public static VectorType getNonNullZAxis(PoseType pose) {
+        return requireNonNull(
+                requireNonNull(pose, "pose")
+                        .getZAxis(),
+                "getZAxis"
+        );
+    }
+
+    /**
+     * Get the xaxis field from a pose object or throw a more informative NullPointerException 
+     * @param pose object to get field from
+     * @return xaxis field if not null
+     */
     public static VectorType getNonNullXAxis(PoseType pose) {
         return requireNonNull(
                 requireNonNull(pose, "pose").
@@ -314,6 +374,11 @@ public class CRCLUtils {
         );
     }
 
+    /**
+     * Get the point field from a pose object or throw a more informative NullPointerException 
+     * @param pose object to get field from
+     * @return point field if not null
+     */
     public static PointType getNonNullPoint(PoseType pose) {
         return requireNonNull(requireNonNull(pose, "pose").getPoint(), "getPoint()");
     }
@@ -330,7 +395,7 @@ public class CRCLUtils {
         };
     }
 
-    public static <T> Iterable<T> createEmptyIterable() {
+    private static <T> Iterable<T> createEmptyIterable() {
         return new Iterable<T>() {
             @Override
             public Iterator<T> iterator() {
@@ -338,7 +403,12 @@ public class CRCLUtils {
             }
         };
     }
-    
+
+    /**
+     * Get the middleCommands field from a program object or throw a more informative NullPointerException 
+     * @param prog object to get field from
+     * @return middleCommands field if not null
+     */
     @SuppressWarnings("nullness")
     public static List<MiddleCommandType> middleCommands(CRCLProgramType prog) {
         return requireNonNull(
@@ -348,6 +418,12 @@ public class CRCLUtils {
         );
     }
 
+    /**
+     * Get an iterable for JointStatus with null values filtered out.
+     * 
+     * @param jsst object with joint status list field
+     * @return new iterable from list or throw NullPointerException with more informative message.
+     */
     public static Iterable<JointStatusType> getNonNullJointStatusIterable(JointStatusesType jsst) {
         return getNonNullIterable(
                 requireNonNull(
@@ -358,65 +434,4 @@ public class CRCLUtils {
         );
     }
 
-    private static String vectorToDebugString(final @Nullable VectorType v) {
-        return v == null ? "null" : v.toString() + " { "
-                + "I=" + v.getI() + ","
-                + "J=" + v.getJ() + ","
-                + "K=" + v.getK() + " } ";
-    }
-
-    private static String pointToDebugString(final @Nullable PointType p) {
-        return p == null ? "null" : p.toString() + " { "
-                + "X=" + p.getX() + ","
-                + "Y=" + p.getY() + ","
-                + "Z=" + p.getZ() + " } ";
-    }
-
-    private static String poseToDebugString(final @Nullable PoseType p) {
-        return p == null ? "null" : p.toString() + " { "
-                + "Point=" + pointToDebugString(p.getPoint()) + ","
-                + "XAxis=" + vectorToDebugString(p.getXAxis()) + ","
-                + "ZAxis=" + vectorToDebugString(p.getZAxis()) + " } ";
-    }
-
-    private static String commandStatToDebugString(final @Nullable CommandStatusType c) {
-        return c == null ? "null" : c.toString() + " { "
-                + "CommandId=" + c.getCommandID() + ","
-                + "CommandState=" + c.getCommandState() + ","
-                + "StatusId=" + c.getStatusID() + " } ";
-    }
-
-    private static String jointStatusToDebugString(final @Nullable JointStatusType j) {
-        return j == null ? "null" : j.toString() + " { "
-                + "JointNumber=" + j.getJointNumber() + ","
-                + "Position=" + j.getJointPosition() + ","
-                + "Velocity=" + j.getJointVelocity() + ","
-                + "TorqueOrForce=" + j.getJointTorqueOrForce()
-                + " } ";
-    }
-
-    private static String jointStatusListToDebugString(final Iterable<JointStatusType> iterable) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<JointStatusType> it = iterable.iterator();
-        while (it.hasNext()) {
-            JointStatusType jst = it.next();
-            sb.append(jointStatusToDebugString(jst));
-            if (it.hasNext()) {
-                sb.append(',');
-            }
-        }
-        return sb.toString();
-    }
-
-    private static String jointStatusesToDebugString(@Nullable JointStatusesType j) {
-        return j == null ? "null" : j.toString() + " { "
-                + "JointStatus=" + jointStatusListToDebugString(getNonNullJointStatusIterable(j)) + " } ";
-    }
-
-    public static String statToDebugString(@Nullable CRCLStatusType stat) {
-        return stat == null ? "null" : stat.toString() + " { "
-                + "CommandStatus=" + commandStatToDebugString(stat.getCommandStatus()) + ","
-                + "Pose=" + poseToDebugString(CRCLPosemath.getNullablePose(stat)) + ","
-                + "JointStatuses=" + jointStatusesToDebugString(stat.getJointStatuses()) + " } ";
-    }
 }

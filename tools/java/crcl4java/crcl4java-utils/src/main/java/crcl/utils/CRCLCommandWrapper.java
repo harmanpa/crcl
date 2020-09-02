@@ -43,17 +43,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  /*>>>
 import org.checkerframework.checker.nullness.qual.*;
  */
+
 /**
- *
- * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * Command to be stored temporarily in the in memory CRCL program with 
+ * additional associated actions wrapping another command.
+ * 
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>,<wshackle@gmail.com>}
  */
 @SuppressWarnings({"nullness"})
 public class CRCLCommandWrapper extends MessageType {
 
-//    public static interface CRCLCommandWrapperConsumer {
-//
-//        public void accept(CRCLCommandWrapper wrapper);
-//    }
+
     private MiddleCommandType wrappedCommand;
 
     private @Nullable
@@ -61,23 +61,46 @@ public class CRCLCommandWrapper extends MessageType {
 
     private int curProgramIndex = -1;
 
+    /**
+     * Default constructor
+     */
     public CRCLCommandWrapper() {
         wrappedCommand = new MessageType();
     }
 
+    /**
+     * Get the stored field with the index in the CRCLProgram container.
+     * 
+     * @return curProgramIndex
+     */
     public int getCurProgramIndex() {
         return curProgramIndex;
     }
 
+    /**
+     * Set the stored field with the index in the CRCLProgram container.
+     * 
+     * @param curProgramIndex new value of the index
+     */
     public void setCurProgramIndex(int curProgramIndex) {
         this.curProgramIndex = curProgramIndex;
     }
 
+    /**
+     * Get the containing CRCLProgram.
+     * 
+     * @return the containing CRCLProgram or null
+     */
     public @Nullable
     CRCLProgramType getCurProgram() {
         return curProgram;
     }
 
+    /**
+     * Set the containing CRCLProgram.
+     * 
+     * @param curProgram new value of CRCLProgram
+     */
     public void setCurProgram(CRCLProgramType curProgram) {
         this.curProgram = curProgram;
     }
@@ -93,6 +116,12 @@ public class CRCLCommandWrapper extends MessageType {
         }
     }
 
+    /**
+     *
+     * @param wrappedCommand
+     * @param listener
+     * @return
+     */
     public static CRCLCommandWrapper wrapWithOnDone(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
@@ -100,6 +129,12 @@ public class CRCLCommandWrapper extends MessageType {
         return cmd;
     }
 
+    /**
+     *
+     * @param wrappedCommand
+     * @param listener
+     * @return
+     */
     public static CRCLCommandWrapper wrapWithOnStart(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
@@ -107,6 +142,12 @@ public class CRCLCommandWrapper extends MessageType {
         return cmd;
     }
 
+    /**
+     *
+     * @param wrappedCommand
+     * @param listener
+     * @return
+     */
     public static CRCLCommandWrapper wrapWithOnError(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer listener) {
         CRCLCommandWrapper cmd = new CRCLCommandWrapper(wrappedCommand);
@@ -114,6 +155,14 @@ public class CRCLCommandWrapper extends MessageType {
         return cmd;
     }
 
+    /**
+     *
+     * @param wrappedCommand
+     * @param onStartListener
+     * @param onDoneListener
+     * @param onErrorListener
+     * @return
+     */
     public static CRCLCommandWrapper wrap(MiddleCommandType wrappedCommand,
             CRCLCommandWrapperConsumer onStartListener,
             CRCLCommandWrapperConsumer onDoneListener,
@@ -125,10 +174,18 @@ public class CRCLCommandWrapper extends MessageType {
         return cmd;
     }
 
+    /**
+     *
+     * @return
+     */
     public MiddleCommandType getWrappedCommand() {
         return wrappedCommand;
     }
 
+    /**
+     *
+     * @param wrappedCommand
+     */
     public void setWrappedCommand(MiddleCommandType wrappedCommand) {
         wrappedCommand.setCommandID(this.commandID);
         this.wrappedCommand = wrappedCommand;
@@ -171,14 +228,28 @@ public class CRCLCommandWrapper extends MessageType {
     private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onStartListeners
             = new ConcurrentLinkedDeque<>();
 
+    /**
+     * Add a listener to the onStartListeners. 
+     * 
+     * @param consumer object to be added to collection to be called when command started 
+     */
     public void addOnStartListener(CRCLCommandWrapperConsumer consumer) {
         onStartListeners.add(consumer);
     }
 
+    /**
+     * Remove a listener from the onStartListeners.
+     * 
+     * @param consumer object to be removed from list
+     */
     public void removeOnStartListener(CRCLCommandWrapperConsumer consumer) {
         onStartListeners.add(consumer);
     }
 
+    /**
+     * Call the accept method for all consumers on the onStartListeners collection.
+     * 
+     */
     public void notifyOnStartListeners() {
         for (CRCLCommandWrapperConsumer consumer : onStartListeners) {
             consumer.accept(this);
@@ -188,14 +259,27 @@ public class CRCLCommandWrapper extends MessageType {
     private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onDoneListeners
             = new ConcurrentLinkedDeque<>();
 
+    /**
+     * Add a listener to the onDoneListeners. 
+     * 
+     * @param consumer object to be added to collection to be called when command finished
+     */
     public void addOnDoneListener(CRCLCommandWrapperConsumer consumer) {
         onDoneListeners.add(consumer);
     }
 
+    /**
+     * Remove a listener from the onDoneListeners.
+     * 
+     * @param consumer object to be removed from list
+     */
     public void removeOnDoneListener(CRCLCommandWrapperConsumer consumer) {
         onDoneListeners.add(consumer);
     }
 
+    /**
+     * Call the accept method for all consumers on the onDoneListeners collection.
+     */
     public void notifyOnDoneListeners() {
         for (CRCLCommandWrapperConsumer consumer : onDoneListeners) {
             consumer.accept(this);
@@ -205,30 +289,31 @@ public class CRCLCommandWrapper extends MessageType {
     private final ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> onErrorListeners
             = new ConcurrentLinkedDeque<>();
 
+    /**
+     * Add a listener to the onErrorListeners. 
+     * 
+     * @param consumer object to be added to collection to be called when command fails
+     */
     public void addOnErrorListener(CRCLCommandWrapperConsumer consumer) {
         onErrorListeners.add(consumer);
     }
 
+    /**
+     * Remove a listener from the onErrorListeners.
+     * 
+     * @param consumer object to be removed from list
+     */
     public void removeOnErrorListener(CRCLCommandWrapperConsumer consumer) {
         onErrorListeners.add(consumer);
     }
 
+    /**
+     * Call the accept method for all consumers on the onErrorListeners collection.
+     */
     public void notifyOnErrorListeners() {
         for (CRCLCommandWrapperConsumer consumer : onErrorListeners) {
             consumer.accept(this);
         }
-    }
-
-    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnStartListeners() {
-        return onStartListeners;
-    }
-
-    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnDoneListeners() {
-        return onDoneListeners;
-    }
-
-    public ConcurrentLinkedDeque<CRCLCommandWrapperConsumer> getOnErrorListeners() {
-        return onErrorListeners;
     }
 
     

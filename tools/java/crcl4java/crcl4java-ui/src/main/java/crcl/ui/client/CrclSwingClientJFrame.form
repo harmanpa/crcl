@@ -219,11 +219,6 @@
             <Property name="text" type="java.lang.String" value="Options"/>
           </Properties>
           <SubComponents>
-            <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemReplaceState">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Replace Ready,Done,.. with CRCL_Ready,CRCL_DONE ..."/>
-              </Properties>
-            </MenuItem>
             <MenuItem class="javax.swing.JCheckBoxMenuItem" name="jCheckBoxMenuItemDebugWaitForDone">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Debug waitForDone()"/>

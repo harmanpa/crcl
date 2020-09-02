@@ -46,8 +46,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -69,10 +67,18 @@ public class CRCLSchemaUtils {
 
     private static final long RESOURCE_CHANGE_TIME = getLongProperty("crcl.resourceChangeTime", 600000);
 
+    /**
+     * Get the current CRCL schema directory.
+     *
+     * @return directory
+     */
     public static File getCrclSchemaDirFile() {
         return crclSchemaDirFile;
     }
 
+    /**
+     * Delete extracted CRCL schema files if they exist.
+     */
     public static void clearSchemas() {
         if (null != programSchemasFile && programSchemasFile.exists()) {
             boolean deleted = programSchemasFile.delete();
@@ -99,10 +105,22 @@ public class CRCLSchemaUtils {
             }
         }
     }
+
+    /**
+     * Read a list of CRCL schema files from the default programSchemasFile.
+     *
+     * @return array of files
+     */
     public static File[] readProgramSchemaFiles() {
         return readProgramSchemaFiles(requireNonNull(programSchemasFile, "programSchemasFile"));
     }
-    
+
+    /**
+     * Read a list of CRCL schema files from the provided file.
+     *
+     * @param schemaListFile File to read for list of CRCL schema files.
+     * @return array of files
+     */
     public static File[] readProgramSchemaFiles(File schemaListFile) {
         if (schemaListFile.exists()
                 && SCHEMA_CHANGE_TIME > 0
@@ -132,6 +150,12 @@ public class CRCLSchemaUtils {
         }
     }
 
+    /**
+     * Save a list of extracted schema files and a separate file listing them.
+     *
+     * @param schemasListFile text file to save with list of schema files.
+     * @param fa array of schema files to save
+     */
     public static void saveCmdSchemaFiles(File schemasListFile, File fa[]) {
         if (null == fa) {
             return;
@@ -140,7 +164,7 @@ public class CRCLSchemaUtils {
         saveSchemaListFile(schemasListFile, fa);
     }
 
-    public static List<File> reorderAndFilterStatSchemaFiles(List<File> fl) {
+    private static List<File> reorderAndFilterStatSchemaFiles(List<File> fl) {
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
@@ -183,7 +207,7 @@ public class CRCLSchemaUtils {
         return newArray;
     }
 
-    public static File[] reorderAndFilterStatSchemaFiles(File fa[]) {
+    private static File[] reorderAndFilterStatSchemaFiles(File fa[]) {
         if (null == fa || fa.length < 1) {
             throw new IllegalArgumentException("File fa[]=" + fa);
         }
@@ -202,7 +226,7 @@ public class CRCLSchemaUtils {
 
     private static final File[] EMPTY_FILE_ARRAY = new File[0];
 
-    public static Schema filesToSchema(File fa[]) throws CRCLException {
+    private static Schema filesToSchema(File fa[]) throws CRCLException {
         try {
             Source sources[] = new Source[fa.length];
             for (int i = 0; i < sources.length; i++) {
@@ -216,10 +240,21 @@ public class CRCLSchemaUtils {
         }
     }
 
+    /**
+     * Read a list of CRCL schema files from the default statSchemasFile.
+     *
+     * @return array of files
+     */
     public static File[] readStatSchemaFiles() {
-        return readStatSchemaFiles(requireNonNull(statSchemasFile,"statSchemasFile"));
+        return readStatSchemaFiles(requireNonNull(statSchemasFile, "statSchemasFile"));
     }
-    
+
+    /**
+     * Read a list of CRCL schema files from the provided file.
+     *
+     * @param schemaListFile File to read for list of CRCL schema files.
+     * @return array of files
+     */
     public static File[] readStatSchemaFiles(File schemaListFile) {
         if (schemaListFile.exists()
                 && SCHEMA_CHANGE_TIME > 0
@@ -233,7 +268,6 @@ public class CRCLSchemaUtils {
             saveStatSchemaFiles(schemaListFile, findSchemaFiles());
         }
         if (!schemaListFile.exists()) {
-//            showMessage("Could not find CRCL Schema xsd files.");
             throw new IllegalStateException(schemaListFile + " does not exist.");
         }
         try {
@@ -268,6 +302,12 @@ public class CRCLSchemaUtils {
         return fl;
     }
 
+    /**
+     * Save a list of extracted schema files and a separate file listing them.
+     *
+     * @param schemaListFile text file to save with list of schema files.
+     * @param fa array of schema files to save
+     */
     public static void saveProgramSchemaFiles(File schemaListFile, File fa[]) {
         if (null == fa) {
             return;
@@ -276,6 +316,12 @@ public class CRCLSchemaUtils {
         saveSchemaListFile(schemaListFile, fa);
     }
 
+    /**
+     * Save a list of extracted schema files and a separate file listing them.
+     *
+     * @param schemaListFile text file to save with list of schema files.
+     * @param fa array of schema files to save
+     */
     public static void saveStatSchemaFiles(File schemaListFile, File fa[]) {
         if (null == fa) {
             return;
@@ -342,7 +388,7 @@ public class CRCLSchemaUtils {
         return (/*@NonNull*/T[]) nullableArray;
     }
 
-    public static File[] reorderAndFilterCommandSchemaFiles(File[] fa) {
+    private static File[] reorderAndFilterCommandSchemaFiles(File[] fa) {
         if (null == fa || fa.length < 1) {
             return EMPTY_FILE_ARRAY;
         }
@@ -355,7 +401,7 @@ public class CRCLSchemaUtils {
         return EMPTY_FILE_ARRAY;
     }
 
-    public static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
+    private static List<File> reorderAndFilterCommandSchemaFiles(List<File> fl) {
         List<File> newList = new ArrayList<>();
         for (int i = 0; i < fl.size(); i++) {
             File fileI = fl.get(i);
@@ -380,7 +426,7 @@ public class CRCLSchemaUtils {
         }
         if (cmdInstanceIndex > 0 && cmdInstanceIndex < newList.size()) {
             File f = newList.remove(cmdInstanceIndex);
-            CRCLSocket.commandXsdFile = f;
+//            CRCLSocket.commandXsdFile = f;
             newList.add(0, f);
         }
         return newList;
@@ -408,14 +454,20 @@ public class CRCLSchemaUtils {
         return newArray;
     }
 
-    public static File @Nullable[] getDefaultStatSchemaFiles() {
+    static File @Nullable [] getDefaultStatSchemaFiles() {
         return defaultStatSchemaFiles;
     }
-    
+
     private static File defaultStatSchemaFiles @Nullable []  = null;
     private static File defaultCmdSchemaFiles @Nullable []  = null;
     private static File defaultProgramSchemaFiles @Nullable []  = null;
 
+    /**
+     * Create a new schema object from an array of schema files.
+     * @param fa array of schema files
+     * @return new schema
+     * @throws CRCLException a schema file is invalid
+     */
     public static synchronized Schema filesToCmdSchema(File fa[]) throws CRCLException {
         if (null == fa || fa.length < 1) {
             throw new IllegalArgumentException("File fa[]=" + fa);
@@ -426,6 +478,11 @@ public class CRCLSchemaUtils {
         return filesToSchema(reorderedFa);
     }
 
+    /**
+     * Get a default schema from the default schema files for CRCL command sockets.
+     * @return
+     * @throws CRCLException schema file was invalid
+     */
     public static synchronized @Nullable
     Schema getDefaultCmdSchema() throws CRCLException {
         if (null == defaultCmdSchemaFiles) {
@@ -434,6 +491,10 @@ public class CRCLSchemaUtils {
         return filesToCmdSchema(defaultCmdSchemaFiles);
     }
 
+    /**
+     * Get an array with the default set of schema files for a CRCL command socket.
+     * @return array of files
+     */
     @SuppressWarnings("nullness")
     public static synchronized File[] getDefaultCmdSchemaFiles() {
         if (null == defaultCmdSchemaFiles || defaultCmdSchemaFiles.length < 1) {
@@ -442,6 +503,10 @@ public class CRCLSchemaUtils {
         return Arrays.copyOf(defaultCmdSchemaFiles, defaultCmdSchemaFiles.length);
     }
 
+    /**
+     * Get an array with the default set of schema files for a CRCLProgram.
+     * @return array of files
+     */
     @SuppressWarnings("nullness")
     public static synchronized File[] getDefaultProgramSchemaFiles() {
         if (null == defaultProgramSchemaFiles || defaultProgramSchemaFiles.length < 1) {
@@ -450,6 +515,12 @@ public class CRCLSchemaUtils {
         return Arrays.copyOf(defaultProgramSchemaFiles, defaultProgramSchemaFiles.length);
     }
 
+    /**
+     * Create a new schema object from an array of schema files.
+     * @param fa array of schema files
+     * @return new schema
+     * @throws CRCLException a schema file is invalid
+     */
     public static synchronized Schema filesToStatSchema(File fa[]) throws CRCLException {
         if (null == fa || fa.length < 1) {
             throw new IllegalArgumentException("File fa[]=" + fa);
@@ -459,6 +530,11 @@ public class CRCLSchemaUtils {
         return filesToSchema(reorderedFa);
     }
 
+    /**
+     * Create a new schema object  with the default set of schema files for a CRCL status socket.
+     * @return new schema object
+     * @throws crcl.utils.CRCLException schema files could not be found or were invalid
+     */
     public static synchronized @Nullable
     Schema getDefaultStatSchema() throws CRCLException {
         if (null == defaultStatSchemaFiles) {
@@ -467,6 +543,12 @@ public class CRCLSchemaUtils {
         return filesToStatSchema(defaultStatSchemaFiles);
     }
 
+    /**
+     * Create a new schema object from an array of schema files.
+     * @param fa array of schema files
+     * @return new schema
+     * @throws CRCLException a schema file is invalid
+     */
     public static synchronized Schema filesToProgramSchema(File fa[]) throws CRCLException {
         if (null == fa) {
             throw new IllegalArgumentException("File fa[]=null");
@@ -477,6 +559,11 @@ public class CRCLSchemaUtils {
         return filesToSchema(fa);
     }
 
+    /**
+     * Create a new schema object  with the default set of schema files for a CRCLProgram.
+     * @return new schema object
+     * @throws crcl.utils.CRCLException schema files could not be found or were invalid
+     */
     public static synchronized @Nullable
     Schema getDefaultProgramSchema() throws CRCLException {
         if (null == defaultProgramSchemaFiles) {
@@ -485,7 +572,7 @@ public class CRCLSchemaUtils {
         return filesToProgramSchema(defaultProgramSchemaFiles);
     }
 
-    public static File[] reorderProgramSchemaFiles(File[] fa) {
+    private static File[] reorderProgramSchemaFiles(File[] fa) {
         if (null == fa) {
             return EMPTY_FILE_ARRAY;
         }
@@ -494,7 +581,7 @@ public class CRCLSchemaUtils {
         return toNonNullArray(fl, File.class);
     }
 
-    public static List<File> reorderProgramSchemaFiles(List<File> fl) {
+    private static List<File> reorderProgramSchemaFiles(List<File> fl) {
         Collections.sort(fl, new Comparator<File>() {
 
             @Override
@@ -511,49 +598,34 @@ public class CRCLSchemaUtils {
         }
         if (cmdInstanceIndex > 0 && cmdInstanceIndex < fl.size()) {
             File f = fl.remove(cmdInstanceIndex);
-            CRCLSocket.commandXsdFile = f;
+//            CRCLSocket.commandXsdFile = f;
             fl.add(0, f);
         }
         return fl;
     }
 
-    public static @Nullable
-    File getCmdSchemasFile() {
-        return cmdSchemasFile;
-    }
-    
+
     private static final Logger LOGGER = Logger.getLogger(CRCLSchemaUtils.class.getName());
-    
-    public static @Nullable
-    File getStatSchemasFile() {
-        return statSchemasFile;
-    }
-    
-    static public @Nullable
-    File generateSchema(Class<?> clss) throws CRCLException {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(clss);
-            CRCLSchemaOutputResolver sor = new CRCLSchemaOutputResolver();
-            jaxbContext.generateSchema(sor);
-            return sor.getFile();
-        } catch (JAXBException | IOException ex) {
-            throw new CRCLException(ex);
-        }
-    }
-    
+
+//    static private @Nullable
+//    File generateSchema(Class<?> clss) throws CRCLException {
+//        try {
+//            JAXBContext jaxbContext = JAXBContext.newInstance(clss);
+//            CRCLSchemaOutputResolver sor = new CRCLSchemaOutputResolver();
+//            jaxbContext.generateSchema(sor);
+//            return sor.getFile();
+//        } catch (JAXBException | IOException ex) {
+//            throw new CRCLException(ex);
+//        }
+//    }
+
     private final static File statSchemasFile = new File(CRCLUtils.getCrclUserHomeDir(),
             ".crcljava_stat_schemas.txt");
     private final static File cmdSchemasFile = new File(CRCLUtils.getCrclUserHomeDir(),
             ".crcljava_cmd_schemas.txt");
-    
-    public static @Nullable
-    File getProgramSchemasFile() {
-        return programSchemasFile;
-    }
-    
     private final static File programSchemasFile = new File(CRCLUtils.getCrclUserHomeDir(),
             ".crcljava_program_schemas.txt");
-    
+
     private static final File crclSchemaDirFile;
     private static boolean resourcesCopied = false;
 
@@ -562,7 +634,7 @@ public class CRCLSchemaUtils {
         crclSchemaDirFile = new File(startFile, "crclXmlSchemas");
     }
 
-    public static File[] findSchemaFiles() {
+    private static File[] findSchemaFiles() {
         copySchemaResources();
         File files[] = crclSchemaDirFile.listFiles(new FileFilter() {
 
@@ -577,6 +649,11 @@ public class CRCLSchemaUtils {
         return EMPTY_FILE_ARRAY;
     }
 
+    /**
+     * Find schema files ( those that end in ".xsd" ) in a given directory.
+     * @param dir directory to search   
+     * @return array of files
+     */
     public static File[] findSchemaFiles(File dir) {
         copySchemaResources(dir);
         File files[] = dir.listFiles(new FileFilter() {
@@ -592,7 +669,7 @@ public class CRCLSchemaUtils {
         return EMPTY_FILE_ARRAY;
     }
 
-    protected static void copySchemaResources() {
+    private static void copySchemaResources() {
         if (resourcesCopied) {
             return;
         }
@@ -602,6 +679,11 @@ public class CRCLSchemaUtils {
         resourcesCopied = true;
     }
 
+    /**
+     * Copy schema resource files embedded in a jar to the
+     * given directory.
+     * @param directory for storing schema files.
+     */
     public static void copySchemaResources(File directory) {
         copyResourcesToFiles(directory,
                 "CRCLCommandInstance.xsd",
@@ -638,7 +720,7 @@ public class CRCLSchemaUtils {
         return is;
     }
 
-    public static Map<String, String> getSchemaVersions(String... resourcNames) {
+    private static Map<String, String> getSchemaVersions(String... resourcNames) {
         Map<String, String> map = new HashMap<>();
         for (int i = 0; i < resourcNames.length; i++) {
             String resourcName = resourcNames[i];
@@ -647,6 +729,12 @@ public class CRCLSchemaUtils {
         return map;
     }
 
+    /**
+     * Get a map of embedded resource xsd schema filenames to embedded versions based
+     * on the document element's version attribute.
+     * 
+     * @return map of version 
+     */
     public static Map<String, String> getSchemaVersions() {
         return getSchemaVersions(
                 "CRCLCommandInstance.xsd",
@@ -703,10 +791,21 @@ public class CRCLSchemaUtils {
         }
     }
 
+    /**
+     * Read a list of schema files from either a default text file or a directory listing.
+     * 
+     * @return array of files
+     */
     public static File[] readCmdSchemaFiles() {
         return readCmdSchemaFiles(cmdSchemasFile);
     }
-    
+
+    /**
+     * Read a list of schema files from either the given text file or a directory listing.
+     * 
+     * @param schemaListFile a text file with a list of xsd schema files
+     * @return array of files
+     */
     public static File[] readCmdSchemaFiles(File schemaListFile) {
         if (schemaListFile.exists()
                 && SCHEMA_CHANGE_TIME > 0

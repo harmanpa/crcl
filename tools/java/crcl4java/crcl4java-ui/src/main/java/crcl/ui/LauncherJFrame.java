@@ -215,8 +215,9 @@ public class LauncherJFrame extends javax.swing.JFrame {
                 gripperJFrame.setVisible(true);
                 gripperJFrame.setState(Frame.ICONIFIED);
             }
+            CrclSwingClientJFrame pendantClient;
             if (jCheckBoxClient.isSelected()) {
-                CrclSwingClientJFrame pendantClient = new CrclSwingClientJFrame();
+                pendantClient = new CrclSwingClientJFrame();
                 pendantClient.setVisible(true);
                 javax.swing.Timer timer = new javax.swing.Timer(500,
                         e -> {
@@ -227,9 +228,14 @@ public class LauncherJFrame extends javax.swing.JFrame {
                 );
                 timer.setRepeats(false);
                 timer.start();
+            } else {
+                pendantClient=null;
             }
             if (jCheckBoxForceTorqueSensorSimulator.isSelected()) {
                 ForceTorqueSimJFrame forceTorqueSensorSim = new ForceTorqueSimJFrame();
+                if (null != pendantClient) {
+                    forceTorqueSensorSim.setCrclClientPanel(pendantClient.getPendantClientJPanel1());
+                }
                 forceTorqueSensorSim.setVisible(true);
                 forceTorqueSensorSim.startServer();
             }

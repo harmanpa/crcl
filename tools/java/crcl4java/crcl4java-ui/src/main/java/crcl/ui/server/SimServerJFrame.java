@@ -174,10 +174,10 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
         return simServerJPanel1.isRandomPacketSelected();
     }
 
-    @Override
-    public boolean isReplaceStateSelected() {
-        return simServerJPanel1.isReplaceStateSelected();
-    }
+//    @Override
+//    public boolean isReplaceStateSelected() {
+//        return simServerJPanel1.isReplaceStateSelected();
+//    }
 
     @Override
     public boolean isEditingStatus() {
