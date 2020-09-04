@@ -72,10 +72,6 @@ can be done without Motoman software with mpFakeLib.
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <sys/select.h>
 
 // I had issues so I can't trust stdlib.h to declare this properly across platforms.
 extern void *malloc(size_t);

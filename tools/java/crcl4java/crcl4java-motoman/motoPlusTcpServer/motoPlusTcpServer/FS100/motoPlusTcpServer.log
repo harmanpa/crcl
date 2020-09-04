@@ -3,12 +3,12 @@
   Compiling remoteFunctions.c
 ..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(67): warning : In file included from ..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c
 ..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.h(206): warning : type qualifiers ignored on function return type
-..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(1121): warning : type qualifiers ignored on function return type
+..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.c(1126): warning : type qualifiers ignored on function return type
   Compiling tcpSvr.c
 ..\..\NetBeansProjects\MotoPlusTcpSvr\tcpSvr.c(70): warning : In file included from ..\..\NetBeansProjects\MotoPlusTcpSvr\tcpSvr.c
 ..\..\NetBeansProjects\MotoPlusTcpSvr\remoteFunctions.h(206): warning : type qualifiers ignored on function return type
 ..\..\NetBeansProjects\MotoPlusTcpSvr\tcpSvr.c : warning : In function 'runAcceptTcpClientsTask'
-..\..\NetBeansProjects\MotoPlusTcpSvr\tcpSvr.c(132): warning : unused variable 'exceptCount'
+..\..\NetBeansProjects\MotoPlusTcpSvr\tcpSvr.c(136): warning : unused variable 'exceptCount'
   Building motoPlusTcpServer.out
   Build Successful!  Check 'FS100\motoPlusTcpServer' folder for motoPlusTcpServer.out
   ------

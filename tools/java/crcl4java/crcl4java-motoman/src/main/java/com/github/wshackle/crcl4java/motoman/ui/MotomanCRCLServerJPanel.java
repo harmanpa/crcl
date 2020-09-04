@@ -521,15 +521,17 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                 Container container = getParent();
                 JFrame parentJFrame = null;
                 while (null != container) {
-                    if(container instanceof  JFrame) {
+                    if (container instanceof JFrame) {
                         parentJFrame = (JFrame) container;
                         break;
                     }
                     container = container.getParent();
                 }
                 Map<String, Object> argsMap = new TreeMap<>();
+                final Class<?>[] parameterTypes = selectedMethod.getParameterTypes();
                 for (int i = 0; i < objectParams.length; i++) {
-                    Class<?> parameterType = selectedMethod.getParameterTypes()[i];
+                    Class<?> parameterType = parameterTypes[i];
+                    logPrintln("parameterType = " + parameterType);
 //                    logPrintln("parameterType = " + parameterType);
                     String paramName = selectedMethod.getParameters()[i].getName();
 //                    logPrintln("paramName = " + paramName);
@@ -690,8 +692,8 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jTextFieldReadTimeoutActionPerformed
 
     private void jButtonPlotGaurdValuesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPlotGaurdValuesActionPerformed
-       try {
-            diagapplet.plotter.plotterJFrame  plotJFrame
+        try {
+            diagapplet.plotter.plotterJFrame plotJFrame
                     = new diagapplet.plotter.plotterJFrame();
             final List<GuardHistoryElement> guardHistoryList = motomanCrclServer.getCrclServerSocket().getGuardHistoryList();
             plotJFrame.LoadObjectsList("", guardHistoryList);
