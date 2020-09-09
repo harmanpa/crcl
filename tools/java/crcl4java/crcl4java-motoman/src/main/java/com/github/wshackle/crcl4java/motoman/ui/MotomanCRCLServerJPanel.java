@@ -388,15 +388,19 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
     }
 
     private Socket createSocketWithTimeout(String host, int port, int connectTimeout, int readTimeout) throws IOException {
-        Socket socket = new Socket();
-        if (readTimeout > 0) {
-            socket.setSoTimeout(readTimeout);
+        try {
+            Socket socket = new Socket();
+            if (readTimeout > 0) {
+                socket.setSoTimeout(readTimeout);
+            }
+            InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
+            logPrintln("inetSocketAddress = " + inetSocketAddress + ", timoutMillis=" + connectTimeout);
+            socket.connect(inetSocketAddress, connectTimeout);
+            logPrintln("socket.connect() done.");
+            return socket;
+        } catch (IOException iOException) {
+            throw new IOException("host=" + host + ",port=" + port + ",connectTimeout=" + connectTimeout + ",readTimeout=" + readTimeout, iOException);
         }
-        InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
-        logPrintln("inetSocketAddress = " + inetSocketAddress + ", timoutMillis=" + connectTimeout);
-        socket.connect(inetSocketAddress, connectTimeout);
-        logPrintln("socket.connect() done.");
-        return socket;
     }
 
     public boolean isCrclMotoplusConnected() {
