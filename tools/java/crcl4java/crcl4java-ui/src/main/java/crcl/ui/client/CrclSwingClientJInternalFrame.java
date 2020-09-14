@@ -215,8 +215,11 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         pendantClientJPanel1.setIgnoreTimeouts(ignoreTimeouts);
     }
 
-    public void disconnect() {
+    public synchronized void disconnect() {
         pendantClientJPanel1.disconnect();
+        if(pendantClientJPanel1.isConnected()) {
+            throw new RuntimeException("still connected after disconnect");
+        }
     }
 
     public void clearCrclClientErrorMessage() {

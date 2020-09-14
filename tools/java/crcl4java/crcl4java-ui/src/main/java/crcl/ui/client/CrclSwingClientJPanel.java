@@ -2419,7 +2419,7 @@ public class CrclSwingClientJPanel
     private volatile @Nullable
     Thread disconnectThread = null;
 
-    public void disconnect() {
+    public synchronized  void disconnect() {
         showNotJogReady();
         closeShowProgramLogPrintStream();
         disconnecting = true;
@@ -2448,7 +2448,17 @@ public class CrclSwingClientJPanel
         if (null == lastStartPollTimerFutureLocalCopy || lastStartPollTimerFutureLocalCopy.isDone()) {
             completeDisconnect();
         } else {
+            System.out.println("lastStartPollTimerFutureLocalCopy = " + lastStartPollTimerFutureLocalCopy);
             lastStartPollTimerFutureLocalCopy.thenRun(this::completeDisconnect);
+            try {
+                Thread.sleep(11+2*internal.getPoll_ms());
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
+                throw new RuntimeException(ex);
+            }
+            if(isConnected()) {
+                throw new RuntimeException("timed out waiting for lastStartPollTimerFuture to complete");
+            }
         }
     }
 
