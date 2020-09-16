@@ -510,7 +510,7 @@ public class FanucCRCLMain {
         if (reportPoseStatus && null != poseStatus) {
             status.setPoseStatus(poseStatus);
         } else {
-            CRCLPosemath.clearPoseStatus(status);
+            status.setPoseStatus(null);
         }
     }
 
@@ -535,7 +535,7 @@ public class FanucCRCLMain {
         if (reportSettingsStatus && settingsStatus != null) {
             status.setSettingsStatus(settingsStatus);
         } else {
-            CRCLPosemath.clearSettingsStatus(status);
+            status.setSensorStatuses(null);
         }
     }
 
@@ -560,7 +560,7 @@ public class FanucCRCLMain {
         if (reportJointStatus && null != jointStatuses) {
             status.setJointStatuses(jointStatuses);
         } else {
-            CRCLPosemath.clearJointStatuses(status);
+            status.setJointStatuses(null);
         }
     }
 
@@ -610,7 +610,7 @@ public class FanucCRCLMain {
             Thread.dumpStack();
         }
         if (null == jointStatuses || jointStatuses.getJointStatus().size() < 1 || !reportJointStatus) {
-            CRCLPosemath.clearJointStatuses(status1);
+            status1.setJointStatuses(null);
             final String errMsg = "jointStatuses.().size()="
                     + jointStatuses.getJointStatus().size()
                     + ", reportJointStatus=" + reportJointStatus
@@ -2809,7 +2809,7 @@ public class FanucCRCLMain {
         } else {
             try {
                 if (null != this.displayInterface && this.displayInterface.getjCheckBoxLogAllCommands().isSelected()) {
-                    logInfoString(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved.");
+                    logInfoString(utilCrclSocket.cmdToString(cmd, 18, 70) + " recieved.");
                     final String lastCommandString = cs.getLastCommandString();
                     if (null != lastCommandString) {
                         logInfoString(lastCommandString);
@@ -2824,7 +2824,7 @@ public class FanucCRCLMain {
                 }
                 handleCommandCount++;
             } catch (ComException comEx) {
-                showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.commandToSimpleString(cmd, 18, 70));
+                showError(comEx.getMessage() + " : cmd=" + utilCrclSocket.cmdToString(cmd, 18, 70));
                 getLocalLogger().log(Level.SEVERE, "cmd=" + utilCrclSocket.commandToPrettyString(cmd), comEx);
                 disconnectRemoteRobot();
                 connectRemoteRobot();
@@ -2940,7 +2940,7 @@ public class FanucCRCLMain {
                 return;
             }
             if (null == robot || !robotIsConnected || null == groupPos) {
-                showError(utilCrclSocket.commandToSimpleString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
+                showError(utilCrclSocket.cmdToString(cmd, 18, 70) + " recieved when robot not connected or not initialized.");
                 return;
             }
             if (status.getCommandStatus().getCommandState() != CommandStateEnumType.CRCL_ERROR) {
