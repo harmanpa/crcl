@@ -1779,6 +1779,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
                 System.err.println("Thread.currentThread() = " + Thread.currentThread());
                 System.err.println("startTrace = " + CRCLUtils.traceToString(startTrace));
+                System.err.println("startCallerTrace = " + CRCLUtils.traceToString(startCallerTrace));
                 System.err.println("bindTrace = " + CRCLUtils.traceToString(bindTrace));
                 System.out.println("bindThread = " + bindThread);
                 System.err.println("initBindTrace = " + CRCLUtils.traceToString(initBindTrace));
@@ -2631,11 +2632,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private static final ConcurrentLinkedDeque<TraceInfo> startServerTraces
             = new ConcurrentLinkedDeque<>();
 
+    private volatile StackTraceElement startCallerTrace @Nullable []  = null;
+    
     public Future<?> start() {
+        return start(null);
+    }
+    
+    public Future<?> start(StackTraceElement startCallerTrace @Nullable  []) {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }
         ExecutorService serviceFoStart = initExecutorService();
+        this.startCallerTrace = startCallerTrace;
         startTrace = Thread.currentThread().getStackTrace();
         startThread = Thread.currentThread();
         started = true;

@@ -390,6 +390,7 @@ public class FanucCRCLMain {
 
     public XFutureVoid start(boolean preferRobotNeighborhood, String neighborhoodname, String remoteRobotHost, int localPort) {
         try {
+            StackTraceElement callerStartTrace[] = Thread.currentThread().getStackTrace();
             if (this.started) {
                 System.err.println("fanucStartTrace = " + CRCLUtils.traceToString(fanucStartTrace));
                 System.err.println("");
@@ -403,7 +404,7 @@ public class FanucCRCLMain {
             this.localPort = localPort;
             crclServerSocket.setPort(localPort);
             return connectRemoteRobot()
-                    .thenRun(this::wrappedStartCrclServer);
+                    .thenRun(() -> wrappedStartCrclServer(callerStartTrace));
         } catch (Exception exception) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
                     "start(" + preferRobotNeighborhood + "," + neighborhoodname + "," + remoteRobotHost + "," + localPort + ") : " + exception.getMessage(),
@@ -2835,10 +2836,10 @@ public class FanucCRCLMain {
 
     private final AtomicInteger startCrclServerCount = new AtomicInteger();
 
-    private void wrappedStartCrclServer() {
+    private void wrappedStartCrclServer(StackTraceElement startCallerTrace @Nullable  []) {
         int startStartCrclServerCount = startCrclServerCount.incrementAndGet();
         try {
-            startCrclServer();
+            startCrclServer(startCallerTrace);
         } catch (IOException ex) {
             getLocalLogger().log(Level.SEVERE, null, ex);
             System.err.println("localPort = " + localPort);
@@ -2860,9 +2861,13 @@ public class FanucCRCLMain {
             }
         }
     }
+    
+    public void startCrclServer() throws IOException  {
+        startCrclServer(null);
+    }
 
 //    Future<?> crclServerFuture = null;
-    public synchronized void startCrclServer() throws IOException {
+    public synchronized void startCrclServer(StackTraceElement startCallerTrace @Nullable  []) throws IOException {
 //        stopCrclServer();
 //        es = Executors.newCachedThreadPool(daemonThreadFactory);
 //        ss = new ServerSocket(localPort);
@@ -2905,7 +2910,7 @@ public class FanucCRCLMain {
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setServerUnits(new UnitsTypeSet());
-        crclServerSocket.start();
+        crclServerSocket.start(startCallerTrace);
     }
 
     private boolean robotIsConnected = false;
