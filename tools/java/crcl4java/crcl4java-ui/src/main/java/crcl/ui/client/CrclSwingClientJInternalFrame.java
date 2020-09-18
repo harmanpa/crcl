@@ -1136,6 +1136,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         return pendantClientJPanel1.currentStatus();
     }
 
+    public XFuture<CRCLStatusType> getNewStatus() {
+        return pendantClientJPanel1.newStatus();
+    }
+    
     public void requestAndReadStatus() {
         pendantClientJPanel1.requestAndReadStatus();
     }

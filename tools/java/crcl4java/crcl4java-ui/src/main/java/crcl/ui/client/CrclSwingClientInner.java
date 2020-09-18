@@ -532,8 +532,8 @@ public class CrclSwingClientInner {
         return blockPrograms;
     }
 
-    
     public static class BlockingProgramsInfo {
+
         final StackTraceElement trace[];
         final boolean start;
         final int count;
@@ -550,13 +550,12 @@ public class CrclSwingClientInner {
 
         @Override
         public String toString() {
-            return "BlockingProgramsInfo{" + "trace=" + CRCLUtils.traceToString(trace) + ", start=" + start + ", count=" + count + ", thread=" + thread + ", time=" + time + "( "+(System.currentTimeMillis()-time)+" ago) }";
+            return "BlockingProgramsInfo{" + "trace=" + CRCLUtils.traceToString(trace) + ", start=" + start + ", count=" + count + ", thread=" + thread + ", time=" + time + "( " + (System.currentTimeMillis() - time) + " ago) }";
         }
     }
     private final ConcurrentLinkedDeque<BlockingProgramsInfo> blockingProgramsLog = new ConcurrentLinkedDeque<>();
-    
-    
-    public synchronized  int startBlockingPrograms() {
+
+    public synchronized int startBlockingPrograms() {
         final Thread thread = Thread.currentThread();
         startBlockProgramsThread = thread;
         final StackTraceElement[] trace = startBlockProgramsThread.getStackTrace();
@@ -564,32 +563,32 @@ public class CrclSwingClientInner {
         startBlockProgramsTime = System.currentTimeMillis();
         this.blockPrograms = true;
         int ret = blockProgramsSetCount.incrementAndGet();
-        blockingProgramsLog.add(new BlockingProgramsInfo(trace, true, ret,thread,startBlockProgramsTime));
+        blockingProgramsLog.add(new BlockingProgramsInfo(trace, true, ret, thread, startBlockProgramsTime));
         return ret;
     }
 
-    public synchronized  void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
+    public synchronized void stopBlockingPrograms(int count) throws ConcurrentBlockProgramsException {
         int c = blockProgramsSetCount.get();
         if (c != count) {
-            for(BlockingProgramsInfo info : blockingProgramsLog) {
+            for (BlockingProgramsInfo info : blockingProgramsLog) {
                 System.err.println(info);
             }
             throw new ConcurrentBlockProgramsException("wrong count " + count + "!= " + c);
         }
         this.blockPrograms = false;
         int ret = blockProgramsSetCount.incrementAndGet();
-        while(blockingProgramsLog.size() > 10) {
+        while (blockingProgramsLog.size() > 10) {
             BlockingProgramsInfo info = blockingProgramsLog.getFirst();
-            if(info.count < c) {
-                 BlockingProgramsInfo removedInfo = blockingProgramsLog.poll();
-                 if(removedInfo == null) {
-                     break;
-                 }
+            if (info.count < c) {
+                BlockingProgramsInfo removedInfo = blockingProgramsLog.poll();
+                if (removedInfo == null) {
+                    break;
+                }
             } else {
                 break;
             }
         }
-        blockingProgramsLog.add(new BlockingProgramsInfo(Thread.currentThread().getStackTrace(), false, count,Thread.currentThread(),System.currentTimeMillis()));
+        blockingProgramsLog.add(new BlockingProgramsInfo(Thread.currentThread().getStackTrace(), false, count, Thread.currentThread(), System.currentTimeMillis()));
     }
 
     private volatile StackTraceElement @Nullable [] closeTestProgramRunProgramThreadTrace = null;
@@ -915,7 +914,7 @@ public class CrclSwingClientInner {
         if (progSchema == null) {
             throw new IllegalStateException("progSchema==null");
         }
-        return (checkerCRCLSocket = CRCLSocket.newCRCLSocketForSocketSchemas((Socket)null, cmdSchema, statSchema, progSchema));
+        return (checkerCRCLSocket = CRCLSocket.newCRCLSocketForSocketSchemas((Socket) null, cmdSchema, statSchema, progSchema));
     }
 
     public XFuture<Boolean> checkCommandValid(CRCLCommandType cmdObj) {
@@ -2394,6 +2393,18 @@ public class CrclSwingClientInner {
 
     private final AtomicInteger readStatusCount = new AtomicInteger();
 
+    private final ConcurrentLinkedDeque<XFuture<CRCLStatusType>> unsatisfiedNewStatusFutures = new ConcurrentLinkedDeque<>();
+
+    
+    public XFuture<CRCLStatusType> newStatus() {
+        if(!isConnected()) {
+            throw new RuntimeException("can't request newstatus unless connected");
+        }
+        XFuture<CRCLStatusType> f = new XFuture<>("newStatus");
+        unsatisfiedNewStatusFutures.add(f);
+        return f;
+    }
+    
     private @Nullable
     CRCLStatusType readStatus(CRCLSocket readSocket, int timeout) {
         if (readSocket == this.crclSocket) {
@@ -2461,6 +2472,7 @@ public class CrclSwingClientInner {
             }
 
             outer.checkXmlQuery(readSocket);
+            CRCLStatusType curStatusCopy = copy(curStatus);
             if (menuOuterLocal.isRecordPoseSelected()
                     && null != CRCLPosemath.getNullablePose(curStatus)) {
 
@@ -2468,7 +2480,6 @@ public class CrclSwingClientInner {
                 final CommandStatusType commandStatus = curStatus.getCommandStatus();
                 if (null != commandStatus) {
                     if (poseQueue.size() < 2 * maxPoseListLength + 100) {
-                        CRCLStatusType curStatusCopy = copy(curStatus);
                         if (null != curStatusCopy) {
                             AnnotatedPose annotatedPose
                                     = new AnnotatedPose(System.currentTimeMillis(),
@@ -2478,6 +2489,13 @@ public class CrclSwingClientInner {
                             poseQueue.add(annotatedPose);
                         }
                     }
+                }
+            }
+
+            while (!unsatisfiedNewStatusFutures.isEmpty()) {
+                XFuture<CRCLStatusType> f = unsatisfiedNewStatusFutures.poll();
+                if (f != null && !f.isDone()) {
+                    f.complete(curStatusCopy);
                 }
             }
             return curStatus;
@@ -4379,7 +4397,7 @@ public class CrclSwingClientInner {
                     cjr.setJointNumber(jointStatus.getJointNumber());
                     newConfigureJointReportsList.add(cjr);
                 }
-                final List<ConfigureJointReportType> configureJointReportsListLocal 
+                final List<ConfigureJointReportType> configureJointReportsListLocal
                         = cjrs.getConfigureJointReport();
                 configureJointReportsListLocal.clear();
                 configureJointReportsListLocal.addAll(newConfigureJointReportsList);

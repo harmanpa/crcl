@@ -5337,6 +5337,14 @@ public class CrclSwingClientJPanel
             }
         }
     }
+    
+    public XFuture<CRCLStatusType> newStatus() {
+        XFuture<CRCLStatusType> f = internal.newStatus();
+        if(!polling) {
+             internal.scheduleReadAndRequestStatus();
+        }
+        return f;
+    }
 
     public void setStepMode(boolean newStepMode) {
         internal.setStepMode(newStepMode);
