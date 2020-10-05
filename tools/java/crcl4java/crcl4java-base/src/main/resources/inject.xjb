@@ -75,10 +75,6 @@
             this.subField="";
             this.limitType=limitType;
             this.limitValue=limitValue;
-            this.recheckTimeMicroSeconds=0;
-            this.checkCount=0;
-            this.lastCheckTime=0;
-            this.lastCheckValue=0;
         }
 
         // End of code Injected with xjc/maven-jaxb2-plugin  arg -Xinject-code -b inject.xjb
