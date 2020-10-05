@@ -319,7 +319,7 @@ public class CRCLUtils {
         for (T el : iterable) {
             newList.add(el);
         }
-        return Collections.unmodifiableList(newList);
+        return newList;
     }
 
     /**

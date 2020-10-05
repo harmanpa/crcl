@@ -79,6 +79,10 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -136,11 +140,71 @@ public class MotoPlusConnection implements AutoCloseable {
         return maxWait;
     }
 
-    public MotoPlusConnection(Socket socket) throws IOException {
+    public synchronized static MotoPlusConnection connectionFromSocket(Socket socket) throws IOException {
+        MotoPlusConnection mpc = new MotoPlusConnection(socket);
+        Map<Integer, Collection<MotoPlusConnection>> hostMpcMap
+                = mpcConnections.computeIfAbsent(
+                        socket.getInetAddress().getHostAddress(),
+                        (String addrString) -> new ConcurrentHashMap<>()
+                );
+        Collection<MotoPlusConnection> mpcHostPortCollection
+                = hostMpcMap.computeIfAbsent(
+                        socket.getPort(),
+                        (Integer port) -> new ConcurrentLinkedDeque<>());
+        mpcHostPortCollection.add(mpc);
+        return mpc;
+    }
+
+    public synchronized static MotoPlusConnection connectionFromHostPort(String host, int port) throws IOException {
+        Map<Integer, Collection<MotoPlusConnection>> hostMpcMap;
+
+        if (host != null && host.length() > 1) {
+            hostMpcMap
+                    = mpcConnections.computeIfAbsent(
+                            host,
+                            (String addrString) -> new ConcurrentHashMap<>()
+                    );
+        } else {
+            final Collection<Map<Integer, Collection<MotoPlusConnection>>> values = mpcConnections.values();
+            if (values.isEmpty()) {
+                throw new RuntimeException("host=" + host + " and values.isEmpty()");
+            }
+            hostMpcMap = values.iterator().next();
+        }
+        Collection<MotoPlusConnection> mpcHostPortCollection;
+
+        if (port > 0) {
+            mpcHostPortCollection = hostMpcMap.computeIfAbsent(
+                    port,
+                    (Integer portI) -> new ConcurrentLinkedDeque<>());
+        } else {
+            final Collection<Collection<MotoPlusConnection>> values = hostMpcMap.values();
+            if (values.isEmpty()) {
+                throw new RuntimeException("port=" + port + " and values.isEmpty()");
+            }
+            mpcHostPortCollection = values.iterator().next();
+        }
+        for (MotoPlusConnection mpc : mpcHostPortCollection) {
+            if (mpc.isConnected()) {
+                return mpc;
+            }
+        }
+        if(port < 0 || null == host || host.length() <1) {
+             throw new RuntimeException("host="+host+",port=" + port + " and values.isEmpty()");
+        }
+        MotoPlusConnection newMpc = connectionFromSocket(new Socket(host, port));
+        mpcHostPortCollection.add(newMpc);
+        return newMpc;
+    }
+
+    private MotoPlusConnection(Socket socket) throws IOException {
         this.socket = socket;
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
     }
+
+    private static final Map<String, Map<Integer, Collection<MotoPlusConnection>>> mpcConnections
+            = new ConcurrentHashMap<>();
 
     public boolean isConnected() {
         return null != socket && socket.isConnected();
@@ -448,7 +512,6 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-
         public void startMpMotStart(int options) throws IOException {
             final int inputSize = 16;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -532,7 +595,7 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(88, timeout);
             writeDataOutputStream(bb);
             lastCoordTargetDest = target.getDst();
-            afterMove=true;
+            afterMove = true;
         }
 
         public void startMpMotTargetReceive(int grpNo, int id, int timeout, int options) throws IOException {
@@ -789,6 +852,15 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
+        /**
+         * Sends a message to the data stream to tell the controller to reset
+         * the 6-axis force sensor and start measurement.
+         *
+         * @param rob_id which robot to target
+         * @param reset_time specifies the averaging time to calculate offset
+         * value which must be between 10 and 1000 milliseconds.
+         * @throws IOException if the write to the socket fails
+         */
         public void startMpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time) throws IOException {
             final int inputSize = 20;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -796,6 +868,9 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(4, RemoteFunctionGroup.FORCE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_START_MEASURING.getId()); // type of function remote server will call
             bb.putInt(12, rob_id.getId()); // robot ID
+            if (reset_time < 10 || reset_time > 1000) {
+                throw new IllegalArgumentException("reset_time must be between 10 and 1000 not " + reset_time);
+            }
             bb.putInt(16, reset_time); // averaging time
             writeDataOutputStream(bb);
         }
@@ -1775,7 +1850,7 @@ public class MotoPlusConnection implements AutoCloseable {
     public int getLastSentTargetId() {
         return lastSentTargetId.get();
     }
-    
+
     public int incrementAndGetLastSentTargetId() {
         return lastSentTargetId.incrementAndGet();
     }
@@ -1812,9 +1887,7 @@ public class MotoPlusConnection implements AutoCloseable {
     public long[] getMaxReadMpcStatusTimeDiffArrayAfterMove() {
         return maxReadMpcStatusTimeDiffArrayAfterMove;
     }
-    
-    
-    
+
     public MpcStatus readMpcStatus(
             CommandStateEnumType localOrigCommandState,
             int lastSentId,
@@ -1848,19 +1921,19 @@ public class MotoPlusConnection implements AutoCloseable {
         boolean lastPosCloseToTarget = true;
         final MP_CART_POS_RSP_DATA localCachedGetPosData = cachedGetPosData;
         final COORD_POS localLastCoordTargetDest = this.lastCoordTargetDest;
-        double targetPosDiff  = 0;
+        double targetPosDiff = 0;
         double targetRotMaxDiff = 0;
-        if(null != localLastCoordTargetDest && null != localCachedGetPosData) {
+        if (null != localLastCoordTargetDest && null != localCachedGetPosData) {
             targetPosDiff = computeTargetPosDiff(localLastCoordTargetDest, localCachedGetPosData);
             targetRotMaxDiff = computeTargetRotMaxDiff(localLastCoordTargetDest, localCachedGetPosData);
-            if(targetPosDiff > 250 || targetRotMaxDiff > 1000) {
+            if (targetPosDiff > 250 || targetRotMaxDiff > 1000) {
                 lastPosCloseToTarget = false;
             }
         }
         final double initTargetPosDiff = targetPosDiff;
         final double initTargetRotMaxDiff = targetRotMaxDiff;
-        final boolean doMpMotTargetRecieve = 
-                localOrigCommandState == CRCL_WORKING 
+        final boolean doMpMotTargetRecieve
+                = localOrigCommandState == CRCL_WORKING
                 && lastSentId != lastRecvdTargetId
                 && lastPosCloseToTarget;
         int recvId[] = new int[1];
@@ -1885,10 +1958,10 @@ public class MotoPlusConnection implements AutoCloseable {
         if (!getCartPosRet) {
             throw new MotoPlusConnectionException("mpGetCartPos returned false");
         }
-        
-        final MP_CART_POS_RSP_DATA localNewCachedGetPosData =  cartData[0]; 
+
+        final MP_CART_POS_RSP_DATA localNewCachedGetPosData = cartData[0];
         cachedGetPosData = localNewCachedGetPosData;
-        if(null != localLastCoordTargetDest && null != localNewCachedGetPosData) {
+        if (null != localLastCoordTargetDest && null != localNewCachedGetPosData) {
             targetPosDiff = computeTargetPosDiff(localLastCoordTargetDest, localNewCachedGetPosData);
             targetRotMaxDiff = computeTargetRotMaxDiff(localLastCoordTargetDest, localNewCachedGetPosData);
         }
@@ -1950,7 +2023,7 @@ public class MotoPlusConnection implements AutoCloseable {
             if (t[10] > maxReadMpcStatusTimeAfterMove) {
                 maxReadMpcStatusTimeDiffArrayAfterMove = t;
             }
-            afterMove=false;
+            afterMove = false;
         } else {
             if (t[10] > maxReadMpcStatusTime) {
                 maxReadMpcStatusTimeDiffArray = t;
@@ -1959,39 +2032,39 @@ public class MotoPlusConnection implements AutoCloseable {
 
 //        System.out.println("a = " + Arrays.toString(a));
 //        System.out.println("t = " + Arrays.toString(t));
-        MpcStatus mpcStatus 
+        MpcStatus mpcStatus
                 = new MpcStatus(
-                pos,
-                withJoints ? pulseData[0] : null,
-                motTargetReceiveRet, 
-                modeData, 
-                withAlarmModeStatus ? alarmCodeData : null,
-                withAlarmModeStatus ? alarmStatusData : null, 
-                recvId[0], 
-                statusCount,
-                targetPosDiff,
-                targetRotMaxDiff);
+                        pos,
+                        withJoints ? pulseData[0] : null,
+                        motTargetReceiveRet,
+                        modeData,
+                        withAlarmModeStatus ? alarmCodeData : null,
+                        withAlarmModeStatus ? alarmStatusData : null,
+                        recvId[0],
+                        statusCount,
+                        targetPosDiff,
+                        targetRotMaxDiff);
         return mpcStatus;
     }
 
     private double computeTargetPosDiff(final COORD_POS localLastCoordTargetDest, final MP_CART_POS_RSP_DATA localCachedGetPosData) {
         double targetPosDiff;
-        double distx = (double)(localLastCoordTargetDest.x - localCachedGetPosData.lx());
+        double distx = (double) (localLastCoordTargetDest.x - localCachedGetPosData.lx());
         double disty = (double) (localLastCoordTargetDest.y - localCachedGetPosData.ly());
-        double distz =  (double) (localLastCoordTargetDest.z - localCachedGetPosData.lz());
-        targetPosDiff = Math.sqrt(distx*distx+disty*disty+distz*distz);
+        double distz = (double) (localLastCoordTargetDest.z - localCachedGetPosData.lz());
+        targetPosDiff = Math.sqrt(distx * distx + disty * disty + distz * distz);
         return targetPosDiff;
     }
 
     private double computeTargetRotMaxDiff(final COORD_POS localLastCoordTargetDest, final MP_CART_POS_RSP_DATA localCachedGetPosData) {
         double targetRotMaxDiff;
-        double distrx = (double)(localLastCoordTargetDest.rx - localCachedGetPosData.lrx());
-        double distry = (double)(localLastCoordTargetDest.ry - localCachedGetPosData.lry());
-        double distrz = (double)(localLastCoordTargetDest.rz - localCachedGetPosData.lrz());
-        targetRotMaxDiff = Math.max(Math.abs(distrz),Math.max(Math.abs(distry), Math.abs(distrz)));
+        double distrx = (double) (localLastCoordTargetDest.rx - localCachedGetPosData.lrx());
+        double distry = (double) (localLastCoordTargetDest.ry - localCachedGetPosData.lry());
+        double distrz = (double) (localLastCoordTargetDest.rz - localCachedGetPosData.lrz());
+        targetRotMaxDiff = Math.max(Math.abs(distrz), Math.max(Math.abs(distry), Math.abs(distrz)));
         return targetRotMaxDiff;
     }
-    
+
     public MP_PULSE_POS_RSP_DATA getPulsePos(int grp) throws MotoPlusConnectionException, IOException {
         MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
         pulseData[0] = new MP_PULSE_POS_RSP_DATA();
@@ -2081,11 +2154,33 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getAlarmCodeReturn();
     }
 
+    /**
+     * Reset the 6-axis force sensor and start measurement.
+     *
+     * @param rob_id which robot to target
+     * @param reset_time specifies the averaging time to calculate offset value
+     * which must be between 10 and 1000 milliseconds.
+     * @return MpFcsStartMeasuringReturn object with offset_data
+     * @throws java.io.IOException network error
+     * @throws
+     * com.github.wshackle.crcl4java.motoman.MotoPlusConnection.MotoPlusConnectionException
+     * motoplus specific error
+     *
+     */
     public MpFcsStartMeasuringReturn mpFcsStartMeasuring(MP_FCS_ROB_ID rob_id, int reset_time) throws IOException, MotoPlusConnectionException {
         starter.startMpFcsStartMeasuring(rob_id, reset_time);
         return returner.getMpFcsStartMeasuringReturn();
     }
 
+    /**
+     * Retrieves the force data in the specified coordinate system.
+     * @param rob_id which robot to target
+     * @param coord_type specifiess the destination coordinate system
+     * @param uf_no user file number for user specified coordinate system
+     * @return
+     * @throws IOException
+     * @throws MotoPlusConnectionException
+     */
     public MpFcsGetForceDataReturn mpFcsGetForceData(MP_FCS_ROB_ID rob_id, FCS_COORD_TYPE coord_type, int uf_no) throws IOException, MotoPlusConnectionException {
         starter.startMpFcsGetForceData(rob_id, coord_type, uf_no);
         return returner.getMpFcsGetForceDataReturn();

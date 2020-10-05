@@ -140,7 +140,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
@@ -1410,6 +1409,20 @@ public class CrclSwingClientInner {
     }
 
     private boolean incAndSendCommand(CRCLCommandType cmd) {
+        if(null == crclSocket || !crclSocket.isConnected()) {
+            throw new IllegalStateException("crclSocket="+crclSocket+" not connected");
+        }
+        CRCLStatusType status = getStatus();
+        try {
+            if (null == status) {
+                CRCLStatusType newStatus = internalRequestAndReadStatus(crclSocket, readStatusSoTimeout, 0);
+                if (null != newStatus && null == getStatus()) {
+                    setStatus(newStatus);
+                }
+            }
+        } catch (InterruptedException interruptedException) {
+            throw new RuntimeException(interruptedException);
+        }
         this.incCommandID(cmd);
         long sid = statusCommandId();
         if (cmd.getCommandID() == sid) {
@@ -2395,16 +2408,15 @@ public class CrclSwingClientInner {
 
     private final ConcurrentLinkedDeque<XFuture<CRCLStatusType>> unsatisfiedNewStatusFutures = new ConcurrentLinkedDeque<>();
 
-    
     public XFuture<CRCLStatusType> newStatus() {
-        if(!isConnected()) {
+        if (!isConnected()) {
             throw new RuntimeException("can't request newstatus unless connected");
         }
         XFuture<CRCLStatusType> f = new XFuture<>("newStatus");
         unsatisfiedNewStatusFutures.add(f);
         return f;
     }
-    
+
     private @Nullable
     CRCLStatusType readStatus(CRCLSocket readSocket, int timeout) {
         if (readSocket == this.crclSocket) {

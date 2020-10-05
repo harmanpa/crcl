@@ -94,7 +94,7 @@ public class TestMotoPlusConnection {
             host = args[0];
         }
         System.out.println("host = " + host);
-        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(host, 12222))) {
+        try (MotoPlusConnection mpc = MotoPlusConnection.connectionFromSocket(new Socket(host, 12222))) {
 //
 //            
 //            inetAddr = /192.168.1.31

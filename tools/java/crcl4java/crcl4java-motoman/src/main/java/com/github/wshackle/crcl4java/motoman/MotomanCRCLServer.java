@@ -32,6 +32,7 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_COORD_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
+import com.github.wshackle.crcl4java.motoman.motofitproxy.MotoFitTorqueSensorFinder;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_ALARM_CODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_ALARM_STATUS_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
@@ -161,10 +162,11 @@ public class MotomanCRCLServer implements AutoCloseable {
     public MotomanCRCLServer(CRCLServerSocket<MotomanClientState> svrSocket, MotoPlusConnection mpConnection) throws IOException {
         this.crclServerSocket = svrSocket;
         this.mpc = mpConnection;
-        triggerStopMpc = new MotoPlusConnection(new Socket(mpc.getHost(), mpc.getPort()));
+        triggerStopMpc = MotoPlusConnection.connectionFromSocket(new Socket(mpc.getHost(), mpc.getPort()));
         this.crclServerSocket.addListener(crclSocketEventListener);
         this.crclServerSocket.setThreadNamePrefix("MotomanCrclServer");
         this.crclServerSocket.setGuardCheckUpdatePositionOnlyRunnable(this::updatePositionOnly);
+        this.crclServerSocket.addSensorFinder(new MotoFitTorqueSensorFinder());
         this.startTime = System.currentTimeMillis();
         statusCount.set(0);
         statSkipCount.set(0);
@@ -1384,7 +1386,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         System.out.println("Starting MotomanCrclServer on port " + crclPort + " after connecting to Motoman robot " + motomanHost + " on port " + motomanPort);
         try (MotomanCRCLServer motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort, MOTOMAN_STATE_GENERATOR),
-                new MotoPlusConnection(new Socket(motomanHost, motomanPort)))) {
+                MotoPlusConnection.connectionFromSocket(new Socket(motomanHost, motomanPort)))) {
             motomanCrclServer.crclServerSocket.runServer();
         }
     }

@@ -438,7 +438,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         internalDisconnect();
         motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort, MotomanCRCLServer.MOTOMAN_STATE_GENERATOR),
-                new MotoPlusConnection(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis, readTimeoutMillis)));
+                MotoPlusConnection.connectionFromSocket(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis, readTimeoutMillis)));
         motomanCrclServer.setDebug(jCheckBoxDebug.isSelected());
         motomanCrclServer.addLogListener(logConsumer);
         motomanCrclServer.start();
@@ -721,7 +721,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
 
         long t0 = System.currentTimeMillis();
         int count = 0;
-        try (MotoPlusConnection mpc = new MotoPlusConnection(new Socket(motomanHost, motomanPort))) {
+        try (MotoPlusConnection mpc = MotoPlusConnection.connectionFromSocket(new Socket(motomanHost, motomanPort))) {
             final CommandStateEnumType commandState = CommandStateEnumType.CRCL_DONE;
             int startcount = mpc.readMpcStatusOnly(commandState, withJoints, withAlarms).getStatusCount();
             for (int i = 0; i < maxcount; i++) {

@@ -230,6 +230,12 @@ public class CRCLSchemaUtils {
         try {
             Source sources[] = new Source[fa.length];
             for (int i = 0; i < sources.length; i++) {
+                if(!fa[i].exists()) {
+                    throw new RuntimeException("fa["+i+"] = "+fa[i]+" does not exist.");
+                }
+                if(!fa[i].canRead()) {
+                    throw new RuntimeException("fa["+i+"] = "+fa[i]+" can not be read.");
+                }
                 sources[i] = new StreamSource(fa[i]);
             }
             SchemaFactory schemaFactory = SchemaFactory

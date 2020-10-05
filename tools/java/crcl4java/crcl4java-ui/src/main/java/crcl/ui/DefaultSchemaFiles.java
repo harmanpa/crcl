@@ -41,14 +41,23 @@ public class DefaultSchemaFiles {
         int cmdSchemaFilesLength;
         File startingCmdSchemaFiles[];
         boolean startingCmdSchemasFileExists = cmdSchemasFile.exists();
+        boolean allStartingCmdSchemaFilesExist = true;
         if(startingCmdSchemasFileExists) {
             startingCmdSchemaFiles = CRCLSchemaUtils.readCmdSchemaFiles(cmdSchemasFile);
+            for (int i = 0; i < startingCmdSchemaFiles.length; i++) {
+                File startingCmdSchemaFile = startingCmdSchemaFiles[i];
+                if(allStartingCmdSchemaFilesExist && !startingCmdSchemaFile.exists()) {
+                    System.err.println("startingCmdSchemaFile="+startingCmdSchemaFile+" does not exist.");
+                    allStartingCmdSchemaFilesExist=false;
+                    break;
+                }
+            }
             cmdSchemaFilesLength= startingCmdSchemaFiles.length;
         } else {
             startingCmdSchemaFiles = null;
             cmdSchemaFilesLength= 0;
         }
-        if (!startingCmdSchemasFileExists || cmdSchemaFilesLength < 1) {
+        if (!startingCmdSchemasFileExists || !allStartingCmdSchemaFilesExist || cmdSchemaFilesLength < 1) {
             File resourceDir = new File(cmdSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
             CRCLSchemaUtils.copySchemaResources(resourceDir);
@@ -59,14 +68,24 @@ public class DefaultSchemaFiles {
         int statSchemaFilesLength;
         File startingStatSchemaFiles[];
         boolean startingStatSchemasFileExists = statSchemasFile.exists();
+        boolean allStartingStatSchemaFilesExist = true;
         if(startingStatSchemasFileExists) {
             startingStatSchemaFiles = CRCLSchemaUtils.readStatSchemaFiles(statSchemasFile);
+            for (int i = 0; i < startingStatSchemaFiles.length; i++) {
+                File startingStatSchemaFile = startingStatSchemaFiles[i];
+                if(allStartingCmdSchemaFilesExist && !startingStatSchemaFile.exists()) {
+                    System.err.println("startingStatSchemaFile="+startingStatSchemaFile+" does not exist.");
+                    allStartingStatSchemaFilesExist=false;
+                    break;
+                }
+            }
             statSchemaFilesLength= startingStatSchemaFiles.length;
+            
         } else {
             startingStatSchemaFiles = null;
             statSchemaFilesLength= 0;
         }
-        if (!startingStatSchemasFileExists || statSchemaFilesLength < 1) {
+        if (!startingStatSchemasFileExists || !allStartingStatSchemaFilesExist || statSchemaFilesLength < 1) {
             File resourceDir = new File(statSchemasFile.getParentFile(), "crclSchemas");
             resourceDir.mkdirs();
             CRCLSchemaUtils.copySchemaResources(resourceDir);

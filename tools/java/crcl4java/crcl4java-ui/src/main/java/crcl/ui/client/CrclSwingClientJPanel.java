@@ -1399,6 +1399,14 @@ public class CrclSwingClientJPanel
         jLabelJointJogPlus.setBackground(Color.white);
         jLabelJogPlus.setEnabled(true);
         jLabelJogPlus.setBackground(Color.white);
+        if(null != this.lastCommandsMenuParent) {
+            for (int i = 0; i < lastCommandsMenuParent.getItemCount(); i++) {
+                JMenuItem jmi = lastCommandsMenuParent.getItem(i);
+                if(null != jmi) {
+                    jmi.setEnabled(true);
+                }
+            }
+        }
     }
 
     public void setDebugInterrupts(boolean debugInterrupts) {
@@ -1426,6 +1434,14 @@ public class CrclSwingClientJPanel
         jLabelJointJogPlus.setBackground(Color.gray);
         jLabelJogPlus.setEnabled(false);
         jLabelJogPlus.setBackground(Color.gray);
+        if(null != this.lastCommandsMenuParent) {
+            for (int i = 0; i < lastCommandsMenuParent.getItemCount(); i++) {
+                JMenuItem jmi = lastCommandsMenuParent.getItem(i);
+                if(null != jmi) {
+                    jmi.setEnabled(false);
+                }
+            }
+        }
     }
 
     CrclSwingClientInner getInternal() {
@@ -6325,8 +6341,11 @@ public class CrclSwingClientJPanel
         return clss.getName();
     }
 
+    private volatile JMenu lastCommandsMenuParent = null;
+    
     public void addToCommandsMenu(JMenu commandsMenuParent) {
         CrclSwingClientJPanel pendantClientJPanel1 = this;
+        this.lastCommandsMenuParent = commandsMenuParent;
         List<Class<?>> allClasses = ObjTableJPanel.getClasses(customExcludedPathStrings);
         List<Class<?>> cmdClasses = ObjTableJPanel.getAssignableClasses(CRCLCommandType.class,
                 allClasses);
@@ -6358,6 +6377,7 @@ public class CrclSwingClientJPanel
                     }
                 }
             });
+            jmi.setEnabled(isConnected());
             commandsMenuParent.add(jmi);
         }
     }
