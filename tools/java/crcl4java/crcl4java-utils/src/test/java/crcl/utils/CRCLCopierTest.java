@@ -543,17 +543,17 @@ public class CRCLCopierTest {
                     System.out.println("clzz = " + clzz);
                     System.out.println("method1 = " + method1);
                     ex.printStackTrace();
-                    throw new RuntimeException("clzz=" + clzz + ", method1=" + method1+",ex="+ex, ex);
+                    throw new RuntimeException("clzz=" + clzz + ", method1=" + method1 + ",ex=" + ex, ex);
                 }
             }
 
             if (null == newObj) {
                 throw new NullPointerException("newObj = " + newObj);
             }
-            checkForNullObjectFields(clzz.getFields(), newObj,newExcludedClasses);
-            checkForNullObjectFields(clzz.getDeclaredFields(), newObj,newExcludedClasses);
-            checkForNullObjectFields(newObjClass.getFields(), newObj,newExcludedClasses);
-            checkForNullObjectFields(newObjClass.getDeclaredFields(), newObj,newExcludedClasses);
+            checkForNullObjectFields(clzz.getFields(), newObj, newExcludedClasses);
+            checkForNullObjectFields(clzz.getDeclaredFields(), newObj, newExcludedClasses);
+            checkForNullObjectFields(newObjClass.getFields(), newObj, newExcludedClasses);
+            checkForNullObjectFields(newObjClass.getDeclaredFields(), newObj, newExcludedClasses);
             return newObj;
         }
     }
@@ -580,7 +580,9 @@ public class CRCLCopierTest {
         } else if (clzz == boolean.class || clzz == Boolean.class || Boolean.class.isAssignableFrom(clzz)) {
             assertEquals(msg, o1, o2);
         } else if (clzz == String.class) {
-            assertEquals(msg, o1, o2);
+            if (!msg.endsWith("getName()")) {
+                assertEquals(msg, o1, o2);
+            }
         } else if (clzz.isEnum()) {
             assertEquals(msg, o1, o2);
         } else if (clzz.isArray()) {
@@ -666,13 +668,13 @@ public class CRCLCopierTest {
                     continue;
                 }
                 final Class<?> fieldType = field.getType();
-                if(fieldType.isInterface()) {
+                if (fieldType.isInterface()) {
                     continue;
                 }
-                if(excludedClasses.contains(fieldType.getName())) {
+                if (excludedClasses.contains(fieldType.getName())) {
                     continue;
                 }
-                if(excludedClasses.contains(fieldType.getSimpleName())) {
+                if (excludedClasses.contains(fieldType.getSimpleName())) {
                     continue;
                 }
                 if (Collection.class.isAssignableFrom(fieldType)) {

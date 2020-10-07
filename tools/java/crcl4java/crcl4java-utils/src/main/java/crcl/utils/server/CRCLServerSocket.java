@@ -2354,10 +2354,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (stat != null) {
             final long time = stat.getLastReadTime();
             guard.setLastCheckTime(time);
-            if (guard.getCheckCount() < 1) {
+            final Long oldCheckCount = guard.getCheckCount();
+            if (oldCheckCount ==null  || oldCheckCount < 1) {
                 guard.setCheckCount(1L);
             } else {
-                guard.setCheckCount(guard.getCheckCount() + 1);
+                guard.setCheckCount(oldCheckCount + 1);
             }
             if (stat instanceof ForceTorqueSensorStatusType) {
                 ForceTorqueSensorStatusType forceTorqueSensorStat = (ForceTorqueSensorStatusType) stat;

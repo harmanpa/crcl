@@ -25,7 +25,7 @@
             = new java.util.concurrent.atomic.AtomicInteger();
 
         protected DataThingType() {
-            this.name="thing."+NAME_ID_ATOMIC_INTEGER.incrementAndGet();
+            this.name=this.getClass().getSimpleName()+"."+NAME_ID_ATOMIC_INTEGER.incrementAndGet();
         }
 
         // End of code Injected with xjc/maven-jaxb2-plugin  arg -Xinject-code -b inject.xjb

@@ -37,9 +37,11 @@ import static crcl.utils.CRCLUtils.getNonNullJointStatusIterable;
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.InetAddress;
@@ -92,7 +94,7 @@ import org.checkerframework.checker.nullness.qual.*;
  */
 /**
  * Class user for reading and writing CRCL xml data via an java.net.Socket.
- * 
+ *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov> }
  */
 public class CRCLSocket implements AutoCloseable {
@@ -991,8 +993,17 @@ public class CRCLSocket implements AutoCloseable {
                 }
                 return instance;
             } catch (JAXBException ex) {
-                System.err.println("defaultStatSchemaFiles = " + Arrays.toString(CRCLSchemaUtils.getDefaultStatSchemaFiles()));
-                throw new CRCLException(str, ex);
+                try {
+                    final File tmpFile = File.createTempFile("stringToStatus", ".xml");
+                    try (PrintWriter pw = new PrintWriter(new FileWriter(tmpFile))) {
+                        pw.println(str);
+                    }
+                    System.err.println("defaultStatSchemaFiles = " + Arrays.toString(CRCLSchemaUtils.getDefaultStatSchemaFiles()));
+                    throw new CRCLException("tmpFile=" + tmpFile, ex);
+                } catch (IOException ex1) {
+                    Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex1);
+                    throw new CRCLException(ex);
+                }
             }
         }
     }
@@ -1799,10 +1810,6 @@ public class CRCLSocket implements AutoCloseable {
                 + "Z=" + p.getZ() + " } ";
     }
 
-  
-
-    
-
     private static String jointStatusToDebugString(final @Nullable JointStatusType j) {
         return j == null ? "null" : j.toString() + " { "
                 + "JointNumber=" + j.getJointNumber() + ","
@@ -1830,20 +1837,20 @@ public class CRCLSocket implements AutoCloseable {
                 + "JointStatus=" + jointStatusListToDebugString(getNonNullJointStatusIterable(j)) + " } ";
     }
 
-    
     private static String commandStatToDebugString(final @Nullable CommandStatusType c) {
         return c == null ? "null" : c.toString() + " { "
                 + "CommandId=" + c.getCommandID() + ","
                 + "CommandState=" + c.getCommandState() + ","
                 + "StatusId=" + c.getStatusID() + " } ";
     }
-      private static String poseToDebugString(final @Nullable PoseType p) {
+
+    private static String poseToDebugString(final @Nullable PoseType p) {
         return p == null ? "null" : p.toString() + " { "
                 + "Point=" + pointToDebugString(p.getPoint()) + ","
                 + "XAxis=" + vectorToDebugString(p.getXAxis()) + ","
                 + "ZAxis=" + vectorToDebugString(p.getZAxis()) + " } ";
     }
-      
+
     private static String statToDebugString(@Nullable CRCLStatusType stat) {
         return stat == null ? "null" : stat.toString() + " { "
                 + "CommandStatus=" + commandStatToDebugString(stat.getCommandStatus()) + ","
