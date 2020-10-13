@@ -41,6 +41,7 @@ import crcl.base.EnableSensorType;
 import crcl.base.EndCanonType;
 import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
+import crcl.base.GuardsStatusesType;
 import crcl.base.InitCanonType;
 import crcl.base.JointDetailsType;
 import crcl.base.JointSpeedAccelType;
@@ -114,6 +115,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1409,8 +1411,8 @@ public class CrclSwingClientInner {
     }
 
     private boolean incAndSendCommand(CRCLCommandType cmd) {
-        if(null == crclSocket || !crclSocket.isConnected()) {
-            throw new IllegalStateException("crclSocket="+crclSocket+" not connected");
+        if (null == crclSocket || !crclSocket.isConnected()) {
+            throw new IllegalStateException("crclSocket=" + crclSocket + " not connected");
         }
         CRCLStatusType status = getStatus();
         try {
@@ -2417,6 +2419,8 @@ public class CrclSwingClientInner {
         return f;
     }
 
+    private int lastGuardTriggerCount = 0;
+
     private @Nullable
     CRCLStatusType readStatus(CRCLSocket readSocket, int timeout) {
         if (readSocket == this.crclSocket) {
@@ -2503,7 +2507,30 @@ public class CrclSwingClientInner {
                     }
                 }
             }
-
+            if (menuOuterLocal.isRecordTriggerSelected()) {
+                final GuardsStatusesType guardsStatuses = curStatus.getGuardsStatuses();
+                if (null != guardsStatuses && guardsStatuses.getTriggerCount() > lastGuardTriggerCount) {
+                    lastGuardTriggerCount = guardsStatuses.getTriggerCount();
+                    PoseType triggerPose = guardsStatuses.getTriggerPose();
+                    if (null != triggerPose) {
+                        PointType triggerPoint = triggerPose.getPoint();
+                        if (null != triggerPoint) {
+                            File triggerLogFile = new File(System.getProperty("user.home"), "trigger_log.csv");
+                            System.out.println("triggerLogFile = " + triggerLogFile);
+                            boolean alreadyExists = triggerLogFile.exists();
+                            try (PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
+                                if (!alreadyExists) {
+                                    pw.println("time_ms,date,count,x,y,z");
+                                }
+                                long time = System.currentTimeMillis();
+                                pw.println(time + ",\"" + new Date(time) + "\"," + lastGuardTriggerCount + "," + triggerPoint.getX() + "," + triggerPoint.getY() + "," + triggerPoint.getZ());
+                            } catch (IOException ex) {
+                                Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+            }
             while (!unsatisfiedNewStatusFutures.isEmpty()) {
                 XFuture<CRCLStatusType> f = unsatisfiedNewStatusFutures.poll();
                 if (f != null && !f.isDone()) {

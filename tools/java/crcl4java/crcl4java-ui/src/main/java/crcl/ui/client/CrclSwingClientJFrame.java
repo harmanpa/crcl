@@ -284,6 +284,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         jMenuItemOpenStatusLog = new javax.swing.JMenuItem();
         jMenuItemShowCommandLog = new javax.swing.JMenuItem();
         jMenuItemTransformProgram = new javax.swing.JMenuItem();
+        jCheckBoxMenuItemRecordTriggers = new javax.swing.JCheckBoxMenuItem();
         jMenuCmds = new javax.swing.JMenu();
         jMenuXmlSchemas = new javax.swing.JMenu();
         jMenuItemSetSchemaFiles = new javax.swing.JMenuItem();
@@ -393,6 +394,10 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         jMenuItemTransformProgram.setText("Transform Program");
         jMenuItemTransformProgram.addActionListener(formListener);
         jMenuTools.add(jMenuItemTransformProgram);
+
+        jCheckBoxMenuItemRecordTriggers.setSelected(true);
+        jCheckBoxMenuItemRecordTriggers.setText("Record Triggers");
+        jMenuTools.add(jCheckBoxMenuItemRecordTriggers);
 
         jMenuBarPendantClient.add(jMenuTools);
 
@@ -765,6 +770,7 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordCommands;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordPoseList;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordTriggers;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemUseEXI;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXml;
     private javax.swing.JMenu jMenu1;
@@ -1001,5 +1007,10 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         } else if (!paused && oldTitle.startsWith("paused ")) {
             setTitle(oldTitle.substring("paused ".length()));
         }
+    }
+
+    @Override
+    public boolean isRecordTriggerSelected() {
+        return jCheckBoxMenuItemRecordTriggers.isSelected();
     }
 }

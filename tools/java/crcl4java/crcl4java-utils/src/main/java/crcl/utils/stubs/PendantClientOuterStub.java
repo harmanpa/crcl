@@ -58,7 +58,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     private int currentProgramLine;
-    
+
     @Override
     public int getCurrentProgramLine() {
         return currentProgramLine;
@@ -70,7 +70,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
 //    public boolean replaceStateSelected() {
 //        return this.replaceState;
 //    }
-
     private final String host;
 
     @Override
@@ -131,7 +130,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     @Override
-    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status,List<ProgramRunData> progRunDataList) {
+    public void showCurrentProgramLine(int line, CRCLProgramType program, CRCLStatusType status, List<ProgramRunData> progRunDataList) {
         currentProgramLine = line;
     }
 
@@ -155,32 +154,41 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return this.recordPose;
     }
 
+    private final boolean recordTrigger;
+
+    @Override
+    public boolean isRecordTriggerSelected() {
+        return this.recordTrigger;
+    }
+
     private static boolean prop(String propName, boolean defaultVal) {
         return Boolean.valueOf(System.getProperty(propName, Boolean.toString(defaultVal)));
     }
 
     public PendantClientOuterStub() {
         this(prop("crcjava.PendandClient.validateXML", false),// validateXML
-//                prop("crcjava.PendandClient.replaceState", false),// validateXML
+                //                prop("crcjava.PendandClient.replaceState", false),// validateXML
                 System.getProperty("crcl4java.host", "localhost"), Integer.parseInt(System.getProperty("crcl4java.port",
-                        Integer.toString(CRCLSocket.DEFAULT_PORT))), //port
+                Integer.toString(CRCLSocket.DEFAULT_PORT))), //port
                 prop("crcjava.PendandClient.debugWaitForDone", false),// debugWaitForDone
                 prop("crcjava.PendandClient.debugSendCommand", false),// debugSendCommand
                 prop("crcjava.PendandClient.debugReadStatus", false),// debugReadStatus
                 prop("crcjava.PendandClient.recordPose", false),// recordPose
+                prop("crcjava.PendandClient.recordTrigger", false),// recordPose
                 prop("crcjava.PendandClient.exiSelected", false)// exiSelected
         );
     }
 
     public PendantClientOuterStub(
             boolean validateXml,
-//            boolean replaceState,
+            //            boolean replaceState,
             String host,
             int port,
             boolean debugWaitForDone,
             boolean debugSendCommand,
             boolean debugReadStatus,
             boolean recordPose,
+            boolean recordTrigger,
             boolean exiSelected) {
 //        this.replaceState = replaceState;
         this.host = host;
@@ -189,6 +197,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         this.debugSendCommand = debugSendCommand;
         this.debugReadStatus = debugReadStatus;
         this.recordPose = recordPose;
+         this.recordTrigger = recordTrigger;
         this.exiSelected = exiSelected;
     }
 
@@ -224,7 +233,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return null;
     }
 
-
     @Override
     public File getLastOpenedProgramFile() {
         return null;
@@ -253,7 +261,6 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
         return this;
     }
 
-
     @Override
     public File getPropertiesFile() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -275,10 +282,11 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     }
 
     private volatile long maxTime = -1;
+
     @Override
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log) {
-        for(CommandStatusLogElement el: log) {
-            if(el.getTime() > maxTime) {
+        for (CommandStatusLogElement el : log) {
+            if (el.getTime() > maxTime) {
                 System.out.println(el.toString());
                 maxTime = el.getTime();
             }
@@ -288,7 +296,7 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     @Override
     public void setEnableSaveProgram(boolean enable) {
     }
-    
+
     @Override
     public void clearProgramTimesDistances() {
     }

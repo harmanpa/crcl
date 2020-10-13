@@ -42,6 +42,8 @@ public interface PendantClientMenuOuter {
 
     public boolean isRecordPoseSelected();
 
+     public boolean isRecordTriggerSelected();
+     
     public boolean isEXISelected();
 
 //    public boolean isUseReadStatusThreadSelected();

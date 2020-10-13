@@ -493,6 +493,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         jMenuItemOpenStatusLog = new javax.swing.JMenuItem();
         jMenuItemShowCommandLog = new javax.swing.JMenuItem();
         jMenuItemTransformProgram = new javax.swing.JMenuItem();
+        jCheckBoxMenuItemRecordTriggers = new javax.swing.JCheckBoxMenuItem();
         jMenuCmds = new javax.swing.JMenu();
         jMenuXmlSchemas = new javax.swing.JMenu();
         jMenuItemSetSchemaFiles = new javax.swing.JMenuItem();
@@ -706,6 +707,10 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
             }
         });
         jMenuTools.add(jMenuItemTransformProgram);
+
+        jCheckBoxMenuItemRecordTriggers.setSelected(true);
+        jCheckBoxMenuItemRecordTriggers.setText("Record Triggers");
+        jMenuTools.add(jCheckBoxMenuItemRecordTriggers);
 
         jMenuBarPendantClient.add(jMenuTools);
 
@@ -998,6 +1003,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordCommands;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordPoseList;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordTriggers;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemUseEXI;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemValidateXml;
     private javax.swing.JMenu jMenu1;
@@ -1225,6 +1231,12 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         return jCheckBoxMenuItemRecordPoseList.isSelected();
     }
 
+    @Override
+    public boolean isRecordTriggerSelected() {
+        return jCheckBoxMenuItemRecordTriggers.isSelected();
+    }
+
+    
     @Override
     public boolean isEXISelected() {
         return jCheckBoxMenuItemUseEXI.isSelected();
