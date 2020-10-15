@@ -510,10 +510,10 @@ public class CRCLCopier {
 
     private static void copyName(DataThingType out, DataThingType in) {
         String origName = in.getName();
-        int pindex = origName.indexOf('.', 6);
-        while (origName.length() > 6 && pindex > 6 && origName.length() > pindex && origName.startsWith("copy.")) {
+        int pindex = origName.indexOf('.', 5);
+        while (origName.length() > 5 && pindex > 5 && origName.length() > pindex && origName.startsWith("copy.")) {
             origName = origName.substring(pindex+1);
-            pindex = origName.indexOf('.', 6);
+            pindex = origName.indexOf('.', 5);
         }
         if(origName.contains("copy")) {
              throw new RuntimeException("origName="+origName+",pindex="+pindex);

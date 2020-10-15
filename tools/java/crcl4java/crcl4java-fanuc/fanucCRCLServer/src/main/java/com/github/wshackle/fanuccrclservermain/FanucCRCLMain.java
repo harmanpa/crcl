@@ -163,6 +163,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.xml.sax.SAXException;
+import rcs.posemath.Posemath;
 
 /**
  *
@@ -297,9 +298,9 @@ public class FanucCRCLMain {
             changed = true;
         }
 
-        if (changed) {
-            PmCartesian newcart = new PmCartesian(posXyzWpr.x(), posXyzWpr.y(), posXyzWpr.z());
-        }
+//        if (changed) {
+//            PmCartesian newcart = new PmCartesian(posXyzWpr.x(), posXyzWpr.y(), posXyzWpr.z());
+//        }
         pos.update();
     }
 
@@ -945,7 +946,7 @@ public class FanucCRCLMain {
             synchronized (status) {
                 synchronized (crclServerSocket) {
                     final JointStatusesType jointStatusesLocal = status.getJointStatuses();
-                    if(null != jointStatusesLocal) {
+                    if (null != jointStatusesLocal) {
                         serverSocketStatus.setJointStatuses(copy(jointStatusesLocal));
                     }
                     if (null == status.getPoseStatus()) {
@@ -1273,6 +1274,7 @@ public class FanucCRCLMain {
         MOVE_DONE,
         MOVE_STATUS_NOT_SET,
         CHECKED_TASK_STILL_RUNNING,
+        MOVE_ABORTED
     }
 
     private volatile MoveStatus moveStatus = MoveStatus.MOVE_STATUS_NOT_SET;
@@ -1296,6 +1298,10 @@ public class FanucCRCLMain {
     private boolean checkForLastMotionProgramRunning = false;
 
     private boolean checkMoveDone(double dist, double rotDist, long curTime) {
+        if (abortCount.get() != moveStartAbortCount) {
+            addMoveReason(MoveStatus.MOVE_ABORTED);
+            return true;
+        }
         if ((curTime - expectedEndMoveToTime) > 2000) {
             warnMoveTime(dist, rotDist, curTime);
         }
@@ -1453,19 +1459,11 @@ public class FanucCRCLMain {
                     break;
 
                 case GUARD_LIMIT_REACHED:
-                    long stopTimeStart = System.currentTimeMillis();
                     internalStopMotion();
-                    isMovingLastCheckTime = -1;
-                    int movingChecks = 0;
-                    while (isMoving()) {
-                        Thread.sleep(10);
-                        isMovingLastCheckTime = -1;
-                        movingChecks++;
-                    }
+
+//                    overrideVar.value(overrideValue);
                     crclServerSocket.comleteGuardTrigger();
-                    long timeDiff = System.currentTimeMillis() - stopTimeStart;
-                    System.out.println("timeDiff = " + timeDiff);
-                    System.out.println("movingChecks = " + movingChecks);
+
                     break;
             }
         } catch (Exception ex) {
@@ -1701,19 +1699,100 @@ public class FanucCRCLMain {
     }
 
     private void internalStopMotion() {
-        if (null != moveThread) {
-            moveThread.interrupt();
-            try {
-                moveThread.join(200);
-            } catch (InterruptedException ex) {
-                getLocalLogger().log(Level.SEVERE, null, ex);
+        try {
+
+            long stopTimeStart = System.currentTimeMillis();
+            abortCount.incrementAndGet();
+            regNumeric96.regLong(100_000);
+            regNumeric97.regLong(100_000);
+            regNumeric98.regFloat(0.0f);
+            PmCartesian cart1 = getCartDirect();
+            System.out.println("FanucCrclMain.internalStopMotion cart1 = " + cart1);
+            if (null != moveThread) {
+                long t0 = System.currentTimeMillis();
+                moveThread.interrupt();
+                try {
+                    moveThread.join(200);
+                } catch (InterruptedException ex) {
+                    getLocalLogger().log(Level.SEVERE, null, ex);
+                }
+                moveThread = null;
+                long t1 = System.currentTimeMillis();
+                long t01diff = t1 - t0;
+                System.out.println("FanucCRCLMain internalStopMotion join moveThread time = " + t01diff);
             }
-            moveThread = null;
+            if (null != lastMoveToTask) {
+                long t2 = System.currentTimeMillis();
+                lastMoveToTask.abort(true, true);
+                long t3 = System.currentTimeMillis();
+                long t23diff = t3 - t2;
+                System.out.println("FanucCRCLMain internalStopMotion lastMoveToTask.abort(true, true) time = " + t23diff);
+            }
+//            if (null != robot) {
+//                long t4 = System.currentTimeMillis();
+//                ITask motionTask = getRunningTpTask();
+//                System.out.println("motionTask = " + motionTask);
+//                robot.tasks().abortAll(true);
+//                long t5 = System.currentTimeMillis();
+//                long t45diff = t5 - t4;
+//                System.out.println("FanucCRCLMain internalStopMotion robot.tasks().abortAll(true) time = " + t45diff);
+//            }
+            PmCartesian cart2 = getCartDirect();
+            System.out.println("FanucCrclMain.internalStopMotion cart2 = " + cart2);
+            setCommandState(CommandStateEnumType.CRCL_DONE);
+            isMovingLastCheckTime = -1;
+            int movingChecks = 0;
+            while (isMoving()) {
+                Thread.sleep(10);
+                isMovingLastCheckTime = -1;
+                movingChecks++;
+            }
+            PmCartesian cart3 = getCartDirect();
+            System.out.println("FanucCrclMain.internalStopMotion cart3 = " + cart3);
+            PmCartesian cart13diff = Posemath.subtract(cart3, cart1);
+            System.out.println("FanucCrclMain.internalStopMotion cart13diff = " + cart13diff);
+            PmCartesian cart23diff = Posemath.subtract(cart3, cart2);
+            System.out.println("FanucCrclMain.internalStopMotion cart23diff = " + cart23diff);
+            long timeDiff = System.currentTimeMillis() - stopTimeStart;
+            System.out.println("FanucCrclMain.internalStopMotion timeDiff = " + timeDiff);
+            System.out.println("FanucCrclMain.internalStopMotion movingChecks = " + movingChecks);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
         }
-        if (null != robot) {
-            robot.tasks().abortAll(true);
+    }
+
+    private @Nullable
+    ITask getRunningTpTask() {
+        ITasks tasks = robot.tasks();
+        ITask motionTask;
+        Iterator<Com4jObject> tasksIterator = tasks.iterator();
+        while (tasksIterator.hasNext()) {
+            Com4jObject c4jo = tasksIterator.next();
+            if (null == c4jo) {
+                continue;
+            }
+            ITask task = c4jo.queryInterface(ITask.class);
+            if (null == task) {
+                continue;
+            }
+            if (task.status() == FRETaskStatusConstants.frStatusRun && task.programType() == FREProgramTypeConstants.frTPProgramType) {
+                motionTask = task;
+                return motionTask;
+            }
         }
-        setCommandState(CommandStateEnumType.CRCL_DONE);
+        return null;
+    }
+
+    private PmCartesian getCartDirect() {
+        ICurPosition icp1 = robot.curPosition();
+        if (null == icp1) {
+            showError("robot.curPosition() returned null");
+        }
+        ICurGroupPosition icgp1 = icp1.group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+        Com4jObject com4jobj_pos1 = icgp1.formats(FRETypeCodeConstants.frXyzWpr);
+        IXyzWpr pos1 = com4jobj_pos1.queryInterface(IXyzWpr.class);
+        PmCartesian cart1 = new PmCartesian(pos1.x(), pos1.y(), pos1.z());
+        return cart1;
     }
 
     private void handleEndCanon(EndCanonType initCmd) {
@@ -1792,8 +1871,8 @@ public class FanucCRCLMain {
             }
 
             setCommandState(CommandStateEnumType.CRCL_ERROR);
-            if(null != connectionError && connectionError.length() > 0 && !error.startsWith(connectionError)) {
-                 status.getCommandStatus().setStateDescription(connectionError+" "+error);
+            if (null != connectionError && connectionError.length() > 0 && !error.startsWith(connectionError)) {
+                status.getCommandStatus().setStateDescription(connectionError + " " + error);
             } else {
                 status.getCommandStatus().setStateDescription(error);
             }
@@ -1918,21 +1997,25 @@ public class FanucCRCLMain {
         final ISysGroupPosition localPosReg98 = posReg98;
         final IRobot2 localRobot = robot;
         if (!posReg98Updated && null != localPosReg98 && null != localRobot) {
-            localPosReg98.record();
-            localPosReg98.refresh();
-            ICurGroupPosition curPos = localRobot.curPosition().group((short) 1, FRECurPositionConstants.frWorldDisplayType);
-            IXyzWpr curXyzWpr = curPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
-            IConfig curConf = curXyzWpr.config();
-            IXyzWpr posReg98XyzWpr = localPosReg98.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
-            IConfig posReg98XyzWprConf = posReg98XyzWpr.config();
-            posReg98XyzWprConf.flip(curConf.flip());
-            posReg98XyzWprConf.front(curConf.front());
-            posReg98XyzWprConf.left(curConf.left());
-            posReg98XyzWprConf.up(curConf.up());
-            posReg98XyzWprConf.turnNum((short) 1, curConf.turnNum((short) 1));
-            localPosReg98.update();
+            updatePosReg(localPosReg98, localRobot);
             posReg98Updated = true;
         }
+    }
+
+    private void updatePosReg(final ISysGroupPosition localPosReg, final IRobot2 localRobot) {
+        localPosReg.record();
+        localPosReg.refresh();
+        ICurGroupPosition curPos = localRobot.curPosition().group((short) 1, FRECurPositionConstants.frWorldDisplayType);
+        IXyzWpr curXyzWpr = curPos.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+        IConfig curConf = curXyzWpr.config();
+        IXyzWpr posRegXyzWpr = localPosReg.formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+        IConfig posReg98XyzWprConf = posRegXyzWpr.config();
+        posReg98XyzWprConf.flip(curConf.flip());
+        posReg98XyzWprConf.front(curConf.front());
+        posReg98XyzWprConf.left(curConf.left());
+        posReg98XyzWprConf.up(curConf.up());
+        posReg98XyzWprConf.turnNum((short) 1, curConf.turnNum((short) 1));
+        localPosReg.update();
     }
 
     private boolean posReg97Updated = false;
@@ -1956,17 +2039,50 @@ public class FanucCRCLMain {
         }
     }
 
+    private volatile int moveStartAbortCount = -1;
+    private final AtomicInteger abortCount = new AtomicInteger();
+
     long expectedEndMoveToTime = -1;
     long startMoveTime = -1;
 
     private volatile @Nullable
     PoseType moveToStartPosition = null;
 
+    private volatile @Nullable
+    ITask lastMoveToTask = null;
+
     private void handleMoveTo(MoveToType moveCmd) throws PmException {
 
+//        if(!moveCmd.getGuard().isEmpty()) {
+//            MoveThroughToType moveThroughCmd = new MoveThroughToType();
+//            moveThroughCmd.setCommandID(moveCmd.getCommandID());
+//            moveThroughCmd.setNumPositions(10);
+//            PoseType curPose = getPose();
+//            for (int i = 0; i < 10; i++) {
+//                PoseType pose = new PoseType();
+//                pose.setXAxis(moveCmd.getEndPosition().getXAxis());
+//                pose.setZAxis(moveCmd.getEndPosition().getZAxis());
+//                PointType point = new PointType();
+//                final PointType curPosePoint = curPose.getPoint();
+//                final PointType endPoint = moveCmd.getEndPosition().getPoint();
+//                point.setX(curPosePoint.getX()*((9-i)/10.0)+endPoint.getX()*((i+1)/10.0));
+//                point.setY(curPosePoint.getY()*((9-i)/10.0)+endPoint.getY()*((i+1)/10.0));
+//                point.setZ(curPosePoint.getZ()*((9-i)/10.0)+endPoint.getZ()*((i+1)/10.0));
+//                pose.setPoint(point);
+//                moveThroughCmd.getWaypoint().add(pose);
+//            }
+//            moveThroughCmd.setMoveStraight(true);
+//            handleMoveThroughTo(moveThroughCmd);
+//            return;
+//        }
         if (overrideValue < 50) {
             recheckOverride();
         }
+        float f = regNumeric98.regFloat();
+        if (f < transSpeed && f < 0.001f) {
+            regNumeric98.regFloat((float) transSpeed);
+        }
+        moveStartAbortCount = abortCount.get();
         moveReasons = new ArrayList<>();
         distances = new ArrayList<>();
         moveChecksDone = 0;
@@ -2020,9 +2136,30 @@ public class FanucCRCLMain {
         } else {
             showInfo("MoveTo : cartDiff = " + cartDiff + ",rotDiff = " + rotDiff);
             expectedEndMoveToTime = System.currentTimeMillis() + ((long) (1000.0 * cartMoveTime) * (100 / overrideValue));
-            runMotionTpProgram(Objects.requireNonNull(move_linear_prog, "move_linear_prog"));
+            if (moveCmd.getGuard().isEmpty()) {
+                runMotionTpProgram(Objects.requireNonNull(move_linear_prog, "move_linear_prog"));
+            } else {
+                PoseType startPose = getPose();
+                PointType startPoint = startPose.getPoint();
+                final double s = 1.0 / posReg80Array.length;
+                for (int i = 0; i < posReg80Array.length; i++) {
+                    IXyzWpr posRegIXyzWpr = posReg80Array[i].formats(FRETypeCodeConstants.frXyzWpr).queryInterface(IXyzWpr.class);
+                    final double startScale = (9 - i) * s;
+                    final double endScale = (i + 1) * s;
+                    posRegIXyzWpr.setAll(
+                            startPoint.getX() * startScale + endCart.x * endScale,
+                            startPoint.getY() * startScale + endCart.y * endScale,
+                            startPoint.getZ() * startScale + endCart.z * endScale,
+                            Math.toDegrees(rpy.r), Math.toDegrees(rpy.p), Math.toDegrees(rpy.y));
+                    limitAndUpdatePos(posReg80Array[i]);
+                }
+                runMotionTpProgram(Objects.requireNonNull(move_linear10_prog, "move_linear10_prog"));
+            }
         }
         startMoveTime = System.currentTimeMillis();
+        ITask motTask = getRunningTpTask();
+        System.out.println("motTask = " + motTask);
+        lastMoveToTask = motTask;
     }
 
     private volatile @Nullable
@@ -2208,6 +2345,8 @@ public class FanucCRCLMain {
 
     private void handleMoveThroughTo(MoveThroughToType moveCmd) throws PmException {
         posReg97Updated = false;
+        final int handleMoveThroughStartingAbortCount = abortCount.get();
+        this.moveStartAbortCount = handleMoveThroughStartingAbortCount;
         setCommandState(CommandStateEnumType.CRCL_WORKING);
         final Thread initialMoveThread = moveThread;
         if (initialMoveThread != null) {
@@ -2247,6 +2386,9 @@ public class FanucCRCLMain {
                     localGroupPos.update();
                     moveToGroupPos();
                     if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+                    if (handleMoveThroughStartingAbortCount != abortCount.get()) {
                         return;
                     }
                     Thread.sleep(40);
@@ -2836,7 +2978,7 @@ public class FanucCRCLMain {
 
     private final AtomicInteger startCrclServerCount = new AtomicInteger();
 
-    private void wrappedStartCrclServer(StackTraceElement startCallerTrace @Nullable  []) {
+    private void wrappedStartCrclServer(StackTraceElement startCallerTrace @Nullable []) {
         int startStartCrclServerCount = startCrclServerCount.incrementAndGet();
         try {
             startCrclServer(startCallerTrace);
@@ -2861,13 +3003,13 @@ public class FanucCRCLMain {
             }
         }
     }
-    
-    public void startCrclServer() throws IOException  {
+
+    public void startCrclServer() throws IOException {
         startCrclServer(null);
     }
 
 //    Future<?> crclServerFuture = null;
-    public synchronized void startCrclServer(StackTraceElement startCallerTrace @Nullable  []) throws IOException {
+    public synchronized void startCrclServer(StackTraceElement startCallerTrace @Nullable []) throws IOException {
 //        stopCrclServer();
 //        es = Executors.newCachedThreadPool(daemonThreadFactory);
 //        ss = new ServerSocket(localPort);
@@ -3016,6 +3158,8 @@ public class FanucCRCLMain {
     private @MonotonicNonNull
     ITPProgram move_linear_prog = null;
     private @MonotonicNonNull
+    ITPProgram move_linear10_prog = null;
+    private @MonotonicNonNull
     ITPProgram move_w_time_prog = null;
     private @MonotonicNonNull
     ITPProgram move_joint_prog = null;
@@ -3131,6 +3275,8 @@ public class FanucCRCLMain {
     ISysGroupPosition posReg97 = null;
     private @Nullable
     FanucCRCLServerDisplayInterface displayInterface = null;
+
+    private ISysGroupPosition posReg80Array[] = new ISysGroupPosition[10];
 
     private @Nullable
     IRobotNeighborhood neighborhood = null;
@@ -3382,8 +3528,9 @@ public class FanucCRCLMain {
         this.overrideValue = Math.max(1, Math.min(100, overrideValue));
     }
 
-    private volatile @Nullable String connectionError = null;
-    
+    private volatile @Nullable
+    String connectionError = null;
+
     private synchronized void connectRemoteRobotInternal() {
         try {
             this.lastIsMoving = false;
@@ -3411,8 +3558,8 @@ public class FanucCRCLMain {
             final IRobot2 localRobot;
             if (null == initialLocalRobot) {
                 logDebug("Calling createFRCRobot ...");
-                localRobot =
-                        Objects.requireNonNull(
+                localRobot
+                        = Objects.requireNonNull(
                                 com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot(),
                                 "com.github.wshackle.fanuc.robotserver.ClassFactory.createFRCRobot()"
                         );
@@ -3472,6 +3619,10 @@ public class FanucCRCLMain {
                             logDebug("Found MOVE_LINEAR program.");
                             move_linear_prog = program;
                         }
+                        if (null != program && program.name().equalsIgnoreCase("MOVE_LINEAR10")) {
+                            logDebug("Found MOVE_LINEAR10 program.");
+                            move_linear10_prog = program;
+                        }
                         if (null != program && program.name().equalsIgnoreCase("MOVE_JOINT")) {
                             logDebug("Found MOVE_JOINT program.");
                             move_joint_prog = program;
@@ -3507,6 +3658,11 @@ public class FanucCRCLMain {
             posReg98.record();
             posReg97 = getISysGroupPosition(97, 1);
             posReg97.record();
+            for (int i = 0; i < posReg80Array.length; i++) {
+                posReg80Array[i] = getISysGroupPosition(80 + i, 1);
+                posReg80Array[i].comment("CRCLml10_" + i);
+                posReg80Array[i].record();
+            }
             logDebug("Calling robot.sysVariables() ...");
             IVars sysvars = localRobot.sysVariables();
             overrideVar = getNamedItemIVar(sysvars, "$MCR.$GENOVERRIDE");

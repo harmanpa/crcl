@@ -1399,10 +1399,10 @@ public class CrclSwingClientJPanel
         jLabelJointJogPlus.setBackground(Color.white);
         jLabelJogPlus.setEnabled(true);
         jLabelJogPlus.setBackground(Color.white);
-        if(null != this.lastCommandsMenuParent) {
+        if (null != this.lastCommandsMenuParent) {
             for (int i = 0; i < lastCommandsMenuParent.getItemCount(); i++) {
                 JMenuItem jmi = lastCommandsMenuParent.getItem(i);
-                if(null != jmi) {
+                if (null != jmi) {
                     jmi.setEnabled(true);
                 }
             }
@@ -1434,10 +1434,10 @@ public class CrclSwingClientJPanel
         jLabelJointJogPlus.setBackground(Color.gray);
         jLabelJogPlus.setEnabled(false);
         jLabelJogPlus.setBackground(Color.gray);
-        if(null != this.lastCommandsMenuParent) {
+        if (null != this.lastCommandsMenuParent) {
             for (int i = 0; i < lastCommandsMenuParent.getItemCount(); i++) {
                 JMenuItem jmi = lastCommandsMenuParent.getItem(i);
-                if(null != jmi) {
+                if (null != jmi) {
                     jmi.setEnabled(false);
                 }
             }
@@ -2278,14 +2278,7 @@ public class CrclSwingClientJPanel
             }
             checkMenuOuter();
             if (this.menuOuter.isPlotXyzSelected() && null != pt) {
-                plotterJFrame plotter = this.xyzPlotter;
-                if (null == plotter) {
-                    plotter = new plotterJFrame();
-                    plotter.setTitle("XYZ");
-                    plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                    plotter.setVisible(true);
-                    this.xyzPlotter = plotter;
-                }
+                plotterJFrame plotter = showXyzPlot();
                 if (null == plotter) {
                     throw new IllegalStateException("null == plotter");
                 }
@@ -2296,7 +2289,6 @@ public class CrclSwingClientJPanel
 //                        t = (double) xgc.toGregorianCalendar().getTime().getTime();
 //                    }
                 if (t > this.last_t_pos_logged) {
-
                     PlotData xpd = plotter.getPlotByName("x");
                     if (null == xpd) {
                         xpd = new PlotData();
@@ -2316,11 +2308,22 @@ public class CrclSwingClientJPanel
                     PlotData zpd = plotter.getPlotByName("z");
                     if (null == zpd) {
                         zpd = new PlotData();
-                        zpd.name = "x";
+                        zpd.name = "z";
                         plotter.AddPlot(zpd, "z");
                     }
                     double z = pt.getZ();
                     plotter.AddPointToPlot(zpd, t, z, true);
+                    if (curInternalStatus.getSensorStatuses() != null
+                            && !curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().isEmpty()) {
+                        PlotData forceZPd = plotter.getPlotByName("forcez");
+                        if (null == forceZPd) {
+                            forceZPd = new PlotData();
+                            forceZPd.name = "forcez";
+                            plotter.AddPlot(forceZPd, "forcez");
+                        }
+                        double forceZ = curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().get(0).getFz();
+                        plotter.AddPointToPlot(forceZPd, t, forceZ, true);
+                    }
                     if (xpd.get_num_points() < 100) {
                         plotter.FitToGraph();
                     }
@@ -2330,6 +2333,18 @@ public class CrclSwingClientJPanel
                 }
             }
         }
+    }
+
+    public plotterJFrame showXyzPlot() {
+        plotterJFrame plotter = this.xyzPlotter;
+        if (null == plotter) {
+            plotter = new plotterJFrame();
+            plotter.setTitle("XYZ");
+            plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            plotter.setVisible(true);
+            this.xyzPlotter = plotter;
+        }
+        return plotter;
     }
 
     private void updateCurrentPoseListeners(CRCLStatusType curInternalStatus, @Nullable CRCLCommandType lastCommandSent, boolean isHoldingObject, long statReceiveTime) {
@@ -2435,7 +2450,7 @@ public class CrclSwingClientJPanel
     private volatile @Nullable
     Thread disconnectThread = null;
 
-    public synchronized  void disconnect() {
+    public synchronized void disconnect() {
         showNotJogReady();
         closeShowProgramLogPrintStream();
         disconnecting = true;
@@ -2467,12 +2482,12 @@ public class CrclSwingClientJPanel
             System.out.println("lastStartPollTimerFutureLocalCopy = " + lastStartPollTimerFutureLocalCopy);
             lastStartPollTimerFutureLocalCopy.thenRun(this::completeDisconnect);
             try {
-                Thread.sleep(11+2*internal.getPoll_ms());
+                Thread.sleep(11 + 2 * internal.getPoll_ms());
             } catch (InterruptedException ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
                 throw new RuntimeException(ex);
             }
-            if(isConnected()) {
+            if (isConnected()) {
                 throw new RuntimeException("timed out waiting for lastStartPollTimerFuture to complete");
             }
         }
@@ -5353,11 +5368,11 @@ public class CrclSwingClientJPanel
             }
         }
     }
-    
+
     public XFuture<CRCLStatusType> newStatus() {
         XFuture<CRCLStatusType> f = internal.newStatus();
-        if(!polling) {
-             internal.scheduleReadAndRequestStatus();
+        if (!polling) {
+            internal.scheduleReadAndRequestStatus();
         }
         return f;
     }
@@ -6342,7 +6357,7 @@ public class CrclSwingClientJPanel
     }
 
     private volatile JMenu lastCommandsMenuParent = null;
-    
+
     public void addToCommandsMenu(JMenu commandsMenuParent) {
         CrclSwingClientJPanel pendantClientJPanel1 = this;
         this.lastCommandsMenuParent = commandsMenuParent;

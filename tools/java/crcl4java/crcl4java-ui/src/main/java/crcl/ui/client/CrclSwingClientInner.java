@@ -255,12 +255,15 @@ public class CrclSwingClientInner {
     private final Function<CRCLCommandType, XFuture<Boolean>> checkCommandValidPredicate
             = this::checkCommandValid;
 
-    private @Nullable
+    private volatile @Nullable
     CRCLCommandType lastCommandSent = null;
+
+    private volatile @Nullable
+    CRCLCommandType lastCommandSentCopy = null;
 
     public @Nullable
     CRCLCommandType getLastCommandSent() {
-        return this.lastCommandSent;
+        return this.lastCommandSentCopy;
     }
 
     private @Nullable
@@ -1217,6 +1220,7 @@ public class CrclSwingClientInner {
                 prevLastCommandSent = lastCommandSent;
                 prevLastCommandSentStackTrace = lastCommandSentStackTrace;
                 lastCommandSent = cmdInstance.getCRCLCommand();
+                lastCommandSentCopy = CRCLCopier.copy(cmdInstance.getCRCLCommand());
                 lastCommandSentStackTrace = Thread.currentThread().getStackTrace();
                 int currentRecordedCommandsQueueSize = recordedCommandsQueue.size();
                 for (int i = maxRecordCommandsCount; i < currentRecordedCommandsQueueSize; i++) {
@@ -2419,7 +2423,9 @@ public class CrclSwingClientInner {
         return f;
     }
 
-    private int lastGuardTriggerCount = 0;
+    private volatile int lastGuardTriggerCount = 0;
+    private volatile @Nullable
+    PoseType lastCloseGripperPose = null;
 
     private @Nullable
     CRCLStatusType readStatus(CRCLSocket readSocket, int timeout) {
@@ -2489,11 +2495,12 @@ public class CrclSwingClientInner {
 
             outer.checkXmlQuery(readSocket);
             CRCLStatusType curStatusCopy = copy(curStatus);
+            final CommandStatusType commandStatus = curStatusCopy.getCommandStatus();
+            final PoseType curStatusCopyPose = CRCLPosemath.getNullablePose(curStatusCopy);
             if (menuOuterLocal.isRecordPoseSelected()
-                    && null != CRCLPosemath.getNullablePose(curStatus)) {
+                    && null != curStatusCopyPose) {
 
-                PmPose pmPose = CRCLPosemath.toPmPose(curStatus);
-                final CommandStatusType commandStatus = curStatus.getCommandStatus();
+                PmPose pmPose = CRCLPosemath.toPmPose(curStatusCopy);
                 if (null != commandStatus) {
                     if (poseQueue.size() < 2 * maxPoseListLength + 100) {
                         if (null != curStatusCopy) {
@@ -2507,6 +2514,17 @@ public class CrclSwingClientInner {
                     }
                 }
             }
+            if (commandStatus.getCommandState() == CRCL_DONE
+                    && curStatusCopyPose != null
+                    && lastCommandSentCopy != null
+                    && lastCommandSentCopy.getCommandID() == commandStatus.getCommandID()
+                    && lastCommandSentCopy instanceof SetEndEffectorType) {
+                SetEndEffectorType seeCmd = (SetEndEffectorType) lastCommandSentCopy;
+                if (seeCmd.getSetting() < 0.5) {
+                    lastCloseGripperPose = CRCLCopier.copy(curStatusCopyPose);
+                }
+            }
+
             if (menuOuterLocal.isRecordTriggerSelected()) {
                 final GuardsStatusesType guardsStatuses = curStatus.getGuardsStatuses();
                 if (null != guardsStatuses && guardsStatuses.getTriggerCount() > lastGuardTriggerCount) {
@@ -2520,10 +2538,31 @@ public class CrclSwingClientInner {
                             boolean alreadyExists = triggerLogFile.exists();
                             try (PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
                                 if (!alreadyExists) {
-                                    pw.println("time_ms,date,count,x,y,z");
+                                    pw.println("time_ms,date,count,x,y,z,closeX,closeY,closeZ,diffCloseX,diffCloseY,diffCloseZ");
                                 }
                                 long time = System.currentTimeMillis();
-                                pw.println(time + ",\"" + new Date(time) + "\"," + lastGuardTriggerCount + "," + triggerPoint.getX() + "," + triggerPoint.getY() + "," + triggerPoint.getZ());
+                                final double closeX;
+                                final double closeY;
+                                final double closeZ;
+                                final double diffCloseX;
+                                final double diffCloseY;
+                                final double diffCloseZ;
+                                if (lastCloseGripperPose != null && lastCloseGripperPose.getPoint() != null) {
+                                    closeX = lastCloseGripperPose.getPoint().getX();
+                                    closeY = lastCloseGripperPose.getPoint().getY();
+                                    closeZ = lastCloseGripperPose.getPoint().getZ();
+                                    diffCloseX = triggerPoint.getX()-closeX;
+                                    diffCloseY = triggerPoint.getY()-closeY;
+                                    diffCloseZ = triggerPoint.getZ()-closeZ;
+                                } else {
+                                    closeX=Double.NaN;
+                                    closeY=Double.NaN;
+                                    closeZ=Double.NaN;
+                                    diffCloseX=Double.NaN;
+                                    diffCloseY=Double.NaN;
+                                    diffCloseZ=Double.NaN;
+                                }
+                                pw.println(time + ",\"" + new Date(time) + "\"," + lastGuardTriggerCount + "," + triggerPoint.getX() + "," + triggerPoint.getY() + "," + triggerPoint.getZ() +"," + closeX + "," + closeY + "," + closeZ + "," + diffCloseX + "," + diffCloseY + "," + diffCloseZ);
                             } catch (IOException ex) {
                                 Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
                             }

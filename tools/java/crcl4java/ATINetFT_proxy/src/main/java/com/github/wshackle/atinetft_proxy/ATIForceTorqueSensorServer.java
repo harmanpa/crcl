@@ -36,13 +36,13 @@ import java.util.logging.Logger;
 
 /**
  *
- *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class ATIForceTorqueSensorServer implements SensorServerInterface {
 
     private final NetFTSensorProxy netFtSensor;
     private final ConfigurationReader configurationReader;
-    private final DatagramSocket lowSpeedSocket;
+//    private final DatagramSocket lowSpeedSocket;
     private final String sensorId;
     private final List<ParameterSettingType> sensorParameterSetting;
 
@@ -51,7 +51,7 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
         this.sensorParameterSetting = sensorParameterSetting;
         this.netFtSensor = netFtSensor;
         this.configurationReader = configurationReader;
-        this.lowSpeedSocket = netFtSensor.initLowSpeedData();
+//        this.lowSpeedSocket = netFtSensor.initLowSpeedData();
     }
 
     public ATIForceTorqueSensorServer(String sensorId, List<ParameterSettingType> sensorParameterSetting, String host) throws UnknownHostException, IOException, IOException, IOException {
@@ -71,25 +71,26 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
         this(sensorId, sensorParameterSetting, findParam(sensorParameterSetting, "host"));
     }
 
-    
     @Override
-    public synchronized  ForceTorqueSensorStatusType getCurrentSensorStatus() {
+    public synchronized ForceTorqueSensorStatusType getCurrentSensorStatus() {
         try {
             long now = System.currentTimeMillis();
-            NetFTRDTPacketProxy packet = netFtSensor.readLowSpeedData(lowSpeedSocket);
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();
-            double countsPerForce = configurationReader.getCountsPerForce();
-            sensorStatus.setFx(packet.getFx() / countsPerForce);
-            sensorStatus.setFy(packet.getFy() / countsPerForce);
-            sensorStatus.setFz(packet.getFz() / countsPerForce);
-            double countsPerTorque = configurationReader.getCountsPerTorque();
-            sensorStatus.setTx(packet.getTx() / countsPerTorque);
-            sensorStatus.setTy(packet.getTy() / countsPerTorque);
-            sensorStatus.setTz(packet.getTz() / countsPerTorque);
-            sensorStatus.setSensorID(sensorId);
-            sensorStatus.getSensorParameterSetting().addAll(sensorParameterSetting);
-            sensorStatus.setLastReadTime(now);
-            sensorStatus.setReadCount((int) packet.getRDTSequence());
+            try (DatagramSocket lowSpeedSocket = netFtSensor.initLowSpeedData()) {
+                NetFTRDTPacketProxy packet = netFtSensor.readLowSpeedData(lowSpeedSocket);
+                double countsPerForce = configurationReader.getCountsPerForce();
+                sensorStatus.setFx(packet.getFx() / countsPerForce);
+                sensorStatus.setFy(packet.getFy() / countsPerForce);
+                sensorStatus.setFz(packet.getFz() / countsPerForce);
+                double countsPerTorque = configurationReader.getCountsPerTorque();
+                sensorStatus.setTx(packet.getTx() / countsPerTorque);
+                sensorStatus.setTy(packet.getTy() / countsPerTorque);
+                sensorStatus.setTz(packet.getTz() / countsPerTorque);
+                sensorStatus.setSensorID(sensorId);
+                sensorStatus.getSensorParameterSetting().addAll(sensorParameterSetting);
+                sensorStatus.setLastReadTime(now);
+                sensorStatus.setReadCount((int) packet.getRDTSequence());
+            }
             return sensorStatus;
         } catch (Exception ex) {
             Logger.getLogger(ATIForceTorqueSensorServer.class.getName()).log(Level.SEVERE, "", ex);
@@ -103,7 +104,7 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
 
     @Override
     public void close() throws Exception {
-        lowSpeedSocket.close();
+//        lowSpeedSocket.close();
     }
 
 }

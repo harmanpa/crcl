@@ -2253,7 +2253,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
                     }
                     double diff = initialValue - value;
-                    System.out.println("guard: diff = " + diff + ", count=" + count + ", time=" + time);
+                    final PointType point;
+                    if (null != serverSideStatus
+                            && null != serverSideStatus.getPoseStatus()
+                            && null != serverSideStatus.getPoseStatus().getPose()
+                            && null != serverSideStatus.getPoseStatus().getPose().getPoint()) {
+                        point = serverSideStatus.getPoseStatus().getPose().getPoint();
+                    } else {
+                        point = new PointType();
+                    }
+                    double x = point.getX();
+                    double y = point.getY();
+                    double z = point.getZ();
+                    System.out.println("CRCLServerSocket.checkGuardsOnce guard: diff = " + diff + ", count=" + count + ", time=" + time + ", x=" +x+", y="+y+", z="+z);
                     if (diff > guard.getLimitValue()) {
                         triggerGuard(value, guard_client_state, commandInstance, guard);
                     }
@@ -2355,7 +2367,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final long time = stat.getLastReadTime();
             guard.setLastCheckTime(time);
             final Long oldCheckCount = guard.getCheckCount();
-            if (oldCheckCount ==null  || oldCheckCount < 1) {
+            if (oldCheckCount == null || oldCheckCount < 1) {
                 guard.setCheckCount(1L);
             } else {
                 guard.setCheckCount(oldCheckCount + 1);
@@ -2634,12 +2646,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             = new ConcurrentLinkedDeque<>();
 
     private volatile StackTraceElement startCallerTrace @Nullable []  = null;
-    
+
     public Future<?> start() {
         return start(null);
     }
-    
-    public Future<?> start(StackTraceElement startCallerTrace @Nullable  []) {
+
+    public Future<?> start(StackTraceElement startCallerTrace @Nullable []) {
         if (isRunning()) {
             throw new IllegalStateException("Can not start again when server is already running.");
         }

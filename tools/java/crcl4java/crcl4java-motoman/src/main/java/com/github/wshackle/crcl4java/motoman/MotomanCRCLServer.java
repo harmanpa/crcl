@@ -728,15 +728,20 @@ public class MotomanCRCLServer implements AutoCloseable {
     private volatile long maxTriggeredStopTimeNanos1 = 0;
     private volatile long maxTriggeredStopTimeNanos2 = 0;
     private volatile long maxTriggeredStopTimeNanos3 = 0;
+    private volatile long maxTriggeredStopTimeNanos4 = 0;
     private final AtomicLong totalTriggeredStopTimeNanos = new AtomicLong();
     private final AtomicLong totalTriggeredStopTimeNanos0 = new AtomicLong();
     private final AtomicLong totalTriggeredStopTimeNanos1 = new AtomicLong();
     private final AtomicLong totalTriggeredStopTimeNanos2 = new AtomicLong();
     private final AtomicLong totalTriggeredStopTimeNanos3 = new AtomicLong();
+    private final AtomicLong totalTriggeredStopTimeNanos4 = new AtomicLong();
     private final AtomicInteger triggeredStopCount = new AtomicInteger();
 
     private void triggeredStopMotion() throws IOException {
+
         Starter starter = triggerStopMpc.getStarter();
+        MP_CART_POS_RSP_DATA cartData0[] = new MP_CART_POS_RSP_DATA[1];
+        boolean getCart0 = triggerStopMpc.mpGetCartPos(0, cartData0);
         long t0 = System.nanoTime();
         starter.startMpMotStop(0);
         long t1 = System.nanoTime();
@@ -749,13 +754,42 @@ public class MotomanCRCLServer implements AutoCloseable {
         long t3 = System.nanoTime();
 
         if (debug) {
-            System.out.println("stopRet = " + stopRet);
+            System.out.println("MotomanCRCLServer.triggeredStopMotion stopRet = " + stopRet);
         }
         MotCtrlReturnEnum clearRet = returner.getMpMotStandardReturn();//mpc.mpMotTargetClear(0xf, 0);
         long t4 = System.nanoTime();
         if (debug) {
-            System.out.println("clearRet = " + clearRet);
+            System.out.println("MotomanCRCLServer.triggeredStopMotion clearRet = " + clearRet);
         }
+
+        MP_CART_POS_RSP_DATA cartData1[] = new MP_CART_POS_RSP_DATA[1];
+        MP_CART_POS_RSP_DATA cartData2[] = new MP_CART_POS_RSP_DATA[1];
+        MP_CART_POS_RSP_DATA lastDiff;
+        boolean getCart1 = triggerStopMpc.mpGetCartPos(0, cartData1);
+        int moveChecksNeeded = 0;
+        try {
+            boolean moving = true;
+            while (moving) {
+
+                Thread.sleep(10);
+                cartData2 = new MP_CART_POS_RSP_DATA[1];
+                boolean getCart2 = triggerStopMpc.mpGetCartPos(0, cartData2);
+                MP_CART_POS_RSP_DATA diff = cartData2[0].diff(cartData1[0]);
+                System.out.println("MotomanCRCLServer.triggeredStopMotion diff = " + diff);
+                if (diff.lx() < 50 && diff.ly() < 50 && diff.lz() < 50) {
+                    lastDiff = diff;
+                    moving = false;
+                    break;
+                }
+                cartData1 = cartData2;
+                moveChecksNeeded++;
+                System.out.println("MotomanCRCLServer.triggeredStopMotion moveChecksNeeded = " + moveChecksNeeded);
+            }
+        } catch (InterruptedException | IOException ex2) {
+            ex2.printStackTrace();
+        }
+        long t5 = System.nanoTime();
+
 //        MotCtrlReturnEnum stopRet = triggerStopMpc.mpMotStop(0);
 //        if (debug) {
 //            System.out.println("stopRet = " + stopRet);
@@ -764,12 +798,12 @@ public class MotomanCRCLServer implements AutoCloseable {
 //        if (debug) {
 //            System.out.println("clearRet = " + clearRet);
 //        }
-
         long diff0 = t1 - t0;
         long diff1 = t2 - t1;
         long diff2 = t3 - t2;
         long diff3 = t4 - t3;
-        long diff = t4 - t0;
+        long diff4 = t5 - t4;
+        long diff = t5 - t0;
         if (diff <= 0) {
             return;
         }
@@ -786,6 +820,9 @@ public class MotomanCRCLServer implements AutoCloseable {
         if (diff3 > maxTriggeredStopTimeNanos3) {
             maxTriggeredStopTimeNanos3 = diff3;
         }
+        if (diff4 > maxTriggeredStopTimeNanos4) {
+            maxTriggeredStopTimeNanos4 = diff4;
+        }
         if (diff > maxTriggeredStopTimeNanos) {
             maxTriggeredStopTimeNanos = diff;
         }
@@ -794,6 +831,18 @@ public class MotomanCRCLServer implements AutoCloseable {
         long totalT1 = totalTriggeredStopTimeNanos1.addAndGet(diff1);
         long totalT2 = totalTriggeredStopTimeNanos2.addAndGet(diff2);
         long totalT3 = totalTriggeredStopTimeNanos3.addAndGet(diff3);
+        long totalT4 = totalTriggeredStopTimeNanos3.addAndGet(diff4);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion cartData0[0] = " +cartData0[0]);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion cartData2[0] = " +cartData2[0]);
+        MP_CART_POS_RSP_DATA fullDiff = cartData0[0].diff(cartData2[0]);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff = " + diff);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff0 = " + diff0);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff1 = " + diff1);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff2 = " + diff2);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff3 = " + diff3);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion diff4 = " + diff4);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion fullDiff = " + fullDiff);
+        System.out.println("MotomanCRCLServer.triggeredStopMotion moveChecksNeeded = " + moveChecksNeeded);
 
     }
 

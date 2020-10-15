@@ -84,7 +84,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public CrclSwingClientJPanel getPendantClientJPanel1() {
         return pendantClientJPanel1;
     }
-    
+
     public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
         return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran);
     }
@@ -217,7 +217,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
 
     public synchronized void disconnect() {
         pendantClientJPanel1.disconnect();
-        if(pendantClientJPanel1.isConnected()) {
+        if (pendantClientJPanel1.isConnected()) {
             throw new RuntimeException("still connected after disconnect");
         }
     }
@@ -486,7 +486,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         jMenuTools = new javax.swing.JMenu();
         jMenuItemXPathQuery = new javax.swing.JMenuItem();
         jCheckBoxMenuItemPlotXYZ = new javax.swing.JCheckBoxMenuItem();
-        jCheckBoxMenuItemJoints = new javax.swing.JCheckBoxMenuItem();
+        jCheckBoxMenuItemPlotJoints = new javax.swing.JCheckBoxMenuItem();
         jMenuItemRunTest = new javax.swing.JMenuItem();
         jCheckBoxMenuItemRecordPoseList = new javax.swing.JCheckBoxMenuItem();
         jMenuItemPoseList3DPlot = new javax.swing.JMenuItem();
@@ -657,13 +657,13 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         });
         jMenuTools.add(jCheckBoxMenuItemPlotXYZ);
 
-        jCheckBoxMenuItemJoints.setText("Plot Joints");
-        jCheckBoxMenuItemJoints.addActionListener(new java.awt.event.ActionListener() {
+        jCheckBoxMenuItemPlotJoints.setText("Plot Joints");
+        jCheckBoxMenuItemPlotJoints.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxMenuItemJointsActionPerformed(evt);
+                jCheckBoxMenuItemPlotJointsActionPerformed(evt);
             }
         });
-        jMenuTools.add(jCheckBoxMenuItemJoints);
+        jMenuTools.add(jCheckBoxMenuItemPlotJoints);
 
         jMenuItemRunTest.setText("Run Test");
         jMenuItemRunTest.addActionListener(new java.awt.event.ActionListener() {
@@ -896,14 +896,16 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     }//GEN-LAST:event_jMenuItemXPathQueryActionPerformed
 
     private void jCheckBoxMenuItemPlotXYZActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemPlotXYZActionPerformed
-        if (this.jCheckBoxMenuItemPlotXYZ.isSelected()) {
-            pendantClientJPanel1.showJointsPlot();
-        }
+//        if (this.jCheckBoxMenuItemPlotXYZ.isSelected()) {
+//            pendantClientJPanel1.show
+//        }
     }//GEN-LAST:event_jCheckBoxMenuItemPlotXYZActionPerformed
 
-    private void jCheckBoxMenuItemJointsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemJointsActionPerformed
-
-    }//GEN-LAST:event_jCheckBoxMenuItemJointsActionPerformed
+    private void jCheckBoxMenuItemPlotJointsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxMenuItemPlotJointsActionPerformed
+        if (this.jCheckBoxMenuItemPlotJoints.isSelected()) {
+            pendantClientJPanel1.showJointsPlot();
+        }
+    }//GEN-LAST:event_jCheckBoxMenuItemPlotJointsActionPerformed
 
     private void jMenuItemRunTestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemRunTestActionPerformed
         Map<String, String> testPropsMap
@@ -998,7 +1000,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDebugWaitForDone;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemDisableTextPopups;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemEnableDebugConnect;
-    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemJoints;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotJoints;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemPlotXYZ;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemQuitProgramOnTestCommandFail;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItemRecordCommands;
@@ -1145,7 +1147,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public XFuture<CRCLStatusType> getNewStatus() {
         return pendantClientJPanel1.newStatus();
     }
-    
+
     public void requestAndReadStatus() {
         pendantClientJPanel1.requestAndReadStatus();
     }
@@ -1194,7 +1196,7 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
 
     @Override
     public boolean isPlotJointsSelected() {
-        return jCheckBoxMenuItemJoints.isSelected();
+        return jCheckBoxMenuItemPlotJoints.isSelected();
     }
 
     @Override
@@ -1210,7 +1212,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
 //    public boolean replaceStateSelected() {
 //        return jCheckBoxMenuItemReplaceState.isSelected();
 //    }
-
     @Override
     public boolean isDebugWaitForDoneSelected() {
         return jCheckBoxMenuItemDebugWaitForDone.isSelected();
@@ -1236,7 +1237,6 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         return jCheckBoxMenuItemRecordTriggers.isSelected();
     }
 
-    
     @Override
     public boolean isEXISelected() {
         return jCheckBoxMenuItemUseEXI.isSelected();
@@ -1330,17 +1330,17 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
     public File writeCommandStatusLogFile() throws IOException {
         return pendantClientJPanel1.writeCommandStatusLogFile();
     }
-    
+
     public void printPerfInfo(PrintStream ps, String prefix) {
         pendantClientJPanel1.printPerfInfo(ps, prefix);
     }
 
     @Override
     public void showPaused(boolean paused) {
-        String oldTitle= getTitle();
-        if(paused && !oldTitle.startsWith("paused ")) {
-            setTitle("paused "+oldTitle);
-        } else if(!paused && oldTitle.startsWith("paused ")) {
+        String oldTitle = getTitle();
+        if (paused && !oldTitle.startsWith("paused ")) {
+            setTitle("paused " + oldTitle);
+        } else if (!paused && oldTitle.startsWith("paused ")) {
             setTitle(oldTitle.substring("paused ".length()));
         }
     }

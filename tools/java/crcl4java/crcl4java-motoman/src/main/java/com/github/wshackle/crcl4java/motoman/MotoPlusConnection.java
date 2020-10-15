@@ -748,7 +748,7 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-        public void startMpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
+        public void startMpGetCartPos(int ctrlGroup) throws IOException {
             final int inputSize = 16;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
             bb.putInt(0, inputSize - 4); // bytes to read
@@ -1363,6 +1363,12 @@ public class MotoPlusConnection implements AutoCloseable {
         }
 
         public boolean getCartPosReturn(MP_CART_POS_RSP_DATA[] data) throws IOException {
+            if(data.length != 1) {
+                throw new IllegalArgumentException("data.length = "+data.length);
+            }
+            if(data[0] == null) {
+                data[0] = new MP_CART_POS_RSP_DATA();
+            }
             byte inbuf[] = new byte[4];
             readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
@@ -1834,8 +1840,8 @@ public class MotoPlusConnection implements AutoCloseable {
         return pos;
     }
 
-    private boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
-        starter.startMpGetCartPos(ctrlGroup, data);
+    public boolean mpGetCartPos(int ctrlGroup, MP_CART_POS_RSP_DATA[] data) throws IOException {
+        starter.startMpGetCartPos(ctrlGroup);
         return returner.getCartPosReturn(data);
     }
 
@@ -1901,7 +1907,7 @@ public class MotoPlusConnection implements AutoCloseable {
         MP_CART_POS_RSP_DATA pos = cartData[0];
         long t[] = new long[11];
         long t0 = System.currentTimeMillis();
-        mpcStarter.startMpGetCartPos(ctrlGroup, cartData);
+        mpcStarter.startMpGetCartPos(ctrlGroup);
         t[0] = System.currentTimeMillis() - t0;
         MP_PULSE_POS_RSP_DATA pulseData[] = new MP_PULSE_POS_RSP_DATA[1];
         pulseData[0] = new MP_PULSE_POS_RSP_DATA();
