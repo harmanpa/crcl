@@ -1807,7 +1807,7 @@ public class CrclSwingClientJPanel
         this.showMessage(t.toString());
     }
 
-    double last_t_pos_logged = 0;
+    private volatile long last_t_pos_logged = 0;
 
     final Map<Integer, Double> last_joints = new HashMap<>();
 
@@ -2219,7 +2219,7 @@ public class CrclSwingClientJPanel
                     tm.setValueAt(pos, jn - 1, 1);
                     if (this.getMenuOuter().isPlotJointsSelected()) {
                         plotterJFrame plotter = this.jointsPlotter;
-                        if (null == this.jointsPlotter) {
+                        if (null == plotter || !plotter.isVisible()) {
                             plotter = new plotterJFrame();
                             plotter.setTitle("JOINTS");
                             plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -2278,71 +2278,78 @@ public class CrclSwingClientJPanel
             }
             checkMenuOuter();
             if (this.menuOuter.isPlotXyzSelected() && null != pt) {
-                plotterJFrame plotter = showXyzPlot();
-                if (null == plotter) {
-                    throw new IllegalStateException("null == plotter");
-                }
-                double t = System.currentTimeMillis();
+
+                long t = System.currentTimeMillis();
 //                    XMLGregorianCalendar xgc = p.getTimestamp();
 //                    if (null != xgc) {
 //                        double old_t = t;
 //                        t = (double) xgc.toGregorianCalendar().getTime().getTime();
 //                    }
-                if (t > this.last_t_pos_logged) {
-                    PlotData xpd = plotter.getPlotByName("x");
-                    if (null == xpd) {
-                        xpd = new PlotData();
-                        xpd.name = "x";
-                        plotter.AddPlot(xpd, "x");
+                if (t > (this.last_t_pos_logged + 5)) {
+                    plotterJFrame plotter = showXyzPlot();
+                    if (null == plotter) {
+                        throw new IllegalStateException("null == plotter");
                     }
-                    double x = pt.getX();
-                    plotter.AddPointToPlot(xpd, t, x, true);
-                    PlotData ypd = plotter.getPlotByName("y");
-                    if (null == ypd) {
-                        ypd = new PlotData();
-                        ypd.name = "y";
-                        plotter.AddPlot(xpd, "y");
-                    }
-                    double y = pt.getY();
-                    plotter.AddPointToPlot(ypd, t, y, true);
-                    PlotData zpd = plotter.getPlotByName("z");
-                    if (null == zpd) {
-                        zpd = new PlotData();
-                        zpd.name = "z";
-                        plotter.AddPlot(zpd, "z");
-                    }
-                    double z = pt.getZ();
-                    plotter.AddPointToPlot(zpd, t, z, true);
-                    if (curInternalStatus.getSensorStatuses() != null
-                            && !curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().isEmpty()) {
-                        PlotData forceZPd = plotter.getPlotByName("forcez");
-                        if (null == forceZPd) {
-                            forceZPd = new PlotData();
-                            forceZPd.name = "forcez";
-                            plotter.AddPlot(forceZPd, "forcez");
+                    double trel = (double) (t - xyzt0);
+                    if (trel > 0.1 && trel < 3_600_000.0) {
+                        PlotData xpd = plotter.getPlotByName("x");
+                        if (null == xpd) {
+                            xpd = new PlotData();
+                            xpd.name = "x";
+                            plotter.AddPlot(xpd, "x");
                         }
-                        double forceZ = curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().get(0).getFz();
-                        plotter.AddPointToPlot(forceZPd, t, forceZ, true);
+                        double x = pt.getX();
+                        plotter.AddPointToPlot(xpd, trel, x, true);
+                        PlotData ypd = plotter.getPlotByName("y");
+                        if (null == ypd) {
+                            ypd = new PlotData();
+                            ypd.name = "y";
+                            plotter.AddPlot(xpd, "y");
+                        }
+                        double y = pt.getY();
+                        plotter.AddPointToPlot(ypd, trel, y, true);
+                        PlotData zpd = plotter.getPlotByName("z");
+                        if (null == zpd) {
+                            zpd = new PlotData();
+                            zpd.name = "z";
+                            plotter.AddPlot(zpd, "z");
+                        }
+                        double z = pt.getZ();
+                        plotter.AddPointToPlot(zpd, trel, z, true);
+                        if (curInternalStatus.getSensorStatuses() != null
+                                && !curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().isEmpty()) {
+                            PlotData forceZPd = plotter.getPlotByName("forcez");
+                            if (null == forceZPd) {
+                                forceZPd = new PlotData();
+                                forceZPd.name = "forcez";
+                                plotter.AddPlot(forceZPd, "forcez");
+                            }
+                            double forceZ = curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().get(0).getFz();
+                            plotter.AddPointToPlot(forceZPd, trel, forceZ, true);
+                        }
+                        if (xpd.get_num_points() < 100) {
+                            plotter.FitToGraph();
+                        }
+                        plotter.ScrollRight();
+                        plotter.repaint();
                     }
-                    if (xpd.get_num_points() < 100) {
-                        plotter.FitToGraph();
-                    }
-                    plotter.ScrollRight();
-                    plotter.repaint();
                     this.last_t_pos_logged = t;
                 }
             }
         }
     }
 
+    private volatile long xyzt0 = 0;
+
     public plotterJFrame showXyzPlot() {
         plotterJFrame plotter = this.xyzPlotter;
-        if (null == plotter) {
+        if (null == plotter || !plotter.isVisible()) {
             plotter = new plotterJFrame();
             plotter.setTitle("XYZ");
             plotter.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             plotter.setVisible(true);
             this.xyzPlotter = plotter;
+            xyzt0 = System.currentTimeMillis();
         }
         return plotter;
     }

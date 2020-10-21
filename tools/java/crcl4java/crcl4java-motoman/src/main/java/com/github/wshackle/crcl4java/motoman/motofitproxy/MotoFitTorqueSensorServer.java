@@ -60,7 +60,7 @@ public class MotoFitTorqueSensorServer implements SensorServerInterface {
     @Override
     public synchronized ForceTorqueSensorStatusType getCurrentSensorStatus() {
         try {
-            long now = System.currentTimeMillis();
+            long start = System.currentTimeMillis();
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();
             MpFcsGetForceDataReturn forceData = 
                     mpc.mpFcsGetForceData(MP_FCS_ROB_ID.MP_FCS_R1ID, FCS_COORD_TYPE.FCS_ROBO_TYPE, 0);
@@ -72,6 +72,9 @@ public class MotoFitTorqueSensorServer implements SensorServerInterface {
             sensorStatus.setTx(forceData.mx);
             sensorStatus.setTy(forceData.my);
             sensorStatus.setTz(forceData.mz);
+            long end = System.currentTimeMillis();
+            long timediff = (end-start);
+            System.out.println("timediff = " + timediff);
             return sensorStatus;
         } catch (Exception ex) {
             Logger.getLogger(MotoFitTorqueSensorServer.class.getName()).log(Level.SEVERE, "", ex);
