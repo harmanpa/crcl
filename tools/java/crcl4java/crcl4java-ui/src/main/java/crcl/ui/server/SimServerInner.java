@@ -2008,15 +2008,18 @@ public class SimServerInner {
 
                             double jointVelocitesI = ((jointPositionI - lastJointPositionI) * 1000.0) / delayMillis;
                             if (Math.abs(jointVelocitesI) < 0.01 * absCommandToCurrentJointDiff) {
-                                throw new IllegalStateException("Joint velocity too slow to complete in 100 cycles : \n"
+                                final String exceptionstring = "Joint velocity too slow to complete in 100 cycles : \n"
                                         + "i=" + i + ", atMinLimit=" + atMinLimit + ", atMaxLimit=" + atMaxLimit + ",\n"
                                         + "JOINT_DIFF_MAX=" + JOINT_DIFF_MAX + ", jointVelocitesI=" + jointVelocitesI + ",\n"
                                         + "absCommandToCurrentJointDiff=" + absCommandToCurrentJointDiff + ",delayMillis=" + delayMillis + ",\n"
                                         + "(jointPositionI - lastJointPositionI)=" + (jointPositionI - lastJointPositionI) + ",\n"
                                         + "jointschanged=" + jointschanged + ",jointIncrement=" + jointIncrement + ",\n"
                                         + "origCommandedJointPositionI=" + origCommandedJointPositionI + ", \n"
-                                        + "jointPositionI=" + jointPositionI + ", origJointPositionI=" + lastJointPositionI + ", (origJointPositionI-jointPositionI)=" + (lastJointPositionI - jointPositionI) + "\n"
-                                );
+                                        + "jointPositionI=" + jointPositionI + ", origJointPositionI=" + lastJointPositionI + ", (origJointPositionI-jointPositionI)=" + (lastJointPositionI - jointPositionI) + "\n";
+                                System.out.println("");
+                                System.out.flush();
+                                System.err.println("exceptionstring = " + exceptionstring);
+                                throw new IllegalStateException(exceptionstring);
                             }
 
                             JointStatusType js = new JointStatusType();
