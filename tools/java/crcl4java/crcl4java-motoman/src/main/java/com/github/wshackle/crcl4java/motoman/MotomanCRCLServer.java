@@ -165,7 +165,7 @@ public class MotomanCRCLServer implements AutoCloseable {
         triggerStopMpc = MotoPlusConnection.connectionFromSocket(new Socket(mpc.getHost(), mpc.getPort()));
         this.crclServerSocket.addListener(crclSocketEventListener);
         this.crclServerSocket.setThreadNamePrefix("MotomanCrclServer");
-//        this.crclServerSocket.setGuardCheckUpdatePositionOnlyRunnable(this::updatePositionOnly);
+        this.crclServerSocket.setGuardCheckUpdatePositionOnlyRunnable(this::updatePositionOnly);
         this.crclServerSocket.addSensorFinder(new MotoFitTorqueSensorFinder());
         this.startTime = System.currentTimeMillis();
         statusCount.set(0);

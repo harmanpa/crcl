@@ -100,6 +100,7 @@ import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -512,11 +513,11 @@ public class CRCLCopier {
         String origName = in.getName();
         int pindex = origName.indexOf('.', 5);
         while (origName.length() > 5 && pindex > 5 && origName.length() > pindex && origName.startsWith("copy.")) {
-            origName = origName.substring(pindex+1);
+            origName = origName.substring(pindex + 1);
             pindex = origName.indexOf('.', 5);
         }
-        if(origName.contains("copy")) {
-             throw new RuntimeException("origName="+origName+",pindex="+pindex);
+        if (origName.contains("copy")) {
+            throw new RuntimeException("origName=" + origName + ",pindex=" + pindex);
         }
         out.setName("copy." + copyCount.incrementAndGet() + "." + origName);
     }
@@ -1053,13 +1054,16 @@ public class CRCLCopier {
     public static SensorStatusesType copy(SensorStatusesType in) {
         assert (in != null) : "in==null";
         SensorStatusesType out = new SensorStatusesType();
-        return copyTo(in, out);
+        synchronized (in) {
+            return copyTo(in, out);
+        }
     }
 
     @SuppressWarnings({"nullness"})
     public static SensorStatusesType copyTo(SensorStatusesType in, SensorStatusesType out) {
         assert (in.getClass() == SensorStatusesType.class) : "in.getClass()!=SensorStatusesType.class : in.getClass()=" + in.getClass();
         assert (out.getClass() == SensorStatusesType.class) : "out.getClass()!=SensorStatusesType.class: out.getClass()=" + out.getClass();
+        assert (in != out) : "in == out";
         java.util.List<crcl.base.OnOffSensorStatusType> outOnOffSensorStatus = out.getOnOffSensorStatus();
         assert (outOnOffSensorStatus != null) : "outOnOffSensorStatus==null";
         outOnOffSensorStatus.clear();
@@ -1083,8 +1087,11 @@ public class CRCLCopier {
         }
         java.util.List<crcl.base.ForceTorqueSensorStatusType> outForceTorqueSensorStatus = out.getForceTorqueSensorStatus();
         assert (outForceTorqueSensorStatus != null) : "outForceTorqueSensorStatus==null";
+        final List<ForceTorqueSensorStatusType> inForceTorqueSensorStatus = in.getForceTorqueSensorStatus();
+        assert (inForceTorqueSensorStatus != null) : "inForceTorqueSensorStatus==null";
+        assert (inForceTorqueSensorStatus != outForceTorqueSensorStatus) : "inForceTorqueSensorStatus == outForceTorqueSensorStatus";
         outForceTorqueSensorStatus.clear();
-        Iterator<crcl.base.ForceTorqueSensorStatusType> iteratorForceTorqueSensorStatus = in.getForceTorqueSensorStatus().iterator();
+        Iterator<crcl.base.ForceTorqueSensorStatusType> iteratorForceTorqueSensorStatus = inForceTorqueSensorStatus.iterator();
         while (iteratorForceTorqueSensorStatus.hasNext()) {
             outForceTorqueSensorStatus.add(copy(iteratorForceTorqueSensorStatus.next()));
         }
@@ -1765,7 +1772,9 @@ public class CRCLCopier {
     public static CRCLStatusType copy(CRCLStatusType in) {
         assert (in != null) : "in==null";
         CRCLStatusType out = new CRCLStatusType();
-        return copyTo(in, out);
+        synchronized (in) {
+            return copyTo(in, out);
+        }
     }
 
     @SuppressWarnings({"nullness"})

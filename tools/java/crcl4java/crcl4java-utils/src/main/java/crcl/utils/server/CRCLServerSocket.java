@@ -1251,6 +1251,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     && serverSideStatus.getPoseStatus().getPose().getPoint() != null) {
                 Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
                 if (null != setZMethod) {
+                    if(guardCheckUpdatePositionOnlyRunnable != null) {
+                        guardCheckUpdatePositionOnlyRunnable.run();
+                    }
                     setZMethod.invoke(sensorServer, serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
                 }
 //                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
@@ -2322,7 +2325,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     double y = point.getY();
                     double z = point.getZ();
                     long readValueTime = t1 - t0;
-                    System.out.println("CRCLServerSocket.checkGuardsOnce guard: diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
+                    System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue="+initialValue+", value="+value+", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
                     if (diff > guard.getLimitValue()) {
                         triggerGuard(value, guard_client_state, commandInstance, guard);
                     }

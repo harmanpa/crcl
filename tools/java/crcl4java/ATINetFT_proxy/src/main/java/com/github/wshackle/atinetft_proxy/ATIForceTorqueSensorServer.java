@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -52,11 +53,15 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
     private final String sensorId;
     private final List<ParameterSettingType> sensorParameterSetting;
 
+    private final @Nullable
+    String logFileName;
+
     public ATIForceTorqueSensorServer(String sensorId, List<ParameterSettingType> sensorParameterSetting, NetFTSensorProxy netFtSensor, ConfigurationReader configurationReader) throws IOException {
         this.sensorId = sensorId;
         this.sensorParameterSetting = sensorParameterSetting;
         this.netFtSensor = netFtSensor;
         this.configurationReader = configurationReader;
+        this.logFileName = findParam(sensorParameterSetting, "logFileName");
     }
 
     public ATIForceTorqueSensorServer(String sensorId, List<ParameterSettingType> sensorParameterSetting, String host) throws UnknownHostException, IOException, IOException, IOException {
@@ -154,17 +159,38 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
 
     private volatile double z = 0;
 
+    private volatile long setZTime = 0;
+    private volatile long lastSetZTime = 0;
+    private final AtomicInteger setZCount = new AtomicInteger();
+
     public void setZ(double z) {
         this.z = z;
+        lastSetZTime = setZTime;
+        setZTime = System.currentTimeMillis();
+        setZCount.incrementAndGet();
     }
+
+    private volatile boolean firstLog = true;
+    private volatile long firstStart = 0;
+    private volatile long lastStart = 0;
 
     @Override
     public synchronized ForceTorqueSensorStatusType getCurrentSensorStatus() {
         try {
             long start = System.currentTimeMillis();
-//            File fzLogFile = new File(System.getProperty("user.home"), "zfzlog.cav");
-//            System.out.println("fzLogFile = " + fzLogFile);
-//            boolean fzLogFileExisted = fzLogFile.exists();
+            @Nullable
+            File fzLogFile;
+            boolean fzLogFileExisted;
+            if (null != logFileName && logFileName.length() > 1) {
+                fzLogFile = new File(System.getProperty("user.home"), logFileName);
+                if (firstLog) {
+                    System.out.println("fzLogFile = " + fzLogFile);
+                }
+                fzLogFileExisted = fzLogFile.exists();
+            } else {
+                fzLogFile = null;
+                fzLogFileExisted = false;
+            }
             double countsPerForce = configurationReader.getCountsPerForce();
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();
             try (DatagramSocket datagramSocket = netFtSensor.initLowSpeedData()) {
@@ -193,10 +219,26 @@ public class ATIForceTorqueSensorServer implements SensorServerInterface {
 //                        }
 //                    }
 //                }
+
                 NetFTRDTPacketProxy packet0 = netFtSensor.readLowSpeedData(datagramSocket);
                 sensorStatus.setFx(packet0.getFx() / countsPerForce);
                 sensorStatus.setFy(packet0.getFy() / countsPerForce);
-                sensorStatus.setFz(packet0.getFy() / countsPerForce);
+                final double fz = packet0.getFz() / countsPerForce;
+                sensorStatus.setFz(fz);
+                if (null != fzLogFile) {
+                    try (PrintWriter pw = new PrintWriter(new FileWriter(fzLogFile, !firstLog))) {
+                        if (!fzLogFileExisted || firstLog) {
+                            pw.println("timeSinceStart,timeSinceLast,setZCount,timeSinceSetZ,setZTimeDiff,seq,fz,z");
+                        }
+                        long seq = packet0.getRDTSequence();
+                        pw.println((start - firstStart) + "," + (start - lastStart) + "," + setZCount.get() + "," + (start - setZTime) + "," + (setZTime - lastSetZTime) + "," + seq + "," + fz + "," + z);
+                        if (firstLog) {
+                            firstStart = start;
+                        }
+                        lastStart = start;
+                        firstLog = false;
+                    }
+                }
                 double countsPerTorque = configurationReader.getCountsPerTorque();
                 sensorStatus.setTx(packet0.getTx() / countsPerTorque);
                 sensorStatus.setTy(packet0.getTy() / countsPerTorque);
