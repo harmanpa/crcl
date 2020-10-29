@@ -14,38 +14,10 @@
     </description>
     <dependencies>
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>javax.activation-api</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>2.3.0.1</version>
-        </dependency>
-        <dependency>
             <artifactId>crcl4java-base</artifactId>
             <groupId>${project.groupId}</groupId>
             <version>${project.version}</version>
         </dependency>
-                
-                
-        <!-- The Type Annotations compiler. Uncomment if using annotations in comments. -->
-        <!-- <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>compiler</artifactId>
-          <version>2.3.2</version>
-        </dependency> -->
     </dependencies>
     
     <build>

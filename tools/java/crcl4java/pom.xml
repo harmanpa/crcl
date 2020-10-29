@@ -42,14 +42,6 @@
                 <updatePolicy>daily</updatePolicy>
             </snapshots>
         </repository>
-        <!-- <repository>
-            <id>crcl-mvn-repo</id>
-            <url>https://raw.github.com/usnistgov/crcl/mvn-repo/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository> -->
         <repository>
             <snapshots>
                 <enabled>false</enabled>
