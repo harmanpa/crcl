@@ -35,7 +35,7 @@ import javax.imageio.ImageIO;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 /**
- *
+ * II
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class IconImages {
