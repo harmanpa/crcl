@@ -2178,6 +2178,7 @@ public class CrclSwingClientInner {
         if (null == el) {
             return null;
         }
+        final Object ret[];
         if (el instanceof CommandLogElement) {
             CommandLogElement cel = (CommandLogElement) el;
             CRCLCommandType cmd = cel.getCmd();
@@ -2203,7 +2204,7 @@ public class CrclSwingClientInner {
                 }
             }
             boolean isMove = null != lastLogMoveToCmdPoint;
-            return new Object[]{
+            ret = new Object[]{
                 getTimeString(cel.getTime()),
                 true,
                 timeSinceLastCmd,
@@ -2246,7 +2247,7 @@ public class CrclSwingClientInner {
                             ? distanceFromlastStat / (1e-3 * timeSinceLastStat)
                             : Double.NaN;
             boolean isMove = null != lastLogMoveToCmdPoint;
-            return new Object[]{
+            ret = new Object[]{
                 getTimeString(sel.getTime()),
                 false,
                 timeSinceCmdStart,
@@ -2271,6 +2272,26 @@ public class CrclSwingClientInner {
         } else {
             throw new IllegalStateException("log contains " + el);
         }
+        if(ret.length != COMMAND_STATUS_LOG_HEADINGS.length) {
+            System.out.println("ret = " + Arrays.toString(ret));
+            System.out.println("COMMAND_STATUS_LOG_HEADINGS = " + Arrays.toString(COMMAND_STATUS_LOG_HEADINGS));
+            throw new RuntimeException("ret.length("+ret.length+") != COMMAND_STATUS_LOG_HEADINGS.length("+COMMAND_STATUS_LOG_HEADINGS.length);
+        }
+        if(ret.length != COMMAND_STATUS_LOG_TYPES.length) {
+            System.out.println("ret = " + Arrays.toString(ret));
+            System.out.println("COMMAND_STATUS_LOG_TYPES = " + Arrays.toString(COMMAND_STATUS_LOG_TYPES));
+            throw new RuntimeException("ret.length("+ret.length+") != COMMAND_STATUS_LOG_TYPES.length("+COMMAND_STATUS_LOG_TYPES.length);
+        }
+        for (int i = 0; i < ret.length; i++) {
+            Object object = ret[i];
+            if(object!= null && !COMMAND_STATUS_LOG_TYPES[i].isAssignableFrom(object.getClass())) {
+                System.out.println("i = " + i);
+                System.out.println("object = " + object);
+                System.out.println("COMMAND_STATUS_LOG_TYPES[i] = " + COMMAND_STATUS_LOG_TYPES[i]);
+                throw new RuntimeException("!COMMAND_STATUS_LOG_TYPES[i].isAssignableFrom(object.getClass()");
+            }
+        }
+        return ret;
     }
 
     public void printCommandStatusLog() throws IOException {
@@ -2293,12 +2314,35 @@ public class CrclSwingClientInner {
         "Time", "Cmd?", "TimeSinceCommand", "TimeSinceStatus", "Command ID", "DistanceToGo", "DistanceFromStart", "DistanceFromLast", "AvgSpeed", "Speed", "ExpectedSpeed", "State", "time_ms", "ProgramIndex", "X", "Y", "Z", "ProgramName", "Server", "Text"
     };
 
+    static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
+        java.lang.String.class, // 0 : Time
+        java.lang.Boolean.class, // 1: Cmd?
+        java.lang.Long.class, //2: TimeSinceCommand
+        java.lang.Long.class, // 3: TimeSinceStatus
+        java.lang.Long.class, // 4: Command ID
+        java.lang.String.class, // 5: DistanceToGo
+        java.lang.String.class, //6: DistanceFromStart
+        java.lang.String.class, // 7:DistanceFromLast
+        java.lang.String.class, // 8:AvgSpeed
+        java.lang.String.class, // 9: Speed
+        java.lang.String.class, // 10: ExpectedSpeed
+        java.lang.Object.class, // 11: State
+        java.lang.Long.class, // 12: time_ms
+        java.lang.Integer.class, // 13: ProgramIndex
+        java.lang.String.class, // 14: X
+        java.lang.String.class, // 15: Y
+        java.lang.String.class, // 16: Z
+        java.lang.String.class, // 17: ProgramName
+        java.lang.String.class, // 18: Server
+        java.lang.String.class // 19: Text
+    };
+
     public String[] getCommandStatusLogHeadings() {
         return COMMAND_STATUS_LOG_HEADINGS;
     }
-    @SuppressWarnings("rawtypes")
-    static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
-        String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
+//    @SuppressWarnings("rawtypes")
+//    static final Class[] COMMAND_STATUS_LOG_TYPES = new Class[]{
+//        String.class, Boolean.class, String.class, Long.class, String.class, Object.class, Long.class, Integer.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class,};
 
     public void printCommandStatusLog(Appendable appendable, boolean clearLog, boolean headerOnStart, String @Nullable [] headers, int headerRepeat) throws IOException {
         CSVPrinter printer = new CSVPrinter(appendable, CSVFormat.DEFAULT);
@@ -2551,18 +2595,18 @@ public class CrclSwingClientInner {
                                     closeX = lastCloseGripperPose.getPoint().getX();
                                     closeY = lastCloseGripperPose.getPoint().getY();
                                     closeZ = lastCloseGripperPose.getPoint().getZ();
-                                    diffCloseX = triggerPoint.getX()-closeX;
-                                    diffCloseY = triggerPoint.getY()-closeY;
-                                    diffCloseZ = triggerPoint.getZ()-closeZ;
+                                    diffCloseX = triggerPoint.getX() - closeX;
+                                    diffCloseY = triggerPoint.getY() - closeY;
+                                    diffCloseZ = triggerPoint.getZ() - closeZ;
                                 } else {
-                                    closeX=Double.NaN;
-                                    closeY=Double.NaN;
-                                    closeZ=Double.NaN;
-                                    diffCloseX=Double.NaN;
-                                    diffCloseY=Double.NaN;
-                                    diffCloseZ=Double.NaN;
+                                    closeX = Double.NaN;
+                                    closeY = Double.NaN;
+                                    closeZ = Double.NaN;
+                                    diffCloseX = Double.NaN;
+                                    diffCloseY = Double.NaN;
+                                    diffCloseZ = Double.NaN;
                                 }
-                                pw.println(time + ",\"" + new Date(time) + "\"," + lastGuardTriggerCount + "," + triggerPoint.getX() + "," + triggerPoint.getY() + "," + triggerPoint.getZ() +"," + closeX + "," + closeY + "," + closeZ + "," + diffCloseX + "," + diffCloseY + "," + diffCloseZ);
+                                pw.println(time + ",\"" + new Date(time) + "\"," + lastGuardTriggerCount + "," + triggerPoint.getX() + "," + triggerPoint.getY() + "," + triggerPoint.getZ() + "," + closeX + "," + closeY + "," + closeZ + "," + diffCloseX + "," + diffCloseY + "," + diffCloseZ);
                             } catch (IOException ex) {
                                 Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, null, ex);
                             }

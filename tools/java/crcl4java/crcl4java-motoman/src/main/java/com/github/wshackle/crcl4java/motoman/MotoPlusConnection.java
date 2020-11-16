@@ -69,6 +69,7 @@ import com.github.wshackle.crcl4java.motoman.sys1.UnitType;
 import crcl.base.CommandStateEnumType;
 import static crcl.base.CommandStateEnumType.CRCL_ERROR;
 import static crcl.base.CommandStateEnumType.CRCL_WORKING;
+import crcl.utils.XFuture;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -189,15 +190,18 @@ public class MotoPlusConnection implements AutoCloseable {
                 return mpc;
             }
         }
-        if(port < 0 || null == host || host.length() <1) {
-             throw new RuntimeException("host="+host+",port=" + port + " and values.isEmpty()");
+        if (port < 0 || null == host || host.length() < 1) {
+            throw new RuntimeException("host=" + host + ",port=" + port + " and values.isEmpty()");
         }
         MotoPlusConnection newMpc = connectionFromSocket(new Socket(host, port));
         mpcHostPortCollection.add(newMpc);
         return newMpc;
     }
 
+    private final StackTraceElement createTrace[];
+
     private MotoPlusConnection(Socket socket) throws IOException {
+        createTrace = Thread.currentThread().getStackTrace();
         this.socket = socket;
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
@@ -317,7 +321,21 @@ public class MotoPlusConnection implements AutoCloseable {
         }
     }
 
+    private volatile Thread lastThreadUsed = null;
+    private volatile StackTraceElement lastThreadSetTrace[] = null;
+
     private void writeDataOutputStream(ByteBuffer bb) throws IOException {
+        final Thread t = Thread.currentThread();
+        if (t != lastThreadUsed) {
+            if (null != lastThreadUsed) {
+                System.err.println("createTrace = " + XFuture.traceToString(createTrace));
+                System.err.println("lastThreadSetTrace = " + XFuture.traceToString(lastThreadSetTrace));
+                Thread.dumpStack();
+                throw new RuntimeException("CurrenThread(" + t + ") != lastThreadUsed : " + lastThreadUsed);
+            }
+            lastThreadSetTrace = Thread.currentThread().getStackTrace();
+            lastThreadUsed = t;
+        }
         final byte[] array = bb.array();
         dos.write(array);
         if (debug) {
@@ -327,6 +345,17 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     private void readDataInputStream(byte[] inbuf) throws IOException {
+        final Thread t = Thread.currentThread();
+        if (t != lastThreadUsed) {
+            if (null != lastThreadUsed) {
+                System.err.println("createTrace = " + XFuture.traceToString(createTrace));
+                System.err.println("lastThreadSetTrace = " + XFuture.traceToString(lastThreadSetTrace));
+                Thread.dumpStack();
+                throw new RuntimeException("CurrenThread(" + t + ") != lastThreadUsed : " + lastThreadUsed);
+            }
+            lastThreadSetTrace = Thread.currentThread().getStackTrace();
+            lastThreadUsed = t;
+        }
         dis.readFully(inbuf);
         if (debug) {
             printDebug("read " + inbuf.length + " bytes.\n");
@@ -1363,10 +1392,10 @@ public class MotoPlusConnection implements AutoCloseable {
         }
 
         public boolean getCartPosReturn(MP_CART_POS_RSP_DATA[] data) throws IOException {
-            if(data.length != 1) {
-                throw new IllegalArgumentException("data.length = "+data.length);
+            if (data.length != 1) {
+                throw new IllegalArgumentException("data.length = " + data.length);
             }
-            if(data[0] == null) {
+            if (data[0] == null) {
                 data[0] = new MP_CART_POS_RSP_DATA();
             }
             byte inbuf[] = new byte[4];
@@ -1571,10 +1600,12 @@ public class MotoPlusConnection implements AutoCloseable {
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
             int sz = bb.getInt(0);
             inbuf = new byte[sz];
+            if (sz != 28) {
+                throw new RuntimeException("return size of " + sz + " does not match required size of 28.");
+            }
             readDataInputStream(inbuf);
             bb = ByteBuffer.wrap(inbuf);
             MpFcsGetForceDataReturn returnVal = new MpFcsGetForceDataReturn();
-
             returnVal.returnInt = bb.getInt(0);
             returnVal.returnCode = FcsReturnCode.fromInt(returnVal.returnInt);
             returnVal.fx = bb.getInt(4);
@@ -1845,35 +1876,20 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getCartPosReturn(data);
     }
 
-    private final AtomicInteger lastSentTargetId = new AtomicInteger(1);
-    private volatile int lastRecvdTargetId = 1;
-    private boolean lastErrorWasWrongMode = false;
-
-    public boolean isLastErrorWasWrongMode() {
-        return lastErrorWasWrongMode;
-    }
-
-    public int getLastSentTargetId() {
-        return lastSentTargetId.get();
-    }
-
-    public int incrementAndGetLastSentTargetId() {
-        return lastSentTargetId.incrementAndGet();
-    }
-
-    public int getLastRecvdTargetId() {
-        return lastRecvdTargetId;
-    }
-
     private AtomicInteger statusCount = new AtomicInteger();
 
-    public MpcStatus readMpcStatusOnly(CommandStateEnumType localOrigCommandState, boolean withJoints, boolean getAlarmStatus) throws MotoPlusConnectionException, IOException {
+    public MpcStatus readMpcStatusOnly(
+            CommandStateEnumType localOrigCommandState,
+            boolean withJoints,
+            boolean getAlarmStatus,
+            int lastSentId,
+            int lastRecvdTargetId) throws MotoPlusConnectionException, IOException {
         if (!this.isConnected()) {
             throw new MotoPlusConnectionException("Not connected");
         }
-        int lastSentId = lastSentTargetId.get();
+//        int lastSentId = lastSentTargetId.get();
 
-        MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId, statusCount.incrementAndGet(), withJoints, getAlarmStatus);
+        MpcStatus mpcStatus = readMpcStatus(localOrigCommandState, lastSentId, statusCount.incrementAndGet(), withJoints, getAlarmStatus, lastRecvdTargetId);
         return mpcStatus;
     }
 
@@ -1894,12 +1910,20 @@ public class MotoPlusConnection implements AutoCloseable {
         return maxReadMpcStatusTimeDiffArrayAfterMove;
     }
 
+    private boolean lastErrorWasWrongMode = false;
+
+    public boolean isLastErrorWasWrongMode() {
+        return lastErrorWasWrongMode;
+    }
+
     public MpcStatus readMpcStatus(
             CommandStateEnumType localOrigCommandState,
             int lastSentId,
             int statusCount,
             boolean withJoints,
-            boolean withAlarmModeStatus) throws MotoPlusConnectionException, IOException {
+            boolean withAlarmModeStatus,
+            int lastRecvdTargetId)
+            throws MotoPlusConnectionException, IOException {
         Starter mpcStarter = this.getStarter();
         int ctrlGroup = 0;
         MP_CART_POS_RSP_DATA cartData[] = new MP_CART_POS_RSP_DATA[1];
@@ -2180,6 +2204,7 @@ public class MotoPlusConnection implements AutoCloseable {
 
     /**
      * Retrieves the force data in the specified coordinate system.
+     *
      * @param rob_id which robot to target
      * @param coord_type specifiess the destination coordinate system
      * @param uf_no user file number for user specified coordinate system

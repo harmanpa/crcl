@@ -2318,6 +2318,22 @@ public class CrclSwingClientJPanel
                         plotter.AddPointToPlot(zpd, trel, z, true);
                         if (curInternalStatus.getSensorStatuses() != null
                                 && !curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().isEmpty()) {
+                            PlotData forceXPd = plotter.getPlotByName("forcex");
+                            if (null == forceXPd) {
+                                forceXPd = new PlotData();
+                                forceXPd.name = "forcex";
+                                plotter.AddPlot(forceXPd, "forcex");
+                            }
+                            double forceX = curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().get(0).getFx();
+                            plotter.AddPointToPlot(forceXPd, trel, forceX, true);
+                            PlotData forceYPd = plotter.getPlotByName("forcey");
+                            if (null == forceYPd) {
+                                forceYPd = new PlotData();
+                                forceYPd.name = "forcey";
+                                plotter.AddPlot(forceYPd, "forcey");
+                            }
+                            double forceY = curInternalStatus.getSensorStatuses().getForceTorqueSensorStatus().get(0).getFy();
+                            plotter.AddPointToPlot(forceYPd, trel, forceY, true);
                             PlotData forceZPd = plotter.getPlotByName("forcez");
                             if (null == forceZPd) {
                                 forceZPd = new PlotData();
@@ -5142,22 +5158,23 @@ public class CrclSwingClientJPanel
                 new Object[][]{},
                 CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS
         ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Boolean.class, java.lang.Double.class, java.lang.Long.class, java.lang.Double.class, java.lang.Object.class, java.lang.Long.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean[]{
-                false, false, false, false, false, false, false, false, false, false, false
-            };
+            Class[] types = CrclSwingClientInner.COMMAND_STATUS_LOG_TYPES;
+//            boolean[] canEdit = CrclSwingClientInner.COMMAND_STATUS_LOG_CAN_EDITS;
 
             public Class getColumnClass(int columnIndex) {
+                if(types.length != CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length) {
+                    System.out.println("types.length="+types.length);
+                    System.out.println("CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length = " + CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length);
+                }
                 return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
+                return false;
             }
         };
     }
+   
 
     private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
         int index = getProgramRow();
@@ -6344,6 +6361,7 @@ public class CrclSwingClientJPanel
                         CommandStatusLogElement el = log.pollFirst();
                         if (null != el) {
                             Object[] data = logElementToArray(el);
+//                            if(data.length != tableModel.)
                             if (null != data) {
                                 tableModel.addRow(data);
                             }

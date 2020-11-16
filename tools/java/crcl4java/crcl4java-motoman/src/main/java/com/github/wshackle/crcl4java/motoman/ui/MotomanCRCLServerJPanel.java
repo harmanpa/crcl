@@ -411,13 +411,17 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                 && motomanCrclServer.mpcConnected();
     }
 
-    private final int LOG_SIZE_LIMIT = 5000;
+    private final int LOG_SIZE_LIMIT = 50000;
 
     private void appendLog(String s) {
         jTextAreaErrLog.append(s + '\n');
         String fullString = jTextAreaErrLog.getText();
         if (fullString.length() > LOG_SIZE_LIMIT) {
-            int index = Math.max(LOG_SIZE_LIMIT, fullString.indexOf('\n', LOG_SIZE_LIMIT));
+            int index = fullString.indexOf('\n',1);
+            while (fullString.length() > (LOG_SIZE_LIMIT - 240) && index > 0) {
+                fullString = fullString.substring(index);
+                index = fullString.indexOf('\n',1);
+            }
             jTextAreaErrLog.setText(fullString.substring(index));
         }
     }
@@ -438,7 +442,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         internalDisconnect();
         motomanCrclServer = new MotomanCRCLServer(
                 new CRCLServerSocket<>(crclPort, MotomanCRCLServer.MOTOMAN_STATE_GENERATOR),
-                MotoPlusConnection.connectionFromSocket(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis, readTimeoutMillis)));
+                () -> MotoPlusConnection.connectionFromSocket(createSocketWithTimeout(motomanHost, motomanPort, connectTimeoutMillis, readTimeoutMillis)));
         motomanCrclServer.setDebug(jCheckBoxDebug.isSelected());
         motomanCrclServer.addLogListener(logConsumer);
         motomanCrclServer.start();
@@ -502,7 +506,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
 
         if (null != motomanCrclServer) {
             try {
-                MotoPlusConnection mpc = motomanCrclServer.getMpc();
+                final MotoPlusConnection mpc = motomanCrclServer.getLocalMotoPlusConnection();
                 Method mpcMethods[] = mpc.getClass().getDeclaredMethods();
                 HashMap<String, Method> methodMap = new HashMap<>();
                 for (int i = 0; i < mpcMethods.length; i++) {
@@ -622,7 +626,11 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                     try {
                         String text = CRCLSocket.getUtilSocket().statusToPrettyString(status, false);
                         long timeDiff = System.currentTimeMillis() - t0;
-                        appendLog("\njButtonStatusActionPerformed: \n" + text + "\ntimeDiff=" + timeDiff + "\n");
+                        String lastCommandText = motomanCrclServer.getLastCommandText();
+                        String lastCheckMoveCommandText = motomanCrclServer.getLastCheckMoveCommandText();
+                        long lastCheckMoveTime = motomanCrclServer.getLastCheckMoveTime();
+                        long timeSinceCheckMove = t0-lastCheckMoveTime;
+                        appendLog("\njButtonStatusActionPerformed: \n" + text + "\nlastCommand=\n"+lastCommandText + "\nlastCheckMoveCommand=\n"+lastCheckMoveCommandText +"\timeSinceCheckMove=" + timeSinceCheckMove +"\ntimeDiff=" + timeDiff + "\n");
                         MultiLineStringJPanel.showText(text, null, "Motoman Status", false);
                     } catch (JAXBException ex) {
                         Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -723,9 +731,11 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         int count = 0;
         try (MotoPlusConnection mpc = MotoPlusConnection.connectionFromSocket(new Socket(motomanHost, motomanPort))) {
             final CommandStateEnumType commandState = CommandStateEnumType.CRCL_DONE;
-            int startcount = mpc.readMpcStatusOnly(commandState, withJoints, withAlarms).getStatusCount();
+            int lastSentId = motomanCrclServer.getLastSentTargetId();
+            int lastRecvdTargetId = motomanCrclServer.getLastRecvdTargetId();
+            int startcount = mpc.readMpcStatusOnly(commandState, withJoints, withAlarms,lastSentId,lastRecvdTargetId).getStatusCount();
             for (int i = 0; i < maxcount; i++) {
-                MpcStatus mpcStatus = mpc.readMpcStatusOnly(commandState, withJoints, withAlarms);
+                MpcStatus mpcStatus = mpc.readMpcStatusOnly(commandState, withJoints, withAlarms,lastSentId,lastRecvdTargetId);
                 if (null != mpcStatus && mpcStatus.getStatusCount() > 0) {
                     count = mpcStatus.getStatusCount();
                 }

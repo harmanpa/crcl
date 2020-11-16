@@ -30,7 +30,9 @@ import crcl.base.ForceTorqueSensorStatusType;
 import crcl.base.ParameterSettingType;
 import crcl.utils.server.SensorServerInterface;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,15 +46,23 @@ public class MotoFitTorqueSensorServer implements SensorServerInterface {
 
     private final String sensorId;
     private final List<ParameterSettingType> sensorParameterSetting;
-    private final MotoPlusConnection mpc;
-
+    private final ThreadLocal<MotoPlusConnection> mpc = new ThreadLocal<>();
+    private final ConcurrentLinkedDeque<MotoPlusConnection> allMpcs = new ConcurrentLinkedDeque<>();
+    
+    private final String host;
+    private final int port;
+    
     public MotoFitTorqueSensorServer(String sensorId,
             List<ParameterSettingType> sensorParameterSetting,
             @Nullable String host, int port) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
         this.sensorId = sensorId;
         this.sensorParameterSetting = sensorParameterSetting;
-        this.mpc = MotoPlusConnection.connectionFromHostPort(host, port);
-        mpc.mpFcsStartMeasuring(MP_FCS_ROB_ID.MP_FCS_R1ID, 100);
+        this.host = host;
+        this.port = port;
+        MotoPlusConnection mpcInit = MotoPlusConnection.connectionFromSocket(new Socket(host, port));
+        mpcInit.mpFcsStartMeasuring(MP_FCS_ROB_ID.MP_FCS_R1ID, 100);
+        mpc.set(mpcInit);
+        allMpcs.add(mpcInit);
     }
 
     private final AtomicInteger readCountAtomicInt = new AtomicInteger();
@@ -62,8 +72,14 @@ public class MotoFitTorqueSensorServer implements SensorServerInterface {
         try {
             long start = System.currentTimeMillis();
             ForceTorqueSensorStatusType sensorStatus = new ForceTorqueSensorStatusType();
+            MotoPlusConnection mpcCurrent = mpc.get();
+            if(null == mpcCurrent || !mpcCurrent.isConnected()) {
+                mpcCurrent = MotoPlusConnection.connectionFromSocket(new Socket(host, port));
+                mpc.set(mpcCurrent);
+                allMpcs.add(mpcCurrent);
+            }
             MpFcsGetForceDataReturn forceData = 
-                    mpc.mpFcsGetForceData(MP_FCS_ROB_ID.MP_FCS_R1ID, FCS_COORD_TYPE.FCS_ROBO_TYPE, 0);
+                    mpcCurrent.mpFcsGetForceData(MP_FCS_ROB_ID.MP_FCS_R1ID, FCS_COORD_TYPE.FCS_ROBO_TYPE, 0);
             sensorStatus.setSensorID(sensorId);
             sensorStatus.setReadCount(readCountAtomicInt.incrementAndGet());
             sensorStatus.setFx(forceData.fx);
@@ -88,6 +104,11 @@ public class MotoFitTorqueSensorServer implements SensorServerInterface {
 
     @Override
     public void close() throws Exception {
+        MotoPlusConnection mpcI;
+        while(null != (mpcI = allMpcs.poll())) {
+            mpcI.close();
+        }
+        mpc.remove();
     }
 
 }

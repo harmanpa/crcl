@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman.motofitproxy;
 
+import com.github.wshackle.crcl4java.motoman.MotomanCRCLServer;
 import crcl.base.ParameterSettingType;
 import crcl.utils.server.SensorServerFinderInterface;
 import crcl.utils.server.SensorServerInterface;
@@ -31,24 +32,26 @@ import java.util.logging.Logger;
 
 /**
  *
- *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class MotoFitTorqueSensorFinder implements  SensorServerFinderInterface{
+public class MotoFitTorqueSensorFinder implements SensorServerFinderInterface {
 
     @Override
     public SensorServerInterface findSensorServer(String sensorId, List<ParameterSettingType> parameterList) {
-        if(sensorId.startsWith("MotoFit")) {
+        if (sensorId.startsWith("MotoFit")) {
             try {
                 final String hostParam = findParam(parameterList, "host");
                 final String portParam = findParam(parameterList, "port");
-                return new MotoFitTorqueSensorServer(sensorId, 
+                final int port = (portParam == null || portParam.isEmpty())
+                        ? MotomanCRCLServer.DEFAULT_MOTOMAN_PORT
+                        : Integer.parseInt(portParam);
+                return new MotoFitTorqueSensorServer(sensorId,
                         parameterList,
-                        hostParam,
-                        portParam==null?-1:Integer.parseInt(portParam)
-                );
+                        hostParam, 
+                        port);
             } catch (Exception ex) {
                 Logger.getLogger(MotoFitTorqueSensorFinder.class.getName()).log(Level.SEVERE, "", ex);
-                if(ex instanceof RuntimeException) {
+                if (ex instanceof RuntimeException) {
                     throw (RuntimeException) ex;
                 } else {
                     throw new RuntimeException(ex);
@@ -57,7 +60,7 @@ public class MotoFitTorqueSensorFinder implements  SensorServerFinderInterface{
         }
         return null;
     }
-    
+
     private static String findParam(List<ParameterSettingType> sensorParameterSetting, String name) {
         for (ParameterSettingType param : sensorParameterSetting) {
             if (param.getParameterName().equals(name)) {
@@ -67,5 +70,4 @@ public class MotoFitTorqueSensorFinder implements  SensorServerFinderInterface{
         return null;
     }
 
-    
 }
