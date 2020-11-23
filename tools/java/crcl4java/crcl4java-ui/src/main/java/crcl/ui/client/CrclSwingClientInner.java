@@ -1607,12 +1607,17 @@ public class CrclSwingClientInner {
 
     private volatile boolean aborting = false;
 
+    private volatile StackTraceElement lastAbortTrace[] = null;
+    private volatile long lastAbortTime = -1;
+
     public XFutureVoid abort() {
         try {
             aborting = true;
             this.programName = null;
             this.programIndex = -1;
             runProgramAbortCount.incrementAndGet();
+            lastAbortTrace = Thread.currentThread().getStackTrace();
+            this.lastAbortTime = System.currentTimeMillis();
             boolean wasPaused = isPaused();
             boolean wasRunning = isRunningProgram();
             if (wasPaused && wasRunning) {
@@ -2272,19 +2277,19 @@ public class CrclSwingClientInner {
         } else {
             throw new IllegalStateException("log contains " + el);
         }
-        if(ret.length != COMMAND_STATUS_LOG_HEADINGS.length) {
+        if (ret.length != COMMAND_STATUS_LOG_HEADINGS.length) {
             System.out.println("ret = " + Arrays.toString(ret));
             System.out.println("COMMAND_STATUS_LOG_HEADINGS = " + Arrays.toString(COMMAND_STATUS_LOG_HEADINGS));
-            throw new RuntimeException("ret.length("+ret.length+") != COMMAND_STATUS_LOG_HEADINGS.length("+COMMAND_STATUS_LOG_HEADINGS.length);
+            throw new RuntimeException("ret.length(" + ret.length + ") != COMMAND_STATUS_LOG_HEADINGS.length(" + COMMAND_STATUS_LOG_HEADINGS.length);
         }
-        if(ret.length != COMMAND_STATUS_LOG_TYPES.length) {
+        if (ret.length != COMMAND_STATUS_LOG_TYPES.length) {
             System.out.println("ret = " + Arrays.toString(ret));
             System.out.println("COMMAND_STATUS_LOG_TYPES = " + Arrays.toString(COMMAND_STATUS_LOG_TYPES));
-            throw new RuntimeException("ret.length("+ret.length+") != COMMAND_STATUS_LOG_TYPES.length("+COMMAND_STATUS_LOG_TYPES.length);
+            throw new RuntimeException("ret.length(" + ret.length + ") != COMMAND_STATUS_LOG_TYPES.length(" + COMMAND_STATUS_LOG_TYPES.length);
         }
         for (int i = 0; i < ret.length; i++) {
             Object object = ret[i];
-            if(object!= null && !COMMAND_STATUS_LOG_TYPES[i].isAssignableFrom(object.getClass())) {
+            if (object != null && !COMMAND_STATUS_LOG_TYPES[i].isAssignableFrom(object.getClass())) {
                 System.out.println("i = " + i);
                 System.out.println("object = " + object);
                 System.out.println("COMMAND_STATUS_LOG_TYPES[i] = " + COMMAND_STATUS_LOG_TYPES[i]);
@@ -2835,6 +2840,20 @@ public class CrclSwingClientInner {
         return null != this.crclSocket && this.crclSocket.isConnected() && !this.crclSocket.isClosed();
     }
 
+    public String internalConnectInfo() {
+        final String startInfo = "this.crclSocket=" + this.crclSocket
+                + ", connectCount=" + connectCount + ", getLocalPort()=" + getLocalPort() + ", getPort()=" + getPort() + ", getInetAddress()=" + getInetAddress()
+                + ",\ncreateStackTrace = "
+                + XFuture.traceToString(createStackTrace) + ",\n"
+                + ",\nconnectTrace = "
+                + XFuture.traceToString(connectTrace) + ",\n"
+                + ",\nconnectTime = " + connnectTime;
+        if (null == this.crclSocket) {
+            return startInfo;
+        } else {
+            return startInfo + ", crclSocket.isConnected()=" + crclSocket.isConnected() + ", this.crclSocket.isClosed()=" + this.crclSocket.isClosed();
+        }
+    }
     private final AtomicInteger connectCount = new AtomicInteger();
 
     private boolean debugConnectDisconnect;
@@ -5338,6 +5357,13 @@ public class CrclSwingClientInner {
                 this.waitForPause(startingRunProgramAbortCount);
                 rpac = runProgramAbortCount.get();
                 if (rpac != startingRunProgramAbortCount) {
+                    Thread.dumpStack();
+                    final long now = System.currentTimeMillis();
+                    final long timeSinceLastAbort = now - lastAbortTime;
+                    System.out.println("now = " + now);
+                    System.out.println("lastAbortTime = " + lastAbortTime);
+                    System.out.println("timeSinceLastAbort = " + timeSinceLastAbort);
+                    System.out.println("lastAbortTrace = " + XFuture.traceToString(lastAbortTrace));
                     throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                 }
                 if (null == this.getStatus()) {
@@ -5345,6 +5371,8 @@ public class CrclSwingClientInner {
                 }
                 rpac = runProgramAbortCount.get();
                 if (rpac != startingRunProgramAbortCount) {
+                    Thread.dumpStack();
+                    System.out.println("lastAbortTrace = " + XFuture.traceToString(lastAbortTrace));
                     throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                 }
                 testCommandStartLengthUnitSent = lengthUnitSent;

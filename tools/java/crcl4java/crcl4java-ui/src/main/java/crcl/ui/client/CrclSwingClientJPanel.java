@@ -894,8 +894,15 @@ public class CrclSwingClientJPanel
         AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "internal.", internal);
     }
 
+    private volatile File loadedPrefsFile = null;
+    private volatile StackTraceElement loadPrefsTrace[] = null;
+    private volatile Thread  loadPrefsThread = null;
+    
     private void loadPrefsFile(File f) {
         try {
+            loadPrefsTrace = Thread.currentThread().getStackTrace();
+            loadedPrefsFile = f;
+            loadPrefsThread = Thread.currentThread();
             File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
             File settingsRef = new File(crcljavaDir, SETTINGSREF);
@@ -1860,9 +1867,13 @@ public class CrclSwingClientJPanel
     public void saveStatusAs(File f) {
         internal.saveStatusAs(f);
     }
+    
+    private volatile StackTraceElement finishConnectTrace[] = null;
+    
 
     @Override
     public void finishConnect() {
+        finishConnectTrace = Thread.currentThread().getStackTrace();
         this.jButtonConnect.setEnabled(false);
         this.jButtonDisconnect.setEnabled(true);
         enableConnectDependControls();
@@ -2536,8 +2547,11 @@ public class CrclSwingClientJPanel
         }
     }
 
+    private volatile StackTraceElement finishDisconnectTrace[] = null;
+    
     @Override
     public void finishDisconnect() {
+        finishDisconnectTrace = Thread.currentThread().getStackTrace();
         this.jButtonConnect.setEnabled(true);
         this.jButtonDisconnect.setEnabled(false);
 
@@ -5297,9 +5311,15 @@ public class CrclSwingClientJPanel
     private void printDisconnectInfo() {
         System.out.println();
         System.out.flush();
-        System.err.println("Thread.currentThread() = " + Thread.currentThread());
-        System.err.println("disconnectThread = " + disconnectThread);
-        System.err.println("disconnectTrace = " + XFuture.traceToString(disconnectTrace));
+        System.err.println("printDisconnectInfo: loadedPrefsFile="+loadedPrefsFile);
+        System.err.println("printDisconnectInfo: loadPrefsThread="+loadPrefsThread);
+        System.err.println("printDisconnectInfo: loadPrefsTrace="+XFuture.traceToString(loadPrefsTrace));
+        System.err.println("printDisconnectInfo: finishConnectTrace="+XFuture.traceToString(finishConnectTrace));
+        System.err.println("printDisconnectInfo: finishDisconnectTrace="+XFuture.traceToString(finishDisconnectTrace));
+        System.err.println("printDisconnectInfo: internal.internalConnectInfo() = " + internal.internalConnectInfo());
+        System.err.println("printDisconnectInfo: Thread.currentThread() = " + Thread.currentThread());
+        System.err.println("printDisconnectInfo: disconnectThread = " + disconnectThread);
+        System.err.println("printDisconnectInfo: disconnectTrace = " + XFuture.traceToString(disconnectTrace));
         System.err.println();
         System.err.flush();
     }
