@@ -1177,6 +1177,12 @@ public class CrclSwingClientInner {
     private volatile @Nullable
     ConfigureStatusReportType configureStatusReportTypeForPollSocket = null;
 
+    private volatile @Nullable
+    ConfigureJointReportsType configureJointReportTypeForDefaultSocket = null;
+
+    private volatile @Nullable
+    ConfigureStatusReportType configureStatusReportTypeForDefaultSocket = null;
+
     private boolean sendCommandPrivate(CRCLCommandType cmd, CRCLSocket crclSocketForSend) {
         final boolean cmdIsGetStatus = cmd instanceof GetStatusType;
         try {
@@ -1185,6 +1191,12 @@ public class CrclSwingClientInner {
                     configureJointReportTypeForPollSocket = (ConfigureJointReportsType) cmd;
                 } else if (cmd instanceof ConfigureStatusReportType) {
                     configureStatusReportTypeForPollSocket = (ConfigureStatusReportType) cmd;
+                }
+            } else {
+                if (cmd instanceof ConfigureJointReportsType) {
+                    configureJointReportTypeForDefaultSocket = (ConfigureJointReportsType) cmd;
+                } else if (cmd instanceof ConfigureStatusReportType) {
+                    configureStatusReportTypeForDefaultSocket = (ConfigureStatusReportType) cmd;
                 }
             }
             final boolean cmdIsStop = cmd instanceof StopMotionType;
@@ -3927,7 +3939,7 @@ public class CrclSwingClientInner {
             final int startRunProgramAbortCount = runProgramAbortCount.get();
             if (this.isBlockPrograms()) {
                 System.out.println("origStartLine = " + origStartLine);
-                System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
+                System.out.println("threadCreateCallStack = " + XFuture.traceToString(threadCreateCallStack));
                 printStartBlockingProgramInfo();
                 showErrorMessage("Block Programs");
                 throw new IllegalStateException("Block Programs");
@@ -3955,7 +3967,7 @@ public class CrclSwingClientInner {
             if (!interactive) {
                 if (lastProgramIndex > startLine + 2 && startLine > 2) {
                     System.out.println("origStartLine = " + origStartLine);
-                    System.out.println("threadCreateCallStack = " + Arrays.toString(threadCreateCallStack));
+                    System.out.println("threadCreateCallStack = " + XFuture.traceToString(threadCreateCallStack));
                     showErrorMessage("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
                     throw new IllegalStateException("programIndex moving backwards: " + lastProgramIndex + ">" + startLine);
                 }
@@ -3975,7 +3987,7 @@ public class CrclSwingClientInner {
             int i = 0;
             if (null == prog) {
                 System.err.println("startLine=" + startLine);
-                System.err.println("threadCreateCallStack=" + Arrays.toString(threadCreateCallStack));
+                System.err.println("threadCreateCallStack=" + XFuture.traceToString(threadCreateCallStack));
                 throw new IllegalArgumentException("prog == null");
             }
 
@@ -4221,13 +4233,16 @@ public class CrclSwingClientInner {
                 Logger.getLogger(CrclSwingClientInner.class.getName()).log(Level.SEVERE, "", ex2);
             }
             final String newExMsg;
-            String endExMsg = "Failed to run program " + progName + " : " + ex.getMessage();
+            String endExMsg = "Failed to run program " + progName + " at line " + index + " : " + ex.getMessage();
             if (errorStateDescription != null) {
                 System.err.println("errorStateDescription = " + errorStateDescription);
                 newExMsg = errorStateDescription + " " + endExMsg;
             } else {
                 newExMsg = endExMsg;
             }
+            System.out.println("");
+            System.out.flush();
+            System.err.println("runProgram: threadCreateCallStack = " + XFuture.traceToString(threadCreateCallStack));
             throw new RuntimeException(newExMsg, ex);
         } finally {
             setOutgoingProgramIndex(-1);
@@ -4715,7 +4730,12 @@ public class CrclSwingClientInner {
 
     public double getJointPosition(int jointNumber) {
         CRCLStatusType stat = requireNonNull(this.status, "this.status");
-        JointStatusesType jointStatuses = requireNonNull(stat.getJointStatuses(), "stat.getJointStatuses()");
+        JointStatusesType jointStatuses = requireNonNull(stat.getJointStatuses(),
+                "getJointPosition(" + jointNumber + "): stat.getJointStatuses()");
+        return getJointPositionWithJST(jointStatuses, jointNumber);
+    }
+
+    private double getJointPositionWithJST(JointStatusesType jointStatuses, int jointNumber) throws IllegalStateException {
         Iterable<JointStatusType> jsIterable
                 = CRCLUtils.getNonNullJointStatusIterable(jointStatuses);
         for (JointStatusType js : jsIterable) {
@@ -4730,8 +4750,33 @@ public class CrclSwingClientInner {
         Iterable<ActuateJointType> ajIterable
                 = CRCLUtils.getNonNullIterable(ajst.getActuateJoint());
         double maxDiff = 0;
+        CRCLStatusType stat = requireNonNull(this.status, "this.status");
+        final JointStatusesType jointStatuses = stat.getJointStatuses();
+        if (null == jointStatuses) {
+            System.out.println("");
+            System.out.flush();
+            System.err.println("");
+            Thread.dumpStack();
+            System.err.println("");
+            System.err.println("WARNING!!! getTimeoutForAcuateJoints can not determine timout without current joint positions.");
+            System.err.println("getTimeoutForAcuateJoints: this.configureJointReportTypeForPollSocket = " + this.configureJointReportTypeForPollSocket);
+            System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket = " + CRCLSocket.commandToSimpleString(this.configureStatusReportTypeForPollSocket));
+            if (null != this.configureStatusReportTypeForPollSocket) {
+                System.out.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket.isReportJointStatuses() = " + this.configureStatusReportTypeForPollSocket.isReportJointStatuses());
+            }
+            System.err.println("getTimeoutForAcuateJoints: this.configureJointReportTypeForDefaultSocket = " + this.configureJointReportTypeForDefaultSocket);
+            System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForDefaultSocket = " + CRCLSocket.commandToSimpleString(this.configureStatusReportTypeForDefaultSocket));
+            if (null != this.configureStatusReportTypeForPollSocket) {
+                System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForDefaultSocket.isReportJointStatuses() = " + this.configureStatusReportTypeForDefaultSocket.isReportJointStatuses());
+            }
+            System.err.println("");
+            throw new RuntimeException("getTimeoutForAcuateJoints can not determine timeout without current joint positions.");
+//            return 600000; // 10 minute timeout
+        }
+        JointStatusesType jointStatusesNN = requireNonNull(jointStatuses,
+                "stat.getJointStatuses()");
         for (ActuateJointType aj : ajIterable) {
-            double jp = getJointPosition(aj.getJointNumber());
+            double jp = getJointPositionWithJST(jointStatusesNN, aj.getJointNumber());
 //            double thisDiff = jp.subtract(aj.getJointPosition()).abs();
             double thisDiff = Math.abs(jp - aj.getJointPosition());
             JointDetailsType jd = aj.getJointDetails();
@@ -5507,6 +5552,8 @@ public class CrclSwingClientInner {
                 throw new RuntimeException("testCommandEffect returned false : messageString=" + messageString);
             }
             return;
+        } catch (Exception e) {
+            throw new RuntimeException("Exception executing command " + CRCLSocket.commandToSimpleString(cmd), e);
         } finally {
             long tcEndTime = System.currentTimeMillis();
             long tcDiffTime = tcEndTime - tcStartTime;
