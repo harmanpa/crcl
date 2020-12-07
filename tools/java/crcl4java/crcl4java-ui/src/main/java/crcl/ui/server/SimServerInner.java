@@ -85,6 +85,7 @@ import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
 import crcl.ui.DefaultSchemaFiles;
+import crcl.utils.CRCLCopier;
 import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -107,6 +108,7 @@ import crcl.utils.CRCLSocket;
 import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import static crcl.utils.CRCLUtils.getNonNullIterable;
 import crcl.utils.PoseToleranceChecker;
+import crcl.utils.ThreadLocked;
 import crcl.utils.XpathUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import static crcl.utils.kinematics.SimRobotEnum.PLAUSIBLE;
@@ -231,7 +233,7 @@ public class SimServerInner {
             if (null != newJointStatusesName) {
                 jointStatuses.setName(newJointStatusesName);
             }
-            final List<JointStatusType> jointStatusesListLocal 
+            final List<JointStatusType> jointStatusesListLocal
                     = jointStatuses.getJointStatus();
             jointStatusesListLocal.clear();
             jointStatusesListLocal.addAll(newJointStatuses.getJointStatus());
@@ -269,7 +271,7 @@ public class SimServerInner {
             if (null != intermediatePoseTolerance) {
                 settingsStatus.setIntermediatePoseTolerance(intermediatePoseTolerance);
             }
-            final List<JointLimitType> jointLimitsListLocal 
+            final List<JointLimitType> jointLimitsListLocal
                     = settingsStatus.getJointLimits();
             jointLimitsListLocal.clear();
             jointLimitsListLocal.addAll(newSettingsStatus.getJointLimits());
@@ -288,7 +290,7 @@ public class SimServerInner {
             if (null != endPoseTolerance) {
                 settingsStatus.setEndPoseTolerance(endPoseTolerance);
             }
-            final List<ParameterSettingType> robotParameterSettingsListLocal 
+            final List<ParameterSettingType> robotParameterSettingsListLocal
                     = settingsStatus.getRobotParameterSetting();
             robotParameterSettingsListLocal.clear();
             robotParameterSettingsListLocal.addAll(newSettingsStatus.getRobotParameterSetting());
@@ -337,12 +339,26 @@ public class SimServerInner {
         if (null == newStatus) {
             throw new IllegalArgumentException("null == newStatus");
         }
+        CRCLStatusType newStatusCopy = CRCLCopier.copy(newStatus);
+        addToUpdateStatusRunnables(() -> this.applySetStatus(newStatusCopy));
+    }
+
+    private void addToUpdateStatusRunnables(Runnable r) {
+        if (null != this.crclServerSocket) {
+            this.crclServerSocket.addToUpdateServerSideRunnables(r);
+        } else {
+            r.run();
+        }
+    }
+
+    private void applySetStatus(CRCLStatusType newStatus) {
+        final CRCLStatusType stat = this.status.get();
         String statusName = newStatus.getName();
         if (null != statusName) {
-            status.setName(statusName);
+            stat.setName(statusName);
         }
         CommandStatusType commandStatus = requireNonNull(newStatus.getCommandStatus(), "newStatus.getCommandStatus()");
-        status.setCommandStatus(commandStatus);
+        stat.setCommandStatus(commandStatus);
         PoseStatusType poseStatus1 = newStatus.getPoseStatus();
         if (null != poseStatus1) {
             setPoseStatus(poseStatus1);
@@ -353,11 +369,11 @@ public class SimServerInner {
         }
         GripperStatusType gripperStatus = newStatus.getGripperStatus();
         if (null != gripperStatus) {
-            status.setGripperStatus(gripperStatus);
+            stat.setGripperStatus(gripperStatus);
         }
         SettingsStatusType settingsStatus1 = newStatus.getSettingsStatus();
         if (null != settingsStatus1) {
-            status.setSettingsStatus(settingsStatus1);
+            stat.setSettingsStatus(settingsStatus1);
         }
         setReportGripperStatus(gripperStatus != null);
         setReportJointStatus(jointStatuses1 != null);
@@ -381,8 +397,13 @@ public class SimServerInner {
      */
     public void setReportPoseStatus(boolean reportPoseStatus) {
         this.reportPoseStatus = reportPoseStatus;
+        addToUpdateStatusRunnables(() -> this.applySetReportPoseStatus(reportPoseStatus));
+    }
+
+    private void applySetReportPoseStatus(boolean reportPoseStatus) {
+        final CRCLStatusType stat = this.status.get();
         if (reportPoseStatus) {
-            status.setPoseStatus(poseStatus);
+            stat.setPoseStatus(poseStatus);
         } else {
             clearPoseStatus();
         }
@@ -390,7 +411,8 @@ public class SimServerInner {
 
     @SuppressWarnings("nullness")
     private void clearPoseStatus() {
-        status.setPoseStatus(null);
+        final CRCLStatusType stat = this.status.get();
+        stat.setPoseStatus(null);
     }
 
     private boolean reportGripperStatus = false;
@@ -431,8 +453,13 @@ public class SimServerInner {
      */
     public void setReportSettingsStatus(boolean reportSettingsStatus) {
         this.reportSettingsStatus = reportSettingsStatus;
+        addToUpdateStatusRunnables(() -> this.applySetReportSettingsStatus(reportSettingsStatus));
+    }
+
+    private void applySetReportSettingsStatus(boolean reportSettingsStatus) {
+        final CRCLStatusType stat = this.status.get();
         if (reportSettingsStatus) {
-            status.setSettingsStatus(settingsStatus);
+            stat.setSettingsStatus(settingsStatus);
         } else {
             clearSettingsStatus();
         }
@@ -440,7 +467,8 @@ public class SimServerInner {
 
     @SuppressWarnings("nullness")
     private void clearSettingsStatus() {
-        status.setSettingsStatus(null);
+        final CRCLStatusType stat = this.status.get();
+        stat.setSettingsStatus(null);
     }
 
     private boolean reportJointStatus = true;
@@ -461,8 +489,13 @@ public class SimServerInner {
      */
     public void setReportJointStatus(boolean reportJointStatus) {
         this.reportJointStatus = reportJointStatus;
+        addToUpdateStatusRunnables(() -> this.applySetReportJointStatus(reportJointStatus));
+    }
+
+    private void applySetReportJointStatus(boolean reportJointStatus) {
+        final CRCLStatusType stat = this.status.get();
         if (reportJointStatus) {
-            status.setJointStatuses(jointStatuses);
+            stat.setJointStatuses(jointStatuses);
         } else {
             clearJointStatuses();
         }
@@ -470,7 +503,8 @@ public class SimServerInner {
 
     @SuppressWarnings("nullness")
     private void clearJointStatuses() {
-        status.setJointStatuses(null);
+        final CRCLStatusType stat = this.status.get();
+        stat.setJointStatuses(null);
     }
 
     final private PoseStatusType poseStatus = new PoseStatusType();
@@ -576,7 +610,7 @@ public class SimServerInner {
 
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
-    final private CRCLStatusType status = new CRCLStatusType();
+    final private ThreadLocked<CRCLStatusType> status = new ThreadLocked("SimServerInner.status", new CRCLStatusType(), false);
 
     private @Nullable
     CRCLCommandType multiStepCommand = null;
@@ -721,21 +755,23 @@ public class SimServerInner {
             this.port = Integer.parseInt(portPropertyString);
         }
         updateStatusReporting();
+        this.status.releaseLockThread();
     }
 
     private void updateStatusReporting() {
+        final CRCLStatusType stat = this.status.get();
         if (this.isReportJointStatus()) {
-            status.setJointStatuses(jointStatuses);
+            stat.setJointStatuses(jointStatuses);
         } else {
             clearJointStatuses();
         }
         if (this.isReportPoseStatus()) {
-            status.setPoseStatus(poseStatus);
+            stat.setPoseStatus(poseStatus);
         } else {
             clearPoseStatus();
         }
         if (this.isReportSettingsStatus()) {
-            status.setSettingsStatus(settingsStatus);
+            stat.setSettingsStatus(settingsStatus);
         } else {
             clearSettingsStatus();
         }
@@ -1021,7 +1057,13 @@ public class SimServerInner {
 
     @SuppressWarnings("nullness")
     public void setJointPosition(double _position, int index) {
-        if (status.getCommandStatus().getCommandState() == CRCL_WORKING) {
+        addToUpdateStatusRunnables(() -> this.applySetJointPosition(_position, index));
+    }
+
+    @SuppressWarnings("nullness")
+    private void applySetJointPosition(double _position, int index) {
+        final CRCLStatusType stat = this.status.get();
+        if (stat.getCommandStatus().getCommandState() == CRCL_WORKING) {
             throw new IllegalStateException("changing joint position while executing command.");
         }
         synchronized (jointPositions) {
@@ -1084,20 +1126,34 @@ public class SimServerInner {
 
     public @Nullable
     PoseToleranceType getEndPoseTolerance() {
-        if (null == status) {
+        CRCLStatusType lastUpdateStatusCopy = this.getLastUpdateServerSideStatusCopy();
+        if (null == lastUpdateStatusCopy) {
             return null;
         }
-        SettingsStatusType settingsStatus = status.getSettingsStatus();
+        final CRCLStatusType stat = lastUpdateStatusCopy;
+        SettingsStatusType settingsStatus = stat.getSettingsStatus();
         if (null == settingsStatus) {
             return null;
         }
         return settingsStatus.getEndPoseTolerance();
     }
 
+    private @Nullable
+    CRCLStatusType getLastUpdateServerSideStatusCopy() {
+        if (null == this.crclServerSocket) {
+            return null;
+        }
+        return crclServerSocket.getLastUpdateServerSideStatusCopy();
+    }
+
     public boolean isFinishedMove() {
         PoseToleranceType endPoseTol = getEndPoseTolerance();
-        final PoseType currentPose = getNullablePose(status);
-        final SettingsStatusType localSettingsStatus = status.getSettingsStatus();
+        final CRCLStatusType stat = this.getLastUpdateServerSideStatusCopy();
+        if (null == stat) {
+            return false;
+        }
+        final PoseType currentPose = getNullablePose(stat);
+        final SettingsStatusType localSettingsStatus = stat.getSettingsStatus();
         final PoseType localGoalPose = goalPose;
         if (null != localGoalPose && null != endPoseTol && null != currentPose && null != localSettingsStatus) {
             final AngleUnitEnumType angleUnitName = localSettingsStatus.getAngleUnitName();
@@ -1251,38 +1307,49 @@ public class SimServerInner {
     }
 
     public void setCommandState(CommandStateEnumType state) {
-        synchronized (status) {
-            CommandStatusType cst = status.getCommandStatus();
+        addToUpdateStatusRunnables(() -> this.applySetCommandState(state));
+    }
+
+    private void applySetCommandState(CommandStateEnumType state) {
+        final CRCLStatusType stat = this.status.get();
+        synchronized (stat) {
+            CommandStatusType cst = stat.getCommandStatus();
             if (null == cst) {
                 cst = new CommandStatusType();
             }
             if (cst.getCommandState() != CRCL_ERROR) {
                 cst.setCommandState(state);
             }
-            status.setCommandStatus(cst);
+            stat.setCommandStatus(cst);
         }
     }
 
     public void setCommandState(CommandStateEnumType state, String stateDescription) {
-        synchronized (status) {
-            CommandStatusType cst = status.getCommandStatus();
+        addToUpdateStatusRunnables(() -> this.applySetCommandState(state, stateDescription));
+    }
+
+    private void applySetCommandState(CommandStateEnumType state, String stateDescription) {
+        final CRCLStatusType stat = this.status.get();
+        synchronized (stat) {
+            CommandStatusType cst = stat.getCommandStatus();
             if (null == cst) {
                 cst = new CommandStatusType();
             }
             cst.setCommandState(state);
             cst.setStateDescription(stateDescription);
-            status.setCommandStatus(cst);
+            stat.setCommandStatus(cst);
         }
     }
 
     @SuppressWarnings("nullness")
     public CommandStateEnumType getCommandState() {
-        CommandStatusType cst = status.getCommandStatus();
+        final CRCLStatusType stat = this.getLastUpdateServerSideStatusCopy();
+        CommandStatusType cst = stat.getCommandStatus();
         if (null == cst) {
             setCommandStateERROR();
             return CRCL_ERROR;
         }
-        cst = status.getCommandStatus();
+        cst = stat.getCommandStatus();
         if (null == cst) {
             setCommandStateERROR();
             return CRCL_ERROR;
@@ -1634,7 +1701,7 @@ public class SimServerInner {
 
     private static final CRCLSocket.UnaryOperator<String> NOP_FILTER = x -> x;
 
-    private void sendStatus(@Nullable CRCLSocket socket) {
+    private void sendStatus(@Nullable CRCLSocket socket, final CRCLStatusType stat) {
         CRCLSocket curSocket = socket;
         try {
             if (null == curSocket) {
@@ -1644,11 +1711,11 @@ public class SimServerInner {
                     return;
                 }
             }
-            synchronized (status) {
-                CommandStatusType commandStatus = status.getCommandStatus();
+            synchronized (stat) {
+                CommandStatusType commandStatus = stat.getCommandStatus();
                 if (null == commandStatus) {
                     commandStatus = new CommandStatusType();
-                    status.setCommandStatus(commandStatus);
+                    stat.setCommandStatus(commandStatus);
                 }
                 CommandStateEnumType commandState = getCommandState();
                 if (null == commandState) {
@@ -1680,7 +1747,7 @@ public class SimServerInner {
                                     + " State="
                                     + commandState);
                         }
-                        socket.writeStatus(status, validateXMLSelected);
+                        socket.writeStatus(stat, validateXMLSelected);
                         if (debugUpdateStatusTime > 0) {
                             debugUpdateStatusTime = 0;
                         }
@@ -1732,7 +1799,7 @@ public class SimServerInner {
                             + " State="
                             + commandState);
                 }
-                String xmls = curSocket.statusToString(status, validateXMLSelected);
+                String xmls = curSocket.statusToString(stat, validateXMLSelected);
                 int write_count = 0;
                 cleanupClientStatesThreadMap();
                 List<SimServerClientState> clientStatesList = new ArrayList<>(clientStates);
@@ -1842,8 +1909,9 @@ public class SimServerInner {
     }
 
     private void incStatusId() {
-        synchronized (status) {
-            CommandStatusType cst = status.getCommandStatus();
+        final CRCLStatusType stat = this.status.get();
+        synchronized (stat) {
+            CommandStatusType cst = stat.getCommandStatus();
             if (null != cst) {
                 cst.setStatusID(cst.getStatusID() + 1);
                 if (cmdLog.size() > 0) {
@@ -1899,6 +1967,7 @@ public class SimServerInner {
      * @return the boolean
      */
     private boolean updateStatus() {
+        crclServerSocket.runUpdateServerSideStatusRunnables(null);
         boolean jointschanged = false;
         PoseType curGoalPose = null;
         if (checkForceFail()) {
@@ -1906,7 +1975,8 @@ public class SimServerInner {
         }
         double[] commandedJointPositions1 = this.commandedJointPositions;
         try {
-            synchronized (status) {
+            final CRCLStatusType stat = this.status.get();
+            synchronized (stat) {
                 if (!outer.isEditingStatus()) {
                     if (debugCmdStartTime > 0) {
                         debugUpdateStatusTime = System.currentTimeMillis();
@@ -1914,13 +1984,13 @@ public class SimServerInner {
                         System.out.println("diffdebugUpdateStatusTimedebugCmdStartTime = " + diffdebugUpdateStatusTimedebugCmdStartTime);
                         debugCmdStartTime = 0;
                     }
-                    CommandStatusType commandStatus = status.getCommandStatus();
+                    CommandStatusType commandStatus = stat.getCommandStatus();
                     if (null == commandStatus) {
                         commandStatus = new CommandStatusType();
                         commandStatus.setCommandID(1);
                         commandStatus.setStatusID(1);
                         commandStatus.setCommandState(CRCL_WORKING);
-                        status.setCommandStatus(commandStatus);
+                        stat.setCommandStatus(commandStatus);
                     }
                     this.incStatusId();
                     PoseType newGoalPose = this.goalPose;
@@ -2040,7 +2110,7 @@ public class SimServerInner {
                                         }
                                     }
                                 }
-                                if (this.getCommandState() == CRCL_WORKING
+                                if (commandStatus.getCommandState() == CRCL_WORKING
                                         && cmdLog.get(cmdLog.size() - 1) instanceof ConfigureJointReportsType) {
                                     setCommandStateDONE();
                                 }
@@ -2052,7 +2122,7 @@ public class SimServerInner {
                             jsl.add(js);
                         }
                         JointStatusesType jsst = getJointStatuses();
-                        final List<JointStatusType> jointStatusesListLocal 
+                        final List<JointStatusType> jointStatusesListLocal
                                 = jsst.getJointStatus();
                         jointStatusesListLocal.clear();
                         jointStatusesListLocal.addAll(jsl);
@@ -2064,7 +2134,7 @@ public class SimServerInner {
                     }
                     outer.updatePanels(jointschanged);
                     if (executingMoveCommand
-                            && this.getCommandState() == CRCL_WORKING) {
+                            && commandStatus.getCommandState() == CRCL_WORKING) {
                         boolean finished = (null != goalPose && isFinishedMove());
                         if (!jointschanged || finished) {
                             if (null == newGoalPose
@@ -2089,7 +2159,7 @@ public class SimServerInner {
 //                            System.out.println("this.commandedJointPositions = " + Arrays.toString(this.commandedJointPositions));
 //                        }
                     }
-                    if (this.getCommandState() == CRCL_WORKING) {
+                    if (commandStatus.getCommandState() == CRCL_WORKING) {
                         int wc = workingCount.incrementAndGet();
                         if (wc > maxWorkingCount) {
                             maxWorkingCount = wc;
@@ -2103,6 +2173,7 @@ public class SimServerInner {
                 if (commandedJointPositions1 != null) {
                     this.commandedJointPositions = commandedJointPositions1;
                 }
+                crclServerSocket.runUpdateServerSideStatusRunnables(stat);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -2247,7 +2318,8 @@ public class SimServerInner {
 
     public void printClientStates(final PrintStream ps) {
         try {
-            synchronized (status) {
+            final CRCLStatusType stat = this.status.get();
+            synchronized (stat) {
                 ps.println("Start printClientStates");
                 ps.println("SimServerInner.this = " + SimServerInner.this);
                 if (null != clientStates) {
@@ -2258,7 +2330,7 @@ public class SimServerInner {
                     String cmdString = this.getCheckerCRCLSocket().commandToPrettyString(cmdLog.get(cmdLog.size() - 1));
                     ps.println("SimServerInner : cmdString=" + cmdString);
                 }
-                String statString = this.getCheckerCRCLSocket().statusToPrettyString(status, false);
+                String statString = this.getCheckerCRCLSocket().statusToPrettyString(stat, false);
                 ps.println("SimServerInner : statString=" + statString);
                 ps.println("end SimServerInner statString");
                 if (null != this.cmdQueue) {
@@ -2377,16 +2449,20 @@ public class SimServerInner {
 //                            new Thread(() -> closeServer()).start();
 //                            return;
 //                        }
-                    synchronized (status) {
-                        CommandStatusType cst = status.getCommandStatus();
+                    final CRCLStatusType stat = this.getLastUpdateServerSideStatusCopy();
+                    synchronized (stat) {
+                        setCommandStateWORKING();
+                        CommandStatusType cst = stat.getCommandStatus();
                         if (null == cst) {
                             cst = new CommandStatusType();
-                            setCommandStateWORKING();
                             cst.setCommandID(cmd.getCommandID());
                             cst.setStatusID(1);
-                            status.setCommandStatus(cst);
+                            cst.setCommandState(CRCL_WORKING);
+                            stat.setCommandStatus(cst);
+                        } else {
+                            cst.setCommandState(CRCL_WORKING);
                         }
-                        SimServerInner.this.sendStatus(state.getCs());
+                        SimServerInner.this.sendStatus(state.getCs(), stat);
                     }
                 } else {
                     debug_this_command = false;
@@ -2528,7 +2604,7 @@ public class SimServerInner {
         if (null == statSchema) {
             throw new IllegalStateException("null==statSchema");
         }
-        final CRCLSocket cs 
+        final CRCLSocket cs
                 = CRCLSocket.newCRCLSocketForSocketSchemas(s, cmdSchema, statSchema, null);
         return cs;
     }
@@ -2712,14 +2788,17 @@ public class SimServerInner {
             }
             String cmdName = CRCLSocket.commandToSimpleString(cmd);
             outer.updateCurrentCommandType(cmdName);
-            synchronized (status) {
-                CommandStatusType cst = status.getCommandStatus();
+            final CRCLStatusType stat = this.getLastUpdateServerSideStatusCopy();
+            synchronized (stat) {
+                CommandStatusType cst = stat.getCommandStatus();
                 if (null == cst) {
                     cst = new CommandStatusType();
-                    status.setCommandStatus(cst);
-                }
-                if (getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                    cst.setCommandState(CRCL_WORKING);
+                    stat.setCommandStatus(cst);
                     setCommandStateWORKING();
+                } else if (cst.getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                    setCommandStateWORKING();
+                    cst.setCommandState(CRCL_WORKING);
                 }
             }
             executingMoveCommand = false;
@@ -2731,7 +2810,7 @@ public class SimServerInner {
                 StopMotionType stop = (StopMotionType) cmd;
                 executeStopMotionCmd();
             } else {
-                if (this.getCommandState() == CommandStateEnumType.CRCL_DONE) {
+                if (stat.getCommandStatus().getCommandState() == CommandStateEnumType.CRCL_DONE) {
                     this.setWaypoints(null);
                 }
                 if (!menuOuter().isInitializedSelected()
@@ -3011,8 +3090,8 @@ public class SimServerInner {
                     outer.showDebugMessage("\n" + message + "\n");
                 }
             }
-            synchronized (status) {
-                CommandStatusType cst = status.getCommandStatus();
+            synchronized (stat) {
+                CommandStatusType cst = stat.getCommandStatus();
                 if (null != cst) {
                     cst.setCommandID(cmd.getCommandID());
                     String programFile = instance.getProgramFile();
@@ -3081,8 +3160,13 @@ public class SimServerInner {
     }
 
     public void initialize() {
+        addToUpdateStatusRunnables(() -> this.applyInitialize());
+    }
+
+    private void applyInitialize() {
         setCommandStateDONE();
-        CommandStatusType cst = status.getCommandStatus();
+        final CRCLStatusType stat = this.status.get();
+        CommandStatusType cst = stat.getCommandStatus();
         if (null == cst) {
             cst = new CommandStatusType();
         }
@@ -3179,12 +3263,13 @@ public class SimServerInner {
             restartingServerSocket.setAutomaticallySendServerSideStatus(true);
             restartingServerSocket.setAutomaticallyConvertUnits(true);
             restartingServerSocket.setServerUnits(new UnitsTypeSet());
-            restartingServerSocket.start();
             this.crclServerSocket = restartingServerSocket;
             maxReadCommandTime = 0;
             maxUpdateStatusTime = 0;
             maxSimCycleTime = 0;
             simCycleCount = 0;
+            this.status.releaseLockThread();
+            restartingServerSocket.start();
 
             Thread newSimulationThread = new Thread(new Runnable() {
                 @Override
@@ -3208,8 +3293,9 @@ public class SimServerInner {
                             if (commandReadTime > maxReadCommandTime) {
                                 maxReadCommandTime = commandReadTime;
                             }
+                            final CRCLStatusType stat = SimServerInner.this.status.get();
                             if (!updateStatus()) {
-                                sendStatus(null);
+                                sendStatus(null, stat);
                             }
 
                             long endCycleTime = System.currentTimeMillis();
@@ -3260,7 +3346,7 @@ public class SimServerInner {
     }
 
     public CRCLStatusType getStatus() {
-        return status;
+        return CRCLCopier.copy(this.status.get());
     }
 
     public String getStatusXmlString() throws JAXBException {

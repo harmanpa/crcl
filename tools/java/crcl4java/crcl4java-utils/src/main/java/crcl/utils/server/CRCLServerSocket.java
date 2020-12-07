@@ -82,6 +82,7 @@ import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.getNonNullCmd;
 import static crcl.utils.CRCLUtils.getNonNullFilteredList;
+import crcl.utils.ThreadLocked;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import java.io.EOFException;
@@ -163,7 +164,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private final Class<STATE_TYPE> stateClass;
 
     private volatile @MonotonicNonNull
-    CRCLStatusType serverSideStatus;
+    ThreadLocked<CRCLStatusType> serverSideStatus;
 
     private volatile @Nullable
     Runnable guardCheckUpdatePositionOnlyRunnable = null;
@@ -203,7 +204,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public @Nullable
     CRCLStatusType getServerSideStatus() {
-        return serverSideStatus;
+        return CRCLCopier.copy(serverSideStatus.get());
     }
 
     private boolean automaticallyHandleSensorServers = true;
@@ -269,12 +270,13 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.automaticallyHandleSensorServers = automaticallyHandleSensorServers;
     }
 
-    public void setServerSideStatus(CRCLStatusType serverSideStatus) {
+    public void setServerSideStatus(ThreadLocked<CRCLStatusType> serverSideStatus) {
         this.serverSideStatus = serverSideStatus;
-        CommandStatusType cst = serverSideStatus.getCommandStatus();
+        CRCLStatusType stat = serverSideStatus.get();
+        CommandStatusType cst = stat.getCommandStatus();
         if (null == cst) {
             cst = new CommandStatusType();
-            serverSideStatus.setCommandStatus(cst);
+            stat.setCommandStatus(cst);
             setWorkingState();
             cst.setCommandID(1);
             cst.setStatusID(1);
@@ -356,7 +358,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 if (null != socket) {
                     this.socket.close();
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
             if (null != future) {
@@ -609,11 +611,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private BlockingQueue<CRCLServerSocketEvent<STATE_TYPE>> queue = new LinkedBlockingQueue<>();
 
     public void comleteGuardTrigger() {
-        if (null != serverSideStatus) {
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
             long now = System.currentTimeMillis();
             long timeDiff = now - this.guardTriggerStartTime;
             long timeDiffMicros = 1000 * timeDiff;
-            final GuardsStatusesType guardsStatuses = serverSideStatus.getGuardsStatuses();
+            final GuardsStatusesType guardsStatuses = localServerSideStatus.getGuardsStatuses();
             if (null != guardsStatuses) {
                 guardsStatuses.setTriggerStopTimeMicros(timeDiffMicros);
             }
@@ -630,6 +633,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         completeHandleEvent(event);
     }
 
+    private final ConcurrentLinkedDeque<Runnable> updateServerSideStatusRunnables = new ConcurrentLinkedDeque<>();
+
+    private volatile CRCLStatusType lastUpdateServerSideStatusCopy = null;
+
+    public CRCLStatusType getLastUpdateServerSideStatusCopy() {
+        return lastUpdateServerSideStatusCopy;
+    }
+
     @SuppressWarnings("nullness")
     private boolean handleAutomaticEvents(final CRCLServerSocketEvent<STATE_TYPE> event) throws IllegalStateException, CRCLException, InterruptedException {
         final CRCLCommandInstanceType instanceIn = event.getInstance();
@@ -642,26 +653,26 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 throw new NullPointerException("state");
             }
             final CRCLCommandType cmd = instanceIn.getCRCLCommand();
-            synchronized (serverSideStatus) {
-                if (serverSideStatus.getCommandStatus() == null) {
-                    serverSideStatus.setCommandStatus(new CommandStatusType());
-                }
-                final CommandStatusType commandStatus = serverSideStatus.getCommandStatus();
-                try {
-                    if (cmd instanceof GetStatusType) {
-                        CRCLSocket source = event.getSource();
-                        if (null == source) {
-                            throw new NullPointerException("source");
-                        }
-
-                        if (null != updateStatusSupplier && !checkingGuards) {
-                            XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
-                            supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
-                                finishWriteStatus(state, suppliedStatus, source, event, commandStatus);
-                            });
-                            return true;
-                        }
-                        finishWriteStatus(state, serverSideStatus, source, event, commandStatus);
+            final CRCLStatusType localServerSideStatus;
+            localServerSideStatus = CRCLCopier.copy(lastUpdateServerSideStatusCopy);
+            if (localServerSideStatus.getCommandStatus() == null) {
+                localServerSideStatus.setCommandStatus(new CommandStatusType());
+            }
+            final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
+            try {
+                if (cmd instanceof GetStatusType) {
+                    CRCLSocket source = event.getSource();
+                    if (null == source) {
+                        throw new NullPointerException("source");
+                    }
+                    if (null != updateStatusSupplier && !checkingGuards) {
+                        XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
+                        supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
+                            finishWriteStatus(state, suppliedStatus, source, event, commandStatus);
+                        });
+                        return true;
+                    }
+                    finishWriteStatus(state, localServerSideStatus, source, event, commandStatus);
 //                    CRCLStatusType statusToSend;
 //                    synchronized (this) {
 //                        asyncCheckSensorServers();
@@ -670,331 +681,406 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 //                    }
 ////                statusToSend.getCommandStatus().setCommandID(state.cmdId);
 //                    source.writeStatus(statusToSend);
-                        return true;
-                    } else {
-                        state.cmdId = cmd.getCommandID();
+                    return true;
+                } else {
+                    final long currentCommandId = cmd.getCommandID();
+                    state.cmdId = currentCommandId;
+                    commandStatus.setCommandID(currentCommandId);
+                    String cmdStatusName = cmd.getClass().getSimpleName();
+                    if (cmd.getName() != null && cmd.getName().length() > 0 && !cmd.getName().startsWith(cmdStatusName)) {
+                        cmdStatusName += cmd.getName();
+                    }
+                    if (cmdStatusName.length() > 120) {
+                        cmdStatusName = cmdStatusName.substring(0, 120);
+                    }
+                    commandStatus.setName(cmdStatusName);
+                    final String instanceInProgramFile = instanceIn.getProgramFile();
+                    if (null != instanceInProgramFile) {
+                        commandStatus.setProgramFile(instanceInProgramFile);
+                    }
+                    final Integer instanceInProgramIndex = instanceIn.getProgramIndex();
+                    if (null != instanceInProgramIndex) {
+                        commandStatus.setProgramIndex(instanceInProgramIndex);
+                    }
+                    final Integer instanceInProgramLength = instanceIn.getProgramLength();
+                    if (null != instanceInProgramLength) {
+                        commandStatus.setProgramLength(instanceInProgramLength);
+                    }
+                    commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
 
-                        commandStatus.setCommandID(cmd.getCommandID());
-                        String cmdStatusName = cmd.getClass().getSimpleName();
-                        if (cmd.getName() != null && cmd.getName().length() > 0 && !cmd.getName().startsWith(cmdStatusName)) {
-                            cmdStatusName += cmd.getName();
-                        }
-                        if (cmdStatusName.length() > 120) {
-                            cmdStatusName = cmdStatusName.substring(0, 120);
-                        }
-                        commandStatus.setName(cmdStatusName);
-                        if (null != instanceIn.getProgramFile()) {
-                            commandStatus.setProgramFile(instanceIn.getProgramFile());
-                        }
-                        if (null != instanceIn.getProgramIndex()) {
-                            commandStatus.setProgramIndex(instanceIn.getProgramIndex());
-                        }
-                        if (null != instanceIn.getProgramLength()) {
-                            commandStatus.setProgramLength(instanceIn.getProgramLength());
+                    final SettingsStatusType localServerSideSettingsStatus;
+                    final SettingsStatusType initialServerSideSettingsStatus
+                            = localServerSideStatus.getSettingsStatus();
+                    if (null == initialServerSideSettingsStatus) {
+                        localServerSideSettingsStatus = new SettingsStatusType();
+                        localServerSideStatus.setSettingsStatus(localServerSideSettingsStatus);
+                    } else {
+                        localServerSideSettingsStatus = initialServerSideSettingsStatus;
+                    }
+                    updateServerSideStatusRunnables.add(() -> {
+                        CRCLStatusType stat = serverSideStatus.get();
+                        if (null != stat) {
+                            synchronized (stat) {
+                                CommandStatusType commandStat = stat.getCommandStatus();
+                                if (null == commandStat) {
+                                    commandStat = new CommandStatusType();
+                                    stat.setCommandStatus(commandStat);
+                                }
+                                commandStat.setCommandID(currentCommandId);
+                                if (null != instanceInProgramFile) {
+                                    commandStat.setProgramFile(instanceInProgramFile);
+                                }
+                                if (null != instanceInProgramIndex) {
+                                    commandStat.setProgramIndex(instanceInProgramIndex);
+                                }
+                                if (null != instanceInProgramLength) {
+                                    commandStat.setProgramLength(instanceInProgramLength);
+                                }
+                                SettingsStatusType settingsStat = stat.getSettingsStatus();
+                                if (null == settingsStat) {
+                                    settingsStat = new SettingsStatusType();
+                                    stat.setSettingsStatus(settingsStat);
+                                }
+                            }
                         }
                         setWorkingState();
-                        final SettingsStatusType serverSideSettingsStatus;
-                        final SettingsStatusType initialServerSideSettingsStatus
-                                = serverSideStatus.getSettingsStatus();
-                        if (null == initialServerSideSettingsStatus) {
-                            serverSideSettingsStatus = new SettingsStatusType();
-                            serverSideStatus.setSettingsStatus(serverSideSettingsStatus);
-                        } else {
-                            serverSideSettingsStatus = initialServerSideSettingsStatus;
+                    });
+                    if (cmd instanceof crcl.base.InitCanonType) {
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    } else if (cmd instanceof ConfigureStatusReportType) {
+                        state.filterSettings.setConfigureStatusReport((ConfigureStatusReportType) cmd);
+                        final ConfigureStatusReportType configStatusCmd = (ConfigureStatusReportType) cmd;
+                        if (configStatusCmd.isReportJointStatuses() && null == localServerSideStatus.getJointStatuses()) {
+                            localServerSideStatus.setJointStatuses(new JointStatusesType());
                         }
-                        if (cmd instanceof crcl.base.InitCanonType) {
-                            commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
-                        } else if (cmd instanceof ConfigureStatusReportType) {
-                            state.filterSettings.setConfigureStatusReport((ConfigureStatusReportType) cmd);
-                            final ConfigureStatusReportType configStatusCmd = (ConfigureStatusReportType) cmd;
-                            if (configStatusCmd.isReportJointStatuses() && null == serverSideStatus.getJointStatuses()) {
-                                serverSideStatus.setJointStatuses(new JointStatusesType());
-                            }
-                            if (configStatusCmd.isReportPoseStatus() && null == serverSideStatus.getPoseStatus()) {
-                                serverSideStatus.setPoseStatus(new PoseStatusType());
-                            }
-                            if (configStatusCmd.isReportSensorsStatus() && null == serverSideStatus.getSensorStatuses()) {
-                                serverSideStatus.setSensorStatuses(new SensorStatusesType());
-                            }
-                            if (configStatusCmd.isReportSettingsStatus() && null == serverSideSettingsStatus) {
-                                serverSideStatus.setSettingsStatus(new SettingsStatusType());
-                            }
-                            if (configStatusCmd.isReportGuardsStatus() && null == serverSideStatus.getGuardsStatuses()) {
-                                serverSideStatus.setGuardsStatuses(new GuardsStatusesType());
-                            }
-                            setDoneState();
-                            return true;
-                        } else if (cmd instanceof ConfigureJointReportsType) {
-                            ConfigureJointReportsType cjrt = (ConfigureJointReportsType) cmd;
-                            if (cjrt.isResetAll()) {
-                                state.filterSettings.clearConfigJointsReportMap();
-                            }
-                            state.filterSettings.configureJointReports(cjrt.getConfigureJointReport());
-                            setDoneState();
-                            return true;
-                        } else if (cmd instanceof SetDefaultJointPositonsTolerancesType) {
-                            SetDefaultJointPositonsTolerancesType setDefaultJointPositonsTolerancesCommand
-                                    = (SetDefaultJointPositonsTolerancesType) cmd;
-                            final JointPositionsTolerancesType jointTolerancesCopy
-                                    = CRCLCopier.copy(setDefaultJointPositonsTolerancesCommand.getJointTolerances());
-                            serverSideSettingsStatus.setJointTolerances(jointTolerancesCopy);
-                            setDoneState();
-                            return true;
-                        } else if (cmd instanceof SetEndPoseToleranceType) {
-                            SetEndPoseToleranceType setEndPoseToleranceCommand
-                                    = (SetEndPoseToleranceType) cmd;
-                            final PoseToleranceType inputEndPoseTolerance = setEndPoseToleranceCommand.getTolerance();
-                            final PoseToleranceType endPoseTolerance
-                                    = CRCLCopier.copy(inputEndPoseTolerance);
-                            if (automaticallyConvertUnits) {
-                                endPoseTolerance.setXPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getXPointTolerance()));
-                                endPoseTolerance.setYPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getYPointTolerance()));
-                                endPoseTolerance.setZPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getZPointTolerance()));
-
-                                endPoseTolerance.setXAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getXAxisTolerance()));
-                                endPoseTolerance.setZAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getZAxisTolerance()));
-                            }
-                            serverSideSettingsStatus.setEndPoseTolerance(endPoseTolerance);
-                            setDoneState();
-                            return true;
+                        if (configStatusCmd.isReportPoseStatus() && null == localServerSideStatus.getPoseStatus()) {
+                            localServerSideStatus.setPoseStatus(new PoseStatusType());
                         }
+                        if (configStatusCmd.isReportSensorsStatus() && null == localServerSideStatus.getSensorStatuses()) {
+                            localServerSideStatus.setSensorStatuses(new SensorStatusesType());
+                        }
+                        if (configStatusCmd.isReportSettingsStatus() && null == localServerSideSettingsStatus) {
+                            localServerSideStatus.setSettingsStatus(new SettingsStatusType());
+                        }
+                        if (configStatusCmd.isReportGuardsStatus() && null == localServerSideStatus.getGuardsStatuses()) {
+                            localServerSideStatus.setGuardsStatuses(new GuardsStatusesType());
+                        }
+                        updateServerSideStatusRunnables.add(() -> {
+                            CRCLStatusType stat = serverSideStatus.get();
+                            if (null != stat) {
+                                synchronized (stat) {
+                                    SettingsStatusType settingsStat = stat.getSettingsStatus();
+                                    if (null == settingsStat) {
+                                        settingsStat = new SettingsStatusType();
+                                        stat.setSettingsStatus(settingsStat);
+                                    }
+                                    if (configStatusCmd.isReportJointStatuses() && null == stat.getJointStatuses()) {
+                                        stat.setJointStatuses(new JointStatusesType());
+                                    }
+                                    if (configStatusCmd.isReportPoseStatus() && null == stat.getPoseStatus()) {
+                                        stat.setPoseStatus(new PoseStatusType());
+                                    }
+                                    if (configStatusCmd.isReportSensorsStatus() && null == stat.getSensorStatuses()) {
+                                        stat.setSensorStatuses(new SensorStatusesType());
+                                    }
+                                    if (configStatusCmd.isReportGuardsStatus() && null == stat.getGuardsStatuses()) {
+                                        stat.setGuardsStatuses(new GuardsStatusesType());
+                                    }
+                                }
+                            }
+                            setDoneState();
+                        });
+                        return true;
+                    } else if (cmd instanceof ConfigureJointReportsType) {
+                        ConfigureJointReportsType cjrt = (ConfigureJointReportsType) cmd;
+                        if (cjrt.isResetAll()) {
+                            state.filterSettings.clearConfigJointsReportMap();
+                        }
+                        state.filterSettings.configureJointReports(cjrt.getConfigureJointReport());
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                        updateServerSideStatusRunnables.add(this::setDoneState);
+                        return true;
+                    } else if (cmd instanceof SetDefaultJointPositonsTolerancesType) {
+                        SetDefaultJointPositonsTolerancesType setDefaultJointPositonsTolerancesCommand
+                                = (SetDefaultJointPositonsTolerancesType) cmd;
+                        final JointPositionsTolerancesType jointTolerancesCopy
+                                = CRCLCopier.copy(setDefaultJointPositonsTolerancesCommand.getJointTolerances());
+                        localServerSideSettingsStatus.setJointTolerances(jointTolerancesCopy);
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                        updateServerSideStatusRunnables.add(this::setDoneState);
+                        return true;
+                    } else if (cmd instanceof SetEndPoseToleranceType) {
+                        SetEndPoseToleranceType setEndPoseToleranceCommand
+                                = (SetEndPoseToleranceType) cmd;
+                        final PoseToleranceType inputEndPoseTolerance = setEndPoseToleranceCommand.getTolerance();
+                        final PoseToleranceType endPoseTolerance
+                                = CRCLCopier.copy(inputEndPoseTolerance);
                         if (automaticallyConvertUnits) {
-                            if (cmd instanceof SetLengthUnitsType) {
-                                SetLengthUnitsType setLengthUnitsCmd = (SetLengthUnitsType) cmd;
-                                state.filterSettings.getClientUserSet().setLengthUnit(setLengthUnitsCmd.getUnitName());
-                                setDoneState();
-                                return true;
-                            } else if (cmd instanceof SetAngleUnitsType) {
-                                SetAngleUnitsType setAngleUnitsCmd = (SetAngleUnitsType) cmd;
-                                state.filterSettings.getClientUserSet().setAngleUnit(setAngleUnitsCmd.getUnitName());
-                                setDoneState();
-                                return true;
-                            } else if (cmd instanceof SetForceUnitsType) {
-                                SetForceUnitsType setForceUnitsCmd = (SetForceUnitsType) cmd;
-                                state.filterSettings.getClientUserSet().setForceUnit(setForceUnitsCmd.getUnitName());
-                                return true;
-                            } else if (cmd instanceof SetTorqueUnitsType) {
-                                SetTorqueUnitsType setTorqueUnitsCmd = (SetTorqueUnitsType) cmd;
-                                state.filterSettings.getClientUserSet().setTorqueUnit(setTorqueUnitsCmd.getUnitName());
-                                setDoneState();
-                                return true;
-                            } else if (cmd instanceof MoveToType) {
-                                MoveToType moveToCmdIn = (MoveToType) cmd;
-                                MoveToType moveToCmdOut = new MoveToType();
-                                moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
-                                moveToCmdOut.setName(moveToCmdIn.getName());
-                                moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
-                                moveToCmdOut.setEndPosition(copy(moveToCmdIn.getEndPosition()));
-                                PointType outPoint = moveToCmdOut.getEndPosition().getPoint();
-                                PointType inPoint = moveToCmdIn.getEndPosition().getPoint();
+                            endPoseTolerance.setXPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getXPointTolerance()));
+                            endPoseTolerance.setYPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getYPointTolerance()));
+                            endPoseTolerance.setZPointTolerance(state.filterSettings.convertLengthToServer(inputEndPoseTolerance.getZPointTolerance()));
+
+                            endPoseTolerance.setXAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getXAxisTolerance()));
+                            endPoseTolerance.setZAxisTolerance(state.filterSettings.convertAngleToServer(inputEndPoseTolerance.getZAxisTolerance()));
+                        }
+                        localServerSideSettingsStatus.setEndPoseTolerance(endPoseTolerance);
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                        updateServerSideStatusRunnables.add(this::setDoneState);
+                        return true;
+                    }
+                    if (automaticallyConvertUnits) {
+                        if (cmd instanceof SetLengthUnitsType) {
+                            SetLengthUnitsType setLengthUnitsCmd = (SetLengthUnitsType) cmd;
+                            state.filterSettings.getClientUserSet().setLengthUnit(setLengthUnitsCmd.getUnitName());
+                            commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            updateServerSideStatusRunnables.add(this::setDoneState);
+                            return true;
+                        } else if (cmd instanceof SetAngleUnitsType) {
+                            SetAngleUnitsType setAngleUnitsCmd = (SetAngleUnitsType) cmd;
+                            state.filterSettings.getClientUserSet().setAngleUnit(setAngleUnitsCmd.getUnitName());
+                            commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            updateServerSideStatusRunnables.add(this::setDoneState);
+                            return true;
+                        } else if (cmd instanceof SetForceUnitsType) {
+                            SetForceUnitsType setForceUnitsCmd = (SetForceUnitsType) cmd;
+                            state.filterSettings.getClientUserSet().setForceUnit(setForceUnitsCmd.getUnitName());
+                            commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            updateServerSideStatusRunnables.add(this::setDoneState);
+                            return true;
+                        } else if (cmd instanceof SetTorqueUnitsType) {
+                            SetTorqueUnitsType setTorqueUnitsCmd = (SetTorqueUnitsType) cmd;
+                            state.filterSettings.getClientUserSet().setTorqueUnit(setTorqueUnitsCmd.getUnitName());
+                            commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                            updateServerSideStatusRunnables.add(this::setDoneState);
+                            return true;
+                        } else if (cmd instanceof MoveToType) {
+                            MoveToType moveToCmdIn = (MoveToType) cmd;
+                            MoveToType moveToCmdOut = new MoveToType();
+                            moveToCmdOut.setCommandID(moveToCmdIn.getCommandID());
+                            moveToCmdOut.setName(moveToCmdIn.getName());
+                            moveToCmdOut.setMoveStraight(moveToCmdIn.isMoveStraight());
+                            moveToCmdOut.setEndPosition(copy(moveToCmdIn.getEndPosition()));
+                            PointType outPoint = moveToCmdOut.getEndPosition().getPoint();
+                            PointType inPoint = moveToCmdIn.getEndPosition().getPoint();
+                            outPoint.setX(state.filterSettings.convertLengthToServer(inPoint.getX()));
+                            outPoint.setY(state.filterSettings.convertLengthToServer(inPoint.getY()));
+                            outPoint.setZ(state.filterSettings.convertLengthToServer(inPoint.getZ()));
+                            if (moveToCmdIn.getGuard() != null && !moveToCmdIn.getGuard().isEmpty()) {
+                                moveToCmdOut.getGuard().addAll(moveToCmdIn.getGuard());
+                            }
+                            CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(moveToCmdOut, instanceIn);
+                            completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
+                            return true;
+                        } else if (cmd instanceof MoveThroughToType) {
+                            MoveThroughToType moveThroughToCmdIn = (MoveThroughToType) cmd;
+                            MoveThroughToType moveThroughToCmdOut = new MoveThroughToType();
+                            moveThroughToCmdOut.setCommandID(moveThroughToCmdIn.getCommandID());
+                            moveThroughToCmdOut.setName(moveThroughToCmdIn.getName());
+                            moveThroughToCmdOut.setMoveStraight(moveThroughToCmdIn.isMoveStraight());
+                            final List<PoseType> waypointInList = moveThroughToCmdIn.getWaypoint();
+                            final List<PoseType> waypointOutList = moveThroughToCmdOut.getWaypoint();
+                            for (int i = 0; i < moveThroughToCmdIn.getNumPositions() && i < waypointInList.size(); i++) {
+                                PoseType wayPointInI = waypointInList.get(i);
+                                PoseType wayPointOutI = waypointOutList.get(i);
+                                PointType outPoint = wayPointOutI.getPoint();
+                                PointType inPoint = wayPointInI.getPoint();
                                 outPoint.setX(state.filterSettings.convertLengthToServer(inPoint.getX()));
                                 outPoint.setY(state.filterSettings.convertLengthToServer(inPoint.getY()));
                                 outPoint.setZ(state.filterSettings.convertLengthToServer(inPoint.getZ()));
-                                if (moveToCmdIn.getGuard() != null && !moveToCmdIn.getGuard().isEmpty()) {
-                                    moveToCmdOut.getGuard().addAll(moveToCmdIn.getGuard());
-                                }
-                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(moveToCmdOut, instanceIn);
-                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                return true;
-                            } else if (cmd instanceof MoveThroughToType) {
-                                MoveThroughToType moveThroughToCmdIn = (MoveThroughToType) cmd;
-                                MoveThroughToType moveThroughToCmdOut = new MoveThroughToType();
-                                moveThroughToCmdOut.setCommandID(moveThroughToCmdIn.getCommandID());
-                                moveThroughToCmdOut.setName(moveThroughToCmdIn.getName());
-                                moveThroughToCmdOut.setMoveStraight(moveThroughToCmdIn.isMoveStraight());
-                                final List<PoseType> waypointInList = moveThroughToCmdIn.getWaypoint();
-                                final List<PoseType> waypointOutList = moveThroughToCmdOut.getWaypoint();
-                                for (int i = 0; i < moveThroughToCmdIn.getNumPositions() && i < waypointInList.size(); i++) {
-                                    PoseType wayPointInI = waypointInList.get(i);
-                                    PoseType wayPointOutI = waypointOutList.get(i);
-                                    PointType outPoint = wayPointOutI.getPoint();
-                                    PointType inPoint = wayPointInI.getPoint();
-                                    outPoint.setX(state.filterSettings.convertLengthToServer(inPoint.getX()));
-                                    outPoint.setY(state.filterSettings.convertLengthToServer(inPoint.getY()));
-                                    outPoint.setZ(state.filterSettings.convertLengthToServer(inPoint.getZ()));
-                                }
-                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(moveThroughToCmdOut, instanceIn);
-                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                return true;
-                            } else if (cmd instanceof SetTransSpeedType) {
-                                SetTransSpeedType setTransSpeedCmdIn = (SetTransSpeedType) cmd;
-                                SetTransSpeedType setTransSpeedCmdOut = new SetTransSpeedType();
-                                final TransSpeedType transSpeedIn = setTransSpeedCmdIn.getTransSpeed();
-                                if (transSpeedIn instanceof TransSpeedAbsoluteType) {
-                                    TransSpeedAbsoluteType transSpeedAbsIn = (TransSpeedAbsoluteType) transSpeedIn;
-                                    TransSpeedAbsoluteType transSpeedAbsOut = new TransSpeedAbsoluteType();
-                                    setTransSpeedCmdOut.setCommandID(setTransSpeedCmdIn.getCommandID());
-                                    setTransSpeedCmdOut.setName(setTransSpeedCmdIn.getName());
-                                    transSpeedAbsOut.setSetting(state.filterSettings.convertLengthToServer(transSpeedAbsIn.getSetting()));
-                                    setTransSpeedCmdOut.setTransSpeed(transSpeedAbsOut);
-                                    CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransSpeedCmdOut, instanceIn);
-                                    serverSideSettingsStatus.setTransSpeedAbsolute(transSpeedAbsOut);
-                                    serverSideSettingsStatus.setTransSpeedRelative(null);
-                                    completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                    return true;
-                                } else if (transSpeedIn instanceof TransSpeedRelativeType) {
-                                    TransSpeedRelativeType transSpeedRelativeIn = (TransSpeedRelativeType) transSpeedIn;
-                                    serverSideSettingsStatus.setTransSpeedRelative(transSpeedRelativeIn);
-                                    serverSideSettingsStatus.setTransSpeedAbsolute(null);
-                                    return false;
-                                } else {
-                                    return false;
-                                }
-                            } else if (cmd instanceof SetRotSpeedType) {
-                                SetRotSpeedType setRotSpeedCmdIn = (SetRotSpeedType) cmd;
-                                SetRotSpeedType setRotSpeedCmdOut = new SetRotSpeedType();
-                                final RotSpeedType rotSpeedIn = setRotSpeedCmdIn.getRotSpeed();
-                                if (rotSpeedIn instanceof RotSpeedAbsoluteType) {
-                                    RotSpeedAbsoluteType rotSpeedAbsIn = (RotSpeedAbsoluteType) rotSpeedIn;
-                                    RotSpeedAbsoluteType rotSpeedAbsOut = new RotSpeedAbsoluteType();
-                                    setRotSpeedCmdOut.setCommandID(setRotSpeedCmdIn.getCommandID());
-                                    setRotSpeedCmdOut.setName(setRotSpeedCmdIn.getName());
-                                    rotSpeedAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotSpeedAbsIn.getSetting()));
-                                    setRotSpeedCmdOut.setRotSpeed(rotSpeedAbsOut);
-                                    CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotSpeedCmdOut, instanceIn);
-                                    serverSideSettingsStatus.setRotSpeedAbsolute(rotSpeedAbsOut);
-                                    serverSideSettingsStatus.setRotSpeedRelative(null);
-                                    completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                    return true;
-                                } else if (rotSpeedIn instanceof RotSpeedRelativeType) {
-                                    RotSpeedRelativeType rotSpeedRelativeIn = (RotSpeedRelativeType) rotSpeedIn;
-                                    serverSideSettingsStatus.setRotSpeedRelative(rotSpeedRelativeIn);
-                                    serverSideSettingsStatus.setRotSpeedAbsolute(null);
-                                    return false;
-                                } else {
-                                    return false;
-                                }
-
-                            } else if (cmd instanceof SetTransAccelType) {
-                                SetTransAccelType setTransAccelCmdIn = (SetTransAccelType) cmd;
-                                SetTransAccelType setTransAccelCmdOut = new SetTransAccelType();
-                                final TransAccelType transAccelIn = setTransAccelCmdIn.getTransAccel();
-                                if (transAccelIn instanceof TransAccelAbsoluteType) {
-                                    TransAccelAbsoluteType transAccelAbsIn = (TransAccelAbsoluteType) transAccelIn;
-                                    TransAccelAbsoluteType transAccelAbsOut = new TransAccelAbsoluteType();
-                                    setTransAccelCmdOut.setCommandID(setTransAccelCmdIn.getCommandID());
-                                    setTransAccelCmdOut.setName(setTransAccelCmdIn.getName());
-                                    transAccelAbsOut.setSetting(state.filterSettings.convertLengthToServer(transAccelAbsIn.getSetting()));
-                                    setTransAccelCmdOut.setTransAccel(transAccelAbsOut);
-                                    CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransAccelCmdOut, instanceIn);
-                                    serverSideSettingsStatus.setTransAccelAbsolute(transAccelAbsOut);
-                                    serverSideSettingsStatus.setTransAccelRelative(null);
-                                    completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                    return true;
-                                } else if (transAccelIn instanceof TransAccelRelativeType) {
-                                    TransAccelRelativeType transAccelRelativeIn = (TransAccelRelativeType) transAccelIn;
-                                    serverSideSettingsStatus.setTransAccelRelative(transAccelRelativeIn);
-                                    serverSideSettingsStatus.setTransAccelAbsolute(null);
-                                    return false;
-                                } else {
-                                    return false;
-                                }
-
-                            } else if (cmd instanceof SetRotAccelType) {
-                                SetRotAccelType setRotAccelCmdIn = (SetRotAccelType) cmd;
-                                SetRotAccelType setRotAccelCmdOut = new SetRotAccelType();
-                                final RotAccelType rotAccelIn = setRotAccelCmdIn.getRotAccel();
-                                if (rotAccelIn instanceof RotAccelAbsoluteType) {
-                                    RotAccelAbsoluteType rotAccelAbsIn = (RotAccelAbsoluteType) rotAccelIn;
-                                    RotAccelAbsoluteType rotAccelAbsOut = new RotAccelAbsoluteType();
-                                    setRotAccelCmdOut.setCommandID(setRotAccelCmdIn.getCommandID());
-                                    setRotAccelCmdOut.setName(setRotAccelCmdIn.getName());
-                                    rotAccelAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotAccelAbsIn.getSetting()));
-                                    setRotAccelCmdOut.setRotAccel(rotAccelAbsOut);
-                                    CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotAccelCmdOut, instanceIn);
-                                    serverSideSettingsStatus.setRotAccelAbsolute(rotAccelAbsOut);
-                                    serverSideSettingsStatus.setRotAccelRelative(null);
-                                    completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
-                                    return true;
-                                } else if (rotAccelIn instanceof RotAccelRelativeType) {
-                                    RotAccelRelativeType rotAccelRelativeIn = (RotAccelRelativeType) rotAccelIn;
-                                    serverSideSettingsStatus.setRotAccelRelative(rotAccelRelativeIn);
-                                    serverSideSettingsStatus.setRotAccelAbsolute(null);
-                                    return false;
-                                } else {
-                                    return false;
-                                }
                             }
-                        }
-                        if (automaticallyHandleSensorServers) {
-                            if (cmd instanceof EnableSensorType) {
-                                EnableSensorType enableSensorCmd = (EnableSensorType) cmd;
-                                boolean errorOccured = false;
-                                boolean sensorFound = false;
-                                final String sensorID = enableSensorCmd.getSensorID();
-                                if (sensorServers.containsKey(sensorID)) {
-                                    sensorFound = true;
-                                } else {
-                                    for (SensorServerFinderInterface finder : sensorFinders) {
-                                        SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
-                                        if (null != sensorSvr) {
-                                            SensorServerInterface oldSensorServr = this.sensorServers.get(sensorID);
-                                            if (null != oldSensorServr) {
-                                                try {
-                                                    oldSensorServr.close();
-                                                } catch (Exception ex) {
-                                                    Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
-                                                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                                    errorOccured = true;
-                                                    commandStatus.setStateDescription(ex.getMessage());
-                                                }
-                                            }
-                                            sensorFound = true;
-                                            this.sensorServers.put(sensorID, sensorSvr);
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!errorOccured) {
-                                    if (sensorFound) {
-                                        clearStateDescription(commandStatus);
-                                        setDoneState();
-                                    } else {
-                                        commandStatus.setStateDescription(sensorID + " not found.");
-                                        commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                    }
-                                }
+                            CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(moveThroughToCmdOut, instanceIn);
+                            completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
+                            return true;
+                        } else if (cmd instanceof SetTransSpeedType) {
+                            SetTransSpeedType setTransSpeedCmdIn = (SetTransSpeedType) cmd;
+                            SetTransSpeedType setTransSpeedCmdOut = new SetTransSpeedType();
+                            final TransSpeedType transSpeedIn = setTransSpeedCmdIn.getTransSpeed();
+                            if (transSpeedIn instanceof TransSpeedAbsoluteType) {
+                                TransSpeedAbsoluteType transSpeedAbsIn = (TransSpeedAbsoluteType) transSpeedIn;
+                                TransSpeedAbsoluteType transSpeedAbsOut = new TransSpeedAbsoluteType();
+                                setTransSpeedCmdOut.setCommandID(setTransSpeedCmdIn.getCommandID());
+                                setTransSpeedCmdOut.setName(setTransSpeedCmdIn.getName());
+                                transSpeedAbsOut.setSetting(state.filterSettings.convertLengthToServer(transSpeedAbsIn.getSetting()));
+                                setTransSpeedCmdOut.setTransSpeed(transSpeedAbsOut);
+                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransSpeedCmdOut, instanceIn);
+                                localServerSideSettingsStatus.setTransSpeedAbsolute(transSpeedAbsOut);
+                                localServerSideSettingsStatus.setTransSpeedRelative(null);
+                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
                                 return true;
-                            } else if (cmd instanceof DisableSensorType) {
-                                boolean errorOccured = false;
-                                boolean sensorFound = false;
-                                DisableSensorType disableSensorCmd = (DisableSensorType) cmd;
-                                final String sensorID = disableSensorCmd.getSensorID();
-                                SensorServerInterface sensorSvr = sensorServers.remove(sensorID);
-                                if (null != sensorSvr) {
-                                    try {
-                                        sensorSvr.close();
-                                        sensorFound = true;
-                                    } catch (Exception ex) {
-                                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "", ex);
-                                        commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                                        errorOccured = true;
-                                        commandStatus.setStateDescription(ex.getMessage());
-                                    }
-                                }
-                                if (!errorOccured) {
-                                    if (sensorFound) {
-                                        clearStateDescription(commandStatus);
-                                        setDoneState();
-                                    } else {
-                                        commandStatus.setStateDescription(sensorID + " not found.");
-                                        setDoneState();
-                                    }
-                                }
+                            } else if (transSpeedIn instanceof TransSpeedRelativeType) {
+                                TransSpeedRelativeType transSpeedRelativeIn = (TransSpeedRelativeType) transSpeedIn;
+                                localServerSideSettingsStatus.setTransSpeedRelative(transSpeedRelativeIn);
+                                localServerSideSettingsStatus.setTransSpeedAbsolute(null);
+                                return false;
+                            } else {
+                                return false;
+                            }
+                        } else if (cmd instanceof SetRotSpeedType) {
+                            SetRotSpeedType setRotSpeedCmdIn = (SetRotSpeedType) cmd;
+                            SetRotSpeedType setRotSpeedCmdOut = new SetRotSpeedType();
+                            final RotSpeedType rotSpeedIn = setRotSpeedCmdIn.getRotSpeed();
+                            if (rotSpeedIn instanceof RotSpeedAbsoluteType) {
+                                RotSpeedAbsoluteType rotSpeedAbsIn = (RotSpeedAbsoluteType) rotSpeedIn;
+                                RotSpeedAbsoluteType rotSpeedAbsOut = new RotSpeedAbsoluteType();
+                                setRotSpeedCmdOut.setCommandID(setRotSpeedCmdIn.getCommandID());
+                                setRotSpeedCmdOut.setName(setRotSpeedCmdIn.getName());
+                                rotSpeedAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotSpeedAbsIn.getSetting()));
+                                setRotSpeedCmdOut.setRotSpeed(rotSpeedAbsOut);
+                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotSpeedCmdOut, instanceIn);
+                                localServerSideSettingsStatus.setRotSpeedAbsolute(rotSpeedAbsOut);
+                                localServerSideSettingsStatus.setRotSpeedRelative(null);
+                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
                                 return true;
+                            } else if (rotSpeedIn instanceof RotSpeedRelativeType) {
+                                RotSpeedRelativeType rotSpeedRelativeIn = (RotSpeedRelativeType) rotSpeedIn;
+                                localServerSideSettingsStatus.setRotSpeedRelative(rotSpeedRelativeIn);
+                                localServerSideSettingsStatus.setRotSpeedAbsolute(null);
+                                return false;
+                            } else {
+                                return false;
+                            }
+
+                        } else if (cmd instanceof SetTransAccelType) {
+                            SetTransAccelType setTransAccelCmdIn = (SetTransAccelType) cmd;
+                            SetTransAccelType setTransAccelCmdOut = new SetTransAccelType();
+                            final TransAccelType transAccelIn = setTransAccelCmdIn.getTransAccel();
+                            if (transAccelIn instanceof TransAccelAbsoluteType) {
+                                TransAccelAbsoluteType transAccelAbsIn = (TransAccelAbsoluteType) transAccelIn;
+                                TransAccelAbsoluteType transAccelAbsOut = new TransAccelAbsoluteType();
+                                setTransAccelCmdOut.setCommandID(setTransAccelCmdIn.getCommandID());
+                                setTransAccelCmdOut.setName(setTransAccelCmdIn.getName());
+                                transAccelAbsOut.setSetting(state.filterSettings.convertLengthToServer(transAccelAbsIn.getSetting()));
+                                setTransAccelCmdOut.setTransAccel(transAccelAbsOut);
+                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setTransAccelCmdOut, instanceIn);
+                                localServerSideSettingsStatus.setTransAccelAbsolute(transAccelAbsOut);
+                                localServerSideSettingsStatus.setTransAccelRelative(null);
+                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
+                                return true;
+                            } else if (transAccelIn instanceof TransAccelRelativeType) {
+                                TransAccelRelativeType transAccelRelativeIn = (TransAccelRelativeType) transAccelIn;
+                                localServerSideSettingsStatus.setTransAccelRelative(transAccelRelativeIn);
+                                localServerSideSettingsStatus.setTransAccelAbsolute(null);
+                                return false;
+                            } else {
+                                return false;
+                            }
+
+                        } else if (cmd instanceof SetRotAccelType) {
+                            SetRotAccelType setRotAccelCmdIn = (SetRotAccelType) cmd;
+                            SetRotAccelType setRotAccelCmdOut = new SetRotAccelType();
+                            final RotAccelType rotAccelIn = setRotAccelCmdIn.getRotAccel();
+                            if (rotAccelIn instanceof RotAccelAbsoluteType) {
+                                RotAccelAbsoluteType rotAccelAbsIn = (RotAccelAbsoluteType) rotAccelIn;
+                                RotAccelAbsoluteType rotAccelAbsOut = new RotAccelAbsoluteType();
+                                setRotAccelCmdOut.setCommandID(setRotAccelCmdIn.getCommandID());
+                                setRotAccelCmdOut.setName(setRotAccelCmdIn.getName());
+                                rotAccelAbsOut.setSetting(state.filterSettings.convertAngleToServer(rotAccelAbsIn.getSetting()));
+                                setRotAccelCmdOut.setRotAccel(rotAccelAbsOut);
+                                CRCLCommandInstanceType newCommandInstance = createNewCommandInstance(setRotAccelCmdOut, instanceIn);
+                                localServerSideSettingsStatus.setRotAccelAbsolute(rotAccelAbsOut);
+                                localServerSideSettingsStatus.setRotAccelRelative(null);
+                                completeHandleEvent(CRCLServerSocketEvent.commandRecieved(state, newCommandInstance));
+                                return true;
+                            } else if (rotAccelIn instanceof RotAccelRelativeType) {
+                                RotAccelRelativeType rotAccelRelativeIn = (RotAccelRelativeType) rotAccelIn;
+                                localServerSideSettingsStatus.setRotAccelRelative(rotAccelRelativeIn);
+                                localServerSideSettingsStatus.setRotAccelAbsolute(null);
+                                return false;
+                            } else {
+                                return false;
                             }
                         }
                     }
-                } catch (Exception ex) {
-                    Logger.getLogger(CRCLServerSocket.class
-                            .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
-                    commandStatus.setStateDescription(ex.getMessage());
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                    return true;
+                    if (automaticallyHandleSensorServers) {
+                        if (cmd instanceof EnableSensorType) {
+                            EnableSensorType enableSensorCmd = (EnableSensorType) cmd;
+                            boolean errorOccured = false;
+                            boolean sensorFound = false;
+                            final String sensorID = enableSensorCmd.getSensorID();
+                            if (sensorServers.containsKey(sensorID)) {
+                                sensorFound = true;
+                            } else {
+                                for (SensorServerFinderInterface finder : sensorFinders) {
+                                    SensorServerInterface sensorSvr = finder.findSensorServer(sensorID, enableSensorCmd.getSensorOption());
+                                    if (null != sensorSvr) {
+                                        SensorServerInterface oldSensorServr = this.sensorServers.get(sensorID);
+                                        if (null != oldSensorServr) {
+                                            try {
+                                                oldSensorServr.close();
+                                            } catch (Exception ex) {
+                                                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
+                                                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                                errorOccured = true;
+                                                commandStatus.setStateDescription(ex.getMessage());
+                                            }
+                                        }
+                                        sensorFound = true;
+                                        this.sensorServers.put(sensorID, sensorSvr);
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!errorOccured) {
+                                if (sensorFound) {
+                                    clearStateDescription(commandStatus);
+                                    updateServerSideStatusRunnables.add(this::setDoneState);
+                                } else {
+                                    commandStatus.setStateDescription(sensorID + " not found.");
+                                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                }
+                            }
+                            return true;
+                        } else if (cmd instanceof DisableSensorType) {
+                            boolean errorOccured = false;
+                            boolean sensorFound = false;
+                            DisableSensorType disableSensorCmd = (DisableSensorType) cmd;
+                            final String sensorID = disableSensorCmd.getSensorID();
+                            SensorServerInterface sensorSvr = sensorServers.remove(sensorID);
+                            if (null != sensorSvr) {
+                                try {
+                                    sensorSvr.close();
+                                    sensorFound = true;
+                                } catch (Exception ex) {
+                                    Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "", ex);
+                                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                                    errorOccured = true;
+                                    commandStatus.setStateDescription(ex.getMessage());
+                                }
+                            }
+                            if (!errorOccured) {
+                                if (sensorFound) {
+                                    clearStateDescription(commandStatus);
+                                    updateServerSideStatusRunnables.add(this::setDoneState);
+                                } else {
+                                    commandStatus.setStateDescription(sensorID + " not found.");
+                                    updateServerSideStatusRunnables.add(this::setDoneState);
+                                }
+                            }
+                            return true;
+                        }
+                    }
                 }
+            } catch (Exception ex) {
+                Logger.getLogger(CRCLServerSocket.class
+                        .getName()).log(Level.SEVERE, "CRCLServerSocket: port=" + port + ",event=" + event, ex);
+                commandStatus.setStateDescription(ex.getMessage());
+                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                return true;
             }
         }
+
         return false;
+    }
+
+    public void runUpdateServerSideStatusRunnables(CRCLStatusType stat) {
+        Runnable r;
+        while (!updateServerSideStatusRunnables.isEmpty()
+                && (r = updateServerSideStatusRunnables.remove()) != null) {
+            r.run();
+        }
+        if (null != stat) {
+            this.lastUpdateServerSideStatusCopy = CRCLCopier.copy(stat);
+        }
     }
 
     private volatile double x;
@@ -1007,8 +1093,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setX(double x) {
         this.x = x;
-        if (null != serverSideStatus) {
-            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
             if (null != poseStatus) {
                 PoseType pose = poseStatus.getPose();
                 if (null != pose) {
@@ -1027,8 +1114,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setY(double y) {
         this.y = y;
-        if (null != serverSideStatus) {
-            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+        if (null == this.serverSideStatus) {
+            return;
+        }
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
             if (null != poseStatus) {
                 PoseType pose = poseStatus.getPose();
                 if (null != pose) {
@@ -1051,8 +1142,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 //            System.out.println("z = " + z + ", thread=" + Thread.currentThread());
 //            Thread.dumpStack();
 //        }
-        if (null != serverSideStatus) {
-            PoseStatusType poseStatus = serverSideStatus.getPoseStatus();
+        if (null == this.serverSideStatus) {
+            return;
+        }
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
             if (null != poseStatus) {
                 PoseType pose = poseStatus.getPose();
                 if (null != pose) {
@@ -1133,22 +1228,28 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setDoneState() {
-        if (null != serverSideStatus) {
-            final CommandStatusType commandStatus = serverSideStatus.getCommandStatus();
-            if (null != commandStatus) {
-                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            synchronized (localServerSideStatus) {
+                final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
+                if (null != commandStatus) {
+                    if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_DONE);
+                    }
                 }
             }
         }
     }
 
     private void setWorkingState() {
-        if (null != serverSideStatus) {
-            final CommandStatusType commandStatus = serverSideStatus.getCommandStatus();
-            if (null != commandStatus) {
-                if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            synchronized (localServerSideStatus) {
+                final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
+                if (null != commandStatus) {
+                    if (commandStatus.getCommandState() != CommandStateEnumType.CRCL_ERROR) {
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                    }
                 }
             }
         }
@@ -1206,12 +1307,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         final List<OnOffSensorStatusType> onOffSensorStatusList;
         final List<ScalarSensorStatusType> scalarSensorStatusList;
         final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList;
-
-        synchronized (serverSideStatus) {
-            if (null == serverSideStatus.getSensorStatuses()) {
-                serverSideStatus.setSensorStatuses(new SensorStatusesType());
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        synchronized (localServerSideStatus) {
+            if (null == localServerSideStatus.getSensorStatuses()) {
+                localServerSideStatus.setSensorStatuses(new SensorStatusesType());
             }
-            final SensorStatusesType sensorStatusesIn = serverSideStatus.getSensorStatuses();
+            final SensorStatusesType sensorStatusesIn = localServerSideStatus.getSensorStatuses();
             if (null != sensorStatusesIn) {
                 countSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getCountSensorStatus());
                 onOffSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getOnOffSensorStatus());
@@ -1235,8 +1336,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         boolean forceTorqueStatusListModified = updateForceTorqueList(newSensorStats, forceTorqueSensorStatusList);
         boolean modified = onOffStatusListModified || countStatusListModified || scalarStatusListModified || forceTorqueStatusListModified;
         if (modified) {
-            synchronized (serverSideStatus) {
-                final SensorStatusesType sensorStatusesOut = serverSideStatus.getSensorStatuses();
+            synchronized (localServerSideStatus) {
+                final SensorStatusesType sensorStatusesOut = localServerSideStatus.getSensorStatuses();
                 completeCheckSensorServersInternal(sensorStatusesOut, onOffStatusListModified, onOffSensorStatusList, countStatusListModified, countSensorStatusList, scalarStatusListModified, scalarSensorStatusList, forceTorqueStatusListModified, forceTorqueSensorStatusList);
             }
         }
@@ -1245,17 +1346,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private void setZOnAtiForceSensor(SensorServerInterface sensorServer) {
         try {
+            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
             if (sensorServer.getClass().getSimpleName().equals("ATIForceTorqueSensorServer")
-                    && serverSideStatus != null
-                    && serverSideStatus.getPoseStatus() != null
-                    && serverSideStatus.getPoseStatus().getPose() != null
-                    && serverSideStatus.getPoseStatus().getPose().getPoint() != null) {
+                    && localServerSideStatus != null
+                    && localServerSideStatus.getPoseStatus() != null
+                    && localServerSideStatus.getPoseStatus().getPose() != null
+                    && localServerSideStatus.getPoseStatus().getPose().getPoint() != null) {
                 Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
                 if (null != setZMethod) {
                     if (guardCheckUpdatePositionOnlyRunnable != null) {
                         guardCheckUpdatePositionOnlyRunnable.run();
                     }
-                    setZMethod.invoke(sensorServer, serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
+                    setZMethod.invoke(sensorServer, localServerSideStatus.getPoseStatus().getPose().getPoint().getZ());
                 }
 //                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
 //                aTIForceTorqueSensorServer.setZ(serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
@@ -1474,15 +1576,26 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             throw new InterruptedException("Closing socket due to " + exception);
         } else if (null != exception) {
-            if (null != serverSideStatus) {
-                final CommandStatusType commandStatus = serverSideStatus.getCommandStatus();
-                if (null != commandStatus && commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                    commandStatus.setStateDescription(exception.getLocalizedMessage());
-                }
-            }
+            addToUpdateServerSideRunnables(() -> {
+                this.setErrorStateDescriptionFromException(exception);
+            });
         }
         return;
+    }
+
+    public void addToUpdateServerSideRunnables(Runnable r) {
+        updateServerSideStatusRunnables.add(r);
+    }
+
+    private void setErrorStateDescriptionFromException(final Exception exception) {
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        if (null != localServerSideStatus) {
+            final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
+            if (null != commandStatus && commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                commandStatus.setStateDescription(exception.getLocalizedMessage());
+            }
+        }
     }
 
     public CRCLServerSocketEvent waitForEvent() throws InterruptedException {
@@ -2002,8 +2115,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (automaticallyConvertUnits && null != serverUnits) {
             state.filterSettings.setServerUserSet(serverUnits);
         }
-        if (sendAllJointPositionsByDefault && null != serverSideStatus) {
-            final JointStatusesType jointStatuses = serverSideStatus.getJointStatuses();
+        final CRCLStatusType localServerSideStatus = this.lastUpdateServerSideStatusCopy;
+        if (sendAllJointPositionsByDefault && null != localServerSideStatus) {
+            final JointStatusesType jointStatuses = localServerSideStatus.getJointStatuses();
             if (null != jointStatuses) {
                 final List<JointStatusType> jointStatusList
                         = getNonNullFilteredList(jointStatuses.getJointStatus());
@@ -2306,6 +2420,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final String guardMapId = guardMapId(guard);
             final GuardLimitEnumType guarLimitType = Objects.requireNonNull(guard.getLimitType());
             final double limitValue = guard.getLimitValue();
+            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
             switch (guarLimitType) {
                 case OVER_MAX:
                     if (value > limitValue) {
@@ -2326,11 +2441,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     }
                     double diff = initialValue - value;
                     final PointType point;
-                    if (null != serverSideStatus
-                            && null != serverSideStatus.getPoseStatus()
-                            && null != serverSideStatus.getPoseStatus().getPose()
-                            && null != serverSideStatus.getPoseStatus().getPose().getPoint()) {
-                        point = serverSideStatus.getPoseStatus().getPose().getPoint();
+                    if (null != localServerSideStatus
+                            && null != localServerSideStatus.getPoseStatus()
+                            && null != localServerSideStatus.getPoseStatus().getPose()
+                            && null != localServerSideStatus.getPoseStatus().getPose().getPoint()) {
+                        point = localServerSideStatus.getPoseStatus().getPose().getPoint();
                     } else {
                         point = new PointType();
                     }
@@ -2352,11 +2467,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     }
                     double diff = value - initialValue;
                     final PointType point;
-                    if (null != serverSideStatus
-                            && null != serverSideStatus.getPoseStatus()
-                            && null != serverSideStatus.getPoseStatus().getPose()
-                            && null != serverSideStatus.getPoseStatus().getPose().getPoint()) {
-                        point = serverSideStatus.getPoseStatus().getPose().getPoint();
+                    if (null != localServerSideStatus
+                            && null != localServerSideStatus.getPoseStatus()
+                            && null != localServerSideStatus.getPoseStatus().getPose()
+                            && null != localServerSideStatus.getPoseStatus().getPose().getPoint()) {
+                        point = localServerSideStatus.getPoseStatus().getPose().getPoint();
                     } else {
                         point = new PointType();
                     }
@@ -2383,11 +2498,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
-        final GuardsStatusesType initialGuardsStatuses = serverSideStatus.getGuardsStatuses();
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        final GuardsStatusesType initialGuardsStatuses = localServerSideStatus.getGuardsStatuses();
         final GuardsStatusesType guardsStatuses;
         if (null == initialGuardsStatuses) {
             final GuardsStatusesType newGuardsStatusesType = new GuardsStatusesType();
-            serverSideStatus.setGuardsStatuses(newGuardsStatusesType);
+            localServerSideStatus.setGuardsStatuses(newGuardsStatusesType);
             guardsStatuses = newGuardsStatusesType;
         } else {
             guardsStatuses = initialGuardsStatuses;
@@ -2399,8 +2515,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         guardsStatuses.setTriggerCount(guardsStatuses.getTriggerCount() + 1);
         guardsStatuses.setTriggerValue(value);
-        if (null != serverSideStatus.getPoseStatus()) {
-            final PoseType serverSidePose = CRCLPosemath.getNullablePose(serverSideStatus);
+        if (null != localServerSideStatus.getPoseStatus()) {
+            final PoseType serverSidePose = CRCLPosemath.getNullablePose(localServerSideStatus);
             if (null != serverSidePose) {
                 final PoseType serverSidePoseCopy = copy(serverSidePose);
                 if (null == serverSidePoseCopy) {
@@ -2444,9 +2560,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == stat && null != sensorID) {
             stat = getNewSensorStatus(sensorID);
             if (null != stat) {
-                if (null != serverSideStatus) {
-                    synchronized (serverSideStatus) {
-                        final SensorStatusesType sensorStatuses = serverSideStatus.getSensorStatuses();
+                final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+                if (null != localServerSideStatus) {
+                    synchronized (localServerSideStatus) {
+                        final SensorStatusesType sensorStatuses = localServerSideStatus.getSensorStatuses();
                         if (null != sensorStatuses) {
                             if (stat instanceof ForceTorqueSensorStatusType) {
                                 final List<ForceTorqueSensorStatusType> forceTorqueSensorStatus = sensorStatuses.getForceTorqueSensorStatus();
@@ -2567,7 +2684,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         }
                     }
                 } else {
-                    if (checkGuardsWithStatus(serverSideStatus, cmdID, startTime, guards, guard_client_state, commandInstance, guardInitialValues, count)) {
+                    final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+                    if (checkGuardsWithStatus(localServerSideStatus, cmdID, startTime, guards, guard_client_state, commandInstance, guardInitialValues, count)) {
                         break;
                     }
                 }
@@ -2634,10 +2752,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     || guardI.getLimitType() == GuardLimitEnumType.DECREASE_BEYOND_LIMIT) {
                 if (guardI.getLimitValue() <= 0) {
                     Runnable r = () -> {
+
                         if (null == serverSideStatus) {
                             throw new RuntimeException("null == serverSideStatus)");
                         }
-                        final CommandStatusType commandStatus = CRCLUtils.getNonNullCommandStatus(serverSideStatus);
+                        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+                        final CommandStatusType commandStatus = CRCLUtils.getNonNullCommandStatus(localServerSideStatus);
                         commandStatus.setStateDescription("Invalid guard:" + guardI.getName() + " for sensor " + guardI.getSensorID() + " with limit type " + guardI.getLimitType() + " must have positive limit value. limit value=" + guardI.getLimitValue());
                         commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                     };
@@ -2690,7 +2810,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (isClosed()) {
             return;
         }
-        final CommandStatusType serverSideCommandStatus = serverSideStatus.getCommandStatus();
+        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+        final CommandStatusType serverSideCommandStatus = localServerSideStatus.getCommandStatus();
         if (null == serverSideCommandStatus) {
             return;
         }
@@ -2804,7 +2925,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private volatile StackTraceElement startCallerTrace @Nullable []  = null;
 
     public Future<?> start() {
-        return start(null);
+        return start(Thread.currentThread().getStackTrace());
     }
 
     public Future<?> start(StackTraceElement startCallerTrace @Nullable []) {

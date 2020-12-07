@@ -1,0 +1,109 @@
+/*
+ * This software is public domain software, however it is preferred
+ * that the following disclaimers be attached.
+ * Software Copywrite/Warranty Disclaimer
+ * 
+ * This software was developed at the National Institute of Standards and
+ * Technology by employees of the Federal Government in the course of their
+ * official duties. Pursuant to title 17 Section 105 of the United States
+ * Code this software is not subject to copyright protection and is in the
+ * public domain.
+ * 
+ * This software is experimental. NIST assumes no responsibility whatsoever 
+ * for its use by other parties, and makes no guarantees, expressed or 
+ * implied, about its quality, reliability, or any other characteristic. 
+ * We would appreciate acknowledgement if the software is used. 
+ * This software can be redistributed and/or modified freely provided 
+ * that any derivative works bear some notice that they are derived from it, 
+ * and any modified versions bear some notice that they have been modified.
+ * 
+ *  See http://www.copyright.gov/title17/92chap1.html#105
+ * 
+ */
+package crcl.utils;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
+
+/**
+ *
+ * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
+ */
+public class ThreadLocked<T> implements Supplier<T> {
+
+    private final T object;
+    private final String name;
+
+    private final StackTraceElement createTrace[];
+    private volatile StackTraceElement lockTrace[];
+    private volatile StackTraceElement unlockTrace[];
+    private volatile Thread lockThread;
+    private final AtomicInteger getCountAI = new AtomicInteger();
+    private final AtomicInteger releaseCountAI = new AtomicInteger();
+
+    public ThreadLocked(String name, T object) {
+        this.name = name;
+        this.object = object;
+        this.createTrace = Thread.currentThread().getStackTrace();
+        this.lockTrace = createTrace;
+        this.lockThread = Thread.currentThread();
+        this.unlockTrace = null;
+        this.disabled = false;
+    }
+
+    public ThreadLocked(String name, T object, boolean locked) {
+        this.name = name;
+        this.object = object;
+        this.createTrace = Thread.currentThread().getStackTrace();
+        if (locked) {
+            this.lockTrace = createTrace;
+            this.lockThread = Thread.currentThread();
+            this.unlockTrace = null;
+        }
+        this.disabled = false;
+    }
+
+    private final boolean disabled;
+
+    public ThreadLocked(String name, T object, boolean locked, boolean disabled) {
+        this.name = name;
+        this.object = object;
+        this.createTrace = Thread.currentThread().getStackTrace();
+        if (locked) {
+            this.lockTrace = createTrace;
+            this.lockThread = Thread.currentThread();
+            this.unlockTrace = null;
+        }
+        this.disabled = disabled;
+
+    }
+
+    @Override
+    public T get() {
+        getCountAI.incrementAndGet();
+        if (null == lockThread) {
+            lockThread = Thread.currentThread();
+            this.lockTrace = Thread.currentThread().getStackTrace();
+        } else if (lockThread != Thread.currentThread() && !disabled) {
+            System.out.println("");
+            System.out.println("ThreadLocked: object = " + object);
+            System.out.println("ThreadLocked: getCountAI = " + getCountAI.get());
+            System.out.println("ThreadLocked: releaseCountAI = " + releaseCountAI.get());
+            System.out.println("ThreadLocked: createTrace = " + XFuture.traceToString(createTrace));
+            System.out.println("ThreadLocked: lockTrace = " + XFuture.traceToString(lockTrace));
+            System.out.println("ThreadLocked: unlockTrace = " + XFuture.traceToString(unlockTrace));
+            System.out.println("ThreadLocked: createTrace = " + XFuture.traceToString(createTrace));
+            System.out.flush();
+            System.err.println("");
+            System.err.flush();
+            throw new RuntimeException("object named " + name + " accessed from " + Thread.currentThread() + " when locked to " + lockThread);
+        }
+        return object;
+    }
+
+    public void releaseLockThread() {
+        releaseCountAI.incrementAndGet();
+        lockThread = null;
+        unlockTrace = Thread.currentThread().getStackTrace();
+    }
+}

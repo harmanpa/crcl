@@ -21,6 +21,7 @@ import crcl.ui.client.CurrentPoseListener;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.ThreadLocked;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.utils.server.CRCLServerClientState;
@@ -72,10 +73,11 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
      */
     @SuppressWarnings("initialization")
     public ForceTorqueSimJPanel() {
-        statusOut = new CRCLStatusType();
-        statusOut.setSensorStatuses(new SensorStatusesType());
+        statusOut = new ThreadLocked("ForceTorqueSimJPanel.statusOut",new CRCLStatusType());
+        final CRCLStatusType statOut = this.statusOut.get();
+        statOut.setSensorStatuses(new SensorStatusesType());
         sensorStatus = new ForceTorqueSensorStatusType();
-        statusOut.getSensorStatuses().getForceTorqueSensorStatus().add(sensorStatus);
+        statOut.getSensorStatuses().getForceTorqueSensorStatus().add(sensorStatus);
         initComponents();
         PoseDisplay.updateDisplayMode(jTablePose, PoseDisplayMode.XYZ_RPY, false);
         PoseDisplay.updateDisplayMode(jTablePoseForceOut, PoseDisplayMode.XYZ_RPY, false);
@@ -1249,7 +1251,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
         int i;
     }
-    private final CRCLStatusType statusOut;
+    private final ThreadLocked<CRCLStatusType> statusOut;
     private final ForceTorqueSensorStatusType sensorStatus;
 
     public static final CRCLServerSocketStateGenerator<ForceTorqueSimClientState> FORCE_TORQUE_SIM_STATE_GENERATOR
@@ -1354,7 +1356,8 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         if (null != sensorStatusCopy) {
             javax.swing.SwingUtilities.invokeLater(() -> updateForceTorqueDisplay(sensorStatusCopy));
         }
-        return XFuture.completedFuture(statusOut);
+        final CRCLStatusType statusOutCopy = CRCLCopier.copy(statusOut.get());
+        return XFuture.completedFuture(statusOutCopy);
     }
 
     private void updateForceTorqueDisplay(ForceTorqueSensorStatusType sensorStatusCopy) {

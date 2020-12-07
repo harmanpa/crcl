@@ -1285,6 +1285,7 @@ public class CrclSwingClientJPanel
     private void pollStatus(int startPollStopCount) {
         XFutureVoid lastPollSocketRequestFuture = null;
         try {
+            internal.releaseStatusThreadLock();
             int callCount = pollStatusCallCount.incrementAndGet();
             polling = true;
             lastPollStatusStartPollStopCount = startPollStopCount;

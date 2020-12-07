@@ -92,6 +92,7 @@ import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
+import crcl.utils.ThreadLocked;
 import crcl.utils.XpathUtils;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.ProgramRunData;
@@ -207,7 +208,7 @@ public class CrclSwingClientInner {
     }
 
     private @MonotonicNonNull
-    CRCLStatusType status = null;
+    ThreadLocked<CRCLStatusType> status = null;
 
     private volatile @MonotonicNonNull
     CRCLSocket crclSocket = null;
@@ -629,7 +630,7 @@ public class CrclSwingClientInner {
     }
 
     public boolean isDone(long minCmdId) {
-        CRCLStatusType stat = this.status;
+        CRCLStatusType stat = this.status.get();
         if (null != stat) {
             final CommandStatusType commandStatus = stat.getCommandStatus();
             if (null != commandStatus) {
@@ -647,7 +648,7 @@ public class CrclSwingClientInner {
     CRCLStatusType lastErrorStat = null;
 
     public boolean isError(long minCmdId) {
-        final CRCLStatusType stat = this.status;
+        final CRCLStatusType stat = this.status.get();
         if (stat == null) {
             return false;
         }
@@ -752,7 +753,10 @@ public class CrclSwingClientInner {
 
     public void clearCrclClientErrorMessage() {
         crclClientErrorMessage = null;
-        CRCLStatusType statusLocal = status;
+        if (null == status) {
+            return;
+        }
+        CRCLStatusType statusLocal = status.get();
         if (null != statusLocal) {
             CommandStatusType commandStatusLocal = statusLocal.getCommandStatus();
             if (null != commandStatusLocal) {
@@ -1360,8 +1364,9 @@ public class CrclSwingClientInner {
             }
         }
         long sid = statusCommandId();
-        if (sid <= 1 && id <= 1 && null != status) {
-            final CommandStatusType commandStatus = status.getCommandStatus();
+        final CRCLStatusType stat = this.status.get();
+        if (sid <= 1 && id <= 1 && null != stat) {
+            final CommandStatusType commandStatus = stat.getCommandStatus();
             if (null != commandStatus) {
                 if (commandStatus.getCommandState() == CRCL_DONE) {
                     commandStatus.setCommandState(CommandStateEnumType.CRCL_READY);
@@ -1585,34 +1590,17 @@ public class CrclSwingClientInner {
     CommandStateEnumType CRCL_WORKING = CommandStateEnumType.CRCL_WORKING;
 
     public void setCommandState(CommandStateEnumType state) {
-        if (null != status) {
-            CommandStatusType commandStatus = status.getCommandStatus();
-            if (null != commandStatus) {
-                commandStatus.setCommandState(state);
-            } else {
-                commandStatus = new CommandStatusType();
-                commandStatus.setCommandID(1);
-                commandStatus.setCommandState(state);
-            }
+        final CommandStatusType cs = this.commmandStatus;
+        if (null != cs) {
+            cs.setCommandState(state);
         }
     }
 
     public RuntimeException commandErrorState(String description) {
-        setCommandState(CRCL_ERROR);
-        if (null != status) {
-            CommandStatusType commandStatus = status.getCommandStatus();
-            if (null != commandStatus) {
-                String oldDescription = commandStatus.getStateDescription();
-                if (null == oldDescription) {
-                    commandStatus.setStateDescription(description);
-                } else if (!oldDescription.contains(description)) {
-                    commandStatus.setStateDescription(description + " : " + oldDescription);
-                }
-            } else {
-                commandStatus = new CommandStatusType();
-                commandStatus.setCommandID(1);
-                commandStatus.setStateDescription(description);
-            }
+        final CommandStatusType cs = this.commmandStatus;
+        if (null != cs) {
+            cs.setCommandState(CRCL_ERROR);
+            cs.setStateDescription(description);
         }
         return new RuntimeException(description);
     }
@@ -1736,7 +1724,7 @@ public class CrclSwingClientInner {
     private boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count, int startRunProgramAbortCount) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
         int cycles = 0;
-        while (null == this.getStatus() && !Thread.currentThread().isInterrupted()) {
+        while (null == this.status.get() && !Thread.currentThread().isInterrupted()) {
             if (startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount) {
                 System.out.println("(startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount)");
                 return false;
@@ -1917,13 +1905,14 @@ public class CrclSwingClientInner {
     }
 
     private void showDebugStatus() {
-        if (null == this.status) {
+        final CRCLStatusType stat = this.status.get();
+        if (null == stat) {
             showDebugMessage("PendantClient this.status == null");
-        } else if (null == CRCLUtils.getNonNullCommandStatus(this.status)) {
+        } else if (null == CRCLUtils.getNonNullCommandStatus(stat)) {
             showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status) == null");
         } else {
             final CommandStatusType nonNullCommandStatus
-                    = CRCLUtils.getNonNullCommandStatus(this.status);
+                    = CRCLUtils.getNonNullCommandStatus(stat);
             showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status).getCommandID() ="
                     + nonNullCommandStatus.getCommandID());
             showDebugMessage("PendantClient CRCLUtils.getNonNullCommandStatus(this.status).getCommandState() ="
@@ -1937,7 +1926,14 @@ public class CrclSwingClientInner {
      * @param status new value of status
      */
     public void setStatus(CRCLStatusType status) {
-        this.status = status;
+        if(null == status) {
+            this.status = null;
+            this.commmandStatus = null;
+            outer.finishSetStatus();
+            return;
+        }
+        commmandStatus = status.getCommandStatus();
+        this.status = new ThreadLocked<>("CRCLSwingClientInner.status", CRCLCopier.copy(status),false,true);
 //        if (null != status.getCommandStatus()) {
 //            String desc = status.getCommandStatus().getStateDescription();
 //            if (null != desc && desc.length() > 0) {
@@ -1952,16 +1948,24 @@ public class CrclSwingClientInner {
 
     public @Nullable
     CRCLStatusType getStatus() {
-        return this.status;
+        if (null == this.status) {
+            return null;
+        }
+        return CRCLCopier.copy(this.status.get());
     }
+
+    public void releaseStatusThreadLock() {
+        if (null != this.status) {
+            this.status.releaseLockThread();
+        }
+    }
+
+    private volatile @Nullable
+    CommandStatusType commmandStatus = null;
 
     public @Nullable
     CommandStatusType getCommandStatus() {
-        CRCLStatusType s = this.getStatus();
-        if (null != s) {
-            return s.getCommandStatus();
-        }
-        return null;
+        return commmandStatus;
     }
 
     public CommandStateEnumType getCommandState() {
@@ -1976,17 +1980,19 @@ public class CrclSwingClientInner {
     }
 
     public PoseType currentStatusPose() {
-        if (status == null) {
+        final CRCLStatusType stat = this.status.get();
+        if (stat == null) {
             throw new IllegalStateException("status==null");
         }
-        return requireNonNull(CRCLPosemath.getNullablePose(status), "CRCLPosemath.getPose(status)");
+        return requireNonNull(CRCLPosemath.getNullablePose(stat), "CRCLPosemath.getPose(status)");
     }
 
     public PointType currentStatusPoint() {
-        if (status == null) {
+        final CRCLStatusType stat = this.status.get();
+        if (stat == null) {
             throw new IllegalStateException("status==null");
         }
-        return Objects.requireNonNull(CRCLPosemath.getNullablePoint(status), "CRCLPosemath.getNullablePoint(status)");
+        return Objects.requireNonNull(CRCLPosemath.getNullablePoint(stat), "CRCLPosemath.getNullablePoint(status)");
     }
 
     private int maxPoseListLength = 1000;
@@ -3238,7 +3244,8 @@ public class CrclSwingClientInner {
             throw new IllegalStateException("null==status");
         }
         Iterable<ActuateJointType> ajIterable = CRCLUtils.getNonNullIterable(ajst.getActuateJoint());
-        final JointStatusesType jointStatuses = status.getJointStatuses();
+        final CRCLStatusType stat = this.status.get();
+        final JointStatusesType jointStatuses = stat.getJointStatuses();
         if (null == jointStatuses) {
             showMessage("ActuateJoints failed : (null == status.getJointStatuses() ");
             return false;
@@ -3402,7 +3409,7 @@ public class CrclSwingClientInner {
         if (null == cjrMap || cjrMap.size() < 1) {
             return true;
         }
-        final CRCLStatusType status1 = this.getStatus();
+        final CRCLStatusType status1 = this.status.get();
         if (null == status1) {
             return checkCJRMap();
         }
@@ -3480,8 +3487,9 @@ public class CrclSwingClientInner {
                     + "expectedEndPoseTolerance=" + expectedEndPoseTolerance + ", angleType=" + angleType + NEW_LINE
                     + PoseToleranceChecker.checkToleranceString(curPose, cmdPose, expectedEndPoseTolerance, angleType) + NEW_LINE
                     + "moveTo.getCommandID()=" + moveTo.getCommandID() + NEW_LINE;
-            if (null != status) {
-                final CommandStatusType commandStatus = status.getCommandStatus();
+            final CRCLStatusType stat = this.status.get();
+            if (null != stat) {
+                final CommandStatusType commandStatus = stat.getCommandStatus();
                 if (null != commandStatus) {
                     message
                             += "stat.getCommandStatus().getCommandId()=" + commandStatus.getCommandID() + NEW_LINE
@@ -3549,11 +3557,15 @@ public class CrclSwingClientInner {
             internalSetPausedTrue();
             pause_count.incrementAndGet();
             pauseQueue.clear();
+            if (null == this.status) {
+                return;
+            }
+            final CRCLStatusType stat = this.status.get();
             if (isConnected()
-                    && status != null
+                    && stat != null
                     && !lastCmdTriedWasStop) {
                 final CommandStatusType commandStatus
-                        = CRCLUtils.getNonNullCommandStatus(status);
+                        = CRCLUtils.getNonNullCommandStatus(stat);
                 final CommandStateEnumType commandState = commandStatus.getCommandState();
                 if (!isRunningProgram()
                         || commandState == null
@@ -4053,8 +4065,8 @@ public class CrclSwingClientInner {
                     if (interactive) {
                         curStatus
                                 = requireNonNull(
-                                        this.getStatus(),
-                                        "this.getStatus()");
+                                        this.status.get(),
+                                        "this.status.get()");
                         final CommandStatusType commandStatus
                                 = requireNonNull(
                                         curStatus.getCommandStatus(),
@@ -4135,8 +4147,8 @@ public class CrclSwingClientInner {
 
                 curStatus
                         = requireNonNull(
-                                this.getStatus(),
-                                "this.getStatus()");
+                                this.status.get(),
+                                "this.status.get()");
                 final CommandStatusType commandStatus
                         = requireNonNull(
                                 curStatus.getCommandStatus(),
@@ -4200,8 +4212,8 @@ public class CrclSwingClientInner {
             showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
             curStatus
                     = requireNonNull(
-                            this.getStatus(),
-                            "this.getStatus()");
+                            this.status.get(),
+                            "this.status.get()");
             final CommandStatusType commandStatus
                     = requireNonNull(
                             curStatus.getCommandStatus(),
@@ -4261,7 +4273,7 @@ public class CrclSwingClientInner {
         String s;
         try {
             final CRCLSocket crclSocketFinal = crclSocket;
-            final CRCLStatusType statusFinal = status;
+            final CRCLStatusType statusFinal = this.status.get();
             if (null == statusFinal) {
                 s = "status = null";
             } else if (null != crclSocketFinal) {
@@ -4294,8 +4306,12 @@ public class CrclSwingClientInner {
     }
 
     private PmCartesian getPoseCart() {
+        if (null == this.status) {
+            return new PmCartesian();
+        }
+        CRCLStatusType stat = this.status.get();
         PmCartesian p0
-                = Optional.ofNullable(status)
+                = Optional.ofNullable(stat)
                         .map(CRCLPosemath::getNullablePoint)
                         .filter(x -> x != null)
                         .map(CRCLPosemath::toPmCartesian)
@@ -4484,7 +4500,10 @@ public class CrclSwingClientInner {
             SetLengthUnitsType setUnitType = new SetLengthUnitsType();
             setUnitType.setUnitName(this.lengthUnit);
             testCommand(setUnitType, startRunProgramAbortCount);
-            CRCLStatusType curStatus = requireNonNull(this.status, "this.status");
+            if (null == this.status) {
+                throw new NullPointerException("this.status");
+            }
+            CRCLStatusType curStatus = requireNonNull(this.status.get(), "this.status");
             final JointStatusesType jointStatuses = requireNonNull(curStatus.getJointStatuses(), "curStatus.getJointStatuses()");
             if (null != jointStatuses) {
                 ConfigureJointReportsType cjrs = new ConfigureJointReportsType();
@@ -4729,7 +4748,10 @@ public class CrclSwingClientInner {
     }
 
     public double getJointPosition(int jointNumber) {
-        CRCLStatusType stat = requireNonNull(this.status, "this.status");
+        if (null == this.status) {
+            throw new NullPointerException("this.status");
+        }
+        CRCLStatusType stat = requireNonNull(this.status.get(), "this.status");
         JointStatusesType jointStatuses = requireNonNull(stat.getJointStatuses(),
                 "getJointPosition(" + jointNumber + "): stat.getJointStatuses()");
         return getJointPositionWithJST(jointStatuses, jointNumber);
@@ -4750,7 +4772,10 @@ public class CrclSwingClientInner {
         Iterable<ActuateJointType> ajIterable
                 = CRCLUtils.getNonNullIterable(ajst.getActuateJoint());
         double maxDiff = 0;
-        CRCLStatusType stat = requireNonNull(this.status, "this.status");
+        if (null == this.status) {
+            throw new NullPointerException("this.status");
+        }
+        CRCLStatusType stat = requireNonNull(this.status.get(), "this.status");
         final JointStatusesType jointStatuses = stat.getJointStatuses();
         if (null == jointStatuses) {
             System.out.println("");
@@ -5325,7 +5350,7 @@ public class CrclSwingClientInner {
                     throw new RuntimeException("MoveTo Command has invalid endPosition :" + CRCLPosemath.poseToString(endPose));
                 }
             }
-            CRCLStatusType origStatuPrep = this.getStatus();
+            CRCLStatusType origStatuPrep = this.status.get();
             if (null == origStatuPrep) {
                 showMessage("testCommand can not get starting status");
                 throw new IllegalStateException("testCommand can not get starting status");
@@ -5411,7 +5436,7 @@ public class CrclSwingClientInner {
                     System.out.println("lastAbortTrace = " + XFuture.traceToString(lastAbortTrace));
                     throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                 }
-                if (null == this.getStatus()) {
+                if (null == this.status.get()) {
                     boolean waitForStatusResult = waitForStatus(2000, 200, pause_count_start, startingRunProgramAbortCount);
                 }
                 rpac = runProgramAbortCount.get();
@@ -5422,7 +5447,7 @@ public class CrclSwingClientInner {
                 }
                 testCommandStartLengthUnitSent = lengthUnitSent;
                 testCommandStartLengthUnit = this.getLengthUnit();
-                CRCLStatusType startStatusPrep = this.getStatus();
+                CRCLStatusType startStatusPrep = this.status.get();
                 if (null == startStatusPrep) {
                     System.out.println("origStatuPrep = " + origStatuPrep);
                     showMessage("testCommand can not get starting status");
