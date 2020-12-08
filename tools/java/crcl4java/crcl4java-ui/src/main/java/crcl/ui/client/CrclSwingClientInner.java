@@ -92,7 +92,7 @@ import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
-import crcl.utils.ThreadLocked;
+import crcl.utils.ThreadLockedHolder;
 import crcl.utils.XpathUtils;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.ProgramRunData;
@@ -208,7 +208,7 @@ public class CrclSwingClientInner {
     }
 
     private @MonotonicNonNull
-    ThreadLocked<CRCLStatusType> status = null;
+    ThreadLockedHolder<CRCLStatusType> status = null;
 
     private volatile @MonotonicNonNull
     CRCLSocket crclSocket = null;
@@ -799,6 +799,10 @@ public class CrclSwingClientInner {
     }
 
     public void showErrorMessage(String s) {
+        System.out.println();
+        System.err.println();
+        System.out.flush();
+        System.err.flush();
         System.err.println(s);
         System.out.println();
         System.err.println();
@@ -806,6 +810,10 @@ public class CrclSwingClientInner {
         System.err.flush();
         if (!disconnecting && !aborting) {
             Thread.dumpStack();
+            System.out.println();
+            System.err.println();
+            System.out.flush();
+            System.err.flush();
         }
         crclClientErrorMessage = s;
         outer.showMessage(s);
@@ -1294,6 +1302,13 @@ public class CrclSwingClientInner {
                     printIncCommandInfo(System.err);
                     throw new IllegalStateException("id(" + id + ") != cmdInstance.getCRCLCommand().getCommandID() " + crclInstanceCommand.getCommandID());
                 }
+            }
+            if (cmdIsGetStatus) {
+                outer.showLastGetStatusCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
+            } else if (cmdIsStop) {
+                outer.showLastStopCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
+            } else {
+                outer.showLastOtherCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
             }
             lastCommandIdSent = id;
             return true;
@@ -1926,14 +1941,14 @@ public class CrclSwingClientInner {
      * @param status new value of status
      */
     public void setStatus(CRCLStatusType status) {
-        if(null == status) {
+        if (null == status) {
             this.status = null;
             this.commmandStatus = null;
             outer.finishSetStatus();
             return;
         }
         commmandStatus = status.getCommandStatus();
-        this.status = new ThreadLocked<>("CRCLSwingClientInner.status", CRCLCopier.copy(status),false,true);
+        this.status = new ThreadLockedHolder<>("CRCLSwingClientInner.status", CRCLCopier.copy(status), false, true);
 //        if (null != status.getCommandStatus()) {
 //            String desc = status.getCommandStatus().getStateDescription();
 //            if (null != desc && desc.length() > 0) {
@@ -5578,7 +5593,9 @@ public class CrclSwingClientInner {
             }
             return;
         } catch (Exception e) {
-            throw new RuntimeException("Exception executing command " + CRCLSocket.commandToSimpleString(cmd), e);
+            final String errString = "Exception executing command " + CRCLSocket.commandToSimpleString(cmd);
+            LOGGER.log(Level.SEVERE, errString + "\n", e);
+            throw new RuntimeException(errString, e);
         } finally {
             long tcEndTime = System.currentTimeMillis();
             long tcDiffTime = tcEndTime - tcStartTime;

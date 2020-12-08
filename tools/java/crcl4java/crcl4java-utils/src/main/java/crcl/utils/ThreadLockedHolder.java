@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class ThreadLocked<T> implements Supplier<T> {
+public class ThreadLockedHolder<T> implements Supplier<T> {
 
     private final T object;
     private final String name;
@@ -41,7 +41,7 @@ public class ThreadLocked<T> implements Supplier<T> {
     private final AtomicInteger getCountAI = new AtomicInteger();
     private final AtomicInteger releaseCountAI = new AtomicInteger();
 
-    public ThreadLocked(String name, T object) {
+    public ThreadLockedHolder(String name, T object) {
         this.name = name;
         this.object = object;
         this.createTrace = Thread.currentThread().getStackTrace();
@@ -51,7 +51,7 @@ public class ThreadLocked<T> implements Supplier<T> {
         this.disabled = false;
     }
 
-    public ThreadLocked(String name, T object, boolean locked) {
+    public ThreadLockedHolder(String name, T object, boolean locked) {
         this.name = name;
         this.object = object;
         this.createTrace = Thread.currentThread().getStackTrace();
@@ -65,7 +65,7 @@ public class ThreadLocked<T> implements Supplier<T> {
 
     private final boolean disabled;
 
-    public ThreadLocked(String name, T object, boolean locked, boolean disabled) {
+    public ThreadLockedHolder(String name, T object, boolean locked, boolean disabled) {
         this.name = name;
         this.object = object;
         this.createTrace = Thread.currentThread().getStackTrace();
@@ -85,25 +85,38 @@ public class ThreadLocked<T> implements Supplier<T> {
             lockThread = Thread.currentThread();
             this.lockTrace = Thread.currentThread().getStackTrace();
         } else if (lockThread != Thread.currentThread() && !disabled) {
+            System.err.println("");
+            System.err.flush();
+            final String errMessage = "object named " + name + " accessed from " + Thread.currentThread() + " when locked to " + lockThread;
             System.out.println("");
+            System.out.println("ThreadLocked: " + errMessage);
             System.out.println("ThreadLocked: object = " + object);
             System.out.println("ThreadLocked: getCountAI = " + getCountAI.get());
             System.out.println("ThreadLocked: releaseCountAI = " + releaseCountAI.get());
             System.out.println("ThreadLocked: createTrace = " + XFuture.traceToString(createTrace));
             System.out.println("ThreadLocked: lockTrace = " + XFuture.traceToString(lockTrace));
             System.out.println("ThreadLocked: unlockTrace = " + XFuture.traceToString(unlockTrace));
-            System.out.println("ThreadLocked: createTrace = " + XFuture.traceToString(createTrace));
+            System.out.println("ThreadLocked: Thread.currentThread() = " + Thread.currentThread());
+            System.out.println("ThreadLocked: lockThread = " + lockThread);
+            System.out.println("");
             System.out.flush();
             System.err.println("");
             System.err.flush();
-            throw new RuntimeException("object named " + name + " accessed from " + Thread.currentThread() + " when locked to " + lockThread);
+            Thread.dumpStack();
+            System.out.println("");
+            System.out.flush();
+            System.err.println("");
+            System.err.flush();
+            throw new RuntimeException(errMessage);
         }
         return object;
     }
 
     public void releaseLockThread() {
-        releaseCountAI.incrementAndGet();
-        lockThread = null;
-        unlockTrace = Thread.currentThread().getStackTrace();
+        synchronized (object) {
+            releaseCountAI.incrementAndGet();
+            lockThread = null;
+            unlockTrace = Thread.currentThread().getStackTrace();
+        }
     }
 }

@@ -309,4 +309,17 @@ public class PendantClientOuterStub implements PendantClientOuter, PendantClient
     public void showPaused(boolean paused) {
     }
 
+    @Override
+    public void showLastGetStatusCommandString(String string) {
+    }
+
+    @Override
+    public void showLastStopCommandString(String string) {
+    }
+
+    @Override
+    public void showLastOtherCommandString(String string) {
+    }
+
+    
 }

@@ -31,7 +31,6 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
-import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 import crcl.base.ForceUnitEnumType;
@@ -108,7 +107,7 @@ import crcl.utils.CRCLSocket;
 import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import static crcl.utils.CRCLUtils.getNonNullIterable;
 import crcl.utils.PoseToleranceChecker;
-import crcl.utils.ThreadLocked;
+import crcl.utils.ThreadLockedHolder;
 import crcl.utils.XpathUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import static crcl.utils.kinematics.SimRobotEnum.PLAUSIBLE;
@@ -375,10 +374,10 @@ public class SimServerInner {
         if (null != settingsStatus1) {
             stat.setSettingsStatus(settingsStatus1);
         }
-        setReportGripperStatus(gripperStatus != null);
-        setReportJointStatus(jointStatuses1 != null);
-        setReportPoseStatus(poseStatus1 != null);
-        setReportSettingsStatus(settingsStatus1 != null);
+//        setReportGripperStatus(gripperStatus != null);
+//        setReportJointStatus(jointStatuses1 != null);
+//        setReportPoseStatus(poseStatus1 != null);
+//        setReportSettingsStatus(settingsStatus1 != null);
     }
 
     /**
@@ -415,97 +414,6 @@ public class SimServerInner {
         stat.setPoseStatus(null);
     }
 
-    private boolean reportGripperStatus = false;
-
-    /**
-     * Get the value of reportGripperStatus
-     *
-     * @return the value of reportGripperStatus
-     */
-    public boolean isReportGripperStatus() {
-        return reportGripperStatus;
-    }
-
-    /**
-     * Set the value of reportGripperStatus
-     *
-     * @param reportGripperStatus new value of reportGripperStatus
-     */
-    public void setReportGripperStatus(boolean reportGripperStatus) {
-        this.reportGripperStatus = reportGripperStatus;
-    }
-
-    private boolean reportSettingsStatus;
-
-    /**
-     * Get the value of reportSettingsStatus
-     *
-     * @return the value of reportSettingsStatus
-     */
-    public boolean isReportSettingsStatus() {
-        return reportSettingsStatus;
-    }
-
-    /**
-     * Set the value of reportSettingsStatus
-     *
-     * @param reportSettingsStatus new value of reportSettingsStatus
-     */
-    public void setReportSettingsStatus(boolean reportSettingsStatus) {
-        this.reportSettingsStatus = reportSettingsStatus;
-        addToUpdateStatusRunnables(() -> this.applySetReportSettingsStatus(reportSettingsStatus));
-    }
-
-    private void applySetReportSettingsStatus(boolean reportSettingsStatus) {
-        final CRCLStatusType stat = this.status.get();
-        if (reportSettingsStatus) {
-            stat.setSettingsStatus(settingsStatus);
-        } else {
-            clearSettingsStatus();
-        }
-    }
-
-    @SuppressWarnings("nullness")
-    private void clearSettingsStatus() {
-        final CRCLStatusType stat = this.status.get();
-        stat.setSettingsStatus(null);
-    }
-
-    private boolean reportJointStatus = true;
-
-    /**
-     * Get the value of reportJointStatus
-     *
-     * @return the value of reportJointStatus
-     */
-    public boolean isReportJointStatus() {
-        return reportJointStatus;
-    }
-
-    /**
-     * Set the value of reportJointStatus
-     *
-     * @param reportJointStatus new value of reportJointStatus
-     */
-    public void setReportJointStatus(boolean reportJointStatus) {
-        this.reportJointStatus = reportJointStatus;
-        addToUpdateStatusRunnables(() -> this.applySetReportJointStatus(reportJointStatus));
-    }
-
-    private void applySetReportJointStatus(boolean reportJointStatus) {
-        final CRCLStatusType stat = this.status.get();
-        if (reportJointStatus) {
-            stat.setJointStatuses(jointStatuses);
-        } else {
-            clearJointStatuses();
-        }
-    }
-
-    @SuppressWarnings("nullness")
-    private void clearJointStatuses() {
-        final CRCLStatusType stat = this.status.get();
-        stat.setJointStatuses(null);
-    }
 
     final private PoseStatusType poseStatus = new PoseStatusType();
 
@@ -610,7 +518,12 @@ public class SimServerInner {
 
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
-    final private ThreadLocked<CRCLStatusType> status = new ThreadLocked("SimServerInner.status", new CRCLStatusType(), false);
+    final private ThreadLockedHolder<CRCLStatusType> status 
+            = new ThreadLockedHolder(
+                    "SimServerInner.status",  
+                    CRCLPosemath.newFullCRCLStatus(), 
+                    false
+            );
 
     private @Nullable
     CRCLCommandType multiStepCommand = null;
@@ -754,28 +667,28 @@ public class SimServerInner {
         if (null != portPropertyString) {
             this.port = Integer.parseInt(portPropertyString);
         }
-        updateStatusReporting();
+//        updateStatusReporting();
         this.status.releaseLockThread();
     }
 
-    private void updateStatusReporting() {
-        final CRCLStatusType stat = this.status.get();
-        if (this.isReportJointStatus()) {
-            stat.setJointStatuses(jointStatuses);
-        } else {
-            clearJointStatuses();
-        }
-        if (this.isReportPoseStatus()) {
-            stat.setPoseStatus(poseStatus);
-        } else {
-            clearPoseStatus();
-        }
-        if (this.isReportSettingsStatus()) {
-            stat.setSettingsStatus(settingsStatus);
-        } else {
-            clearSettingsStatus();
-        }
-    }
+//    private void updateStatusReporting() {
+//        final CRCLStatusType stat = this.status.get();
+//        if (this.isReportJointStatus()) {
+//            stat.setJointStatuses(jointStatuses);
+//        } else {
+//            clearJointStatuses();
+//        }
+//        if (this.isReportPoseStatus()) {
+//            stat.setPoseStatus(poseStatus);
+//        } else {
+//            clearPoseStatus();
+//        }
+//        if (this.isReportSettingsStatus()) {
+//            stat.setSettingsStatus(settingsStatus);
+//        } else {
+//            clearSettingsStatus();
+//        }
+//    }
 
     /**
      * Get the value of gripperSocket
@@ -1307,39 +1220,44 @@ public class SimServerInner {
     }
 
     public void setCommandState(CommandStateEnumType state) {
-        addToUpdateStatusRunnables(() -> this.applySetCommandState(state));
+        crclServerSocket.setCommandStateEnum(state);
+//        addToUpdateStatusRunnables(() -> this.applySetCommandState(state));
     }
 
-    private void applySetCommandState(CommandStateEnumType state) {
-        final CRCLStatusType stat = this.status.get();
-        synchronized (stat) {
-            CommandStatusType cst = stat.getCommandStatus();
-            if (null == cst) {
-                cst = new CommandStatusType();
-            }
-            if (cst.getCommandState() != CRCL_ERROR) {
-                cst.setCommandState(state);
-            }
-            stat.setCommandStatus(cst);
-        }
-    }
+//    private void applySetCommandState(CommandStateEnumType state) {
+//        final CRCLStatusType stat = this.status.get();
+//        synchronized (stat) {
+//            CommandStatusType cst = stat.getCommandStatus();
+//            if (null == cst) {
+//                cst = new CommandStatusType();
+//            }
+//            if (cst.getCommandState() != CRCL_ERROR) {
+//                cst.setCommandState(state);
+//                crclServerSocket.setCommandStateEnum(state);
+//            }
+//            stat.setCommandStatus(cst);
+//        }
+//    }
 
     public void setCommandState(CommandStateEnumType state, String stateDescription) {
-        addToUpdateStatusRunnables(() -> this.applySetCommandState(state, stateDescription));
+        crclServerSocket.setCommandStateEnum(state);
+        crclServerSocket.setStateDescription(stateDescription);
+//        addToUpdateStatusRunnables(() -> this.applySetCommandState(state, stateDescription));
     }
 
-    private void applySetCommandState(CommandStateEnumType state, String stateDescription) {
-        final CRCLStatusType stat = this.status.get();
-        synchronized (stat) {
-            CommandStatusType cst = stat.getCommandStatus();
-            if (null == cst) {
-                cst = new CommandStatusType();
-            }
-            cst.setCommandState(state);
-            cst.setStateDescription(stateDescription);
-            stat.setCommandStatus(cst);
-        }
-    }
+//    private void applySetCommandState(CommandStateEnumType state, String stateDescription) {
+//        final CRCLStatusType stat = this.status.get();
+//        synchronized (stat) {
+//            CommandStatusType cst = stat.getCommandStatus();
+//            if (null == cst) {
+//                cst = new CommandStatusType();
+//            }
+//            cst.setCommandState(state);
+//            crclServerSocket.setCommandStateEnum(state);
+//            cst.setStateDescription(stateDescription);
+//            stat.setCommandStatus(cst);
+//        }
+//    }
 
     @SuppressWarnings("nullness")
     public CommandStateEnumType getCommandState() {
@@ -1987,9 +1905,9 @@ public class SimServerInner {
                     CommandStatusType commandStatus = stat.getCommandStatus();
                     if (null == commandStatus) {
                         commandStatus = new CommandStatusType();
-                        commandStatus.setCommandID(1);
+                        commandStatus.setCommandID(crclServerSocket.getLastRecievedCommandID());
                         commandStatus.setStatusID(1);
-                        commandStatus.setCommandState(CRCL_WORKING);
+                        commandStatus.setCommandState(crclServerSocket.getCommandStateEnum());
                         stat.setCommandStatus(commandStatus);
                     }
                     this.incStatusId();
@@ -2457,10 +2375,10 @@ public class SimServerInner {
                             cst = new CommandStatusType();
                             cst.setCommandID(cmd.getCommandID());
                             cst.setStatusID(1);
-                            cst.setCommandState(CRCL_WORKING);
+                            cst.setCommandState(crclServerSocket.getCommandStateEnum());
                             stat.setCommandStatus(cst);
                         } else {
-                            cst.setCommandState(CRCL_WORKING);
+                            cst.setCommandState(crclServerSocket.getCommandStateEnum());
                         }
                         SimServerInner.this.sendStatus(state.getCs(), stat);
                     }
@@ -2854,7 +2772,7 @@ public class SimServerInner {
                         this.cjrMap.put(cjr.getJointNumber(), cjr);
                     }
                     setCommandStateWORKING();
-                    setReportJointStatus(true);
+//                    setReportJointStatus(true);
                 } else if (cmd instanceof SetLengthUnitsType) {
 //                    SetLengthUnitsType slu = (SetLengthUnitsType) cmd;
 //                    LengthUnitEnumType lu = slu.getUnitName();
@@ -3075,13 +2993,13 @@ public class SimServerInner {
                     setCommandState(CRCL_ERROR, message);
                     outer.showDebugMessage("\n" + message + "\n");
 
-                } else if (cmd instanceof ConfigureStatusReportType) {
-                    ConfigureStatusReportType csr = (ConfigureStatusReportType) cmd;
-                    setReportGripperStatus(csr.isReportGripperStatus());
-                    setReportJointStatus(csr.isReportJointStatuses());
-                    setReportPoseStatus(csr.isReportPoseStatus());
-                    setReportSettingsStatus(csr.isReportSettingsStatus());
-                    setCommandStateDONE();
+//                } else if (cmd instanceof ConfigureStatusReportType) {
+//                    ConfigureStatusReportType csr = (ConfigureStatusReportType) cmd;
+//                    setReportGripperStatus(csr.isReportGripperStatus());
+//                    setReportJointStatus(csr.isReportJointStatuses());
+//                    setReportPoseStatus(csr.isReportPoseStatus());
+//                    setReportSettingsStatus(csr.isReportSettingsStatus());
+//                    setCommandStateDONE();
                 } else {
                     final String cmdSimpleName = cmd.getClass().getSimpleName();
                     final String message = cmdSimpleName + " not implemented.";

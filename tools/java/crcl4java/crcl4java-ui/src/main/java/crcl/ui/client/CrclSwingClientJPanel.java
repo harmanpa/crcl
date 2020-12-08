@@ -896,8 +896,8 @@ public class CrclSwingClientJPanel
 
     private volatile File loadedPrefsFile = null;
     private volatile StackTraceElement loadPrefsTrace[] = null;
-    private volatile Thread  loadPrefsThread = null;
-    
+    private volatile Thread loadPrefsThread = null;
+
     private void loadPrefsFile(File f) {
         try {
             loadPrefsTrace = Thread.currentThread().getStackTrace();
@@ -1178,6 +1178,42 @@ public class CrclSwingClientJPanel
             javax.swing.SwingUtilities.invokeLater(() -> this.internalShowPaused(paused));
         }
     }
+
+    @Override
+    public void showLastGetStatusCommandString(String string) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            jTextAreaLastGetStatusCommand.setText(string);
+        } else {
+            javax.swing.SwingUtilities.invokeLater(() -> jTextAreaLastGetStatusCommand.setText(string));
+        }
+    }
+
+    @Override
+    public void showLastStopCommandString(String string) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            jTextAreaLastStopCommand.setText(string);
+        } else {
+            javax.swing.SwingUtilities.invokeLater(() -> jTextAreaLastStopCommand.setText(string));
+        }
+    }
+
+    @Override
+    public void showLastOtherCommandString(String string) {
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+            jTextAreaLastOtherCommand.setText(string);
+        } else {
+            javax.swing.SwingUtilities.invokeLater(() -> jTextAreaLastOtherCommand.setText(string));
+        }
+    }
+
+//    @Override
+//    public void showLastCommandString(String string) {
+//        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+//            jTextAreaLastCommand.setText(string);
+//        } else {
+//            javax.swing.SwingUtilities.invokeLater(() -> jTextAreaLastCommand.setText(string));
+//        }
+//    }
 
     private class MyPropertyChangeListener implements PropertyChangeListener {
 
@@ -1868,9 +1904,8 @@ public class CrclSwingClientJPanel
     public void saveStatusAs(File f) {
         internal.saveStatusAs(f);
     }
-    
+
     private volatile StackTraceElement finishConnectTrace[] = null;
-    
 
     @Override
     public void finishConnect() {
@@ -2549,7 +2584,7 @@ public class CrclSwingClientJPanel
     }
 
     private volatile StackTraceElement finishDisconnectTrace[] = null;
-    
+
     @Override
     public void finishDisconnect() {
         finishDisconnectTrace = Thread.currentThread().getStackTrace();
@@ -3726,6 +3761,15 @@ public class CrclSwingClientJPanel
         jLabel21 = new javax.swing.JLabel();
         jTextFieldWaitForDoneDelay = new javax.swing.JTextField();
         jCheckBoxIgnoreWaitForDoneTimeouts = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        jTextAreaLastStopCommand = new javax.swing.JTextArea();
+        jLabel22 = new javax.swing.JLabel();
+        jScrollPane9 = new javax.swing.JScrollPane();
+        jTextAreaLastGetStatusCommand = new javax.swing.JTextArea();
+        jScrollPane10 = new javax.swing.JScrollPane();
+        jTextAreaLastOtherCommand = new javax.swing.JTextArea();
+        jLabel23 = new javax.swing.JLabel();
         jScrollPaneErrors = new javax.swing.JScrollPane();
         jTextAreaErrors = new javax.swing.JTextArea();
         jTabbedPaneRight = new javax.swing.JTabbedPane();
@@ -3750,7 +3794,7 @@ public class CrclSwingClientJPanel
         jPanelOverheadProgramPlot1 = new javax.swing.JPanel();
         programPlotterJPanelSide = new crcl.ui.misc.ProgramPlotterJPanel();
 
-        jTabbedPaneLeft.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jTabbedPaneLeft.setBorder(new javax.swing.border.SoftBevelBorder(0));
         jTabbedPaneLeft.setName(""); // NOI18N
         jTabbedPaneLeft.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -4007,14 +4051,14 @@ public class CrclSwingClientJPanel
         jLabelJointJogMinus.setFont(new java.awt.Font("Cantarell", 0, 18)); // NOI18N
         jLabelJointJogMinus.setText("Joint Jog -");
         jLabelJointJogMinus.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                jLabelJointJogMinusMouseExited(evt);
-            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 jLabelJointJogMinusMousePressed(evt);
             }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 jLabelJointJogMinusMouseReleased(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jLabelJointJogMinusMouseExited(evt);
             }
         });
 
@@ -4747,6 +4791,24 @@ public class CrclSwingClientJPanel
             }
         });
 
+        jLabel4.setText("Last Get Status Sent Command");
+
+        jTextAreaLastStopCommand.setColumns(20);
+        jTextAreaLastStopCommand.setRows(5);
+        jScrollPane8.setViewportView(jTextAreaLastStopCommand);
+
+        jLabel22.setText("Last  Sent Stop Command");
+
+        jTextAreaLastGetStatusCommand.setColumns(20);
+        jTextAreaLastGetStatusCommand.setRows(5);
+        jScrollPane9.setViewportView(jTextAreaLastGetStatusCommand);
+
+        jTextAreaLastOtherCommand.setColumns(20);
+        jTextAreaLastOtherCommand.setRows(5);
+        jScrollPane10.setViewportView(jTextAreaLastOtherCommand);
+
+        jLabel23.setText("Last  Sent Other Command");
+
         javax.swing.GroupLayout jPanelConnectionTabLayout = new javax.swing.GroupLayout(jPanelConnectionTab);
         jPanelConnectionTab.setLayout(jPanelConnectionTabLayout);
         jPanelConnectionTabLayout.setHorizontalGroup(
@@ -4754,9 +4816,11 @@ public class CrclSwingClientJPanel
             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane9)
+                    .addComponent(jScrollPane10)
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                        .addComponent(jButtonShowPerfInfo)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jScrollPane1)
+                        .addContainerGap())
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                         .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
@@ -4788,7 +4852,7 @@ public class CrclSwingClientJPanel
                                                 .addComponent(jTextFieldWaitForDoneDelay))
                                             .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
                                                 .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts)
-                                                .addGap(0, 0, Short.MAX_VALUE))))
+                                                .addGap(0, 15, Short.MAX_VALUE))))
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanelConnectionTabLayout.createSequentialGroup()
                                         .addComponent(jButtonConnect, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -4797,10 +4861,17 @@ public class CrclSwingClientJPanel
                                 .addComponent(jButtonInit)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonEnd)))
-                        .addContainerGap(138, Short.MAX_VALUE))
+                        .addContainerGap(153, Short.MAX_VALUE))
                     .addGroup(jPanelConnectionTabLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addGroup(jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel22)
+                            .addComponent(jLabel23)
+                            .addComponent(jButtonShowPerfInfo))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelConnectionTabLayout.createSequentialGroup()
+                        .addComponent(jScrollPane8)
+                        .addContainerGap())))
         );
         jPanelConnectionTabLayout.setVerticalGroup(
             jPanelConnectionTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -4828,10 +4899,22 @@ public class CrclSwingClientJPanel
                     .addComponent(jTextFieldReadTimeout, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jCheckBoxIgnoreWaitForDoneTimeouts))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addGap(1, 1, 1)
+                .addComponent(jScrollPane9, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel22)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel23)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane10, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonShowPerfInfo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(282, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         jTabbedPaneLeft.addTab("Connection", jPanelConnectionTab);
@@ -5177,8 +5260,8 @@ public class CrclSwingClientJPanel
 //            boolean[] canEdit = CrclSwingClientInner.COMMAND_STATUS_LOG_CAN_EDITS;
 
             public Class getColumnClass(int columnIndex) {
-                if(types.length != CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length) {
-                    System.out.println("types.length="+types.length);
+                if (types.length != CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length) {
+                    System.out.println("types.length=" + types.length);
                     System.out.println("CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length = " + CrclSwingClientInner.COMMAND_STATUS_LOG_HEADINGS.length);
                 }
                 return types[columnIndex];
@@ -5189,7 +5272,7 @@ public class CrclSwingClientJPanel
             }
         };
     }
-   
+
 
     private void jButtonDeletProgramItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonDeletProgramItemActionPerformed
         int index = getProgramRow();
@@ -5312,11 +5395,11 @@ public class CrclSwingClientJPanel
     private void printDisconnectInfo() {
         System.out.println();
         System.out.flush();
-        System.err.println("printDisconnectInfo: loadedPrefsFile="+loadedPrefsFile);
-        System.err.println("printDisconnectInfo: loadPrefsThread="+loadPrefsThread);
-        System.err.println("printDisconnectInfo: loadPrefsTrace="+XFuture.traceToString(loadPrefsTrace));
-        System.err.println("printDisconnectInfo: finishConnectTrace="+XFuture.traceToString(finishConnectTrace));
-        System.err.println("printDisconnectInfo: finishDisconnectTrace="+XFuture.traceToString(finishDisconnectTrace));
+        System.err.println("printDisconnectInfo: loadedPrefsFile=" + loadedPrefsFile);
+        System.err.println("printDisconnectInfo: loadPrefsThread=" + loadPrefsThread);
+        System.err.println("printDisconnectInfo: loadPrefsTrace=" + XFuture.traceToString(loadPrefsTrace));
+        System.err.println("printDisconnectInfo: finishConnectTrace=" + XFuture.traceToString(finishConnectTrace));
+        System.err.println("printDisconnectInfo: finishDisconnectTrace=" + XFuture.traceToString(finishDisconnectTrace));
         System.err.println("printDisconnectInfo: internal.internalConnectInfo() = " + internal.internalConnectInfo());
         System.err.println("printDisconnectInfo: Thread.currentThread() = " + Thread.currentThread());
         System.err.println("printDisconnectInfo: disconnectThread = " + disconnectThread);
@@ -6501,7 +6584,10 @@ public class CrclSwingClientJPanel
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel21;
+    private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
@@ -6528,12 +6614,15 @@ public class CrclSwingClientJPanel
     private javax.swing.JPanel jPanelProgramPlot;
     private javax.swing.JPanel jPanelStatus;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane10;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
+    private javax.swing.JScrollPane jScrollPane9;
     private javax.swing.JScrollPane jScrollPaneErrors;
     private javax.swing.JScrollPane jScrollPaneMoveToGuardTable;
     private javax.swing.JScrollPane jScrollPaneProgram;
@@ -6546,6 +6635,9 @@ public class CrclSwingClientJPanel
     private javax.swing.JTable jTablePose;
     private javax.swing.JTable jTableProgram;
     private javax.swing.JTextArea jTextAreaErrors;
+    private javax.swing.JTextArea jTextAreaLastGetStatusCommand;
+    private javax.swing.JTextArea jTextAreaLastOtherCommand;
+    private javax.swing.JTextArea jTextAreaLastStopCommand;
     private javax.swing.JTextArea jTextAreaPerfInfo;
     private javax.swing.JTextArea jTextAreaSelectedProgramCommand;
     private javax.swing.JTextArea jTextAreaStateDescription;

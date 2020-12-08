@@ -21,7 +21,7 @@ import crcl.ui.client.CurrentPoseListener;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
-import crcl.utils.ThreadLocked;
+import crcl.utils.ThreadLockedHolder;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.utils.server.CRCLServerClientState;
@@ -73,7 +73,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
      */
     @SuppressWarnings("initialization")
     public ForceTorqueSimJPanel() {
-        statusOut = new ThreadLocked("ForceTorqueSimJPanel.statusOut",new CRCLStatusType());
+        statusOut = new ThreadLockedHolder("ForceTorqueSimJPanel.statusOut",new CRCLStatusType());
         final CRCLStatusType statOut = this.statusOut.get();
         statOut.setSensorStatuses(new SensorStatusesType());
         sensorStatus = new ForceTorqueSensorStatusType();
@@ -1251,7 +1251,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         }
         int i;
     }
-    private final ThreadLocked<CRCLStatusType> statusOut;
+    private final ThreadLockedHolder<CRCLStatusType> statusOut;
     private final ForceTorqueSensorStatusType sensorStatus;
 
     public static final CRCLServerSocketStateGenerator<ForceTorqueSimClientState> FORCE_TORQUE_SIM_STATE_GENERATOR

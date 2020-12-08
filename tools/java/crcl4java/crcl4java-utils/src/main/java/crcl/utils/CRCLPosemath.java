@@ -23,8 +23,11 @@ package crcl.utils;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
+import crcl.base.CommandStatusType;
 import crcl.base.DataThingType;
 import crcl.base.EndCanonType;
+import crcl.base.GripperStatusType;
+import crcl.base.GuardsStatusesType;
 import crcl.base.InitCanonType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
@@ -34,6 +37,8 @@ import crcl.base.PointType;
 import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.PoseToleranceType;
+import crcl.base.SensorStatusesType;
+import crcl.base.SettingsStatusType;
 import crcl.base.VectorType;
 import static crcl.utils.CRCLCopier.copy;
 import static crcl.utils.CRCLUtils.getNonNullPoint;
@@ -44,6 +49,7 @@ import java.awt.geom.Point2D;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import java.math.BigDecimal;
+import java.security.Guard;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Predicate;
@@ -1250,6 +1256,17 @@ public class CRCLPosemath {
             }
         }
         return null;
+    }
+    
+    
+    public static CRCLStatusType  newFullCRCLStatus() {
+        CRCLStatusType status = new CRCLStatusType();
+        status.setCommandStatus(new CommandStatusType());
+        status.setJointStatuses(new JointStatusesType());
+        status.setSensorStatuses(new SensorStatusesType());
+        status.setSettingsStatus( new SettingsStatusType());
+        status.setGuardsStatuses(new GuardsStatusesType());
+        return status;
     }
 
     /**

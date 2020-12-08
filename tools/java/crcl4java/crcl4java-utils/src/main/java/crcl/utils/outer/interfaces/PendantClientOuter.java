@@ -101,5 +101,9 @@ public interface PendantClientOuter {
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log);
     
     public void showPaused(boolean paused);
+    
+    public void showLastGetStatusCommandString(String string);
+    public void showLastStopCommandString(String string);
+    public void showLastOtherCommandString(String string);
 
 }

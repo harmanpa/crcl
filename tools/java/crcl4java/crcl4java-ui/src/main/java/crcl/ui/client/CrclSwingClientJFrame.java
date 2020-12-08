@@ -80,7 +80,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         return pendantClientJPanel1;
     }
 
-    
     @SuppressWarnings("initialization")
     public CrclSwingClientJFrame(String title) throws ParserConfigurationException {
         super(title);
@@ -946,7 +945,6 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
 //    public boolean replaceStateSelected() {
 //        return jCheckBoxMenuItemReplaceState.isSelected();
 //    }
-
     @Override
     public boolean isDebugWaitForDoneSelected() {
         return jCheckBoxMenuItemDebugWaitForDone.isSelected();
@@ -1012,5 +1010,20 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
     @Override
     public boolean isRecordTriggerSelected() {
         return jCheckBoxMenuItemRecordTriggers.isSelected();
+    }
+
+    @Override
+    public void showLastGetStatusCommandString(String string) {
+        pendantClientJPanel1.showLastGetStatusCommandString(string);
+    }
+
+    @Override
+    public void showLastStopCommandString(String string) {
+        pendantClientJPanel1.showLastStopCommandString(string);
+    }
+
+    @Override
+    public void showLastOtherCommandString(String string) {
+        pendantClientJPanel1.showLastOtherCommandString(string);
     }
 }

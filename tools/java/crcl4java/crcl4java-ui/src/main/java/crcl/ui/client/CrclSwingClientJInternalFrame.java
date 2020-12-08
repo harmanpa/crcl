@@ -71,7 +71,8 @@ import rcs.posemath.PmCartesian;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
+public class CrclSwingClientJInternalFrame
+        extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     /**
      * Creates new form PendantClientJInternalFrame
@@ -1343,5 +1344,20 @@ public class CrclSwingClientJInternalFrame extends javax.swing.JInternalFrame im
         } else if (!paused && oldTitle.startsWith("paused ")) {
             setTitle(oldTitle.substring("paused ".length()));
         }
+    }
+
+    @Override
+    public void showLastGetStatusCommandString(String string) {
+        pendantClientJPanel1.showLastGetStatusCommandString(string);
+    }
+
+    @Override
+    public void showLastStopCommandString(String string) {
+        pendantClientJPanel1.showLastStopCommandString(string);
+    }
+
+    @Override
+    public void showLastOtherCommandString(String string) {
+        pendantClientJPanel1.showLastOtherCommandString(string);
     }
 }
