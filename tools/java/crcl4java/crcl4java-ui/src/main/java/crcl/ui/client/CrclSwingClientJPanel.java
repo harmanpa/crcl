@@ -1274,7 +1274,9 @@ public class CrclSwingClientJPanel
     @Override
     public PoseType currentStatusPose() {
         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
-        return requireNonNull(CRCLPosemath.getNullablePose(status), "CRCLPosemath.getNullablePose(status)");
+        PoseStatusType poseStatus = requireNonNull(status.getPoseStatus(),"status.getPoseStatus()");
+        PoseType pose = requireNonNull(poseStatus.getPose(),"poseStatus.getPose()");
+        return pose;
     }
 
     public Optional<CRCLStatusType> currentStatus() {

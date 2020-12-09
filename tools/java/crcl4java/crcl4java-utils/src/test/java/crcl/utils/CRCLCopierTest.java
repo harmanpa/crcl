@@ -37,9 +37,8 @@ import crcl.base.PoseType;
 import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
-import static crcl.utils.CRCLCopier.copy;
-import static crcl.utils.CRCLUtils.readProgramFile;
-import static crcl.utils.CRCLUtils.readStatusFile;
+import crcl.utils.CRCLCopier;
+import crcl.utils.CRCLUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -697,7 +696,7 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_CRCLProgramType() {
-        System.out.println("copy(CRCLProgramType)");
+        System.out.println("CRCLCopier.copy(CRCLProgramType)");
 
         // Create a program with one MoveTo command.
         CRCLProgramType programIn = new CRCLProgramType();
@@ -705,7 +704,7 @@ public class CRCLCopierTest {
         moveCmd.setEndPosition(pose123);
         programIn.getMiddleCommand().add(moveCmd);
 
-        CRCLProgramType result = copy(programIn);
+        CRCLProgramType result = CRCLCopier.copy(programIn);
 
         assertEquals(result.getMiddleCommand().size(), programIn.getMiddleCommand().size());
         MoveToType transformedMoveCmd = (MoveToType) result.getMiddleCommand().get(0);
@@ -722,10 +721,10 @@ public class CRCLCopierTest {
                 try (PrintWriter pw = new PrintWriter(randomProgramFile)) {
                     pw.println(randProgramString);
                 }
-                CRCLProgramType readBackRandProgram = readProgramFile(randomProgramFile);
+                CRCLProgramType readBackRandProgram = CRCLUtils.readProgramFile(randomProgramFile);
                 reflectiveCheckEquals("readBackRandProgram", randProgram, readBackRandProgram, 0);
 //            System.out.println("randProgramString = " + randProgramString);
-                CRCLProgramType randProgramCopy = copy(randProgram);
+                CRCLProgramType randProgramCopy = CRCLCopier.copy(randProgram);
                 reflectiveCheckEquals("randProgramCopy", randProgram, randProgramCopy, 0);
             } catch (Exception exception) {
                 System.out.println("randomProgramFile = " + randomProgramFile);
@@ -754,10 +753,10 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_VectorType() {
-        System.out.println("copy(VectorType)");
+        System.out.println("CRCLCopier.copy(VectorType)");
         VectorType vec = xvec;
         VectorType expResult = xvec;
-        VectorType result = copy(vec);
+        VectorType result = CRCLCopier.copy(vec);
         checkEquals("vector", result, expResult);
         assertTrue(result != vec);
     }
@@ -767,10 +766,10 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_PoseType() {
-        System.out.println("copy(PoseType)");
+        System.out.println("CRCLCopier.copy(PoseType)");
         PoseType pose = pose321rot90;
         PoseType expResult = pose321rot90;
-        PoseType result = copy(pose);
+        PoseType result = CRCLCopier.copy(pose);
         checkEquals("pose", result, expResult);
         assertTrue(result != pose);
         assertTrue(result.getPoint() != pose.getPoint());
@@ -783,7 +782,7 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_CRCLStatusType() {
-        System.out.println("copy(CRCLStatusType)");
+        System.out.println("CRCLCopier.copy(CRCLStatusType)");
         CRCLStatusType status = new CRCLStatusType();
         CommandStatusType commandStatus = new CommandStatusType();
         commandStatus.setCommandID(233);
@@ -799,7 +798,7 @@ public class CRCLCopierTest {
         jointStatuses.getJointStatus().add(js1);
         status.setJointStatuses(jointStatuses);
         CRCLStatusType expResult = status;
-        CRCLStatusType result = copy(status);
+        CRCLStatusType result = CRCLCopier.copy(status);
 
         checkEquals("pose", result.getPoseStatus().getPose(), expResult.getPoseStatus().getPose());
         assertTrue(result != status);
@@ -819,10 +818,10 @@ public class CRCLCopierTest {
                 try (PrintWriter pw = new PrintWriter(randomStatusFile)) {
                     pw.println(randStatusString);
                 }
-                CRCLStatusType readBackRandStatus = readStatusFile(randomStatusFile);
+                CRCLStatusType readBackRandStatus = CRCLUtils.readStatusFile(randomStatusFile);
                 reflectiveCheckEquals("readBackRandStatus", randStatus, readBackRandStatus, 0);
 //            System.out.println("randStatusString = \n" + randStatusString);
-                CRCLStatusType randStatusCopy = copy(randStatus);
+                CRCLStatusType randStatusCopy = CRCLCopier.copy(randStatus);
                 reflectiveCheckEquals("randStatus", randStatus, randStatusCopy, 0);
             } catch (Exception exception) {
                 System.err.println("randomStatusFile = " + randomStatusFile);
@@ -839,11 +838,11 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_GripperStatusType() {
-        System.out.println("copy(GripperStatusType)");
+        System.out.println("CRCLCopier.copy(GripperStatusType)");
         ParallelGripperStatusType status = new ParallelGripperStatusType();
         status.setSeparation(DOUBLE_1);
 //        GripperStatusType expResult = status;
-        GripperStatusType result = copy(status);
+        GripperStatusType result = CRCLCopier.copy(status);
         checkEquals("seperation", ((ParallelGripperStatusType) result).getSeparation(),
                 status.getSeparation());
         assertTrue(result != status);
@@ -854,11 +853,11 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_PoseStatusType() {
-        System.out.println("copy(PoseStatusType)");
+        System.out.println("CRCLCopier.copy(PoseStatusType)");
         PoseStatusType status = new PoseStatusType();
         status.setPose(pose123);
         PoseStatusType expResult = status;
-        PoseStatusType result = copy(status);
+        PoseStatusType result = CRCLCopier.copy(status);
         checkEquals("pose", result.getPose(), expResult.getPose());
         assertTrue(result != status);
         assertTrue(result.getPose() != status.getPose());
@@ -869,12 +868,12 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_TwistType() {
-        System.out.println("copy(TwistType)");
+        System.out.println("CRCLCopier.copy(TwistType)");
         TwistType twist = new TwistType();
         twist.setAngularVelocity(xvec);
         twist.setLinearVelocity(zvec);
         TwistType expResult = twist;
-        TwistType result = copy(twist);
+        TwistType result = CRCLCopier.copy(twist);
         checkEquals("angularVelocity", result.getAngularVelocity(), expResult.getAngularVelocity());
         checkEquals("linearVelocity", result.getLinearVelocity(), expResult.getLinearVelocity());
         assertTrue(result != twist);
@@ -888,12 +887,12 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_WrenchType() {
-        System.out.println("copy(WrenchType)");
+        System.out.println("CRCLCopier.copy(WrenchType)");
         WrenchType wrench = new WrenchType();
         wrench.setForce(yvec);
         wrench.setMoment(xvec);
         WrenchType expResult = wrench;
-        WrenchType result = copy(wrench);
+        WrenchType result = CRCLCopier.copy(wrench);
         checkEquals("force", result.getForce(), expResult.getForce());
         checkEquals("moment", result.getMoment(), expResult.getMoment());
         assertTrue(result != wrench);
@@ -906,14 +905,14 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_JointStatusesType() {
-        System.out.println("copy(JointStatusesType)");
+        System.out.println("CRCLCopier.copy(JointStatusesType)");
         JointStatusesType status = new JointStatusesType();
         JointStatusType js1 = new JointStatusType();
         js1.setJointNumber(1);
         js1.setJointPosition(DOUBLE_1);
         status.getJointStatus().add(js1);
         JointStatusesType expResult = status;
-        JointStatusesType result = copy(status);
+        JointStatusesType result = CRCLCopier.copy(status);
         checkEquals("jointPosition", result.getJointStatus().get(0).getJointPosition(),
                 expResult.getJointStatus().get(0).getJointPosition());
         assertTrue(result != status);
@@ -928,14 +927,14 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_JointStatusType() {
-        System.out.println("copy(JointStatusType)");
+        System.out.println("CRCLCopier.copy(JointStatusType)");
         JointStatusType status = new JointStatusType();
         status.setJointNumber(1);
         status.setJointPosition(DOUBLE_1);
         status.setJointTorqueOrForce(DOUBLE_2);
         status.setJointVelocity(DOUBLE_3);
         JointStatusType expResult = status;
-        JointStatusType result = copy(status);
+        JointStatusType result = CRCLCopier.copy(status);
         checkEquals("Position", result.getJointPosition(), expResult.getJointPosition());
         checkEquals("TorqueOrForce", result.getJointTorqueOrForce(), expResult.getJointTorqueOrForce());
         checkEquals("Velocity", result.getJointVelocity(), expResult.getJointVelocity());
@@ -947,13 +946,13 @@ public class CRCLCopierTest {
      */
     @Test
     public void testCopy_CommandStatusType() {
-        System.out.println("copy(CommandStatusType)");
+        System.out.println("CRCLCopier.copy(CommandStatusType)");
         CommandStatusType status = new CommandStatusType();
         status.setCommandID(1);
         status.setCommandState(CommandStateEnumType.CRCL_DONE);
         status.setStatusID(1);
         CommandStatusType expResult = status;
-        CommandStatusType result = copy(status);
+        CommandStatusType result = CRCLCopier.copy(status);
         assertEquals(expResult.getCommandID(), result.getCommandID());
         assertEquals(expResult.getStatusID(), result.getStatusID());
         assertEquals(expResult.getCommandState(), result.getCommandState());

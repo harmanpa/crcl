@@ -60,7 +60,7 @@ public class IconImages {
 
         private static BufferedImage getDefaultRobotImage() {
             try {
-                URL robotImageUrl = ClassLoader.getSystemResource("robot.png");
+                URL robotImageUrl = IconImages.class.getResource("robot.png");
                 if (null != robotImageUrl) {
                     BufferedImage bi = ImageIO.read(robotImageUrl);
 //                    for (int x = 0; x < bi.getWidth(); x++) {

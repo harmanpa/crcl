@@ -1266,6 +1266,7 @@ public class CRCLPosemath {
         status.setSensorStatuses(new SensorStatusesType());
         status.setSettingsStatus( new SettingsStatusType());
         status.setGuardsStatuses(new GuardsStatusesType());
+        CRCLPosemath.setPose(status, CRCLPosemath.identityPose());
         return status;
     }
 

@@ -1127,7 +1127,7 @@ public class CrclSwingClientInner {
         }
         String str
                 = cs.programToPrettyString(programToSave, validateXmlSchema);
-        try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println(str);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1304,11 +1304,11 @@ public class CrclSwingClientInner {
                 }
             }
             if (cmdIsGetStatus) {
-                outer.showLastGetStatusCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
+                outer.showLastGetStatusCommandString(crclSocketForSend.getLastCommandString() + "\n" + new Date());
             } else if (cmdIsStop) {
-                outer.showLastStopCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
+                outer.showLastStopCommandString(crclSocketForSend.getLastCommandString() + "\n" + new Date());
             } else {
-                outer.showLastOtherCommandString(crclSocketForSend.getLastCommandString()+"\n"+new Date());
+                outer.showLastOtherCommandString(crclSocketForSend.getLastCommandString() + "\n" + new Date());
             }
             lastCommandIdSent = id;
             return true;
@@ -2085,7 +2085,7 @@ public class CrclSwingClientInner {
                         .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
-        try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
+        try ( PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
             String headers = "time,relTime,cmdIdFromStatus,lastSentCmdId,State,cmdName,x,y,z,roll,pitch,yaw,"
                     + (havePos ? jointIds.stream().map((x) -> "Joint" + x + "Pos").collect(Collectors.joining(",")) : "")
                     + (haveVel ? "," + jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
@@ -2425,7 +2425,7 @@ public class CrclSwingClientInner {
             boolean headerAtStart,
             String headers[],
             int headerRepeat) throws IOException {
-        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             int i = 0;
             if (headerAtStart && null != headers && headers.length > 0) {
                 printer.printRecord((Object[]) headers);
@@ -2618,7 +2618,7 @@ public class CrclSwingClientInner {
                             File triggerLogFile = new File(System.getProperty("user.home"), "trigger_log.csv");
                             System.out.println("triggerLogFile = " + triggerLogFile);
                             boolean alreadyExists = triggerLogFile.exists();
-                            try (PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
+                            try ( PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
                                 if (!alreadyExists) {
                                     pw.println("time_ms,date,count,x,y,z,closeX,closeY,closeZ,diffCloseX,diffCloseY,diffCloseZ");
                                 }
@@ -3894,7 +3894,7 @@ public class CrclSwingClientInner {
     }
 
     public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
-        try (CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
+        try ( CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
             printer.printRecord("time", "dist", "result", "id", "cmdString");
             for (ProgramRunData prd : list) {
                 if (null != prd) {
@@ -4253,7 +4253,7 @@ public class CrclSwingClientInner {
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
                 String s = statusToPrettyString();
                 System.err.println("status = " + s);
-                try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                try ( FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {
@@ -5953,7 +5953,7 @@ public class CrclSwingClientInner {
     public void saveStatusAs(File f) {
         try {
             String s = statusToPrettyString();
-            try (FileWriter fw = new FileWriter(f)) {
+            try ( FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
         } catch (Exception ex) {

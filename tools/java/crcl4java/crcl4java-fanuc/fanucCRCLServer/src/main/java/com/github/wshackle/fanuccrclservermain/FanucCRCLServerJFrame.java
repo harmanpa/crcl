@@ -142,20 +142,20 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
         return bi;
     }
 
-    public static Image getRobotImage() {
-        final Image img;
-        try {
-            final URL systemResourceRobotImageUrl = Objects.requireNonNull(ClassLoader.getSystemResource("robot.png"),"ClassLoader.getSystemResource(\"robot.png\")");
-            img = ImageIO.read(systemResourceRobotImageUrl);
-        } catch (IOException ex) {
-            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }
-        return img;
-    }
+//    public static Image getRobotImage() {
+//        final Image img;
+//        try {
+//            final URL systemResourceRobotImageUrl = Objects.requireNonNull(ClassLoader.getSystemResource("robot.png"),"ClassLoader.getSystemResource(\"robot.png\")");
+//            img = ImageIO.read(systemResourceRobotImageUrl);
+//        } catch (IOException ex) {
+//            Logger.getLogger(FanucCRCLServerJFrame.class.getName()).log(Level.SEVERE, null, ex);
+//            throw new RuntimeException(ex);
+//        }
+//        return img;
+//    }
     
     private static final Dimension ICON_SIZE = new Dimension(32, 32);
-    private static final Image BASE_IMAGE = getRobotImage();
+    private static final Image BASE_IMAGE = IconImages.BASE_IMAGE;
     public static final Image SERVER_IMAGE = createImage(ICON_SIZE, Color.MAGENTA, Color.BLACK, BASE_IMAGE);
 
     /**
