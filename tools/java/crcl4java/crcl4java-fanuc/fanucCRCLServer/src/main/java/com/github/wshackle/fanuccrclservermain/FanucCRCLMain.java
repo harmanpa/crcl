@@ -441,7 +441,7 @@ public class FanucCRCLMain {
     private final ThreadLockedHolder<CRCLStatusType> status
             = new ThreadLockedHolder<>("FanucCRCLMain.status", CRCLPosemath.newFullCRCLStatus(), false);
     private final ThreadLockedHolder<CRCLStatusType> serverSocketStatus
-            = new ThreadLockedHolder<>("FanucCRCLMain.serverSocketStatus",  CRCLPosemath.newFullCRCLStatus(), false);
+            = new ThreadLockedHolder<>("FanucCRCLMain.serverSocketStatus", CRCLPosemath.newFullCRCLStatus(), false);
     private volatile @Nullable
     CRCLStatusType lastStatusUpdateCopy = null;
 
@@ -887,7 +887,7 @@ public class FanucCRCLMain {
                     Com4jObject com4jobj_joint_pos = icgp.formats(FRETypeCodeConstants.frJoint);
                     IJoint joint_pos = com4jobj_joint_pos.queryInterface(IJoint.class);
                     last_joint_pos = joint_pos;
-                    if(null == localStatus.getJointStatuses()) {
+                    if (null == localStatus.getJointStatuses()) {
                         localStatus.setJointStatuses(new JointStatusesType());
                     }
                     final JointStatusesType jointStatuses = localStatus.getJointStatuses();
@@ -1885,14 +1885,21 @@ public class FanucCRCLMain {
     }
 
     public synchronized void setStatusErrorDescription(String error) {
-        CRCLStatusType localStatus = this.status.get();
+        System.out.println("");
+        System.out.flush();
+        System.err.println("");
+        System.err.flush();
+        System.err.println("FanucCRCLMain: error=\"" + error + "\"");
+        crclServerSocket.setStateDescription(error);
+        crclServerSocket.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+        CRCLStatusType localStatus = this.lastStatusUpdateCopy;
         if (null != localStatus) {
             if (null == localStatus.getCommandStatus()) {
                 localStatus.setCommandStatus(new CommandStatusType());
                 localStatus.getCommandStatus().setCommandID(1);
             }
 
-            setCommandState(CommandStateEnumType.CRCL_ERROR);
+//            setCommandState(CommandStateEnumType.CRCL_ERROR);
             if (null != connectionError && connectionError.length() > 0 && !error.startsWith(connectionError)) {
                 localStatus.getCommandStatus().setStateDescription(connectionError + " " + error);
             } else {
