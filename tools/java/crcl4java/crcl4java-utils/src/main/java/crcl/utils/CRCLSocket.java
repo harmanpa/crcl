@@ -118,12 +118,6 @@ public class CRCLSocket implements AutoCloseable {
      */
     public static final int DEFAULT_PORT = 64444;
 
-//    static final public UnaryOperator<String> addCRCLToState = new UnaryOperator<String>() {
-//        @Override
-//        public String apply(String t) {
-//            return addCRCLToStatePriv(t);
-//        }
-//    };
     private static class UtilSocketHider {
 
         static final CRCLSocket UTIL_SOCKET = new CRCLSocket();
@@ -159,13 +153,6 @@ public class CRCLSocket implements AutoCloseable {
         return "CRCLSocket(" + ((socket == null) ? "null" : socket.getRemoteSocketAddress() + ")");
     }
 
-//    static final public UnaryOperator<String> removeCRCLFromState = new UnaryOperator<String>() {
-//
-//        @Override
-//        public String apply(String t) {
-//            return removeCRCLFromStatePriv(t);
-//        }
-//    };
     final private static String STATUS_HEADER_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<CRCLStatus\n"
             + "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
@@ -180,25 +167,6 @@ public class CRCLSocket implements AutoCloseable {
             + "  xsi:noNamespaceSchemaLocation=\"../xmlSchemas/CRCLProgramInstance.xsd\">";
     private static boolean DEFAULT_JAXB_FRAGMENT = true;
 
-//    static @Nullable
-//    File commandXsdFile = null;
-//
-//    public static @Nullable
-//    File getCommandXsdFile() {
-//        return commandXsdFile;
-//    }
-//    private static String addCRCLToStatePriv(String in) {
-//        return in.replaceAll("<CommandState>Working</CommandState>", "<CommandState>WORKING</CommandState>")
-//                .replaceAll("<CommandState>Done</CommandState>", "<CommandState>DONE</CommandState>")
-//                .replaceAll("<CommandState>Error</CommandState>", "<CommandState>ERROR</CommandState>")
-//                .replaceAll("<CommandState>Ready</CommandState>", "<CommandState>CRCL_Ready</CommandState>");
-//    }
-//    private static String removeCRCLFromStatePriv(String in) {
-//        return in.replaceAll("<CommandState>WORKING</CommandState>", "<CommandState>Working</CommandState>")
-//                .replaceAll("<CommandState>DONE</CommandState>", "<CommandState>Done</CommandState>")
-//                .replaceAll("<CommandState>ERROR</CommandState>", "<CommandState>Error</CommandState>")
-//                .replaceAll("<CommandState>CRCL_Ready</CommandState>", "<CommandState>Ready</CommandState>");
-//    }
     private @MonotonicNonNull
     SocketChannel socketChannel;
 
