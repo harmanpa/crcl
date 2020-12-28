@@ -30,6 +30,7 @@
         The language called "Canonical Robot Command Language" (CRCL) provides generic command and status definitions that implement the functionality of typical industrial robots without being specific either to the language of a plan that is being executed or to the language used by a robot controller that executes CRCL commands. 
     </description>
     <repositories>
+        <!--
         <repository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -42,6 +43,7 @@
                 <updatePolicy>daily</updatePolicy>
             </snapshots>
         </repository>
+        -->
         <repository>
             <snapshots>
                 <enabled>false</enabled>

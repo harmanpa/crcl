@@ -63,7 +63,6 @@ import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
-import crcl.base.ConfigureStatusReportType;
 import crcl.base.DwellType;
 import crcl.base.EndCanonType;
 
@@ -1465,12 +1464,19 @@ public class FanucCRCLMain {
                     break;
 
                 case EXCEPTION_OCCURRED:
+                    internalStopMotion();
+                    crclServerSocket.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                    final Exception exception = evt.getException();
+                    if (null != exception) {
+                        crclServerSocket.setStateDescription(exception.getMessage());
+                    }
                     break;
 
                 case NEW_CRCL_CLIENT:
                     break;
 
                 case SERVER_CLOSED:
+                    internalStopMotion();
                     break;
 
                 case GUARD_LIMIT_REACHED:

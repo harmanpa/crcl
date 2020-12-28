@@ -38,6 +38,7 @@ import crcl.base.GetStatusType;
 import crcl.base.GuardLimitEnumType;
 import crcl.base.GuardType;
 import crcl.base.GuardsStatusesType;
+import crcl.base.InitCanonType;
 import crcl.base.JointPositionsTolerancesType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
@@ -612,21 +613,37 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private BlockingQueue<CRCLServerSocketEvent<STATE_TYPE>> queue = new LinkedBlockingQueue<>();
 
     public void comleteGuardTrigger() {
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        if (null != localServerSideStatus) {
-            long now = System.currentTimeMillis();
-            long timeDiff = now - this.guardTriggerStartTime;
-            long timeDiffMicros = 1000 * timeDiff;
-            final GuardsStatusesType guardsStatuses = localServerSideStatus.getGuardsStatuses();
-            if (null != guardsStatuses) {
-                guardsStatuses.setTriggerStopTimeMicros(timeDiffMicros);
+        long now = System.currentTimeMillis();
+        long timeDiff = now - this.guardTriggerStartTime;
+        long timeDiffMicros = 1000 * timeDiff;
+        addToUpdateServerSideRunnables(() -> {
+            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+            if (null != localServerSideStatus) {
+                final GuardsStatusesType guardsStatuses = localServerSideStatus.getGuardsStatuses();
+                if (null != guardsStatuses) {
+                    guardsStatuses.setTriggerStopTimeMicros(timeDiffMicros);
+                }
             }
-        }
+        });
+
     }
 
     private void handleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws Exception {
         if (closing) {
             return;
+        }
+        if (event.getEventType() == CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED) {
+            CRCLCommandInstanceType instanceIn = event.getInstance();
+            if (null == instanceIn) {
+                throw new NullPointerException("event.getInstance() ==null : event=" + event);
+            }
+            CRCLCommandType cmd = getNonNullCmd(instanceIn);
+            if (checkCommand(cmd)) {
+                return;
+            }
+        }
+        if (event.getEventType() == CRCLServerSocketEventType.EXCEPTION_OCCURRED || null != event.getException()) {
+            this.lastExceptionCmdId = this.lastCommandEventCommandId;
         }
         if (handleAutomaticEvents(event)) {
             return;
@@ -670,8 +687,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     public void setCommandStateEnum(CommandStateEnumType commandStateEnum) {
-        if (this.commandStateEnum != this.commandStateEnum) {
+        if (this.commandStateEnum != this.commandStateEnum && commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
             setStateDescription("");
+        }
+        if (commandStateEnum == CommandStateEnumType.CRCL_ERROR) {
+            this.lastErrorCmdId = this.lastCommandEventCommandId;
         }
         this.commandStateEnum = commandStateEnum;
         if (null != lastUpdateServerSideStatusCopy && null != lastUpdateServerSideStatusCopy.getCommandStatus()) {
@@ -1087,7 +1107,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             if (!errorOccured) {
                                 if (sensorFound) {
                                     clearStateDescription(commandStatus);
-
+                                    setDoneState();
                                 } else {
                                     commandStatus.setStateDescription(sensorID + " not found.");
                                     commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
@@ -1116,10 +1136,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             if (!errorOccured) {
                                 if (sensorFound) {
                                     clearStateDescription(commandStatus);
-
+                                    setDoneState();
                                 } else {
                                     commandStatus.setStateDescription(sensorID + " not found.");
-
+                                    setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
                                 }
                             }
                             return true;
@@ -1160,19 +1180,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setX(double x) {
         this.x = x;
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        if (null != localServerSideStatus) {
-            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
-            if (null != poseStatus) {
-                PoseType pose = poseStatus.getPose();
-                if (null != pose) {
-                    PointType point = pose.getPoint();
-                    if (null != point) {
-                        point.setX(x);
-                    }
-                }
-            }
-        }
     }
 
     public double getY() {
@@ -1181,22 +1188,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setY(double y) {
         this.y = y;
-        if (null == this.serverSideStatus) {
-            return;
-        }
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        if (null != localServerSideStatus) {
-            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
-            if (null != poseStatus) {
-                PoseType pose = poseStatus.getPose();
-                if (null != pose) {
-                    PointType point = pose.getPoint();
-                    if (null != point) {
-                        point.setY(y);
-                    }
-                }
-            }
-        }
     }
 
     public double getZ() {
@@ -1205,26 +1196,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     public void setZ(double z) {
         this.z = z;
-//        if (checkingGuards) {
-//            System.out.println("z = " + z + ", thread=" + Thread.currentThread());
-//            Thread.dumpStack();
-//        }
-        if (null == this.serverSideStatus) {
-            return;
-        }
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        if (null != localServerSideStatus) {
-            PoseStatusType poseStatus = localServerSideStatus.getPoseStatus();
-            if (null != poseStatus) {
-                PoseType pose = poseStatus.getPose();
-                if (null != pose) {
-                    PointType point = pose.getPoint();
-                    if (null != point) {
-                        point.setZ(z);
-                    }
-                }
-            }
-        }
     }
 
     @SuppressWarnings({"nullness"})
@@ -1361,24 +1332,31 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         final List<OnOffSensorStatusType> onOffSensorStatusList;
         final List<ScalarSensorStatusType> scalarSensorStatusList;
         final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList;
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        synchronized (localServerSideStatus) {
-            if (null == localServerSideStatus.getSensorStatuses()) {
-                localServerSideStatus.setSensorStatuses(new SensorStatusesType());
+        final CRCLStatusType localStatus = this.lastUpdateServerSideStatusCopy;
+        if (null != localStatus) {
+            synchronized (localStatus) {
+                final SensorStatusesType sensorStatusesIn = localStatus.getSensorStatuses();
+                if (null != sensorStatusesIn) {
+                    countSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getCountSensorStatus());
+                    onOffSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getOnOffSensorStatus());
+                    scalarSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getScalarSensorStatus());
+                    forceTorqueSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getForceTorqueSensorStatus());
+                } else {
+                    countSensorStatusList = new ArrayList<>();
+                    onOffSensorStatusList = new ArrayList<>();
+                    scalarSensorStatusList = new ArrayList<>();
+                    forceTorqueSensorStatusList = new ArrayList<>();
+                }
             }
-            final SensorStatusesType sensorStatusesIn = localServerSideStatus.getSensorStatuses();
-            if (null != sensorStatusesIn) {
-                countSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getCountSensorStatus());
-                onOffSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getOnOffSensorStatus());
-                scalarSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getScalarSensorStatus());
-                forceTorqueSensorStatusList = CRCLUtils.getNonNullFilteredList(sensorStatusesIn.getForceTorqueSensorStatus());
-            } else {
-                return;
-            }
+        } else {
+            countSensorStatusList = new ArrayList<>();
+            onOffSensorStatusList = new ArrayList<>();
+            scalarSensorStatusList = new ArrayList<>();
+            forceTorqueSensorStatusList = new ArrayList<>();
         }
         List<SensorStatusType> newSensorStats = new ArrayList<>();
         for (SensorServerInterface sensorServer : sensorServers.values()) {
-            setZNanOnAtiForceSensor(sensorServer);
+//            setZNanOnAtiForceSensor(sensorServer);
             SensorStatusType sensorStat = sensorServer.getCurrentSensorStatus();
             if (null != sensorStat) {
                 newSensorStats.add(sensorStat);
@@ -1390,52 +1368,52 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         boolean forceTorqueStatusListModified = updateForceTorqueList(newSensorStats, forceTorqueSensorStatusList);
         boolean modified = onOffStatusListModified || countStatusListModified || scalarStatusListModified || forceTorqueStatusListModified;
         if (modified) {
-            synchronized (localServerSideStatus) {
-                final SensorStatusesType sensorStatusesOut = localServerSideStatus.getSensorStatuses();
-                completeCheckSensorServersInternal(sensorStatusesOut, onOffStatusListModified, onOffSensorStatusList, countStatusListModified, countSensorStatusList, scalarStatusListModified, scalarSensorStatusList, forceTorqueStatusListModified, forceTorqueSensorStatusList);
-            }
+            updateServerSideStatusRunnables.add(() -> {
+                final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+                synchronized (localServerSideStatus) {
+                    if (null == localServerSideStatus.getSensorStatuses()) {
+                        localServerSideStatus.setSensorStatuses(new SensorStatusesType());
+                    }
+                    final SensorStatusesType sensorStatusesOut = localServerSideStatus.getSensorStatuses();
+                    completeCheckSensorServersInternal(sensorStatusesOut, onOffStatusListModified, onOffSensorStatusList, countStatusListModified, countSensorStatusList, scalarStatusListModified, scalarSensorStatusList, forceTorqueStatusListModified, forceTorqueSensorStatusList);
+                }
+            });
         }
         lastCheckSensorServersInternalTime = System.currentTimeMillis();
     }
 
-    private void setZOnAtiForceSensor(SensorServerInterface sensorServer) {
-        try {
-            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-            if (sensorServer.getClass().getSimpleName().equals("ATIForceTorqueSensorServer")
-                    && localServerSideStatus != null
-                    && localServerSideStatus.getPoseStatus() != null
-                    && localServerSideStatus.getPoseStatus().getPose() != null
-                    && localServerSideStatus.getPoseStatus().getPose().getPoint() != null) {
-                Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
-                if (null != setZMethod) {
-                    if (guardCheckUpdatePositionOnlyRunnable != null) {
-                        guardCheckUpdatePositionOnlyRunnable.run();
-                    }
-                    setZMethod.invoke(sensorServer, localServerSideStatus.getPoseStatus().getPose().getPoint().getZ());
-                }
-//                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
-//                aTIForceTorqueSensorServer.setZ(serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
-            }
-        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void setZNanOnAtiForceSensor(SensorServerInterface sensorServer) {
-        try {
-            if (sensorServer.getClass().getSimpleName().equals("ATIForceTorqueSensorServer")) {
-                Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
-                if (null != setZMethod) {
-                    setZMethod.invoke(sensorServer, Double.NaN);
-                }
-//                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
-//                aTIForceTorqueSensorServer.setZ(serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
-            }
-        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            ex.printStackTrace();
-        }
-    }
-
+//    private void setZOnAtiForceSensor(SensorServerInterface sensorServer) {
+//        try {
+//            if (sensorServer.getClass().getSimpleName().equals("ATIForceTorqueSensorServer")) {
+//                Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
+//                if (null != setZMethod) {
+//                    if (guardCheckUpdatePositionOnlyRunnable != null) {
+//                        guardCheckUpdatePositionOnlyRunnable.run();
+//                    }
+//                    setZMethod.invoke(sensorServer, this.z);
+//                }
+////                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
+////                aTIForceTorqueSensorServer.setZ(serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
+//            }
+//        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+//            ex.printStackTrace();
+//        }
+//    }
+//
+//    private void setZNanOnAtiForceSensor(SensorServerInterface sensorServer) {
+//        try {
+//            if (sensorServer.getClass().getSimpleName().equals("ATIForceTorqueSensorServer")) {
+//                Method setZMethod = sensorServer.getClass().getMethod("setZ", double.class);
+//                if (null != setZMethod) {
+//                    setZMethod.invoke(sensorServer, Double.NaN);
+//                }
+////                ATIForceTorqueSensorServer aTIForceTorqueSensorServer = (ATIForceTorqueSensorServer) sensorServer;
+////                aTIForceTorqueSensorServer.setZ(serverSideStatus.getPoseStatus().getPose().getPoint().getZ());
+//            }
+//        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+//            ex.printStackTrace();
+//        }
+//    }
     @SuppressWarnings({"nullness", "initialization"})
     private void completeCheckSensorServersInternal(final SensorStatusesType sensorStatuses, boolean onOffStatusListModified, final List<OnOffSensorStatusType> onOffSensorStatusList, boolean countStatusListModified, final List<CountSensorStatusType> countSensorStatusList, boolean scalarStatusListModified, final List<ScalarSensorStatusType> scalarSensorStatusList, boolean forceTorqueStatusListModified, final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList) {
         final List<OnOffSensorStatusType> onOffSensorStatus = sensorStatuses.getOnOffSensorStatus();
@@ -1572,6 +1550,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return newCommandInstance;
     }
 
+    private volatile long lastExceptionCmdId = -1;
+    private volatile long lastErrorCmdId = -1;
+    private volatile boolean initialized = false;
+    private volatile long lastCommandEventCommandId = -1;
+
     private void completeHandleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws InterruptedException {
         if (event.getEventType() == CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED) {
             CRCLCommandInstanceType instanceIn = event.getInstance();
@@ -1583,6 +1566,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 throw new NullPointerException("event.getState() ==null : event=" + event);
             }
             CRCLCommandType cmd = getNonNullCmd(instanceIn);
+            if (checkCommand(cmd)) {
+                return;
+            }
             final List<GuardType> cmdGuardList = getNonNullFilteredList(cmd.getGuard());
             if (null != cmdGuardList && !cmdGuardList.isEmpty()) {
                 startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
@@ -1630,30 +1616,59 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             throw new InterruptedException("Closing socket due to " + exception);
         } else if (null != exception) {
-            addToUpdateServerSideRunnables(() -> {
-                this.setErrorStateDescriptionFromException(exception);
-            });
+            setStateDescription(exception.getMessage());
+            setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
         }
         return;
+    }
+
+    private boolean checkCommand(CRCLCommandType cmd) {
+        if (cmd instanceof GetStatusType) {
+            return false;
+        }
+        this.lastCommandEventCommandId = cmd.getCommandID();
+        if (cmd.getCommandID() == lastErrorCmdId) {
+            if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
+                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                setStateDescription("Command with same id as last error " + CRCLSocket.cmdToString(cmd) + " received.");
+            }
+            return true;
+        }
+        if (cmd.getCommandID() == lastExceptionCmdId) {
+            if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
+                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                setStateDescription("Command with same id as last exception " + CRCLSocket.cmdToString(cmd) + " received.");
+            }
+            return true;
+        }
+        if (cmd instanceof InitCanonType) {
+            initialized = true;
+        } else if (!initialized) {
+            if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
+                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                setStateDescription("Not initialed when cmd=" + CRCLSocket.cmdToString(cmd) + " received.");
+            }
+            return true;
+        }
+        return false;
     }
 
     public void addToUpdateServerSideRunnables(Runnable r) {
         updateServerSideStatusRunnables.add(r);
     }
 
-    private void setErrorStateDescriptionFromException(final Exception exception) {
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        if (null != localServerSideStatus) {
-            final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
-            if (null != commandStatus && commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
-                commandStatus.setStateDescription(exception.getLocalizedMessage());
-                setStateDescription(exception.getLocalizedMessage());
-            }
-        }
-    }
-
+//    private void setErrorStateDescriptionFromException(final Exception exception) {
+//        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+//        if (null != localServerSideStatus) {
+//            final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
+//            if (null != commandStatus && commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
+//                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+//                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+//                commandStatus.setStateDescription(exception.getLocalizedMessage());
+//                setStateDescription(exception.getLocalizedMessage());
+//            }
+//        }
+//    }
     public CRCLServerSocketEvent waitForEvent() throws InterruptedException {
         if (!started && !isRunning()) {
             throw new IllegalStateException("CRCLServerSocket must be running/started before call to waitForEvent.");
@@ -2159,9 +2174,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private void setupNewClientState(STATE_TYPE state) {
         if (null != updateStatusSupplier) {
             XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
-            supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> completeSetupNewClientState(state,suppliedStatus));
+            supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> completeSetupNewClientState(state, suppliedStatus));
         } else {
-            completeSetupNewClientState(state,lastUpdateServerSideStatusCopy);
+            completeSetupNewClientState(state, lastUpdateServerSideStatusCopy);
         }
     }
 
@@ -2432,12 +2447,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (sensorServer == null) {
             return null;
         }
-        setZOnAtiForceSensor(sensorServer);
+//        setZOnAtiForceSensor(sensorServer);
         return sensorServer.getCurrentSensorStatus();
     }
 
     private boolean checkGuardsOnce(
-            CRCLStatusType crclLocalStatus,
             List<GuardType> guards,
             STATE_TYPE guard_client_state,
             long cmdID,
@@ -2445,14 +2459,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             Map<String, Double> guardInitialValues,
             int count,
             long time) throws Exception {
-        final CommandStatusType localCommandStatus = crclLocalStatus.getCommandStatus();
-        if (null == localCommandStatus) {
+        if (lastRecievedCommandID != cmdID) {
             return false;
         }
-        if (localCommandStatus.getCommandID() != cmdID) {
-            return false;
-        }
-        if (localCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+        if (commandStateEnum != CommandStateEnumType.CRCL_WORKING) {
             return false;
         }
         Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
@@ -2460,13 +2470,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             if (isClosed()) {
                 return false;
             }
-            if (crclLocalStatus.getCommandStatus() != localCommandStatus) {
+            if (lastRecievedCommandID != cmdID) {
                 return false;
             }
-            if (localCommandStatus.getCommandID() != cmdID) {
-                return false;
-            }
-            if (localCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+            if (commandStateEnum != CommandStateEnumType.CRCL_WORKING) {
                 return false;
             }
             boolean sensorStatMapWasEmpty = sensorStatMap.isEmpty();
@@ -2476,7 +2483,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final String guardMapId = guardMapId(guard);
             final GuardLimitEnumType guarLimitType = Objects.requireNonNull(guard.getLimitType());
             final double limitValue = guard.getLimitValue();
-            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
             switch (guarLimitType) {
                 case OVER_MAX:
                     if (value > limitValue) {
@@ -2496,18 +2502,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
                     }
                     double diff = initialValue - value;
-                    final PointType point;
-                    if (null != localServerSideStatus
-                            && null != localServerSideStatus.getPoseStatus()
-                            && null != localServerSideStatus.getPoseStatus().getPose()
-                            && null != localServerSideStatus.getPoseStatus().getPose().getPoint()) {
-                        point = localServerSideStatus.getPoseStatus().getPose().getPoint();
-                    } else {
-                        point = new PointType();
-                    }
-                    double x = point.getX();
-                    double y = point.getY();
-                    double z = point.getZ();
                     long readValueTime = t1 - t0;
                     System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
                     if (diff > limitValue) {
@@ -2522,18 +2516,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
                     }
                     double diff = value - initialValue;
-                    final PointType point;
-                    if (null != localServerSideStatus
-                            && null != localServerSideStatus.getPoseStatus()
-                            && null != localServerSideStatus.getPoseStatus().getPose()
-                            && null != localServerSideStatus.getPoseStatus().getPose().getPoint()) {
-                        point = localServerSideStatus.getPoseStatus().getPose().getPoint();
-                    } else {
-                        point = new PointType();
-                    }
-                    double x = point.getX();
-                    double y = point.getY();
-                    double z = point.getZ();
                     long readValueTime = t1 - t0;
                     System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
                     System.out.println("limitValue = " + limitValue);
@@ -2554,33 +2536,46 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        final GuardsStatusesType initialGuardsStatuses = localServerSideStatus.getGuardsStatuses();
-        final GuardsStatusesType guardsStatuses;
-        if (null == initialGuardsStatuses) {
-            final GuardsStatusesType newGuardsStatusesType = new GuardsStatusesType();
-            localServerSideStatus.setGuardsStatuses(newGuardsStatusesType);
-            guardsStatuses = newGuardsStatusesType;
-        } else {
-            guardsStatuses = initialGuardsStatuses;
-        }
         if (guard.getLastCheckTime() > 0) {
             guardTriggerStartTime = guard.getLastCheckTime();
         } else {
             guardTriggerStartTime = System.currentTimeMillis();
         }
-        guardsStatuses.setTriggerCount(guardsStatuses.getTriggerCount() + 1);
-        guardsStatuses.setTriggerValue(value);
-        if (null != localServerSideStatus.getPoseStatus()) {
-            final PoseType serverSidePose = CRCLPosemath.getNullablePose(localServerSideStatus);
-            if (null != serverSidePose) {
-                final PoseType serverSidePoseCopy = copy(serverSidePose);
-                if (null == serverSidePoseCopy) {
-                    throw new NullPointerException("serverSidePoseCopy");
-                }
-                guardsStatuses.setTriggerPose(serverSidePoseCopy);
+        double triggerX = x;
+        double triggerY = y;
+        double triggerZ = z;
+
+        addToUpdateServerSideRunnables(() -> {
+            final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+            final GuardsStatusesType initialGuardsStatuses = localServerSideStatus.getGuardsStatuses();
+            final GuardsStatusesType guardsStatuses;
+            if (null == initialGuardsStatuses) {
+                final GuardsStatusesType newGuardsStatusesType = new GuardsStatusesType();
+                localServerSideStatus.setGuardsStatuses(newGuardsStatusesType);
+                guardsStatuses = newGuardsStatusesType;
+            } else {
+                guardsStatuses = initialGuardsStatuses;
             }
-        }
+            guardsStatuses.setTriggerCount(guardsStatuses.getTriggerCount() + 1);
+            guardsStatuses.setTriggerValue(value);
+            if (null != localServerSideStatus.getPoseStatus()) {
+                final PoseType serverSidePose = CRCLPosemath.getNullablePose(localServerSideStatus);
+                if (null != serverSidePose) {
+                    final PoseType serverSidePoseCopy = copy(serverSidePose);
+                    if (null == serverSidePoseCopy) {
+                        throw new NullPointerException("serverSidePoseCopy");
+                    }
+                    PointType point = serverSidePoseCopy.getPoint();
+                    if (null != point) {
+                        point.setX(triggerX);
+                        point.setY(triggerY);
+                        point.setZ(triggerZ);
+                    }
+                    guardsStatuses.setTriggerPose(serverSidePoseCopy);
+                }
+            }
+        });
+
         handleEvent(CRCLServerSocketEvent.guardLimitReached(guard_client_state, commandInstance, guard));
         long delayMillis = DEFAULT_GUARDS_CHECK_DELAY_MILLIS;
         Long microsLong = guard.getRecheckTimeMicroSeconds();
@@ -2588,14 +2583,6 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             long micros = microsLong;
             delayMillis = micros / 1000;
         }
-//        for (int i = 0; i < EXTRA_GUARD_SAMPLES; i++) {
-//
-//            double extraValue = getGuardValue(guard, null);
-////            System.out.println("extraValue = " + extraValue + ",i = " + i + ", guardHistory = " + guardHistory);
-//            if (delayMillis > 0) {
-//                Thread.sleep(delayMillis);
-//            }
-//        }
     }
 
     private static String guardMapId(GuardType guard) {
@@ -2616,27 +2603,31 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == stat && null != sensorID) {
             stat = getNewSensorStatus(sensorID);
             if (null != stat) {
-                final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-                if (null != localServerSideStatus) {
-                    synchronized (localServerSideStatus) {
-                        final SensorStatusesType sensorStatuses = localServerSideStatus.getSensorStatuses();
-                        if (null != sensorStatuses) {
-                            if (stat instanceof ForceTorqueSensorStatusType) {
-                                final List<ForceTorqueSensorStatusType> forceTorqueSensorStatus = sensorStatuses.getForceTorqueSensorStatus();
-                                synchronized (forceTorqueSensorStatus) {
-                                    for (int i = 0; i < forceTorqueSensorStatus.size(); i++) {
-                                        ForceTorqueSensorStatusType oldStat = forceTorqueSensorStatus.get(i);
-                                        if (oldStat.getSensorID().equals(stat.getSensorID())) {
-                                            forceTorqueSensorStatus.remove(i);
+                final SensorStatusType statf = stat;
+                addToUpdateServerSideRunnables(() -> {
+                    final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
+                    if (null != localServerSideStatus) {
+                        synchronized (localServerSideStatus) {
+                            final SensorStatusesType sensorStatuses = localServerSideStatus.getSensorStatuses();
+                            if (null != sensorStatuses) {
+                                if (statf instanceof ForceTorqueSensorStatusType) {
+                                    final List<ForceTorqueSensorStatusType> forceTorqueSensorStatus = sensorStatuses.getForceTorqueSensorStatus();
+                                    synchronized (forceTorqueSensorStatus) {
+                                        for (int i = 0; i < forceTorqueSensorStatus.size(); i++) {
+                                            ForceTorqueSensorStatusType oldStat = forceTorqueSensorStatus.get(i);
+                                            if (oldStat.getSensorID().equals(statf.getSensorID())) {
+                                                forceTorqueSensorStatus.remove(i);
+                                            }
                                         }
                                     }
+                                    ForceTorqueSensorStatusType ftStat = (ForceTorqueSensorStatusType) statf;
+                                    forceTorqueSensorStatus.add(ftStat);
                                 }
-                                ForceTorqueSensorStatusType ftStat = (ForceTorqueSensorStatusType) stat;
-                                forceTorqueSensorStatus.add(ftStat);
                             }
                         }
                     }
-                }
+                });
+
                 if (sensorStatMap != null) {
                     sensorStatMap.put(sensorID, stat);
                 }
@@ -2718,32 +2709,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             boolean doneA[] = new boolean[1];
             doneA[0] = false;
             while (!Thread.currentThread().isInterrupted() && !doneA[0]) {
-                if (null != updateStatusSupplier) {
-                    final int countF = count;
-                    XFutureVoid xf
-                            = updateStatusSupplier.get()
-                                    .thenAccept((CRCLStatusType stat) -> {
-                                        try {
-                                            doneA[0] = checkGuardsWithStatus(stat, cmdID, startTime, guards, guard_client_state, commandInstance, guardInitialValues, countF);
-                                        } catch (Throwable t) {
-                                            ta[0] = t;
-                                            throw new RuntimeException(t);
-                                        }
-                                    });
-                    count++;
-                    while (!xf.isDone()) {
-                        if (null != ta[0]) {
-                            throw new RuntimeException(ta[0]);
-                        }
-                        if (delayMillis > 0) {
-                            Thread.sleep(delayMillis);
-                        }
-                    }
-                } else {
-                    final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-                    if (checkGuardsWithStatus(localServerSideStatus, cmdID, startTime, guards, guard_client_state, commandInstance, guardInitialValues, count)) {
-                        break;
-                    }
+                final long timeDiff = System.currentTimeMillis() - startTime;
+                if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
+                    break;
                 }
                 count++;
                 if (delayMillis > 0) {
@@ -2755,38 +2723,36 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    public boolean checkGuardsWithStatus(
-            CRCLStatusType crclLocalStatus,
-            long cmdID,
-            long startTime,
-            List<GuardType> guards,
-            STATE_TYPE guard_client_state,
-            CRCLCommandInstanceType commandInstance,
-            Map<String, Double> guardInitialValues,
-            int count) throws Exception {
-        if (null == crclLocalStatus) {
-            return true;
-        }
-        if (isClosed()) {
-            return true;
-        }
-        final CommandStatusType localCommandStatus = crclLocalStatus.getCommandStatus();
-        if (null == localCommandStatus) {
-            return true;
-        }
-        if (localCommandStatus.getCommandID() != cmdID) {
-            return true;
-        }
-        if (localCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
-            return true;
-        }
-        final long timeDiff = System.currentTimeMillis() - startTime;
-        if (!checkGuardsOnce(crclLocalStatus, guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
-            return true;
-        }
-        return false;
-    }
-
+//    public boolean checkGuardsWithStatus(
+//            long cmdID,
+//            long startTime,
+//            List<GuardType> guards,
+//            STATE_TYPE guard_client_state,
+//            CRCLCommandInstanceType commandInstance,
+//            Map<String, Double> guardInitialValues,
+//            int count) throws Exception {
+//        if (null == crclLocalStatus) {
+//            return true;
+//        }
+//        if (isClosed()) {
+//            return true;
+//        }
+//        final CommandStatusType localCommandStatus = crclLocalStatus.getCommandStatus();
+//        if (null == localCommandStatus) {
+//            return true;
+//        }
+//        if (localCommandStatus.getCommandID() != cmdID) {
+//            return true;
+//        }
+//        if (localCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+//            return true;
+//        }
+//        final long timeDiff = System.currentTimeMillis() - startTime;
+//        if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
+//            return true;
+//        }
+//        return false;
+//    }
     private static final long DEFAULT_GUARDS_CHECK_DELAY_MILLIS = 10;
 
     private Runnable createGuardsCheckerRunnable(final List<GuardType> guards,
@@ -2796,6 +2762,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (null == serverSideStatus) {
             throw new RuntimeException("null == serverSideStatus)");
         }
+        StackTraceElement trace[] = Thread.currentThread().getStackTrace();
         long delayMillis = DEFAULT_GUARDS_CHECK_DELAY_MILLIS;
         for (int i = 0; i < guards.size(); i++) {
             final GuardType guardI = guards.get(i);
@@ -2830,32 +2797,54 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return new Runnable() {
             @Override
             public void run() {
-                try {
-                    checkingGuards = true;
-                    Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
-                    final Map<String, Double> newInitalialValuesMap = new HashMap<>();
-                    for (int i = 0; i < guards.size(); i++) {
-                        final GuardType guardI = guards.get(i);
-                        newInitalialValuesMap.put(guardMapId(guardI), getGuardValue(guardI, sensorStatMap));
-                    }
-                    checkGuardsUntilDone(guards, guard_client_state, cmdID, commandInstance, finalDelayMillis, newInitalialValuesMap);
-                } catch (Exception ex) {
-                    final String errMsg;
-                    if (null != commandInstance) {
-                        final CRCLCommandType crclCommand = commandInstance.getCRCLCommand();
-                        errMsg = "commandInstance=" + CRCLSocket.commandToSimpleString(crclCommand);
-                    } else {
-                        errMsg = "commandInstance=null";
-                    }
-                    Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex);
-                    try {
-                        handleEvent(CRCLServerSocketEvent.exceptionOccured(guard_client_state, ex));
-                    } catch (Exception ex1) {
-                        Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex1);
-                    }
-                }
+                runCheckGuards(finalDelayMillis, trace, guards, guard_client_state, cmdID, commandInstance);
             }
         };
+    }
+
+    private void runCheckGuards(final long finalDelayMillis,
+            StackTraceElement trace[],
+            final List<GuardType> guards,
+            final STATE_TYPE guard_client_state,
+            final long cmdID,
+            final CRCLCommandInstanceType commandInstance) {
+        try {
+            checkingGuards = true;
+            Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
+            final Map<String, Double> newInitalialValuesMap = new HashMap<>();
+            for (int i = 0; i < guards.size(); i++) {
+                final GuardType guardI = guards.get(i);
+                final double guardValue = getGuardValue(guardI, sensorStatMap);
+                final String guardMapId = guardMapId(guardI);
+                newInitalialValuesMap.put(guardMapId, guardValue);
+            }
+            checkGuardsUntilDone(guards, guard_client_state, cmdID, commandInstance, finalDelayMillis, newInitalialValuesMap);
+        } catch (Exception ex) {
+            final String errMsg;
+            if (null != commandInstance) {
+                final CRCLCommandType crclCommand = commandInstance.getCRCLCommand();
+                errMsg = "Failure from CRCLServerSocket.createGuardsCheckerRunnable commandInstance=" + CRCLSocket.commandToSimpleString(crclCommand);
+            } else {
+                errMsg = "Failure from CRCLServerSocket.createGuardsCheckerRunnable commandInstance=null";
+            }
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+            System.out.println("trace = " + XFuture.traceToString(trace));
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+            CRCLServerSocket.this.setStateDescription(ex.getMessage());
+            CRCLServerSocket.this.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+            Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex);
+            try {
+                handleEvent(CRCLServerSocketEvent.exceptionOccured(guard_client_state, ex));
+            } catch (Exception ex1) {
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex1);
+            }
+        }
     }
 
     private void startCheckingGuards(final List<GuardType> guards,

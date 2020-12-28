@@ -95,4 +95,10 @@ public class MpcStatus {
         return statusCount;
     }
 
+    @Override
+    public String toString() {
+        return "MpcStatus{" + "pos=" + pos + ",\n pulseData=" + pulseData + ",\n motTargetReceiveRet=" + motTargetReceiveRet + ",\n modeData=" + modeData + ",\n alarmCodeData=" + alarmCodeData + ",\n alarmStatusData=" + alarmStatusData + ",\n recvId=" + recvId + ",\n statusCount=" + statusCount + ",\n targetPosDiff=" + targetPosDiff + ",\n targetRotDiffMax=" + targetRotDiffMax + '}';
+    }
+
+    
 }

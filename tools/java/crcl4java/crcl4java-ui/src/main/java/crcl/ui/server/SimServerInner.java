@@ -2426,6 +2426,19 @@ public class SimServerInner {
                 }
                 crclServerSocket.comleteGuardTrigger();
                 break;
+
+            case EXCEPTION_OCCURRED:
+                executeStopMotionCmd();
+                crclServerSocket.setCommandStateEnum(CRCL_ERROR);
+                final Exception exception = evt.getException();
+                if (null != exception) {
+                    crclServerSocket.setStateDescription(exception.getMessage());
+                }
+                break;
+
+            case SERVER_CLOSED:
+                executeStopMotionCmd();
+                break;
         }
     }
 

@@ -90,6 +90,7 @@ import static crcl.utils.CRCLPosemath.vectorToPmCartesian;
 import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
+import crcl.utils.InterruptTrackingThread;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.ThreadLockedHolder;
@@ -285,7 +286,7 @@ public class CrclSwingClientInner {
     private final List<CRCLCommandType> recordedCommandsList = new ArrayList<>();
     private long waitForDoneDelay = getLongProperty("PendantClient.waitForDoneDelay", 100);
     private @Nullable
-    Thread readerThread = null;
+    InterruptTrackingThread readerThread = null;
     final private List<AnnotatedPose> poseList = new ArrayList<>();
     final private Queue<AnnotatedPose> poseQueue = new ConcurrentLinkedQueue<>();
     private boolean disconnecting = false;
@@ -1127,7 +1128,7 @@ public class CrclSwingClientInner {
         }
         String str
                 = cs.programToPrettyString(programToSave, validateXmlSchema);
-        try ( PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
             pw.println(str);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -1184,10 +1185,13 @@ public class CrclSwingClientInner {
 //        return sendCommandPrivate(cmd, this.crclSocket);
 //    }
     private volatile @Nullable
-    ConfigureJointReportsType configureJointReportTypeForPollSocket = null;
+    ConfigureJointReportsType configureJointReportForPollSocket = null;
 
     private volatile @Nullable
-    ConfigureStatusReportType configureStatusReportTypeForPollSocket = null;
+    ConfigureStatusReportType configureStatusReportForPollSocket = null;
+
+    private volatile @Nullable
+    ConfigureStatusReportType configureStatusReportDefaultForPollSocket = null;
 
     private volatile @Nullable
     ConfigureJointReportsType configureJointReportTypeForDefaultSocket = null;
@@ -1200,9 +1204,9 @@ public class CrclSwingClientInner {
         try {
             if (crclSocketForSend != this.crclStatusPollingSocket) {
                 if (cmd instanceof ConfigureJointReportsType) {
-                    configureJointReportTypeForPollSocket = (ConfigureJointReportsType) cmd;
+                    configureJointReportForPollSocket = (ConfigureJointReportsType) cmd;
                 } else if (cmd instanceof ConfigureStatusReportType) {
-                    configureStatusReportTypeForPollSocket = (ConfigureStatusReportType) cmd;
+                    configureStatusReportForPollSocket = (ConfigureStatusReportType) cmd;
                 }
             } else {
                 if (cmd instanceof ConfigureJointReportsType) {
@@ -1739,7 +1743,7 @@ public class CrclSwingClientInner {
     private boolean waitForStatus(long timeoutMilliSeconds, long delay, int starting_pause_count, int startRunProgramAbortCount) throws InterruptedException, JAXBException {
         long start = System.currentTimeMillis();
         int cycles = 0;
-        while (null == this.status.get() && !Thread.currentThread().isInterrupted()) {
+        while ((null == status || null == this.status.get()) && !Thread.currentThread().isInterrupted()) {
             if (startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount) {
                 System.out.println("(startRunProgramAbortCount >= 0 && runProgramAbortCount.get() != startRunProgramAbortCount)");
                 return false;
@@ -1830,7 +1834,7 @@ public class CrclSwingClientInner {
                         Thread.dumpStack();
                         System.err.println("");
                         System.err.flush();
-                        System.out.println("ERROR occured but error state description not set");
+                        System.out.println("ERROR occured in waitForDone but error state description not set");
                     }
                     return WaitForDoneResult.WFD_ERROR;
                 }
@@ -1841,12 +1845,20 @@ public class CrclSwingClientInner {
                     if (true) {
                         System.out.println("");
                         System.out.flush();
-                        System.err.println("Current Thread is interrupted : " + Thread.currentThread());
-                        Thread.dumpStack();
-                        System.err.println("interruptStacks = " + interruptStacks);
+                        System.err.println("CrclSwingClientInner.waitForDone: Current Thread is interrupted : " + Thread.currentThread());
                         System.err.println("");
                         System.out.println("");
                         System.out.flush();
+                        System.err.flush();
+                        Thread.dumpStack();
+                        System.out.println("");
+                        System.out.flush();
+                        System.err.flush();
+                        System.err.println("CrclSwingClientInner.waitForDone: interruptStacks = " + interruptStacks);
+                        System.err.println("");
+                        System.out.println("");
+                        System.out.flush();
+                        System.err.flush();
                     }
                     return WaitForDoneResult.WFD_INTERRUPTED;
                 }
@@ -2085,7 +2097,7 @@ public class CrclSwingClientInner {
                         .orElse(false);
 
         final PmRpy rpyZero = new PmRpy();
-        try ( PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(poseFileName))) {
             String headers = "time,relTime,cmdIdFromStatus,lastSentCmdId,State,cmdName,x,y,z,roll,pitch,yaw,"
                     + (havePos ? jointIds.stream().map((x) -> "Joint" + x + "Pos").collect(Collectors.joining(",")) : "")
                     + (haveVel ? "," + jointIds.stream().map((x) -> "Joint" + x + "Vel").collect(Collectors.joining(",")) : "")
@@ -2425,7 +2437,7 @@ public class CrclSwingClientInner {
             boolean headerAtStart,
             String headers[],
             int headerRepeat) throws IOException {
-        try ( CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
+        try (CSVPrinter printer = new CSVPrinter(new PrintStream(new FileOutputStream(f, append)), CSVFormat.DEFAULT)) {
             int i = 0;
             if (headerAtStart && null != headers && headers.length > 0) {
                 printer.printRecord((Object[]) headers);
@@ -2618,7 +2630,7 @@ public class CrclSwingClientInner {
                             File triggerLogFile = new File(System.getProperty("user.home"), "trigger_log.csv");
                             System.out.println("triggerLogFile = " + triggerLogFile);
                             boolean alreadyExists = triggerLogFile.exists();
-                            try ( PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
+                            try (PrintWriter pw = new PrintWriter(new FileWriter(triggerLogFile, true))) {
                                 if (!alreadyExists) {
                                     pw.println("time_ms,date,count,x,y,z,closeX,closeY,closeZ,diffCloseX,diffCloseY,diffCloseZ");
                                 }
@@ -2956,6 +2968,7 @@ public class CrclSwingClientInner {
             this.crclEmergencyStopSocket = newEmergencyStopSocket;
             CRCLSocket newPollingSocket = CRCLSocket.newCRCLSocketForHostPortSchemas(host, port, cmdSchema, statSchema, progSchema);
             this.crclStatusPollingSocket = newPollingSocket;
+            this.resetConfigureStatusReportForPollSocket();
             lastSocketLocalPort = socketLocalPort;
             lastSocketRemotePort = socketRemotePort;
             final Socket socket = requireNonNull(newCrclSocket.getSocket(), "newCrclSocket.getSocket()");
@@ -3072,6 +3085,7 @@ public class CrclSwingClientInner {
 //            System.err.println("crclSocket.getPort() = " + crclSocket.getPort());
                 try {
                     crclStatusPollingSocket.close();
+                    resetConfigureStatusReportForPollSocket();
                     Thread.sleep(waitForDoneDelay);
                 } catch (Exception ex) {
                     if (!preClosing) {
@@ -3089,7 +3103,7 @@ public class CrclSwingClientInner {
     }
 
     public void stopStatusReaderThread() {
-        Thread origReaderThread = this.readerThread;
+        InterruptTrackingThread origReaderThread = this.readerThread;
         if (null != origReaderThread) {
             try {
                 stopStatusReaderFlag = true;
@@ -3894,7 +3908,7 @@ public class CrclSwingClientInner {
     }
 
     public void saveProgramRunDataListToCsv(File f, List<ProgramRunData> list) throws IOException {
-        try ( CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
+        try (CSVPrinter printer = new CSVPrinter(new FileWriter(f), CSVFormat.DEFAULT)) {
             printer.printRecord("time", "dist", "result", "id", "cmdString");
             for (ProgramRunData prd : list) {
                 if (null != prd) {
@@ -4253,7 +4267,7 @@ public class CrclSwingClientInner {
                 System.err.println("tempStatusSaveFile = " + tempStatusSaveFile);
                 String s = statusToPrettyString();
                 System.err.println("status = " + s);
-                try ( FileWriter fw = new FileWriter(tempStatusSaveFile)) {
+                try (FileWriter fw = new FileWriter(tempStatusSaveFile)) {
                     fw.write(s);
                 }
             } catch (Exception ex2) {
@@ -4799,14 +4813,14 @@ public class CrclSwingClientInner {
             Thread.dumpStack();
             System.err.println("");
             System.err.println("WARNING!!! getTimeoutForAcuateJoints can not determine timout without current joint positions.");
-            System.err.println("getTimeoutForAcuateJoints: this.configureJointReportTypeForPollSocket = " + this.configureJointReportTypeForPollSocket);
-            System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket = " + CRCLSocket.commandToSimpleString(this.configureStatusReportTypeForPollSocket));
-            if (null != this.configureStatusReportTypeForPollSocket) {
-                System.out.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket.isReportJointStatuses() = " + this.configureStatusReportTypeForPollSocket.isReportJointStatuses());
+            System.err.println("getTimeoutForAcuateJoints: this.configureJointReportTypeForPollSocket = " + this.configureJointReportForPollSocket);
+            System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket = " + CRCLSocket.commandToSimpleString(this.configureStatusReportForPollSocket));
+            if (null != this.configureStatusReportForPollSocket) {
+                System.out.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForPollSocket.isReportJointStatuses() = " + this.configureStatusReportForPollSocket.isReportJointStatuses());
             }
             System.err.println("getTimeoutForAcuateJoints: this.configureJointReportTypeForDefaultSocket = " + this.configureJointReportTypeForDefaultSocket);
             System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForDefaultSocket = " + CRCLSocket.commandToSimpleString(this.configureStatusReportTypeForDefaultSocket));
-            if (null != this.configureStatusReportTypeForPollSocket) {
+            if (null != this.configureStatusReportForPollSocket) {
                 System.err.println("getTimeoutForAcuateJoints: this.configureStatusReportTypeForDefaultSocket.isReportJointStatuses() = " + this.configureStatusReportTypeForDefaultSocket.isReportJointStatuses());
             }
             System.err.println("");
@@ -5674,7 +5688,7 @@ public class CrclSwingClientInner {
         return new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r, "CRCLSwingClientInner" + serviceCount.incrementAndGet() + ":" + getCrclSocketString());
+                InterruptTrackingThread thread = new InterruptTrackingThread(r, "CRCLSwingClientInner" + serviceCount.incrementAndGet() + ":" + getCrclSocketString());
                 thread.setDaemon(true);
                 return thread;
             }
@@ -5953,7 +5967,7 @@ public class CrclSwingClientInner {
     public void saveStatusAs(File f) {
         try {
             String s = statusToPrettyString();
-            try ( FileWriter fw = new FileWriter(f)) {
+            try (FileWriter fw = new FileWriter(f)) {
                 fw.write(s);
             }
         } catch (Exception ex) {
@@ -5970,13 +5984,14 @@ public class CrclSwingClientInner {
         if (null == crclStatusPollingSocket) {
             throw new RuntimeException("null == crclStatusPollingSocket");
         }
-        if (null != configureJointReportTypeForPollSocket) {
-            this.sendCommandPrivate(configureJointReportTypeForPollSocket, crclStatusPollingSocket);
-            configureJointReportTypeForPollSocket = null;
+        if (null != configureJointReportForPollSocket) {
+            this.sendCommandPrivate(configureJointReportForPollSocket, crclStatusPollingSocket);
+            configureJointReportForPollSocket = null;
         }
-        if (null != configureStatusReportTypeForPollSocket) {
-            this.sendCommandPrivate(configureStatusReportTypeForPollSocket, crclStatusPollingSocket);
-            configureStatusReportTypeForPollSocket = null;
+        if (null != configureStatusReportForPollSocket) {
+            this.sendCommandPrivate(configureStatusReportForPollSocket, crclStatusPollingSocket);
+            this.configureStatusReportDefaultForPollSocket = configureStatusReportForPollSocket;
+            configureStatusReportForPollSocket = null;
         }
         if (isUnpausing()) {
             return XFutureVoid.completedFutureWithName("isUnpausing");
@@ -6038,6 +6053,12 @@ public class CrclSwingClientInner {
     private volatile long firstRequestAndReadTime = -1;
     private volatile long maxReadStatusOnlyTime = 0;
     private volatile long maxRequestAndReadStatusTime = 0;
+
+    public void resetConfigureStatusReportForPollSocket() {
+        if (null == this.configureStatusReportForPollSocket) {
+            this.configureStatusReportForPollSocket = this.configureStatusReportTypeForDefaultSocket;
+        }
+    }
 
     public String getPerfInfoString(@Nullable String prefix) {
         long now = System.currentTimeMillis();

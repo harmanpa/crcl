@@ -238,15 +238,19 @@ public class XFuture<T> extends CompletableFuture<T> {
                         }
                     }
                 }
-                if (firstExternal > 0) {
-                    printWriter.println("\t \t// skipping (firstExternal=" + firstExternal + ") " + Arrays.toString(Arrays.copyOfRange(trace, 0, firstExternal)));
+                if (firstExternal > 2) {
+                    printWriter.println("\t \t// skipping (firstExternal=" + firstExternal + ") ");
+// + Arrays.toString(Arrays.copyOfRange(trace, 0, firstExternal)));
+                } else {
+                    firstExternal =0;
                 }
                 for (int i = firstExternal; i <= lastExternal; i++) {
                     StackTraceElement stackTraceElement = trace[i];
                     printWriter.println("\tat " + stackTraceElement);
                 }
                 if (lastExternal > 0 && lastExternal < trace.length - 1) {
-                    printWriter.println("\t \t// skipping (" + (lastExternal + 1) + "," + trace.length + ") " + Arrays.toString(Arrays.copyOfRange(trace, lastExternal + 1, trace.length)));
+                    printWriter.println("\t \t// skipping (lastExternal=" + (lastExternal + 1) + ", trace.length=" + trace.length + ") ");
+//+ Arrays.toString(Arrays.copyOfRange(trace, lastExternal + 1, trace.length)));
                 }
             }
             stringWriter.flush();

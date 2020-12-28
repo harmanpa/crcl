@@ -85,8 +85,15 @@ public class ThreadLockedHolder<T> implements Supplier<T> {
             lockThread = Thread.currentThread();
             this.lockTrace = Thread.currentThread().getStackTrace();
         } else if (lockThread != Thread.currentThread() && !disabled) {
+            System.out.println("");
+            System.out.flush();
             System.err.println("");
             System.err.flush();
+            Thread.dumpStack();
+            System.err.println("");
+            System.err.flush();
+            System.out.println("");
+            System.out.flush();
             final String errMessage = "object named " + name + " accessed from " + Thread.currentThread() + " when locked to " + lockThread;
             System.out.println("");
             System.out.println("ThreadLocked: " + errMessage);

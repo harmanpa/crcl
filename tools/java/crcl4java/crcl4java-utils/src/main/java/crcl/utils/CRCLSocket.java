@@ -1975,6 +1975,15 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
+    public static String cmdToPrettyString(CRCLCommandType cmd) {
+        try {
+            return getUtilSocket().commandToPrettyString(cmd);
+        } catch (Exception ex) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, ex);
+            return ex.toString();
+        }
+    }
+    
 //    public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
 //        try {
 //            if (null == cmd) {

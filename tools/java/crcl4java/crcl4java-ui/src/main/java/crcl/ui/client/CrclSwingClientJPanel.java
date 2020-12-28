@@ -1403,6 +1403,7 @@ public class CrclSwingClientJPanel
             System.out.println("pollStatusServiceThread.isAlive() = " + pollStatusServiceThread.isAlive());
         }
         XFutureVoid ret;
+        internal.resetConfigureStatusReportForPollSocket();
         if (null != lastStartPollTimerFuture && !lastStartPollTimerFuture.isDone()) {
             ret = lastStartPollTimerFuture
                     .thenRunAsync(
