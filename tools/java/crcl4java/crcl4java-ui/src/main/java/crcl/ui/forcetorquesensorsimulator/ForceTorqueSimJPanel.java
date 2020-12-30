@@ -73,7 +73,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
      */
     @SuppressWarnings("initialization")
     public ForceTorqueSimJPanel() {
-        statusOut = new ThreadLockedHolder("ForceTorqueSimJPanel.statusOut",new CRCLStatusType());
+        statusOut = new ThreadLockedHolder("ForceTorqueSimJPanel.statusOut", new CRCLStatusType(), false);
         final CRCLStatusType statOut = this.statusOut.get();
         statOut.setSensorStatuses(new SensorStatusesType());
         sensorStatus = new ForceTorqueSensorStatusType();
@@ -81,7 +81,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         initComponents();
         PoseDisplay.updateDisplayMode(jTablePose, PoseDisplayMode.XYZ_RPY, false);
         PoseDisplay.updateDisplayMode(jTablePoseForceOut, PoseDisplayMode.XYZ_RPY, false);
-        updateSensorStatus();
+        internalUpdateSensorStatus();
         final DefaultTableModel model = (DefaultTableModel) jTableObjects.getModel();
         model.addTableModelListener((TableModelEvent e) -> {
             inOutJPanel1.setStacks(modelToList(model));
@@ -740,8 +740,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         inOutJPanel1.setHeightViewAngle((double) jSlider1.getValue());
     }//GEN-LAST:event_jSlider1StateChanged
 
-    
-    void listToModel(DefaultTableModel model,List<TrayStack> newList) {
+    void listToModel(DefaultTableModel model, List<TrayStack> newList) {
         final int nameColumn = model.findColumn("Name");
         final int countColumn = model.findColumn("Count");
         final int widthColumn = model.findColumn("Width");
@@ -758,17 +757,18 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         for (int i = 0; i < newList.size(); i++) {
             TrayStack stack = newList.get(i);
 //            final Vector rowVector = (Vector) dataVector.elementAt(i);
-            
-            model.setValueAt(stack.name, i,  nameColumn);
-            model.setValueAt(stack.count, i,  countColumn);
-            model.setValueAt(stack.width, i,  widthColumn);
-            model.setValueAt(stack.length, i,  lengthColumn);
-            model.setValueAt(stack.height, i,  heightColumn);
-            model.setValueAt(stack.x, i,  xColumn);
-            model.setValueAt(stack.y, i,  yColumn);
-            model.setValueAt(stack.z, i,  zColumn);
+
+            model.setValueAt(stack.name, i, nameColumn);
+            model.setValueAt(stack.count, i, countColumn);
+            model.setValueAt(stack.width, i, widthColumn);
+            model.setValueAt(stack.length, i, lengthColumn);
+            model.setValueAt(stack.height, i, heightColumn);
+            model.setValueAt(stack.x, i, xColumn);
+            model.setValueAt(stack.y, i, yColumn);
+            model.setValueAt(stack.z, i, zColumn);
         }
     }
+
     List<TrayStack> modelToList(DefaultTableModel model) {
         List<TrayStack> newList = new ArrayList<>();
         final int nameColumn = model.findColumn("Name");
@@ -1121,9 +1121,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             this.setPoseCRCLHost(crclClientPanel.getHost());
             this.crclClientPanel.addCurrentPoseListener(currentPoseListener);
             final Border border = jPanelCRCLPositionIn.getBorder();
-            if(border instanceof TitledBorder) {
-                TitledBorder titledBorder  = (TitledBorder) border;
-                titledBorder.setTitle("CRCL Pose In Connection : "+crclClientPanel);
+            if (border instanceof TitledBorder) {
+                TitledBorder titledBorder = (TitledBorder) border;
+                titledBorder.setTitle("CRCL Pose In Connection : " + crclClientPanel);
             }
         } else {
             this.jTextFieldPoseCRCLHost.setEditable(true);
@@ -1131,8 +1131,8 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             this.jTextFieldPoseCRCLPort.setEditable(true);
             this.jTextFieldPoseCRCLPort.setEnabled(true);
             final Border border = jPanelCRCLPositionIn.getBorder();
-            if(border instanceof TitledBorder) {
-                TitledBorder titledBorder  = (TitledBorder) border;
+            if (border instanceof TitledBorder) {
+                TitledBorder titledBorder = (TitledBorder) border;
                 titledBorder.setTitle("CRCL Pose In Connection");
             }
         }
@@ -1146,6 +1146,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     private final CurrentPoseListener currentPoseListener = new CurrentPoseListener() {
         @Override
         public synchronized void handlePoseUpdate(CrclSwingClientJPanel panel, CRCLStatusType stat, CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime) {
+            ForceTorqueSimJPanel.this.poseToProvide = CRCLCopier.copy(stat.getPoseStatus().getPose());
             if (null != nextPoseFuture && !nextPoseFuture.isDone() && null != stat && null != stat.getPoseStatus()) {
                 if (isHoldingObjectExpected != lastIsHoldingObjectExpected) {
                     lastIsHoldingObjectExpected = isHoldingObjectExpected;
@@ -1201,12 +1202,16 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     };
 
     private final ExecutorService getPoseService = Executors.newSingleThreadExecutor(getPoseServiceThreadFactory);
-
+    private volatile PoseType poseToProvide = null;
+    
     @SuppressWarnings("nullness")
     private XFuture<@Nullable PoseType> getPoseFuture() {
+        if(null != poseToProvide) {
+            return XFuture.completedFuture(poseToProvide);
+        }
         if (null != crclClientPanel) {
-            nextPoseFuture = new XFuture<>("nextPose");
-            return nextPoseFuture;
+            PoseType pose = CRCLCopier.copy(crclClientPanel.getStatus().getPoseStatus().getPose());
+            return XFuture.completedFuture(pose);
         }
         if (null == poseInConnection) {
             return XFuture.completedFuture(null);
@@ -1233,8 +1238,10 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         crclServerSocket.setAutomaticallySendServerSideStatus(true);
         crclServerSocket.setAutomaticallyConvertUnits(true);
         crclServerSocket.setUpdateStatusSupplier(this::updateSensorStatus);
+        statusOut.releaseLockThread();
+        internalUpdateSensorStatus();
+        statusOut.releaseLockThread();
         crclServerSocket.start();
-        updateSensorStatus();
     }
 
     public static class ForceTorqueSimClientState extends CRCLServerClientState {
@@ -1268,11 +1275,53 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
 
     }
 
+    private volatile @Nullable
+    XFuture<@Nullable PoseType> lastUpdateSensorStatusPoseFuture = null;
+    private volatile @Nullable
+    XFuture<CRCLStatusType> lastUpdateSensorStatusRet = null;
+
+    private final AtomicInteger updateSensorStatusStartCount = new AtomicInteger();
+    
     private XFuture<CRCLStatusType> updateSensorStatus() {
+        int startCount = updateSensorStatusStartCount.incrementAndGet();
+        System.out.println("ForceTorqueSimJPanel.updateSensorStatus : startCount = " + startCount);
+        XFuture<CRCLStatusType> ret = internalUpdateSensorStatus();
+        this.lastUpdateSensorStatusRet = ret;
+        return ret;
+    }
+
+    private XFuture<CRCLStatusType> internalUpdateSensorStatus() {
         XFuture<@Nullable PoseType> f = getPoseFuture();
-        return f.thenCompose((PoseType pose) -> {
-            return updateSensorStatusWithPose(pose);
-        });
+        this.lastUpdateSensorStatusPoseFuture = f;
+        XFuture<CRCLStatusType> ret
+                = f.thenApply(
+                        "statusFromPose",
+                        (PoseType pose) -> {
+                            return statusFromPose(pose);
+                        }
+                );
+        return ret;
+    }
+
+    private volatile @Nullable
+    CRCLStatusType lastStatusFromPoseRet = null;
+    
+    private volatile @Nullable
+    PoseType lastStatusFromPosePose = null;
+
+    private final AtomicInteger statusFromPoseEndCount = new AtomicInteger();
+    
+    private CRCLStatusType statusFromPose(PoseType pose) {
+        this.lastStatusFromPosePose = pose;
+        ForceTorqueSensorStatusType forceTorqueSensorStatusType
+                = updateSensorStatusWithPose(pose);
+        final CRCLStatusType stat = statusOut.get();
+        addForceTorqueSensorToStatus(stat, forceTorqueSensorStatusType);
+        CRCLStatusType statCopy = CRCLCopier.copy(stat);
+        this.lastStatusFromPoseRet = statCopy;
+        int endCount = statusFromPoseEndCount.incrementAndGet();
+        System.out.println("ForceTorqueSimJPanel.statusFromPose : endCount = " + endCount);
+        return statCopy;
     }
 
     public List<TrayStack> getStacks() {
@@ -1285,14 +1334,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
      * @param stacks new value of stacks
      */
     public void setStacks(List<TrayStack> stacks) {
-        listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
+        listToModel((DefaultTableModel) jTableObjects.getModel(), stacks);
         inOutJPanel1.setStacks(stacks);
         this.repaint();
     }
-    
+
     private volatile int lastUpdateSensorStatusWithPoseHoldingObjectChanges = -1;
 
-    private synchronized XFuture<CRCLStatusType> updateSensorStatusWithPose(@Nullable PoseType pose) {
+    private synchronized ForceTorqueSensorStatusType updateSensorStatusWithPose(@Nullable PoseType pose) {
         double xposeEffect = 0.0;
         double yposeEffect = 0.0;
         double zposeEffect = 0.0;
@@ -1314,13 +1363,13 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                                     if (stack.count > 0) {
                                         stack.count--;
                                         inOutJPanel1.setHoldingFromStack(stack);
-                                        listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
-                                        
+                                        listToModel((DefaultTableModel) jTableObjects.getModel(), stacks);
+
                                     }
                                 } else {
                                     stack.count++;
                                     inOutJPanel1.setHoldingFromStack(null);
-                                    listToModel((DefaultTableModel)jTableObjects.getModel(), stacks);
+                                    listToModel((DefaultTableModel) jTableObjects.getModel(), stacks);
                                 }
                                 newHoldingStatus = false;
                             }
@@ -1336,13 +1385,14 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         return completeUpdateStatus(xposeEffect, yposeEffect, zposeEffect);
     }
 
-    private XFuture<CRCLStatusType> completeUpdateStatus(double xposeEffect, double yposeEffect, double zposeEffect) {
+    private ForceTorqueSensorStatusType completeUpdateStatus(double xposeEffect, double yposeEffect, double zposeEffect) {
         final double fxValue = valueJPanelFx.getValue();
         final double fyValue = valueJPanelFy.getValue();
         final double fzValue = valueJPanelFz.getValue();
         final double txValue = valueJPanelTx.getValue();
         final double tyValue = valueJPanelTy.getValue();
         final double tzValue = valueJPanelTz.getValue();
+        final ForceTorqueSensorStatusType sensorStatusCopy;
         synchronized (sensorStatus) {
             sensorStatus.setFx(fxValue + xposeEffect);
             sensorStatus.setFy(fyValue + yposeEffect);
@@ -1351,13 +1401,39 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
             sensorStatus.setTy(tyValue);
             sensorStatus.setTz(tzValue);
             sensorStatus.setSensorID("ForceTorqueSim");
+            sensorStatusCopy = CRCLCopier.copy(sensorStatus);
         }
-        final ForceTorqueSensorStatusType sensorStatusCopy = CRCLCopier.copy(sensorStatus);
         if (null != sensorStatusCopy) {
             javax.swing.SwingUtilities.invokeLater(() -> updateForceTorqueDisplay(sensorStatusCopy));
         }
-        final CRCLStatusType statusOutCopy = CRCLCopier.copy(statusOut.get());
-        return XFuture.completedFuture(statusOutCopy);
+        crclServerSocket.addToUpdateServerSideRunnables(() -> {
+            CRCLStatusType stat = statusOut.get();
+            addForceTorqueSensorToStatus(stat, sensorStatusCopy);
+        });
+        return sensorStatusCopy;
+    }
+
+    private void addForceTorqueSensorToStatus(CRCLStatusType stat, final ForceTorqueSensorStatusType sensorStatusCopy) {
+        synchronized (stat) {
+            SensorStatusesType sensorStatuses = stat.getSensorStatuses();
+            if (null == sensorStatuses) {
+                sensorStatuses = new SensorStatusesType();
+            }
+            final List<ForceTorqueSensorStatusType> forceTorqueSensorStatusList
+                    = new ArrayList<>(sensorStatuses.getForceTorqueSensorStatus());
+            for (int i = 0; i < forceTorqueSensorStatusList.size(); i++) {
+                ForceTorqueSensorStatusType forceTorqueSensorStatusI
+                        = forceTorqueSensorStatusList.get(i);
+                if (forceTorqueSensorStatusI.getSensorID().equals(sensorStatusCopy.getSensorID())) {
+                    forceTorqueSensorStatusList.remove(i);
+                    break;
+                }
+            }
+            forceTorqueSensorStatusList.add(sensorStatusCopy);
+            sensorStatuses.getForceTorqueSensorStatus().clear();
+            sensorStatuses.getForceTorqueSensorStatus().addAll(forceTorqueSensorStatusList);
+            stat.setSensorStatuses(sensorStatuses);
+        }
     }
 
     private void updateForceTorqueDisplay(ForceTorqueSensorStatusType sensorStatusCopy) {

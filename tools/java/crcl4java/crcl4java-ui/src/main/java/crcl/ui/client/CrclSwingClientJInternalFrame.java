@@ -86,8 +86,8 @@ public class CrclSwingClientJInternalFrame
         return pendantClientJPanel1;
     }
 
-    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
-        return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran,boolean throwExceptions) {
+        return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran,throwExceptions);
     }
 
     /**

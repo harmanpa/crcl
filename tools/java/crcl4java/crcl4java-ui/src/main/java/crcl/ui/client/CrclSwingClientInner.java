@@ -841,7 +841,7 @@ public class CrclSwingClientInner {
         }
     }
 
-    private void showMessageAndSetCommandErrorDescription(String s) {
+    private void showMessageAndSetCommandErrorDescription(String s,boolean throwException) {
         outer.showMessage(s);
         if (null == logStream) {
             openLogStream();
@@ -849,7 +849,10 @@ public class CrclSwingClientInner {
         if (null != logStream) {
             logStream.println(s);
         }
-        commandErrorState(s);
+        RuntimeException runEx = commandErrorState(s);
+        if(throwException) {
+            throw runEx;
+        }
     }
 
     private void showDebugMessage(String s) {
@@ -5375,7 +5378,7 @@ public class CrclSwingClientInner {
                 if (endPose == null) {
                     throw new RuntimeException("MoveTo Command has invalid endPosition : null");
                 }
-                if (!checkPose(endPose)) {
+                if (!checkPose(endPose,false,true)) {
                     throw new RuntimeException("MoveTo Command has invalid endPosition :" + CRCLPosemath.poseToString(endPose));
                 }
             }
@@ -5903,11 +5906,9 @@ public class CrclSwingClientInner {
 
     }
 
-    public boolean checkPose(PoseType goalPose) {
-        return checkPose(goalPose, false);
-    }
+    
 
-    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran,boolean throwExceptions) {
         PointType point = goalPose.getPoint();
 
         if (null == point) {
@@ -5916,31 +5917,37 @@ public class CrclSwingClientInner {
         if (!ignoreCartTran) {
             if (null != maxLimit) {
                 if (point.getX() > maxLimit.x) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x);
+                    final String err = "Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getY() > maxLimit.y) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y);
+                    final String err = "Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
 
                 if (point.getZ() > maxLimit.z) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z);
+                    final String err = "Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
             }
 
             if (null != minLimit) {
                 if (point.getX() < minLimit.x) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x);
+                    final String err = "Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getY() < minLimit.y) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y);
+                    final String err = "Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getZ() < minLimit.z) {
-                    showMessageAndSetCommandErrorDescription("Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z);
+                    final String err = "Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z;
+                    showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
             }
@@ -5948,17 +5955,20 @@ public class CrclSwingClientInner {
         VectorType goalXAxis = requireNonNull(goalPose.getXAxis(), "goalPose.getXAxis()");
         PmCartesian xvec = vectorToPmCartesian(goalXAxis);
         if (Math.abs(xvec.mag() - 1.0) > 1e-3) {
-            showMessageAndSetCommandErrorDescription("Bad postion : xvec " + xvec + " has magnitude not equal to one.");
+            final String err = "Bad postion : xvec " + xvec + " has magnitude not equal to one.";
+            showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }
         VectorType goalZAxis = requireNonNull(goalPose.getZAxis(), "goalPose.getZAxis()");
         PmCartesian zvec = vectorToPmCartesian(goalZAxis);
         if (Math.abs(zvec.mag() - 1.0) > 1e-3) {
-            showMessageAndSetCommandErrorDescription("Bad postion : zvec " + zvec + " has magnitude not equal to one.");
+            final String err = "Bad postion : zvec " + zvec + " has magnitude not equal to one.";
+            showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }
         if (Math.abs(Posemath.pmCartCartDot(xvec, zvec)) > 1e-3) {
-            showMessageAndSetCommandErrorDescription("Bad postion : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.");
+            final String err = "Bad postion : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.";
+            showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }
         return true;

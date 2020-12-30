@@ -80,6 +80,7 @@ import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.ui.misc.ProgramPlotter;
+import crcl.utils.CRCLCopier;
 import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLPosemath;
@@ -457,7 +458,7 @@ public class CrclSwingClientJPanel
 
     public @Nullable
     CRCLStatusType getStatus() {
-        return internal.getStatus();
+        return lastStatusCopy;
     }
 
     private void finishShowCurrentProgramLine(final int line, final CRCLProgramType newProgram, @Nullable CRCLStatusType status, List<ProgramRunData> progRunDataList, StackTraceElement ste[]) {
@@ -1306,8 +1307,8 @@ public class CrclSwingClientJPanel
 
     private final AtomicInteger pollStopCount = new AtomicInteger();
 
-    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran) {
-        return internal.checkPose(goalPose, ignoreCartTran);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran,boolean throwExceptions) {
+        return internal.checkPose(goalPose, ignoreCartTran,throwExceptions);
     }
 
     private volatile boolean polling = false;
@@ -1981,11 +1982,14 @@ public class CrclSwingClientJPanel
         }
     }
 
+    private volatile @Nullable CRCLStatusType  lastStatusCopy = null;
+    
     @Override
     public void finishSetStatus() {
         long statRecieveTime = System.currentTimeMillis();
         final CRCLStatusType curInternalStatus
                 = requireNonNull(internal.getStatus(), "internal.getStatus()");
+        this.lastStatusCopy = CRCLCopier.copy(curInternalStatus);
         final boolean isHoldingObjectExpected = internal.isHoldingObjectExpected();
         final CRCLCommandType lastCmd = internal.getLastCommandSent();
         CRCLProgramType internalProgram = internal.getProgram();

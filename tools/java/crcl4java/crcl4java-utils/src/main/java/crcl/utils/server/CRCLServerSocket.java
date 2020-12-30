@@ -89,7 +89,6 @@ import crcl.utils.XFutureVoid;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -627,11 +626,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         });
 
     }
+    
+    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastEvent = null;
 
     private void handleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws Exception {
         if (closing) {
             return;
         }
+        this.lastEvent = event;
         if (event.getEventType() == CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED) {
             CRCLCommandInstanceType instanceIn = event.getInstance();
             if (null == instanceIn) {
@@ -692,6 +694,31 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         if (commandStateEnum == CommandStateEnumType.CRCL_ERROR) {
             this.lastErrorCmdId = this.lastCommandEventCommandId;
+            if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
+                System.out.println("");
+                System.err.println("");
+                System.out.flush();
+                System.err.flush();
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : port = \n    " 
+                        + port);
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastUpdateServerSideStatusCopy = \n    " 
+                        + CRCLSocket.statusToPrettyString(lastUpdateServerSideStatusCopy));
+                System.out.println("");
+                System.err.println("");
+                System.out.flush();
+                System.err.flush();
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastCheckedCommand =  \n    " 
+                        + CRCLSocket.cmdToPrettyString(lastCheckedCommand));
+                System.out.println("");
+                System.err.println("");
+                System.out.flush();
+                System.err.flush();
+                Thread.dumpStack();
+                System.out.println("");
+                System.err.println("");
+                System.out.flush();
+                System.err.flush();
+            }
         }
         this.commandStateEnum = commandStateEnum;
         if (null != lastUpdateServerSideStatusCopy && null != lastUpdateServerSideStatusCopy.getCommandStatus()) {
@@ -716,6 +743,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
+    private volatile @Nullable  XFuture<CRCLStatusType> lastUpdateSupplierFuture = null;
+    private volatile @Nullable XFutureVoid lastUpdateSupplierAcceptedFuture = null;
+    private volatile boolean lastCheckingGuards = false;
+    private volatile @Nullable GetStatusType lastGetStatusCmd = null;
+    private final AtomicInteger getStatusCount = new AtomicInteger();
+    
     @SuppressWarnings("nullness")
     private boolean handleAutomaticEvents(final CRCLServerSocketEvent<STATE_TYPE> event) throws IllegalStateException, CRCLException, InterruptedException {
         final CRCLCommandInstanceType instanceIn = event.getInstance();
@@ -736,15 +769,21 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
             try {
                 if (cmd instanceof GetStatusType) {
+                    GetStatusType getStatusCmd = (GetStatusType) cmd;
+                    this.lastGetStatusCmd = getStatusCmd;
+                    getStatusCount.incrementAndGet();
                     CRCLSocket source = event.getSource();
                     if (null == source) {
                         throw new NullPointerException("source");
                     }
+                    this.lastCheckingGuards = checkingGuards;
                     if (null != updateStatusSupplier && !checkingGuards) {
                         XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
-                        supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
+                        lastUpdateSupplierFuture = supplierFuture;
+                        final XFutureVoid supplierAcceptedFuture = supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
                             finishWriteStatus(state, suppliedStatus, source, event, commandStatus);
                         });
+                        this.lastUpdateSupplierAcceptedFuture = supplierAcceptedFuture;
                         return true;
                     }
                     finishWriteStatus(state, localServerSideStatus, source, event, commandStatus);
@@ -1094,6 +1133,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                                 Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
                                                 commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                                                 setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                                                setStateDescription(ex.getMessage());
                                                 errorOccured = true;
                                                 commandStatus.setStateDescription(ex.getMessage());
                                             }
@@ -1109,9 +1149,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                     clearStateDescription(commandStatus);
                                     setDoneState();
                                 } else {
-                                    commandStatus.setStateDescription(sensorID + " not found.");
+                                    final String msg = sensorID + " not found.";
+                                    commandStatus.setStateDescription(msg);
                                     commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                                     setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                                    setStateDescription(msg);
                                 }
                             }
                             return true;
@@ -1129,6 +1171,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                     Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, "", ex);
                                     commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                                     setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                                    setStateDescription(ex.getMessage());
                                     errorOccured = true;
                                     commandStatus.setStateDescription(ex.getMessage());
                                 }
@@ -1138,8 +1181,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                                     clearStateDescription(commandStatus);
                                     setDoneState();
                                 } else {
-                                    commandStatus.setStateDescription(sensorID + " not found.");
+                                    final String msg = sensorID + " not found.";
+                                    commandStatus.setStateDescription(msg);
                                     setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                                    setStateDescription(msg);
                                 }
                             }
                             return true;
@@ -1152,6 +1197,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 commandStatus.setStateDescription(ex.getMessage());
                 commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                 setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                setStateDescription(ex.getMessage());
                 return true;
             }
         }
@@ -1198,9 +1244,21 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.z = z;
     }
 
+    private volatile @Nullable STATE_TYPE lastFinishWriteStatusState = null;
+    private volatile @Nullable CRCLStatusType lastFinishWriteStatusSuppliedStatus = null;
+    private volatile @Nullable CRCLSocket lastFinishWriteStatusSouce = null;
+    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatusEvent = null;
+    private final AtomicInteger finishWriteStatusCount = new AtomicInteger();
+    
+    
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
+            finishWriteStatusCount.incrementAndGet();
+            this.lastFinishWriteStatusEvent = event;
+            this.lastFinishWriteStatusSouce = source;
+            this.lastFinishWriteStatusState = state;
+            this.lastFinishWriteStatusSuppliedStatus = suppliedStatus;
             if (null != suppliedStatus) {
                 PoseStatusType poseStatus = suppliedStatus.getPoseStatus();
                 if (null != poseStatus) {
@@ -1236,13 +1294,25 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             commandStatus.setStateDescription(ex.getMessage());
             commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
             setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+            setStateDescription(ex.getMessage());
             throw new RuntimeException(ex);
         }
     }
 
+    private volatile @Nullable STATE_TYPE lastFinishWriteStatus2State = null;
+    private volatile @Nullable CRCLStatusType lastFinishWriteStatus2SuppliedStatus = null;
+    private volatile @Nullable CRCLSocket lastFinishWriteStatus2Souce = null;
+    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatus2Event = null;
+    private final AtomicInteger finishWriteStatus2Count = new AtomicInteger();
+    
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus2(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
+            finishWriteStatus2Count.incrementAndGet();
+            this.lastFinishWriteStatus2Event = event;
+            this.lastFinishWriteStatus2Souce = source;
+            this.lastFinishWriteStatus2State = state;
+            this.lastFinishWriteStatus2SuppliedStatus = suppliedStatus;
             CRCLStatusType statusToSend;
             synchronized (suppliedStatus) {
                 suppliedStatus.getCommandStatus().setCommandID(getLastRecievedCommandID());
@@ -1616,12 +1686,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             throw new InterruptedException("Closing socket due to " + exception);
         } else if (null != exception) {
-            setStateDescription(exception.getMessage());
             setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+            setStateDescription(exception.getMessage());
         }
         return;
     }
 
+    private volatile @Nullable CRCLCommandType lastCheckedCommand = null;
+    
     private boolean checkCommand(CRCLCommandType cmd) {
         if (cmd instanceof GetStatusType) {
             return false;
@@ -1650,6 +1722,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             return true;
         }
+        lastCheckedCommand = CRCLCopier.copy(cmd);
         return false;
     }
 
@@ -2831,14 +2904,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             System.err.println("");
             System.out.flush();
             System.err.flush();
-            System.out.println("trace = " + XFuture.traceToString(trace));
+            System.out.println("Failure from CRCLServerSocket.createGuardsCheckerRunnable trace = " + XFuture.traceToString(trace));
             System.out.println("");
             System.err.println("");
             System.out.flush();
             System.err.flush();
-            CRCLServerSocket.this.setStateDescription(ex.getMessage());
-            CRCLServerSocket.this.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
             Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, errMsg, ex);
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+            CRCLServerSocket.this.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+            CRCLServerSocket.this.setStateDescription(ex.getMessage());
+            
             try {
                 handleEvent(CRCLServerSocketEvent.exceptionOccured(guard_client_state, ex));
             } catch (Exception ex1) {
@@ -2858,15 +2936,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (isClosed()) {
             return;
         }
-        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-        final CommandStatusType serverSideCommandStatus = localServerSideStatus.getCommandStatus();
-        if (null == serverSideCommandStatus) {
+        if (lastRecievedCommandID != cmdID) {
             return;
         }
-        if (serverSideCommandStatus.getCommandID() != cmdID) {
-            return;
-        }
-        if (serverSideCommandStatus.getCommandState() != CommandStateEnumType.CRCL_WORKING) {
+        if (getCommandStateEnum() != CommandStateEnumType.CRCL_WORKING) {
             return;
         }
         Executor executor = handleGuardsExecutor;
