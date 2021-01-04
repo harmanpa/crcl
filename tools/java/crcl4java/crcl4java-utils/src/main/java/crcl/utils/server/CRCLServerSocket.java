@@ -798,7 +798,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         throw new NullPointerException("source");
                     }
                     this.lastCheckingGuards = checkingGuards;
-                    if (null != updateStatusSupplier && !checkingGuards) {
+                    if (null != updateStatusSupplier) {
                         XFuture<CRCLStatusType> supplierFuture = updateStatusSupplier.get();
                         lastUpdateSupplierFuture = supplierFuture;
                         final XFutureVoid supplierAcceptedFuture = supplierFuture.thenAccept((CRCLStatusType suppliedStatus) -> {
@@ -806,17 +806,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                         });
                         this.lastUpdateSupplierAcceptedFuture = supplierAcceptedFuture;
                         return true;
+                    } else {
+                        finishWriteStatus(state, localServerSideStatus, source, event, commandStatus);
+                        return true;
                     }
-                    finishWriteStatus(state, localServerSideStatus, source, event, commandStatus);
-//                    CRCLStatusType statusToSend;
-//                    synchronized (this) {
-//                        asyncCheckSensorServers();
-//                        statusToSend = state.filterSettings.filterStatus(serverSideStatus);
-//                        state.cmdId = statusToSend.getCommandStatus().getCommandID();
-//                    }
-////                statusToSend.getCommandStatus().setCommandID(state.cmdId);
-//                    source.writeStatus(statusToSend);
-                    return true;
                 } else {
                     final long currentCommandId = cmd.getCommandID();
                     setLastRecievedCommandID(currentCommandId);
@@ -848,7 +841,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             || oldState == CommandStateEnumType.CRCL_READY) {
                         commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
                         setCommandStateEnum(CommandStateEnumType.CRCL_WORKING);
-                    } else if(oldState == CommandStateEnumType.CRCL_ERROR) {
+                    } else if (oldState == CommandStateEnumType.CRCL_ERROR) {
                         commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
                     }
 
