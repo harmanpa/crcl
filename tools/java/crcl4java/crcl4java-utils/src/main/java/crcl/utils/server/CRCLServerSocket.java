@@ -626,8 +626,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         });
 
     }
-    
-    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastEvent = null;
+
+    private volatile @Nullable
+    CRCLServerSocketEvent<STATE_TYPE> lastEvent = null;
 
     private void handleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws Exception {
         if (closing) {
@@ -688,26 +689,43 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return commandStateEnum;
     }
 
-    public void setCommandStateEnum(CommandStateEnumType commandStateEnum) {
-        if (this.commandStateEnum != this.commandStateEnum && commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
+    public void setCommandStateEnum(CommandStateEnumType newCommandStateEnum) {
+        if (this.commandStateEnum == CommandStateEnumType.CRCL_ERROR) {
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+            System.out.println("this.commandStateEnum = " + this.commandStateEnum);
+            System.out.println("newCommandStateEnum = " + newCommandStateEnum);
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+            Thread.dumpStack();
+            System.out.println("");
+            System.err.println("");
+            System.out.flush();
+            System.err.flush();
+        }
+        if (this.commandStateEnum != this.commandStateEnum && newCommandStateEnum != CommandStateEnumType.CRCL_ERROR) {
             setStateDescription("");
         }
-        if (commandStateEnum == CommandStateEnumType.CRCL_ERROR) {
+        if (newCommandStateEnum == CommandStateEnumType.CRCL_ERROR) {
             this.lastErrorCmdId = this.lastCommandEventCommandId;
             if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
                 System.out.println("");
                 System.err.println("");
                 System.out.flush();
                 System.err.flush();
-                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : port = \n    " 
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : port = \n    "
                         + port);
-                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastUpdateServerSideStatusCopy = \n    " 
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastUpdateServerSideStatusCopy = \n    "
                         + CRCLSocket.statusToPrettyString(lastUpdateServerSideStatusCopy));
                 System.out.println("");
                 System.err.println("");
                 System.out.flush();
                 System.err.flush();
-                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastCheckedCommand =  \n    " 
+                System.out.println("CRCLServerSocket setCommandStateEnum(CommandStateEnumType.CRCL_ERROR) : lastCheckedCommand =  \n    "
                         + CRCLSocket.cmdToPrettyString(lastCheckedCommand));
                 System.out.println("");
                 System.err.println("");
@@ -720,12 +738,12 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 System.err.flush();
             }
         }
-        this.commandStateEnum = commandStateEnum;
+        this.commandStateEnum = newCommandStateEnum;
         if (null != lastUpdateServerSideStatusCopy && null != lastUpdateServerSideStatusCopy.getCommandStatus()) {
-            lastUpdateServerSideStatusCopy.getCommandStatus().setCommandState(commandStateEnum);
+            lastUpdateServerSideStatusCopy.getCommandStatus().setCommandState(newCommandStateEnum);
         }
         if (null != commandStatus) {
-            commandStatus.setCommandState(commandStateEnum);
+            commandStatus.setCommandState(newCommandStateEnum);
         }
     }
 
@@ -743,12 +761,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private volatile @Nullable  XFuture<CRCLStatusType> lastUpdateSupplierFuture = null;
-    private volatile @Nullable XFutureVoid lastUpdateSupplierAcceptedFuture = null;
+    private volatile @Nullable
+    XFuture<CRCLStatusType> lastUpdateSupplierFuture = null;
+    private volatile @Nullable
+    XFutureVoid lastUpdateSupplierAcceptedFuture = null;
     private volatile boolean lastCheckingGuards = false;
-    private volatile @Nullable GetStatusType lastGetStatusCmd = null;
+    private volatile @Nullable
+    GetStatusType lastGetStatusCmd = null;
     private final AtomicInteger getStatusCount = new AtomicInteger();
-    
+
     @SuppressWarnings("nullness")
     private boolean handleAutomaticEvents(final CRCLServerSocketEvent<STATE_TYPE> event) throws IllegalStateException, CRCLException, InterruptedException {
         final CRCLCommandInstanceType instanceIn = event.getInstance();
@@ -822,8 +843,14 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     if (null != instanceInProgramLength && instanceInProgramLength.intValue() > 0) {
                         commandStatus.setProgramLength(instanceInProgramLength);
                     }
-                    commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
-                    setCommandStateEnum(CommandStateEnumType.CRCL_WORKING);
+                    final CommandStateEnumType oldState = getCommandStateEnum();
+                    if (oldState == CommandStateEnumType.CRCL_DONE
+                            || oldState == CommandStateEnumType.CRCL_READY) {
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_WORKING);
+                        setCommandStateEnum(CommandStateEnumType.CRCL_WORKING);
+                    } else if(oldState == CommandStateEnumType.CRCL_ERROR) {
+                        commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
+                    }
 
                     final SettingsStatusType localServerSideSettingsStatus;
                     final SettingsStatusType initialServerSideSettingsStatus
@@ -1244,13 +1271,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.z = z;
     }
 
-    private volatile @Nullable STATE_TYPE lastFinishWriteStatusState = null;
-    private volatile @Nullable CRCLStatusType lastFinishWriteStatusSuppliedStatus = null;
-    private volatile @Nullable CRCLSocket lastFinishWriteStatusSouce = null;
-    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatusEvent = null;
+    private volatile @Nullable
+    STATE_TYPE lastFinishWriteStatusState = null;
+    private volatile @Nullable
+    CRCLStatusType lastFinishWriteStatusSuppliedStatus = null;
+    private volatile @Nullable
+    CRCLSocket lastFinishWriteStatusSouce = null;
+    private volatile @Nullable
+    CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatusEvent = null;
     private final AtomicInteger finishWriteStatusCount = new AtomicInteger();
-    
-    
+
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
@@ -1299,12 +1329,16 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
     }
 
-    private volatile @Nullable STATE_TYPE lastFinishWriteStatus2State = null;
-    private volatile @Nullable CRCLStatusType lastFinishWriteStatus2SuppliedStatus = null;
-    private volatile @Nullable CRCLSocket lastFinishWriteStatus2Souce = null;
-    private volatile @Nullable CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatus2Event = null;
+    private volatile @Nullable
+    STATE_TYPE lastFinishWriteStatus2State = null;
+    private volatile @Nullable
+    CRCLStatusType lastFinishWriteStatus2SuppliedStatus = null;
+    private volatile @Nullable
+    CRCLSocket lastFinishWriteStatus2Souce = null;
+    private volatile @Nullable
+    CRCLServerSocketEvent<STATE_TYPE> lastFinishWriteStatus2Event = null;
     private final AtomicInteger finishWriteStatus2Count = new AtomicInteger();
-    
+
     @SuppressWarnings({"nullness"})
     private void finishWriteStatus2(STATE_TYPE state, CRCLStatusType suppliedStatus, CRCLSocket source, final CRCLServerSocketEvent<STATE_TYPE> event, final CommandStatusType commandStatus) {
         try {
@@ -1692,8 +1726,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return;
     }
 
-    private volatile @Nullable CRCLCommandType lastCheckedCommand = null;
-    
+    private volatile @Nullable
+    CRCLCommandType lastCheckedCommand = null;
+
     private boolean checkCommand(CRCLCommandType cmd) {
         if (cmd instanceof GetStatusType) {
             return false;
@@ -1715,6 +1750,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         if (cmd instanceof InitCanonType) {
             initialized = true;
+            setStateDescription("");
+            setCommandStateEnum(CommandStateEnumType.CRCL_DONE);
         } else if (!initialized) {
             if (this.commandStateEnum != CommandStateEnumType.CRCL_ERROR) {
                 setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
@@ -2540,63 +2577,75 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         }
         Map<String, SensorStatusType> sensorStatMap = new HashMap<>();
         for (GuardType guard : guards) {
-            if (isClosed()) {
-                return false;
-            }
-            if (lastRecievedCommandID != cmdID) {
-                return false;
-            }
-            if (commandStateEnum != CommandStateEnumType.CRCL_WORKING) {
-                return false;
-            }
-            boolean sensorStatMapWasEmpty = sensorStatMap.isEmpty();
-            long t0 = System.currentTimeMillis();
-            double value = getGuardValue(guard, sensorStatMap);
-            long t1 = System.currentTimeMillis();
             final String guardMapId = guardMapId(guard);
             final GuardLimitEnumType guarLimitType = Objects.requireNonNull(guard.getLimitType());
             final double limitValue = guard.getLimitValue();
-            switch (guarLimitType) {
-                case OVER_MAX:
-                    if (value > limitValue) {
-                        triggerGuard(value, guard_client_state, commandInstance, guard);
+            boolean sensorStatMapWasEmpty = sensorStatMap.isEmpty();
+
+            try {
+                if (isClosed()) {
+                    return false;
+                }
+                if (lastRecievedCommandID != cmdID) {
+                    return false;
+                }
+                if (commandStateEnum != CommandStateEnumType.CRCL_WORKING) {
+                    return false;
+                }
+                long t0 = System.currentTimeMillis();
+                double value = getGuardValue(guard, sensorStatMap);
+                long t1 = System.currentTimeMillis();
+
+                switch (guarLimitType) {
+                    case OVER_MAX:
+                        if (value > limitValue) {
+                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        }
+                        break;
+
+                    case UNDER_MIN:
+                        if (value < limitValue) {
+                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        }
+                        break;
+
+                    case DECREASE_BEYOND_LIMIT: {
+                        Double initialValue = guardInitialValues.get(guardMapId);
+                        if (null == initialValue) {
+                            throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                        }
+                        double diff = initialValue - value;
+                        long readValueTime = t1 - t0;
+                        System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
+                        if (diff > limitValue) {
+                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        }
                     }
                     break;
 
-                case UNDER_MIN:
-                    if (value < limitValue) {
-                        triggerGuard(value, guard_client_state, commandInstance, guard);
+                    case INCREASE_OVER_LIMIT: {
+                        Double initialValue = guardInitialValues.get(guardMapId);
+                        if (null == initialValue) {
+                            throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                        }
+                        double diff = value - initialValue;
+                        long readValueTime = t1 - t0;
+                        System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
+                        System.out.println("limitValue = " + limitValue);
+                        if (diff > limitValue) {
+                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        }
                     }
                     break;
-
-                case DECREASE_BEYOND_LIMIT: {
-                    Double initialValue = guardInitialValues.get(guardMapId);
-                    if (null == initialValue) {
-                        throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
-                    }
-                    double diff = initialValue - value;
-                    long readValueTime = t1 - t0;
-                    System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
-                    if (diff > limitValue) {
-                        triggerGuard(value, guard_client_state, commandInstance, guard);
-                    }
                 }
-                break;
-
-                case INCREASE_OVER_LIMIT: {
-                    Double initialValue = guardInitialValues.get(guardMapId);
-                    if (null == initialValue) {
-                        throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
-                    }
-                    double diff = value - initialValue;
-                    long readValueTime = t1 - t0;
-                    System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
-                    System.out.println("limitValue = " + limitValue);
-                    if (diff > limitValue) {
-                        triggerGuard(value, guard_client_state, commandInstance, guard);
-                    }
+            } catch (Exception ex) {
+                String exInfo = "guardMapId=" + guardMapId + ",guarLimitType=" + guarLimitType + ",limitValue=" + limitValue;
+                Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, exInfo, ex);
+                if (getCommandStateEnum() != CommandStateEnumType.CRCL_ERROR || getStateDescription().length() < 1) {
+                    setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                    setStateDescription(ex.getMessage());
                 }
-                break;
+                throw new RuntimeException(exInfo, ex);
             }
         }
         return true;
@@ -2914,9 +2963,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             System.err.println("");
             System.out.flush();
             System.err.flush();
-            CRCLServerSocket.this.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
-            CRCLServerSocket.this.setStateDescription(ex.getMessage());
-            
+            if (CRCLServerSocket.this.getCommandStateEnum() != CommandStateEnumType.CRCL_ERROR
+                    || CRCLServerSocket.this.getStateDescription().length() < 1) {
+                CRCLServerSocket.this.setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
+                CRCLServerSocket.this.setStateDescription(ex.getMessage());
+            }
             try {
                 handleEvent(CRCLServerSocketEvent.exceptionOccured(guard_client_state, ex));
             } catch (Exception ex1) {
