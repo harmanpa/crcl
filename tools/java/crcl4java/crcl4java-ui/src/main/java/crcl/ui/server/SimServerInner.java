@@ -103,6 +103,7 @@ import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import static crcl.utils.CRCLUtils.getNonNullIterable;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.ThreadLockedHolder;
+import crcl.utils.XFuture;
 import crcl.utils.XpathUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import static crcl.utils.kinematics.SimRobotEnum.PLAUSIBLE;
@@ -120,13 +121,11 @@ import static crcl.utils.server.CRCLServerSocketEventType.GUARD_LIMIT_REACHED;
 import static crcl.utils.server.CRCLServerSocketEventType.NEW_CRCL_CLIENT;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
 import crcl.utils.server.UnitsTypeSet;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1836,6 +1835,7 @@ public class SimServerInner {
         double[] commandedJointPositions1 = this.commandedJointPositions;
         try {
             final CRCLStatusType stat = this.status.get();
+            final CRCLStatusType statCopy;
             synchronized (stat) {
                 if (!outer.isEditingStatus()) {
                     if (debugCmdStartTime > 0) {
@@ -2034,6 +2034,12 @@ public class SimServerInner {
                     this.commandedJointPositions = commandedJointPositions1;
                 }
                 crclServerSocket.runUpdateServerSideStatusRunnables(stat);
+                statCopy = CRCLCopier.copy(stat);
+            }
+            XFuture<CRCLStatusType> f;
+            while (!statusFutures.isEmpty()
+                    && ((f = statusFutures.poll()) != null)) {
+                f.complete(statCopy);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -2405,7 +2411,7 @@ public class SimServerInner {
                 if (null != exception) {
                     crclServerSocket.setStateDescription(exception.getMessage());
                 } else {
-                    crclServerSocket.setStateDescription("evt="+evt);
+                    crclServerSocket.setStateDescription("evt=" + evt);
                 }
                 break;
 
@@ -3160,6 +3166,14 @@ public class SimServerInner {
         }
     }
 
+    private final ConcurrentLinkedDeque<XFuture<CRCLStatusType>> statusFutures = new ConcurrentLinkedDeque<>();
+
+    private XFuture<CRCLStatusType> getNextFuture() {
+        XFuture<CRCLStatusType> ret = new XFuture<>("SimServerInner.getNextFuture");
+        statusFutures.add(ret);
+        return ret;
+    }
+
     public synchronized void restartServer(boolean asDaemon) {
         if (null == cmdSchema) {
             throw new IllegalStateException("null==cmdSchema");
@@ -3198,6 +3212,7 @@ public class SimServerInner {
             restartingServerSocket.setAutomaticallySendServerSideStatus(true);
             restartingServerSocket.setAutomaticallyConvertUnits(true);
             restartingServerSocket.setServerUnits(new UnitsTypeSet());
+            restartingServerSocket.setUpdateStatusSupplier(this::getNextFuture);
             this.crclServerSocket = restartingServerSocket;
             maxReadCommandTime = 0;
             maxUpdateStatusTime = 0;
