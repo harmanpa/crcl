@@ -3150,12 +3150,14 @@ public class CrclSwingClientInner {
         return new PmCartesian(minLimit.x, minLimit.y, minLimit.z);
     }
 
+    private volatile StackTraceElement setMinLimitTrace[] = null;
     /**
      * Set the value of minLimit
      *
      * @param minLimit new value of minLimit
      */
     public void setMinLimit(@Nullable PmCartesian minLimit) {
+        setMinLimitTrace = Thread.currentThread().getStackTrace();
         if (null == minLimit) {
             this.minLimit = DEFAULT_MIN_LIMIT;
         } else {
@@ -3175,12 +3177,14 @@ public class CrclSwingClientInner {
         return new PmCartesian(maxLimit.x, maxLimit.y, maxLimit.z);
     }
 
+    private volatile StackTraceElement setMaxLimitTrace[] = null;
     /**
      * Set the value of maxLimit
      *
      * @param maxLimit new value of maxLimit
      */
     public void setMaxLimit(@Nullable PmCartesian maxLimit) {
+        setMaxLimitTrace = Thread.currentThread().getStackTrace();
         if (null == maxLimit) {
             this.maxLimit = DEFAULT_MAX_LIMIT;
         } else {
@@ -5914,21 +5918,25 @@ public class CrclSwingClientInner {
         if (null == point) {
             throw new NullPointerException("goalPose.getPoint() returned null : goalPose =" + CRCLPosemath.toString(goalPose));
         }
+        int port = (null != this.crclSocket)? this.crclSocket.getPort():-1;
         if (!ignoreCartTran) {
             if (null != maxLimit) {
                 if (point.getX() > maxLimit.x) {
-                    final String err = "Bad postion : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x;
+                    System.err.println("setMaxLimitTrace="+XFuture.traceToString(setMaxLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getX()=" + point.getX() + "  exceeds maxLimit.x=" + maxLimit.x;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getY() > maxLimit.y) {
-                    final String err = "Bad postion : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y;
+                    System.err.println("setMaxLimitTrace="+XFuture.traceToString(setMaxLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getY()=" + point.getY() + "  exceeds maxLimit.y=" + maxLimit.y;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
 
                 if (point.getZ() > maxLimit.z) {
-                    final String err = "Bad postion : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z;
+                    System.err.println("setMaxLimitTrace="+XFuture.traceToString(setMaxLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getZ()=" + point.getZ() + "  exceeds maxLimit.z=" + maxLimit.z;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
@@ -5936,17 +5944,20 @@ public class CrclSwingClientInner {
 
             if (null != minLimit) {
                 if (point.getX() < minLimit.x) {
-                    final String err = "Bad postion : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x;
+                    System.err.println("setMinLimitTrace="+XFuture.traceToString(setMinLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getX()=" + point.getX() + "  exceeds minLimit.x=" + minLimit.x;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getY() < minLimit.y) {
-                    final String err = "Bad postion : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y;
+                    System.err.println("setMinLimitTrace="+XFuture.traceToString(setMinLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getY()=" + point.getY() + "  exceeds minLimit.y=" + minLimit.y;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
                 if (point.getZ() < minLimit.z) {
-                    final String err = "Bad postion : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z;
+                    System.err.println("setMinLimitTrace="+XFuture.traceToString(setMinLimitTrace));
+                    final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : point.getZ()=" + point.getZ() + "  exceeds minLimit.z=" + minLimit.z;
                     showMessageAndSetCommandErrorDescription(err,throwExceptions);
                     return false;
                 }
@@ -5955,19 +5966,19 @@ public class CrclSwingClientInner {
         VectorType goalXAxis = requireNonNull(goalPose.getXAxis(), "goalPose.getXAxis()");
         PmCartesian xvec = vectorToPmCartesian(goalXAxis);
         if (Math.abs(xvec.mag() - 1.0) > 1e-3) {
-            final String err = "Bad postion : xvec " + xvec + " has magnitude not equal to one.";
+            final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : xvec " + xvec + " has magnitude not equal to one.";
             showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }
         VectorType goalZAxis = requireNonNull(goalPose.getZAxis(), "goalPose.getZAxis()");
         PmCartesian zvec = vectorToPmCartesian(goalZAxis);
         if (Math.abs(zvec.mag() - 1.0) > 1e-3) {
-            final String err = "Bad postion : zvec " + zvec + " has magnitude not equal to one.";
+            final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : zvec " + zvec + " has magnitude not equal to one.";
             showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }
         if (Math.abs(Posemath.pmCartCartDot(xvec, zvec)) > 1e-3) {
-            final String err = "Bad postion : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.";
+            final String err = "CrclSwingClientInner(port="+port+") checkPose bad position : xvec " + xvec + " and zvec " + zvec + " are not orthogonal.";
             showMessageAndSetCommandErrorDescription(err,throwExceptions);
             return false;
         }

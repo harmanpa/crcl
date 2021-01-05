@@ -115,7 +115,7 @@ public class CmdLineClientIT {
 //                });
                 fail("Program did NOT succeed.");
             }
-        } catch (URISyntaxException | JAXBException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown");
         }
@@ -182,7 +182,9 @@ public class CmdLineClientIT {
                 "--useTempSchemaCopies", "true"
             });
             if (!CmdLineClient.getProgramSucceeded()) {
-                LOGGER.log(Level.SEVERE, "CmdLineSimServer.simServerInner.getStatus = {0}", CmdLineSimServer.getStatusXmlString());
+                LOGGER.log(Level.SEVERE, 
+                        "CmdLineSimServer.simServerInner.getStatus = {0}", 
+                        CmdLineSimServer.getStatusXmlString());
 //                Thread.getAllStackTraces().entrySet().forEach((x) -> {
 //                    System.err.println("Thread:" + x.getKey().getName());
 //                    Arrays.stream(x.getValue()).forEach((xx) -> {
@@ -193,7 +195,7 @@ public class CmdLineClientIT {
                 fail("Program did NOT succeed.");
             }
 
-        } catch (URISyntaxException | JAXBException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown");
         }
@@ -278,7 +280,7 @@ public class CmdLineClientIT {
                 fail("Program did NOT succeed.");
             }
 
-        } catch (URISyntaxException | JAXBException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             fail("Exception thrown: " + ex);
         }

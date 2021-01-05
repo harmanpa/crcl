@@ -77,7 +77,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.bind.JAXBException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -1238,7 +1237,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         try {
             String s = inner.getCheckerCRCLSocket().statusToPrettyString(statusObj, true);
             return MultiLineStringJPanel.showText(s);
-        } catch (JAXBException ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             showMessage(ex);
         }

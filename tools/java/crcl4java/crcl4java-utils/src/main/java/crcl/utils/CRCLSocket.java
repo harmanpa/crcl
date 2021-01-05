@@ -1922,28 +1922,36 @@ public class CRCLSocket implements AutoCloseable {
      * @return new string representation
      * @throws javax.xml.bind.JAXBException invalid status
      */
-    public String statusToPrettyString(CRCLStatusType status, boolean validate) throws JAXBException {
-        JAXBElement<CRCLStatusType> jaxb_status
-                = filterJaxbElement(
-                        objectFactory.createCRCLStatus(status)
-                );
-        StringWriter sw = new StringWriter();
-        synchronized (m_stat) {
-            setMarshallerSchema(m_stat, validate ? statSchema : null);
-            m_stat.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            m_stat.marshal(jaxb_status, sw);
-            m_stat.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-            String str = sw.toString();
-            if (replaceHeader) {
-                str = removeHeader(str);
-                this.lastStatusString = STATUS_HEADER_STRING + str;
-            } else {
-                this.lastStatusString = str;
+    public String statusToPrettyString(CRCLStatusType status, boolean validate) throws Exception {
+        try {
+            if(status == null) {
+                return "CRCLSocket.statusToPrettyString(null,"+validate+")";
             }
-            if (null != this.statusStringOutputFilter) {
-                this.lastStatusString = this.statusStringOutputFilter.apply(this.lastStatusString);
+            final JAXBElement<CRCLStatusType> createCRCLStatusJaxbElement
+                    = objectFactory.createCRCLStatus(status);
+            JAXBElement<CRCLStatusType> jaxb_status
+                    = filterJaxbElement(createCRCLStatusJaxbElement);
+            StringWriter sw = new StringWriter();
+            synchronized (m_stat) {
+                setMarshallerSchema(m_stat, validate ? statSchema : null);
+                m_stat.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+                m_stat.marshal(jaxb_status, sw);
+                m_stat.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+                String str = sw.toString();
+                if (replaceHeader) {
+                    str = removeHeader(str);
+                    this.lastStatusString = STATUS_HEADER_STRING + str;
+                } else {
+                    this.lastStatusString = str;
+                }
+                if (null != this.statusStringOutputFilter) {
+                    this.lastStatusString = this.statusStringOutputFilter.apply(this.lastStatusString);
+                }
+                return this.lastStatusString;
             }
-            return this.lastStatusString;
+        } catch (JAXBException jAXBException) {
+            Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, jAXBException);
+            throw new Exception("status="+status+",validate="+validate, jAXBException);
         }
     }
 

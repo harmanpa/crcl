@@ -3299,7 +3299,7 @@ public class SimServerInner {
         return this.crclServerSocket.getLastUpdateServerSideStatusCopy();
     }
 
-    public String getStatusXmlString() throws JAXBException {
+    public String getStatusXmlString() throws Exception {
         return this.getCheckerCRCLSocket().statusToPrettyString(this.getStatus(), false);
     }
 

@@ -19,18 +19,13 @@
  */
 package crcl.ui.server;
 
-import crcl.base.CommandStateEnumType;
-import crcl.base.CommandStatusType;
 import crcl.ui.DefaultSchemaFiles;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.stubs.SimServerOuterStub;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import rcs.posemath.Posemath;
@@ -49,7 +44,7 @@ public class CmdLineSimServer {
         return simServerInner;
     }
 
-    public static synchronized String getStatusXmlString() throws JAXBException {
+    public static synchronized String getStatusXmlString() throws Exception {
         if (null == simServerInner) {
             return "null";
         }
