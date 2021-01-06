@@ -1289,6 +1289,9 @@ public class CRCLSocket implements AutoCloseable {
      * @return string representation of command
      */
     public String commandToPrettyString(CRCLCommandType cmd) {
+        if(null == cmd) {
+            return "commandToPrettyString(null)";
+        }
         CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
@@ -1308,6 +1311,9 @@ public class CRCLSocket implements AutoCloseable {
      * exception occurs
      */
     public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
+        if(null ==cmd) {
+            return "commandToPrettyString(null,\""+errorText+"\")";
+        }
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
             cmd = wrapper.getWrappedCommand();
@@ -1330,9 +1336,15 @@ public class CRCLSocket implements AutoCloseable {
      * exception occurs
      */
     public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) {
-        if (null == cmd.getCRCLCommand()) {
-            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+        if(null == cmd) {
+            return "commandToPrettyString(null,"+validate+")";
         }
+        if(null == cmd.getCRCLCommand()) {
+            return "commandToPrettyString(cmd.getCRCLCommand()=null,"+validate+")";
+        }
+//        if (null == cmd.getCRCLCommand()) {
+//            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
+//        }
 //        if (null == cmd.getCRCLCommand().getCommandID()) {
 //            throw new IllegalArgumentException("cmd.getCRCLCommand().getCommandID() must not be null. Use setCommandID(BigInteger.valueOf(...)).");
 //        }

@@ -22,15 +22,11 @@
  */
 package crcl.ui.client;
 
-import crcl.base.CRCLCommandType;
-import crcl.base.CRCLStatusType;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public interface CurrentPoseListener {
 
-    public void handlePoseUpdate(CrclSwingClientJPanel panel, CRCLStatusType stat, @Nullable CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime);
+    public void handlePoseUpdate(CurrentPoseListenerUpdateInfo updateInfo);
 }

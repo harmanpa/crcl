@@ -1215,7 +1215,6 @@ public class CrclSwingClientJPanel
 //            javax.swing.SwingUtilities.invokeLater(() -> jTextAreaLastCommand.setText(string));
 //        }
 //    }
-
     private class MyPropertyChangeListener implements PropertyChangeListener {
 
         @Override
@@ -1275,8 +1274,8 @@ public class CrclSwingClientJPanel
     @Override
     public PoseType currentStatusPose() {
         final CRCLStatusType status = requireNonNull(internal.getStatus(), "internal.getStatus()");
-        PoseStatusType poseStatus = requireNonNull(status.getPoseStatus(),"status.getPoseStatus()");
-        PoseType pose = requireNonNull(poseStatus.getPose(),"poseStatus.getPose()");
+        PoseStatusType poseStatus = requireNonNull(status.getPoseStatus(), "status.getPoseStatus()");
+        PoseType pose = requireNonNull(poseStatus.getPose(), "poseStatus.getPose()");
         return pose;
     }
 
@@ -1307,8 +1306,8 @@ public class CrclSwingClientJPanel
 
     private final AtomicInteger pollStopCount = new AtomicInteger();
 
-    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran,boolean throwExceptions) {
-        return internal.checkPose(goalPose, ignoreCartTran,throwExceptions);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran, boolean throwExceptions) {
+        return internal.checkPose(goalPose, ignoreCartTran, throwExceptions);
     }
 
     private volatile boolean polling = false;
@@ -1982,8 +1981,9 @@ public class CrclSwingClientJPanel
         }
     }
 
-    private volatile @Nullable CRCLStatusType  lastStatusCopy = null;
-    
+    private volatile @Nullable
+    CRCLStatusType lastStatusCopy = null;
+
     @Override
     public void finishSetStatus() {
         long statRecieveTime = System.currentTimeMillis();
@@ -2424,9 +2424,19 @@ public class CrclSwingClientJPanel
         return plotter;
     }
 
+    private volatile @Nullable
+    CurrentPoseListenerUpdateInfo currentPoseListenerUpdateInfo = null;
+
+    public @Nullable
+    CurrentPoseListenerUpdateInfo getCurrentPoseListenerUpdateInfo() {
+        return currentPoseListenerUpdateInfo;
+    }
+
     private void updateCurrentPoseListeners(CRCLStatusType curInternalStatus, @Nullable CRCLCommandType lastCommandSent, boolean isHoldingObject, long statReceiveTime) {
+        final CurrentPoseListenerUpdateInfo info = new CurrentPoseListenerUpdateInfo(this, curInternalStatus, lastCommandSent, isHoldingObject, statReceiveTime);
+        this.currentPoseListenerUpdateInfo = info;
         for (CurrentPoseListener l : currentPoseListeners) {
-            l.handlePoseUpdate(this, curInternalStatus, lastCommandSent, isHoldingObject, statReceiveTime);
+            l.handlePoseUpdate(info);
         }
     }
 

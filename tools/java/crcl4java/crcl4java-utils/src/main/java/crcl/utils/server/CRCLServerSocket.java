@@ -2586,50 +2586,51 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     return false;
                 }
                 long t0 = System.currentTimeMillis();
-                double value = getGuardValue(guard, sensorStatMap);
+                Double value = getGuardValue(guard, sensorStatMap);
                 long t1 = System.currentTimeMillis();
+                if (null != value) {
+                    switch (guarLimitType) {
+                        case OVER_MAX:
+                            if (value > limitValue) {
+                                triggerGuard(value, guard_client_state, commandInstance, guard);
+                            }
+                            break;
 
-                switch (guarLimitType) {
-                    case OVER_MAX:
-                        if (value > limitValue) {
-                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        case UNDER_MIN:
+                            if (value < limitValue) {
+                                triggerGuard(value, guard_client_state, commandInstance, guard);
+                            }
+                            break;
+
+                        case DECREASE_BEYOND_LIMIT: {
+                            Double initialValue = guardInitialValues.get(guardMapId);
+                            if (null == initialValue) {
+                                throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                            }
+                            double diff = initialValue - value;
+                            long readValueTime = t1 - t0;
+                            System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
+                            if (diff > limitValue) {
+                                triggerGuard(value, guard_client_state, commandInstance, guard);
+                            }
                         }
                         break;
 
-                    case UNDER_MIN:
-                        if (value < limitValue) {
-                            triggerGuard(value, guard_client_state, commandInstance, guard);
+                        case INCREASE_OVER_LIMIT: {
+                            Double initialValue = guardInitialValues.get(guardMapId);
+                            if (null == initialValue) {
+                                throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
+                            }
+                            double diff = value - initialValue;
+                            long readValueTime = t1 - t0;
+                            System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
+                            System.out.println("limitValue = " + limitValue);
+                            if (diff > limitValue) {
+                                triggerGuard(value, guard_client_state, commandInstance, guard);
+                            }
                         }
                         break;
-
-                    case DECREASE_BEYOND_LIMIT: {
-                        Double initialValue = guardInitialValues.get(guardMapId);
-                        if (null == initialValue) {
-                            throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
-                        }
-                        double diff = initialValue - value;
-                        long readValueTime = t1 - t0;
-                        System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
-                        if (diff > limitValue) {
-                            triggerGuard(value, guard_client_state, commandInstance, guard);
-                        }
                     }
-                    break;
-
-                    case INCREASE_OVER_LIMIT: {
-                        Double initialValue = guardInitialValues.get(guardMapId);
-                        if (null == initialValue) {
-                            throw new NullPointerException("guardInitialValues.get(guardMapId) == null : guardMapId=" + guardMapId + ", guardInitialValues=" + guardInitialValues);
-                        }
-                        double diff = value - initialValue;
-                        long readValueTime = t1 - t0;
-                        System.out.println("CRCLServerSocket.checkGuardsOnce guard: initialValue=" + initialValue + ", value=" + value + ", diff = " + diff + ", count=" + count + ", time=" + time + ", x=" + x + ", y=" + y + ", z=" + z);
-                        System.out.println("limitValue = " + limitValue);
-                        if (diff > limitValue) {
-                            triggerGuard(value, guard_client_state, commandInstance, guard);
-                        }
-                    }
-                    break;
                 }
             } catch (Exception ex) {
                 String exInfo = "guardMapId=" + guardMapId + ",guarLimitType=" + guarLimitType + ",limitValue=" + limitValue;
@@ -2710,13 +2711,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private final GuardHistory guardHistory = new GuardHistory();
 
-    private double getGuardValue(GuardType guard, @Nullable Map<String, SensorStatusType> sensorStatMap) throws RuntimeException {
+    private Double getGuardValue(GuardType guard, @Nullable Map<String, SensorStatusType> sensorStatMap) throws RuntimeException {
 
         double value;
         final String sensorID = guard.getSensorID();
         SensorStatusType stat = sensorStatMap != null ? sensorStatMap.get(sensorID) : null;
         if (null == stat && null != sensorID) {
-            stat = getNewSensorStatus(sensorID);
+            SensorServerInterface sensorServer = this.sensorServers.get(sensorID);
+            if (sensorServer == null) {
+                throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
+            }
+//        setZOnAtiForceSensor(sensorServer);
+            stat = sensorServer.getCurrentSensorStatus();
+//            stat = getNewSensorStatus(sensorID);
             if (null != stat) {
                 final SensorStatusType statf = stat;
                 addToUpdateServerSideRunnables(() -> {
@@ -2746,9 +2753,10 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 if (sensorStatMap != null) {
                     sensorStatMap.put(sensorID, stat);
                 }
-            } else {
-                throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
             }
+//            else {
+//                throw new RuntimeException("bad guard sensor id " + sensorID + ", sensorServers=" + sensorServers);
+//            }
         }
         if (stat != null) {
             final long time = stat.getLastReadTime();
@@ -2804,7 +2812,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             }
             guardHistory.addElement(time, value, x, y, z);
         } else {
-            value = 0;
+            return null;
         }
         return value;
     }
@@ -2929,9 +2937,19 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             final Map<String, Double> newInitalialValuesMap = new HashMap<>();
             for (int i = 0; i < guards.size(); i++) {
                 final GuardType guardI = guards.get(i);
-                final double guardValue = getGuardValue(guardI, sensorStatMap);
-                final String guardMapId = guardMapId(guardI);
-                newInitalialValuesMap.put(guardMapId, guardValue);
+                long t0 = System.currentTimeMillis();
+                Double guardValue = getGuardValue(guardI, sensorStatMap);
+                int tries = 0;
+                while(guardValue == null) {
+                     tries++;
+                     long t = System.currentTimeMillis();
+                     System.out.println("guardValue = " + guardValue+",tries="+tries+",(t-t0)="+(t-t0)+",guardI.getSensorID()="+guardI.getSensorID());
+                     guardValue = getGuardValue(guardI, sensorStatMap);
+                }
+                if (null != guardValue) {
+                    final String guardMapId = guardMapId(guardI);
+                    newInitalialValuesMap.put(guardMapId, guardValue);
+                }
             }
             checkGuardsUntilDone(guards, guard_client_state, cmdID, commandInstance, finalDelayMillis, newInitalialValuesMap);
         } catch (Exception ex) {
