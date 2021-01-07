@@ -25,7 +25,7 @@
                         <executions>
                             <!--
                                 Ensures that both integration-test and verify goals of the Failsafe Maven
-                                plugin are executed.
+                                plugin are executed. commit test2
                             -->
                             <execution>
                                 <id>integration-tests</id>
