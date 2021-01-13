@@ -934,7 +934,7 @@ public class CRCLPosemath {
         newXAxis.setJ(localPoselXAxis.getJ() * -1.0);
         newXAxis.setK(localPoselXAxis.getK() * -1.0);
         newPose.setXAxis(newXAxis);
-        VectorType zAxis = CRCLCopier.copyNullable(pose.getZAxis());
+        VectorType zAxis = CRCLCopier.copy(pose.getZAxis());
         if (null != zAxis) {
             newPose.setZAxis(zAxis);
         }
@@ -1975,8 +1975,8 @@ public class CRCLPosemath {
         final PointType ptIn = getNonNullPoint(poseIn);
         PointType sum = add(ptIn, pt);
         poseOut.setPoint(sum);
-        poseOut.setXAxis(CRCLCopier.copyNullable(poseIn.getXAxis()));
-        poseOut.setZAxis(CRCLCopier.copyNullable(poseIn.getZAxis()));
+        poseOut.setXAxis(CRCLCopier.copy(poseIn.getXAxis()));
+        poseOut.setZAxis(CRCLCopier.copy(poseIn.getZAxis()));
         return poseOut;
     }
 

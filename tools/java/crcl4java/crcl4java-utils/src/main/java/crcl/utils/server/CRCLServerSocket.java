@@ -69,6 +69,7 @@ import crcl.base.SetTorqueUnitsType;
 import crcl.base.SetTransAccelType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.SettingsStatusType;
+import crcl.base.StopMotionType;
 import crcl.base.TransAccelAbsoluteType;
 import crcl.base.TransAccelRelativeType;
 import crcl.base.TransAccelType;
@@ -690,6 +691,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     public void setCommandStateEnum(CommandStateEnumType newCommandStateEnum) {
+
         if (this.commandStateEnum == CommandStateEnumType.CRCL_ERROR) {
             System.out.println("");
             System.err.println("");
@@ -707,8 +709,36 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             System.out.flush();
             System.err.flush();
         }
-        if (this.commandStateEnum != this.commandStateEnum && newCommandStateEnum != CommandStateEnumType.CRCL_ERROR) {
-            setStateDescription("");
+        if (this.commandStateEnum != this.commandStateEnum) {
+            switch (newCommandStateEnum) {
+                case CRCL_DONE:
+                    if (checkingGuards) {
+                        for (GuardType guard : this.currentCmdGuardList) {
+                            final Boolean errorOnTrigger = guard.isErrorOnTrigger();
+                            if (errorOnTrigger != null && errorOnTrigger == true) {
+                                if (currentCmdStartGuardTriggerCount != guardTriggerCount.get()) {
+                                    setStateDescription("guard " + guard.getName() + " triggered error");
+                                    this.commandStateEnum = CommandStateEnumType.CRCL_ERROR;
+                                    return;
+                                }
+                            }
+                            final Boolean requireTrigger = guard.isRequireTrigger();
+                            if (requireTrigger != null && requireTrigger == true) {
+                                if (currentCmdStartGuardTriggerCount == guardTriggerCount.get()) {
+                                    setStateDescription("guard " + guard.getName() + " required trigger not seen error");
+                                    this.commandStateEnum = CommandStateEnumType.CRCL_ERROR;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    setStateDescription("");
+                    break;
+
+                case CRCL_WORKING:
+                    setStateDescription("");
+                    break;
+            }
         }
         if (newCommandStateEnum == CommandStateEnumType.CRCL_ERROR) {
             this.lastErrorCmdId = this.lastCommandEventCommandId;
@@ -1651,6 +1681,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private volatile long lastErrorCmdId = -1;
     private volatile boolean initialized = false;
     private volatile long lastCommandEventCommandId = -1;
+    private volatile List<GuardType> currentCmdGuardList = Collections.EMPTY_LIST;
+    private final AtomicInteger guardTriggerCount = new AtomicInteger();
+    private volatile int currentCmdStartGuardTriggerCount = 0;
 
     private void completeHandleEvent(final CRCLServerSocketEvent<STATE_TYPE> event) throws InterruptedException {
         if (event.getEventType() == CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED) {
@@ -1666,9 +1699,15 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             if (checkCommand(cmd)) {
                 return;
             }
-            final List<GuardType> cmdGuardList = getNonNullFilteredList(cmd.getGuard());
-            if (null != cmdGuardList && !cmdGuardList.isEmpty()) {
-                startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
+            if (!(cmd instanceof GetStatusType) && !(cmd instanceof StopMotionType)) {
+                final List<GuardType> cmdGuardList = getNonNullFilteredList(cmd.getGuard());
+                if (null != cmdGuardList && !cmdGuardList.isEmpty()) {
+                    this.currentCmdGuardList = cmdGuardList;
+                    currentCmdStartGuardTriggerCount = guardTriggerCount.get();
+                    startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
+                } else {
+                    this.currentCmdGuardList = Collections.EMPTY_LIST;
+                }
             }
         }
         for (int i = 0; i < listeners.size(); i++) {
@@ -2660,6 +2699,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         double triggerX = x;
         double triggerY = y;
         double triggerZ = z;
+        final int newGuardTriggerCount = guardTriggerCount.incrementAndGet();
 
         addToUpdateServerSideRunnables(() -> {
             final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
@@ -2672,7 +2712,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             } else {
                 guardsStatuses = initialGuardsStatuses;
             }
-            guardsStatuses.setTriggerCount(guardsStatuses.getTriggerCount() + 1);
+            guardsStatuses.setTriggerCount(newGuardTriggerCount);
             guardsStatuses.setTriggerValue(value);
             if (null != localServerSideStatus.getPoseStatus()) {
                 final PoseType serverSidePose = CRCLPosemath.getNullablePose(localServerSideStatus);
@@ -2940,11 +2980,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 long t0 = System.currentTimeMillis();
                 Double guardValue = getGuardValue(guardI, sensorStatMap);
                 int tries = 0;
-                while(guardValue == null) {
-                     tries++;
-                     long t = System.currentTimeMillis();
-                     System.out.println("guardValue = " + guardValue+",tries="+tries+",(t-t0)="+(t-t0)+",guardI.getSensorID()="+guardI.getSensorID());
-                     guardValue = getGuardValue(guardI, sensorStatMap);
+                while (guardValue == null) {
+                    tries++;
+                    long t = System.currentTimeMillis();
+                    System.out.println("guardValue = " + guardValue + ",tries=" + tries + ",(t-t0)=" + (t - t0) + ",guardI.getSensorID()=" + guardI.getSensorID());
+                    guardValue = getGuardValue(guardI, sensorStatMap);
                 }
                 if (null != guardValue) {
                     final String guardMapId = guardMapId(guardI);
