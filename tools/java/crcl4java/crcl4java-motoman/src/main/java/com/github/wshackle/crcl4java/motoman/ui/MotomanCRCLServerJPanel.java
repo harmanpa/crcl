@@ -643,7 +643,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                         long timeSinceCheckMove = t0 - lastCheckMoveTime;
                         appendLog("\njButtonStatusActionPerformed: \n" + text + "\nlastCommand=\n" + lastCommandText + "\nlastCheckMoveCommand=\n" + lastCheckMoveCommandText + "\timeSinceCheckMove=" + timeSinceCheckMove + "\ntimeDiff=" + timeDiff + "\n");
                         MultiLineStringJPanel.showText(text, null, "Motoman Status", false);
-                    } catch (JAXBException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 })
