@@ -1013,47 +1013,56 @@ public class SimServerInner {
     }
 
     public boolean isFinishedMove() {
-        PoseToleranceType endPoseTol = getEndPoseTolerance();
         final CRCLStatusType stat = this.getLastUpdateServerSideStatusCopy();
         if (null == stat) {
             return false;
         }
         final PoseType currentPose = getNullablePose(stat);
+        if (null == currentPose) {
+            return false;
+        }
         final SettingsStatusType localSettingsStatus = stat.getSettingsStatus();
+        if (null == localSettingsStatus) {
+            return false;
+        }
         final PoseType localGoalPose = goalPose;
-        if (null != localGoalPose && null != endPoseTol && null != currentPose && null != localSettingsStatus) {
+        if (null != localGoalPose) {
+            PoseToleranceType endPoseTol = getEndPoseTolerance();
+            if (null == endPoseTol) {
+                return false;
+            }
             final AngleUnitEnumType angleUnitName = localSettingsStatus.getAngleUnitName();
             if (null != angleUnitName) {
                 boolean goalInTol = PoseToleranceChecker.isInTolerance(localGoalPose, currentPose, endPoseTol, angleUnitName);
-                if (goalInTol) {
-                    return true;
-                }
+                return goalInTol;
+            } else {
+                final PointType localGoalPosePoint = localGoalPose.getPoint();
+                final PointType currentPosePoint = currentPose.getPoint();
+                boolean goalInTolTranOnly = PoseToleranceChecker.isInTolerance(localGoalPosePoint, currentPosePoint, endPoseTol);
+                return goalInTolTranOnly;
             }
-        }
-        double jpa1[] = this.jointPositions;
-        if (null == jpa1) {
-            throw new IllegalStateException("null == jointPositions");
-        }
-        double cjpa1[] = this.commandedJointPositions;
-        if (null == cjpa1) {
-            throw new IllegalStateException("null == commandedJointPositions");
-        }
-        // double currentJointPositions[]= 
-        double jpa2[] = jpa1;
-        double cjpa2[] = cjpa1;
-        final JointPositionsTolerancesType jointTolSettings;
-        if (null != localSettingsStatus) {
-            jointTolSettings = localSettingsStatus.getJointTolerances();
         } else {
-            jointTolSettings = null;
-        }
-
-        double jointdiffs[] = new double[jpa2.length];
-        double jointtols[] = new double[jpa2.length];
-        for (int i = 0; i < jointtols.length; i++) {
-            jointtols[i] = getJointDiffMax();
-        }
-        if (null != jointTolSettings && null == localGoalPose) {
+            double jpa1[] = this.jointPositions;
+            if (null == jpa1) {
+                throw new IllegalStateException("null == jointPositions");
+            }
+            double cjpa1[] = this.commandedJointPositions;
+            if (null == cjpa1) {
+                throw new IllegalStateException("null == commandedJointPositions");
+            }
+            // double currentJointPositions[]= 
+            double jpa2[] = jpa1;
+            double cjpa2[] = cjpa1;
+            final JointPositionsTolerancesType jointTolSettings
+                    = localSettingsStatus.getJointTolerances();
+            if (null == jointTolSettings) {
+                return false;
+            }
+            double jointdiffs[] = new double[jpa2.length];
+            double jointtols[] = new double[jpa2.length];
+            for (int i = 0; i < jointtols.length; i++) {
+                jointtols[i] = getJointDiffMax();
+            }
             final List<JointPositionToleranceSettingType> settingsList
                     = getNonNullFilteredList(jointTolSettings.getSetting());
             for (int i = 0; i < settingsList.size(); i++) {
@@ -1063,16 +1072,15 @@ public class SimServerInner {
                     jointtols[n - 1] = setting.getJointPositionTolerance();
                 }
             }
-        }
-        boolean jointTolExceeded = false;
-        for (int i = 0; i < jointdiffs.length; i++) {
-            double jointdiff = Math.abs(jpa2[i] - cjpa2[i]);
-            jointdiffs[i] = jointdiff;
-            if (jointdiffs[i] > jointtols[i]) {
-                jointTolExceeded = true;
+            for (int i = 0; i < jointdiffs.length; i++) {
+                double jointdiff = Math.abs(jpa2[i] - cjpa2[i]);
+                jointdiffs[i] = jointdiff;
+                if (jointdiff > jointtols[i]) {
+                    return false;
+                }
             }
+            return true;
         }
-        return jointTolExceeded;
     }
 
     public @Nullable

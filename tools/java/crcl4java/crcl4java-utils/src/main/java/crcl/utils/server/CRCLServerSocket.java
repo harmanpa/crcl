@@ -709,7 +709,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             System.out.flush();
             System.err.flush();
         }
-        if (this.commandStateEnum != this.commandStateEnum) {
+        if (this.commandStateEnum != newCommandStateEnum) {
             switch (newCommandStateEnum) {
                 case CRCL_DONE:
                     if (checkingGuards) {
@@ -732,6 +732,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                             }
                         }
                     }
+                    checkingGuards=false;
                     setStateDescription("");
                     break;
 
@@ -1400,11 +1401,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     }
 
     private void setDoneState() {
-        setCommandStateEnum(commandStateEnum.CRCL_DONE);
+        setCommandStateEnum(CommandStateEnumType.CRCL_DONE);
     }
 
     private void setWorkingState() {
-        setCommandStateEnum(commandStateEnum.CRCL_WORKING);
+        setCommandStateEnum(CommandStateEnumType.CRCL_WORKING);
     }
 
     private volatile @Nullable
@@ -1707,6 +1708,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
                 } else {
                     this.currentCmdGuardList = Collections.EMPTY_LIST;
+                    checkingGuards = false;
                 }
             }
         }
@@ -2867,22 +2869,18 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
             Map<String, Double> guardInitialValues) throws Exception {
         final long startTime = System.currentTimeMillis();
         int count = 0;
-        try {
-            final Throwable ta[] = new Throwable[1];
-            boolean doneA[] = new boolean[1];
-            doneA[0] = false;
-            while (!Thread.currentThread().isInterrupted() && !doneA[0]) {
-                final long timeDiff = System.currentTimeMillis() - startTime;
-                if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
-                    break;
-                }
-                count++;
-                if (delayMillis > 0) {
-                    Thread.sleep(delayMillis);
-                }
+        final Throwable ta[] = new Throwable[1];
+        boolean doneA[] = new boolean[1];
+        doneA[0] = false;
+        while (!Thread.currentThread().isInterrupted() && !doneA[0]) {
+            final long timeDiff = System.currentTimeMillis() - startTime;
+            if (!checkGuardsOnce(guards, guard_client_state, cmdID, commandInstance, guardInitialValues, count, timeDiff)) {
+                break;
             }
-        } finally {
-            checkingGuards = false;
+            count++;
+            if (delayMillis > 0) {
+                Thread.sleep(delayMillis);
+            }
         }
     }
 
