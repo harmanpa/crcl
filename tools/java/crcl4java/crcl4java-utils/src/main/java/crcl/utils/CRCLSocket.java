@@ -960,7 +960,7 @@ public class CRCLSocket implements AutoCloseable {
                     throw new RuntimeException("el.getValue() == null : el=" + el);
                 }
                 return instance;
-            } catch (JAXBException ex) {
+            } catch (Exception ex) {
                 try {
                     final File tmpFile = File.createTempFile("stringToStatus", ".xml");
                     try (PrintWriter pw = new PrintWriter(new FileWriter(tmpFile))) {

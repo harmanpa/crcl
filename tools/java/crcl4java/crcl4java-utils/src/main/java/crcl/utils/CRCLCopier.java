@@ -21,13 +21,11 @@ package crcl.utils;
 
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
-import crcl.base.AngleUnitEnumType;
 import crcl.base.CRCLCommandInstanceType;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CloseToolChangerType;
-import crcl.base.CommandStateEnumType;
 import crcl.base.CommandStatusType;
 import crcl.base.ConfigureJointReportType;
 import crcl.base.ConfigureJointReportsType;
@@ -43,10 +41,8 @@ import crcl.base.EnableRobotParameterStatusType;
 import crcl.base.EnableSensorType;
 import crcl.base.EndCanonType;
 import crcl.base.ForceTorqueSensorStatusType;
-import crcl.base.ForceUnitEnumType;
 import crcl.base.GetStatusType;
 import crcl.base.GripperStatusType;
-import crcl.base.GuardLimitEnumType;
 import crcl.base.GuardType;
 import crcl.base.GuardsStatusesType;
 import crcl.base.InitCanonType;
@@ -58,7 +54,6 @@ import crcl.base.JointPositionsTolerancesType;
 import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
-import crcl.base.LengthUnitEnumType;
 import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveScrewType;
@@ -99,10 +94,8 @@ import crcl.base.SetTorqueUnitsType;
 import crcl.base.SetTransAccelType;
 import crcl.base.SetTransSpeedType;
 import crcl.base.SettingsStatusType;
-import crcl.base.StopConditionEnumType;
 import crcl.base.StopMotionType;
 import crcl.base.ThreeFingerGripperStatusType;
-import crcl.base.TorqueUnitEnumType;
 import crcl.base.TransAccelAbsoluteType;
 import crcl.base.TransAccelRelativeType;
 import crcl.base.TransAccelType;
@@ -113,11 +106,11 @@ import crcl.base.TwistType;
 import crcl.base.VacuumGripperStatusType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
-import java.util.List;
 import java.util.Iterator;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class CRCLCopier {
@@ -515,7 +508,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -555,7 +548,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -580,7 +573,7 @@ public class CRCLCopier {
         out.setReportVelocity(in.isReportVelocity());
         out.setJointNumber(in.getJointNumber());
         out.setReportPosition(in.isReportPosition());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -603,7 +596,7 @@ public class CRCLCopier {
         assert(out.getClass()==ParameterSettingType.class): "out.getClass()!=ParameterSettingType.class: out.getClass()="+out.getClass();
         out.setParameterName(in.getParameterName());
         out.setParameterValue(in.getParameterValue());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -678,7 +671,7 @@ public class CRCLCopier {
             outForceTorqueSensorStatus.add(copy(iteratorForceTorqueSensorStatusNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -702,7 +695,7 @@ public class CRCLCopier {
         out.setI(in.getI());
         out.setJ(in.getJ());
         out.setK(in.getK());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -727,7 +720,7 @@ public class CRCLCopier {
         out.setTwist(copy(in.getTwist()));
         out.setWrench(copy(in.getWrench()));
         out.setConfiguration(in.getConfiguration());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -786,7 +779,7 @@ public class CRCLCopier {
             }
         }
         out.setHoldingObject(in.isHoldingObject());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -828,7 +821,7 @@ public class CRCLCopier {
             }
         }
         out.setHoldingObject(in.isHoldingObject());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -864,7 +857,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -916,7 +909,7 @@ public class CRCLCopier {
             outSensorParameterSetting.add(copy(iteratorSensorParameterSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -954,7 +947,7 @@ public class CRCLCopier {
             outSensorParameterSetting.add(copy(iteratorSensorParameterSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1010,7 +1003,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1046,7 +1039,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1082,7 +1075,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1104,7 +1097,7 @@ public class CRCLCopier {
         assert(in.getClass()==RotAccelAbsoluteType.class): "in.getClass()!=RotAccelAbsoluteType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==RotAccelAbsoluteType.class): "out.getClass()!=RotAccelAbsoluteType.class: out.getClass()="+out.getClass();
         out.setSetting(in.getSetting());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1147,7 +1140,7 @@ public class CRCLCopier {
             outSensorParameterSetting.add(copy(iteratorSensorParameterSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1184,7 +1177,7 @@ public class CRCLCopier {
             }
         }
         out.setHoldingObject(in.isHoldingObject());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1263,7 +1256,7 @@ public class CRCLCopier {
         out.setTransSpeedAbsolute(copy(in.getTransSpeedAbsolute()));
         out.setTransSpeedRelative(copy(in.getTransSpeedRelative()));
         out.setJointTolerances(copy(in.getJointTolerances()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1317,7 +1310,7 @@ public class CRCLCopier {
             outSetting.add(copy(iteratorSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1353,7 +1346,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1403,7 +1396,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1439,7 +1432,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1475,7 +1468,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1513,7 +1506,7 @@ public class CRCLCopier {
             outSensorParameterSetting.add(copy(iteratorSensorParameterSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1549,7 +1542,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1591,7 +1584,7 @@ public class CRCLCopier {
         assert(in.getClass()==TransSpeedAbsoluteType.class): "in.getClass()!=TransSpeedAbsoluteType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==TransSpeedAbsoluteType.class): "out.getClass()!=TransSpeedAbsoluteType.class: out.getClass()="+out.getClass();
         out.setSetting(in.getSetting());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1626,7 +1619,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1675,7 +1668,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1706,7 +1699,7 @@ public class CRCLCopier {
         out.setLastCheckValue(in.getLastCheckValue());
         out.setRequireTrigger(in.isRequireTrigger());
         out.setErrorOnTrigger(in.isErrorOnTrigger());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1729,7 +1722,7 @@ public class CRCLCopier {
         assert(out.getClass()==TwistType.class): "out.getClass()!=TwistType.class: out.getClass()="+out.getClass();
         out.setLinearVelocity(copy(in.getLinearVelocity()));
         out.setAngularVelocity(copy(in.getAngularVelocity()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1778,7 +1771,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1820,7 +1813,7 @@ public class CRCLCopier {
         assert(in.getClass()==RotSpeedAbsoluteType.class): "in.getClass()!=RotSpeedAbsoluteType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==RotSpeedAbsoluteType.class): "out.getClass()!=RotSpeedAbsoluteType.class: out.getClass()="+out.getClass();
         out.setSetting(in.getSetting());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1863,7 +1856,7 @@ public class CRCLCopier {
         assert(out.getClass()==JointSpeedAccelType.class): "out.getClass()!=JointSpeedAccelType.class: out.getClass()="+out.getClass();
         out.setJointSpeed(in.getJointSpeed());
         out.setJointAccel(in.getJointAccel());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1897,7 +1890,7 @@ public class CRCLCopier {
             outJointStatus.add(copy(iteratorJointStatusNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1922,7 +1915,7 @@ public class CRCLCopier {
         out.setX(in.getX());
         out.setY(in.getY());
         out.setZ(in.getZ());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1947,7 +1940,7 @@ public class CRCLCopier {
         out.setJointPosition(in.getJointPosition());
         out.setJointTorqueOrForce(in.getJointTorqueOrForce());
         out.setJointVelocity(in.getJointVelocity());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -1982,7 +1975,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2005,7 +1998,7 @@ public class CRCLCopier {
         assert(out.getClass()==JointPositionToleranceSettingType.class): "out.getClass()!=JointPositionToleranceSettingType.class: out.getClass()="+out.getClass();
         out.setJointNumber(in.getJointNumber());
         out.setJointPositionTolerance(in.getJointPositionTolerance());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2028,7 +2021,7 @@ public class CRCLCopier {
         assert(out.getClass()==WrenchType.class): "out.getClass()!=WrenchType.class: out.getClass()="+out.getClass();
         out.setForce(copy(in.getForce()));
         out.setMoment(copy(in.getMoment()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2076,7 +2069,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2112,7 +2105,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2150,7 +2143,7 @@ public class CRCLCopier {
             outSensorParameterSetting.add(copy(iteratorSensorParameterSettingNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2185,7 +2178,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2211,7 +2204,7 @@ public class CRCLCopier {
         out.setZPointTolerance(in.getZPointTolerance());
         out.setXAxisTolerance(in.getXAxisTolerance());
         out.setZAxisTolerance(in.getZAxisTolerance());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2247,7 +2240,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2283,7 +2276,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2319,7 +2312,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2352,7 +2345,7 @@ public class CRCLCopier {
         out.setZAxis(copy(in.getZAxis()));
         out.setPoint(copy(in.getPoint()));
         out.setXAxis(copy(in.getXAxis()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2382,7 +2375,7 @@ public class CRCLCopier {
         out.setZAxis(copy(in.getZAxis()));
         out.setPoint(copy(in.getPoint()));
         out.setXAxis(copy(in.getXAxis()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2431,7 +2424,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2467,7 +2460,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2503,7 +2496,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2540,7 +2533,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2578,7 +2571,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2600,7 +2593,7 @@ public class CRCLCopier {
         assert(in.getClass()==RotAccelRelativeType.class): "in.getClass()!=RotAccelRelativeType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==RotAccelRelativeType.class): "out.getClass()!=RotAccelRelativeType.class: out.getClass()="+out.getClass();
         out.setFraction(in.getFraction());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2648,7 +2641,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2684,7 +2677,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2720,7 +2713,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2745,7 +2738,7 @@ public class CRCLCopier {
         out.setProgramFile(in.getProgramFile());
         out.setProgramIndex(in.getProgramIndex());
         out.setProgramLength(in.getProgramLength());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2768,7 +2761,7 @@ public class CRCLCopier {
         assert(out.getClass()==JointForceTorqueType.class): "out.getClass()!=JointForceTorqueType.class: out.getClass()="+out.getClass();
         out.setSetting(in.getSetting());
         out.setChangeRate(in.getChangeRate());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2804,7 +2797,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2832,7 +2825,7 @@ public class CRCLCopier {
         out.setSettingsStatus(copy(in.getSettingsStatus()));
         out.setSensorStatuses(copy(in.getSensorStatuses()));
         out.setGuardsStatuses(copy(in.getGuardsStatuses()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2870,7 +2863,7 @@ public class CRCLCopier {
         out.setTriggerStopTimeMicros(in.getTriggerStopTimeMicros());
         out.setTriggerValue(in.getTriggerValue());
         out.setTriggerPose(copy(in.getTriggerPose()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2892,7 +2885,7 @@ public class CRCLCopier {
         assert(in.getClass()==TransSpeedRelativeType.class): "in.getClass()!=TransSpeedRelativeType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==TransSpeedRelativeType.class): "out.getClass()!=TransSpeedRelativeType.class: out.getClass()="+out.getClass();
         out.setFraction(in.getFraction());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2928,7 +2921,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -2963,7 +2956,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3004,7 +2997,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3028,7 +3021,7 @@ public class CRCLCopier {
         out.setJointNumber(in.getJointNumber());
         out.setJointPosition(in.getJointPosition());
         out.setJointDetails(copy(in.getJointDetails()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3057,7 +3050,7 @@ public class CRCLCopier {
         out.setCommandState(in.getCommandState());
         out.setStateDescription(in.getStateDescription());
         out.setOverridePercent(in.getOverridePercent());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3079,7 +3072,7 @@ public class CRCLCopier {
         assert(in.getClass()==TransAccelAbsoluteType.class): "in.getClass()!=TransAccelAbsoluteType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==TransAccelAbsoluteType.class): "out.getClass()!=TransAccelAbsoluteType.class: out.getClass()="+out.getClass();
         out.setSetting(in.getSetting());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3115,7 +3108,7 @@ public class CRCLCopier {
             }
         }
         out.setEndCanon(copy(in.getEndCanon()));
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3150,7 +3143,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3186,7 +3179,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3208,7 +3201,7 @@ public class CRCLCopier {
         assert(in.getClass()==TransAccelRelativeType.class): "in.getClass()!=TransAccelRelativeType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==TransAccelRelativeType.class): "out.getClass()!=TransAccelRelativeType.class: out.getClass()="+out.getClass();
         out.setFraction(in.getFraction());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3231,7 +3224,7 @@ public class CRCLCopier {
         assert(in.getClass()==RotSpeedRelativeType.class): "in.getClass()!=RotSpeedRelativeType.class : in.getClass()="+in.getClass();
         assert(out.getClass()==RotSpeedRelativeType.class): "out.getClass()!=RotSpeedRelativeType.class: out.getClass()="+out.getClass();
         out.setFraction(in.getFraction());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3267,7 +3260,7 @@ public class CRCLCopier {
             outGuard.add(copy(iteratorGuardNext));
             }
         }
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3295,7 +3288,7 @@ public class CRCLCopier {
         out.setJointMaxPosition(in.getJointMaxPosition());
         out.setJointMaxTorqueOrForce(in.getJointMaxTorqueOrForce());
         out.setJointMaxVelocity(in.getJointMaxVelocity());
-        out.setName(in.getName());
+        copyName(out,in);
         return out;
     }
 
@@ -3305,6 +3298,22 @@ public class CRCLCopier {
     // i = 98,clzzi=class java.lang.Boolean
     // i = 99,clzzi=class java.lang.Long
     // i = 100,clzzi=class java.lang.Integer
+    
+    
+    private static AtomicInteger copyCount = new AtomicInteger();
+    
+    private static void copyName(DataThingType out, DataThingType in) {
+        String origName = in.getName();
+        int pindex = origName.indexOf('.', 5);
+        while (origName.length() > 5 && pindex > 5 && origName.length() > pindex && origName.startsWith("copy.")) {
+            origName = origName.substring(pindex + 1);
+            pindex = origName.indexOf('.', 5);
+        }
+        if (origName.contains("copy")) {
+            throw new RuntimeException("origName=" + origName + ",pindex=" + pindex);
+        }
+        out.setName("copy." + copyCount.incrementAndGet() + "." + origName);
+    }
 }
 
 
