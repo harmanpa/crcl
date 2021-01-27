@@ -155,8 +155,7 @@ public class InOutJPanel extends JPanel {
     public void setHoldingFromStack(TrayStack holdingFromStack) {
         this.holdingFromStack = holdingFromStack;
     }
-    
-    
+
     public double poseStackZDiff(TrayStack stack) {
         if (stack == null || robotPose == null) {
             return Double.NaN;
@@ -210,7 +209,7 @@ public class InOutJPanel extends JPanel {
         return new Point2D.Double(displayPoint.x + xoffset, (this.getHeight() - z * hvas - displayPoint.y - yoffset) / hvac);
     }
 
-        private TrayStack holding;
+    private TrayStack holding;
 
     /**
      * Get the value of holding
@@ -246,20 +245,19 @@ public class InOutJPanel extends JPanel {
             g.drawString(worldMousePoint.toString(), 20, 20);
 
             final Point2D.Double robotPoint;
-            final Point2D.Double robotShadowPoint;
+            final PointType robotPosePoint;
+            double minZ = Double.POSITIVE_INFINITY;
             if (null != robotPose) {
-                final PointType robotPosePoint = robotPose.getPoint();
+                robotPosePoint = robotPose.getPoint();
                 if (null != robotPosePoint) {
                     g.drawString("robot:" + robotPosePoint.getX() + ", " + robotPosePoint.getY() + ", " + robotPosePoint.getZ(), 20, 40);
                     robotPoint = world2Display(robotPosePoint);
-                    robotShadowPoint = world2Display(robotPosePoint.getX(), robotPosePoint.getY(), 0.0);
                 } else {
                     robotPoint = null;
-                    robotShadowPoint = null;
                 }
             } else {
                 robotPoint = null;
-                robotShadowPoint = null;
+                robotPosePoint=null;
             }
 
             if (null != stacks) {
@@ -272,17 +270,22 @@ public class InOutJPanel extends JPanel {
                     final int stackLevels = stack.count + 1;
 
                     drawStackObject(stack, stackLevels, inSide, g2d);
+                    if(minZ > stack.z) {
+                        minZ = stack.z;
+                    }
                     final Point2D.Double stackDisplayPoint = world2Display(stack.x, stack.y, stack.z);
                     g2d.drawString(stack.name, (float) stackDisplayPoint.x, (float) stackDisplayPoint.y);
                 }
             }
 
-            if (null != robotShadowPoint) {
+            if (null != robotPosePoint && Double.isFinite(minZ)) {
+                final Point2D.Double robotShadowPoint
+                        = world2Display(robotPosePoint.getX(), robotPosePoint.getY(), minZ);
                 g.setColor(Color.gray);
                 drawCross(g2d, robotShadowPoint);
             }
             if (null != robotPoint) {
-                if(null != holding) {
+                if (null != holding) {
                     holding.x = robotPoint.x;
                     holding.y = robotPoint.y;
                     holding.z = robotPose.getPoint().getZ() - holding.height;
@@ -301,19 +304,19 @@ public class InOutJPanel extends JPanel {
         final double y1 = stack.y;
         final double x2 = x1 + stack.width * src;
         final double y2 = y1 + stack.width * srs;
-        
+
         final double x3 = x2 - stack.length * srs;
         final double y3 = y2 + stack.length * src;
         final double x4 = x1 - stack.length * srs;
         final double y4 = y1 + stack.length * src;
         for (int i = 0; i < stackLevels; i++) {
-            final double stacklevel = stack.height * i+stack.z;
+            final double stacklevel = stack.height * i + stack.z;
             Point2D.Double p1 = world2Display(x1, y1, stacklevel);
             Point2D.Double p2 = world2Display(x2, y2, stacklevel);
             Point2D.Double p3 = world2Display(x3, y3, stacklevel);
             Point2D.Double p4 = world2Display(x4, y4, stacklevel);
             Path2D.Double path = fourPointsClosedPath(p1, p2, p3, p4);
-            
+
             if (i > 0) {
                 final double stacklevelnext = stack.height * (i - 1);
                 final Point2D.Double p1Next = world2Display(x1, y1, stacklevelnext);
@@ -338,14 +341,14 @@ public class InOutJPanel extends JPanel {
 //                    g2d.rotate(stack.rotationRadians, rect.x, rect.y);
 //                    g2d.scale(1.0, hvac);
 
-if (inSide) {
-    g2d.setColor(Color.red);
-    g2d.fill(path);
-}
-g2d.setColor(Color.black);
-g2d.draw(path);
-final Point2D.Double stackLevelDisplayPoint = world2Display(x1, y1, stacklevel);
-g2d.drawString(Integer.toString(i), (float) stackLevelDisplayPoint.x, (float) stackLevelDisplayPoint.y);
+            if (inSide) {
+                g2d.setColor(Color.red);
+                g2d.fill(path);
+            }
+            g2d.setColor(Color.black);
+            g2d.draw(path);
+            final Point2D.Double stackLevelDisplayPoint = world2Display(x1, y1, stacklevel);
+            g2d.drawString(Integer.toString(i), (float) stackLevelDisplayPoint.x, (float) stackLevelDisplayPoint.y);
 //                    rect.y -= yinc;
 //                    g2d.setTransform(transform);
         }

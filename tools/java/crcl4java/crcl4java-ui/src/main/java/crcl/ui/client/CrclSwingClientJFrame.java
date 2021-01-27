@@ -133,10 +133,10 @@ public class CrclSwingClientJFrame extends javax.swing.JFrame implements Pendant
         pendantClientJPanel1.disconnect();
     }
 
-    private void updateUIFromInternal() {
-        pendantClientJPanel1.updateUIFromInternal();
-        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
-    }
+//    private void updateUIFromInternal() {
+//        pendantClientJPanel1.updateUIFromInternal();
+//        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
+//    }
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 

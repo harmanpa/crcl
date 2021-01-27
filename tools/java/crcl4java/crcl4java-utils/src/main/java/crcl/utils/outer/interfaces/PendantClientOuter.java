@@ -36,7 +36,7 @@ import javax.xml.bind.JAXBException;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public interface PendantClientOuter {
+public interface PendantClientOuter extends PropertyOwner {
 
     public void showMessage(String s);
 
@@ -89,14 +89,6 @@ public interface PendantClientOuter {
     public void saveXmlProgramFile(File f) throws JAXBException, CRCLException;
 
     public PendantClientMenuOuter getMenuOuter();
-
-    public File getPropertiesFile();
-
-    public void setPropertiesFile(File propertiesFile);
-
-    public void loadProperties();
-
-    public void saveProperties();
 
     public void updateCommandStatusLog(Deque<CommandStatusLogElement> log);
     

@@ -23,13 +23,15 @@
 package crcl.ui.forcetorquesensorsimulator;
 
 import crcl.ui.client.CrclSwingClientJPanel;
+import crcl.utils.outer.interfaces.PropertyOwner;
+import java.io.File;
 import java.io.IOException;
 
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class ForceTorqueSimJFrame extends javax.swing.JFrame {
+public class ForceTorqueSimJFrame extends javax.swing.JFrame implements PropertyOwner {
 
     /**
      * Creates new form ForceTorqueSimJFrame
@@ -110,4 +112,24 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame {
     }
     private final crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
     private final javax.swing.JMenuBar jMenuBar1;
+    
+    @Override
+    public File getPropertiesFile() {
+        return forceTorqueSimJPanel2.getPropertiesFile();
+    }
+    
+    @Override
+    public void setPropertiesFile(File propertiesFile) {
+        forceTorqueSimJPanel2.setPropertiesFile(propertiesFile);
+    }
+    
+    @Override
+    public void loadProperties() {
+        forceTorqueSimJPanel2.loadProperties();
+    }
+    
+    @Override
+    public void saveProperties() {
+        forceTorqueSimJPanel2.saveProperties();
+    }
 }

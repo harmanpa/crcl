@@ -323,7 +323,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             @Nullable JFrame _owner) {
         return showText(init, _owner, "", false, false);
     }
-
+    
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,

@@ -62,20 +62,20 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemSavePoseListActionPerformed"/>
               </Events>
             </MenuItem>
-            <MenuItem class="javax.swing.JMenuItem" name="jMenuItemLoadPrefs">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Load Preferences File ..."/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemLoadPrefsActionPerformed"/>
-              </Events>
-            </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItemSavePrefs">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Save Preferences File ..."/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemSavePrefsActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="jMenuItemLoadPrefs">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Load Preferences File ..."/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jMenuItemLoadPrefsActionPerformed"/>
               </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="jMenuItemResetPrefs">

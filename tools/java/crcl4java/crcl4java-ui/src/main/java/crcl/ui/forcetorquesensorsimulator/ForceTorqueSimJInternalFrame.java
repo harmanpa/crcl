@@ -23,6 +23,8 @@
 package crcl.ui.forcetorquesensorsimulator;
 
 import crcl.ui.client.CrclSwingClientJPanel;
+import crcl.utils.outer.interfaces.PropertyOwner;
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
@@ -30,17 +32,17 @@ import java.util.logging.Level;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
+public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame implements PropertyOwner {
 
     /**
      * Creates new form ForceTorqueSimJFrame
      */
     @SuppressWarnings("initialization")
     public ForceTorqueSimJInternalFrame() {
-
+        
         forceTorqueSimJPanel2 = new crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel();
         jMenuBar1 = forceTorqueSimJPanel2.jMenuBar1;
-
+        
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Force Torque Sensor Simulation");
         setName("forceTorqueSimFrame0"); // NOI18N
@@ -49,31 +51,31 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
         add(forceTorqueSimJPanel2);
         pack();
     }
-
+    
     public int getCRCLSensorOutPort() {
         return forceTorqueSimJPanel2.getCRCLSensorOutPort();
     }
-
+    
     public void setCRCLSensorOutPort(int port) {
         forceTorqueSimJPanel2.setCRCLSensorOutPort(port);
     }
-
+    
     public int getPoseCRCLPort() {
         return forceTorqueSimJPanel2.getPoseCRCLPort();
     }
-
+    
     public void setPoseCRCLPort(int port) {
         forceTorqueSimJPanel2.setPoseCRCLPort(port);
     }
-
+    
     public String getPoseCRCLHost() {
         return forceTorqueSimJPanel2.getPoseCRCLHost();
     }
-
+    
     public void setPoseCRCLHost(String host) {
         forceTorqueSimJPanel2.setPoseCRCLHost(host);
     }
-
+    
     public void startServer() throws IOException, NumberFormatException {
         forceTorqueSimJPanel2.startServer();
     }
@@ -85,7 +87,7 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
     public void setObjectsFileName(String name) {
         forceTorqueSimJPanel2.setObjectsFileName(name);
     }
-    
+
     /**
      * Get the value of crclClientPanel
      *
@@ -106,4 +108,24 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame {
     }
     private final crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel forceTorqueSimJPanel2;
     private final javax.swing.JMenuBar jMenuBar1;
+    
+    @Override
+    public File getPropertiesFile() {
+        return forceTorqueSimJPanel2.getPropertiesFile();
+    }
+    
+    @Override
+    public void setPropertiesFile(File propertiesFile) {
+        forceTorqueSimJPanel2.setPropertiesFile(propertiesFile);
+    }
+    
+    @Override
+    public void loadProperties() {
+        forceTorqueSimJPanel2.loadProperties();
+    }
+    
+    @Override
+    public void saveProperties() {
+        forceTorqueSimJPanel2.saveProperties();
+    }
 }

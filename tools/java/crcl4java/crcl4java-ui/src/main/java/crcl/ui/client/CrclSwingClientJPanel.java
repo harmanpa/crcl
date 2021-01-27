@@ -22,7 +22,6 @@
  */
 package crcl.ui.client;
 
-import crcl.utils.outer.interfaces.ProgramRunData;
 import crcl.base.ActuateJointType;
 import crcl.base.ActuateJointsType;
 import crcl.base.CRCLCommandInstanceType;
@@ -31,7 +30,10 @@ import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
 import crcl.base.CloseToolChangerType;
 import crcl.base.CommandStateEnumType;
+import static crcl.base.CommandStateEnumType.CRCL_DONE;
 import static crcl.base.CommandStateEnumType.CRCL_ERROR;
+import static crcl.base.CommandStateEnumType.CRCL_READY;
+import static crcl.base.CommandStateEnumType.CRCL_WORKING;
 import crcl.base.CommandStatusType;
 import crcl.base.EndCanonType;
 import crcl.base.GripperStatusType;
@@ -42,6 +44,9 @@ import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
+import static crcl.base.LengthUnitEnumType.INCH;
+import static crcl.base.LengthUnitEnumType.METER;
+import static crcl.base.LengthUnitEnumType.MILLIMETER;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveToType;
 import crcl.base.OpenToolChangerType;
@@ -61,10 +66,6 @@ import crcl.ui.AutomaticPropertyFileUtils;
 import crcl.ui.ConcurrentBlockProgramsException;
 import crcl.ui.DefaultSchemaFiles;
 import static crcl.ui.IconImages.BASE_IMAGE;
-import crcl.ui.misc.ListChooserJPanel;
-import crcl.ui.misc.MultiLineStringJPanel;
-import crcl.ui.misc.ObjTableJPanel;
-import crcl.ui.misc.XpathQueryJFrame;
 import static crcl.ui.IconImages.DISCONNECTED_IMAGE;
 import static crcl.ui.IconImages.DONE_IMAGE;
 import static crcl.ui.IconImages.ERROR_IMAGE;
@@ -76,10 +77,12 @@ import crcl.ui.PoseDisplayMode;
 import static crcl.ui.PoseDisplayMode.XYZ_RPY;
 import static crcl.ui.PoseDisplayMode.XYZ_RX_RY_RZ;
 import static crcl.ui.PoseDisplayMode.XYZ_XAXIS_ZAXIS;
-import crcl.utils.XFuture;
-import crcl.utils.XFutureVoid;
+import crcl.ui.misc.ListChooserJPanel;
+import crcl.ui.misc.MultiLineStringJPanel;
+import crcl.ui.misc.ObjTableJPanel;
 import static crcl.ui.misc.ObjTableJPanel.getAssignableClasses;
 import crcl.ui.misc.ProgramPlotter;
+import crcl.ui.misc.XpathQueryJFrame;
 import crcl.utils.CRCLCopier;
 import static crcl.utils.CRCLCopier.copy;
 import crcl.utils.CRCLException;
@@ -91,9 +94,12 @@ import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
+import crcl.utils.XFuture;
+import crcl.utils.XFutureVoid;
+import crcl.utils.outer.interfaces.CommandStatusLogElement;
 import crcl.utils.outer.interfaces.PendantClientMenuOuter;
 import crcl.utils.outer.interfaces.PendantClientOuter;
-import crcl.utils.outer.interfaces.CommandStatusLogElement;
+import crcl.utils.outer.interfaces.ProgramRunData;
 import diagapplet.plotter.PlotData;
 import diagapplet.plotter.plotterJFrame;
 import java.awt.Color;
@@ -183,6 +189,8 @@ import rcs.posemath.PmRotationMatrix;
 import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import rcs.posemath.Posemath;
+
+
 
 /**
  *
@@ -828,7 +836,7 @@ public class CrclSwingClientJPanel
         return internal.getCrclSocketActionExecutorService();
     }
 
-    public static void saveObjectProperties(File f, Object o) {
+    private static void saveObjectProperties(File f, Object o) {
         try {
             File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
             boolean made_dir = crcljavaDir.mkdirs();
@@ -871,6 +879,7 @@ public class CrclSwingClientJPanel
      *
      * @return the value of propertiesFile
      */
+    @Override
     public File getPropertiesFile() {
         return propertiesFile;
     }
@@ -880,16 +889,19 @@ public class CrclSwingClientJPanel
      *
      * @param propertiesFile new value of propertiesFile
      */
+    @Override
     public void setPropertiesFile(File propertiesFile) {
         this.propertiesFile = propertiesFile;
     }
 
+    @Override
     public void loadProperties() {
         if (null != propertiesFile && propertiesFile.exists()) {
             loadPrefsFile(propertiesFile);
         }
     }
 
+    @Override
     public void saveProperties() {
         saveObjectProperties(propertiesFile, this);
         AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "internal.", internal);
@@ -1495,7 +1507,7 @@ public class CrclSwingClientJPanel
         return internal;
     }
 
-    public void updateUIFromInternal() {
+    private void updateUIFromInternal() {
         this.jTextFieldJointJogIncrement.setText(Double.toString(internal.getJointJogIncrement()));
         this.jTextFieldXYZJogIncrement.setText(Double.toString(internal.getXyzJogIncrement()));
         this.jTextFieldJointJogSpeed.setText(Double.toString(internal.getJogJointSpeed()));
@@ -1742,20 +1754,7 @@ public class CrclSwingClientJPanel
         return null;
     }
 
-    private @Nullable
-    Window searchForOuterWindow() {
-        if (outerContainer instanceof Window) {
-            return (Window) outerContainer;
-        }
-        searchedForOuterFrame = true;
-        Container container = this;
-        while (null != (container = container.getParent())) {
-            if (container instanceof Window) {
-                return (Window) container;
-            }
-        }
-        return null;
-    }
+
 
     /**
      * Get the value of outerFrame
@@ -1786,36 +1785,26 @@ public class CrclSwingClientJPanel
         return searchForOuterWindow();
     }
 
+    private @Nullable
+    Window searchForOuterWindow() {
+        if (outerContainer instanceof Window) {
+            return (Window) outerContainer;
+        }
+        searchedForOuterFrame = true;
+        Container container = this;
+        while (null != (container = container.getParent())) {
+            if (container instanceof Window) {
+                return (Window) container;
+            }
+        }
+        return null;
+    }
+    
     @Override
     public void showMessage(final String s) {
         System.out.println(s);
-        if (showDebugMessage(s)) {
-            return;
-        }
-
-        if (showing_message) {
-            return;
-        }
-        showing_message = true;
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                long t = System.currentTimeMillis();
-                if (t - last_message_show_time > 5000) {
-                    last_message_show_time = System.currentTimeMillis();
-                    Window window = CrclSwingClientJPanel.this.getOuterWindow();
-                    if (null != window && window instanceof JFrame) {
-                        MultiLineStringJPanel.showText(s,
-                                (JFrame) window,
-                                "Message from Client",
-                                true);
-                    }
-                }
-                last_message_show_time = System.currentTimeMillis();
-                showing_message = false;
-            }
-        });
+        showDebugMessage(s);
+        MultiLineStringJPanel.showText(s);
     }
 
     @Override

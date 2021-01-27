@@ -5,7 +5,6 @@
  */
 package crcl.ui.forcetorquesensorsimulator;
 
-import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
 import crcl.base.ConfigureStatusReportType;
 import crcl.base.ForceTorqueSensorStatusType;
@@ -16,22 +15,27 @@ import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
 import crcl.base.SettingsStatusType;
+import crcl.ui.AutomaticPropertyFileUtils;
 import crcl.ui.PoseDisplay;
 import crcl.ui.PoseDisplayMode;
 import crcl.ui.client.CrclSwingClientJPanel;
 import crcl.ui.client.CurrentPoseListener;
 import crcl.ui.client.CurrentPoseListenerUpdateInfo;
+import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.utils.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
+import crcl.utils.CRCLUtils;
 import crcl.utils.ThreadLockedHolder;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
+import crcl.utils.outer.interfaces.PropertyOwner;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
 import crcl.utils.server.CRCLServerSocketEventListener;
 import crcl.utils.server.CRCLServerSocketStateGenerator;
+import java.awt.Window;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,6 +58,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
@@ -69,7 +75,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-public class ForceTorqueSimJPanel extends javax.swing.JPanel {
+public class ForceTorqueSimJPanel extends javax.swing.JPanel implements PropertyOwner {
 
     /**
      * Creates new form ForceTorqueSimJPanel
@@ -100,7 +106,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jMenu1 = new javax.swing.JMenu();
+        jMenuFileSaveProperties = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItemFileLoadProperties = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanelCommunications = new javax.swing.JPanel();
@@ -139,8 +147,25 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         inOutJPanel1 = new crcl.ui.forcetorquesensorsimulator.InOutJPanel();
         jSlider1 = new javax.swing.JSlider();
 
-        jMenu1.setText("File");
-        jMenuBar1.add(jMenu1);
+        jMenuFileSaveProperties.setText("File");
+
+        jMenuItem1.setText("Save Properties ...");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenuFileSaveProperties.add(jMenuItem1);
+
+        jMenuItemFileLoadProperties.setText("Load Properties ...");
+        jMenuItemFileLoadProperties.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemFileLoadPropertiesActionPerformed(evt);
+            }
+        });
+        jMenuFileSaveProperties.add(jMenuItemFileLoadProperties);
+
+        jMenuBar1.add(jMenuFileSaveProperties);
 
         jMenu2.setText("Edit");
         jMenuBar1.add(jMenu2);
@@ -654,7 +679,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         try {
             final int port = Integer.parseInt(jTextFieldPoseCRCLPort.getText().trim());
             final String host = jTextFieldPoseCRCLHost.getText();
-            CRCLSocket newConnection 
+            CRCLSocket newConnection
                     = new CRCLSocket(host, port);
             ConfigureStatusReportType confStatus = new ConfigureStatusReportType();
             confStatus.setReportPoseStatus(true);
@@ -747,6 +772,47 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
         inOutJPanel1.setHeightViewAngle((double) jSlider1.getValue());
     }//GEN-LAST:event_jSlider1StateChanged
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        savePrefsAction();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItemFileLoadPropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemFileLoadPropertiesActionPerformed
+        loadPrefsAction();
+    }//GEN-LAST:event_jMenuItemFileLoadPropertiesActionPerformed
+
+    public void savePrefsAction() {
+        JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
+        if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
+            File f = chooser.getSelectedFile();
+            setPropertiesFile(f);
+            saveRecentPropertiesFile();
+            saveProperties();
+        }
+    }
+
+    public void saveRecentPropertiesFile() {
+        if (null != propertiesFile) {
+            File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+            boolean made_dir = crcljavaDir.mkdirs();
+            File settingsRef = new File(crcljavaDir, SETTINGSREF);
+            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+                psRef.println(propertiesFile.getCanonicalPath());
+            } catch (Exception ex) {
+                showMessage(ex);
+            }
+        }
+    }
+
+    public void loadPrefsAction() {
+        JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
+        if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
+            File f = chooser.getSelectedFile();
+            setPropertiesFile(f);
+            saveRecentPropertiesFile();
+            loadProperties();
+        }
+    }
 
     void listToModel(DefaultTableModel model, List<TrayStack> newList) {
         final int nameColumn = model.findColumn("Name");
@@ -1176,7 +1242,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                 final GetStatusType getStatusCmd = new GetStatusType();
                 getStatusCmd.setName("ForceTorqueSimGetPose" + getPoseCount.incrementAndGet());
                 poseInConnectionStackCopy.writeCommand(getStatusCmd);
-                CRCLStatusType newStatus 
+                CRCLStatusType newStatus
                         = Objects.requireNonNull(poseInConnectionStackCopy.readStatus(),
                                 "poseInConnection.readStatus()");
                 this.poseStatus = newStatus;
@@ -1192,7 +1258,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
                         }
                     }
                 } else {
-                    holdingObjectExpected =gripperStatus.isHoldingObject();
+                    holdingObjectExpected = gripperStatus.isHoldingObject();
                 }
                 return new CurrentPoseListenerUpdateInfo(crclClientPanel, newStatus, null, holdingObjectExpected, System.currentTimeMillis());
             } catch (CRCLException ex) {
@@ -1260,6 +1326,106 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
         internalUpdateSensorStatus();
         statusOut.releaseLockThread();
         crclServerSocket.start();
+    }
+
+    private File propertiesFile;
+
+    /**
+     * Get the value of propertiesFile
+     *
+     * @return the value of propertiesFile
+     */
+    public File getPropertiesFile() {
+        return propertiesFile;
+    }
+
+    /**
+     * Set the value of propertiesFile
+     *
+     * @param propertiesFile new value of propertiesFile
+     */
+    public void setPropertiesFile(File propertiesFile) {
+        this.propertiesFile = propertiesFile;
+    }
+
+    private volatile File loadedPrefsFile = null;
+    private volatile StackTraceElement loadPrefsTrace[] = null;
+    private volatile Thread loadPrefsThread = null;
+
+    private static final String SETTINGSREF = "forcetorquesimsettingsref";
+    private static final String CRCLJAVA_USER_DIR = ".crcljava";
+    private static final String recent_files_dir = ".force_torque_sim_recent_files";
+
+    private void loadPrefsFile(File f) {
+        try {
+            loadPrefsTrace = Thread.currentThread().getStackTrace();
+            loadedPrefsFile = f;
+            loadPrefsThread = Thread.currentThread();
+            File crcljavaDir = new File(CRCLUtils.getCrclUserHomeDir(), CRCLJAVA_USER_DIR);
+            boolean made_dir = crcljavaDir.mkdirs();
+            File settingsRef = new File(crcljavaDir, SETTINGSREF);
+            try (PrintStream psRef = new PrintStream(new FileOutputStream(settingsRef))) {
+                psRef.println(f.getCanonicalPath());
+            }
+            Map<String, Object> targetMap = new TreeMap<>();
+            targetMap.put("inOutJPanel1.", inOutJPanel1);
+            Object defaultTarget = this;
+            AutomaticPropertyFileUtils.loadPropertyFile(f, targetMap, defaultTarget);
+            this.jSlider1.setValue((int) inOutJPanel1.getHeightViewAngle());
+        } catch (IOException iOException) {
+            showMessage(iOException);
+        }
+    }
+
+    public void showMessage(Throwable t) {
+        this.showMessage(t.toString());
+    }
+
+    private volatile boolean showing_message = false;
+    private volatile long last_message_show_time = -1;
+
+    public void showMessage(final String s) {
+        System.out.println(s);
+        if (showing_message) {
+            return;
+        }
+        showing_message = true;
+        java.awt.EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                long t = System.currentTimeMillis();
+                if (t - last_message_show_time > 5000) {
+                    last_message_show_time = System.currentTimeMillis();
+//                    Window window = ForceTorqueSimJPanel.getOuterWindow();
+//                    if (null != window && window instanceof JFrame) {
+//                        MultiLineStringJPanel.showText(s,
+//                                (JFrame) window,
+//                                "Message from Client",
+//                                true);
+//                    }
+                }
+                last_message_show_time = System.currentTimeMillis();
+                showing_message = false;
+            }
+        });
+    }
+
+    public void loadProperties() {
+        System.out.println("ForceTorqueSimJPanel.loadProperties() : propertiesFile = " + propertiesFile);
+        if (null != propertiesFile && propertiesFile.exists()) {
+            loadPrefsFile(propertiesFile);
+        }
+    }
+
+    public void saveProperties() {
+        try {
+            AutomaticPropertyFileUtils.saveObjectProperties(propertiesFile, this);
+            AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "inOutJPanel1.", inOutJPanel1);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
     }
 
     public static class ForceTorqueSimClientState extends CRCLServerClientState {
@@ -1475,9 +1641,11 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     final javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
+    private javax.swing.JMenu jMenuFileSaveProperties;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItemFileLoadProperties;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel4;

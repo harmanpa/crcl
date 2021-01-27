@@ -290,10 +290,10 @@ public class CrclSwingClientJInternalFrame
 //        }
     }
 
-    private void updateUIFromInternal() {
-        pendantClientJPanel1.updateUIFromInternal();
-        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
-    }
+//    private void updateUIFromInternal() {
+//        pendantClientJPanel1.updateUIFromInternal();
+//        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
+//    }
 
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
@@ -477,8 +477,8 @@ public class CrclSwingClientJInternalFrame
         jMenuItemSaveProgramAs = new javax.swing.JMenuItem();
         jMenuItemClearRecordedPoints = new javax.swing.JMenuItem();
         jMenuItemSavePoseList = new javax.swing.JMenuItem();
-        jMenuItemLoadPrefs = new javax.swing.JMenuItem();
         jMenuItemSavePrefs = new javax.swing.JMenuItem();
+        jMenuItemLoadPrefs = new javax.swing.JMenuItem();
         jMenuItemResetPrefs = new javax.swing.JMenuItem();
         jMenuItemViewLogFile = new javax.swing.JMenuItem();
         jMenuItemSaveStatusAs = new javax.swing.JMenuItem();
@@ -587,14 +587,6 @@ public class CrclSwingClientJInternalFrame
         });
         jMenu1.add(jMenuItemSavePoseList);
 
-        jMenuItemLoadPrefs.setText("Load Preferences File ...");
-        jMenuItemLoadPrefs.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemLoadPrefsActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jMenuItemLoadPrefs);
-
         jMenuItemSavePrefs.setText("Save Preferences File ...");
         jMenuItemSavePrefs.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -602,6 +594,14 @@ public class CrclSwingClientJInternalFrame
             }
         });
         jMenu1.add(jMenuItemSavePrefs);
+
+        jMenuItemLoadPrefs.setText("Load Preferences File ...");
+        jMenuItemLoadPrefs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemLoadPrefsActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemLoadPrefs);
 
         jMenuItemResetPrefs.setText("Reset Preferences");
         jMenuItemResetPrefs.addActionListener(new java.awt.event.ActionListener() {
