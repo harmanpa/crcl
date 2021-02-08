@@ -126,6 +126,7 @@
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
+                    <showDeprecation>true</showDeprecation>
                 </configuration> 
             </plugin>
         </plugins>
