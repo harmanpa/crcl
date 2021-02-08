@@ -80,6 +80,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -917,7 +918,7 @@ public class MotoPlusConnection implements AutoCloseable {
         }
 
         public void startMpFcsStartImp(MP_FCS_ROB_ID rob_id, int m[], int d[], int k[],
-                FCS_COORD_TYPE coord_type, int uf_no, int cart_axes, int option_ctrl) throws IOException, MotoPlusConnectionException {
+                int coord_type, int uf_no, int cart_axes, int option_ctrl) throws IOException, MotoPlusConnectionException {
             final int inputSize = 4 + 28 + 12 * MP_FCS_AXES_NUM;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
             bb.putInt(0, inputSize - 4); // bytes to read
@@ -925,24 +926,32 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_START_IMP.getId()); // type of function remote server will call
             bb.putInt(12, rob_id.getId()); // robot ID
             if (m.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("m.length=" + m.length);
+                throw new IllegalArgumentException("m.length must be "+MP_FCS_AXES_NUM+" : m.length=" + m.length);
+            }
+            if (d.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("d.length must be "+MP_FCS_AXES_NUM+" : d.length=" + m.length);
+            }
+            if (k.length != MP_FCS_AXES_NUM) {
+                throw new IllegalArgumentException("k.length must be "+MP_FCS_AXES_NUM+" : k.length=" + m.length);
+            }
+            if (coord_type < 0 || coord_type > 2) {
+                throw new IllegalArgumentException("coord_type must be 0,1,or 2 : coord_type="+coord_type);
+            }
+            if (uf_no < 0 || uf_no > 15) {
+                throw new IllegalArgumentException("uf_no must be in 0 to 15 : uf_no="+coord_type);
             }
             for (int i = 0; i < m.length; i++) {
                 bb.putInt(16 + (4 * i), m[i]);
             }
-            if (d.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("d.length=" + d.length);
-            }
+
             for (int i = 0; i < d.length; i++) {
                 bb.putInt(16 + 4 * MP_FCS_AXES_NUM + (4 * i), d[i]);
             }
-            if (k.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("k.length=" + k.length);
-            }
+
             for (int i = 0; i < k.length; i++) {
                 bb.putInt(16 + 8 * MP_FCS_AXES_NUM + (4 * i), k[i]);
             }
-            bb.putInt(16 + 12 * MP_FCS_AXES_NUM, coord_type.ordinal());
+            bb.putInt(16 + 12 * MP_FCS_AXES_NUM, coord_type);
             bb.putInt(20 + 12 * MP_FCS_AXES_NUM, uf_no);
             bb.putInt(24 + 12 * MP_FCS_AXES_NUM, cart_axes);
             bb.putInt(28 + 12 * MP_FCS_AXES_NUM, option_ctrl);
@@ -986,6 +995,14 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
+        @Deprecated
+        /**
+         * *
+         * mpServoFcs.h includes a prototype for mpFcsGetSensorData but there is
+         * no documentation for it in the MotoPlus PDF files. It is not clear
+         * what it does but it may be redundant with mpFcsGetForceData() which
+         * is documented.
+         */
         public void startMpFcsGetSensorData(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
             final int inputSize = 16;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -2206,7 +2223,7 @@ public class MotoPlusConnection implements AutoCloseable {
      * Retrieves the force data in the specified coordinate system.
      *
      * @param rob_id which robot to target
-     * @param coord_type specifiess the destination coordinate system
+     * @param coord_type specifies the destination coordinate system
      * @param uf_no user file number for user specified coordinate system
      * @return
      * @throws IOException
@@ -2217,8 +2234,68 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getMpFcsGetForceDataReturn();
     }
 
-    public MpFcsBaseReturn mpFcsStartImp(MP_FCS_ROB_ID rob_id, int m[], int d[], int k[],
-            FCS_COORD_TYPE coord_type, int uf_no, int cart_axes, int option_ctrl) throws IOException, MotoPlusConnectionException {
+    /**
+     * Sets the parameters necessary for the impedance control, and starts the
+     * impedance control.
+     *
+     * @param rob_id target robot ID specification
+     * @param m Specifies the inertia coefficients in the 6-element array of the
+     * int type. m[0] Inertia coefficient (X direction), unit (Ns^2/m^2) m[1]
+     * Inertia coefficient (Y direction), unit (Ns^2/m^2) m[2] Inertia
+     * coefficient (Z direction), unit (Ns^2/m^2) m[3] Inertia coefficient (Rx
+     * direction), units are undocumented m[4] Inertia coefficient (Ry
+     * direction), units are undocumented m[5] Inertia coefficient (Rz
+     * direction), units are undocumented
+     *
+     * @param d Specifies the viscous coefficients in the 6-element array of the
+     * int type. d[0] Viscous coefficient (X direction), unit (Ns/m) d[1]
+     * Viscous coefficient (Y direction), unit (Ns/m) d[2] Viscous coefficient
+     * (Z direction), unit (Ns/m) d[3] Viscous coefficient (Rx direction), units
+     * are undocumented d[4] Viscous coefficient (Ry direction), units are
+     * undocumented d[5] Viscous coefficient (Rz direction), units are
+     * undocumented
+     *
+     * @param k Specifies the spring coefficients in the 6-element array of the
+     * int type. k[0] Spring coefficient (X direction), unit (N/m) k[1] Spring
+     * coefficient (Y direction), unit (N/m) k[2] Spring coefficient (Z
+     * direction), unit (N/m) d[3] Viscous coefficient (Rx direction), units are
+     * undocumented d[4] Viscous coefficient (Ry direction), units are
+     * undocumented d[5] Viscous coefficient (Rz direction), units are
+     * undocumented
+     *
+     * @param coord_type Specifies the control coordinate system.
+     * (0=robot,1=tool,2=user) (Note this does not match the mpFcsGetForceData
+     * coord_type which starts with 0=base, 1=robot ... )
+     *
+     * @param uf_no Specifies the user coordinate file number (0 to 15) when the
+     * user coordinate is specified.
+     * @param cart_axes Specifies X,Y,Z,Rx,Ry,Rz (d0 to d5) as the valid control
+     * axes.
+     * @param option_ctrl Specifies the optional controls (d0 execute the
+     * contact stability process, d1 retain previous force command value)
+     * @return
+     * @throws IOException
+     * @throws MotoPlusConnectionException
+     */
+    public MpFcsBaseReturn mpFcsStartImp(
+            MP_FCS_ROB_ID rob_id,
+            int m[],
+            int d[],
+            int k[],
+            int coord_type,
+            int uf_no,
+            int cart_axes,
+            int option_ctrl
+    ) throws IOException, MotoPlusConnectionException {
+        if (null == m || m.length != 6) {
+            throw new IllegalArgumentException("m must be non-null and have length = 6 : m =" + Arrays.toString(m));
+        }
+        if (null == d || d.length != 6) {
+            throw new IllegalArgumentException("d must be non-null and have length = 6 : d =" + Arrays.toString(d));
+        }
+        if (null == k || k.length != 6) {
+            throw new IllegalArgumentException("k must be non-null and have length = 6 : k =" + Arrays.toString(k));
+        }
         starter.startMpFcsStartImp(rob_id, m, d, k, coord_type, uf_no, cart_axes, option_ctrl);
         return returner.getMpFcsBaseReturn();
     }
@@ -2238,6 +2315,14 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getMpFcsBaseReturn();
     }
 
+    @Deprecated
+    /**
+     * *
+     * mpServoFcs.h includes a prototype for mpFcsGetSensorData but there is no
+     * documentation for it in the MotoPlus PDF files. It is not clear what it
+     * does but it may be redundant with mpFcsGetForceData() which is
+     * documented.
+     */
     public MpFcsGetSensorDataReturn mpFcsGetSensorData(MP_FCS_ROB_ID rob_id) throws IOException, MotoPlusConnectionException {
         starter.startMpFcsGetSensorData(rob_id);
         return returner.getMpFcsGetSensorDataReturn();
