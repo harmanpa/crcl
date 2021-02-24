@@ -22,6 +22,8 @@
  */
 package com.github.wshackle.crcl4java.motoman.kinematics;
 
+import com.github.wshackle.crcl4java.motoman.motctrl.COORD_POS;
+
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -45,6 +47,19 @@ public class MP_COORD {
         return ret;
     }
     
+     public MP_COORD diff(COORD_POS other) {
+        MP_COORD ret =new MP_COORD();
+        ret.x = this.x - other.x;
+        ret.y = this.y - other.y;
+        ret.z = this.z - other.z;
+        ret.rx = this.rx - other.rx;
+        ret.ry = this.ry - other.ry;
+        ret.rz = this.rz - other.rz;
+        ret.ex1 = this.ex1 - other.ex1;
+        ret.ex2 = this.ex2 - other.ex2;        
+        return ret;
+    }
+     
     @Override
     public String toString() {
         return "MP_COORD{" + "x=" + x + ", y=" + y + ", z=" + z + ", rx=" + rx + ", ry=" + ry + ", rz=" + rz + ", ex1=" + ex1 + ", ex2=" + ex2 + '}';
