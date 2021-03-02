@@ -1,25 +1,25 @@
 /*
-* This software is public domain software, however it is preferred
-* that the following disclaimers be attached.
-* Software Copyright/Warranty Disclaimer
-*
-* This software was developed at the National Institute of Standards and
-* Technology by employees of the Federal Government in the course of their
-* official duties. Pursuant to title 17 Section 105 of the United States
-* Code this software is not subject to copyright protection and is in the
-* public domain.
-*
-* This software is experimental. NIST assumes no responsibility whatsoever
-* for its use by other parties, and makes no guarantees, expressed or
-* implied, about its quality, reliability, or any other characteristic.
-* We would appreciate acknowledgement if the software is used.
-* This software can be redistributed and/or modified freely provided
-* that any derivative works bear some notice that they are derived from it,
-* and any modified versions bear some notice that they have been modified.
-*
-*  See http://www.copyright.gov/title17/92chap1.html#105
-*
-*/
+ * This software is public domain software, however it is preferred
+ * that the following disclaimers be attached.
+ * Software Copyright/Warranty Disclaimer
+ *
+ * This software was developed at the National Institute of Standards and
+ * Technology by employees of the Federal Government in the course of their
+ * official duties. Pursuant to title 17 Section 105 of the United States
+ * Code this software is not subject to copyright protection and is in the
+ * public domain.
+ *
+ * This software is experimental. NIST assumes no responsibility whatsoever
+ * for its use by other parties, and makes no guarantees, expressed or
+ * implied, about its quality, reliability, or any other characteristic.
+ * We would appreciate acknowledgement if the software is used.
+ * This software can be redistributed and/or modified freely provided
+ * that any derivative works bear some notice that they are derived from it,
+ * and any modified versions bear some notice that they have been modified.
+ *
+ *  See http://www.copyright.gov/title17/92chap1.html#105
+ *
+ */
 
 
 /*********************************
@@ -64,14 +64,21 @@ Running in simulation on a any regular PC
 can be done without Motoman software with mpFakeLib.
 
 
-**********************************/
+ **********************************/
 
 #include "motoPlus.h"
 #include "remoteFunctions.h"
 
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/select.h>
 
 // I had issues so I can't trust stdlib.h to declare this properly across platforms.
 extern void *malloc(size_t);
@@ -281,8 +288,8 @@ void runAcceptTcpClientsTask(ULONG portNo) {
                     if (requestsHandled % 200 == 0) {
                         printf("NIST motoPlustTcpSvr: requestsHandled=%d\n",
                                 requestsHandled);
-						printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n",
-							maxClientHandleIndex);
+                        printf("NIST motoPlustTcpSvr: maxClientHandleIndex=%d\n",
+                                maxClientHandleIndex);
                     }
                     if (handleSingleConnection(clientHandles[i]) != 0) {
                         failCount++;

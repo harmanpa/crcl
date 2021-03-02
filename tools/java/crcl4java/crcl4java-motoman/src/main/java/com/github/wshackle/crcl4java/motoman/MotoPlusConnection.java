@@ -61,6 +61,9 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_MODE_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_SVAR_RECV_INFO;
+import static com.github.wshackle.crcl4java.motoman.sys1.MP_SVAR_RECV_INFO.MAX_SVAR_SIZE;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_SVAR_SEND_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.ModeEnum;
@@ -736,6 +739,22 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
+        public void startMpPutSVarInfo(MP_SVAR_SEND_INFO[] sData, int num) throws IOException {
+            final int inputSize = 16 + (8 * num);
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteSys1FunctionType.SYS1_PUT_VAR_DATA.getId()); // type of function remote server will call
+            bb.putInt(12, num);
+            for (int i = 0; i < num; i++) {
+                bb.putShort(16 + (i * 8), sData[i].usType.getId());
+                bb.putShort(18 + (i * 8), sData[i].usIndex);
+                bb.put(sData[i].ucValue);
+            }
+            writeDataOutputStream(bb);
+        }
+
+        
         public void startMpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
             final int inputSize = 16 + (8 * num);
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -750,12 +769,26 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-        public void startMpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
+        public void startMpGetVarData(MP_VAR_INFO[] sData, int num) throws IOException {
             final int inputSize = (int) (16 + (4 * num));
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_VAR_DATA.getId()); // type of function remote server will call
+            bb.putInt(12, num);
+            for (int i = 0; i < num; i++) {
+                bb.putShort(16 + (4 * i), sData[i].usType.getId());
+                bb.putShort(18 + (4 * i), sData[i].usIndex);
+            }
+            writeDataOutputStream(bb);
+        }
+
+        public void startMpGetSVarInfo(MP_VAR_INFO[] sData, int num) throws IOException {
+            final int inputSize = (int) (16 + (4 * num));
+            ByteBuffer bb = ByteBuffer.allocate(inputSize);
+            bb.putInt(0, inputSize - 4); // bytes to read
+            bb.putInt(4, RemoteFunctionGroup.SYS1_FUNCTION_GROUP.getId()); // type of function remote server will call
+            bb.putInt(8, RemoteSys1FunctionType.SYS1_GET_SVAR_INFO.getId()); // type of function remote server will call
             bb.putInt(12, num);
             for (int i = 0; i < num; i++) {
                 bb.putShort(16 + (4 * i), sData[i].usType.getId());
@@ -925,19 +958,19 @@ public class MotoPlusConnection implements AutoCloseable {
             bb.putInt(8, RemoteForceControlFunctionType.FORCE_CONTROL_START_IMP.getId()); // type of function remote server will call
             bb.putInt(12, rob_id.getId()); // robot ID
             if (m.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("m.length must be "+MP_FCS_AXES_NUM+" : m.length=" + m.length);
+                throw new IllegalArgumentException("m.length must be " + MP_FCS_AXES_NUM + " : m.length=" + m.length);
             }
             if (d.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("d.length must be "+MP_FCS_AXES_NUM+" : d.length=" + m.length);
+                throw new IllegalArgumentException("d.length must be " + MP_FCS_AXES_NUM + " : d.length=" + m.length);
             }
             if (k.length != MP_FCS_AXES_NUM) {
-                throw new IllegalArgumentException("k.length must be "+MP_FCS_AXES_NUM+" : k.length=" + m.length);
+                throw new IllegalArgumentException("k.length must be " + MP_FCS_AXES_NUM + " : k.length=" + m.length);
             }
             if (coord_type < 0 || coord_type > 2) {
-                throw new IllegalArgumentException("coord_type must be 0,1,or 2 : coord_type="+coord_type);
+                throw new IllegalArgumentException("coord_type must be 0,1,or 2 : coord_type=" + coord_type);
             }
             if (uf_no < 0 || uf_no > 15) {
-                throw new IllegalArgumentException("uf_no must be in 0 to 15 : uf_no="+coord_type);
+                throw new IllegalArgumentException("uf_no must be in 0 to 15 : uf_no=" + coord_type);
             }
             for (int i = 0; i < m.length; i++) {
                 bb.putInt(16 + (4 * i), m[i]);
@@ -1377,7 +1410,7 @@ public class MotoPlusConnection implements AutoCloseable {
             return intRet;
         }
 
-        public boolean getSysDataReturn(long rData[]) throws IOException {
+        public boolean getSysDataReturn(int rData[]) throws IOException {
             byte inbuf[] = new byte[4];
             readDataInputStream(inbuf);
             ByteBuffer bb = ByteBuffer.wrap(inbuf);
@@ -1388,6 +1421,22 @@ public class MotoPlusConnection implements AutoCloseable {
             int intRet = bb.getInt(0);
             for (int i = 0; i < rData.length && i < (sz - 4) / 4; i++) {
                 rData[i] = bb.getInt(4 + (i * 4));
+            }
+            return intRet == 0;
+        }
+
+        public boolean getSysSVarInfoReturn(MP_SVAR_RECV_INFO rData[]) throws IOException {
+            byte inbuf[] = new byte[4];
+            readDataInputStream(inbuf);
+            ByteBuffer bb = ByteBuffer.wrap(inbuf);
+            int sz = bb.getInt(0);
+            inbuf = new byte[sz];
+            readDataInputStream(inbuf);
+            bb = ByteBuffer.wrap(inbuf);
+            int intRet = bb.getInt(0);
+            for (int i = 0; i < rData.length && i < (sz - 4) / 4; i++) {
+//                bb.get(rData[i].ucValue, MAX_SVAR_SIZE);
+                bb.get(rData[i].ucValue, 0, MAX_SVAR_SIZE);
             }
             return intRet == 0;
         }
@@ -1838,19 +1887,79 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getMpMotStandardReturn();
     }
 
+    /**
+     * To set multiple variables, define num arrays, set the variable type, variable
+     * index, and variable value of each array, then set the starting address of
+     * each array to sData
+     * 
+     * @param sData Array of the data structure which specifies variables and values
+     * @param num Number of the variable data (up to 24) [ C function allows up to 126 but tcp server limits to 24]
+     * @return
+     * @throws IOException
+     */
     public boolean mpPutVarData(MP_VAR_DATA[] sData, int num) throws IOException {
+        if(num < 1) {
+            throw new IllegalArgumentException("num < 1 : num="+num);
+        }
+        if(num > 24) {
+            throw new IllegalArgumentException("num > 24 : num="+num);
+        }
+        if(num > sData.length) {
+            throw new IllegalArgumentException("num > sData.length: num="+num+", sData.length="+sData.length);
+        }
+        for (int i = 0; i < num; i++) {
+            if(null == sData[i]) {
+                throw new NullPointerException("sData["+i+"]");
+            }
+        }
         starter.startMpPutVarData(sData, num);
         return returner.getSysOkReturn();
     }
 
+    public boolean mpPutSVarInfo(MP_SVAR_SEND_INFO[] sData, int num) throws IOException {
+        starter.startMpPutSVarInfo(sData, num);
+        return returner.getSysOkReturn();
+    }
+    
     public boolean mpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
         ioClear = false;
         starter.startMpWriteIO(sData, num);
         return returner.getSysOkReturn();
     }
 
-    private boolean mpGetVarData(MP_VAR_INFO[] sData, long[] rData, int num) throws IOException {
-        starter.startMpGetVarData(sData, rData, num);
+    /**
+     * Retrieves variables B, I, D, R (byte, integer, double precision, real).
+     * Specifies multiple variables.
+     * @param sData Array of the data structure which specifies variable
+     * @param rData variable data
+     * @param num Number of variable data (up to 24) [C function allows up to 252 but tcp server limits to 24]
+     * @return
+     * @throws IOException
+     */
+    public boolean mpGetVarData(MP_VAR_INFO[] sData, int[] rData, int num) throws IOException {
+        if(num < 1) {
+            throw new IllegalArgumentException("num < 1 : num="+num);
+        }
+        if(num > 24) {
+            throw new IllegalArgumentException("num > 24 : num="+num);
+        }
+        if(num > sData.length) {
+            throw new IllegalArgumentException("num > sData.length: num="+num+", sData.length="+sData.length);
+        }
+        for (int i = 0; i < num; i++) {
+            if(null == sData[i]) {
+                throw new NullPointerException("sData["+i+"]");
+            }
+        }
+        if(num > rData.length) {
+            throw new IllegalArgumentException("num > rData.length: num="+num+", rData.length="+rData.length);
+        }
+        starter.startMpGetVarData(sData, num);
+        return returner.getSysDataReturn(rData);
+    }
+
+    public boolean mpGetSVarInfo(MP_VAR_INFO[] sData, int[] rData, int num) throws IOException {
+        starter.startMpGetSVarInfo(sData, num);
         return returner.getSysDataReturn(rData);
     }
 

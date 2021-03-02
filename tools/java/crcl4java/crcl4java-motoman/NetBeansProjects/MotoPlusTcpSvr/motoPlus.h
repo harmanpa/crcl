@@ -272,6 +272,13 @@ extern "C" {
         char reserved[2];
     } MP_GET_JOBLIST_RSP_DATA;
 
+    typedef struct {
+        USHORT usType;
+        USHORT usIndex;
+        UCHAR ucValue[MAX_SVAR_SIZE + 1];
+        UCHAR reserved[3];
+    } MP_SVAR_SEND_INFO;
+
 #ifdef __cplusplus
     typedef int (*FUNCPTR) (...); /* ptr to function returning int */
     typedef void (*VOIDFUNCPTR) (...); /* ptr to function returning void */
@@ -326,7 +333,7 @@ extern "C" {
     typedef double DOUBLE;
 #endif
 
-        /* control group configuration structure. */
+    /* control group configuration structure. */
     typedef struct {
         CTRLG_T ctrl_grp;
         UCHAR axes_config[MP_GRP_NUM];
@@ -440,7 +447,6 @@ extern "C" {
 
     /* function declarations */
 
-    extern LONG mpPutVarData(MP_VAR_DATA *sData, LONG num);
 
     extern int mpCreateTask(int mpPriSpec, int stackSize, FUNCPTR entryPt,
             int arg1, int arg2, int arg3, int arg4, int arg5,
@@ -497,6 +503,10 @@ extern "C" {
     extern LONG mpGetVarData(MP_VAR_INFO *sData, LONG* rData, LONG num);
 
     extern LONG mpPutVarData(MP_VAR_DATA *sData, LONG num);
+
+    extern LONG mpGetSVarInfo(MP_VAR_INFO *sData, MP_SVAR_RECV_INFO* rData, LONG num);
+
+    extern LONG mpPutSVarInfo(MP_SVAR_SEND_INFO *sData, LONG num);
 
     extern LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData);
 
@@ -564,9 +574,9 @@ extern "C" {
     extern int mpMakeFrame(MP_XYZ* org_vector, MP_XYZ* x_vector, MP_XYZ* y_vector, MP_FRAME* frame);
     extern int mpInvFrame(MP_FRAME*org_frame, MP_FRAME* frame);
     extern int mpRotFrame(MP_FRAME* org_frame, double angle, MP_XYZ* vector, MP_FRAME* frame);
-    extern int mpMulFrame(MP_FRAME* frame1,MP_FRAME* frame2,MP_FRAME* frame_prod);
+    extern int mpMulFrame(MP_FRAME* frame1, MP_FRAME* frame2, MP_FRAME* frame_prod);
     extern int mpZYXeulerToFrame(MP_COORD* coord, MP_FRAME* frame);
-    extern int mpFrameToZYXeuler(MP_FRAME*frame,MP_COORD* coord);
+    extern int mpFrameToZYXeuler(MP_FRAME*frame, MP_COORD* coord);
     extern int mpCrossProduct(MP_XYZ* vector1, MP_XYZ* vector2, MP_XYZ* xyz_prod);
     extern int mpInnerProduct(MP_XYZ* vector1, MP_XYZ* vector2, double* double_prod);
 

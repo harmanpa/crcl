@@ -125,8 +125,10 @@ extern "C" {
         SYS1_GET_ALARM_STATUS = 14,
         SYS1_GET_ALARM_CODE = 15,
         SYS1_GET_RTC = 16,
-        SYS1_GET_CURRENT_CART_POS_EX = 17
-    };
+        SYS1_GET_CURRENT_CART_POS_EX = 17,
+        SYS1_GET_SVAR_INFO = 18,
+        SYS1_PUT_SVAR_INFO = 19
+     };
 
     enum RemoteFileFunctionType {
         FILE_CTRL_INVALID = 0,

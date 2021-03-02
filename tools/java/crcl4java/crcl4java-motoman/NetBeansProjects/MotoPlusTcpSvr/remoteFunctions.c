@@ -1,25 +1,25 @@
 /*
-* This software is public domain software, however it is preferred
-* that the following disclaimers be attached.
-* Software Copyright/Warranty Disclaimer
-*
-* This software was developed at the National Institute of Standards and
-* Technology by employees of the Federal Government in the course of their
-* official duties. Pursuant to title 17 Section 105 of the United States
-* Code this software is not subject to copyright protection and is in the
-* public domain.
-*
-* This software is experimental. NIST assumes no responsibility whatsoever
-* for its use by other parties, and makes no guarantees, expressed or
-* implied, about its quality, reliability, or any other characteristic.
-* We would appreciate acknowledgement if the software is used.
-* This software can be redistributed and/or modified freely provided
-* that any derivative works bear some notice that they are derived from it,
-* and any modified versions bear some notice that they have been modified.
-*
-*  See http://www.copyright.gov/title17/92chap1.html#105
-*
-*/
+ * This software is public domain software, however it is preferred
+ * that the following disclaimers be attached.
+ * Software Copyright/Warranty Disclaimer
+ *
+ * This software was developed at the National Institute of Standards and
+ * Technology by employees of the Federal Government in the course of their
+ * official duties. Pursuant to title 17 Section 105 of the United States
+ * Code this software is not subject to copyright protection and is in the
+ * public domain.
+ *
+ * This software is experimental. NIST assumes no responsibility whatsoever
+ * for its use by other parties, and makes no guarantees, expressed or
+ * implied, about its quality, reliability, or any other characteristic.
+ * We would appreciate acknowledgement if the software is used.
+ * This software can be redistributed and/or modified freely provided
+ * that any derivative works bear some notice that they are derived from it,
+ * and any modified versions bear some notice that they have been modified.
+ *
+ *  See http://www.copyright.gov/title17/92chap1.html#105
+ *
+ */
 
 /*********************************
 This software provides the server side to be paired with
@@ -61,7 +61,7 @@ Running in simulation on a any regular PC
 can be done without Motoman software with mpFakeLib.
 
 
-**********************************/
+ **********************************/
 
 #include "motoPlus.h"
 #include "remoteFunctions.h"
@@ -69,7 +69,9 @@ can be done without Motoman software with mpFakeLib.
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/select.h>
 
 extern void *malloc(size_t);
 extern void free(void *);
@@ -210,6 +212,8 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
     MP_SERVO_POWER_RSP_DATA servoPowerRspData;
     MP_SERVO_POWER_SEND_DATA servoPowerSendData;
     MP_STD_RSP_DATA stdRspData;
+    MP_SVAR_SEND_INFO svarSendInfo[25];
+    MP_SVAR_RECV_INFO svarRecvInfo[25];
 
     int32_t controlGroup = 0;
     int sendLen;
@@ -483,6 +487,55 @@ int handleSys1FunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer,
             ret = mpGetRtc();
             return returnSingleIntRet(acceptHandle, outBuffer, ret);
             break;
+
+        case SYS1_GET_SVAR_INFO:
+            num = getInt32(inBuffer, 12);
+            if (num < 1 || num > 24) {
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpGetVarData num = %ld\n", num);
+                return -1;
+            }
+            if (msgSize != 12 + (4 * num)) {
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                return -1;
+            }
+            for (i = 0; i < num; i++) {
+                varInfo[i].usType = getInt16(inBuffer, 16 + (4 * i));
+                varInfo[i].usIndex = getInt16(inBuffer, 18 + (4 * i));
+            }
+            ret = mpGetSVarInfo(varInfo, svarRecvInfo, num);
+            setInt32(outBuffer, 0, 4 + num * 4);
+            setInt32(outBuffer, 4, ret);
+            for (i = 0; i < num; i++) {
+                *((MP_SVAR_RECV_INFO*) outBuffer + 8 + i * 20 /*sizeof(MP_SVAR_RECV_INFO */)
+                        = svarRecvInfo[i];
+            }
+            sendLen = 8 + num * 20;
+            return checkedSendN(acceptHandle, outBuffer, sendLen, 0);
+            break;
+
+
+        case SYS1_PUT_SVAR_INFO:
+            num = getInt32(inBuffer, 12);
+            if (num < 1 || num > 24) {
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid num for mpGetVarData num = %ld\n", num);
+                return -1;
+            }
+            if (msgSize != 12 + (4 * num)) {
+                fprintf(stderr, "NIST motoPlustTcpSvr: invalid msgSize for mpGetVarData = %d != %ld for num = %ld\n", msgSize, 12 + (4 * num), num);
+                return -1;
+            }
+            for (i = 0; i < num; i++) {
+                svarSendInfo[i].usType = getInt16(inBuffer, 16 + (24 * i));
+                svarSendInfo[i].usIndex = getInt16(inBuffer, 18 + (24 * i));
+                memcpy(svarRecvInfo[i].ucValue,inBuffer + 20 + 24*i,16);
+            }
+            ret = mpPutSVarInfo(svarSendInfo, num);
+            setInt32(outBuffer, 0, 4 + num * 4);
+            setInt32(outBuffer, 4, ret);
+            sendLen = 8;
+            return checkedSendN(acceptHandle, outBuffer, sendLen, 0);
+            break;
+
         default:
             fprintf(stderr, "NIST motoPlustTcpSvr: invalid sys1 function type = %d\n", type);
             return -1;
@@ -1123,6 +1176,7 @@ int handleFcsFunctionRequest(int acceptHandle, char *inBuffer, char *outBuffer, 
 }
 
 const int anglelen = sizeof (long) * MP_GRP_AXES_NUM;
+
 const int getAngleLen() {
     return anglelen;
 }

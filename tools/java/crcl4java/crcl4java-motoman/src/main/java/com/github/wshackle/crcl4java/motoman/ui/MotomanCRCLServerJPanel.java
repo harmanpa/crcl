@@ -585,7 +585,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                         } else {
                             Object newArray[] = (Object[]) Array.newInstance(compenentType, arrayLength);
                             for (int j = 0; j < newArray.length; j++) {
-                                newArray[j] = compenentType.newInstance();
+                                newArray[j] = compenentType.getConstructor().newInstance();
                             }
                             objectParam = newArray;
                         }
@@ -603,13 +603,13 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
                             double paramDouble = Double.parseDouble(JOptionPane.showInputDialog(parentJFrame, queryString, 0.0));
                             objectParams[i] = paramDouble;
                         } else {
-                            objectParam = parameterType.newInstance();
+                            objectParam = parameterType.getConstructor().newInstance();
                             Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null, null);
                             logPrintln("editedObjectParam = " + editedObjectParam);
                             objectParams[i] = editedObjectParam;
                         }
                     } else {
-                        objectParam = parameterType.newInstance();
+                        objectParam = parameterType.getConstructor().newInstance();
                         Object editedObjectParam = ObjTableJPanel.editObject(objectParam, parentJFrame, queryString, true, null, null, null, null);
                         objectParams[i] = editedObjectParam;
                     }

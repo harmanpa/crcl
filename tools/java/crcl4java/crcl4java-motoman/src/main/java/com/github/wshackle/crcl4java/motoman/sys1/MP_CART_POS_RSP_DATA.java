@@ -175,7 +175,7 @@ public class MP_CART_POS_RSP_DATA {
                 + ", rx=" + rx()
                 + ", ry=" + ry()
                 + ", rz=" + rz()
-                + ", sConfig=" + String.format("%x", sConfig)
+                + ", sConfig=" + String.format("%d (0x%x)", sConfig, sConfig)
                 + (front() ? " FRONT" : "")
                 + (back() ? " BACK" : "")
                 + (upper() ? " UPPER_ARM" : "")

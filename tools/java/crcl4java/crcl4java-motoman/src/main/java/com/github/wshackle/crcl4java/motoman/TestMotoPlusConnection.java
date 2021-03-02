@@ -36,16 +36,12 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
+import com.github.wshackle.crcl4java.motoman.sys1.VarType;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -95,8 +91,68 @@ public class TestMotoPlusConnection {
         }
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = MotoPlusConnection.connectionFromSocket(new Socket(host, 12222))) {
-            testMoveZ(mpc);
+            testSys1Functions(mpc);
+//            testMoveZ(mpc);
         }
+    }
+
+    private static void testSys1Functions(MotoPlusConnection mpc) throws IOException {
+        final int num = 3;
+        final MP_VAR_INFO[] varInfo = new MP_VAR_INFO[num];
+        final int[] rdata = new int[num];
+        varInfo[0] = new MP_VAR_INFO();
+        varInfo[0].usType = VarType.MP_RESTYPE_VAR_S;
+        varInfo[0].usIndex = 1;
+        varInfo[1] = new MP_VAR_INFO();
+        varInfo[1].usType = VarType.MP_RESTYPE_VAR_B;
+        varInfo[1].usIndex = 2;
+        varInfo[2] = new MP_VAR_INFO();
+        varInfo[2].usType = VarType.MP_RESTYPE_VAR_I;
+        varInfo[2].usIndex = 3;
+        System.out.println(
+                "Calling mpc.mpGetVarData(\n"
+                + "                " + Arrays.toString(varInfo) + ", // MP_VAR_INFO[] sData\n"
+                + "                " + Arrays.toString(rdata) + ", // long[] rData, int num\n"
+                + "                " + num + " // int num\n"
+                + "        );");
+        final boolean mpGetVarDataRet
+                = mpc.mpGetVarData(
+                        varInfo, // MP_VAR_INFO[] sData
+                        rdata, // long[] rData
+                        num // int num
+                );
+        System.out.println("mpGetVarDataRet = " + mpGetVarDataRet);
+        System.out.println("rdata = " + Arrays.toString(rdata));
+        final MP_VAR_DATA[] varData = new MP_VAR_DATA[num];
+        for (int i = 0; i < varData.length && i < num && i < varInfo.length; i++) {
+            MP_VAR_DATA mp_var_data = new MP_VAR_DATA();
+            mp_var_data.usType = varInfo[i].usType;
+            mp_var_data.usIndex = varInfo[i].usIndex;
+            mp_var_data.ulValue = rdata[i];
+            varData[i] = mp_var_data;
+        }
+        System.out.println("Calling mpc.mpPutVarData(\n"
+                + "                " + Arrays.toString(varData) + ", // MP_VAR_DATA[] sData, \n"
+                + "                " + num + " // int num\n"
+                + "        ); ");
+        final boolean mpPutVarDataRet = mpc.mpPutVarData(
+                varData, // MP_VAR_DATA[] sData, 
+                num // int num
+        );
+        System.out.println("mpPutVarDataRet = " + mpPutVarDataRet);
+        int ctrlGroup = 0;
+        final MP_CART_POS_RSP_DATA[] cartPosData = new MP_CART_POS_RSP_DATA[1];
+        System.out.println("Calling mpc.mpGetCartPos(\n"
+                + "                " + ctrlGroup + ", // int ctrlGroup\n"
+                + "                " + Arrays.toString(cartPosData) + " //  MP_CART_POS_RSP_DATA[] data\n"
+                + "        );");
+        final boolean mpGetCartPosRet = mpc.mpGetCartPos(
+                ctrlGroup, // int ctrlGroup
+                cartPosData //  MP_CART_POS_RSP_DATA[] data
+        );
+        System.out.println("mpGetCartPosRet = " + mpGetCartPosRet);
+        System.out.println("cartPosData = " + Arrays.toString(cartPosData));
+        
     }
 
     private static void testConvCartPosToAxesAndBack(MP_CART_POS_RSP_DATA currentCartPos, final MotoPlusConnection mpc, int[] prev_angle, MP_KINEMA_TYPE kinType, MpKinAngleReturn currentAngle) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
@@ -189,8 +245,8 @@ public class TestMotoPlusConnection {
         final int MAX_WAIT = mpc.mpGetMaxWait();
         System.out.println("MAX_WAIT = " + MAX_WAIT);
         System.out.println("Calling mpMotTargetReceive(0," + coordTarget.getId() + ",...," + MAX_WAIT + ",0)");
-        final MotCtrlReturnEnum mpMotTargetReceiveRet = 
-                mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, mpc.mpGetMaxWait(), 0);
+        final MotCtrlReturnEnum mpMotTargetReceiveRet
+                = mpc.mpMotTargetReceive(0, coordTarget.getId(), recvId, mpc.mpGetMaxWait(), 0);
         System.out.println("mpMotTargetReceiveRet = " + mpMotTargetReceiveRet);
         System.out.println("recvId = " + Arrays.toString(recvId));
         Thread.sleep(2000);
@@ -199,11 +255,10 @@ public class TestMotoPlusConnection {
         final MotCtrlReturnEnum mpMotStopRet = mpc.mpMotStop(0);
         System.out.println("mpMotStopRet = " + mpMotStopRet);
 
-        
         CoordTarget coordTarget2 = new CoordTarget();
         coordTarget2.setId(17);
         coordTarget2.setIntp(MP_INTP_TYPE.MP_MOVL_TYPE);
-        COORD_POS cp2 = coordTarget2.getDst();       
+        COORD_POS cp2 = coordTarget2.getDst();
         cp2 = coordTarget2.getDst();
         cp2.x = (int) cartResData.lx();
         cp2.y = (int) cartResData.ly();
@@ -233,8 +288,8 @@ public class TestMotoPlusConnection {
 
         recvId = new int[1];
         System.out.println("Calling mpMotTargetReceive(0," + coordTarget2.getId() + ",...," + MAX_WAIT + ",0)");
-        final MotCtrlReturnEnum mpMotTargetReceiveRet2 = 
-                mpc.mpMotTargetReceive(0, coordTarget2.getId(), recvId, mpc.mpGetMaxWait(), 0);
+        final MotCtrlReturnEnum mpMotTargetReceiveRet2
+                = mpc.mpMotTargetReceive(0, coordTarget2.getId(), recvId, mpc.mpGetMaxWait(), 0);
         System.out.println("mpMotTargetReceiveRet2 = " + mpMotTargetReceiveRet2);
         System.out.println("recvId = " + Arrays.toString(recvId));
 //

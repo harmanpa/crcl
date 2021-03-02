@@ -1,25 +1,25 @@
 /*
-* This software is public domain software, however it is preferred
-* that the following disclaimers be attached.
-* Software Copyright/Warranty Disclaimer
-*
-* This software was developed at the National Institute of Standards and
-* Technology by employees of the Federal Government in the course of their
-* official duties. Pursuant to title 17 Section 105 of the United States
-* Code this software is not subject to copyright protection and is in the
-* public domain.
-*
-* This software is experimental. NIST assumes no responsibility whatsoever
-* for its use by other parties, and makes no guarantees, expressed or
-* implied, about its quality, reliability, or any other characteristic.
-* We would appreciate acknowledgement if the software is used.
-* This software can be redistributed and/or modified freely provided
-* that any derivative works bear some notice that they are derived from it,
-* and any modified versions bear some notice that they have been modified.
-*
-*  See http://www.copyright.gov/title17/92chap1.html#105
-*
-*/
+ * This software is public domain software, however it is preferred
+ * that the following disclaimers be attached.
+ * Software Copyright/Warranty Disclaimer
+ *
+ * This software was developed at the National Institute of Standards and
+ * Technology by employees of the Federal Government in the course of their
+ * official duties. Pursuant to title 17 Section 105 of the United States
+ * Code this software is not subject to copyright protection and is in the
+ * public domain.
+ *
+ * This software is experimental. NIST assumes no responsibility whatsoever
+ * for its use by other parties, and makes no guarantees, expressed or
+ * implied, about its quality, reliability, or any other characteristic.
+ * We would appreciate acknowledgement if the software is used.
+ * This software can be redistributed and/or modified freely provided
+ * that any derivative works bear some notice that they are derived from it,
+ * and any modified versions bear some notice that they have been modified.
+ *
+ *  See http://www.copyright.gov/title17/92chap1.html#105
+ *
+ */
 
 
 #include <pthread.h>
@@ -313,6 +313,39 @@ LONG mpPutVarData(MP_VAR_DATA *sData, LONG num) {
     return 0;
 }
 
+LONG mpGetSVarInfo(MP_VAR_INFO *sData, MP_SVAR_RECV_INFO* rData, LONG num) {
+    int i = 0;
+#if MP_FAKELIB_DEBUG
+    printf("mpGetSVarInfo(%p,%p,%ld) called.\n", sData, rData, num);
+#endif
+    for (i = 0; i < num; i++) {
+        snprintf(rData[i].ucValue, MAX_SVAR_SIZE, "%d", 7 + i);
+#if MP_FAKELIB_DEBUG 
+        printf("sData[%d].usType=%hu\n", i, sData[i].usType);
+        printf("sData[%d].usIndex=%hu\n", i, sData[i].usIndex);
+        printf("rData=%s\n", rData[i].ucValue);
+#endif
+    }
+    return 0;
+}
+
+LONG mpPutSVarInfo(MP_SVAR_SEND_INFO *sData, LONG num) {
+    int i = 0;
+#if MP_FAKELIB_DEBUG 
+    printf("mpPutVarData(%p,%ld) called.\n", sData, num);
+#endif
+
+    for (i = 0; i < num; i++) {
+#if MP_FAKELIB_DEBUG
+        printf("sData[%d].usType=%u\n", i, sData[i].usType);
+        printf("sData[%d].usIndex=%hd\n", i, sData[i].usIndex);
+        sData[i].ucValue[MAX_SVAR_SIZE]=0;
+        printf("sData[%d].ucValue=%s\n", i, sData[i].ucValue);
+#endif
+    }
+    return 0;
+}
+
 LONG mpGetCartPos(MP_CTRL_GRP_SEND_DATA *sData, MP_CART_POS_RSP_DATA *rData) {
     int i = 0;
 #if MP_FAKELIB_DEBUG
@@ -351,7 +384,7 @@ LONG mpGetFBPulsePos(MP_CTRL_GRP_SEND_DATA *sData, MP_FB_PULSE_POS_RSP_DATA *rDa
     int i = 0;
 #if MP_FAKELIB_DEBUG 
     printf("mpGetFBPulsePos(%p,%p) called.\n", sData, rData);
-printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
+    printf("sData->sCtrlGrp = %ld\n", sData->sCtrlGrp);
 #endif
     for (i = 0; i < 8; i++) {
         rData->lPos[i] = i + 15;
@@ -755,10 +788,6 @@ int mpConvAxesToCartPos(unsigned int grp_no,
 #endif
     return 0;
 }
-
-
-
-
 
 int mpConvCartPosToAxes(unsigned int grp_no, MP_COORD *coord, unsigned int tool_no, BITSTRING fig_ctrl, long prev_angle[MP_GRP_AXES_NUM], MP_KINEMA_TYPE kinema_type, long angle[MP_GRP_AXES_NUM]) {
 #if MP_FAKELIB_DEBUG 
