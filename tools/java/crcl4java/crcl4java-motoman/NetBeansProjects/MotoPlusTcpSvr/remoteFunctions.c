@@ -70,7 +70,7 @@ can be done without Motoman software with mpFakeLib.
 #include <errno.h>
 #include <string.h>
 
-#ifdef LINUX_FAKE_SYSTEM
+#ifdef __gnu_linux__
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/select.h>

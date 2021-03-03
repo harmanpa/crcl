@@ -69,7 +69,7 @@ can be done without Motoman software with mpFakeLib.
 #include "motoPlus.h"
 #include "remoteFunctions.h"
 
-#ifdef LINUX_FAKE_SYSTEM
+#ifdef __gnu_linux__
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 
