@@ -35,6 +35,7 @@ import com.github.wshackle.crcl4java.motoman.motctrl.MP_INTP_TYPE;
 import com.github.wshackle.crcl4java.motoman.motctrl.MP_SPEED;
 import com.github.wshackle.crcl4java.motoman.motctrl.MotCtrlReturnEnum;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_CART_POS_RSP_DATA;
+import com.github.wshackle.crcl4java.motoman.sys1.MP_IO_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
@@ -101,14 +102,14 @@ public class TestMotoPlusConnection {
         final MP_VAR_INFO[] varInfo = new MP_VAR_INFO[num];
         final int[] rdata = new int[num];
         varInfo[0] = new MP_VAR_INFO();
-        varInfo[0].usType = VarType.MP_RESTYPE_VAR_S;
-        varInfo[0].usIndex = 1;
+        varInfo[0].usType = VarType.MP_RESTYPE_VAR_I;
+        varInfo[0].usIndex = 0;
         varInfo[1] = new MP_VAR_INFO();
-        varInfo[1].usType = VarType.MP_RESTYPE_VAR_B;
-        varInfo[1].usIndex = 2;
+        varInfo[1].usType = VarType.MP_RESTYPE_VAR_I;
+        varInfo[1].usIndex = 1;
         varInfo[2] = new MP_VAR_INFO();
         varInfo[2].usType = VarType.MP_RESTYPE_VAR_I;
-        varInfo[2].usIndex = 3;
+        varInfo[2].usIndex = 2;
         System.out.println(
                 "Calling mpc.mpGetVarData(\n"
                 + "                " + Arrays.toString(varInfo) + ", // MP_VAR_INFO[] sData\n"
@@ -152,7 +153,41 @@ public class TestMotoPlusConnection {
         );
         System.out.println("mpGetCartPosRet = " + mpGetCartPosRet);
         System.out.println("cartPosData = " + Arrays.toString(cartPosData));
-        
+        short iorData[] = new short[10];
+        final MP_IO_INFO[] ioInfo = new MP_IO_INFO[10];
+        for (int i = 0; i < ioInfo.length; i++) {
+            MP_IO_INFO mp_io_info = new MP_IO_INFO();
+            mp_io_info.ulAddr = 20050 + i;
+            ioInfo[i] = mp_io_info;
+        }
+        System.out.println(
+                "Calling mpc.mpReadIO(\n"
+                + "                " + Arrays.toString(ioInfo) + ", // MP_IO_INFO[] sData\n"
+                + "                " + Arrays.toString(iorData) + ", // short[] iorData\n"
+                + "                10 // int num\n"
+                + "        );");
+        mpc.mpReadIO(
+                ioInfo, // MP_IO_INFO[] sData
+                iorData, // short[] iorData
+                10 // int num
+        );
+        System.out.println("iorData = " + Arrays.toString(iorData));for (int i = 0; i < ioInfo.length; i++) {
+            MP_IO_INFO mp_io_info = new MP_IO_INFO();
+            mp_io_info.ulAddr = 20060 + i;
+            ioInfo[i] = mp_io_info;
+        }
+        System.out.println(
+                "Calling mpc.mpReadIO(\n"
+                + "                " + Arrays.toString(ioInfo) + ", // MP_IO_INFO[] sData\n"
+                + "                " + Arrays.toString(iorData) + ", // short[] iorData\n"
+                + "                10 // int num\n"
+                + "        );");
+        mpc.mpReadIO(
+                ioInfo, // MP_IO_INFO[] sData
+                iorData, // short[] iorData
+                10 // int num
+        );
+        System.out.println("iorData = " + Arrays.toString(iorData));
     }
 
     private static void testConvCartPosToAxesAndBack(MP_CART_POS_RSP_DATA currentCartPos, final MotoPlusConnection mpc, int[] prev_angle, MP_KINEMA_TYPE kinType, MpKinAngleReturn currentAngle) throws IOException, MotoPlusConnection.MotoPlusConnectionException {

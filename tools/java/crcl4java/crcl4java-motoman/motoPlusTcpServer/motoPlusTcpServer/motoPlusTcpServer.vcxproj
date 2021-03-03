@@ -58,7 +58,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FS100|Win32'">
     <NMakeBuildCommandLine>mpbuilder.exe -c $(Configuration) -p "$(ProjectDir)\" -n "$(ProjectName)" -b "$(OutDir)\" -o build</NMakeBuildCommandLine>
     <NMakeOutput>$(ProjectName).out</NMakeOutput>
-    <NMakePreprocessorDefinitions>$(NMakePreprocessorDefinitions);$(Configuration)</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>$(NMakePreprocessorDefinitions);$(Configuration);-DMVS_FS100_REAL=1</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>$(MP_VS_Install)$(Configuration)\inc</NMakeIncludeSearchPath>
     <NMakeReBuildCommandLine>mpbuilder.exe -c $(Configuration) -p "$(ProjectDir)\" -n "$(ProjectName)" -b "$(OutDir)\" -o rebuild</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>mpbuilder.exe -c $(Configuration) -p "$(ProjectDir)\" -n "$(ProjectName)" -b "$(OutDir)\" -o clean</NMakeCleanCommandLine>

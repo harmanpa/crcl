@@ -69,9 +69,12 @@ can be done without Motoman software with mpFakeLib.
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef LINUX_FAKE_SYSTEM
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/select.h>
+#endif
 
 extern void *malloc(size_t);
 extern void free(void *);

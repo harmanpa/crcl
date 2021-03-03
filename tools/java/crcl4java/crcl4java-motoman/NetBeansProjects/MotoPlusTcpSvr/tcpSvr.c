@@ -69,6 +69,7 @@ can be done without Motoman software with mpFakeLib.
 #include "motoPlus.h"
 #include "remoteFunctions.h"
 
+#ifdef LINUX_FAKE_SYSTEM
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 
@@ -79,6 +80,8 @@ can be done without Motoman software with mpFakeLib.
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/select.h>
+#endif
+
 
 // I had issues so I can't trust stdlib.h to declare this properly across platforms.
 extern void *malloc(size_t);

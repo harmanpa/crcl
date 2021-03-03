@@ -27,10 +27,11 @@ package com.github.wshackle.crcl4java.motoman.sys1;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class MP_IO_INFO {
+
     public int ulAddr;
 
     @Override
     public String toString() {
-        return "MP_IO_INFO{" + "ulAddr=" + ulAddr + '}';
+        return String.format("MP_IO_INFO{ ulAddr= %d (0x%x) }", ulAddr, ulAddr);
     }
 }
