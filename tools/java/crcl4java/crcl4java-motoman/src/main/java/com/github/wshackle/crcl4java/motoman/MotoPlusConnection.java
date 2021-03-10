@@ -106,16 +106,21 @@ public class MotoPlusConnection implements AutoCloseable {
         private static String getDefaultHost() {
             try {
                 String propVal = System.getProperty("MotoPlusHost");
+                System.out.println("System.getProperty(\"MotoPlusHost\") = " + propVal);
                 if (propVal != null && propVal.length() > 0) {
                     return propVal;
                 }
                 String envVal = System.getenv("MotoPlusHost");
+                System.out.println("System.getenv(\"MotoPlusHost\") = " + envVal);
                 if (envVal != null && envVal.length() > 0) {
                     return envVal;
                 }
-                InetAddress addrToTry = InetAddress.getByName("192.168.1.33");
-                if (addrToTry.isReachable(2000)) {
-                    return "192.168.1.33";
+                InetAddress addrToTry = InetAddress.getByName(DEFAULT_ADDRESS_TO_TRY);
+                final boolean isAddrToTryReachable = addrToTry.isReachable(2000);
+                System.out.println(DEFAULT_ADDRESS_TO_TRY+" is reachable = " + isAddrToTryReachable);
+                if (isAddrToTryReachable) {
+                    
+                    return DEFAULT_ADDRESS_TO_TRY;
                 }
                 return "localhost";
             } catch (Exception ex) {
@@ -123,6 +128,7 @@ public class MotoPlusConnection implements AutoCloseable {
                 return "localhost";
             }
         }
+        public static final String DEFAULT_ADDRESS_TO_TRY = "192.168.1.33";
     }
 
     public static String getDefaultHost() {

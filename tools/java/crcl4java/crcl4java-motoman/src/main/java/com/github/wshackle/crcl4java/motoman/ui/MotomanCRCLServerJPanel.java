@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -53,13 +54,11 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.xml.bind.JAXBException;
 
 /**
  *
@@ -173,6 +172,7 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         jCheckBox1.setText("Networked ATI Force Sensor");
 
         jButtonStatus.setText("Status");
+        jButtonStatus.setEnabled(false);
         jButtonStatus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonStatusActionPerformed(evt);
@@ -460,15 +460,30 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
         if (!jCheckBoxConnect.isSelected()) {
             jCheckBoxConnect.setSelected(true);
         }
-        jButtonSendRequest.setEnabled(true);
+        enableMotomanCrclServerControls();
     }
 
+    private void enableMotomanCrclServerControls() {
+        if (null == motomanCrclServer) {
+            throw new IllegalStateException("motomanCrclServer="+motomanCrclServer);
+        }
+        jButtonSendRequest.setEnabled(true);
+        jButtonStatus.setEnabled(true);
+    }
+
+    private void disableMotomanCrclServerControls() {
+        if (null != motomanCrclServer) {
+            throw new IllegalStateException("motomanCrclServer="+motomanCrclServer);
+        }
+        jButtonSendRequest.setEnabled(false);
+        jButtonStatus.setEnabled(false);
+    }
     public void disconnectCrclMotoplus() {
         if (jCheckBoxConnect.isSelected()) {
             jCheckBoxConnect.setSelected(false);
         }
         internalDisconnect();
-        jButtonSendRequest.setEnabled(false);
+        disableMotomanCrclServerControls();
     }
 
     private void internalDisconnect() {
@@ -782,8 +797,19 @@ public class MotomanCRCLServerJPanel extends javax.swing.JPanel {
             final long perCountTime = timediff / countdiff;
             System.out.println(finalI + " (timediff/countdiff) = " + perCountTime);
             return perCountTime;
+        } catch (ConnectException ex) {
+            final String msg = "Failed to connect to host "+motomanHost+" on port "+ motomanPort;
+            Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, msg, ex);
+            MultiLineStringJPanel.showText(msg);
+            MultiLineStringJPanel.showException(ex);
+            return -1;
+        } catch (IOException ex) {
+            Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            MultiLineStringJPanel.showException(ex);
+            return -1;
         } catch (Exception ex) {
             Logger.getLogger(MotomanCRCLServerJPanel.class.getName()).log(Level.SEVERE, null, ex);
+            MultiLineStringJPanel.showException(ex);
             return -1;
         }
     }

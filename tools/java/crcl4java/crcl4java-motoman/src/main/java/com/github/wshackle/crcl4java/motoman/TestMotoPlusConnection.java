@@ -97,6 +97,9 @@ public class TestMotoPlusConnection {
         }
     }
 
+//    private static void testFileFunctions(MotoPlusConnection mpc) throws IOException {
+//        mpc.mpO
+//    }
     private static void testSys1Functions(MotoPlusConnection mpc) throws IOException {
         final int num = 3;
         final MP_VAR_INFO[] varInfo = new MP_VAR_INFO[num];
