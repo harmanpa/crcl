@@ -117,9 +117,9 @@ public class MotoPlusConnection implements AutoCloseable {
                 }
                 InetAddress addrToTry = InetAddress.getByName(DEFAULT_ADDRESS_TO_TRY);
                 final boolean isAddrToTryReachable = addrToTry.isReachable(2000);
-                System.out.println(DEFAULT_ADDRESS_TO_TRY+" is reachable = " + isAddrToTryReachable);
+                System.out.println(DEFAULT_ADDRESS_TO_TRY + " is reachable = " + isAddrToTryReachable);
                 if (isAddrToTryReachable) {
-                    
+
                     return DEFAULT_ADDRESS_TO_TRY;
                 }
                 return "localhost";
@@ -467,14 +467,15 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-        public void startMpOpenFile(String name, int flags, int mode) throws IOException {
+        public void startMpOpenFile(String name, MpFileFlagsEnum flags) throws IOException {
             final int inputSize = name.length() + 21;
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
             bb.putInt(0, inputSize - 4); // bytes to read
             bb.putInt(4, RemoteFunctionGroup.FILE_CTRL_FUNCTION_GROUP.getId()); // type of function remote server will call
             bb.putInt(8, RemoteFileFunctionType.FILE_CTRL_OPEN.getId()); // type of function remote server will call
-            bb.putInt(12, flags);
-            bb.putInt(16, mode);
+            bb.putInt(12, flags.getId());
+            // mode  is not used
+            bb.putInt(16, 0);
             bb.position(20);
             bb.put(name.getBytes());
             writeDataOutputStream(bb);
@@ -760,7 +761,6 @@ public class MotoPlusConnection implements AutoCloseable {
             writeDataOutputStream(bb);
         }
 
-        
         public void startMpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
             final int inputSize = 16 + (8 * num);
             ByteBuffer bb = ByteBuffer.allocate(inputSize);
@@ -1894,28 +1894,30 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     /**
-     * To set multiple variables, define num arrays, set the variable type, variable
-     * index, and variable value of each array, then set the starting address of
-     * each array to sData
-     * 
-     * @param sData Array of the data structure which specifies variables and values
-     * @param num Number of the variable data (up to 24) [ C function allows up to 126 but tcp server limits to 24]
+     * To set multiple variables, define num arrays, set the variable type,
+     * variable index, and variable value of each array, then set the starting
+     * address of each array to sData
+     *
+     * @param sData Array of the data structure which specifies variables and
+     * values
+     * @param num Number of the variable data (up to 24) [ C function allows up
+     * to 126 but tcp server limits to 24]
      * @return
      * @throws IOException
      */
     public boolean mpPutVarData(MP_VAR_DATA[] sData, int num) throws IOException {
-        if(num < 1) {
-            throw new IllegalArgumentException("num < 1 : num="+num);
+        if (num < 1) {
+            throw new IllegalArgumentException("num < 1 : num=" + num);
         }
-        if(num > 24) {
-            throw new IllegalArgumentException("num > 24 : num="+num);
+        if (num > 24) {
+            throw new IllegalArgumentException("num > 24 : num=" + num);
         }
-        if(num > sData.length) {
-            throw new IllegalArgumentException("num > sData.length: num="+num+", sData.length="+sData.length);
+        if (num > sData.length) {
+            throw new IllegalArgumentException("num > sData.length: num=" + num + ", sData.length=" + sData.length);
         }
         for (int i = 0; i < num; i++) {
-            if(null == sData[i]) {
-                throw new NullPointerException("sData["+i+"]");
+            if (null == sData[i]) {
+                throw new NullPointerException("sData[" + i + "]");
             }
         }
         starter.startMpPutVarData(sData, num);
@@ -1926,7 +1928,7 @@ public class MotoPlusConnection implements AutoCloseable {
         starter.startMpPutSVarInfo(sData, num);
         return returner.getSysOkReturn();
     }
-    
+
     public boolean mpWriteIO(MP_IO_DATA[] sData, int num) throws IOException {
         ioClear = false;
         starter.startMpWriteIO(sData, num);
@@ -1936,29 +1938,31 @@ public class MotoPlusConnection implements AutoCloseable {
     /**
      * Retrieves variables B, I, D, R (byte, integer, double precision, real).
      * Specifies multiple variables.
+     *
      * @param sData Array of the data structure which specifies variable
      * @param rData variable data
-     * @param num Number of variable data (up to 24) [C function allows up to 252 but tcp server limits to 24]
+     * @param num Number of variable data (up to 24) [C function allows up to
+     * 252 but tcp server limits to 24]
      * @return
      * @throws IOException
      */
     public boolean mpGetVarData(MP_VAR_INFO[] sData, int[] rData, int num) throws IOException {
-        if(num < 1) {
-            throw new IllegalArgumentException("num < 1 : num="+num);
+        if (num < 1) {
+            throw new IllegalArgumentException("num < 1 : num=" + num);
         }
-        if(num > 24) {
-            throw new IllegalArgumentException("num > 24 : num="+num);
+        if (num > 24) {
+            throw new IllegalArgumentException("num > 24 : num=" + num);
         }
-        if(num > sData.length) {
-            throw new IllegalArgumentException("num > sData.length: num="+num+", sData.length="+sData.length);
+        if (num > sData.length) {
+            throw new IllegalArgumentException("num > sData.length: num=" + num + ", sData.length=" + sData.length);
         }
         for (int i = 0; i < num; i++) {
-            if(null == sData[i]) {
-                throw new NullPointerException("sData["+i+"]");
+            if (null == sData[i]) {
+                throw new NullPointerException("sData[" + i + "]");
             }
         }
-        if(num > rData.length) {
-            throw new IllegalArgumentException("num > rData.length: num="+num+", rData.length="+rData.length);
+        if (num > rData.length) {
+            throw new IllegalArgumentException("num > rData.length: num=" + num + ", rData.length=" + rData.length);
         }
         starter.startMpGetVarData(sData, num);
         return returner.getSysDataReturn(rData);
@@ -2498,18 +2502,31 @@ public class MotoPlusConnection implements AutoCloseable {
         return returner.getIntReturn();
     }
 
-    public int getMpFileCount(MpExtensionType ext) throws IOException, MotoPlusConnectionException {
+    public int mpGetFileCount(MpExtensionType ext) throws IOException, MotoPlusConnectionException {
         starter.startMpGetFileCount(ext);
         return returner.getMpFileCountReturn();
     }
 
-    public String getMpFileName(MpExtensionType ext, int index) throws IOException, MotoPlusConnectionException {
+    public String mpGetFileName(MpExtensionType ext, int index) throws IOException, MotoPlusConnectionException {
         starter.startMpGetFileName(ext, index);
         return returner.getMpFileNameReturn();
     }
 
-    public int mpOpenFile(String filename, MpFileFlagsEnum flags, int mode) throws IOException, MotoPlusConnectionException {
-        starter.startMpOpenFile(filename, flags.getId(), mode);
+    public String[] mpGetFileNames(MpExtensionType ext) throws IOException, MotoPlusConnectionException {
+        int fileCount = mpGetFileCount(ext);
+        if (fileCount < 1) {
+            return new String[0];
+        }
+        String filenames[] = new String[fileCount];
+        for (int i = 0; i < fileCount; i++) {
+            String filename = mpGetFileName(ext, i);
+            filenames[i] = filename;
+        }
+        return filenames;
+    }
+
+    public int mpOpenFile(String filename, MpFileFlagsEnum flags) throws IOException, MotoPlusConnectionException {
+        starter.startMpOpenFile(filename, flags);
         return returner.getMpOpenFileReturn();
     }
 
@@ -2717,7 +2734,7 @@ public class MotoPlusConnection implements AutoCloseable {
     }
 
     public byte[] readFullFileByName(String fname) throws IOException, MotoPlusConnectionException {
-        int fd = mpOpenFile(fname, MpFileFlagsEnum.O_RDWR, 0666);
+        int fd = mpOpenFile(fname, MpFileFlagsEnum.O_RDONLY);
         if (fd < 0) {
             throw new MotoPlusConnectionException("mpOpenFile(" + fname + ") returned " + fd);
         }
@@ -2751,23 +2768,65 @@ public class MotoPlusConnection implements AutoCloseable {
         downloadFile(remoteFileName, localFile);
     }
 
+    public void downloadMPRAM1File(String simpleFileName, File localFile) throws IOException, MotoPlusConnectionException {
+        String remoteFileName = "MPRAM1:0/" + simpleFileName;
+        int fd0 = -1;
+        int closeRet = -1;
+
+        System.out.println("Calling  mpc.mpCreateFile(\"" + remoteFileName + "\",MpFileFlagsEnum.O_RDWR); ");
+
+        fd0 = mpCreateFile(remoteFileName, MpFileFlagsEnum.O_RDWR);
+        System.out.println("fd0 = " + fd0);
+
+        int fdReadRet = mpFdReadFile(fd0, simpleFileName);
+        System.out.println("fdReadRet = " + fdReadRet);
+
+        closeRet = mpCloseFile(fd0);
+        System.out.println("closeRet = " + closeRet);
+        downloadFile(remoteFileName, localFile);
+    }
+
     public void downloadFile(String remoteFileName, File localFile) throws IOException, MotoPlusConnectionException {
         try (FileOutputStream fos = new FileOutputStream(localFile)) {
-            int fd = mpOpenFile(remoteFileName, MpFileFlagsEnum.O_RDWR, 0666);
+            int fd = mpOpenFile(remoteFileName, MpFileFlagsEnum.O_RDONLY);
             if (fd < 0) {
                 throw new MotoPlusConnectionException("mpOpenFile(" + remoteFileName + ") returned " + fd);
             }
-            int r = MAX_READ_LEN;
-            int sum = 0;
-            while (r == MAX_READ_LEN) {
-                byte buf[] = new byte[MAX_READ_LEN];
-                r = mpReadFile(fd, buf);
-
-                if (r > 0 && r <= buf.length) {
-                    fos.write(buf);
+            try {
+                int r = MAX_READ_LEN;
+                int sum = 0;
+                while (r == MAX_READ_LEN) {
+                    byte buf[] = new byte[MAX_READ_LEN];
+                    r = mpReadFile(fd, buf);
+//                System.out.println("buf = " + new String(buf));
+//                System.out.println("buf = " + Arrays.toString(buf));
+                    System.out.println("buf.length = " + buf.length);
+                    System.out.println("r = " + r);
+                    if (r > 0 && r <= buf.length) {
+//                    int lastWrite = 0;
+//                    for (int i = 0; i < buf.length; i++) {
+//                        char b = (char) buf[i];
+//                        if (b == 0) {
+//                            System.out.println("zero found at i = " + i);
+//                            if (i > lastWrite) {
+//                                fos.write(buf, lastWrite, (i - lastWrite));
+//                            }
+//                            lastWrite = i + 1;
+//                        } else if (!Character.isLetterOrDigit(b) && !Character.isWhitespace(b) && (",/:\\-=+_.*#(){}[]<>,.".indexOf(b) < 0)) {
+//                            fos.write(buf, lastWrite, (i - lastWrite));
+//                            fos.write((" \\" + b + "\\ ").getBytes());
+//                            System.out.println("b = " + new String(buf, i, 1) + String.format(" %d (0x%X)", (int) b, (int) b)
+//                                    + ", lastWrite = " + lastWrite
+//                                    + ", i = " + i);
+//                            lastWrite = i;
+//                        }
+//                    }
+                        fos.write(buf, 0, r);
+                    }
                 }
+            } finally {
+                mpCloseFile(fd);
             }
-            mpCloseFile(fd);
         }
     }
     public static final int MAX_WRITE_LEN = 1024 - 10;

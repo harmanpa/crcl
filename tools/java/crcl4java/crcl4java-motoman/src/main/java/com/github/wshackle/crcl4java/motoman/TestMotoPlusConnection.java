@@ -22,6 +22,7 @@
  */
 package com.github.wshackle.crcl4java.motoman;
 
+import com.github.wshackle.crcl4java.motoman.exfile.MpExtensionType;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_COORD;
 import com.github.wshackle.crcl4java.motoman.kinematics.MP_KINEMA_TYPE;
 import com.github.wshackle.crcl4java.motoman.kinematics.MpKinAngleReturn;
@@ -40,6 +41,7 @@ import com.github.wshackle.crcl4java.motoman.sys1.MP_PULSE_POS_RSP_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_DATA;
 import com.github.wshackle.crcl4java.motoman.sys1.MP_VAR_INFO;
 import com.github.wshackle.crcl4java.motoman.sys1.VarType;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
@@ -92,14 +94,30 @@ public class TestMotoPlusConnection {
         }
         System.out.println("host = " + host);
         try (MotoPlusConnection mpc = MotoPlusConnection.connectionFromSocket(new Socket(host, 12222))) {
-            testSys1Functions(mpc);
+            testFileFunctions(mpc);
 //            testMoveZ(mpc);
         }
     }
 
-//    private static void testFileFunctions(MotoPlusConnection mpc) throws IOException {
-//        mpc.mpO
-//    }
+    private static void testFileFunctions(MotoPlusConnection mpc) throws IOException, MotoPlusConnection.MotoPlusConnectionException {
+        final String[] jbi_filenames = mpc.mpGetFileNames(MpExtensionType.MP_EXT_ID_JBI);
+        System.out.println("jbi_filenames = " + Arrays.toString(jbi_filenames));
+        final String[] jbr_filenames = mpc.mpGetFileNames(MpExtensionType.MP_EXT_ID_JBR);
+        System.out.println("jbr_filenames = " + Arrays.toString(jbr_filenames));
+        final File jbrFile = File.createTempFile(jbr_filenames[0].substring(0, jbr_filenames[0].length()-3), ".jbr");
+        System.out.println("jbrFile = " + jbrFile);
+        mpc.downloadMPRAM1File(jbr_filenames[0], jbrFile);
+        final File jbiFile = File.createTempFile(jbi_filenames[0].substring(0, jbi_filenames[0].length()-3), ".jbi");
+        System.out.println("jbiFile = " + jbiFile);
+        mpc.downloadMPRAM1File(jbi_filenames[0], jbiFile);
+//        int fd0 = mpc.mpOpenFile(jbi_filenames[0], MpFileFlagsEnum.O_RDONLY);
+//        byte buf[] = new byte[0x400];
+//        int readRet = mpc.mpReadFile(fd0, buf);
+//        System.out.println("readRet = " + readRet);
+//        System.out.println("buf = " + new String(buf));
+//        mpc.mpCloseFile(fd0);
+    }
+    
     private static void testSys1Functions(MotoPlusConnection mpc) throws IOException {
         final int num = 3;
         final MP_VAR_INFO[] varInfo = new MP_VAR_INFO[num];

@@ -29,11 +29,14 @@ package com.github.wshackle.crcl4java.motoman.file;
 public enum MpFileFlagsEnum {
     O_RDONLY(0),
     O_WRONLY(1),
-    O_RDWR(2);
+    O_RDWR(2),
+    O_CREATE_O_RDONLY(0x200),
+    O_CREATE_O_WRONLY(0x200),
+    O_CREATE_O_RDWR(0x200);
 
     private MpFileFlagsEnum(final int id) {
         this.id = id;
-        
+
     }
 
     private final int id;
@@ -49,6 +52,5 @@ public enum MpFileFlagsEnum {
     public int getId() {
         return id;
     }
-
 
 }
