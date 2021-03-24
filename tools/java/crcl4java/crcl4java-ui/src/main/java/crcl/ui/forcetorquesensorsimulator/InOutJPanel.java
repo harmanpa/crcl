@@ -35,11 +35,13 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 import javax.swing.JPanel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
  * @author will
  */
+@SuppressWarnings({"initialization","nullness"})
 public class InOutJPanel extends JPanel {
 
     public InOutJPanel() {
@@ -135,24 +137,28 @@ public class InOutJPanel extends JPanel {
 
     private Point2D.Double mousePoint = new Point2D.Double();
 
-    private PoseType robotPose;
+    private @Nullable
+    PoseType robotPose;
 
-    public PoseType getRobotPose() {
+    public @Nullable
+    PoseType getRobotPose() {
         return robotPose;
     }
 
-    public void setRobotPose(PoseType robotPose) {
+    public void setRobotPose(@Nullable PoseType robotPose) {
         this.robotPose = robotPose;
         this.repaint();
     }
 
-    private TrayStack holdingFromStack = null;
+    private @Nullable
+    TrayStack holdingFromStack = null;
 
-    public TrayStack getHoldingFromStack() {
+    public @Nullable
+    TrayStack getHoldingFromStack() {
         return holdingFromStack;
     }
 
-    public void setHoldingFromStack(TrayStack holdingFromStack) {
+    public void setHoldingFromStack(@Nullable TrayStack holdingFromStack) {
         this.holdingFromStack = holdingFromStack;
     }
 
@@ -257,7 +263,7 @@ public class InOutJPanel extends JPanel {
                 }
             } else {
                 robotPoint = null;
-                robotPosePoint=null;
+                robotPosePoint = null;
             }
 
             if (null != stacks) {
@@ -270,7 +276,7 @@ public class InOutJPanel extends JPanel {
                     final int stackLevels = stack.count + 1;
 
                     drawStackObject(stack, stackLevels, inSide, g2d);
-                    if(minZ > stack.z) {
+                    if (minZ > stack.z) {
                         minZ = stack.z;
                     }
                     final Point2D.Double stackDisplayPoint = world2Display(stack.x, stack.y, stack.z);

@@ -24,6 +24,7 @@ package crcl.utils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  *
@@ -35,9 +36,9 @@ public class ThreadLockedHolder<T> implements Supplier<T> {
     private final String name;
 
     private final StackTraceElement createTrace[];
-    private volatile StackTraceElement lockTrace[];
-    private volatile StackTraceElement unlockTrace[];
-    private volatile Thread lockThread;
+    private volatile StackTraceElement lockTrace  @Nullable [];
+    private volatile StackTraceElement unlockTrace @Nullable [];
+    private volatile @Nullable Thread lockThread;
     private final AtomicInteger getCountAI = new AtomicInteger();
     private final AtomicInteger releaseCountAI = new AtomicInteger();
 
@@ -59,6 +60,8 @@ public class ThreadLockedHolder<T> implements Supplier<T> {
             this.lockTrace = createTrace;
             this.lockThread = Thread.currentThread();
             this.unlockTrace = null;
+        } else {
+            this.lockThread = null;
         }
         this.disabled = false;
     }
@@ -73,6 +76,8 @@ public class ThreadLockedHolder<T> implements Supplier<T> {
             this.lockTrace = createTrace;
             this.lockThread = Thread.currentThread();
             this.unlockTrace = null;
+        } else {
+            this.lockThread = null;
         }
         this.disabled = disabled;
 
@@ -120,6 +125,9 @@ public class ThreadLockedHolder<T> implements Supplier<T> {
     }
 
     public void releaseLockThread() {
+        if(null == object) {
+            throw new NullPointerException("object");
+        }
         synchronized (object) {
             releaseCountAI.incrementAndGet();
             lockThread = null;

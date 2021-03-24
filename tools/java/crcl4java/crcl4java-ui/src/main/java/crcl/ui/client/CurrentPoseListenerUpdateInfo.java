@@ -32,17 +32,22 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class CurrentPoseListenerUpdateInfo {
-    
+
     private final CrclSwingClientJPanel panel;
     private final CRCLStatusType stat;
-    private final @Nullable CRCLCommandType cmd;
+    private final @Nullable
+    CRCLCommandType cmd;
     private final boolean isHoldingObjectExpected;
     private final long statRecieveTime;
 
-    public CurrentPoseListenerUpdateInfo(CrclSwingClientJPanel panel, CRCLStatusType stat,  @Nullable CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime) {
+    public CurrentPoseListenerUpdateInfo(CrclSwingClientJPanel panel, CRCLStatusType stat, @Nullable CRCLCommandType cmd, boolean isHoldingObjectExpected, long statRecieveTime) {
         this.panel = panel;
-        this.stat = CRCLCopier.copy(stat);
-        this.cmd = cmd!=null?CRCLCopier.copy(cmd):null;
+        final CRCLStatusType statCopy = CRCLCopier.copy(stat);
+        if (null == statCopy) {
+            throw new NullPointerException("statCopy");
+        }
+        this.stat = statCopy;
+        this.cmd = cmd != null ? CRCLCopier.copy(cmd) : null;
         this.isHoldingObjectExpected = isHoldingObjectExpected;
         this.statRecieveTime = statRecieveTime;
     }
@@ -55,7 +60,8 @@ public class CurrentPoseListenerUpdateInfo {
         return stat;
     }
 
-    public CRCLCommandType getCmd() {
+    public @Nullable
+    CRCLCommandType getCmd() {
         return cmd;
     }
 
@@ -66,7 +72,5 @@ public class CurrentPoseListenerUpdateInfo {
     public long getStatRecieveTime() {
         return statRecieveTime;
     }
-    
-    
-    
+
 }

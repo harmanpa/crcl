@@ -1016,7 +1016,9 @@ public class CRCLPosemath {
                 final PoseType nonNullEndPosition = getNonNullEndPosition(moveToCmdIn);
                 if (null != filter && !filter.test(nonNullEndPosition)) {
                     final PoseType endPositionCopy = copy(nonNullEndPosition);
-                    moveToCmdOut.setEndPosition(endPositionCopy);
+                    if (null != endPositionCopy) {
+                        moveToCmdOut.setEndPosition(endPositionCopy);
+                    }
                 } else {
                     moveToCmdOut.setEndPosition(CRCLPosemath.multiply(pose, nonNullEndPosition));
                 }
@@ -1257,14 +1259,13 @@ public class CRCLPosemath {
         }
         return null;
     }
-    
-    
-    public static CRCLStatusType  newFullCRCLStatus() {
+
+    public static CRCLStatusType newFullCRCLStatus() {
         CRCLStatusType status = new CRCLStatusType();
         status.setCommandStatus(new CommandStatusType());
         status.setJointStatuses(new JointStatusesType());
         status.setSensorStatuses(new SensorStatusesType());
-        status.setSettingsStatus( new SettingsStatusType());
+        status.setSettingsStatus(new SettingsStatusType());
         status.setGuardsStatuses(new GuardsStatusesType());
         CRCLPosemath.setPose(status, CRCLPosemath.identityPose());
         return status;
@@ -1468,7 +1469,7 @@ public class CRCLPosemath {
 
     /**
      * Create a new pose with zero translation or rotation.
-     * 
+     *
      * @return new identity pose
      */
     public static PoseType identityPose() {
@@ -1493,8 +1494,8 @@ public class CRCLPosemath {
 
     /**
      * Create a string representation of the point for logging/debug.
-     * 
-     * @param point to convert  
+     *
+     * @param point to convert
      * @return new string representation
      */
     public static String pointToString(PointType point) {
@@ -1509,8 +1510,8 @@ public class CRCLPosemath {
 
     /**
      * Create a string representation of the pose for logging/debug.
-     * 
-     * @param pose to convert  
+     *
+     * @param pose to convert
      * @return new string representation
      */
     public static String poseToString(PoseType pose) {
@@ -1532,9 +1533,10 @@ public class CRCLPosemath {
     }
 
     /**
-     * Create a string representation with roll-pitch-yaw rotation  of the pose for logging/debug.
-     * 
-     * @param pose to convert  
+     * Create a string representation with roll-pitch-yaw rotation of the pose
+     * for logging/debug.
+     *
+     * @param pose to convert
      * @return new string representation
      */
     public static String poseToXyzRpyString(PoseType pose) {
@@ -1552,7 +1554,7 @@ public class CRCLPosemath {
 
     /**
      * Add two points.
-     * 
+     *
      * @param p1
      * @param p2
      * @return sum of points
@@ -1567,7 +1569,7 @@ public class CRCLPosemath {
 
     /**
      * Subtract one point from another.
-     * 
+     *
      * @param p1
      * @param p2
      * @return p1 - p2
@@ -1582,11 +1584,12 @@ public class CRCLPosemath {
 
     /**
      * Get a pose from a possibly null status object that may have a null
-     * poseStatus field and if it is not null convert it to a PmPose (from rcslib) object.
-     * 
-     * @param stat status object to get pose from   
+     * poseStatus field and if it is not null convert it to a PmPose (from
+     * rcslib) object.
+     *
+     * @param stat status object to get pose from
      * @return new pose as a PmPose
-     * 
+     *
      * @throws CRCLException status contains a null or invalid pose
      */
     public static PmPose toPmPose(CRCLStatusType stat) throws CRCLException {
@@ -1613,7 +1616,7 @@ public class CRCLPosemath {
 
     /**
      * Convert a CRCL PoseType to a PmPose from rcslib.
-     * 
+     *
      * @param p CRCL pose to convert
      * @return converted pose
      * @throws CRCLException pose was invalid
@@ -1631,12 +1634,12 @@ public class CRCLPosemath {
     }
 
     /**
-     * Multiply a pose by a point. That is rotate the point based on the pose rotation and
-     * add to the point in the pose.
-     * 
+     * Multiply a pose by a point. That is rotate the point based on the pose
+     * rotation and add to the point in the pose.
+     *
      * @param pose
      * @param pt
-     * @return new result point 
+     * @return new result point
      * @throws CRCLException pose was invalid
      */
     public static PointType multiply(PoseType pose, PointType pt) throws CRCLException {
@@ -1651,7 +1654,7 @@ public class CRCLPosemath {
 
     /**
      * Multiply all fields of a vector by a BigDecimal distance.
-     * 
+     *
      * @param dist
      * @param v
      * @return new scaled vector
@@ -1662,7 +1665,7 @@ public class CRCLPosemath {
 
     /**
      * Multiply all fields of a vector by a distance.
-     * 
+     *
      * @param dist
      * @param v
      * @return new scaled vector
@@ -1678,7 +1681,7 @@ public class CRCLPosemath {
 
     /**
      * Multiply all fields of a point by a distance.
-     * 
+     *
      * @param dist
      * @param p
      * @return new scaled point
@@ -1689,7 +1692,7 @@ public class CRCLPosemath {
 
     /**
      * Multiply all fields of a point by a distance.
-     * 
+     *
      * @param dist
      * @param p
      * @return new scaled point
@@ -1704,7 +1707,7 @@ public class CRCLPosemath {
 
     /**
      * Compute the dot product of two vectors.
-     * 
+     *
      * @param v1
      * @param v2
      * @return dot product
@@ -1717,7 +1720,7 @@ public class CRCLPosemath {
 
     /**
      * Compute the dot product of a vector and a point.
-     * 
+     *
      * @param v1
      * @param p2
      * @return dot product
@@ -1784,7 +1787,7 @@ public class CRCLPosemath {
 
     /**
      * Convert a PmPose from rcslib to a CRCL PoseType.
-     * 
+     *
      * @param pose input
      * @return new pose as a CRCL PoseType.
      * @throws PmException pose was invalid
@@ -1796,15 +1799,13 @@ public class CRCLPosemath {
     }
 
     /**
-     * Convert a Homogeneous Transformation in a 4x4 double array to a CRCL PoseType.
-     * 
-     * rxx rxy rxz tx
-     * ryx ryy ryz ty
-     * rzx rzy rzz tz
-     * 0   0   0   1
-     * 
-     * 
-     * @param mat input 
+     * Convert a Homogeneous Transformation in a 4x4 double array to a CRCL
+     * PoseType.
+     *
+     * rxx rxy rxz tx ryx ryy ryz ty rzx rzy rzz tz 0 0 0 1
+     *
+     *
+     * @param mat input
      * @return new pose
      */
     public static PoseType toPose(double mat[][]) {
@@ -1835,8 +1836,9 @@ public class CRCLPosemath {
     }
 
     /**
-     * Convert a CRCL PoseType to a 4x4 Homogeneous Transformation matrix in a double array
-     * 
+     * Convert a CRCL PoseType to a 4x4 Homogeneous Transformation matrix in a
+     * double array
+     *
      * @param poseIn
      * @return transformation matrix
      */
@@ -1867,9 +1869,10 @@ public class CRCLPosemath {
     }
 
     /**
-     * Compute a pose that reverses both the translation and rotation of the input.
-     * 
-     * @param p input pose  
+     * Compute a pose that reverses both the translation and rotation of the
+     * input.
+     *
+     * @param p input pose
      * @return new inverted pose
      */
     public static PoseType invert(PoseType p) {
@@ -1900,7 +1903,7 @@ public class CRCLPosemath {
 
     /**
      * Multiply to poses.
-     * 
+     *
      * @param p1
      * @param p2
      * @return new product.
@@ -1962,9 +1965,10 @@ public class CRCLPosemath {
     }
 
     /**
-     * Add the pt to the poseIn point or translational component without rotating
-     * first by the pose rotation. Copy the rotation to the output pose.
-     * 
+     * Add the pt to the poseIn point or translational component without
+     * rotating first by the pose rotation. Copy the rotation to the output
+     * pose.
+     *
      * @param poseIn
      * @param pt
      * @return new result pose
@@ -1987,7 +1991,6 @@ public class CRCLPosemath {
 //        pose.setZAxis(z);
 //        return pose;
 //    }
-
     /**
      * Compute the cartesian distance between two points.
      *

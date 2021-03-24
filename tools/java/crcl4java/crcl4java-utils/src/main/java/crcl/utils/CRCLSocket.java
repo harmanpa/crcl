@@ -1288,7 +1288,7 @@ public class CRCLSocket implements AutoCloseable {
      * @param cmd command to be converted
      * @return string representation of command
      */
-    public String commandToPrettyString(CRCLCommandType cmd) {
+    public String commandToPrettyString(@Nullable CRCLCommandType cmd) {
         if(null == cmd) {
             return "commandToPrettyString(null)";
         }
@@ -1912,7 +1912,7 @@ public class CRCLSocket implements AutoCloseable {
      * @param status object to convert
      * @return new string representation
      */
-    public static String statusToPrettyString(CRCLStatusType status) {
+    public static String statusToPrettyString(@Nullable CRCLStatusType status) {
         try {
             return getUtilSocket().statusToPrettyString(status, false);
         } catch (Exception e) {
@@ -1934,7 +1934,7 @@ public class CRCLSocket implements AutoCloseable {
      * @return new string representation
      * @throws javax.xml.bind.JAXBException invalid status
      */
-    public String statusToPrettyString(CRCLStatusType status, boolean validate) throws Exception {
+    public String statusToPrettyString(@Nullable CRCLStatusType status, boolean validate) throws Exception {
         try {
             if(status == null) {
                 return "CRCLSocket.statusToPrettyString(null,"+validate+")";
@@ -1995,7 +1995,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    public static String cmdToPrettyString(CRCLCommandType cmd) {
+    public static String cmdToPrettyString(@Nullable CRCLCommandType cmd) {
         try {
             return getUtilSocket().commandToPrettyString(cmd);
         } catch (Exception ex) {

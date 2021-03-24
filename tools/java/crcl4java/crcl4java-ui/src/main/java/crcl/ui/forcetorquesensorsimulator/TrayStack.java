@@ -29,7 +29,7 @@ package crcl.ui.forcetorquesensorsimulator;
  */
 public class TrayStack {
     
-    public String name;
+    public String name="unnamed_tray";
     public int count;
     public double width, length, height, x, y, z, rotationRadians, scale;
 }

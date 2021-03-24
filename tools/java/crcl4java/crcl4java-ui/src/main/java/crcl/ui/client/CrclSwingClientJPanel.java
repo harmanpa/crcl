@@ -190,8 +190,6 @@ import rcs.posemath.PmRotationVector;
 import rcs.posemath.PmRpy;
 import rcs.posemath.Posemath;
 
-
-
 /**
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
@@ -907,9 +905,11 @@ public class CrclSwingClientJPanel
         AutomaticPropertyFileUtils.appendObjectProperties(propertiesFile, "internal.", internal);
     }
 
-    private volatile File loadedPrefsFile = null;
-    private volatile StackTraceElement loadPrefsTrace[] = null;
-    private volatile Thread loadPrefsThread = null;
+    private volatile @Nullable
+    File loadedPrefsFile = null;
+    private volatile StackTraceElement loadPrefsTrace @Nullable []  = null;
+    private volatile @Nullable
+    Thread loadPrefsThread = null;
 
     private void loadPrefsFile(File f) {
         try {
@@ -1493,9 +1493,10 @@ public class CrclSwingClientJPanel
         jLabelJointJogPlus.setBackground(Color.gray);
         jLabelJogPlus.setEnabled(false);
         jLabelJogPlus.setBackground(Color.gray);
-        if (null != this.lastCommandsMenuParent) {
-            for (int i = 0; i < lastCommandsMenuParent.getItemCount(); i++) {
-                JMenuItem jmi = lastCommandsMenuParent.getItem(i);
+        final JMenu lastCommandsMenuParent1 = this.lastCommandsMenuParent;
+        if (null != lastCommandsMenuParent1) {
+            for (int i = 0; i < lastCommandsMenuParent1.getItemCount(); i++) {
+                JMenuItem jmi = lastCommandsMenuParent1.getItem(i);
                 if (null != jmi) {
                     jmi.setEnabled(false);
                 }
@@ -1754,8 +1755,6 @@ public class CrclSwingClientJPanel
         return null;
     }
 
-
-
     /**
      * Get the value of outerFrame
      *
@@ -1799,7 +1798,7 @@ public class CrclSwingClientJPanel
         }
         return null;
     }
-    
+
     @Override
     public void showMessage(final String s) {
         System.out.println(s);
@@ -1897,7 +1896,7 @@ public class CrclSwingClientJPanel
         internal.saveStatusAs(f);
     }
 
-    private volatile StackTraceElement finishConnectTrace[] = null;
+    private volatile StackTraceElement finishConnectTrace @Nullable []  = null;
 
     @Override
     public void finishConnect() {
@@ -2589,7 +2588,7 @@ public class CrclSwingClientJPanel
         }
     }
 
-    private volatile StackTraceElement finishDisconnectTrace[] = null;
+    private volatile StackTraceElement finishDisconnectTrace @Nullable []  = null;
 
     @Override
     public void finishDisconnect() {
@@ -6491,7 +6490,8 @@ public class CrclSwingClientJPanel
         return clss.getName();
     }
 
-    private volatile JMenu lastCommandsMenuParent = null;
+    private volatile @Nullable
+    JMenu lastCommandsMenuParent = null;
 
     public void addToCommandsMenu(JMenu commandsMenuParent) {
         CrclSwingClientJPanel pendantClientJPanel1 = this;
