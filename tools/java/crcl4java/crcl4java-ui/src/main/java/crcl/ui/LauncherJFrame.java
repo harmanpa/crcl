@@ -40,7 +40,7 @@ public class LauncherJFrame extends javax.swing.JFrame {
     /**
      * Creates new form LauncherJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public LauncherJFrame() {
         initComponents();
         this.setIconImage(DONE_IMAGE);

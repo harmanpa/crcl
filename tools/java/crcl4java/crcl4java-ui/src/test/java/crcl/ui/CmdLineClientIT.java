@@ -27,7 +27,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import static java.util.Objects.requireNonNull;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXBException;
@@ -51,6 +51,7 @@ public class CmdLineClientIT {
      * Test of main method, of class CmdLineClient.
      */
     @Test
+    @SuppressWarnings("nullness")
     public void testMain() {
         try {
             SimServerInner.setTesting(true);

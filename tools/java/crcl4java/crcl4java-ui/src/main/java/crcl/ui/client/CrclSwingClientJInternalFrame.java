@@ -77,7 +77,7 @@ public class CrclSwingClientJInternalFrame
     /**
      * Creates new form PendantClientJInternalFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     CrclSwingClientJInternalFrame() {
         this(null);
     }
@@ -86,8 +86,8 @@ public class CrclSwingClientJInternalFrame
         return pendantClientJPanel1;
     }
 
-    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran,boolean throwExceptions) {
-        return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran,throwExceptions);
+    public boolean checkPose(PoseType goalPose, boolean ignoreCartTran, boolean throwExceptions) {
+        return pendantClientJPanel1.checkPose(goalPose, ignoreCartTran, throwExceptions);
     }
 
     /**
@@ -95,7 +95,7 @@ public class CrclSwingClientJInternalFrame
      *
      * @param parentJFrame parentJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public CrclSwingClientJInternalFrame(@Nullable JFrame parentJFrame) {
         this.parentJFrame = parentJFrame;
         initComponents();
@@ -294,7 +294,6 @@ public class CrclSwingClientJInternalFrame
 //        pendantClientJPanel1.updateUIFromInternal();
 //        this.jCheckBoxMenuItemQuitProgramOnTestCommandFail.setSelected(pendantClientJPanel1.getInternal().isQuitOnTestCommandFailure());
 //    }
-
     private static final String recent_files_dir = ".crcl_pendant_client_recent_files";
 
     public void addProgramLineListener(ProgramLineListener l) {
@@ -852,7 +851,9 @@ public class CrclSwingClientJInternalFrame
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             try {
                 File f = chooser.getSelectedFile();
-                saveXmlProgramFile(f);
+                if (null != f) {
+                    saveXmlProgramFile(f);
+                }
             } catch (JAXBException | CRCLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex);
@@ -988,7 +989,10 @@ public class CrclSwingClientJInternalFrame
     private void jMenuItemSaveStatusAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveStatusAsActionPerformed
         JFileChooser chooser = new JFileChooser();
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            pendantClientJPanel1.saveStatusAs(chooser.getSelectedFile());
+            final File selectedFile = chooser.getSelectedFile();
+            if (null != selectedFile) {
+                pendantClientJPanel1.saveStatusAs(selectedFile);
+            }
         }
     }//GEN-LAST:event_jMenuItemSaveStatusAsActionPerformed
 

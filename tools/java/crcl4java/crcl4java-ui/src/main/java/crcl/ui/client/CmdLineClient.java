@@ -22,16 +22,12 @@ package crcl.ui.client;
 
 import crcl.base.CRCLProgramType;
 import crcl.ui.DefaultSchemaFiles;
-import crcl.utils.CRCLException;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import crcl.utils.stubs.PendantClientOuterStub;
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import org.xml.sax.SAXException;
 import rcs.posemath.PmException;
 
 /**
@@ -111,7 +107,7 @@ public class CmdLineClient {
                 programSucceeded = pendantClientInner.runTest(pendantClientInner.getDefaultTestPropertiesMap());
             } else if (null != programPropertyString) {
                 pendantClientInner.openXmlProgramFile(new File(programPropertyString), false);
-                CRCLProgramType program = Objects.requireNonNull(pendantClientInner.getProgram());
+                CRCLProgramType program = requireNonNull(pendantClientInner.getProgram(),"pendantClientInner.getProgram()");
                 programSucceeded = pendantClientInner.runProgram(program, 0);
                 System.out.println("Program " + programPropertyString + " succeeded: " + programSucceeded);
             } else {

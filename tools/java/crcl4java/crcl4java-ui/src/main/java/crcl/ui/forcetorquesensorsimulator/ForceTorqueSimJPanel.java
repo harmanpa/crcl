@@ -46,13 +46,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,7 +79,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
     /**
      * Creates new form ForceTorqueSimJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public ForceTorqueSimJPanel() {
         statusOut = new ThreadLockedHolder("ForceTorqueSimJPanel.statusOut", new CRCLStatusType(), false);
         final CRCLStatusType statOut = this.statusOut.get();
@@ -93,6 +94,12 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         model.addTableModelListener((TableModelEvent e) -> {
             inOutJPanel1.setStacks(modelToList(model));
         });
+        getPoseServiceThreadFactory = createPoseServiceThreadFactory(
+                getPoseCRCLPort(),
+                (Thread thread) -> {
+                    this.getPoseServiceThread = thread;
+                });
+        getPoseService = Executors.newSingleThreadExecutor(getPoseServiceThreadFactory);
     }
 
     /**
@@ -758,7 +765,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         }
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             final File selectedFile = chooser.getSelectedFile();
-            loadObjectsFile(selectedFile);
+            if (null != selectedFile) {
+                loadObjectsFile(selectedFile);
+            }
         }
     }//GEN-LAST:event_jButtonOpenObjectsFileActionPerformed
 
@@ -774,7 +783,9 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         }
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             final File selectedFile = chooser.getSelectedFile();
-            saveObjectsFile(selectedFile);
+            if (null != selectedFile) {
+                saveObjectsFile(selectedFile);
+            }
         }
     }//GEN-LAST:event_jButtonSaveObjectsFileActionPerformed
 
@@ -794,9 +805,11 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             File f = chooser.getSelectedFile();
-            setPropertiesFile(f);
-            saveRecentPropertiesFile();
-            saveProperties();
+            if (null != f) {
+                setPropertiesFile(f);
+                saveRecentPropertiesFile();
+                saveProperties();
+            }
         }
     }
 
@@ -817,9 +830,11 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             File f = chooser.getSelectedFile();
-            setPropertiesFile(f);
-            saveRecentPropertiesFile();
-            loadProperties();
+            if (null != f) {
+                setPropertiesFile(f);
+                saveRecentPropertiesFile();
+                loadProperties();
+            }
         }
     }
 
@@ -1285,23 +1300,25 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         }
     }
 
-    private volatile @Nullable
-    Thread getPoseServiceThread = null;
+    private volatile @Nullable Thread getPoseServiceThread = null;
 
     private static final AtomicInteger tcount = new AtomicInteger();
 
-    private final ThreadFactory getPoseServiceThreadFactory
-            = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, tcount.incrementAndGet() + "ForceTorqueSimGetPose" + getPoseCRCLPort());
-            thread.setDaemon(true);
-            getPoseServiceThread = thread;
-            return thread;
-        }
-    };
+    private final ThreadFactory getPoseServiceThreadFactory;
 
-    private final ExecutorService getPoseService = Executors.newSingleThreadExecutor(getPoseServiceThreadFactory);
+    private static ThreadFactory createPoseServiceThreadFactory(int poseCRCLPort, Consumer<Thread> consumer) {
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, tcount.incrementAndGet() + "ForceTorqueSimGetPose" + poseCRCLPort);
+                thread.setDaemon(true);
+                consumer.accept(thread);
+                return thread;
+            }
+        };
+    }
+
+    private final ExecutorService getPoseService;
     private volatile @Nullable
     CurrentPoseListenerUpdateInfo poseInfoToProvide = null;
 
@@ -1467,7 +1484,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
     public static final CRCLServerSocketStateGenerator<ForceTorqueSimClientState> FORCE_TORQUE_SIM_STATE_GENERATOR
             = ForceTorqueSimClientState::new;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     private final CRCLServerSocketEventListener<ForceTorqueSimClientState> crclSocketEventListener
             = this::handleCrclServerSocketEvent;
 

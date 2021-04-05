@@ -64,7 +64,7 @@ public class TransformJPanel extends javax.swing.JPanel {
     /**
      * Creates new form TransformJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public TransformJPanel() {
         initComponents();
         this.jTableOrigPoint1.getModel().addTableModelListener(new TableModelListener() {

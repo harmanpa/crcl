@@ -78,16 +78,11 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
     /**
      * Creates new form ServerSensorJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public ServerSensorJFrame() {
         initComponents();
         setIconImage(SERVER_IMAGE);
         propertyChangeSupport = new PropertyChangeSupport(this);
-    }
-
-    @Override
-    final public void setIconImage(Image image) {
-        super.setIconImage(image);
     }
 
     public void setCommandString(String s) {
@@ -526,7 +521,10 @@ public class ServerSensorJFrame extends javax.swing.JFrame {
         int ret = chooser.showOpenDialog(this);
         if (ret == JFileChooser.APPROVE_OPTION) {
             try {
-                jTextFieldDirectory.setText(chooser.getSelectedFile().getCanonicalPath());
+                final File selectedFile = chooser.getSelectedFile();
+                if (null != selectedFile) {
+                    jTextFieldDirectory.setText(selectedFile.getCanonicalPath());
+                }
             } catch (IOException ex) {
                 Logger.getLogger(ServerSensorJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 javax.swing.SwingUtilities.invokeLater(() -> consoleAppend(ex.toString()));

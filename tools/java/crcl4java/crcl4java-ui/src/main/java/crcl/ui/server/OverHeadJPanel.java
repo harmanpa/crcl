@@ -44,7 +44,7 @@ public class OverHeadJPanel extends JPanel {
 
     public OverHeadJPanel() {
     }
-    
+
     private static final String DEFAULT_IMAGE_LOG_DIR = System.getProperty("crcl4java.simserver.imagelogdir", "/tmp");
 
     private String imageLogDir = DEFAULT_IMAGE_LOG_DIR;
@@ -108,7 +108,7 @@ public class OverHeadJPanel extends JPanel {
         this.repaint();
     }
 
-     private double @Nullable[] jointvals =null;
+    private double @Nullable [] jointvals = null;
 
     /**
      * Set the value of jointvals
@@ -136,7 +136,7 @@ public class OverHeadJPanel extends JPanel {
      * @param seglengths new value of seglengths
      */
     public void setSeglengths(double[] seglengths) {
-        this.seglengths = Arrays.copyOf(seglengths,seglengths.length);
+        this.seglengths = Arrays.copyOf(seglengths, seglengths.length);
         if (seglengths.length < 1) {
             return;
         }
@@ -164,12 +164,16 @@ public class OverHeadJPanel extends JPanel {
     }
 
     Arc2D.Double j1circle = new Arc2D.Double(-10.0, -10.0 // x,y
-            , 20, 20 // w,h
-            , 0, 360, Arc2D.CHORD);
+            ,
+             20, 20 // w,h
+            ,
+             0, 360, Arc2D.CHORD);
 
     Arc2D.Double j2circle = new Arc2D.Double(-6, -6.0 // x,y
-            , 12, 12 // w,h
-            , 0, 360, Arc2D.CHORD);
+            ,
+             12, 12 // w,h
+            ,
+             0, 360, Arc2D.CHORD);
 
     Rectangle2D.Double jrect = new Rectangle2D.Double(0.0, -5.0, 10.0, 10.0);
 
@@ -213,9 +217,15 @@ public class OverHeadJPanel extends JPanel {
         Dimension d = this.getSize();
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
-        g2d.setColor(this.getBackground());
+        final Color background = this.getBackground();
+        if (null != background) {
+            g2d.setColor(background);
+        }
         g2d.fillRect(0, 0, d.width, d.height);
-        g2d.setColor(this.getForeground());
+        final Color foreground = this.getForeground();
+        if (null != foreground) {
+            g2d.setColor(foreground);
+        }
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/overhead");
         boolean made_dir = dir.mkdirs();

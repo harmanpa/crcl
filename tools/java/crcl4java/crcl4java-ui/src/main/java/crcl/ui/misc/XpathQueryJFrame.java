@@ -41,7 +41,7 @@ public class XpathQueryJFrame extends javax.swing.JFrame {
      * @throws javax.xml.parsers.ParserConfigurationException when
      * javax.xml.parsers.DocumentBuilderFactory fails in XpathUtils
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"initialization","nullness"})
     public XpathQueryJFrame() throws ParserConfigurationException {
         initComponents();
         this.xpu = new XpathUtils();

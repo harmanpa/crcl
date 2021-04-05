@@ -128,6 +128,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -164,11 +165,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private final Class<STATE_TYPE> stateClass;
 
-    private volatile @MonotonicNonNull
-    ThreadLockedHolder<CRCLStatusType> serverSideStatus;
+    private volatile @MonotonicNonNull ThreadLockedHolder<CRCLStatusType> serverSideStatus;
 
-    private volatile @Nullable
-    Runnable guardCheckUpdatePositionOnlyRunnable = null;
+    private volatile @Nullable Runnable guardCheckUpdatePositionOnlyRunnable = null;
 
     public @Nullable
     Runnable getGuardCheckUpdatePositionOnlyRunnable() {
@@ -189,7 +188,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         sensorServers.remove(sensorId);
     }
 
-    private final List<SensorServerFinderInterface> sensorFinders = new ArrayList<>();
+    private final List<SensorServerFinderInterface> sensorFinders;
 
     public void addSensorFinder(SensorServerFinderInterface sensorFinder) {
         sensorFinders.add(sensorFinder);
@@ -217,9 +216,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return checkingGuards;
     }
 
-    public final void refreshSensorFinders() {
+    private static void refreshSensorFinders(final List<SensorServerFinderInterface> sensorFinders) {
 
-        clearSensorFinders();
+        sensorFinders.clear();
 //        try {
 //            ClassLoader cl = Thread.currentThread().getContextClassLoader();
 //            System.out.println("cl = " + cl);
@@ -239,7 +238,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 //            Logger.getLogger(CRCLServerSocket.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 
-        addSensorFinder(new RemoteCrclSensorExtractorFinder());
+        sensorFinders.add(new RemoteCrclSensorExtractorFinder());
         ServiceLoader<SensorServerFinderInterface> loader
                 = ServiceLoader
                         .load(SensorServerFinderInterface.class);
@@ -249,7 +248,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         while (it.hasNext()) {
             SensorServerFinderInterface finder = it.next();
 //            System.out.println("finder = " + finder);
-            addSensorFinder(finder);
+            sensorFinders.add(finder);
         }
 //        System.out.println("this.sensorFinders = " + this.sensorFinders);
 
@@ -426,7 +425,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         if (serverSocketChannel != null) {
             serverSocketChannel.close();
         }
-        checkPortMap(port);
+        checkPortMap(port, portMap, startTrace, createTrace);
         portMap.put(port, this);
     }
 
@@ -1418,18 +1417,21 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private static final AtomicInteger tcount = new AtomicInteger();
 
-    private final ThreadFactory checkSensorsServiceThreadFactory
-            = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, tcount.incrementAndGet() + "CRCLServerSocketCheckSensors" + getPort());
-            thread.setDaemon(true);
-            checkSensorsServiceThread = thread;
-            return thread;
-        }
-    };
+    private final ThreadFactory checkSensorsServiceThreadFactory;
 
-    private final ExecutorService checkSensorsService = Executors.newSingleThreadExecutor(checkSensorsServiceThreadFactory);
+    private static ThreadFactory createSensorServiceThreadFactory(Consumer<Thread> callback, int port) {
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, tcount.incrementAndGet() + "CRCLServerSocketCheckSensors" + port);
+                thread.setDaemon(true);
+                callback.accept(thread);
+                return thread;
+            }
+        };
+    }
+
+    private final ExecutorService checkSensorsService;
 
     private volatile @Nullable
     XFutureVoid lastAsyncCheckSensorServersFuture = null;
@@ -1948,12 +1950,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         return running;
     }
 
-    private final Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            runServer();
-        }
-    };
+    private final Runnable runnable;
 
     public Runnable getRunnable() {
         return runnable;
@@ -3104,9 +3101,9 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this(port, backlog, addr, multithreaded, stateGenerator, classFromGenerator(stateGenerator));
     }
 
-    private volatile StackTraceElement createTrace @Nullable []  = null;
+    private volatile StackTraceElement createTrace @MonotonicNonNull []  = null;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public CRCLServerSocket(int port, int backlog, InetAddress addr, boolean multithreaded, CRCLServerSocketStateGenerator<STATE_TYPE> stateGenerator, Class<STATE_TYPE> stateClass) {
         this.port = port;
         this.backlog = backlog;
@@ -3115,21 +3112,38 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         this.multithreaded = multithreaded;
         this.stateGenerator = stateGenerator;
         this.stateClass = stateClass;
-        refreshSensorFinders();
-        checkPortMap(port);
+        List<SensorServerFinderInterface> newSensorFinders = new ArrayList<>();
+        refreshSensorFinders(newSensorFinders);
+        this.sensorFinders = newSensorFinders;
         createTrace = Thread.currentThread().getStackTrace();
+        checkPortMap(port, portMap, null, createTrace);
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                runServer();
+            }
+        };
+        checkSensorsServiceThreadFactory
+                = createSensorServiceThreadFactory((Thread t) -> {
+                    this.checkSensorsServiceThread = t;
+                }, port);
+        checkSensorsService
+                = Executors.newSingleThreadExecutor(checkSensorsServiceThreadFactory);
         portMap.put(port, this);
     }
 
-    private void checkPortMap(int port1) throws IllegalStateException {
+    private static void checkPortMap(
+            int port1,
+            Map<Integer, CRCLServerSocket> portMap,
+            StackTraceElement startTrace @Nullable [],
+            StackTraceElement createTrace @Nullable []) throws IllegalStateException {
         if (portMap.containsKey(port1)) {
             CRCLServerSocket otherServer = portMap.get(port1);
-            System.err.println("this = " + this);
-            if (null != this && this.startTrace != null) {
-                System.out.println("this.startTrace = " + CRCLUtils.traceToString(this.startTrace));
+            if (startTrace != null) {
+                System.out.println("startTrace = " + CRCLUtils.traceToString(startTrace));
             }
-            if (null != this && this.createTrace != null) {
-                System.out.println("this.createTrace = " + CRCLUtils.traceToString(this.createTrace));
+            if (createTrace != null) {
+                System.out.println("createTrace = " + CRCLUtils.traceToString(createTrace));
             }
             System.err.println("otherServer = " + otherServer);
             if (null != otherServer && otherServer.startTrace != null) {
@@ -3139,7 +3153,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 System.out.println("otherServer.createTrace = " + CRCLUtils.traceToString(otherServer.createTrace));
             }
             System.err.println("portMap = " + portMap);
-            throw new IllegalStateException("two servers for same port " + port);
+            throw new IllegalStateException("two servers for same port " + port1);
         }
     }
 
@@ -3173,7 +3187,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private boolean started = false;
 
-    private volatile StackTraceElement startTrace @Nullable []  = null;
+    private volatile StackTraceElement startTrace @MonotonicNonNull []  = null;
     private volatile @Nullable
     Thread startThread = null;
 

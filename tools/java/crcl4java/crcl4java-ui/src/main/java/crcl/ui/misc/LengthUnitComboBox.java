@@ -17,9 +17,9 @@ import javax.swing.JComboBox;
  */
 public class LengthUnitComboBox extends JComboBox<crcl.base.LengthUnitEnumType>{
     
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public LengthUnitComboBox() {
-        setModel(new DefaultComboBoxModel<>(LengthUnitEnumType.values()));
+        super(new DefaultComboBoxModel<>(LengthUnitEnumType.values()));
         setSelectedItem(LengthUnitEnumType.MILLIMETER);
     }
 

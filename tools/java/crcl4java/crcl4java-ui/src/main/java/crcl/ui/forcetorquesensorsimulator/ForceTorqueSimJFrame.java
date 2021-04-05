@@ -36,7 +36,7 @@ public class ForceTorqueSimJFrame extends javax.swing.JFrame implements Property
     /**
      * Creates new form ForceTorqueSimJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public ForceTorqueSimJFrame() {
     
         forceTorqueSimJPanel2 = new crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel();

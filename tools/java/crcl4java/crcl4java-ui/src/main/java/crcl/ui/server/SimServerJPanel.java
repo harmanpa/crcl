@@ -42,6 +42,7 @@ import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.getNonNullJointStatusIterable;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import crcl.utils.PropertiesUtils;
 import crcl.utils.kinematics.SimRobotEnum;
 import crcl.utils.outer.interfaces.SimServerMenuOuter;
@@ -62,7 +63,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
@@ -90,7 +90,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
      * Creates new form SimServerJPanel
      *
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public SimServerJPanel() {
         initComponents();
         try {
@@ -1126,7 +1126,7 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
                             "Edit Status", true,
                             inner.getXpu(),
                             inner.getStatSchemaFiles(),
-                            this.checkStatusValidPredicate,
+                            this::checkStatusValid,
                             CRCLSocket.getUtilSocket());
             if (null != newstat) {
                 inner.setStatus(newstat);
@@ -1224,15 +1224,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         this.jTextFieldCycleCount.setText(Integer.toString(_newCycleCount));
     }
 
-    private final Function<CRCLStatusType, XFuture<Boolean>> checkStatusValidPredicate = new Function<CRCLStatusType, XFuture<Boolean>>() {
-
-        @Override
-        public XFuture<Boolean> apply(CRCLStatusType t) {
-            return checkStatusValid(t);
-        }
-    };
-
-//            = this::checkStatusValid;
     public XFuture<Boolean> checkStatusValid(CRCLStatusType statusObj) {
         try {
             String s = inner.getCheckerCRCLSocket().statusToPrettyString(statusObj, true);
@@ -1492,11 +1483,14 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
     private void jMenuItemSavePropertiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSavePropertiesActionPerformed
         JFileChooser chooser = new JFileChooser();
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
-            setPropertiesFile(chooser.getSelectedFile());
-            try {
-                saveProperties();
-            } catch (IOException ex) {
-                Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+            final File selectedFile = chooser.getSelectedFile();
+            if (null != selectedFile) {
+                setPropertiesFile(selectedFile);
+                try {
+                    saveProperties();
+                } catch (IOException ex) {
+                    Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }//GEN-LAST:event_jMenuItemSavePropertiesActionPerformed
@@ -1505,8 +1499,11 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
         JFileChooser chooser = new JFileChooser();
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             try {
-                setPropertiesFile(chooser.getSelectedFile());
-                loadProperties();
+                final File selectedFile = chooser.getSelectedFile();
+                if (null != selectedFile) {
+                    setPropertiesFile(selectedFile);
+                    loadProperties();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1533,33 +1530,35 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             chooser.setFileFilter(xmlFilter);
             if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
                 File f = chooser.getSelectedFile();
-                String name = f.getName();
-                final File fParentFile = f.getParentFile();
-                if (!name.endsWith(".xml")) {
-                    name = name + ".xml";
-                    f = new File(fParentFile, name);
-                }
-                try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
-                    pw.println(CRCLSocket.statusToPrettyString(this.getStatus()));
-                }
-                if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Set as IntialStatus file?")) {
-                    if (null != propertiesFileToSave) {
-                        File propertiesParentFile = propertiesFileToSave.getParentFile();
-                        if (null != propertiesParentFile
-                                && null != fParentFile
-                                && !Objects.equals(propertiesParentFile.getCanonicalPath(),
-                                        fParentFile.getCanonicalPath()
-                                )) {
-                            File copy = File.createTempFile(name, ".xml", propertiesParentFile);
-                            Files.copy(f.toPath(), copy.toPath());
-                            this.setInitStatusFilename(copy.getName());
+                if (null != f) {
+                    String name = f.getName();
+                    final File fParentFile = f.getParentFile();
+                    if (!name.endsWith(".xml")) {
+                        name = name + ".xml";
+                        f = new File(fParentFile, name);
+                    }
+                    try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+                        pw.println(CRCLSocket.statusToPrettyString(this.getStatus()));
+                    }
+                    if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Set as IntialStatus file?")) {
+                        if (null != propertiesFileToSave) {
+                            File propertiesParentFile = propertiesFileToSave.getParentFile();
+                            if (null != propertiesParentFile
+                                    && null != fParentFile
+                                    && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                            fParentFile.getCanonicalPath()
+                                    )) {
+                                File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                                Files.copy(f.toPath(), copy.toPath());
+                                this.setInitStatusFilename(copy.getName());
+                            } else {
+                                this.setInitStatusFilename(name);
+                            }
                         } else {
                             this.setInitStatusFilename(name);
                         }
-                    } else {
-                        this.setInitStatusFilename(name);
+                        this.saveProperties();
                     }
-                    this.saveProperties();
                 }
             }
         } catch (Exception exception) {
@@ -1586,25 +1585,27 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
             chooser.setFileFilter(xmlFilter);
             if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
                 File f = chooser.getSelectedFile();
-                String name = f.getName();
-                if (null != propertiesFile) {
-                    final File propertiesParentFile = propertiesFile.getParentFile();
-                    final File fParentFile = f.getParentFile();
-                    if (null != propertiesParentFile
-                            && null != fParentFile
-                            && !Objects.equals(propertiesParentFile.getCanonicalPath(),
-                                    fParentFile.getCanonicalPath()
-                            )) {
-                        File copy = File.createTempFile(name, ".xml", propertiesParentFile);
-                        Files.copy(f.toPath(), copy.toPath());
-                        this.setInitStatusFilename(copy.getName());
+                if (null != f) {
+                    String name = f.getName();
+                    if (null != propertiesFile) {
+                        final File propertiesParentFile = propertiesFile.getParentFile();
+                        final File fParentFile = f.getParentFile();
+                        if (null != propertiesParentFile
+                                && null != fParentFile
+                                && !Objects.equals(propertiesParentFile.getCanonicalPath(),
+                                        fParentFile.getCanonicalPath()
+                                )) {
+                            File copy = File.createTempFile(name, ".xml", propertiesParentFile);
+                            Files.copy(f.toPath(), copy.toPath());
+                            this.setInitStatusFilename(copy.getName());
+                        } else {
+                            this.setInitStatusFilename(name);
+                        }
                     } else {
                         this.setInitStatusFilename(name);
                     }
-                } else {
-                    this.setInitStatusFilename(name);
+                    this.saveProperties();
                 }
-                this.saveProperties();
             }
         } catch (Exception exception) {
             Logger.getLogger(SimServerJInternalFrame.class.getName()).log(Level.SEVERE, null, exception);
@@ -1699,7 +1700,6 @@ public class SimServerJPanel extends javax.swing.JPanel implements SimServerOute
 //    public boolean isReplaceStateSelected() {
 //        return jCheckBoxMenuItemReplaceState.isSelected();
 //    }
-
     public boolean isEXISelected() {
         return jCheckBoxMenuItemEXI.isSelected();
     }

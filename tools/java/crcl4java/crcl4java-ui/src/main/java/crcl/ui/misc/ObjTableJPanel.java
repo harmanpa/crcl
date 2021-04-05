@@ -94,7 +94,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     /**
      * Creates new form CmdTableJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public ObjTableJPanel() {
         initComponents();
         setupTableSelection();

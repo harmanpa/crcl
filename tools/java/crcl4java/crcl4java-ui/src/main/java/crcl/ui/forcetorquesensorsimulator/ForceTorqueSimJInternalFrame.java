@@ -37,7 +37,7 @@ public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame imp
     /**
      * Creates new form ForceTorqueSimJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public ForceTorqueSimJInternalFrame() {
         
         forceTorqueSimJPanel2 = new crcl.ui.forcetorquesensorsimulator.ForceTorqueSimJPanel();

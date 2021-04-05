@@ -54,7 +54,7 @@ public class FanucCRCLServerJFrame extends javax.swing.JFrame implements FanucCR
     /**
      * Creates new form FanucCRCLServerJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public FanucCRCLServerJFrame() {
         initComponents();
 //        timer = new Timer(500, e -> updateDisplay());

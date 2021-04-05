@@ -47,7 +47,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     /**
      * Creates new form MultiLineStringJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public MultiLineStringJPanel() {
         initComponents();
         popMenu = createCopyPopMenu();
@@ -186,9 +186,12 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
     }
 
     private void copyText() {
-        this.jTextArea1.getTransferHandler().exportToClipboard(this.jTextArea1,
-                Toolkit.getDefaultToolkit().getSystemClipboard(),
-                TransferHandler.COPY);
+        final TransferHandler transferHandler = this.jTextArea1.getTransferHandler();
+        if (null != transferHandler) {
+            transferHandler.exportToClipboard(this.jTextArea1,
+                    Toolkit.getDefaultToolkit().getSystemClipboard(),
+                    TransferHandler.COPY);
+        }
         popMenu.setVisible(false);
     }
 
@@ -323,7 +326,7 @@ public class MultiLineStringJPanel extends javax.swing.JPanel {
             @Nullable JFrame _owner) {
         return showText(init, _owner, "", false, false);
     }
-    
+
     public static XFuture<Boolean> showText(String init,
             @Nullable JFrame _owner,
             String _title,

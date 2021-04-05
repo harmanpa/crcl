@@ -85,8 +85,7 @@ public class SideViewJPanel extends JPanel {
         this.repaint();
     }
 
-    private double @Nullable [] jointvals=null;
-
+    private double @Nullable [] jointvals = null;
 
     /**
      * Set the value of jointvals
@@ -109,9 +108,15 @@ public class SideViewJPanel extends JPanel {
         Dimension d = this.getSize();
         BufferedImage bi = new BufferedImage(d.width, d.height, BufferedImage.TYPE_3BYTE_BGR);
         Graphics2D g2d = bi.createGraphics();
-        g2d.setColor(this.getBackground());
+        final Color background = this.getBackground();
+        if (null != background) {
+            g2d.setColor(background);
+        }
         g2d.fillRect(0, 0, d.width, d.height);
-        g2d.setColor(this.getForeground());
+        final Color foreground = this.getForeground();
+        if (null != foreground) {
+            g2d.setColor(foreground);
+        }
         this.paintImage(g2d, d);
         File dir = new File(imageLogDir, "/simserver/side");
         boolean made_dir = dir.mkdirs();
@@ -140,7 +145,6 @@ public class SideViewJPanel extends JPanel {
 
     private double[] seglengths = SimulatedKinematicsPlausible.DEFAULT_SEGLENGTHS;
 
-    
     /**
      * Set the value of seglengths
      *
@@ -150,7 +154,7 @@ public class SideViewJPanel extends JPanel {
         if (null == seglengths || seglengths.length < 1) {
             return;
         }
-        this.seglengths = Arrays.copyOf(seglengths,seglengths.length);
+        this.seglengths = Arrays.copyOf(seglengths, seglengths.length);
         l0rect.width = seglengths[0];
         if (seglengths.length < 2) {
             return;
@@ -175,12 +179,16 @@ public class SideViewJPanel extends JPanel {
     }
 
     Arc2D.Double j1circle = new Arc2D.Double(-10.0, -10.0 // x,y
-            , seglengths[3], seglengths[3] // w,h
-            , 0, 360.0, Arc2D.CHORD);
+            ,
+             seglengths[3], seglengths[3] // w,h
+            ,
+             0, 360.0, Arc2D.CHORD);
 
     Arc2D.Double j2circle = new Arc2D.Double(-6, -6.0 // x,y
-            , 12, 12 // w,h
-            , 0, 360, Arc2D.CHORD);
+            ,
+             12, 12 // w,h
+            ,
+             0, 360, Arc2D.CHORD);
 
     //Rectangle2D.Double jrect = new Rectangle2D.Double(0.0, -5.0, 10.0, 10.0);
     Rectangle2D.Double l0rect = new Rectangle2D.Double(0.0, -5.0, seglengths[0], 10.0);

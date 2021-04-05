@@ -59,7 +59,7 @@ public class GripperJFrame extends javax.swing.JFrame {
     /**
      * Creates new form GripperJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public GripperJFrame() {
         initComponents();
         this.jTextFieldPort.setText(Integer.toString(this.port));

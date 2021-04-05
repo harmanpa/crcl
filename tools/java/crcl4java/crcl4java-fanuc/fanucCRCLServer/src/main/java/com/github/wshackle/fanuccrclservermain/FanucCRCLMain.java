@@ -1447,7 +1447,7 @@ public class FanucCRCLMain {
     public static final CRCLServerSocketStateGenerator<FanucClientState> FANUC_STATE_GENERATOR
             = FanucClientState::new;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     private final CRCLServerSocketEventListener<FanucClientState> crclSocketEventListener
             = this::handleCrclServerSocketEvent;
 
@@ -2526,7 +2526,7 @@ public class FanucCRCLMain {
     private @Nullable
     Map<Integer, ConfigureJointReportType> cjrMap = null;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     private void setDefaultJointReports() {
         final Map<Integer, ConfigureJointReportType> initialCjrMap = this.cjrMap;
         final Map<Integer, ConfigureJointReportType> localCjrMap;
@@ -2808,7 +2808,7 @@ public class FanucCRCLMain {
 
     final CRCLSocket utilCrclSocket;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public FanucCRCLMain() {
         try {
             utilCrclSocket = new CRCLSocket();

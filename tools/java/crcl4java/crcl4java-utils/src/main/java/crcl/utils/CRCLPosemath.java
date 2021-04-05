@@ -51,7 +51,7 @@ import static java.lang.Math.atan2;
 import java.math.BigDecimal;
 import java.security.Guard;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;

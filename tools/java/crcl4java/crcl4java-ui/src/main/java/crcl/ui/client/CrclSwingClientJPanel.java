@@ -94,6 +94,7 @@ import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import crcl.utils.XFuture;
 import crcl.utils.XFutureVoid;
 import crcl.utils.outer.interfaces.CommandStatusLogElement;
@@ -141,7 +142,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -717,13 +717,36 @@ public class CrclSwingClientJPanel
      * Creates new form PendantClientJPanel
      *
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness", "initialization"})
     public CrclSwingClientJPanel(@Nullable Container outerContainer, @Nullable JFrame outerJFrame) {
         try {
-            this.outerContainer = outerContainer;
-            this.outerJFrame = outerJFrame;
+            if (null != outerContainer) {
+                this.outerContainer = outerContainer;
+                if (null != outerJFrame) {
+                    this.outerJFrame = outerJFrame;
+                } else {
+                    this.outerJFrame = new JFrame();
+                }
+            } else if (null != outerJFrame) {
+                this.outerContainer = outerJFrame;
+                this.outerJFrame = outerJFrame;
+            } else {
+                this.outerContainer = this.outerJFrame = new JFrame();
+            }
             initComponents();
             this.internal = new CrclSwingClientInner(this, DefaultSchemaFiles.instance());
+            programTableListSelectionListener = new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+//            System.out.println("e = " + e);
+                    boolean adjusting = e.getValueIsAdjusting();
+                    int row = jTableProgram.getSelectedRow();
+                    if (!adjusting && null != programShowing && row >= 0) {
+                        showSelectedProgramLine(row, programShowing, internal.getStatus());
+                    }
+                    //finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), internal.getProgRunDataList(),Thread.currentThread().getStackTrace());
+                }
+            };
             init();
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -735,7 +758,7 @@ public class CrclSwingClientJPanel
      * Creates new form PendantClientJPanel
      *
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public CrclSwingClientJPanel() {
         this(null, null);
     }
@@ -776,18 +799,7 @@ public class CrclSwingClientJPanel
         this.programPlotterJPanelSide.setPlotter(new ProgramPlotter(ProgramPlotter.View.SIDE));
     }
 
-    private ListSelectionListener programTableListSelectionListener = new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-//            System.out.println("e = " + e);
-            boolean adjusting = e.getValueIsAdjusting();
-            int row = jTableProgram.getSelectedRow();
-            if (!adjusting && null != programShowing && row >= 0) {
-                showSelectedProgramLine(row, programShowing, internal.getStatus());
-            }
-            //finishShowCurrentProgramLine(getProgramRow(), internal.getProgram(), internal.getStatus(), internal.getProgRunDataList(),Thread.currentThread().getStackTrace());
-        }
-    };
+    private final ListSelectionListener programTableListSelectionListener;
 
     private void checkMenuOuter() throws IllegalStateException {
         if (null == menuOuter) {
@@ -980,6 +992,8 @@ public class CrclSwingClientJPanel
         final int selectedRows[] = this.jTableProgram.getSelectedRows();
         return (null == selectedRows || selectedRows.length < 1) ? 0 : selectedRows[0];
     }
+
+    
 
     public String getVersion() {
         try (
@@ -1707,11 +1721,9 @@ public class CrclSwingClientJPanel
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
 
-    private final @MonotonicNonNull
-    Container outerContainer;
+    private final Container outerContainer;
 
-    private final @MonotonicNonNull
-    JFrame outerJFrame;
+    private final JFrame outerJFrame;
 
     private boolean searchedForOuterFrame = false;
 
@@ -1976,7 +1988,9 @@ public class CrclSwingClientJPanel
     public void finishSetStatus() {
         long statRecieveTime = System.currentTimeMillis();
         final CRCLStatusType curInternalStatus
-                = requireNonNull(internal.getStatus(), "internal.getStatus()");
+                = requireNonNull(
+                        internal.getStatus(),
+                        "internal.getStatus()");
         this.lastStatusCopy = CRCLCopier.copy(curInternalStatus);
         final boolean isHoldingObjectExpected = internal.isHoldingObjectExpected();
         final CRCLCommandType lastCmd = internal.getLastCommandSent();
@@ -3164,7 +3178,9 @@ public class CrclSwingClientJPanel
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             try {
                 File f = chooser.getSelectedFile();
-                openXmlInstanceFile(f);
+                if (null != f) {
+                    openXmlInstanceFile(f);
+                }
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
                 this.showMessage(ex);
@@ -3184,7 +3200,10 @@ public class CrclSwingClientJPanel
         int returnVal = chooser.showSaveDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             try {
-                this.internal.savePoseListToCsvFile(chooser.getSelectedFile().getAbsolutePath());
+                final File selectedFile = chooser.getSelectedFile();
+                if (null != selectedFile) {
+                    this.internal.savePoseListToCsvFile(selectedFile.getAbsolutePath());
+                }
             } catch (IOException ex) {
                 Logger.getLogger(CrclSwingClientJPanel.class.getName()).log(Level.SEVERE, null, ex);
             } catch (PmException ex) {
@@ -3217,7 +3236,9 @@ public class CrclSwingClientJPanel
         JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showOpenDialog(this)) {
             File f = chooser.getSelectedFile();
-            loadPrefsFile(f);
+            if (null != f) {
+                loadPrefsFile(f);
+            }
         }
     }
 
@@ -3241,7 +3262,9 @@ public class CrclSwingClientJPanel
         JFileChooser chooser = new JFileChooser(new File(CRCLUtils.getCrclUserHomeDir()));
         if (JFileChooser.APPROVE_OPTION == chooser.showSaveDialog(this)) {
             File f = chooser.getSelectedFile();
-            saveObjectProperties(f, this);
+            if (null != f) {
+                saveObjectProperties(f, this);
+            }
         }
     }
 
@@ -3399,7 +3422,9 @@ public class CrclSwingClientJPanel
         }
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File f = chooser.getSelectedFile();
-            openXmlProgramFile(f);
+            if (null != f) {
+                openXmlProgramFile(f);
+            }
         }
     }
 

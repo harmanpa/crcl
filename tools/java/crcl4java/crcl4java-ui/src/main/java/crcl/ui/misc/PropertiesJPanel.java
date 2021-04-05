@@ -5,6 +5,7 @@
  */
 package crcl.ui.misc;
 
+import java.awt.Container;
 import java.awt.Frame;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class PropertiesJPanel extends javax.swing.JPanel {
     /**
      * Creates new form PropertiesJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public PropertiesJPanel() {
         initComponents();
     }
@@ -128,8 +129,9 @@ public class PropertiesJPanel extends javax.swing.JPanel {
         if (null != dialog && dialog.isVisible()) {
             dialog.setVisible(false);
         }
-        if (null != this.getParent() && this.getParent().isVisible()) {
-            this.getParent().setVisible(false);
+        final Container parent = this.getParent();
+        if (null != parent && parent.isVisible()) {
+            parent.setVisible(false);
         }
     }//GEN-LAST:event_jButtonOkActionPerformed
 
@@ -138,8 +140,9 @@ public class PropertiesJPanel extends javax.swing.JPanel {
         if (null != dialog && dialog.isVisible()) {
             dialog.setVisible(false);
         }
-        if (null != this.getParent() && this.getParent().isVisible()) {
-            this.getParent().setVisible(false);
+        final Container parent = this.getParent();
+        if (null != parent && parent.isVisible()) {
+            parent.setVisible(false);
         }
     }//GEN-LAST:event_jButtonCancelActionPerformed
 

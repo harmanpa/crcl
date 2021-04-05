@@ -30,7 +30,7 @@ import crcl.base.PoseStatusType;
 import crcl.base.PoseType;
 import crcl.base.SensorStatusesType;
 import static crcl.utils.CRCLUtils.getNonNullCommandStatus;
-import static java.util.Objects.requireNonNull;
+import java.util.List;
 
 /**
  *
@@ -56,9 +56,21 @@ public class TimeStampedStatus {
         final PointType point = (pose != null) ? pose.getPoint() : null;
         final CommandStatusType commandStatus = getNonNullCommandStatus(status);
         final SensorStatusesType sensorStatuses = status.getSensorStatuses();
-        final ForceTorqueSensorStatusType forceTorqueStatus
-                = (null != sensorStatuses && requireNonNull(sensorStatuses.getForceTorqueSensorStatus()).size() > 0)
-                ? requireNonNull(sensorStatuses.getForceTorqueSensorStatus()).get(0) : null;
+        final ForceTorqueSensorStatusType forceTorqueStatus;
+        if(null != sensorStatuses) {
+            final List<ForceTorqueSensorStatusType> forceTorqueSensorStatus 
+                    = sensorStatuses.getForceTorqueSensorStatus();
+            if(null != forceTorqueSensorStatus 
+                    && !forceTorqueSensorStatus.isEmpty()) {
+                forceTorqueStatus = forceTorqueSensorStatus.get(0);
+            } else {
+                forceTorqueStatus=null;
+            }
+        } else {
+            forceTorqueStatus=null;
+        }
+//                = (null != sensorStatuses && requireNonNull(sensorStatuses.getForceTorqueSensorStatus(),"sensorStatuses.getForceTorqueSensorStatus()").size() > 0)
+//                ? requireNonNull(sensorStatuses.getForceTorqueSensorStatus(),"sensorStatuses.getForceTorqueSensorStatus()").get(0) : null;
         x = (point != null) ? point.getX() : 0.0;
         y = (point != null) ? point.getY() : 0.0;
         z = (point != null) ? point.getZ() : 0.0;

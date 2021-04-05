@@ -34,7 +34,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class ProgramPlotterJPanel extends JPanel {
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public ProgramPlotterJPanel() {
     }
 

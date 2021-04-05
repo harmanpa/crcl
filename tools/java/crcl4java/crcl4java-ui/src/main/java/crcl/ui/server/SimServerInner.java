@@ -101,6 +101,7 @@ import static crcl.utils.CRCLSchemaUtils.readStatSchemaFiles;
 import crcl.utils.CRCLSocket;
 import static crcl.utils.CRCLUtils.getNonNullFilteredList;
 import static crcl.utils.CRCLUtils.getNonNullIterable;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import crcl.utils.PoseToleranceChecker;
 import crcl.utils.ThreadLockedHolder;
 import crcl.utils.XFuture;
@@ -136,7 +137,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
+
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -146,7 +147,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -452,7 +452,7 @@ public class SimServerInner {
         return statSchemaFiles;
     }
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     SimServerInner(SimServerOuter _outer, DefaultSchemaFiles defaultSchemaFiles) throws ParserConfigurationException {
         this.outer = _outer;
         this.xpu = new XpathUtils();
@@ -2212,14 +2212,6 @@ public class SimServerInner {
     }
     private volatile int clientStatesSize = 0;
 
-    private final CRCLServerSocketEventListener<SimServerClientState> crclServerSocketEventListener
-            = new CRCLServerSocketEventListener<SimServerClientState>() {
-        @Override
-        public void accept(CRCLServerSocketEvent<SimServerClientState> evt) {
-            handleCRCLServerSocketEvent(evt);
-        }
-    };
-
     private void handleCRCLServerSocketEvent(CRCLServerSocketEvent<SimServerClientState> evt) {
         final CRCLServerSocket<SimServerClientState> crclServerSocket1 = crclServerSocket;
         if(null == crclServerSocket1) {
@@ -3017,7 +3009,7 @@ public class SimServerInner {
                 restartingServerSocket.setCmdSchemaFiles(cmdSchemaFiles);
             }
             restartingServerSocket.setThreadNamePrefix("CRCLSimServer");
-            restartingServerSocket.addListener(crclServerSocketEventListener);
+            restartingServerSocket.addListener(this::handleCRCLServerSocketEvent);
             restartingServerSocket.setServerSideStatus(status);
             restartingServerSocket.setAutomaticallySendServerSideStatus(true);
             restartingServerSocket.setAutomaticallyConvertUnits(true);

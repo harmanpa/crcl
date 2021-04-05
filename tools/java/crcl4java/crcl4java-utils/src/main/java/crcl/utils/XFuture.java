@@ -1153,7 +1153,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings({"nullness","keyfor"})
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn, Executor executor) {
         return this.thenComposeAsync(defaultName(), fn, executor);
     }
@@ -1179,7 +1179,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn) {
         return this.thenComposeAsync(defaultName(), fn);
     }
@@ -1621,7 +1621,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn, Executor executor) {
         return this.handleAsync(defaultName(), fn, executor);
     }
@@ -1631,7 +1631,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> handleAsync(BiFunction<? super T, Throwable, ? extends U> fn) {
         return this.handle(defaultName(), fn);
     }
@@ -1641,7 +1641,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> handle(BiFunction<? super T, Throwable, ? extends U> fn) {
         return this.handle(defaultName(), fn);
     }
@@ -1651,19 +1651,19 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public XFuture<T> whenCompleteAsync(BiConsumer<? super T, ? super Throwable> action, Executor executor) {
         return wrap(this.name + ".whenCompleteAsync", super.whenCompleteAsync(action, executor));
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public XFuture<T> whenCompleteAsync(BiConsumer<? super T, ? super Throwable> action) {
         return wrap(this.name + ".whenCompleteAsync", super.whenCompleteAsync(action));
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public XFuture<T> whenComplete(BiConsumer<? super T, ? super Throwable> action) {
         return wrap(this.name + ".whenComplete", super.whenComplete(action));
     }
@@ -1699,19 +1699,19 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn, Executor executor) {
         return wrap(this.name + ".applyToEitherAsync", super.applyToEitherAsync(other, fn, executor));
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn) {
         return wrap(this.name + ".applyToEitherAsync", super.applyToEitherAsync(other, fn, getDefaultThreadPool()));
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> applyToEither(CompletionStage<? extends T> other, Function<? super T, U> fn) {
         return wrap(this.name + ".applyToEither", super.applyToEither(other, fn));
     }
@@ -1797,7 +1797,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
         XFuture<V> retXF = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, executor));
         if (other instanceof CompletableFuture) {
@@ -1807,7 +1807,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U, V> XFuture<V> thenCombineAsync(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
         XFuture<V> retXF = wrap(this.name + ".thenCombineAsync", super.thenCombineAsync(other, fn, getDefaultThreadPool()));
         if (other instanceof CompletableFuture) {
@@ -1817,7 +1817,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U, V> XFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
         XFuture<V> retXF = wrap(this.name + ".thenCombine", super.thenCombine(other, fn));
         if (other instanceof CompletableFuture) {
@@ -1896,7 +1896,7 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn, Executor executor) {
         return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, executor));
     }
@@ -1910,13 +1910,13 @@ public class XFuture<T> extends CompletableFuture<T> {
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> thenApplyAsync(Function<? super T, ? extends U> fn) {
         return wrap(this.name + ".thenApplyAsync", super.thenApplyAsync(fn, getDefaultThreadPool()));
     }
 
     @Override
-    @SuppressWarnings("keyFor")
+    @SuppressWarnings("keyfor")
     public <U> XFuture<U> thenApply(Function<? super T, ? extends U> fn) {
         return wrap(this.name + ".thenApply", super.thenApply(fn));
     }

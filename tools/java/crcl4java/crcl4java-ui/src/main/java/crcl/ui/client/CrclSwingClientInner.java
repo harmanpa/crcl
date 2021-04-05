@@ -91,6 +91,7 @@ import static crcl.utils.CRCLPosemath.vectorToPmCartesian;
 import crcl.utils.CRCLSchemaUtils;
 import crcl.utils.CRCLUtils;
 import static crcl.utils.CRCLUtils.middleCommands;
+import static crcl.utils.CRCLUtils.requireNonNull;
 import crcl.utils.InterruptTrackingThread;
 import crcl.utils.outer.interfaces.PendantClientOuter;
 import crcl.utils.PoseToleranceChecker;
@@ -124,7 +125,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -250,14 +250,7 @@ public class CrclSwingClientInner {
     private @MonotonicNonNull
     CRCLCommandInstanceType checkerCommandInstance = null;
 
-    @SuppressWarnings("initialization")
-    private final Function<CRCLProgramType, XFuture<Boolean>> checkProgramValidPredicate
-            = this::checkProgramValid;
-
-    @SuppressWarnings("initialization")
-    private final Function<CRCLCommandType, XFuture<Boolean>> checkCommandValidPredicate
-            = this::checkCommandValid;
-
+    
     private volatile @Nullable
     CRCLCommandType lastCommandSent = null;
 
@@ -302,9 +295,7 @@ public class CrclSwingClientInner {
     private @NonNull
     LengthUnitEnumType lengthUnit = LengthUnitEnumType.MILLIMETER;
 
-    @SuppressWarnings("initialization")
-    private final PropertyChangeSupport propertyChangeSupport
-            = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport propertyChangeSupport;
 
     final private Map<Integer, ConfigureJointReportType> cjrMap = new HashMap<>();
     private volatile BlockingQueue<Object> pauseQueue = new ArrayBlockingQueue<>(1);
@@ -399,7 +390,7 @@ public class CrclSwingClientInner {
     private final StackTraceElement createStackTrace[];
     private final DefaultSchemaFiles defaultsInstance;
 
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     CrclSwingClientInner(PendantClientOuter outer,
             DefaultSchemaFiles defaultsInstance) throws ParserConfigurationException {
         this.outer = outer;
@@ -425,6 +416,11 @@ public class CrclSwingClientInner {
         this.setCmdSchema(this.cmdSchemaFiles);
         this.progSchemaFiles = CRCLSchemaUtils.readProgramSchemaFiles(defaultsInstance.getProgramSchemasFile());
         this.setProgramSchema(this.progSchemaFiles);
+        this.defaultCrclSocketActionService
+            = Executors.newSingleThreadExecutor(createDefaultThreadFactory());
+        this.crclSocketActionExecutorService = this.defaultCrclSocketActionService;
+        this.propertyChangeSupport
+            = new PropertyChangeSupport(this);
     }
 
     /**
@@ -907,11 +903,11 @@ public class CrclSwingClientInner {
     }
 
     public Function<CRCLProgramType, XFuture<Boolean>> getCheckProgramValidPredicate() {
-        return checkProgramValidPredicate;
+        return this::checkProgramValid;
     }
 
     public Function<CRCLCommandType, XFuture<Boolean>> getCheckCommandValidPredicate() {
-        return checkCommandValidPredicate;
+        return this::checkCommandValid;
     }
 
     public XFuture<Boolean> checkProgramValid(CRCLProgramType prog) {
@@ -2040,7 +2036,9 @@ public class CrclSwingClientInner {
         if (stat == null) {
             throw new IllegalStateException("status==null");
         }
-        return Objects.requireNonNull(CRCLPosemath.getNullablePoint(stat), "CRCLPosemath.getNullablePoint(status)");
+        return requireNonNull(
+                CRCLPosemath.getNullablePoint(stat), 
+                "CRCLPosemath.getNullablePoint(status)");
     }
 
     private int maxPoseListLength = 1000;
@@ -4122,7 +4120,7 @@ public class CrclSwingClientInner {
                     if (interactive) {
                         curStatus
                                 = requireNonNull(
-                                        requireNonNull(this.status).get(),
+                                        requireNonNull(this.status,"this.status").get(),
                                         "this.status.get()");
                         final CommandStatusType commandStatus
                                 = requireNonNull(
@@ -4204,7 +4202,7 @@ public class CrclSwingClientInner {
 
                 curStatus
                         = requireNonNull(
-                                requireNonNull(this.status).get(),
+                                requireNonNull(this.status,"this.status").get(),
                                 "this.status.get()");
                 final CommandStatusType commandStatus
                         = requireNonNull(
@@ -4269,7 +4267,7 @@ public class CrclSwingClientInner {
             showCurrentProgramLine(middleCommands.size() + 2, prog, getStatus());
             curStatus
                     = requireNonNull(
-                            requireNonNull(this.status).get(),
+                            requireNonNull(this.status,"this.status").get(),
                             "this.status.get()");
             final CommandStatusType commandStatus
                     = requireNonNull(
@@ -4330,7 +4328,7 @@ public class CrclSwingClientInner {
         String s;
         try {
             final CRCLSocket crclSocketFinal = crclSocket;
-            final CRCLStatusType statusFinal = requireNonNull(this.status).get();
+            final CRCLStatusType statusFinal = requireNonNull(this.status,"this.status").get();
             if (null == statusFinal) {
                 s = "status = null";
             } else if (null != crclSocketFinal) {
@@ -5409,7 +5407,7 @@ public class CrclSwingClientInner {
                     throw new RuntimeException("MoveTo Command has invalid endPosition :" + CRCLPosemath.poseToString(endPose));
                 }
             }
-            CRCLStatusType origStatuPrep = requireNonNull(this.status).get();
+            CRCLStatusType origStatuPrep = requireNonNull(this.status,"this.status").get();
             if (null == origStatuPrep) {
                 showMessage("testCommand can not get starting status");
                 throw new IllegalStateException("testCommand can not get starting status");
@@ -5498,7 +5496,7 @@ public class CrclSwingClientInner {
                     System.out.println("lastAbortTrace = " + XFuture.traceToString(lastAbortTrace));
                     throw new RuntimeException("aborting : runProgramAbortCount=" + rpac + ", startingRunProgramAbortCount=" + startingRunProgramAbortCount + ", cmd=" + cmdString(cmd));
                 }
-                if (null == requireNonNull(this.status).get()) {
+                if (null == requireNonNull(this.status,"this.status").get()) {
                     boolean waitForStatusResult = waitForStatus(2000, 200, pause_count_start, startingRunProgramAbortCount);
                 }
                 rpac = runProgramAbortCount.get();
@@ -5509,7 +5507,7 @@ public class CrclSwingClientInner {
                 }
                 testCommandStartLengthUnitSent = lengthUnitSent;
                 testCommandStartLengthUnit = this.getLengthUnit();
-                CRCLStatusType startStatusPrep = requireNonNull(this.status).get();
+                CRCLStatusType startStatusPrep = requireNonNull(this.status,"this.status").get();
                 if (null == startStatusPrep) {
                     System.out.println("origStatuPrep = " + origStatuPrep);
                     showMessage("testCommand can not get starting status");
@@ -5585,21 +5583,7 @@ public class CrclSwingClientInner {
                     System.out.println(messageString);
                     showErrorMessage(messageString);
                     if (debugInterrupts || printDetailedCommandFailureInfo) {
-                        System.out.println("");
-                        System.out.flush();
-                        SimServerInner.printAllClientStates(System.err);
-                        Thread.getAllStackTraces().entrySet().forEach((x) -> {
-                            System.err.println("Thread:" + x.getKey().getName());
-                            Arrays.stream(x.getValue()).forEach((xx) -> {
-                                System.err.println("\t" + xx);
-                            });
-                            System.err.println("");
-                        });
-                        System.err.println("intString=" + intString);
-                        System.err.println("");
-                        System.err.flush();
-                        System.out.println("");
-                        System.out.flush();
+                        printStackTraceDetails(intString);
                     }
                     if (null != errorStateDescription && errorStateDescription.length() > 0) {
                         throw new RuntimeException(errorStateDescription + ": wfdResult=" + wfdResult + ", messageString=" + messageString);
@@ -5655,6 +5639,28 @@ public class CrclSwingClientInner {
             }
             testCommandTotalTime.addAndGet(tcDiffTime);
         }
+    }
+
+    @SuppressWarnings({"nullness","keyfor"})
+    private void printStackTraceDetails(String intString) {
+        System.out.println("");
+        System.out.flush();
+        SimServerInner.printAllClientStates(System.err);
+        final Set<Map.Entry<Thread, StackTraceElement[]>> entrySet
+                = Thread.getAllStackTraces().entrySet();
+        for(Map.Entry<Thread, StackTraceElement[]> x: entrySet) {
+            System.err.println("Thread:" + x.getKey().getName());
+            final StackTraceElement[] value = x.getValue();
+            for(StackTraceElement xx : value) {
+                System.err.println("\t" + xx);
+            }
+            System.err.println("");
+        }
+        System.err.println("intString=" + intString);
+        System.err.println("");
+        System.err.flush();
+        System.out.println("");
+        System.out.flush();
     }
 
     private String createTestCommandFailMessage(@Nullable String prefix, CRCLCommandType cmd, CRCLStatusType startStatus, WaitForDoneResult wfdResult, long sendCommandTime, long curTime, final long timeout, @Nullable String poseListSaveFileName, @Nullable String intString, String suffix) {
@@ -5731,11 +5737,9 @@ public class CrclSwingClientInner {
         };
     }
 
-    @SuppressWarnings("initialization")
-    private final ExecutorService defaultCrclSocketActionService
-            = Executors.newSingleThreadExecutor(createDefaultThreadFactory());
+    private final ExecutorService defaultCrclSocketActionService;
 
-    private ExecutorService crclSocketActionExecutorService = defaultCrclSocketActionService;
+    private ExecutorService crclSocketActionExecutorService;
 
     public ExecutorService getCrclSocketActionExecutorService() {
         return crclSocketActionExecutorService;

@@ -46,7 +46,7 @@ public class FanucCRCLServerJInternalFrame extends javax.swing.JInternalFrame im
     /**
      * Creates new form FanucCRCLServerJInternalFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public FanucCRCLServerJInternalFrame() {
         initComponents();
         jCheckBoxMenuItemDebug.setSelected(FanucCRCLMain.isDebug());

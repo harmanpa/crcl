@@ -47,7 +47,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import static java.util.Objects.requireNonNull;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -59,7 +59,24 @@ public class CRCLUtils {
 
     private CRCLUtils() {
     }
+    
+    /**
+     * This is a work-around for missing annotations for some versions of the
+     * JDK / CheckerFramework. It is just a wrapper for java.util.Objects.requireNonNull
+     * 
+       @param ref     the object reference to check for nullity
+     * @param message detail message to be used in the event that a {@code
+     *                NullPointerException} is thrown
+     * @param <T> the type of the reference
+     * @return {@code ref} if not {@code null}
+     * @throws NullPointerException if {@code ref} is {@code null}
+     */
+    @SuppressWarnings("nullness")
+    public static <T extends Object> T requireNonNull(@Nullable T ref, String message) {
+        return Objects.requireNonNull(ref, message);
+    }
 
+    
     /**
      * Convert an array returned from Thread.currentThread().getStackTrace() or
      * exception.getStackTrace() to a readable loggable string.

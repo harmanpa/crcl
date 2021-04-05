@@ -48,7 +48,7 @@ public class TransformSetupJFrame extends javax.swing.JFrame {
     /**
      * Creates new form TransformSetupJFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public TransformSetupJFrame() {
         initComponents();
         

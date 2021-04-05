@@ -37,7 +37,7 @@ public class SimServerJInternalFrame extends javax.swing.JInternalFrame implemen
     /**
      * Creates new form SimServerJInternalFrame
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public SimServerJInternalFrame() {
         simServerJPanel1 = new crcl.ui.server.SimServerJPanel();
 

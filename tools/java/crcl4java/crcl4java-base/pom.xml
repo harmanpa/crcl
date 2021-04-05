@@ -142,7 +142,7 @@
 
                                 <!-- Optionally, -Awarns turns type-checking errors into warnings. -->
                                 <!-- <arg>-Awarns</arg> -->
-                                <arg>-AsuppressWarnings=purity,uninitialized,nullness</arg>
+                                <arg>-AsuppressWarnings=purity,initialization,nullness</arg>
                             </compilerArgs>
                         </configuration>
                     </plugin>
@@ -171,7 +171,7 @@
                                 <!-- If using JDK 11, remove the two arguments above, remove the
                                 space in the one below, and uncomment it. -->
                                 <arg>-J- -add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-                                <arg>-AsuppressWarnings=purity,uninitialized,nullness</arg>
+                                <arg>-AsuppressWarnings=purity,initialization,nullness</arg>
                             
                                 <!-- Optionally, -Awarns turns type-checking errors into warnings. -->
                                 <!-- <arg>-Awarns</arg> -->

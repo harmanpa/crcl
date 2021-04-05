@@ -87,7 +87,7 @@ public class FanucCRCLServerJPanel extends javax.swing.JPanel {
     /**
      * Creates new form FanucCRCLServerJPanel
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public FanucCRCLServerJPanel() {
         initComponents();
         timer = new Timer(100, e -> updateDisplay());

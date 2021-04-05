@@ -39,7 +39,7 @@ public class SimServerJFrame extends javax.swing.JFrame implements SimServerOute
      * Creates new form SimServer
      *
      */
-    @SuppressWarnings("initialization")
+    @SuppressWarnings({"nullness","initialization"})
     public SimServerJFrame() {
         simServerJPanel1 = new crcl.ui.server.SimServerJPanel();
 
