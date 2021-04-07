@@ -20,6 +20,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class PropertiesJPanel extends javax.swing.JPanel {
 
     /**

@@ -88,7 +88,7 @@ import org.xml.sax.SAXException;
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  * @param <T> Type of object to be shown/modified.
  */
-@SuppressWarnings("nullness")
+@SuppressWarnings({"nullness","serial"})
 public class ObjTableJPanel<T> extends javax.swing.JPanel {
 
     /**
@@ -252,6 +252,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         };
     }
 
+    @SuppressWarnings("serial")
     private class NewDeletePanel extends JPanel {
 
         private final JButton jButtonNew = new JButton("New");
@@ -284,69 +285,7 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
     };
 
     Map<Integer, NewDeletePanel> pnlMap = new HashMap<>();
-
-//    private class MyTableModel extends DefaultTableModel {
-//
-//        final private DefaultTableModel orig;
-//
-//        public MyTableModel(final DefaultTableModel _orig) {
-//            super();
-//            this.orig = _orig;
-//        }
-//
-//
-//        @Override
-//        public boolean isCellEditable(int row, int column) {
-//            return column != 2 && null == pnlMap.get(row);
-//        }
-//
-//        @Override
-//        public int getRowCount() {
-//            if(null == orig) {
-//                return 0;
-//            }
-//            return orig.getRowCount();
-//        }
-//
-//        @Override
-//        public int getColumnCount() {
-//            if(null == orig) {
-//                return 3;
-//            }
-//            return orig.getColumnCount();
-//        }
-//
-//        @Override
-//        public String getColumnName(int columnIndex) {
-//           return orig.getColumnName(columnIndex);
-//        }
-//
-//        @Override
-//        public Class<?> getColumnClass(int columnIndex) {
-//           return orig.getColumnClass(columnIndex);
-//        }
-//
-//        @Override
-//        public Object getValueAt(int rowIndex, int columnIndex) {
-//           return orig.getValueAt(rowIndex, columnIndex);
-//        }
-//
-//        @Override
-//        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-//                 orig.setValueAt(aValue, rowIndex, columnIndex);
-//        }
-//
-//        @Override
-//        public void addTableModelListener(TableModelListener l) {
-//            orig.addTableModelListener(l);
-//        }
-//
-//        @Override
-//        public void removeTableModelListener(TableModelListener l) {
-//            orig.removeTableModelListener(l);
-//        }
-//
-//    };
+    @SuppressWarnings("serial")
     private class MyTableCellRenderer extends DefaultTableCellRenderer {
 
         @Override

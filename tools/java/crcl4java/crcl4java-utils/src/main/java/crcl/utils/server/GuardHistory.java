@@ -31,9 +31,9 @@ import java.util.List;
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
 public class GuardHistory {
-    
+
     private static final int DEFAULT_MAX_LENGTH = 500;
-    
+
     private final int maxLength;
     private final List<GuardHistoryElement> list;
 
@@ -50,30 +50,27 @@ public class GuardHistory {
         return maxLength;
     }
 
-    public synchronized  List<GuardHistoryElement> getList() {
+    public synchronized List<GuardHistoryElement> getList() {
         return Collections.unmodifiableList(new ArrayList<>(list));
     }
-    
+
     private volatile long startTime = -1;
-    
-    public synchronized  void addElement(long time, double value, double x, double y, double z) {
-        while(list.size() > maxLength) {
+
+    public synchronized void addElement(long time, double value, double x, double y, double z) {
+        while (list.size() > maxLength) {
             list.remove(0);
         }
-        if(startTime <= 0 || list.size() <1) {
+        if (startTime <= 0 || list.size() < 1) {
             startTime = time;
         }
-        double dtime = (double) (1e-3*(time-startTime));
-        list.add(new GuardHistoryElement(dtime,value,x,y,z ));
+        double dtime = (1.0e-3 * (time - startTime));
+        list.add(new GuardHistoryElement(dtime, value, x, y, z));
     }
 
     @Override
     public String toString() {
-        GuardHistoryElement lastElement = list.isEmpty() ? null: list.get(list.size()-1);
-        return "GuardHistory{" + "maxLength=" + maxLength + ", list.size()="+list.size()+", lastElement=" + lastElement + ", startTime=" + startTime + '}';
+        GuardHistoryElement lastElement = list.isEmpty() ? null : list.get(list.size() - 1);
+        return "GuardHistory{" + "maxLength=" + maxLength + ", list.size()=" + list.size() + ", lastElement=" + lastElement + ", startTime=" + startTime + '}';
     }
-    
-    
-    
-    
+
 }

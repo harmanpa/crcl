@@ -5,7 +5,7 @@ Download the latest JDK (at-least 1.8+)  from https://adoptopenjdk.net/
 ( getting the bundled Netbeans is recommended but not required)
 
 To build with netbeans simply open this directory as a project (File-> Open Project ...)  and choose 
-(Run -> Build Project (CRCLJavaBase) ).
+(Run -> Build Project (crcl4java-base) ).
 
 To build on the command line:
 
@@ -30,7 +30,7 @@ mvn clean install -PnewSchema -Dcrcl.schemaBaseUrl=file:${HOME}/crac/xml/crcl/xm
 
 
 This directory only produces a library jar file,
-target/CRCLJavaBase-1.0-SNAPSHOT.jar, from
+target/crcl4java-base-1.0-SNAPSHOT.jar, from
 xjc automatically generated sources using the XML Schema files in 
 ../xml/crcl/xmlSchemas.
 

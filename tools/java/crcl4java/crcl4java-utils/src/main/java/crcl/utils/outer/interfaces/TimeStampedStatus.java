@@ -69,16 +69,14 @@ public class TimeStampedStatus {
         } else {
             forceTorqueStatus=null;
         }
-//                = (null != sensorStatuses && requireNonNull(sensorStatuses.getForceTorqueSensorStatus(),"sensorStatuses.getForceTorqueSensorStatus()").size() > 0)
-//                ? requireNonNull(sensorStatuses.getForceTorqueSensorStatus(),"sensorStatuses.getForceTorqueSensorStatus()").get(0) : null;
         x = (point != null) ? point.getX() : 0.0;
         y = (point != null) ? point.getY() : 0.0;
         z = (point != null) ? point.getZ() : 0.0;
         fx = (forceTorqueStatus != null) ? forceTorqueStatus.getFx() : 0.0;
         fy = (forceTorqueStatus != null) ? forceTorqueStatus.getFy() : 0.0;
         fz = (forceTorqueStatus != null) ? forceTorqueStatus.getFz() : 0.0;
-        cmdId = (double) ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
-        state = (double) getCommandStateDouble(commandStatus);
+        cmdId =  ((commandStatus != null) ? commandStatus.getCommandID() : -1.0);
+        state = getCommandStateDouble(commandStatus);
         this.absTime = absTime * 1e-3;
         this.relTime = relTime * 1e-3;
         this.timeDiff = timediff *1e-3;

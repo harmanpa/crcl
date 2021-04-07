@@ -15,6 +15,7 @@ import javax.swing.JComboBox;
  * 
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class LengthUnitComboBox extends JComboBox<crcl.base.LengthUnitEnumType>{
     
     @SuppressWarnings({"nullness","initialization"})

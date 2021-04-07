@@ -40,6 +40,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+@SuppressWarnings("serial")
 public class OverHeadJPanel extends JPanel {
 
     public OverHeadJPanel() {

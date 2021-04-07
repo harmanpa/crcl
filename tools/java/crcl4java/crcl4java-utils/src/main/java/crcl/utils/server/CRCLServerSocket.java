@@ -156,7 +156,7 @@ import org.checkerframework.checker.nullness.qual.*;
  */
 public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implements AutoCloseable {
 
-    private static final Map<Integer, CRCLServerSocket> portMap
+    private static final Map<Integer, CRCLServerSocket<?>> portMap
             = new ConcurrentHashMap<>();
 
     private final List<CRCLServerClientInfo> clients = new ArrayList<>();
@@ -1692,7 +1692,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
     private volatile long lastErrorCmdId = -1;
     private volatile boolean initialized = false;
     private volatile long lastCommandEventCommandId = -1;
-    private volatile List<GuardType> currentCmdGuardList = Collections.EMPTY_LIST;
+    private volatile List<GuardType> currentCmdGuardList = Collections.emptyList();
     private final AtomicInteger guardTriggerCount = new AtomicInteger();
     private volatile int currentCmdStartGuardTriggerCount = 0;
 
@@ -1717,7 +1717,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                     currentCmdStartGuardTriggerCount = guardTriggerCount.get();
                     startCheckingGuards(cmdGuardList, state, cmd.getCommandID(), instanceIn);
                 } else {
-                    this.currentCmdGuardList = Collections.EMPTY_LIST;
+                    this.currentCmdGuardList = Collections.emptyList();
                     checkingGuards = false;
                 }
             }
@@ -1819,19 +1819,8 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
         updateServerSideStatusRunnables.add(r);
     }
 
-//    private void setErrorStateDescriptionFromException(final Exception exception) {
-//        final CRCLStatusType localServerSideStatus = this.serverSideStatus.get();
-//        if (null != localServerSideStatus) {
-//            final CommandStatusType commandStatus = localServerSideStatus.getCommandStatus();
-//            if (null != commandStatus && commandStatus.getCommandState() == CommandStateEnumType.CRCL_WORKING) {
-//                commandStatus.setCommandState(CommandStateEnumType.CRCL_ERROR);
-//                setCommandStateEnum(CommandStateEnumType.CRCL_ERROR);
-//                commandStatus.setStateDescription(exception.getLocalizedMessage());
-//                setStateDescription(exception.getLocalizedMessage());
-//            }
-//        }
-//    }
-    public CRCLServerSocketEvent waitForEvent() throws InterruptedException {
+    
+    public CRCLServerSocketEvent<STATE_TYPE> waitForEvent() throws InterruptedException {
         if (!started && !isRunning()) {
             throw new IllegalStateException("CRCLServerSocket must be running/started before call to waitForEvent.");
         }
@@ -2172,7 +2161,7 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
                 }
                 System.err.println("end startServerTraces");
 
-                CRCLServerSocket otherServer = portMap.get(port);
+                CRCLServerSocket<?> otherServer = portMap.get(port);
                 System.err.println("otherServer = " + otherServer);
                 if (null != otherServer) {
                     final boolean sameServer = otherServer == this;
@@ -3134,11 +3123,11 @@ public class CRCLServerSocket<STATE_TYPE extends CRCLServerClientState> implemen
 
     private static void checkPortMap(
             int port1,
-            Map<Integer, CRCLServerSocket> portMap,
+            Map<Integer, CRCLServerSocket<?>> portMap,
             StackTraceElement startTrace @Nullable [],
             StackTraceElement createTrace @Nullable []) throws IllegalStateException {
         if (portMap.containsKey(port1)) {
-            CRCLServerSocket otherServer = portMap.get(port1);
+            CRCLServerSocket<?> otherServer = portMap.get(port1);
             if (startTrace != null) {
                 System.out.println("startTrace = " + CRCLUtils.traceToString(startTrace));
             }

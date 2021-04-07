@@ -11,6 +11,7 @@ import javax.swing.JFrame;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class ValueJPanel extends javax.swing.JPanel {
 
     /**

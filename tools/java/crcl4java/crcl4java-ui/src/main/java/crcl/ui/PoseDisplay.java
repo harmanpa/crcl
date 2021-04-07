@@ -62,45 +62,54 @@ public class PoseDisplay {
         }
     }
 
-    @SuppressWarnings({"nullness", "rawtypes"})
-    static private void setPoseDisplayModelXAxisZAxis(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                    {"X", null},
-                    {"Y", null},
-                    {"Z", null},
-                    {"XI", null},
-                    {"XJ", null},
-                    {"XK", null},
-                    {"ZI", null},
-                    {"ZJ", null},
-                    {"Zk", null}
-                },
-                new String[]{
-                    "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
+    @SuppressWarnings("serial")
+    static private class PoseDisplayModel extends DefaultTableModel {
+
+        public PoseDisplayModel(boolean editable) {
+            super(new Object[][]{
+                {"X", null},
+                {"Y", null},
+                {"Z", null},
+                {"XI", null},
+                {"XJ", null},
+                {"XK", null},
+                {"ZI", null},
+                {"ZJ", null},
+                {"Zk", null}
+            },
+                    new String[]{
+                        "Pose Axis", "Position"
+                    });
+            canEdit = new boolean[]{
                 false, editable
             };
+        }
 
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
+        Class<?>[] types = new Class<?>[]{
+            java.lang.String.class, java.lang.Double.class
+        };
+        boolean[] canEdit;
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
+        public Class<?> getColumnClass(int columnIndex) {
+            return types[columnIndex];
+        }
+
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return canEdit[columnIndex];
+        }
     }
 
     @SuppressWarnings({"nullness", "rawtypes"})
-    static private void setPoseDisplayModelRpy(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
+    static private void setPoseDisplayModelXAxisZAxis(JTable table, boolean editable) {
+        table.setModel(new PoseDisplayModel(editable));
+    }
+
+    
+    @SuppressWarnings("serial")
+    static private class PoseDisplayModelRpy extends DefaultTableModel {
+
+        public PoseDisplayModelRpy(boolean editable) {
+            super(new Object[][]{
                     {"X", null},
                     {"Y", null},
                     {"Z", null},
@@ -110,29 +119,36 @@ public class PoseDisplay {
                 },
                 new String[]{
                     "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
+                });
+            canEdit = new boolean[]{
                 false, editable
             };
+        }
 
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
+        Class<?>[] types = new Class<?>[]{
+            java.lang.String.class, java.lang.Double.class
+        };
+        boolean[] canEdit;
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
+        public Class<?> getColumnClass(int columnIndex) {
+            return types[columnIndex];
+        }
+
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return canEdit[columnIndex];
+        }
+    }
+    
+    @SuppressWarnings({"nullness", "rawtypes"})
+    static private void setPoseDisplayModelRpy(JTable table, boolean editable) {
+        table.setModel(new PoseDisplayModelRpy(editable));
     }
 
-    @SuppressWarnings({"nullness", "rawtypes"})
-    static private void setPoseDisplayModelRxRyRz(JTable table, boolean editable) {
-        table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
+    @SuppressWarnings("serial")
+    static private class PoseDisplayModelRxRyRz extends DefaultTableModel {
+
+        public PoseDisplayModelRxRyRz(boolean editable) {
+            super(new Object[][]{
                     {"X", null},
                     {"Y", null},
                     {"Z", null},
@@ -142,23 +158,29 @@ public class PoseDisplay {
                 },
                 new String[]{
                     "Pose Axis", "Position"
-                }
-        ) {
-            Class[] types = new Class[]{
-                java.lang.String.class, java.lang.Double.class
-            };
-            boolean[] canEdit = new boolean[]{
+                });
+            canEdit = new boolean[]{
                 false, editable
             };
+        }
 
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
+        Class<?>[] types = new Class<?>[]{
+            java.lang.String.class, java.lang.Double.class
+        };
+        boolean[] canEdit;
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
+        public Class<?> getColumnClass(int columnIndex) {
+            return types[columnIndex];
+        }
+
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return canEdit[columnIndex];
+        }
+    }
+    
+    @SuppressWarnings({"nullness", "rawtypes"})
+    static private void setPoseDisplayModelRxRyRz(JTable table, boolean editable) {
+        table.setModel(new PoseDisplayModelRxRyRz(editable));
     }
 
     public static void updatePoseTable(@Nullable PoseType p, JTable jTable, PoseDisplayMode displayMode) {

@@ -40,6 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
+@SuppressWarnings("serial")
 public class MultiLineStringJPanel extends javax.swing.JPanel {
 
     private static final ConcurrentLinkedDeque<MultiLineStringJPanel> allPanels = new ConcurrentLinkedDeque<>();

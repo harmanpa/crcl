@@ -48,6 +48,7 @@ import javax.swing.table.TableModel;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class TransformJPanel extends javax.swing.JPanel {
 
     private CrclSwingClientJPanel pendantClient;

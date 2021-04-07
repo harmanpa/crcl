@@ -40,6 +40,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+@SuppressWarnings("serial")
 public class SideViewJPanel extends JPanel {
 
     private static final String DEFAULT_IMAGE_LOG_DIR = System.getProperty("crcl4java.simserver.imagelogdir", "/tmp");

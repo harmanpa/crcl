@@ -35,6 +35,7 @@ import javax.xml.parsers.ParserConfigurationException;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
+@SuppressWarnings("serial")
 public class LauncherJFrame extends javax.swing.JFrame {
 
     /**

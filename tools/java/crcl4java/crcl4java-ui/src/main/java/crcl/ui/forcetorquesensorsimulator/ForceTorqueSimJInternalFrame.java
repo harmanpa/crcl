@@ -32,6 +32,7 @@ import java.util.logging.Level;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class ForceTorqueSimJInternalFrame extends javax.swing.JInternalFrame implements PropertyOwner {
 
     /**

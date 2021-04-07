@@ -116,7 +116,6 @@ import crcl.utils.outer.interfaces.SimServerOuter;
 import crcl.utils.server.CRCLServerClientState;
 import crcl.utils.server.CRCLServerSocket;
 import crcl.utils.server.CRCLServerSocketEvent;
-import crcl.utils.server.CRCLServerSocketEventListener;
 import static crcl.utils.server.CRCLServerSocketEventType.CRCL_COMMAND_RECIEVED;
 import static crcl.utils.server.CRCLServerSocketEventType.GUARD_LIMIT_REACHED;
 import static crcl.utils.server.CRCLServerSocketEventType.NEW_CRCL_CLIENT;
@@ -318,7 +317,7 @@ public class SimServerInner {
     private final SimulatedKinematicsPlausible skPlausible = new SimulatedKinematicsPlausible();
     private final SimulatedKinematicsSimple skSimple = new SimulatedKinematicsSimple();
     final private ThreadLockedHolder<CRCLStatusType> status
-            = new ThreadLockedHolder(
+            = new ThreadLockedHolder<>(
                     "SimServerInner.status",
                     CRCLPosemath.newFullCRCLStatus(),
                     false
@@ -1276,7 +1275,7 @@ public class SimServerInner {
     }
 
     private volatile @Nullable
-    CRCLServerSocket lastClosedServerSocket = null;
+    CRCLServerSocket<SimServerClientState> lastClosedServerSocket = null;
 
     public synchronized void closeServer() {
         try {
@@ -1340,7 +1339,7 @@ public class SimServerInner {
 //            System.out.println("clientStates.size()=" + clientStatesSize);
         }
         closeCount.incrementAndGet();
-        CRCLServerSocket closedServerSocket = this.crclServerSocket;
+        CRCLServerSocket<SimServerClientState> closedServerSocket = this.crclServerSocket;
         if (null != crclServerSocket) {
             try {
                 this.crclServerSocket.close();
@@ -2948,7 +2947,7 @@ public class SimServerInner {
         }
     }
 
-    static final private Map<Integer, CRCLServerSocket> serverMap = new ConcurrentHashMap<>();
+    static final private Map<Integer, CRCLServerSocket<SimServerClientState>> serverMap = new ConcurrentHashMap<>();
     static final private Map<Integer, StackTraceElement[]> traceMap = new ConcurrentHashMap<>();
     static final private Map<Integer, Thread> threadMap = new ConcurrentHashMap<>();
 

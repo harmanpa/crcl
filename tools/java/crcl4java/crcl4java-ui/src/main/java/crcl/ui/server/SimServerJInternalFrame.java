@@ -32,6 +32,7 @@ import java.io.IOException;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class SimServerJInternalFrame extends javax.swing.JInternalFrame implements SimServerOuter, SimServerMenuOuter, AutoCloseable {
 
     /**

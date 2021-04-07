@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
+@SuppressWarnings("serial")
 public class XpathQueryJFrame extends javax.swing.JFrame {
 
     /**

@@ -41,7 +41,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author will
  */
-@SuppressWarnings({"initialization","nullness"})
+@SuppressWarnings({"initialization","nullness","serial"})
 public class InOutJPanel extends JPanel {
 
     public InOutJPanel() {

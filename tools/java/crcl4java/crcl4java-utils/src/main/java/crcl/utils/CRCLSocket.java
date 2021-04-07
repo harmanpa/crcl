@@ -1199,7 +1199,7 @@ public class CRCLSocket implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings({"nullness", "initialization"})
+    @SuppressWarnings({"nullness", "initialization","cast"})
     private static <T> @NonNull JAXBElement<@NonNull T> filterJaxbElement(@Nullable JAXBElement<T> in) {
         if (null == in) {
             throw new NullPointerException("JAXBElement< T> in");
@@ -1289,7 +1289,7 @@ public class CRCLSocket implements AutoCloseable {
      * @return string representation of command
      */
     public String commandToPrettyString(@Nullable CRCLCommandType cmd) {
-        if(null == cmd) {
+        if (null == cmd) {
             return "commandToPrettyString(null)";
         }
         CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
@@ -1311,8 +1311,8 @@ public class CRCLSocket implements AutoCloseable {
      * exception occurs
      */
     public String commandToPrettyString(CRCLCommandType cmd, String errorText) {
-        if(null ==cmd) {
-            return "commandToPrettyString(null,\""+errorText+"\")";
+        if (null == cmd) {
+            return "commandToPrettyString(null,\"" + errorText + "\")";
         }
         if (cmd instanceof CRCLCommandWrapper) {
             CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
@@ -1336,11 +1336,11 @@ public class CRCLSocket implements AutoCloseable {
      * exception occurs
      */
     public String commandInstanceToPrettyString(CRCLCommandInstanceType cmd, boolean validate) {
-        if(null == cmd) {
-            return "commandToPrettyString(null,"+validate+")";
+        if (null == cmd) {
+            return "commandToPrettyString(null," + validate + ")";
         }
-        if(null == cmd.getCRCLCommand()) {
-            return "commandToPrettyString(cmd.getCRCLCommand()=null,"+validate+")";
+        if (null == cmd.getCRCLCommand()) {
+            return "commandToPrettyString(cmd.getCRCLCommand()=null," + validate + ")";
         }
 //        if (null == cmd.getCRCLCommand()) {
 //            throw new IllegalArgumentException("cmd.getCRCLCommand() must not be null. Use setCRCLCommand(...).");
@@ -1936,8 +1936,8 @@ public class CRCLSocket implements AutoCloseable {
      */
     public String statusToPrettyString(@Nullable CRCLStatusType status, boolean validate) throws Exception {
         try {
-            if(status == null) {
-                return "CRCLSocket.statusToPrettyString(null,"+validate+")";
+            if (status == null) {
+                return "CRCLSocket.statusToPrettyString(null," + validate + ")";
             }
             final JAXBElement<CRCLStatusType> createCRCLStatusJaxbElement
                     = objectFactory.createCRCLStatus(status);
@@ -1963,7 +1963,7 @@ public class CRCLSocket implements AutoCloseable {
             }
         } catch (JAXBException jAXBException) {
             Logger.getLogger(CRCLSocket.class.getName()).log(Level.SEVERE, null, jAXBException);
-            throw new Exception("status="+status+",validate="+validate, jAXBException);
+            throw new Exception("status=" + status + ",validate=" + validate, jAXBException);
         }
     }
 
@@ -2003,7 +2003,7 @@ public class CRCLSocket implements AutoCloseable {
             return ex.toString();
         }
     }
-    
+
 //    public static String cmdToString(CRCLCommandType cmd, int max_fields, int max_length) {
 //        try {
 //            if (null == cmd) {
@@ -2265,27 +2265,65 @@ public class CRCLSocket implements AutoCloseable {
         this.appendTrailingZero = appendTrailingZero;
     }
 
-    // Instance initializer called by all constructors , but not seperately callable.
-    {
+    private static void logClassPath() {
+        final String envClasspath = System.getenv("CLASSPATH");
+        LOGGER.log(Level.SEVERE, "System.getenv(\"CLASSPATH\") = " + envClasspath);
+        String javaClassVersion = System.getProperty("java.class.version");
+        LOGGER.log(Level.SEVERE, "System.getProperty(\"java.class.version\") = " + javaClassVersion);
+        String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
+        LOGGER.log(Level.SEVERE, "System.getProperty(\"java.vm.specification.version\") = " + javaSpecVmVersion);
+        String javaVmVersion = System.getProperty("java.vm.version");
+        LOGGER.log(Level.SEVERE, "System.getProperty(\"java.vm.version\") = " + javaVmVersion);
+        String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
+        LOGGER.log(Level.SEVERE, "System.getProperty(\"javax.xml.bind.JAXBContextFactory\") = " + jaxbFactory);
+        String useEclipseJaxbPropertyString = System.getProperty("crcl.useEclipseJaxb");
+        LOGGER.log(Level.SEVERE, "System.getProperty(\"crcl.useEclipseJaxb\")=" + useEclipseJaxbPropertyString);
+        final Class<JAXBContext> jaxbContextClass = javax.xml.bind.JAXBContext.class;
+
+        LOGGER.log(Level.SEVERE, "javax.xml.bind.JAXBContext.class=" + jaxbContextClass);
+
+        ProtectionDomain jaxbProDeom = jaxbContextClass.getProtectionDomain();
+        LOGGER.log(Level.SEVERE, "javax.xml.bind.JAXBContext.class.getProtectionDomain() = " + jaxbProDeom);
+    }
+
+    /**
+     * Create a new socket using default schemas not yet connected to anything.
+     */
+    public CRCLSocket() {
+        this((Socket) null, ((Schema) null), ((Schema) null), ((Schema) null));
+    }
+
+    /**
+     * Create a new CRCL socket wrapped around the given java.net.Socket and
+     * cmd,stat and program schemas.
+     *
+     * @param socket socket used to send and receive CRCL data
+     * @param cmdSchema schema for commands
+     * @param statSchema schema for status
+     * @param programSchema schema for programs
+     */
+    private CRCLSocket(
+            @Nullable Socket socket,
+            @Nullable Schema cmdSchema,
+            @Nullable Schema statSchema,
+            @Nullable Schema programSchema) {
+        this.socket = socket;
+        this.cmdSchema = cmdSchema;
+        this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
+        this.statSchema = statSchema;
+        this.programSchema = programSchema;
+
         try {
             ClassLoader cl = crcl.base.ObjectFactory.class.getClassLoader();
             if (null == cl) {
                 throw new RuntimeException("crcl.base.ObjectFactory.class.getClassLoader() returned null");
             }
-            final /*@NonNull*/ ClassLoader nnCl = (/*@NonNull*/ClassLoader) cl;
+            final ClassLoader nnCl = cl;
 
             if (!protectionDomainChecked) {
                 String javaClassVersion = System.getProperty("java.class.version");
                 if (DEBUG_JAXB_SELECTION) {
-                    System.out.println("javaClassVersion = " + javaClassVersion);
-                    String javaSpecVmVersion = System.getProperty("java.vm.specification.version");
-                    System.out.println("javaSpecVmVersion = " + javaSpecVmVersion);
-                    String javaVmVersion = System.getProperty("java.vm.version");
-                    System.out.println("javaVmVersion = " + javaVmVersion);
-                    String jaxbFactory = System.getProperty("javax.xml.bind.JAXBContextFactory");
-                    System.out.println("jaxbFactory = " + jaxbFactory);
-                    ProtectionDomain jaxbProDeom = javax.xml.bind.JAXBContext.class.getProtectionDomain();
-                    System.out.println("jaxbProDeom = " + jaxbProDeom);
+                    logClassPath();
                 }
                 protectionDomainChecked = true;
                 if (javaClassVersion.compareTo("52.0") > 0) {
@@ -2324,45 +2362,14 @@ public class CRCLSocket implements AutoCloseable {
             LOGGER.log(Level.SEVERE, "", ex);
             System.exit(0);
             throw new RuntimeException(ex);
+        } catch (Exception ex) {
+            logClassPath();
+            if (ex instanceof RuntimeException) {
+                throw ex;
+            } else {
+                throw new RuntimeException(ex);
+            }
         }
-    }
-
-    /**
-     * Create a new socket using default schemas not yet connected to anything.
-     */
-    public CRCLSocket() {
-        this.socket = null;
-    }
-
-//    /**
-//     * Create a new socket not yet connected to anything using given schemas.
-//     *
-//     * @param cmdSchema schema for commands
-//     * @param statSchema schema for status
-//     * @param programSchema schema for programs
-//     */
-//    public CRCLSocket(Schema cmdSchema, Schema statSchema, Schema programSchema) {
-//        this(null, cmdSchema, statSchema, programSchema);
-//    }
-    /**
-     * Create a new CRCL socket wrapped around the given java.net.Socket and
-     * cmd,stat and program schemas.
-     *
-     * @param socket socket used to send and receive CRCL data
-     * @param cmdSchema schema for commands
-     * @param statSchema schema for status
-     * @param programSchema schema for programs
-     */
-    private CRCLSocket(
-            @Nullable Socket socket,
-            @Nullable Schema cmdSchema,
-            @Nullable Schema statSchema,
-            @Nullable Schema programSchema) {
-        this.socket = socket;
-        this.cmdSchema = cmdSchema;
-        this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
-        this.statSchema = statSchema;
-        this.programSchema = programSchema;
     }
 
     /**
@@ -2388,8 +2395,9 @@ public class CRCLSocket implements AutoCloseable {
      *
      * @param socket socket used to send and receive CRCL data
      */
+    @SuppressWarnings({"cast"})
     public CRCLSocket(@Nullable Socket socket) {
-        this.socket = socket;
+        this((Socket) socket, ((Schema) null), ((Schema) null), ((Schema) null));
     }
 
     /**
@@ -2399,8 +2407,8 @@ public class CRCLSocket implements AutoCloseable {
      * @param socketChannel
      */
     private CRCLSocket(SocketChannel socketChannel) {
+        this(socketChannel.socket());
         this.socketChannel = socketChannel;
-        this.socket = socketChannel.socket();
     }
 
     /**
@@ -2424,12 +2432,7 @@ public class CRCLSocket implements AutoCloseable {
      */
     public CRCLSocket(String hostname, int port)
             throws CRCLException, IOException {
-        try {
-            this.socket = new Socket(hostname, port);
-        } catch (IOException iOException) {
-            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
-            throw iOException;
-        }
+        this(new Socket(hostname, port));
     }
 
     /**
@@ -2445,17 +2448,7 @@ public class CRCLSocket implements AutoCloseable {
      * @throws IOException host or port invalid or network unavailable
      */
     private CRCLSocket(String hostname, int port, Schema cmdSchema, Schema statSchema, Schema programSchema) throws CRCLException, IOException {
-
-        try {
-            this.socket = new Socket(hostname, port);
-            this.cmdSchemSetTrace = Thread.currentThread().getStackTrace();
-            this.cmdSchema = cmdSchema;
-            this.statSchema = statSchema;
-            this.programSchema = programSchema;
-        } catch (IOException iOException) {
-            LOGGER.log(Level.SEVERE, "CRCLSocket failed to connect to host={0}, port={1}", new Object[]{hostname, port});
-            throw iOException;
-        }
+        this(new Socket(hostname, port), cmdSchema, statSchema, programSchema);
     }
 
     /**

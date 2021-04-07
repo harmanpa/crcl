@@ -54,6 +54,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class GripperJFrame extends javax.swing.JFrame {
 
     /**

@@ -388,10 +388,10 @@ public class CRCLCopierTest {
             if (excludedClassNames.contains(clss.getSimpleName()) || excludedClassNames.contains(clss.getName())) {
                 continue;
             }
-            Constructor constructors[] = clss.getConstructors();
+            Constructor<?> constructors[] = clss.getConstructors();
             boolean hasNoArgsConstructor = false;
             for (int i = 0; i < constructors.length; i++) {
-                Constructor constructorI = constructors[i];
+                Constructor<?> constructorI = constructors[i];
                 if (constructorI.getParameterCount() == 0) {
                     hasNoArgsConstructor = true;
                     break;
@@ -469,7 +469,7 @@ public class CRCLCopierTest {
                 throwable.printStackTrace();
                 return null;
             }
-            Class newObjClass = newObj.getClass();
+            Class<?> newObjClass = newObj.getClass();
             Set<String> newExcludedClasses = new TreeSet<>(excludedClasses);
             newExcludedClasses.add(newObjClass.getName());
             newExcludedClasses.add(newObjClass.getSimpleName());
@@ -509,7 +509,7 @@ public class CRCLCopierTest {
                                 if (i1 > 0 && i2 > i1 && i2 < genRetTypeName.length()) {
                                     String containedTypeString = genRetTypeName.substring(i1 + 1, i2);
                                     Class<?> containedClzz = Class.forName(containedTypeString);
-                                    Collection collection = (Collection) method1.invoke(newObj);
+                                    Collection<Object> collection = (Collection<Object>) method1.invoke(newObj);
                                     int collsize = collection.size();
                                     int addsize = random.nextInt(3) - collsize;
                                     List<Class<?>> availClasses = getAssignableClasses(containedClzz, classes, newExcludedClasses);
@@ -590,15 +590,15 @@ public class CRCLCopierTest {
                 reflectiveCheckEquals(msg + "[" + i + "]", Array.get(o1, i), Array.get(o2, i), recursion + 1);
             }
         } else if (List.class.isAssignableFrom(clzz)) {
-            List l1 = (List) o1;
-            List l2 = (List) o2;
+            List<?> l1 = (List<?>) o1;
+            List<?> l2 = (List<?>) o2;
             assertEquals(msg + ".size()", l1.size(), l2.size());
             for (int i = 0; i < l1.size(); i++) {
                 reflectiveCheckEquals(msg + ".get(" + i + ")", l1.get(i), l2.get(i), recursion + 1);
             }
         } else if (Collection.class.isAssignableFrom(clzz)) {
-            Collection c1 = (Collection) o1;
-            Collection c2 = (Collection) o2;
+            Collection<?> c1 = (Collection<?>) o1;
+            Collection<?> c2 = (Collection<?>) o2;
             assertEquals(msg + ".size()", c1.size(), c2.size());
             assertTrue(msg + ".c1.containsAll(c2) c1=" + c1 + ", c2=" + c2, c1.containsAll(c2));
             assertTrue(msg + ".c2.containsAll(c1) c1=" + c1 + ", c2=" + c2, c2.containsAll(c1));

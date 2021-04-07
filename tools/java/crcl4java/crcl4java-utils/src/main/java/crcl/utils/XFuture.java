@@ -1094,9 +1094,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         XFuture<U> retXF = new XFuture<>(name);
         retXF.setKeepOldProfileStrings(this.keepOldProfileStrings);
         final Function<CompletionStage<U>, CompletionStage<U>> composeFunction = (CompletionStage<U> stage) -> {
-            CompletableFuture stageCf;
+            CompletableFuture<U> stageCf;
             if (stage instanceof CompletableFuture) {
-                stageCf = (CompletableFuture) stage;
+                stageCf = (CompletableFuture<U>) stage;
             } else {
                 stageCf = stage.toCompletableFuture();
             }
@@ -1359,6 +1359,7 @@ public class XFuture<T> extends CompletableFuture<T> {
         cleared = true;
     }
 
+    @SuppressWarnings("serial")
     public static class PrintedException extends RuntimeException {
 
         public PrintedException(Throwable cause) {
@@ -1370,7 +1371,9 @@ public class XFuture<T> extends CompletableFuture<T> {
         }
     }
 
+    @SuppressWarnings("serial")
     public static class PrintedXFutureRuntimeException extends PrintedException {
+
 
         public PrintedXFutureRuntimeException(Throwable cause) {
             super(cause);
@@ -1757,7 +1760,7 @@ public class XFuture<T> extends CompletableFuture<T> {
             CompletableFuture<?> cf = alsoCancelCopy.get(i);
             if (cf != null && !cf.isCancelled() && !cf.isCompletedExceptionally() && !cf.isDone()) {
                 if (cf instanceof XFuture) {
-                    XFuture xf = (XFuture) cf;
+                    XFuture<?> xf = (XFuture) cf;
                     int xfMaxRecurse = xf.computeMaxRecurseCount();
                     if (xfMaxRecurse > maxRecurse) {
                         maxRecurse = xfMaxRecurse;

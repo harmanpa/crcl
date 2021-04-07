@@ -217,8 +217,7 @@ public class CRCLSchemaUtils {
         if (null != newList) {
             File files[] = listToArray(File.class, newList);
             if (null != files) {
-                File newFiles[] = (/*@NonNull*/File[]) files;
-                return newFiles;
+                return  files;
             }
         }
         return EMPTY_FILE_ARRAY;
@@ -391,7 +390,7 @@ public class CRCLSchemaUtils {
         if (nullableArray == null) {
             return zeroArray;
         }
-        return (/*@NonNull*/T[]) nullableArray;
+        return nullableArray;
     }
 
     private static File[] reorderAndFilterCommandSchemaFiles(File[] fa) {

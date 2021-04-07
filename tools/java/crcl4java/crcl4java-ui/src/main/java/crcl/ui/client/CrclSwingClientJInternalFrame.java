@@ -71,6 +71,7 @@ import rcs.posemath.PmCartesian;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class CrclSwingClientJInternalFrame
         extends javax.swing.JInternalFrame implements PendantClientOuter, PendantClientMenuOuter {
 

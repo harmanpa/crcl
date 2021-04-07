@@ -13,8 +13,6 @@
     </description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <crcl.schemaBaseUrl>https://raw.githubusercontent.com/usnistgov/crcl/master/schemas/</crcl.schemaBaseUrl>
@@ -29,10 +27,11 @@
     -->
     <build>
         <plugins> 
+            
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <groupId>com.helger.maven</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
+                <version>0.14.3</version>
                 <!-- <executions>
                     <execution>
                         <id>xjc</id>
@@ -77,6 +76,7 @@
                     </schemas> -->
                 </configuration>
             </plugin>
+            
             <plugin>
                 <!-- We use this plugin to ensure that our usage of the
                 maven-jaxb2-plugin is JDK 8 compatible in absence of a fix
@@ -282,7 +282,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>

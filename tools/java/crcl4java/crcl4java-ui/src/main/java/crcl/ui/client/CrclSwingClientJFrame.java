@@ -64,6 +64,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford{@literal <william.shackleford@nist.gov> }
  */
+@SuppressWarnings("serial")
 public class CrclSwingClientJFrame extends javax.swing.JFrame implements PendantClientOuter, PendantClientMenuOuter {
 
     @SuppressWarnings({"nullness", "initialization"})

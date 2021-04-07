@@ -41,6 +41,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class WebServerJFrame extends javax.swing.JFrame {
 
     static final private List<WebServerJFrame> allWebServers = new ArrayList<>();

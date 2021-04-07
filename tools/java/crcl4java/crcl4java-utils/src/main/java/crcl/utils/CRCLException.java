@@ -27,8 +27,9 @@ package crcl.utils;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc","serial"})
 public class CRCLException extends Exception {
+
 
     /**
      * Constructor to wrap super class Exception constructor.

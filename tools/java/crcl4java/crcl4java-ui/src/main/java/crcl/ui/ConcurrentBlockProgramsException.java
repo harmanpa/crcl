@@ -26,6 +26,7 @@ package crcl.ui;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class ConcurrentBlockProgramsException extends Exception {
 
     public ConcurrentBlockProgramsException(String s) {

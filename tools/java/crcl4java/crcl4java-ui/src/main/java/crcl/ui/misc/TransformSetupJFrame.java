@@ -25,8 +25,6 @@ package crcl.ui.misc;
 import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.ui.client.CrclSwingClientJPanel;
-import crcl.utils.outer.interfaces.PendantClientOuter;
-import java.math.BigDecimal;
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
 
@@ -34,6 +32,7 @@ import javax.swing.table.TableModel;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class TransformSetupJFrame extends javax.swing.JFrame {
     
     /**

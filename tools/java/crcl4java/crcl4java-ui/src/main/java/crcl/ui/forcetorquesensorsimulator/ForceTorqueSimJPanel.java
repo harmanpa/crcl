@@ -74,6 +74,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class ForceTorqueSimJPanel extends javax.swing.JPanel implements PropertyOwner {
 
     /**
@@ -81,7 +82,7 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
      */
     @SuppressWarnings({"nullness", "initialization"})
     public ForceTorqueSimJPanel() {
-        statusOut = new ThreadLockedHolder("ForceTorqueSimJPanel.statusOut", new CRCLStatusType(), false);
+        statusOut = new ThreadLockedHolder<>("ForceTorqueSimJPanel.statusOut", new CRCLStatusType(), false);
         final CRCLStatusType statOut = this.statusOut.get();
         statOut.setSensorStatuses(new SensorStatusesType());
         sensorStatus = new ForceTorqueSensorStatusType();
@@ -879,7 +880,8 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         final int zColumn = model.findColumn("Z");
         final int rotationColumn = model.findColumn("Rotation");
         final int scaleColumn = model.findColumn("Scale");
-        final Vector dataVector = model.getDataVector();
+        @SuppressWarnings({"rawtypes","unchecked"})
+        final Vector<Vector> dataVector = model.getDataVector();
 //        System.out.println("dataVector = " + dataVector);
         for (int i = 0; i < model.getRowCount(); i++) {
             TrayStack stack = new TrayStack();
@@ -1349,7 +1351,8 @@ public class ForceTorqueSimJPanel extends javax.swing.JPanel implements Property
         if (!jCheckBoxStartSensorOutServer.isSelected()) {
             jCheckBoxStartSensorOutServer.setSelected(true);
         }
-        CRCLServerSocket newCrclServerSocket = new CRCLServerSocket<>(port, FORCE_TORQUE_SIM_STATE_GENERATOR);
+        CRCLServerSocket<ForceTorqueSimClientState> newCrclServerSocket 
+                = new CRCLServerSocket<>(port, FORCE_TORQUE_SIM_STATE_GENERATOR);
         newCrclServerSocket.addListener(crclSocketEventListener);
         newCrclServerSocket.setServerSideStatus(statusOut);
         newCrclServerSocket.setAutomaticallySendServerSideStatus(true);

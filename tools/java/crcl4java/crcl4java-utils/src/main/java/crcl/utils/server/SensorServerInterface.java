@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  *@author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("try")
 public interface SensorServerInterface extends AutoCloseable {
 
     public @Nullable

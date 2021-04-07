@@ -107,6 +107,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -194,6 +195,7 @@ import rcs.posemath.Posemath;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("serial")
 public class CrclSwingClientJPanel
         extends javax.swing.JPanel
         implements PendantClientOuter {
@@ -725,13 +727,25 @@ public class CrclSwingClientJPanel
                 if (null != outerJFrame) {
                     this.outerJFrame = outerJFrame;
                 } else {
-                    this.outerJFrame = new JFrame();
+                    if (!GraphicsEnvironment.isHeadless()) {
+                        this.outerJFrame = new JFrame("CrclSwingClientJPanel created empty frame");
+                        this.outerJFrame.add(outerContainer);
+                        this.outerJFrame.pack();
+                    } else {
+                        this.outerJFrame = null;
+                    }
                 }
             } else if (null != outerJFrame) {
                 this.outerContainer = outerJFrame;
                 this.outerJFrame = outerJFrame;
             } else {
-                this.outerContainer = this.outerJFrame = new JFrame();
+                if (!GraphicsEnvironment.isHeadless()) {
+                    this.outerContainer = this.outerJFrame = new JFrame("CrclSwingClientJPanel created empty frame");
+                    this.outerJFrame.add(this);
+                    this.outerJFrame.pack();
+                } else {
+                    this.outerContainer = this.outerJFrame = null;
+                }
             }
             initComponents();
             this.internal = new CrclSwingClientInner(this, DefaultSchemaFiles.instance());
@@ -758,7 +772,7 @@ public class CrclSwingClientJPanel
      * Creates new form PendantClientJPanel
      *
      */
-    @SuppressWarnings({"nullness","initialization"})
+    @SuppressWarnings({"nullness", "initialization"})
     public CrclSwingClientJPanel() {
         this(null, null);
     }
@@ -992,8 +1006,6 @@ public class CrclSwingClientJPanel
         final int selectedRows[] = this.jTableProgram.getSelectedRows();
         return (null == selectedRows || selectedRows.length < 1) ? 0 : selectedRows[0];
     }
-
-    
 
     public String getVersion() {
         try (
@@ -1721,9 +1733,9 @@ public class CrclSwingClientJPanel
     private boolean showing_message = false;
     private volatile long last_message_show_time = 0;
 
-    private final Container outerContainer;
+    private final @MonotonicNonNull Container outerContainer;
 
-    private final JFrame outerJFrame;
+    private final @MonotonicNonNull JFrame outerJFrame;
 
     private boolean searchedForOuterFrame = false;
 

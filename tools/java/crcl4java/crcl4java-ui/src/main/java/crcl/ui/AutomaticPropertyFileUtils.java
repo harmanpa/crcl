@@ -164,7 +164,7 @@ public class AutomaticPropertyFileUtils {
         }
     }
 
-    private static boolean haveSetMethod(Method ma[], String name, Class paramType) {
+    private static boolean haveSetMethod(Method ma[], String name, Class<?> paramType) {
 
         String setName = "set" + name;
         for (Method m : ma) {

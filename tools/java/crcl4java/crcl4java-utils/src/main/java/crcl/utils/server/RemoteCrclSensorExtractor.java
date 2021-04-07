@@ -52,6 +52,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Will Shackleford {@literal <william.shackleford@nist.gov>}
  */
+@SuppressWarnings("try")
 public class RemoteCrclSensorExtractor implements SensorServerInterface {
 
     final int remotePort;
