@@ -58,37 +58,6 @@ public class TestMotoPlusConnection {
     //    private static String host = "localhost";
     public static void main(String[] args) throws Exception {
 
-//        Enumeration<NetworkInterface> netIFEnum = NetworkInterface.getNetworkInterfaces();
-//        while (netIFEnum.hasMoreElements()) {
-//            NetworkInterface netIfi = netIFEnum.nextElement();
-//            System.out.println("netIfi = " + netIfi);
-//            List<InterfaceAddress> ifAddrs = netIfi.getInterfaceAddresses();
-//            System.out.println("ifAddrs = " + ifAddrs);
-//        }
-////         System.out.println("netIFEnum = " + netIFEnum);
-//        String net = "192.168.1";
-//        NetworkInterface netIf = NetworkInterface.getByName("eth5");
-//        System.out.println("netIf = " + netIf);
-//        for (int i = 0; i < 255; i++) {
-//            String addrString = net + "." + i;
-//            InetAddress inetAddr = InetAddress.getByName(addrString);
-//            long t1 = System.currentTimeMillis();
-//            Thread thread2 = new Thread(() -> {
-//                try {
-//                    if (inetAddr.isReachable(netIf, 1, 10)) {
-//                        System.out.println("inetAddr = " + inetAddr);
-//                    }
-//                } catch (IOException ex) {
-////                    Logger.getLogger(TestMotoPlusConnection.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            });
-//            thread2.start();
-//            Thread.sleep(20);
-//            thread2.interrupt();
-//            long t2 = System.currentTimeMillis();
-//            long d = t2 - t1;
-////            System.out.println("d = " + d);
-//        }
         if (args.length > 0) {
             host = args[0];
         }
