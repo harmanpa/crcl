@@ -31,7 +31,6 @@
         The language called "Canonical Robot Command Language" (CRCL) provides generic command and status definitions that implement the functionality of typical industrial robots without being specific either to the language of a plan that is being executed or to the language used by a robot controller that executes CRCL commands. 
     </description>
     <repositories>
-        <!--
         <repository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -44,7 +43,6 @@
                 <updatePolicy>daily</updatePolicy>
             </snapshots>
         </repository>
-        -->
         <repository>
             <snapshots>
                 <enabled>false</enabled>
@@ -357,23 +355,15 @@
         <profile> 
             <id>all</id>
             <modules>
-                <module>crcl4java-exi</module>
                 <module>crcl4java-commons-math</module>
-                <module>crcl4java-restful-proxy</module>
-                <module>crcl4java-vaadin-webapp</module>
                 <module>crcl4java-fanuc</module>
-                <module>ATINetFT_proxy</module>
                 <module>crcl4java-motoman</module>
             </modules>
         </profile>
         <profile> 
             <id>all_linux</id>
             <modules>
-                <module>crcl4java-exi</module>
                 <module>crcl4java-commons-math</module>
-                <module>crcl4java-restful-proxy</module>
-                <module>crcl4java-vaadin-webapp</module>
-                <module>ATINetFT_proxy</module>
                 <module>crcl4java-motoman</module>
             </modules>
         </profile>
@@ -508,9 +498,6 @@
         </profile>
         <profile> 
             <id>release</id>
-            <modules>
-                <module>ATINetFT_proxy</module>
-            </modules>
             <build>
                 
                 <plugins>
