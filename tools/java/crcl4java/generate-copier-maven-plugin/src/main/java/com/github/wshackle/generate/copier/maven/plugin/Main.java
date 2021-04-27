@@ -417,12 +417,12 @@ public class Main {
                 File jarFileParent = jarFile.getParentFile();
                 System.out.println("jarFileParent = " + jarFileParent);
                 if (jarFileParent.exists()) {
-                    System.out.println("jarFileParent.listFiles() = " + jarFileParent.listFiles());
+                    System.out.println("jarFileParent.listFiles() = " + Arrays.toString(jarFileParent.listFiles()));
                 } else {
                     File jarFileGrandParent = jarFileParent.getParentFile();
                     System.out.println("jarFileGrandParent = " + jarFileGrandParent);
                     if (jarFileGrandParent.exists()) {
-                        System.out.println("jarFileGrandParent.listFiles() = " + jarFileGrandParent.listFiles());
+                        System.out.println("jarFileGrandParent.listFiles() = " + Arrays.toString(jarFileGrandParent.listFiles()));
                     }
                 }
             }
