@@ -20,6 +20,19 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.github.wshackle</groupId>
                 <artifactId>generate-copier-maven-plugin</artifactId>
                 <version>1.9.1-SNAPSHOT</version>
@@ -34,7 +47,7 @@
                 <configuration>
                     <args>
                         <param>-j</param>
-                        <param>${project.parent.basedir}/crcl4java-base/target/crcl4java-base-1.9.1-SNAPSHOT.jar</param>
+                        <param>${com.github.wshackle:crcl4java-base:jar}</param>
                         <param>-p</param>
                         <param>crcl.base</param>
                         <param>--excludedclassnames</param>
