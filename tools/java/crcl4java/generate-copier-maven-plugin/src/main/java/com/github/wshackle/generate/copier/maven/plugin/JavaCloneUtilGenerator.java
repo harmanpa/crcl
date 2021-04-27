@@ -30,6 +30,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +49,22 @@ public class JavaCloneUtilGenerator {
         String classname = options.classname;
         File dir = options.dir;
         List<Class> classes = options.classes;
+//        final Comparator<Class> classNameComparator = new Comparator<Class>() {
+//            @Override
+//            public int compare(Class o1, Class o2) {
+//                if(o1 == o2) {
+//                    return 0;
+//                }
+//                if(o1 == null) {
+//                    return 1;
+//                }
+//                if(o2 == null) {
+//                    return -1;
+//                }
+//                return o1.getName().compareTo(o2.getName());
+//            }
+//        };
+//        Collections.sort(classes, classNameComparator);
         Set<String> nocopyclassnamesSet = options.nocopyclassnamesSet;
         String logString = options.logString;
         if (classname.endsWith(".class")) {
@@ -199,6 +217,7 @@ public class JavaCloneUtilGenerator {
                 if (assigableClasses.size() < 1) {
                     throw new RuntimeException("no assignable classes/constructors for " + clzzi);
                 }
+//                Collections.sort(assigableClasses, classNameComparator);
                 pw.println();
                 pw.println("    public static @Nullable");
                 pw.println("    " + clzzi.getSimpleName() + " copy(@Nullable " + clzzi.getSimpleName() + " in) {");

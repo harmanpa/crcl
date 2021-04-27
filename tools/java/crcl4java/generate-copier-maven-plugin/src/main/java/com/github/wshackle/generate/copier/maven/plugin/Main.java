@@ -35,10 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
@@ -90,7 +87,7 @@ public class Main {
     private static Set<String> badNames = getBadNames();
 
     private static Set<String> getBadNames() {
-        Set<String> badNamesSet = new HashSet<>();
+        Set<String> badNamesSet = new TreeSet<>();
         badNamesSet.addAll(Arrays.asList("and", "and_eq", "bitand",
                 "bitor", "compl", "not", "not_eq", "or",
                 "not_eq", "or", "or_eq", "xor", "xor_eq",
@@ -102,7 +99,7 @@ public class Main {
         return badNames.contains(nameToCheck);
     }
 
-    public static boolean isAddableClass(Class<?> clss, Set<Class> excludedClasses, Set<String> excludedClassNames) {
+    public static boolean isAddableClass(Class<?> clss, Set<String> excludedClassNames) {
         if (clss.isArray()
                 || clss.isSynthetic()
                 || clss.isAnnotation()
@@ -124,10 +121,10 @@ public class Main {
         if (null == canonicalName) {
             return false;
         }
-        if(excludedClassNames.contains(canonicalName)) {
+        if (excludedClassNames.contains(canonicalName)) {
             return false;
         }
-        if(excludedClassNames.contains(clss.getName())) {
+        if (excludedClassNames.contains(clss.getName())) {
             return false;
         }
         if (canonicalName.indexOf('$') >= 0) {
@@ -149,7 +146,7 @@ public class Main {
         if (null == ma) {
             return false;
         }
-        return !excludedClasses.contains(clss);
+        return !excludedClassNames.contains(clss.getName());
     }
 
     public static Log log = null;
@@ -220,7 +217,7 @@ public class Main {
                 localParams.excludedclassnames = line.getOptionValues("excludedclassnames");
                 logString("excludedclassnames = " + Arrays.toString(localParams.excludedclassnames));
             }
-            
+
             if (line.hasOption("nocopyclassnames")) {
                 localParams.nocopyclassnames = line.getOptionValues("nocopyclassnames");
                 logString("nocopyclassnames = " + Arrays.toString(localParams.nocopyclassnames));
@@ -245,8 +242,8 @@ public class Main {
 //                if (verbose) {
 //                    logString("natives = " + Arrays.toString(natives));
 //                }
-//                nativesNameMap = new HashMap<>();
-//                nativesClassMap = new HashMap<>();
+//                nativesNameMap = new TreeMap<>();
+//                nativesClassMap = new TreeMap<>();
 //                for (int i = 0; i < natives.length; i++) {
 //                    int eq_index = natives[i].indexOf('=');
 //                    String nativeClassName = natives[i].substring(0, eq_index).trim();
@@ -283,7 +280,7 @@ public class Main {
                 }
             }
             if (line.hasOption("classes")) {
-                localParams.classnamesToFind = new HashSet<String>();
+                localParams.classnamesToFind = new TreeSet<String>();
                 String classStrings[] = line.getOptionValues("classes");
                 if (verbose) {
                     logString("classStrings = " + Arrays.toString(classStrings));
@@ -326,7 +323,7 @@ public class Main {
 //            }
 
             if (line.hasOption("packages")) {
-                localParams.packageprefixes = new HashSet<String>();
+                localParams.packageprefixes = new TreeSet<String>();
                 localParams.packageprefixes.addAll(Arrays.asList(line.getOptionValues("packages")));
             }
 //            if (line.hasOption("limit")) {
@@ -344,19 +341,19 @@ public class Main {
         }
 
         List<Class> classesList = new ArrayList<>();
-        Set<Class> excludedClasses = new HashSet<>();
-        Set<String> excludedClassNames = new HashSet<>();
+//        Set<Class> excludedClasses = new TreeSet<>();
+        Set<String> excludedClassNames = new TreeSet<>();
         for (int i = 0; i < localParams.excludedclassnames.length; i++) {
             excludedClassNames.add(localParams.excludedclassnames[i]);
         }
-        
-        Set<String> foundClassNames = new HashSet<>();
-        excludedClasses.add(Object.class);
-        excludedClasses.add(String.class);
-        excludedClasses.add(void.class);
-        excludedClasses.add(Void.class);
-        excludedClasses.add(Class.class);
-        excludedClasses.add(Enum.class);
+
+        Set<String> foundClassNames = new TreeSet<>();
+        excludedClassNames.add(Object.class.getName());
+        excludedClassNames.add(String.class.getName());
+        excludedClassNames.add(void.class.getName());
+        excludedClassNames.add(Void.class.getName());
+        excludedClassNames.add(Class.class.getName());
+        excludedClassNames.add(Enum.class.getName());
         Set<String> packagesSet = new TreeSet<>();
         List<URL> urlsList = new ArrayList<>();
         String cp = System.getProperty("java.class.path");
@@ -413,7 +410,27 @@ public class Main {
         }
         URLClassLoader cl = URLClassLoader.newInstance(urls);
         if (null != localParams.jar && localParams.jar.length() > 0) {
+            File jarFile = new File(localParams.jar);
+            if (!jarFile.exists()) {
+                System.out.println("jarFile = " + jarFile + " does not exist.");
+                System.out.println("System.getProperty(\"user.dir\") = " + System.getProperty("user.dir"));
+                File jarFileParent = jarFile.getParentFile();
+                System.out.println("jarFileParent = " + jarFileParent);
+                if (jarFileParent.exists()) {
+                    System.out.println("jarFileParent.listFiles() = " + jarFileParent.listFiles());
+                } else {
+                    File jarFileGrandParent = jarFileParent.getParentFile();
+                    System.out.println("jarFileGrandParent = " + jarFileGrandParent);
+                    if (jarFileGrandParent.exists()) {
+                        System.out.println("jarFileGrandParent.listFiles() = " + jarFileGrandParent.listFiles());
+                    }
+                }
+            }
             Path jarPath = FileSystems.getDefault().getPath(localParams.jar);
+            if(!jarPath.toFile().exists()) {
+                System.out.println("jarPath.toFile().exists() = " + jarPath.toFile().exists());
+                System.out.println("FileSystems.getDefault() = " + FileSystems.getDefault());
+            }
             ZipInputStream zip = new ZipInputStream(Files.newInputStream(jarPath, StandardOpenOption.READ));
             for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
                 // This ZipEntry represents a class. Now, what class does it represent?
@@ -471,7 +488,7 @@ public class Main {
                             packagesSet.add(clss.getPackage().getName());
                         }
                         if (!classesList.contains(clss)
-                                && isAddableClass(clss, excludedClasses, excludedClassNames)) {
+                                && isAddableClass(clss, excludedClassNames)) {
                             if (null != localParams.classnamesToFind
                                     && localParams.classnamesToFind.contains(className)
                                     && !foundClassNames.contains(className)) {
@@ -485,7 +502,7 @@ public class Main {
 //                        Class superClass = clss.getSuperclass();
 //                        while (null != superClass
 //                                && !classes.contains(superClass)
-//                                && isAddableClass(superClass, excludedClasses, excludedClassNames)) {
+//                                && isAddableClass(superClass, excludedClassNames)) {
 //                            classes.add(superClass);
 //                            superClass = superClass.getSuperclass();
 //                        }
@@ -590,7 +607,7 @@ public class Main {
             while (null != superClass
                     && !classesList.contains(superClass)
                     && !newClasses.contains(superClass)
-                    && isAddableClass(superClass, excludedClasses, excludedClassNames)) {
+                    && isAddableClass(superClass, excludedClassNames)) {
                 checkClass(superClass);
                 newClasses.add(superClass);
                 superClass = superClass.getSuperclass();
@@ -602,7 +619,7 @@ public class Main {
                         Class fClass = f.getType();
                         if (!classesList.contains(fClass)
                                 && !newClasses.contains(fClass)
-                                && isAddableClass(fClass, excludedClasses, excludedClassNames)) {
+                                && isAddableClass(fClass, excludedClassNames)) {
                             checkClass(fClass);
                             newClasses.add(fClass);
                         }
@@ -627,10 +644,10 @@ public class Main {
                 }
                 if (!classesList.contains(retType)
                         && !newClasses.contains(retType)
-                        && isAddableClass(retType, excludedClasses, excludedClassNames)) {
+                        && isAddableClass(retType, excludedClassNames)) {
                     if (retType.getName().contains("JAXB")) {
-                        System.out.println("excludedClassNames = " );
-                        throw new RuntimeException("retType=" + retType + ", m=" + m+", clss="+clss);
+                        System.out.println("excludedClassNames = ");
+                        throw new RuntimeException("retType=" + retType + ", m=" + m + ", clss=" + clss);
                     }
                     checkClass(retType);
                     newClasses.add(retType);
@@ -641,7 +658,7 @@ public class Main {
                     while (null != superClass
                             && !classesList.contains(superClass)
                             && !newClasses.contains(superClass)
-                            && isAddableClass(superClass, excludedClasses, excludedClassNames)) {
+                            && isAddableClass(superClass, excludedClassNames)) {
                         checkClass(superClass);
                         newClasses.add(superClass);
                         if (verbose) {
@@ -653,7 +670,7 @@ public class Main {
                 for (Class paramType : m.getParameterTypes()) {
                     if (!classesList.contains(paramType)
                             && !newClasses.contains(paramType)
-                            && isAddableClass(paramType, excludedClasses, excludedClassNames)) {
+                            && isAddableClass(paramType, excludedClassNames)) {
                         checkClass(paramType);
                         newClasses.add(paramType);
                         if (verbose) {
@@ -663,7 +680,7 @@ public class Main {
                         while (null != superClass
                                 && !classesList.contains(superClass)
                                 && !newClasses.contains(superClass)
-                                && !excludedClasses.contains(superClass)) {
+                                && !excludedClassNames.contains(superClass.getName())) {
                             if (verbose) {
                                 logString("Added paramType.superClass = " + superClass);
                             }
