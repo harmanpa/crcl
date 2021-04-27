@@ -35,7 +35,7 @@ import crcl.base.PointType;
 import crcl.base.PoseType;
 import crcl.base.SettingsStatusType;
 import crcl.base.TorqueUnitEnumType;
-import static crcl.utils.CRCLCopier.copy;
+import static crcl.copier.CRCLCopier.copy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

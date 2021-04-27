@@ -21,7 +21,7 @@ import crcl.ui.PoseDisplayMode;
 import crcl.ui.client.CrclSwingClientJPanel;
 import crcl.ui.client.CurrentPoseListener;
 import crcl.ui.client.CurrentPoseListenerUpdateInfo;
-import crcl.utils.CRCLCopier;
+import crcl.copier.CRCLCopier;
 import crcl.utils.CRCLException;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLUtils;

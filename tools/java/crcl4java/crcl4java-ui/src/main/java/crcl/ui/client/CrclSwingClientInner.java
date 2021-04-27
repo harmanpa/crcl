@@ -48,6 +48,8 @@ import crcl.base.JointSpeedAccelType;
 import crcl.base.JointStatusType;
 import crcl.base.JointStatusesType;
 import crcl.base.LengthUnitEnumType;
+import crcl.base.LoopBlockEndType;
+import crcl.base.LoopBlockStartType;
 import crcl.base.MessageType;
 import crcl.base.MiddleCommandType;
 import crcl.base.MoveScrewType;
@@ -80,8 +82,8 @@ import static crcl.ui.client.CrclSwingClientJPanel.getTimeString;
 import crcl.ui.misc.MultiLineStringJPanel;
 import crcl.ui.server.SimServerInner;
 import crcl.utils.AnnotatedPose;
-import crcl.utils.CRCLCopier;
-import static crcl.utils.CRCLCopier.copy;
+import crcl.copier.CRCLCopier;
+import static crcl.copier.CRCLCopier.copy;
 import crcl.utils.CRCLPosemath;
 import crcl.utils.CRCLSocket;
 import crcl.utils.CRCLException;
@@ -128,6 +130,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -3975,6 +3978,12 @@ public class CrclSwingClientInner {
         return runProgram(prog, startLine, threadCreateCallStack, future, false);
     }
 
+    private static class ProgBlockInfo {
+
+        int blockStartIndex;
+        int blockCount;
+    }
+
     private boolean runProgram(CRCLProgramType prog, int startLine,
             final StackTraceElement @Nullable [] threadCreateCallStack,
             @Nullable XFuture<Boolean> future,
@@ -4144,6 +4153,8 @@ public class CrclSwingClientInner {
             showCurrentProgramLine(startLine, prog, getStatus());
             List<MiddleCommandType> middleCommands = middleCommands(prog);
             MiddleCommandType cmd = null;
+            ConcurrentHashMap<String, ProgBlockInfo> loopMap = new ConcurrentHashMap<>();
+            Stack<String> blockStack = new Stack<>();
             for (int i = (startLine > 1 ? startLine : 1); i < middleCommands.size() + 1; i++) {
                 if (null != future && future.isCancelled()) {
                     try {
@@ -4171,6 +4182,41 @@ public class CrclSwingClientInner {
                     CRCLCommandWrapper wrapper = (CRCLCommandWrapper) cmd;
                     wrapper.setCurProgram(prog);
                     wrapper.setCurProgramIndex(i - 1);
+                }
+                if (cmd instanceof LoopBlockStartType) {
+                    LoopBlockStartType blockStart = (LoopBlockStartType) cmd;
+                    final String loopName = blockStart.getLoopName();
+                    ProgBlockInfo pbi = loopMap.get(loopName);
+                    if (null == pbi) {
+                        pbi = new ProgBlockInfo();
+                        pbi.blockStartIndex = i;
+                        pbi.blockCount = 1;
+                        loopMap.put(loopName, pbi);
+                    } else if (pbi.blockStartIndex != i) {
+                        throw new RuntimeException("loopName : " + loopName + " used at both " + i + " and " + pbi.blockStartIndex);
+                    } else {
+                        pbi.blockCount = 1;
+                    }
+                    blockStack.push(loopName);
+                    continue;
+                } else if (cmd instanceof LoopBlockEndType) {
+                    LoopBlockEndType blockEnd = (LoopBlockEndType) cmd;
+                    final String loopName = blockEnd.getLoopName();
+
+                    String stackLoopName = blockStack.pop();
+                    if (!Objects.equals(stackLoopName, loopName)) {
+                        throw new RuntimeException("loopName " + loopName + " found when " + stackLoopName + " expected.");
+                    }
+                    ProgBlockInfo pbi = loopMap.get(loopName);
+                    if(null == pbi) {
+                        throw new RuntimeException("LoopBlockEndType for loopName " + loopName + " found with no LoopBlockStartType.");
+                    }
+                    if (pbi.blockCount < blockEnd.getMaxCount()) {
+                        pbi.blockCount++;
+                        i = pbi.blockStartIndex;
+                        blockStack.push(loopName);
+                    }
+                    continue;
                 }
                 programState = new ProgramState(prog, i, cmd);
                 programName = prog.getName();

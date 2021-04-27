@@ -37,7 +37,7 @@ import crcl.base.PoseType;
 import crcl.base.TwistType;
 import crcl.base.VectorType;
 import crcl.base.WrenchType;
-import crcl.utils.CRCLCopier;
+import crcl.copier.CRCLCopier;
 import crcl.utils.CRCLUtils;
 import java.io.BufferedReader;
 import java.io.File;

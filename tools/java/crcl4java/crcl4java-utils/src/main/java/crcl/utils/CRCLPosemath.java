@@ -20,6 +20,7 @@
  */
 package crcl.utils;
 
+import crcl.copier.CRCLCopier;
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLProgramType;
 import crcl.base.CRCLStatusType;
@@ -40,7 +41,7 @@ import crcl.base.PoseToleranceType;
 import crcl.base.SensorStatusesType;
 import crcl.base.SettingsStatusType;
 import crcl.base.VectorType;
-import static crcl.utils.CRCLCopier.copy;
+import static crcl.copier.CRCLCopier.copy;
 import static crcl.utils.CRCLUtils.getNonNullPoint;
 import static crcl.utils.CRCLUtils.getNonNullXAxis;
 import static crcl.utils.CRCLUtils.getNonNullZAxis;

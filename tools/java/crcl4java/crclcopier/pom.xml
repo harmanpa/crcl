@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.github.wshackle</groupId>
+        <artifactId>crcl4java</artifactId>
+        <version>1.9.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>crclcopier</artifactId>
+    <packaging>jar</packaging>
+    
+    <dependencies>
+        <dependency>
+            <artifactId>crcl4java-base</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.wshackle</groupId>
+                <artifactId>generate-copier-maven-plugin</artifactId>
+                <version>1.9.1-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <args>
+                        <param>-j</param>
+                        <param>${project.parent.basedir}/crcl4java-base/target/crcl4java-base-1.9.1-SNAPSHOT.jar</param>
+                        <param>-p</param>
+                        <param>crcl.base</param>
+                        <param>--excludedclassnames</param>
+                        <param>crcl.base.ObjectFactory</param>
+                        <param>--nocopyclassnames</param>
+                        <param>crcl.utils.CRCLCommandWrapper</param>
+                        <param>--javacloner</param>
+                        <param>crcl.copier.CRCLCopier.java</param>
+                        <param>--output</param>
+                        <param>./src/main/java/foo.cpp</param>
+                    </args>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

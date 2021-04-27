@@ -24,7 +24,7 @@ package crcl.ui.client;
 
 import crcl.base.CRCLCommandType;
 import crcl.base.CRCLStatusType;
-import crcl.utils.CRCLCopier;
+import crcl.copier.CRCLCopier;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**

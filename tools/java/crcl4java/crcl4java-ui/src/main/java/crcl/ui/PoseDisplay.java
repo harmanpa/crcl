@@ -62,7 +62,7 @@ public class PoseDisplay {
         }
     }
 
-    @SuppressWarnings("serial")
+    @SuppressWarnings({"serial","nullness"})
     static private class PoseDisplayModel extends DefaultTableModel {
 
         public PoseDisplayModel(boolean editable) {
@@ -105,7 +105,7 @@ public class PoseDisplay {
     }
 
     
-    @SuppressWarnings("serial")
+    @SuppressWarnings({"serial","nullness"})
     static private class PoseDisplayModelRpy extends DefaultTableModel {
 
         public PoseDisplayModelRpy(boolean editable) {
@@ -144,7 +144,7 @@ public class PoseDisplay {
         table.setModel(new PoseDisplayModelRpy(editable));
     }
 
-    @SuppressWarnings("serial")
+    @SuppressWarnings({"serial","nullness"})
     static private class PoseDisplayModelRxRyRz extends DefaultTableModel {
 
         public PoseDisplayModelRxRyRz(boolean editable) {
