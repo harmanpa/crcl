@@ -35,6 +35,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -47,6 +49,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
 /**
@@ -197,7 +200,7 @@ public class Main {
         String namespace = "javaforcpp";
     }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, MojoExecutionException {
         main_completed = false;
 
         Options options = setupOptions();
@@ -439,7 +442,7 @@ public class Main {
                         continue;
                     }
                     String relPath = clssFile.getCanonicalPath().substring(jarFile.getCanonicalPath().length());
-                    if(relPath.startsWith("/") || relPath.startsWith("\\")) {
+                    if (relPath.startsWith("/") || relPath.startsWith("\\")) {
                         relPath = relPath.substring(1);
                     }
                     System.out.println("relPath = " + relPath);
@@ -513,6 +516,24 @@ public class Main {
                 }
             }
         }
+        Comparator<Class> classNameComparator = new Comparator<Class>() {
+            @Override
+            public int compare(Class o1, Class o2) {
+                if(o1 == o2) {
+                    return 0;
+                }
+                else if(o1 == null) {
+                    return -1;
+                }
+                else if(o2 == null) {
+                    return 1;
+                } else {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            }
+        };
+        Collections.sort(classesList, classNameComparator);
+        
         if (null != localParams.classnamesToFind) {
             if (verbose) {
                 logString("Checking classnames arguments");
@@ -744,14 +765,18 @@ public class Main {
             File dir;
             if (null != localParams.output && localParams.output.length() > 0) {
                 File outFile = new File(localParams.output);
-                File outFileParent = outFile.getParentFile();
-                if (null != outFileParent) {
-                    dir = outFileParent;
+                if (outFile.isDirectory()) {
+                    dir = outFile;
                 } else {
-                    dir = null;
+                    File outFileParent = outFile.getParentFile();
+                    if (null != outFileParent) {
+                        dir = outFileParent;
+                    } else {
+                        throw new MojoExecutionException("output directory not given: localParams.output=" + localParams.output);
+                    }
                 }
             } else {
-                dir = null;
+                throw new MojoExecutionException("output directory not given: localParams.output=" + localParams.output);
             }
             JavaCloneUtilOptions javaCloneUtilOptions = new JavaCloneUtilOptions();
             javaCloneUtilOptions.classname = localParams.javacloner;

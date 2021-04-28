@@ -40,7 +40,7 @@ public class JavaCloneUtilOptions {
 
     @Override
     public String toString() {
-        return "JavaCloneUtilOptions{" + "classname=" + classname + ", dir=" + dir + ", classes=" + classes + ", nocopyclassnamesSet=" + nocopyclassnamesSet + ", logString=" + logString + '}';
+        return "JavaCloneUtilOptions{\n " + "classname=" + classname + ",\n   dir=" + dir + ",\n   classes=" + classes + ",\n   nocopyclassnamesSet=" + nocopyclassnamesSet + ",\n   logString=" + logString + "\n}\n";
     }
 
     

@@ -57,7 +57,7 @@
                         <param>--javacloner</param>
                         <param>crcl.copier.CRCLCopier.java</param>
                         <param>--output</param>
-                        <param>./src/main/java/foo.cpp</param>
+                        <param>${project.basedir}/src/main/java/</param>
                     </args>
                 </configuration>
             </plugin>

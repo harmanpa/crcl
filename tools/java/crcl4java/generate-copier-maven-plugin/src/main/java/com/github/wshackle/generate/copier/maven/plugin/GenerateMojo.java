@@ -88,7 +88,12 @@ public class GenerateMojo
 //            }
         } catch (Exception  ex) {
             Logger.getLogger(GenerateMojo.class.getName()).log(Level.SEVERE, null, ex);
-            throw new MojoExecutionException("this=" + this.toString(), ex);
+            if(ex instanceof MojoExecutionException) {
+                MojoExecutionException mojoExecutionException = (MojoExecutionException) ex;
+                throw mojoExecutionException;
+            } else {
+                throw new MojoExecutionException("this=" + this.toString(), ex);
+            }
         }
     }
 

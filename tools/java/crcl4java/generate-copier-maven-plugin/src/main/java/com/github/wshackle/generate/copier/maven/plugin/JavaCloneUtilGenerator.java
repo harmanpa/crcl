@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  *
@@ -45,26 +46,11 @@ import java.util.logging.Logger;
  */
 public class JavaCloneUtilGenerator {
 
-    public void generateCloneUtil(JavaCloneUtilOptions options) throws IOException {
+    public void generateCloneUtil(JavaCloneUtilOptions options) throws IOException, MojoExecutionException {
         String classname = options.classname;
         File dir = options.dir;
         List<Class> classes = options.classes;
-//        final Comparator<Class> classNameComparator = new Comparator<Class>() {
-//            @Override
-//            public int compare(Class o1, Class o2) {
-//                if(o1 == o2) {
-//                    return 0;
-//                }
-//                if(o1 == null) {
-//                    return 1;
-//                }
-//                if(o2 == null) {
-//                    return -1;
-//                }
-//                return o1.getName().compareTo(o2.getName());
-//            }
-//        };
-//        Collections.sort(classes, classNameComparator);
+
         Set<String> nocopyclassnamesSet = options.nocopyclassnamesSet;
         String logString = options.logString;
         if (classname.endsWith(".class")) {
@@ -84,13 +70,15 @@ public class JavaCloneUtilGenerator {
         }
         if (null == dir || !dir.exists() || !dir.isDirectory() || !dir.canWrite()) {
 
-            final String userDirProperty = System.getProperty("user.dir");
-            System.out.println("Can't use given dir.");
-            System.out.println("dir = " + dir);
-            System.out.println("Using current user.dir property instead.");
-            System.out.println("userDirProperty = " + userDirProperty);
+            throw new MojoExecutionException("Can't use given dir=" + dir);
 
-            dir = new File(userDirProperty);
+//                System.out.println("Can't use given dir.");
+//            System.out.println("dir = " + dir);
+//            System.out.println("Using current user.dir property instead.");
+//            final String userDirProperty = System.getProperty("user.dir");
+//            System.out.println("userDirProperty = " + userDirProperty);
+//
+//            dir = new File(userDirProperty);
         }
         String classsubstring = classname;
         int pindex = classsubstring.indexOf('.');
