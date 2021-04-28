@@ -88,3 +88,6 @@ tools/java/crcl4java/crcl4java-ui/setCrclUiEnvVars.sh
 /tools/java/crcl4java/examples/C++/NetBeansProjects/crclGenerated/dist/
 /tools/java/crcl4java/ATINetFT_proxy/target/
 /tools/java/crcl4java/ForceTorqueSensorSimulator/target/
+/tools/java/crcl4java/copier-maven-plugin/target/
+/tools/java/crcl4java/crclcopier/target/
+/tools/java/crcl4java/generate-copier-maven-plugin/target/
