@@ -873,22 +873,38 @@ public class ObjTableJPanel<T> extends javax.swing.JPanel {
         _dialog.add(panel);
         _dialog.pack();
         _dialog.setVisible(true);
+        if(null != panel.caughtException) {
+            throw new RuntimeException(panel.caughtException);
+        }
         if (panel.cancelled) {
             return null;
         }
         return panel.getObj();
     }
 
+    private volatile Exception caughtException;
+
+    public Exception getCaughtException() {
+        return caughtException;
+    }
+    
+    
     private void updateOutText(T _obj) {
         try {
             if (null != crclSocket) {
                 if (_obj instanceof CRCLCommandType) {
                     CRCLCommandInstanceType instance = new CRCLCommandInstanceType();
-                    instance.setCRCLCommand((CRCLCommandType) _obj);
+                    final CRCLCommandType outCmd = (CRCLCommandType) _obj;
+                    System.out.println("outCmd.getName() = " + outCmd.getName());
+                    instance.setCRCLCommand(outCmd);
                     String outText = crclSocket.commandInstanceToPrettyString(instance, true);
                     jTextAreaOutput.setText(outText);
                 } else if (_obj instanceof CRCLCommandInstanceType) {
                     CRCLCommandInstanceType instance = (CRCLCommandInstanceType) _obj;
+                    final CRCLCommandType outCmd = instance.getCRCLCommand();
+                    if(null != outCmd) {
+                        System.out.println("outCmd.getName() = " + outCmd.getName());
+                    }
                     String outText = crclSocket.commandInstanceToPrettyString(instance, true);
                     jTextAreaOutput.setText(outText);
                 }
