@@ -53,6 +53,7 @@
                     <generatePackage>crcl.base</generatePackage>
                     <schemaDirectory>${project.basedir}/src/main/resources/</schemaDirectory>
                     <bindingDirectory>${project.basedir}/src/main/resources/</bindingDirectory>
+                    <!--
                     <bindingIncludes>
                         <include>inject.xjb</include>
                     </bindingIncludes>
@@ -60,7 +61,7 @@
                         <arg>-Xinject-code</arg>
                     </args>
                                                          
-                    <!-- <schemas>                                                                                      
+                     <schemas>                                                                                      
                         <schema>
                             <url>${crcl.schemaBaseUrl}CRCLCommandInstance.xsd</url>
                         </schema>
