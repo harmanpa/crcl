@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: rcs.posemath.PosemathTest
 -------------------------------------------------------------------------------
-Tests run: 241, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.244 sec
+Tests run: 241, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.308 sec

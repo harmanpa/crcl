@@ -20,6 +20,13 @@
         <module>jcrcl-commons-math</module>
         <module>rcslib</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>jcrcl</id>
+            <name>Github jcrcl</name>
+            <url>https://maven.pkg.github.com/harmanpa/crcl</url>
+        </repository>
+    </distributionManagement>
     <url>
         https://github.com/usnistgov/crcl
     </url>
