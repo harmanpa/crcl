@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="4" failures="0" name="crcl.utils.SimulatedKinematicsPlausibleTest" time="0" errors="0" skipped="0">
+<testsuite tests="4" failures="0" name="crcl.utils.SimulatedKinematicsPlausibleTest" time="0.015" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.8.0_231\jre\bin"/>
@@ -70,6 +70,6 @@
   </properties>
   <testcase classname="crcl.utils.SimulatedKinematicsPlausibleTest" name="testRot9x9mult" time="0"/>
   <testcase classname="crcl.utils.SimulatedKinematicsPlausibleTest" name="testPrintRot9x9" time="0"/>
-  <testcase classname="crcl.utils.SimulatedKinematicsPlausibleTest" name="testPoseToJoints" time="0"/>
+  <testcase classname="crcl.utils.SimulatedKinematicsPlausibleTest" name="testPoseToJoints" time="0.015"/>
   <testcase classname="crcl.utils.SimulatedKinematicsPlausibleTest" name="testJointsToPose_3args" time="0"/>
 </testsuite>

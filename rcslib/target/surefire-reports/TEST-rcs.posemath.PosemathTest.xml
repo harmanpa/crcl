@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="241" failures="0" name="rcs.posemath.PosemathTest" time="0.097" errors="0" skipped="0">
+<testsuite tests="241" failures="0" name="rcs.posemath.PosemathTest" time="0.089" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.8.0_231\jre\bin"/>
@@ -68,70 +68,70 @@
     <property name="sun.desktop" value="windows"/>
     <property name="sun.cpu.isalist" value="amd64"/>
   </properties>
-  <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_CYLINDRICAL" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartScalDiv" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_CYLINDRICAL" time="0.003"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartScalDiv" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCylConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxRpyConvert" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxRpyConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmPoseInv" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_QUATERNION" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_ROTATION_MATRIX_PM_ROTATION_MATRIX" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatNorm" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmHomPoseConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmHomPoseConvert" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmRotQuatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testWeightedAvg_4args_1" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testWeightedAvg_4args_1" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testWeightedAvg_4args_2" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testCartListToMagArray" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testStddev_List" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PmQuaternion" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testDot_PM_CYLINDRICAL_PM_CYLINDRICAL" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylInv" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testCartListToMagArray" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testStddev_List" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PmQuaternion" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testDot_PM_CYLINDRICAL_PM_CYLINDRICAL" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylInv" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylMag" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylNeg" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testWriteTimeAndPoseListS" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatCartMult" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testHomMatsPrePostMult" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testHomMatsPrePostMult" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testHomMatsToPoseList" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoseListToCartList" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_QUATERNION" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_QUATERNION" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PmCartesian_double" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatZyzConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatZyzConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmHomInv" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmHomInv" time="0.002"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmSphCartConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmPosePoseCompare" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyQuatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyZyzConvert" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToRpy_PmRotationMatrix" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testWriteTimeAndPoseList" time="0.003"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyQuatConvert" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyZyzConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToRpy_PmRotationMatrix" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testWriteTimeAndPoseList" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmRotScalMult" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatInv" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylScalDiv" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToRpy_PM_QUATERNION" time="0.031"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToRpy_PM_QUATERNION" time="0.028"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoseListRandom" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMag_PmCartesian" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testSubtract_PmCartesian_PmCartesian" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylAdd" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylAdd" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylDot" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylSub" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmZyzRpyConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmZyzRpyConvert" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testFitLine" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToCyl" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToHom" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToCyl" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToHom" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylIsNorm" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testDisp" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testDisp" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMain" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMaxA" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmSq" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testProj" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartPlaneProj" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartPlaneProj" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmPoseHomConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_XYA_PM_CARTESIANArr" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_CYLINDRICAL" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_XYA_PM_CARTESIANArr" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_CYLINDRICAL" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylCompare" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartInv" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartMag" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartNeg" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartNeg" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatRotConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMag_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatRotConvert" time="0"/>
@@ -141,17 +141,17 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatMag" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmClose" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_ROTATION_VECTOR" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCentroid_List" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyRotConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCentroid_List" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyRotConvert" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testStddev_DoubleArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxZyzConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_XYA" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMean_DoubleArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PmRpy" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_CYLINDRICAL" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_double_PM_CYLINDRICAL" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testNorm_PM_CYLINDRICAL" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatZyxConvert" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmMatZyxConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatZyxConvert" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmMatZyxConvert" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatNorm" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCentroid_List" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCartCompare" time="0.001"/>
@@ -163,38 +163,38 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCentroid_PmCartesianArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_ROTATION_MATRIX" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatAxisAngleMult_3args" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatAxisAngleMult_3args" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatAxisAngleMult_4args" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testSplitToLines" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatMatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatIsNorm" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatIsNorm" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToSph_PM_CARTESIAN" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testCsvToListF" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatScalDiv" time="0.003"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testCsvToListF" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatScalDiv" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmRpyMatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPoseListToHomMats" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPoseListToHomMats" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoseListChk" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoseListInv" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testDivide_PM_ROTATION_VECTOR_double" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylNorm" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylNorm" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxRotConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatQuatCompare" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_ROTATION_VECTOR" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testDivide_PM_CARTESIAN_double" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testDivide_PM_CARTESIAN_double" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCsvWithTimeToPoseList" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testAdd_PM_CARTESIAN_PM_CARTESIAN" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PmRotationMatrix" time="0.003"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PmRotationMatrix" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testDistFromPath" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmRotNorm" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmRotNorm" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartSphConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylCross" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCylCross" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmRotMatConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoseListToRpyList" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testNorm_PM_ROTATION_VECTOR" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testNorm_PM_ROTATION_VECTOR" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCsvToHomMatsChk" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testDivide_PM_CYLINDRICAL_double" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmRotIsNorm" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PmRotationVector" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PmRotationVector" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PmRotationMatrix" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PM_EULER_ZYX" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PM_EULER_ZYZ" time="0"/>
@@ -202,10 +202,10 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatQuatMult" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_QUATERNION_double" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylCartConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPrePostMultiplyList" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPrePostMultiplyList" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_POSE_PM_POSE" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_XYA_List" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testCsvToHomMats" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testCsvToHomMats" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testDot_PmCartesian_PmCartesian" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PM_QUATERNION" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPrintCorrelationShifts" time="0"/>
@@ -213,36 +213,36 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testFitLines" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testFindStillTimes" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmLinePoint" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_CARTESIAN" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_ROTATION_VECTOR_double" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testInv_PM_CARTESIAN" time="0.002"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_ROTATION_VECTOR_double" time="0.001"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_POSE_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxMatConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testNeg_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyxQuatConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMean_List" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PM_ROTATION_VECTOR" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PM_RPY" time="0.014"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmSphCylConvert" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PM_ROTATION_VECTOR" time="0.002"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PM_RPY" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmSphCylConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoint_on_line_PM_LINE_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToSph_PM_CYLINDRICAL" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMag_PM_QUATERNION" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyzRotConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPoint_on_line_PM_LINE_PmCartesian" time="0.002"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPoint_on_line_PM_LINE_PmCartesian" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatScalMult" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmMatQuatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testCross_PM_CARTESIAN_PM_CARTESIAN" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmMatQuatConvert" time="0.003"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testCross_PM_CARTESIAN_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCsvToList" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmZyzQuatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PM_QUATERNION" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PM_QUATERNION" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_POSE_PM_CARTESIANArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmLineInit" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PM_ROTATION_MATRIX" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToPose_doubleArrArr" time="0.001"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testCsvSync" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToPose_doubleArrArr" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testCsvSync" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testIn_line_segment" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testNorm_PM_CARTESIAN" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testHomMatsChk" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testIS_FUZZ" time="0.002"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testHomMatsChk" time="0.014"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testIS_FUZZ" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_CARTESIAN_double" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PM_RPY" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCylSphConvert" time="0"/>
@@ -257,25 +257,25 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testSubtract_PM_CARTESIAN_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testComputeLineFitErrors" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCross_PM_CYLINDRICAL_PM_CYLINDRICAL" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testGetCk1Pose" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testGetCk1Pose" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testGetCk2Pose" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCentroid_PM_CARTESIANArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCross_PmCartesian_PmCartesian" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToCart_PM_CYLINDRICAL" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMag_PM_CYLINDRICAL" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_QUATERNION" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testIsNorm_PM_QUATERNION" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testIntersection" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_XYA_PM_CARTESIAN" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmCartScalMult" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCartCross" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmCartCartCross" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testNeg_PM_CYLINDRICAL" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmPoseCartMult" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PmRotationVector" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToMat_PmRotationVector" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatMatMult" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatCartMult" time="0.001"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatCartMult" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testToQuat_PmRpy" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmAxisAngleQuatConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testStddev_doubleArr" time="0"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testStddev_doubleArr" time="0.004"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMean_doubleArr" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCsvToPoseListF" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPoint_on_line_3args" time="0"/>
@@ -290,7 +290,7 @@
   <testcase classname="rcs.posemath.PosemathTest" name="testPmQuatRpyConvert" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_CYLINDRICAL_double" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testPmMatRpyConvert" time="0"/>
-  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PmRpy" time="0.01"/>
+  <testcase classname="rcs.posemath.PosemathTest" name="testToRot_PmRpy" time="0.002"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testShiftedSumOfProducts" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testMultiply_PM_QUATERNION_PM_QUATERNION" time="0"/>
   <testcase classname="rcs.posemath.PosemathTest" name="testCsvToPoseList" time="0"/>
