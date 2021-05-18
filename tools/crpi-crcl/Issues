@@ -1,8 +1,0 @@
-1. CRCL joint status needs to indicate what joint type it is.
-
-2. Use the -S option to pass the schema you put in your message to the
-recipient. It's their path to their schema.
-
-3. XML serialization - the message reader doesn't do message parsing
-when it reads, so you need to add delays to make sure two messages
-don't come back-to-back.

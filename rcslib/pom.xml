@@ -1,0 +1,78 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rcslib</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <artifactId>jcrcl</artifactId>
+        <groupId>tech.cae</groupId>
+        <version>dev</version>
+    </parent>
+    <description>
+        NIST Real-Time Control Systems Library including Posemath, NML communications and Java Plotter
+    </description>
+    <licenses>
+        <license>
+            <name>Public Domain(US Government Work)</name>
+            <url>http://www.copyright.gov/title17/92chap1.html#105</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <distributionManagement>
+        <repository>
+            <id>jcrcl</id>
+            <name>Github jcrcl</name>
+            <url>https://maven.pkg.github.com/harmanpa/crcl</url>
+        </repository>
+    </distributionManagement>
+    <developers>
+        <developer>
+            <id>wshackle</id>
+            <name>Will Shackleford</name>
+            <email>william.shackleford@nist.gov</email>
+            <url>https://github.com/wshackle</url>
+            <organization>NIST</organization>
+            <organizationUrl>http://www.nist.gov</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>America/New_York</timezone>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:usnistgov/rcslib.git</connection>
+        <developerConnection>scm:git:git@github.com:usnistgov/rcslib.git</developerConnection>
+        <url>https://github.com/usnistgov/rcslib</url>
+        <tag>HEAD</tag>
+    </scm>
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+</project>
